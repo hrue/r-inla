@@ -362,7 +362,7 @@ typedef enum {
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
 	P_LAPLACE,
-	P_RPRIOR, 
+	P_RPRIOR,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1109,7 +1109,6 @@ struct inla_tp_struct {
 	int ds;						       /* current data-section (when reading) */
 	int nds;					       /* number of data-sections in total */
 	int data_ntheta_all;
-	int gaussian_data;				       /* corresponds to ai_par->gaussian_data */
 	double *d;
 	void **loglikelihood_arg;
 	Data_section_tp *data_sections;
@@ -2160,7 +2159,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

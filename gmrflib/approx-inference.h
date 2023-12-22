@@ -291,11 +291,6 @@ typedef struct {
 	int fast;
 
 	/**
-	 * \brief Gaussian data?  If TRUE, then we know that all data is Gaussian
-	 */
-	int gaussian_data;
-
-	/**
 	 * \brief Type of linear correction by approximating \f$\log\pi(x_{-i}|x_i,\theta,y)\f$ linearly wrt \f$x_i\f$.
 	 *
 	 * This option is default OFF.
@@ -1104,7 +1099,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id, double *logdens,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * aipar, GMRFLib_ai_store_tp * store,
-				   GMRFLib_preopt_tp * preopt);
+				   GMRFLib_preopt_tp * preopt, GMRFLib_idx_tp * d_idx);
 int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
 			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
@@ -1130,8 +1125,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id, GMRFLib_problem
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb,
-						  double *cc, int gaussian_data, double c_min, int b_strategy, int nested,
-						  GMRFLib_preopt_tp * preopt);
+						  double *cc, double c_min, int b_strategy, int nested,
+						  GMRFLib_preopt_tp * preopt, GMRFLib_idx_tp * d_idx);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
 int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
@@ -1235,7 +1230,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id, GMRFLib_density_tp *** dens
 				      GMRFLib_ai_store_tp * ai_store,
 				      GMRFLib_graph_tp * graph,
 				      GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				      GMRFLib_preopt_tp * preopt);
+				      GMRFLib_preopt_tp * preopt, GMRFLib_idx_tp * d_idx);
 int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_density_tp *** density,
 					  int dens_count,
@@ -1245,7 +1240,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_ai_store_tp * ai_store,
 					  GMRFLib_graph_tp * graph,
 					  GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					  GMRFLib_preopt_tp * preopt, double *c_corrected);
+					  GMRFLib_preopt_tp * preopt, double *c_corrected, GMRFLib_idx_tp * d_idx);
 
 double GMRFLib_bfunc_eval(int thread_id, double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);

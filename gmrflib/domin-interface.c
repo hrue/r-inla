@@ -78,7 +78,8 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_bfunc_tp **bfunc, double *d,
 		      GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt)
+		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
+		      GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	opt_setup = 1;
 	fncall_timing.time_used = 0.0;
@@ -114,6 +115,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.constr = constr;
 	G.ai_par = ai_par;
 	G.ai_store = ai_store;
+	G.d_idx = d_idx;
 
 	if (0) {
 		int thread_id = 0;
@@ -292,7 +294,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 				       fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
 				       G.graph,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local->Qfunc),
-				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt);
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt, G.d_idx);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg);
 

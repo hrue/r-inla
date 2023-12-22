@@ -460,9 +460,8 @@ int inla_INLA(inla_tp *mb)
 	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
-	if (mb->gaussian_data) {
+	if (GMRFLib_gaussian_data) {
 		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-		mb->ai_par->gaussian_data = mb->gaussian_data;
 	}
 
 	/*
@@ -1156,9 +1155,8 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
-	if (mb->gaussian_data) {
+	if (GMRFLib_gaussian_data) {
 		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-		mb->ai_par->gaussian_data = mb->gaussian_data;
 	}
 
 	/*

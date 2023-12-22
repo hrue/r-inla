@@ -127,6 +127,37 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	 * 
 	 */
 
+	if (GMRFLib_gaussian_data) {
+		// special implementation for *stencil==3, which is ONLY used for GMRFLib_gaussian_data
+		// we merge this function and the _core() one
+		double step = 1.0e-4;
+		int n = 3;
+		double xx[3], f0, f[3], df, ddf;
+
+		xx[0] = x0 - step;
+		xx[1] = x0;
+		xx[2] = x0 + step;
+
+		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+
+		f0 = f[1];
+		df = 0.5 * (-f[0] + f[2]);
+		ddf = f[0] - 2.0 * f[1] + f[2];
+
+		df /= step;
+		ddf /= SQR(step);
+
+		if (a)
+			*a = f0 + x0 * (-df + 0.5 * x0 * ddf);
+		if (b)
+			*b = df + x0 * (-ddf);
+		if (c)
+			*c = -ddf;
+		if (dd)
+			*dd = 0.0;
+
+		return GMRFLib_SUCCESS;
+	}
 #define INVALID(x_) (ISNAN(x_) || ISINF(x_))
 
 	double f0 = 0.0, df = 0.0, ddf = 0.0, dddf = 0.0;
@@ -190,8 +221,8 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
-			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
+forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
+					   double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 
@@ -214,13 +245,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		ddf = (-1.0 / 12.0 * f[4] - 4.0 / 3.0 * f[3] - 5.0 / 2.0 * f[2] + 4.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / SQR(step);
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / POW3(step);
 	} else if (stencil && *stencil == 3) {
-		// special implementation for *stencil==3, which is used for the Gaussian case
-		if (!step_len || ISZERO(*step_len)) {
-			step = 1.0e-4 * (GSL_DBL_EPSILON / 2.220446049e-16);
-		} else {
-			step = *step_len;
-		}
-
+		// special implementation for *stencil==3, which is ONLY used for GMRFLib_gaussian_data
+		step = 1.0e-4;
 		int n = 3;
 		xx[0] = x0 - step;
 		xx[1] = x0;
@@ -229,7 +255,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[1];
-		df = 0.5 * (- f[0] + f[2]);
+		df = 0.5 * (-f[0] + f[2]);
 		ddf = f[0] - 2.0 * f[1] + f[2];
 
 		df /= step;
@@ -248,15 +274,9 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		int n, nn, wlength;
 
 		/*
-		  static double wf3[] = {
-		  // 
-		  -0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
-		  // 
-		  1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
-		  // 
-		  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		  };
-		*/
+		 * static double wf3[] = { // -0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, // 1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, // 0.0, 0.0, 
+		 * 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; 
+		 */
 		static double wf5[] = {
 			// 
 			0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333, 0.0, 0.0, 0.0,
@@ -291,13 +311,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 
 		switch (num_points) {
 			/*
-			  case 3:
-			  n = 3;
-			  nn = 1;
-			  wlength = 8;
-			  wf = wf3;
-			  break;
-			*/
+			 * case 3: n = 3; nn = 1; wlength = 8; wf = wf3; break; 
+			 */
 		case 5:
 			n = 5;
 			nn = 2;
