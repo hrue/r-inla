@@ -1,3 +1,8 @@
+# INLA 23.12.29
+* Some code improvement
+* Fixed false warning for 'scopy'
+* Fixed issue for 'safe'-option
+
 # INLA 23.12.17
 * New version of `scopy` (experimental)
 * Added support for defining priors in `R` (experimental, see `rprior`)
