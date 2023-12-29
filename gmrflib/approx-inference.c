@@ -64,9 +64,6 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 	(*ai_par)->fast = GMRFLib_FALSE;		       /* compute conditional mode */
 	(*ai_par)->fast = GMRFLib_TRUE;			       /* use mode = conditional mean */
 
-	(*ai_par)->gaussian_data = GMRFLib_TRUE;
-	(*ai_par)->gaussian_data = GMRFLib_FALSE;
-
 	(*ai_par)->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE;
 	(*ai_par)->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_OFF;
 	(*ai_par)->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_FAST;	/* to match the ->fast mode above */
@@ -266,7 +263,7 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 	fprintf(fp, "\t\toptpar_fp = %" PRIxPTR "\n", (uintptr_t) (ai_par->optpar_fp));
 	fprintf(fp, "\t\toptpar_nr_step_factor = %.6g\n", ai_par->optpar_nr_step_factor);
 
-	fprintf(fp, "\tGaussian data: %s\n", (ai_par->gaussian_data ? "Yes" : "No"));
+	fprintf(fp, "\tGaussian data: %s\n", (GMRFLib_gaussian_data ? "Yes" : "No"));
 
 	fprintf(fp, "\tStrategy: \t");
 	if (ai_par->strategy == GMRFLib_AI_STRATEGY_GAUSSIAN) {
@@ -412,7 +409,8 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 				   double *x, double *b, double *c, double *mean, double *d,
 				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				   GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
-				   GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt)
+				   GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
+				   GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	/*
 	 * return the unnormalised log marginal density for the hyperparamers in `logdens'. note that we assume that 'b' and 'mean' are constants. when this is not
@@ -502,12 +500,12 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (thread_id, &problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc,
 				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0, preopt));
+				ai_par->cmin, ai_par->b_strategy, 0, preopt, d_idx));
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (thread_id, &problem, x, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0, preopt));
+				ai_par->cmin, ai_par->b_strategy, 0, preopt, d_idx));
 	}
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
 
@@ -646,8 +644,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						  GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp *constr, GMRFLib_optimize_param_tp *optpar,
 						  GMRFLib_blockupdate_param_tp *blockupdate_par, GMRFLib_store_tp *store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy, int nested,
-						  GMRFLib_preopt_tp *preopt)
+						  double *aa, double *bb, double *cc, double cmin, int b_strategy, int nested,
+						  GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	// this is implicitely assumed
 	assert(mean == NULL);
@@ -664,13 +662,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	 * This is copy of the original routine but with optional arguments 
 	 */
 
-	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, *idxs = NULL, nidx = 0;
+	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n;
 	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
 		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
-		if (free_cc) Free(cc); Free(idxs); }
+		if (free_cc) Free(cc); if (free_d_idx) GMRFLib_idx_free(d_idx);  }
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -711,6 +709,16 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	Memcpy(mode, x, n * sizeof(double));
 
+	int free_d_idx = 0;
+	if (d_idx == NULL) {
+		for (int i = 0; i < preopt->Npred; i++) {
+			if (d[i]) {
+				GMRFLib_idx_add(&d_idx, i);
+			}
+		}
+		free_d_idx = 1;
+	}
+
 	/*
 	 * the NEW implementation which do optimisation and GMRF_approximation in the same operation. this is tailored for INLA of'course, and only ment
 	 * for that. 
@@ -718,14 +726,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	if (optpar && optpar->fp)
 		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
-	nidx = 0;
-	idxs = Calloc(Npred, int);
-	for (int i = 0; i < Npred; i++) {
-		if (d[i]) {
-			idxs[nidx++] = i;
-		}
-	}
-
 	int iter, itmax = optpar->max_iter;
 	/*
 	 * these tricks are currently disabled 
@@ -782,8 +782,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		Memset(ccoof, 0, Npred * sizeof(double));
 
 #define CODE_BLOCK							\
-		for (int i_ = 0; i_ < nidx; i_++) {			\
-			int idx = idxs[i_];				\
+		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
+			int idx = d_idx->idx[i_];			\
 			double ccmin = cmin;				\
 			if (ISINF(ccmin) == 1) {			\
 				/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
@@ -868,7 +868,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 		int flag_cycle_behaviour = 0;
 		double f;
-		if (gaussian_data) {
+		if (GMRFLib_gaussian_data) {
 			f = 1.0;
 		} else {
 			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
@@ -903,7 +903,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (optpar && optpar->fp)
 			fprintf(optpar->fp, "[%1d] iteration %d error %.4f\n", thread_id, iter, err);
 
-		if (gaussian_data) {
+		if (GMRFLib_gaussian_data) {
 			/*
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
@@ -913,8 +913,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			} else {
 				linear_predictor = mode;
 			}
-			for (int i = 0; i < nidx; i++) {
-				int idx = idxs[i];
+			for (int i = 0; i < d_idx->n; i++) {
+				int idx = d_idx->idx[i];
 				GMRFLib_2order_approx(thread_id,
 						      &(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
@@ -926,7 +926,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
-		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
+		if (GMRFLib_gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
 			/*
 			 * we're done!  unless we have negative elements on the diagonal...
 			 */
@@ -1023,8 +1023,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 											       loglFunc, loglFunc_arg,
 											       graph, Qfunc, Qfunc_arg, constr,
 											       &new_optpar, blockupdate_par, store,
-											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2,
-											       preopt);
+											       aa, bb, cc, cmin, b_strategy, 2, preopt, d_idx);
 					if (stop && retval == GMRFLib_SUCCESS) {
 						break;
 					}
@@ -1128,9 +1127,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_density_tp ***lin_dens = NULL;
 	GMRFLib_ai_store_tp **ais = NULL;
 	double **lin_cross = NULL;
-	GMRFLib_idx_tp *d_idx = NULL;
 	GMRFLib_gcpo_groups_tp *gcpo_groups = NULL;
 
+	GMRFLib_idx_tp *d_idx = NULL;
 	for (int i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
@@ -1286,7 +1285,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 	GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
-			  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+			  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 
 	if (nhyper > 0) {
 		/*
@@ -1295,7 +1294,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 * good way to get around it for the moment.
 		 */
 		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
-				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
@@ -2073,7 +2072,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count,
 							  c, d, ai_par, ai_store_id, graph,
 							  (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-							  loglFunc, loglFunc_arg, preopt);
+							  loglFunc, loglFunc_arg, preopt, d_idx);
 		}
 
 		double *c_corrected = NULL;
@@ -2082,7 +2081,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
 							      c, d, ai_par, ai_store_id, graph,
 							      (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-							      loglFunc, loglFunc_arg, preopt, c_corrected);
+							      loglFunc, loglFunc_arg, preopt, c_corrected, d_idx);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -4213,7 +4212,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      GMRFLib_ai_store_tp *ai_store,
 				      GMRFLib_graph_tp *graph,
 				      GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
-				      GMRFLib_preopt_tp *preopt)
+				      GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	GMRFLib_ENTER_ROUTINE;
 	Calloc_init(5 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 11);
@@ -4246,7 +4245,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	// need the idx's for the vb correction and the data locations
-	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
+	GMRFLib_idx_tp *vb_idx = NULL;
 
 	for (int i = 0; i < graph->n; i++) {
 		if (ai_par->vb_nodes_mean[i]) {
@@ -4257,14 +4256,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
-
-	GMRFLib_idx_create(&d_idx);
-	for (int i = 0; i < preopt->Npred; i++) {
-		if (d[i]) {
-			GMRFLib_idx_add(&d_idx, i);
-		}
-	}
-	assert(d_idx);
 
 	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if required */
 	double *sd = Calloc_get(graph->n);
@@ -4543,7 +4534,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	gsl_vector_free(delta);
 	gsl_vector_free(delta_mu);
 
-	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
 
@@ -4561,7 +4551,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_ai_store_tp *ai_store,
 					  GMRFLib_graph_tp *graph,
 					  GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
-					  GMRFLib_preopt_tp *preopt, double *c_corrected)
+					  GMRFLib_preopt_tp *preopt, double *c_corrected, GMRFLib_idx_tp *d_idx)
 {
 	GMRFLib_ENTER_ROUTINE;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
@@ -4590,7 +4580,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	}
 
 	// need the idx's for the vb correction and the data locations
-	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
+	GMRFLib_idx_tp *vb_idx = NULL;
 
 	for (int i = 0; i < graph->n; i++) {
 		if (ai_par->vb_nodes_variance[i]) {
@@ -4601,13 +4591,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
-
-	for (int i = 0; i < preopt->Npred; i++) {
-		if (d[i]) {
-			GMRFLib_idx_add(&d_idx, i);
-		}
-	}
-	assert(d_idx);
 
 	Calloc_init(7 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred + 1 * vb_idx->n, 13);
 	double *x_mean = Calloc_get(graph->n);
@@ -5042,7 +5025,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	gsl_vector_free(gradient);
 
 	GMRFLib_free_tabulate_Qfunc(prior);
-	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
 

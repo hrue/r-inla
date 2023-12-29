@@ -285,9 +285,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * default: gaussian data is on, then its turned off... unless we chose to disable the check
 	 */
 	if (mb->expert_disable_gaussian_check) {
-		mb->gaussian_data = GMRFLib_FALSE;
+		GMRFLib_gaussian_data = GMRFLib_FALSE;
 	} else {
-		mb->gaussian_data = GMRFLib_TRUE;
+		GMRFLib_gaussian_data = GMRFLib_TRUE;
 	}
 
 	/*
@@ -784,8 +784,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			need_link++;
 	}
 
-	// fprintf(stderr, "%d\n", mb->gaussian_data);
-	if (need_link && !mb->gaussian_data) {
+	// fprintf(stderr, "%d\n", GMRFLib_gaussian_data);
+	if (need_link && !GMRFLib_gaussian_data) {
 		fprintf(stderr, "\n\n*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
 		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
 	}
@@ -1276,9 +1276,6 @@ int inla_setup_ai_par_default(inla_tp *mb)
 
 	if (!mb->ai_par) {
 		GMRFLib_default_ai_param(&(mb->ai_par));
-
-		mb->ai_par->gaussian_data = mb->gaussian_data;
-		// P(mb->gaussian_data);
 
 		if (!(G.mode == INLA_MODE_HYPER)) {
 			/*
@@ -5702,7 +5699,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	mb->ai_par->compute_nparam_eff = 1;
 	mb->predictor_compute = GMRFLib_TRUE;
 	mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-	if (mb->gaussian_data) {
+	if (GMRFLib_gaussian_data) {
 		mb->ai_par->vb_enable = GMRFLib_FALSE;
 	}
 
@@ -5857,7 +5854,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 			GMRFLib_daxpy(preopt->n, gamma, d, x);
 			if (iter > 0) {
-				if ((norm_initial - norm) / norm_initial < 0.05) 
+				if ((norm_initial - norm) / norm_initial < 0.05)
 					break;
 			}
 			norm_initial = norm;
@@ -6493,6 +6490,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
+	GMRFLib_gaussian_data = 1;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */

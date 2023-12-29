@@ -429,8 +429,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 									     b, c, mean, d, loglFunc, loglFunc_arg,
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
 									     ai_store->store, ai_store->aa, ai_store->bb,
-									     ai_store->cc, ai_par->gaussian_data, ai_par->cmin,
-									     ai_par->b_strategy, 0, preopt));
+									     ai_store->cc, ai_par->cmin, ai_par->b_strategy, 0, preopt, NULL));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		/*
 		 * store the mode for later usage 
@@ -1452,6 +1451,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	GMRFLib_ai_store_tp **ais = NULL;
 	double **lin_cross = NULL;
 
+	GMRFLib_idx_tp *d_idx = NULL;
+	for (i = 0; i < graph->n; i++) {
+		if (d[i]) {
+			GMRFLib_idx_add(&d_idx, i);
+		}
+	}
+
 	assert(GMRFLib_inla_mode != GMRFLib_MODE_COMPACT);
 	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 		assert(!preopt);
@@ -1637,7 +1643,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		 * good way to get around it for the moment.
 		 */
 		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, compute, x, b, c, mean, bfunc, d, loglFunc,
-				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.
@@ -2877,7 +2883,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		double *bnew = NULL, con = 0.0;
 		GMRFLib_bnew(thread_id, &bnew, &con, graph->n, b, bfunc);
 		GMRFLib_ai_marginal_hyperparam(thread_id, &tmp_logdens, x, bnew, c, mean, d,
-					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, NULL);
 		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg);
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);

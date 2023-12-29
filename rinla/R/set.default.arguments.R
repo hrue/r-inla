@@ -750,7 +750,7 @@ control.vb <- function(
         step.len = 0.0,
 
         #' @param stencil Numerical Number of points in the stencil used to compute the
-        #' numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
+        #' numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)
         stencil = 5L,
 
         #' @param lincomb.derived.correlation.matrix Logical If TRUE compute also the

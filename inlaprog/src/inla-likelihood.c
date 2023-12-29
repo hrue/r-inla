@@ -616,7 +616,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	return INLA_OK;
 }
 
-
 int loglikelihood_inla(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str)
 {
 	inla_tp *a = (inla_tp *) arg;
@@ -663,18 +662,14 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w;
-	static double log_prec_limit = 0.0;
+	static double log_prec_limit = -log(INLA_REAL_SMALL);
+
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
-
-	if (log_prec_limit == 0.0) {
-		log_prec_limit = -log(INLA_REAL_SMALL);
-	}
 
 	if (ds->data_observations.log_prec_gaussian_offset[thread_id][0] > log_prec_limit) {
 		lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
 		prec = exp(lprec);
-		// prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
 	} else {
 		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
 		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
@@ -697,8 +692,7 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
-
-			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0 && off == 0.0)) {
+			if (PREDICTOR_SCALE == 1.0 && off == 0.0) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 				if (0 && m >= 8L) {
@@ -4860,9 +4854,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
