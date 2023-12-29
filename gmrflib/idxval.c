@@ -1044,6 +1044,17 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 	return GMRFLib_SUCCESS;
 }
 
+GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h) 
+{
+	GMRFLib_idx_tp *new = NULL;
+	GMRFLib_idx_create(&new);
+	if (h && h->n > 0) {
+		GMRFLib_idx_nadd(&new, h->n, h->idx);
+	}
+
+	return new;
+}
+
 int GMRFLib_str_add(GMRFLib_str_tp **hold, char *s)
 {
 	if (*hold == NULL) {

@@ -711,7 +711,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	int free_d_idx = 0;
 	if (d_idx == NULL) {
-		for (int i = 0; i < preopt->Npred; i++) {
+		GMRFLib_idx_create(&d_idx);
+		for (int i = 0; i < (preopt ? preopt->Npred : graph->n); i++) {
 			if (d[i]) {
 				GMRFLib_idx_add(&d_idx, i);
 			}
@@ -1130,6 +1131,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_gcpo_groups_tp *gcpo_groups = NULL;
 
 	GMRFLib_idx_tp *d_idx = NULL;
+	GMRFLib_idx_create(&d_idx);
 	for (int i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
@@ -6599,7 +6601,9 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	DUPLICATE(derivative3, n, double, skeleton);
 	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
-	DUPLICATE(d_idx, nd, int, 0);
+
+	// this is a special case
+	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx); 
 
 	char *tmp = Calloc(1, char);
 	Free(tmp);
