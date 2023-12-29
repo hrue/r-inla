@@ -1,4 +1,4 @@
-# INLA 23.12.29
+# INLA 23.12.30
 * Some code improvement
 * Fixed false warning for 'scopy'
 * Fixed issue for 'safe'-option
