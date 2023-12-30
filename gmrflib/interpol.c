@@ -44,8 +44,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	/*
 	 * Return a spline interpolant for {(x,y)}
 	 *
-	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none. if 'save_memory' is set, then
-	 * use cache=3
+	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none. 
 	 */
 	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
@@ -91,11 +90,6 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
-
-	// do not use any cache when this global option is set
-	if (GMRFLib_save_memory) {
-		cache = GMRFLib_INTPOL_CACHE_NONE;
-	}
 
 	switch (cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
