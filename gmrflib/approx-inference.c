@@ -1131,7 +1131,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_gcpo_groups_tp *gcpo_groups = NULL;
 
 	GMRFLib_idx_tp *d_idx = NULL;
-	GMRFLib_idx_create(&d_idx);
+	GMRFLib_idx_create_x(&d_idx, preopt->Npred);
 	for (int i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
