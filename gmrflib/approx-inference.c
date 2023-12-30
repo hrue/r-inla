@@ -571,7 +571,7 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp *ai_store)
 		Free(ai_store->bb);
 		Free(ai_store->cc);
 		Free(ai_store->stdev);
-		Free(ai_store->d_idx);
+		GMRFLib_idx_free(ai_store->d_idx);
 		Free(ai_store->correction_term);
 		Free(ai_store->correction_idx);
 		Free(ai_store->derivative3);
@@ -1273,7 +1273,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 	if (dic) {
 		deviance_theta = Calloc(preopt->Npred, double **);	/* mean of deviance conditioned on theta */
-		assert(d_idx);
 		for (int jj = 0; jj < d_idx->n; jj++) {
 			int j = d_idx->idx[jj];
 			deviance_theta[j] = Calloc(dens_max, double *);
@@ -6583,13 +6582,11 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	}
 	GMRFLib_ai_store_tp *new_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
-	int nd = ai_store->nd;
 	int Npred = ai_store->Npred;
 
 	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
 	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
 	COPY(nidx);
-	COPY(nd);
 	COPY(Npred);
 
 	DUPLICATE(mode, n, double, 0);
@@ -6601,8 +6598,6 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	DUPLICATE(derivative3, n, double, skeleton);
 	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
-
-	// this is a special case
 	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx); 
 
 	char *tmp = Calloc(1, char);
@@ -6613,41 +6608,6 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 
 #undef DUPLICATE
 #undef COPY
-}
-
-GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp *from)
-{
-	/*
-	 * set contents of TO = FROM
-	 */
-
-#define ASSIGN(name) to->name = from->name
-
-	GMRFLib_ENTER_ROUTINE;
-	if (!to || !from) {
-		GMRFLib_LEAVE_ROUTINE;
-		return NULL;
-	}
-
-	ASSIGN(aa);
-	ASSIGN(bb);
-	ASSIGN(cc);
-	ASSIGN(correction_idx);
-	ASSIGN(correction_term);
-	ASSIGN(d_idx);
-	ASSIGN(derivative3);
-	ASSIGN(derivative4);
-	ASSIGN(mode);
-	ASSIGN(nc_orig);
-	ASSIGN(nd);
-	ASSIGN(nidx);
-	ASSIGN(problem);
-	ASSIGN(stdev);
-	ASSIGN(store);
-
-	GMRFLib_LEAVE_ROUTINE;
-	return GMRFLib_SUCCESS;
-#undef ASSIGN
 }
 
 double GMRFLib_bfunc_eval(int thread_id, double *constant, GMRFLib_bfunc_tp *bfunc)

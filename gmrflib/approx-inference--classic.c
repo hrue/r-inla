@@ -248,7 +248,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ii, free_ai_store = 0, i_idx, j_idx, one = 1, *node_map = NULL;
+	int i, j, k, n = -1, free_ai_par = 0, n_points, ii, free_ai_store = 0, i_idx, j_idx, one = 1, *node_map = NULL;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond = 0.0, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, deldif =
 	    GSL_ROOT6_DBL_EPSILON, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
@@ -357,26 +357,21 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 	 */
 	if (d) {
 		if (!ai_store->d_idx) {
+			GMRFLib_idx_tp *dd = NULL;
+			GMRFLib_idx_create(&dd);
 #pragma omp critical (Name_55d88ef833913b76c8f458812b76256a0492204c)
 			if (!ai_store->d_idx) {
-				for (i = nd = 0; i < n; i++) {
+				for (i = 0; i < n; i++) {
 					if (d[i]) {
-						nd++;
+						GMRFLib_idx_add(&dd, i);
 					}
 				}
-				ai_store->nd = nd;
-				ai_store->d_idx = Calloc(nd, int);
-				for (i = j = 0; i < n; i++) {
-					if (d[i]) {
-						ai_store->d_idx[j++] = i;
-					}
-				}
-				assert(j == nd);
 			}
+			ai_store->d_idx = dd;
 		}
 	} else {
-		ai_store->nd = 0;
-		ai_store->d_idx = NULL;
+#pragma omp critical (Name_2f4281b0d3628f0c97f72ada8a31d4cad908cd4e)
+		GMRFLib_idx_create(&(ai_store->d_idx));
 	}
 
 	GMRFLib_default_optimize_param(&optpar);
@@ -551,9 +546,9 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 				 */
 				ai_store->nidx = 0;
 				// printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
-				for (ii = 0; ii < ai_store->nd; ii++) {
+				for (ii = 0; ii < ai_store->d_idx->n; ii++) {
 					double dd;
-					i = ai_store->d_idx[ii];
+					i = ai_store->d_idx->idx[ii];
 					ai_store->correction_idx[ai_store->nidx++] = i;
 					GMRFLib_2order_approx(thread_id, NULL, NULL, NULL, &dd, d[i], fixed_mode[i] + deldif, i,
 							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
