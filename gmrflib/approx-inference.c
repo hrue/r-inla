@@ -6598,7 +6598,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	DUPLICATE(derivative3, n, double, skeleton);
 	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
-	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx); 
+	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx);
 
 	char *tmp = Calloc(1, char);
 	Free(tmp);
