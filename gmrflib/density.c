@@ -1442,7 +1442,12 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 			for (int ii = 0; ii < n; ii++) {
 				ldens[ii] += 0.5 * SQR(xx[ii]);	/* ldens is now the correction */
 			}
-			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
+			if (GMRFLib_save_memory) {
+				(*density)->log_correction = GMRFLib_spline_create_x(
+					xx, ldens, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE);
+			} else {
+				(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
+			}
 			GMRFLib_init_density(*density, lookup_tables);
 		}
 			break;
