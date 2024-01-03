@@ -5284,6 +5284,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	}
 
 	if (debug) {
+		P(val);
 		P(count);
 		P(mb->ntheta);
 		P(ntheta);

@@ -812,11 +812,11 @@ typedef struct {
 /* 
    This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
  */
-#define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior? \
-			      ((p_).priorfunc ?				\
-			       (p_).priorfunc(arg_, (p_).parameters)  : \
+#define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior ?		       \
+			      ((p_).priorfunc ?			       \
+			       (p_).priorfunc(arg_, (p_).parameters) :	\
 			       inla_eval((p_).expression, arg_, theta, ntheta)) \
-			      : 0.0)
+			       : 0.0)
 
 typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *tab;
