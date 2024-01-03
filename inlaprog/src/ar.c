@@ -261,6 +261,130 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	const int debug = 0;
+	int eq, dimQ, id = 0;
+	assert(def->n >= 2 * def->p);
+
+	dimQ = 2 * def->p + 1;
+	GMRFLib_CACHE_SET_ID(id);
+
+	eq = 1;
+	for (int ii = 0; ii < def->p && eq; ii++) {
+		if (def->pacf_intern[ii][thread_id][0] != def->hold_pacf_intern[id][ii]) {
+			eq = 0;
+		}
+	}
+
+	if (eq) {
+		/*
+		 * use what we already have
+		 */
+		int ii, jj, node, nnode;
+		double Qmarg_contrib = 0.0, val;
+
+		node = IMIN(i, j);
+		nnode = IMAX(i, j);
+		if (nnode < def->p) {			       /* recalling (i,j) starts from (0,0) */
+			ii = node;
+			jj = nnode;
+			Qmarg_contrib = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. 
+										 */
+		} else if (nnode >= def->n - def->p) {
+			ii = dimQ - def->p + node - (def->n - def->p);
+			jj = dimQ - def->p + nnode - (def->n - def->p);
+		} else {
+			ii = def->p;
+			jj = def->p + (nnode - node);
+		}
+		//assert(LEGAL(ii, dimQ));
+		//assert(LEGAL(jj, dimQ));
+
+		val = exp(def->log_prec[thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
+		return (val);
+	} else {
+		/*
+		 * Build the Qmatrix 
+		 */
+		double *phi, *pacf, *L, *Q = NULL, *Qmarg = NULL, prec;
+
+		Calloc_init(2 * def->p + ISQR(dimQ), 3);
+		phi = Calloc_get(def->p);
+		pacf = Calloc_get(def->p);
+		L = Calloc_get(ISQR(dimQ));
+
+		Q = Calloc(ISQR(dimQ), double);
+		Qmarg = Calloc(ISQR(def->p), double);
+
+		for (int ii = 0; ii < def->p; ii++) {
+			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][thread_id][0], MAP_FORWARD, NULL);
+		}
+		ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
+		PMATRIX(Qmarg, def->p, def->p, "Qmarg");
+		PMATRIX(&prec, 1, 1, "Prec");
+		ar_pacf2phi(def->p, pacf, phi);
+
+		PMATRIX(pacf, def->p, 1, "pacf");
+		PMATRIX(phi, def->p, 1, "phi");
+
+		/*
+		 * make L, where Lx = z ~ N(0,I) 
+		 */
+		for (int ii = def->p; ii < dimQ; ii++) {
+			L[ii + ii * dimQ] = 1.0;
+			for (int jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
+				L[ii + jj * dimQ] = -phi[k];
+			}
+		}
+		PMATRIX(L, dimQ, dimQ, "Matrix L");
+
+		/*
+		 * Q = L' L 
+		 */
+		for (int ii = 0; ii < dimQ; ii++) {
+			for (int jj = 0; jj < dimQ; jj++) {
+				double *Lii =  L + ii * dimQ;
+				double *Ljj =  L + jj * dimQ;
+				Q[ii + jj * dimQ] = GMRFLib_ddot(dimQ, Lii, Ljj);
+			}
+		}
+		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L");
+
+		GMRFLib_dscale(ISQR(dimQ), 1.0 / prec, Q);
+
+		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L normalised");
+
+		Calloc_free();
+		Free(def->hold_Qmarg[id]);
+		Free(def->hold_Q[id]);
+		def->hold_Qmarg[id] = Qmarg;
+		def->hold_Q[id] = Q;
+
+		for (int ii = 0; ii < def->p; ii++) {
+			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][thread_id][0];
+		}
+
+		return Qfunc_ar(thread_id, i, j, NULL, arg);   /* recursive call */
+	}
+
+	return 0.0;
+}
+
+
+double OLD_Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+{
+	if (j < 0) {
+		return NAN;
+	}
+
+	ar_def_tp *def = (ar_def_tp *) arg;
+
+	if (IABS(i - j) > def->p) {
+		return 0.0;
+	}
+	if (def->p == 0) {
+		return exp(def->log_prec[thread_id][0]);
+	}
+
+	const int debug = 0;
 	int ii, jj, eq, dimQ, id = 0;
 	assert(def->n >= 2 * def->p);
 
