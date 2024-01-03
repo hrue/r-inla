@@ -289,7 +289,7 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	if (!(s->accel) && acc) {
 		gsl_interp_accel_free(acc);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
