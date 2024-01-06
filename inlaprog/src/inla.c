@@ -5702,6 +5702,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 	if (GMRFLib_gaussian_data) {
 		mb->ai_par->vb_enable = GMRFLib_FALSE;
+		mb->ai_par->step_len = 1.0;		       /* override the default in this particular case */
 	}
 
 	mb->transform_funcs = Calloc(N + preopt->mnpred, GMRFLib_transform_array_func_tp *);

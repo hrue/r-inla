@@ -1100,9 +1100,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 {
 #define SET_THETA_MODE							\
 	if (theta_mode) {						\
-		int i_, j_;						\
-		for(j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {		\
-			for(i_ = 0; i_ < nhyper; i_++){			\
+		for(int j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {	\
+			for(int i_ = 0; i_ < nhyper; i_++){		\
 				hyperparam[i_][j_][0] = theta_mode[i_]; \
 			}						\
 		}							\
@@ -1504,9 +1503,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
-		if (x_mode) {
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
+		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 
 		if (stupid_mode_iter) {
 			for (int i = 0; i < nhyper; i++) {
@@ -1517,9 +1514,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
-			if (x_mode) {
-				Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-			}
+			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
 
 		if (ai_par->fp_log) {
@@ -1801,6 +1796,21 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			misc_output->stdev_corr_neg = Calloc(nhyper, double);
 			Memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
 		}
+		// make sure we're aligned
+		int all_eq = 1;
+		for (int k = 0; k < graph->n && all_eq; k++) {
+			all_eq = ISZERO(x_mode[k] - ai_store->mode[k]);
+		}
+		if (!all_eq) {
+			int thread_id = 0;
+			assert(omp_get_thread_num() == 0);
+			GMRFLib_opt_get_hyper(theta_mode);
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
+			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+			log_dens_mode *= -1.0;
+			SET_THETA_MODE;
+			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		}
 	} else {
 		// just fill with 1's
 		if (misc_output) {
@@ -1826,9 +1836,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
 		SET_THETA_MODE;
-		if (x_mode) {
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
+		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 	}
 
 	misc_output->opt_trace = (nhyper ? GMRFLib_opt_trace_get() : NULL);
@@ -1861,14 +1869,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
-	if (x_mode && ai_store->mode) {
-		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-	}
-
 	if (timer) {
 		timer[1] = GMRFLib_cpu() - timer[1];
 		timer[2] = GMRFLib_cpu();
 	}
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
 
 	// if fixed_mode=1, then we need to use EB
@@ -1929,7 +1934,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
-	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
+	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve.
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
@@ -2061,6 +2066,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		tref = GMRFLib_cpu();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
@@ -2908,9 +2914,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	 * return the mode in hyperparam and in 'x'
 	 */
 	SET_THETA_MODE;
-	if (x && x_mode) {
-		Memcpy(x, x_mode, graph->n * sizeof(double));
-	}
+	Memcpy(x, x_mode, graph->n * sizeof(double));
 
 	if (misc_output) {
 		/*
