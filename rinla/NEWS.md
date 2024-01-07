@@ -1,5 +1,5 @@
-# INLA 23.12.30
-* Some code improvement
+# INLA 24.01.07
+* Some code improvement and minor fixes
 * Fixed false warning for 'scopy'
 * Fixed issue for 'safe'-option
 
