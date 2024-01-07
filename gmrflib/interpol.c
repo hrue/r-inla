@@ -44,7 +44,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	/*
 	 * Return a spline interpolant for {(x,y)}
 	 *
-	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache
+	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none. 
 	 */
 	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
@@ -90,6 +90,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
+
 	switch (cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		s->cache = GMRFLib_INTPOL_CACHE_LEVEL12;
@@ -103,11 +104,21 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		s->cache = GMRFLib_INTPOL_CACHE_SIMPLE;
 		s->cache_len = 1;
 		break;
+	case GMRFLib_INTPOL_CACHE_NONE:
+		s->cache = GMRFLib_INTPOL_CACHE_NONE;
+		s->cache_len = 0;
+		break;
 	default:
 		assert(0 == 1);
 	}
-	s->accel = Calloc(s->cache_len, gsl_interp_accel *);
-	s->accel[0] = gsl_interp_accel_alloc();		       /* rest will be created if needed */
+
+	if (s->cache_len > 0) {
+		// not GMRFLib_INTPOL_CACHE_NONE
+		s->accel = Calloc(s->cache_len, gsl_interp_accel *);
+		s->accel[0] = gsl_interp_accel_alloc();	       /* rest will be created if needed */
+	} else {
+		s->accel = NULL;
+	}
 
 	if (special) {
 		// we know its monotone inbetween the datapoints
@@ -163,20 +174,23 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
+	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
 		assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
-	if (tnum >= 0 && tnum < s->cache_len) {
-		if (!(s->accel[tnum])) {
-#pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
-				s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
 			}
+			acc = s->accel[tnum];
 		}
-		acc = s->accel[tnum];
 	}
 
 	val = gsl_spline_eval(s->spline, xx, acc);
@@ -246,24 +260,34 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
+	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
 		assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
-	if (tnum >= 0 && tnum < s->cache_len) {
-		if (!(s->accel[tnum])) {
-#pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
-				s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
 			}
+			acc = s->accel[tnum];
 		}
-		acc = s->accel[tnum];
+	} else {
+		// use temporary cache since we evaluate 'n' at the time
+		acc = gsl_interp_accel_alloc();
 	}
 
 	for (int i = 0; i < n; i++) {
 		values[i] = gsl_spline_eval(s->spline, x[i], acc);
+	}
+
+	if (!(s->accel) && acc) {
+		gsl_interp_accel_free(acc);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -288,20 +312,23 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
+	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
 		assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
-	if (tnum >= 0 && tnum < s->cache_len) {
-		if (!(s->accel[tnum])) {
-#pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
-				s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
 			}
+			acc = s->accel[tnum];
 		}
-		acc = s->accel[tnum];
 	}
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_NONE) {
@@ -309,7 +336,6 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	} else if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
 		double xx = GMRFLib_logit(x);
 		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(xx, s->xmin, s->xmax), acc);
-
 		double em = exp(-xx);
 		val *= (em + 2.0 + 1.0 / em);
 	} else {
@@ -339,20 +365,23 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
+		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
 			assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (tnum >= 0 && tnum < s->cache_len) {
-			if (!(s->accel[tnum])) {
-#pragma omp critical (Name_7db308fb16056e07320f9aa74e5445c74a6f298f)
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_7db308fb16056e07320f9aa74e5445c74a6f298f)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
 				}
+				acc = s->accel[tnum];
 			}
-			acc = s->accel[tnum];
 		}
 		val = gsl_spline_eval_deriv2(s->spline, x, acc);
 	}
@@ -376,20 +405,23 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
+		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
 			assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (tnum >= 0 && tnum < s->cache_len) {
-			if (!(s->accel[tnum])) {
-#pragma omp critical (Name_8c1f6a9b1676b904f0235f5d9f3817343bf0b5d3)
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_8c1f6a9b1676b904f0235f5d9f3817343bf0b5d3)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
 				}
+				acc = s->accel[tnum];
 			}
-			acc = s->accel[tnum];
 		}
 		val = gsl_spline_eval_deriv(s->spline, x, acc);
 	}
@@ -412,20 +444,23 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
+		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
 			assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (tnum >= 0 && tnum < s->cache_len) {
-			if (!(s->accel[tnum])) {
-#pragma omp critical (Name_6c1aed3d698e547929f98757e8a8e32e2adc4b68)
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical (Name_6c1aed3d698e547929f98757e8a8e32e2adc4b68)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
 				}
+				acc = s->accel[tnum];
 			}
-			acc = s->accel[tnum];
 		}
 		val = gsl_spline_eval_deriv2(s->spline, x, acc);
 	}
@@ -434,19 +469,17 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 
 int GMRFLib_spline_free(GMRFLib_spline_tp *s)
 {
-	/*
-	 * Free spline in 's' including 's' iteself. 
-	 */
-
 	if (s) {
 		gsl_spline_free(s->spline);
-		int n = (s->cache == GMRFLib_INTPOL_CACHE_LEVEL12 ? GMRFLib_CACHE_LEN() :
-			 (s->cache == GMRFLib_INTPOL_CACHE_LEVEL1 ? GMRFLib_CACHE_LEN_LEVEL1_ONLY() : 1));
-		for (int i = 0; i < n; i++) {
-			if (s->accel[i])
-				gsl_interp_accel_free(s->accel[i]);
+		if (s->accel) {
+			int n = (s->cache == GMRFLib_INTPOL_CACHE_LEVEL12 ? GMRFLib_CACHE_LEN() :
+				 (s->cache == GMRFLib_INTPOL_CACHE_LEVEL1 ? GMRFLib_CACHE_LEN_LEVEL1_ONLY() : 1));
+			for (int i = 0; i < n; i++) {
+				if (s->accel[i])
+					gsl_interp_accel_free(s->accel[i]);
+			}
+			Free(s->accel);
 		}
-		Free(s->accel);
 		Free(s);
 	}
 

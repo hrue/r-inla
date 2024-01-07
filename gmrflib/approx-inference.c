@@ -571,7 +571,7 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp *ai_store)
 		Free(ai_store->bb);
 		Free(ai_store->cc);
 		Free(ai_store->stdev);
-		Free(ai_store->d_idx);
+		GMRFLib_idx_free(ai_store->d_idx);
 		Free(ai_store->correction_term);
 		Free(ai_store->correction_idx);
 		Free(ai_store->derivative3);
@@ -1100,9 +1100,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 {
 #define SET_THETA_MODE							\
 	if (theta_mode) {						\
-		int i_, j_;						\
-		for(j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {		\
-			for(i_ = 0; i_ < nhyper; i_++){			\
+		for(int j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {	\
+			for(int i_ = 0; i_ < nhyper; i_++){		\
 				hyperparam[i_][j_][0] = theta_mode[i_]; \
 			}						\
 		}							\
@@ -1131,7 +1130,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_gcpo_groups_tp *gcpo_groups = NULL;
 
 	GMRFLib_idx_tp *d_idx = NULL;
-	GMRFLib_idx_create(&d_idx);
+	GMRFLib_idx_create_x(&d_idx, preopt->Npred);
 	for (int i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
@@ -1273,7 +1272,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 	if (dic) {
 		deviance_theta = Calloc(preopt->Npred, double **);	/* mean of deviance conditioned on theta */
-		assert(d_idx);
 		for (int jj = 0; jj < d_idx->n; jj++) {
 			int j = d_idx->idx[jj];
 			deviance_theta[j] = Calloc(dens_max, double *);
@@ -1505,9 +1503,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
-		if (x_mode) {
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
+		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 
 		if (stupid_mode_iter) {
 			for (int i = 0; i < nhyper; i++) {
@@ -1518,9 +1514,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
-			if (x_mode) {
-				Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-			}
+			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
 
 		if (ai_par->fp_log) {
@@ -1802,6 +1796,21 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			misc_output->stdev_corr_neg = Calloc(nhyper, double);
 			Memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
 		}
+		// make sure we're aligned
+		int all_eq = 1;
+		for (int k = 0; k < graph->n && all_eq; k++) {
+			all_eq = ISZERO(x_mode[k] - ai_store->mode[k]);
+		}
+		if (!all_eq) {
+			int thread_id = 0;
+			assert(omp_get_thread_num() == 0);
+			GMRFLib_opt_get_hyper(theta_mode);
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
+			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+			log_dens_mode *= -1.0;
+			SET_THETA_MODE;
+			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		}
 	} else {
 		// just fill with 1's
 		if (misc_output) {
@@ -1827,9 +1836,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
 		SET_THETA_MODE;
-		if (x_mode) {
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
+		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 	}
 
 	misc_output->opt_trace = (nhyper ? GMRFLib_opt_trace_get() : NULL);
@@ -1862,14 +1869,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
-	if (x_mode && ai_store->mode) {
-		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-	}
-
 	if (timer) {
 		timer[1] = GMRFLib_cpu() - timer[1];
 		timer[2] = GMRFLib_cpu();
 	}
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
 
 	// if fixed_mode=1, then we need to use EB
@@ -1930,7 +1934,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
-	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
+	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve.
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
@@ -2062,6 +2066,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		tref = GMRFLib_cpu();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
@@ -2909,9 +2914,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	 * return the mode in hyperparam and in 'x'
 	 */
 	SET_THETA_MODE;
-	if (x && x_mode) {
-		Memcpy(x, x_mode, graph->n * sizeof(double));
-	}
+	Memcpy(x, x_mode, graph->n * sizeof(double));
 
 	if (misc_output) {
 		/*
@@ -6583,13 +6586,11 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	}
 	GMRFLib_ai_store_tp *new_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
-	int nd = ai_store->nd;
 	int Npred = ai_store->Npred;
 
 	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
 	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
 	COPY(nidx);
-	COPY(nd);
 	COPY(Npred);
 
 	DUPLICATE(mode, n, double, 0);
@@ -6601,9 +6602,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	DUPLICATE(derivative3, n, double, skeleton);
 	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
-
-	// this is a special case
-	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx); 
+	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx);
 
 	char *tmp = Calloc(1, char);
 	Free(tmp);
@@ -6613,41 +6612,6 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 
 #undef DUPLICATE
 #undef COPY
-}
-
-GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp *from)
-{
-	/*
-	 * set contents of TO = FROM
-	 */
-
-#define ASSIGN(name) to->name = from->name
-
-	GMRFLib_ENTER_ROUTINE;
-	if (!to || !from) {
-		GMRFLib_LEAVE_ROUTINE;
-		return NULL;
-	}
-
-	ASSIGN(aa);
-	ASSIGN(bb);
-	ASSIGN(cc);
-	ASSIGN(correction_idx);
-	ASSIGN(correction_term);
-	ASSIGN(d_idx);
-	ASSIGN(derivative3);
-	ASSIGN(derivative4);
-	ASSIGN(mode);
-	ASSIGN(nc_orig);
-	ASSIGN(nd);
-	ASSIGN(nidx);
-	ASSIGN(problem);
-	ASSIGN(stdev);
-	ASSIGN(store);
-
-	GMRFLib_LEAVE_ROUTINE;
-	return GMRFLib_SUCCESS;
-#undef ASSIGN
 }
 
 double GMRFLib_bfunc_eval(int thread_id, double *constant, GMRFLib_bfunc_tp *bfunc)

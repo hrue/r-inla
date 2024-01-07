@@ -52,7 +52,8 @@ __BEGIN_DECLS
 typedef enum {
 	GMRFLib_INTPOL_CACHE_LEVEL12 = 0,		       /* one for both levels */
 	GMRFLib_INTPOL_CACHE_LEVEL1 = 1,		       /* level 1 only */
-	GMRFLib_INTPOL_CACHE_SIMPLE = 2			       /* serial, not thread-safe */
+	GMRFLib_INTPOL_CACHE_SIMPLE = 2,		       /* serial, not thread-safe */
+	GMRFLib_INTPOL_CACHE_NONE = 3			       /* none */
 } GMRFLib_intpol_cache_tp;
 
 

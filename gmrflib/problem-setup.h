@@ -392,7 +392,6 @@ struct GMRFLib_store_struct {
 	double *new_logdens;				       /* new log-density */
 	GMRFLib_problem_tp *problem_old2new;		       /* stored problem */
 	GMRFLib_problem_tp *problem_new2old;		       /* stored problem */
-
 };
 
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
