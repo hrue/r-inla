@@ -1,3 +1,6 @@
+# INLA 24.01.
+* Fixe issue with 'r$mode$x'
+
 # INLA 24.01.07
 * Some code improvement and minor fixes
 * Fixed false warning for 'scopy'

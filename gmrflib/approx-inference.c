@@ -1098,8 +1098,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 int nlin, GMRFLib_lc_tp **Alin, GMRFLib_density_tp ***dlin, GMRFLib_ai_misc_output_tp *misc_output,
 				 GMRFLib_preopt_tp *preopt)
 {
-#define SET_THETA_MODE							\
+#define SET_MODE							\
+	GMRFLib_opt_get_latent(x_mode);					\
 	if (theta_mode) {						\
+		GMRFLib_opt_get_hyper(theta_mode);			\
 		for(int j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {	\
 			for(int i_ = 0; i_ < nhyper; i_++){		\
 				hyperparam[i_][j_][0] = theta_mode[i_]; \
@@ -1416,7 +1418,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
-		SET_THETA_MODE;
+		SET_MODE;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
 		if (ai_par->fp_log) {
@@ -1502,19 +1504,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		/*
 		 * do this again to get the ai_store set correctly.
 		 */
-		SET_THETA_MODE;
-		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-
+		SET_MODE;
 		if (stupid_mode_iter) {
-			for (int i = 0; i < nhyper; i++) {
-				theta_mode[i] = hyperparam[i][0][0];
-			}
 			int thread_id = 0;
 			assert(omp_get_thread_num() == 0);
 			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 			log_dens_mode *= -1.0;
-			SET_THETA_MODE;
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+			SET_MODE;
 		}
 
 		if (ai_par->fp_log) {
@@ -1796,21 +1792,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			misc_output->stdev_corr_neg = Calloc(nhyper, double);
 			Memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
 		}
-		// make sure we're aligned
-		int all_eq = 1;
-		for (int k = 0; k < graph->n && all_eq; k++) {
-			all_eq = ISZERO(x_mode[k] - ai_store->mode[k]);
-		}
-		if (!all_eq) {
-			int thread_id = 0;
-			assert(omp_get_thread_num() == 0);
-			GMRFLib_opt_get_hyper(theta_mode);
-			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
-			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-			log_dens_mode *= -1.0;
-			SET_THETA_MODE;
-			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
+
+		SET_MODE;
 	} else {
 		// just fill with 1's
 		if (misc_output) {
@@ -1835,8 +1818,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 		GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
-		SET_THETA_MODE;
-		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		SET_MODE;
 	}
 
 	misc_output->opt_trace = (nhyper ? GMRFLib_opt_trace_get() : NULL);
@@ -2601,7 +2583,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (po) {
-		SET_THETA_MODE;
+		SET_MODE;
 		for (int j = 0; j < preopt->Npred; j++) {
 			double evalue, evalue2, evalue3, evalue_one;
 			int ii = j;
@@ -2633,7 +2615,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (dic) {
-		SET_THETA_MODE;
+		SET_MODE;
 
 		double mean_deviance = 0.0, mean_deviance_sat = 0.0, deviance_mean = 0.0, deviance_mean_sat = 0.0, *x_vec = NULL;
 		int thread_id = 0;
@@ -2913,7 +2895,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	/*
 	 * return the mode in hyperparam and in 'x'
 	 */
-	SET_THETA_MODE;
+	SET_MODE;
 	Memcpy(x, x_mode, graph->n * sizeof(double));
 
 	if (misc_output) {
@@ -3149,7 +3131,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #undef COMPUTE_NEFF_LOCAL
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
-#undef SET_THETA_MODE
+#undef SET_MODE
 
 	return GMRFLib_SUCCESS;
 }
