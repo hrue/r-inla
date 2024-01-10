@@ -182,3 +182,5 @@ int GMRFLib_threshold_mul = 255;
 int GMRFLib_threshold_ddot = 4;
 int GMRFLib_write_state = 0;
 int GMRFLib_gaussian_data = 0;
+int GMRFLib_testit_mode = 0;
+int GMRFLib_testit_debug = 0;
