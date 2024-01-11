@@ -5565,6 +5565,17 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
+		double time_sum = GMRFLib_dsum(4, time_loop);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(4, time_sum, time_loop);
+			time_loop[4] *= time_sum;
+		}
+		time_sum = GMRFLib_dsum(4, time_loop + 5);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(4, time_sum, time_loop + 5);
+		}
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
