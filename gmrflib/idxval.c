@@ -541,7 +541,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		// check if we have one of two special cases. sequential with or without all one. If so, add them spesifically
 		int is_sequential = 1;
 		for (int i = 1; is_sequential && i < h->n; i++) {
-			is_sequential = (h->idx[i] == h->idx[i-1] + 1);
+			is_sequential = (h->idx[i] == h->idx[i - 1] + 1);
 		}
 		if (is_sequential) {
 			int is_all_1 = 1;
@@ -551,14 +551,14 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 			h->g_n = 1;
 			h->g_len = Calloc(1, int);
-			h->g_len[0] = - h->n;
+			h->g_len[0] = -h->n;
 
 			assert(h->n > 0);
 			h->g_n_mem = 2;
 			h->g_mem = Calloc(2, void *);
-			h->g_mem[0] = (void *) (Calloc(h->n, int)); 
+			h->g_mem[0] = (void *) (Calloc(h->n, int));
 			h->g_mem[1] = (void *) (Calloc(h->n, double));
-			
+
 			h->g_idx = Calloc(1, int *);
 			h->g_idx[0] = (int *) h->g_mem[0];
 			Memcpy(h->g_idx[0], h->idx, h->n * sizeof(int));
@@ -566,8 +566,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->g_val = Calloc(1, double *);
 			h->g_val[0] = (double *) h->g_mem[1];
 			Memcpy(h->g_val[0], h->val, h->n * sizeof(double));
-			
-			h->g_1 = Calloc(1, int );
+
+			h->g_1 = Calloc(1, int);
 			h->g_1[0] = is_all_1;
 
 			h->preference = IDXVAL_GROUP_MKL;
@@ -577,7 +577,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 		return GMRFLib_SUCCESS;
 	}
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -588,7 +587,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			i++;
 		ng += 2;
 	}
-			
+
 	int *g_istart = Calloc(ng, int);
 	int *g_len = Calloc(ng, int);
 	int *g_1 = Calloc(ng, int);
@@ -615,7 +614,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	// keep only sequential groups with length >= limit_g_len
 	int ggg = 1;
-	for(int g = 1; g < ng; g++) {
+	for (int g = 1; g < ng; g++) {
 		if (g_len[g] >= limit_g_len) {
 			g_istart[ggg] = g_istart[g];
 			g_len[ggg] = g_len[g];
@@ -712,7 +711,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
 		}
 	}
-
 	// set g_1's
 	g_1[0] = 0;
 	for (int g = 0; g < ng; g++) {
@@ -733,7 +731,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 	}
-
 	// remove groups with zero length
 	int g = 0;
 	while (1) {
@@ -761,7 +758,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
 		}
 	}
-
 	// merge
 	if (ng > 2) {
 		g = 1;
@@ -840,7 +836,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			treff[0] -= GMRFLib_cpu();
 			value[0] = GMRFLib_dot_product_serial(h, x);
 			treff[0] += GMRFLib_cpu();
-			
+
 			if (with_mkl) {
 				treff[1] -= GMRFLib_cpu();
 				value[1] = GMRFLib_dot_product_serial_mkl(h, x);
@@ -956,7 +952,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->g_n_mem = 0;
 		}
 	}
-	
+
 	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
 		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
@@ -1145,7 +1141,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

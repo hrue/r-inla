@@ -2267,7 +2267,7 @@ int testit(int argc, char **argv)
 		double *xx = Calloc(n, double);
 
 		GMRFLib_testit_debug = debug;
-		
+
 		for (int i = 0; i < n; i++) {
 			xx[i] = (GMRFLib_uniform() < 0.8 ? 1.0 : GMRFLib_uniform());
 		}

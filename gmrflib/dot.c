@@ -339,4 +339,3 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 }
 
 #endif							       /* if defined(INLA_LINK_WITH_MKL) */
-

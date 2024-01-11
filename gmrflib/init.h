@@ -63,7 +63,6 @@ __BEGIN_DECLS
   \brief Define GMRFLib_TRUE as (1)
 */
 #define GMRFLib_TRUE  (1)
-
 #endif
-__END_DECLS
+    __END_DECLS
 #endif
