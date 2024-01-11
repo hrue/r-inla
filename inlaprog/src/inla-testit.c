@@ -2259,42 +2259,6 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 82:
-	{
-		int n = atoi(args[0]);
-		int ntimes = atoi(args[1]);
-		double *x = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-			// x[i] = i+1;
-		}
-
-		P(n);
-		P(ntimes);
-
-		double tref[2] = { 0.0, 0.0 };
-		double r = 0.0, rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_dsum(n, x);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-#pragma omp simd reduction(+: rr)
-			for (int i = 0; i < n; i++) {
-				rr += x[i];
-			}
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("dsum %.3f plain %.3f (r-rr=%.12f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
-
-		Free(x);
-	}
-		break;
-
 	case 83:
 	{
 		int n = atoi(args[0]);
@@ -2455,59 +2419,6 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 87:
-	{
-		int n = atoi(args[0]);
-		int ntimes = atoi(args[1]);
-		double *x = Calloc(n, double);
-		int *ix = Calloc(n, int);
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-			ix[i] = (int) (x[i] * 512 - 256);
-		}
-
-		P(n);
-		P(ntimes);
-
-		double tref[2] = { 0.0, 0.0 };
-		double r = 0.0, rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_dsum(n, x);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-			rr += GMRFLib_dsum2(n, x);
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("dsum %.3f dsum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P((r - rr) / r);
-
-		tref[0] = tref[1] = 0.0;
-		r = 0.0;
-		rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_isum(n, ix);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-			rr += GMRFLib_isum2(n, ix);
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("isum %.3f isum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P((r - rr) / r);
-
-		Free(x);
-	}
-		break;
-
 	case 88:
 	{
 		int n = atoi(args[0]);
@@ -2595,42 +2506,6 @@ int testit(int argc, char **argv)
 		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
 		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
-		Free(xx);
-	}
-		break;
-
-	case 90:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		double *xx = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			xx[i] = GMRFLib_uniform();
-		}
-
-		P(n);
-		P(m);
-		double sum1 = 0.0, sum2 = 0.0;
-		double tref1 = 0.0, tref2 = 0.0;
-		for (int k = 0; k < m; k++) {
-			sum1 = sum2 = 0.0;
-			tref1 -= GMRFLib_cpu();
-			sum1 = GMRFLib_dsum(n, xx);
-			tref1 += GMRFLib_cpu();
-
-			tref2 -= GMRFLib_cpu();
-			sum2 = 0.0;
-			for (int i = 0; i < n; i++) {
-				sum2 += xx[i];
-			}
-			tref2 += GMRFLib_cpu();
-			if (ABS(sum1 - sum2) > 1e-8) {
-				P(sum1);
-				P(sum2);
-				exit(88);
-			}
-		}
-		printf("_dsum %.3f loop %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 	}
 		break;

@@ -63,8 +63,6 @@ __BEGIN_DECLS
   \brief Define GMRFLib_TRUE as (1)
 */
 #define GMRFLib_TRUE  (1)
-typedef int GMRFLib_isum_tp(int, int *);
-typedef double GMRFLib_dsum_tp(int, double *);
 
 #endif
 __END_DECLS
