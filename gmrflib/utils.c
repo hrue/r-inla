@@ -441,6 +441,30 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 	return -1;
 }
 
+int GMRFLib_find_value(double *array, int len, int direction, double value)
+{
+	/*
+	 * return the first/last index in array such that array[idx] == value , and -1 if not there. direction > 0 : look for first. direction < 0 : look for last
+	 */
+	int i;
+
+	if (direction >= 0) {
+		for (i = 0; i < len; i++) {
+			if (array[i] == value)
+				return i;
+		}
+		return -1;
+	} else {
+		for (i = len - 1; i >= 0; i--) {
+			if (array[i] == value)
+				return i;
+		}
+		return -1;
+	}
+
+	return -1;
+}
+
 double GMRFLib_eps(double power)
 {
 	return (exp(GSL_LOG_DBL_EPSILON * power));
