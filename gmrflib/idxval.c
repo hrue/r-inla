@@ -490,8 +490,15 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
-	const int limit_merge = 8L, limit_h_len = 16L, limit_sequential = 8L;
-
+	const int limit_merge = 16L, limit_h_len = 16L, limit_sequential = 16L;
+	
+	/*
+	  static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
+	  if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE"));
+	  if (!limit_h_len) limit_h_len = atoi(getenv("LIMIT_H_LEN"));
+	  if (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL"));
+	*/
+	
 	int debug = 0;
 	if (GMRFLib_testit_mode && GMRFLib_testit_debug) {
 		debug = 1;
@@ -500,6 +507,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (!h || h->n <= 0) {
 		return GMRFLib_SUCCESS;
 	}
+
 	// sort
 	if (h->n > 1) {
 		int is_sorted = 1;
@@ -510,6 +518,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			my_sort2_id(h->idx, h->val, h->n);
 		}
 	}
+
 	// unique
 	if (h->n > 1) {
 		int all_unique = 1;
@@ -674,6 +683,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("nidx[%1d] %1d  val %g\n", i, new_idx[i], new_val[i]);
 		}
 	}
+
 	// copy each sequential group and pad for possible grouping
 	int *seq_idx = new_idx + irr_len;
 	double *seq_val = new_val + irr_len;
@@ -715,6 +725,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
 		}
 	}
+
 	// set g_1's
 	g_1[0] = 0;
 	for (int g = 0; g < ng; g++) {
@@ -735,6 +746,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 	}
+
 	// remove groups with zero length
 	int g = 0;
 	while (1) {
@@ -762,6 +774,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
 		}
 	}
+
 	// merge
 	if (ng > 2) {
 		g = 1;
@@ -786,7 +799,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 
-		// check for sequential. if so, set the negative len
+		// check for sequential. if so, set negative len
 		for (g = 0; g < ng; g++) {
 			if (g_len[g] > 0) {
 				if (g_len[g] == g_idx[g][g_len[g] - 1] - g_idx[g][0] + 1) {
