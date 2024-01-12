@@ -490,13 +490,15 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
-	const int limit_merge = 32L, limit_h_len = 8L, limit_sequential = 8L;
+	const int limit_merge = 16L, limit_h_len = 16L, limit_sequential = 16L;
 	
-	//static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
-	//if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE"));
-	//if (!limit_h_len) limit_h_len = atoi(getenv("LIMIT_H_LEN"));
-	//if (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL"));
-
+	/*
+	  static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
+	  if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE"));
+	  if (!limit_h_len) limit_h_len = atoi(getenv("LIMIT_H_LEN"));
+	  if (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL"));
+	*/
+	
 	int debug = 0;
 	if (GMRFLib_testit_mode && GMRFLib_testit_debug) {
 		debug = 1;
