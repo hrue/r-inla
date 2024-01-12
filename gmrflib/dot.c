@@ -1,7 +1,7 @@
 
 /* dot.c
  * 
- * Copyright (C) 2022-2023 Havard Rue
+ * Copyright (C) 2022-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,7 +154,6 @@ int GMRFLib_isum(int n, int *ix)
 	for (int i = 0; i < n; i++) {
 		s += ix[i];
 	}
-
 	return s;
 }
 
@@ -166,7 +165,6 @@ double GMRFLib_dsum(int n, double *x)
 	for (int i = 0; i < n; i++) {
 		s += x[i];
 	}
-
 	return s;
 }
 
