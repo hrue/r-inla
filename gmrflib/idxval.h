@@ -54,8 +54,7 @@
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-
-typedef struct {
+    typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -85,7 +84,7 @@ typedef enum {
 	IDXVAL_SERIAL_MKL,
 	IDXVAL_SERIAL_MKL_ALT,
 	IDXVAL_GROUP,
-	IDXVAL_GROUP_MKL, 
+	IDXVAL_GROUP_MKL,
 	IDXVAL_GROUP_MKL_ALT
 } GMRFLib_idxval_preference_tp;
 

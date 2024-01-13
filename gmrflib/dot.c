@@ -39,7 +39,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restric
 #pragma omp atomic
 			GMRFLib_dot_product_gain += ELM_->cpu_gain;
 		}
-		return (ELM_->dot_product_func((GMRFLib_idxval_tp *__restrict) ELM_,  (double *__restrict) ARR_));
+		return (ELM_->dot_product_func((GMRFLib_idxval_tp * __restrict) ELM_, (double *__restrict) ARR_));
 	} else {
 		return GMRFLib_dot_product_serial_mkl(ELM_, ARR_);
 	}

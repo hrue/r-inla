@@ -5558,7 +5558,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	// report timings
-	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			for (j = 0; j < 13; j++) {
@@ -5608,8 +5608,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1], time_loop[2]);
-			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4], time_loop[5]);
+			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1],
+			       time_loop[2]);
+			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4],
+			       time_loop[5]);
 			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[6]);
 			printf("\t                                serial[%4.1f] serial.mkl[%4.1f] serial.mkl.alt[%4.1f]\n",
 			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);

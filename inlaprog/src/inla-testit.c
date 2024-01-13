@@ -2269,7 +2269,7 @@ int testit(int argc, char **argv)
 		GMRFLib_testit_debug = debug;
 
 		for (int i = 0; i < n; i++) {
-			xx[i] = (GMRFLib_uniform() < 1.0/20.0 ? 1.0 : GMRFLib_uniform());
+			xx[i] = (GMRFLib_uniform() < 1.0 / 20.0 ? 1.0 : GMRFLib_uniform());
 		}
 
 		GMRFLib_idxval_tp *h = NULL;

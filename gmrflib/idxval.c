@@ -491,13 +491,12 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	const int limit_merge = 8L, limit_sequential = 8L;
-	
+
 	/*
-	  static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
-	  if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE"));
-	  if (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL"));
-	*/
-	
+	 * static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0; if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE")); if
+	 * (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL")); 
+	 */
+
 	int debug = 0;
 	if (GMRFLib_testit_mode && GMRFLib_testit_debug) {
 		debug = 1;
@@ -506,7 +505,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (!h || h->n <= 0) {
 		return GMRFLib_SUCCESS;
 	}
-
 	// sort
 	if (h->n > 1) {
 		int is_sorted = 1;
@@ -517,7 +515,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			my_sort2_id(h->idx, h->val, h->n);
 		}
 	}
-
 	// unique
 	if (h->n > 1) {
 		int all_unique = 1;
@@ -549,7 +546,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->preference = IDXVAL_SERIAL_MKL;
 		return GMRFLib_SUCCESS;
 	}
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -643,7 +639,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("nidx[%1d] %1d  val %g\n", i, new_idx[i], new_val[i]);
 		}
 	}
-
 	// copy each sequential group and pad for possible grouping
 	int *seq_idx = new_idx + irr_len;
 	double *seq_val = new_val + irr_len;
@@ -685,7 +680,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
 		}
 	}
-
 	// set g_1's
 	g_1[0] = 0;
 	for (int g = 0; g < ng; g++) {
@@ -706,7 +700,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 	}
-
 	// remove groups with zero length
 	int g = 0;
 	while (1) {
@@ -734,7 +727,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
 		}
 	}
-
 	// merge
 	if (ng > 2) {
 		g = 1;
@@ -788,18 +780,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	Free(g_istart);
 
 	int ntimes = 2;
-#if defined(INLA_LINK_WITH_MKL)
-	int with_mkl = 1;
-#else
-	int with_mkl = 0;
-#endif
-
-	if (h->preference != IDXVAL_UNKNOWN) {
-		return GMRFLib_SUCCESS;
-	}
-
-	double treff[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	double value[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	double treff[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double value[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
@@ -893,8 +875,9 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (debug) {
 		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1] + treff[2] + treff[3]);
-		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f serial.mkl.alt= %.3f group= %.3f group.mkl= %.3f group.mkl.alt= %.3f]\n",
-		       h->n, kmin, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s, treff[4] * s, treff[5] * s);
+		printf
+		    ("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f serial.mkl.alt= %.3f group= %.3f group.mkl= %.3f group.mkl.alt= %.3f]\n",
+		     h->n, kmin, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s, treff[4] * s, treff[5] * s);
 	}
 
 	switch (kmin) {
@@ -1134,7 +1117,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
