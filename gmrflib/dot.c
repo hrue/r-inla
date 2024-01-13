@@ -47,8 +47,6 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restric
 
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
-	// this uses g_idx and g_val
-
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
@@ -69,8 +67,6 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 
 double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
-	// this uses n_idx and n_val
-
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
@@ -91,8 +87,6 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double 
 
 double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
-	// this uses n_idx and n_val
-
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
