@@ -2269,15 +2269,15 @@ int testit(int argc, char **argv)
 		GMRFLib_testit_debug = debug;
 
 		for (int i = 0; i < n; i++) {
-			xx[i] = (GMRFLib_uniform() < 0.8 ? 1.0 : GMRFLib_uniform());
+			xx[i] = (GMRFLib_uniform() < 1.0/20.0 ? 1.0 : GMRFLib_uniform());
 		}
 
 		GMRFLib_idxval_tp *h = NULL;
-		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
-			if (j >= n)
+		for (int i = 0, j = 0;; i++) {
+			if (i >= n)
 				break;
-			GMRFLib_idxval_add(&h, j, xx[j]);
+			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
+			GMRFLib_idxval_add(&h, j, xx[i]);
 		}
 		GMRFLib_idxval_prepare(&h, 1, 1);
 		GMRFLib_idxval_info_printf(stdout, h, "INFO");
@@ -2286,11 +2286,8 @@ int testit(int argc, char **argv)
 		assert(h);
 		P(n);
 		P(h->g_n);
-		if (h->g_n)
-			P(h->n / h->g_n);
+		P(h->n / h->g_n);
 
-		if (h->g_n == 0)
-			FIXME("NEED TO DISABLE FREE OF GROUP in idxval.c");
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < ntimes; k++) {

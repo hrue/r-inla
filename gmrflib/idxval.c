@@ -490,12 +490,11 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
-	const int limit_merge = 16L, limit_h_len = 16L, limit_sequential = 16L;
+	const int limit_merge = 16L, limit_sequential = 24L;
 	
 	/*
 	  static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
 	  if (!limit_merge) limit_merge = atoi(getenv("LIMIT_MERGE"));
-	  if (!limit_h_len) limit_h_len = atoi(getenv("LIMIT_H_LEN"));
 	  if (!limit_sequential) limit_sequential = atoi(getenv("LIMIT_SEQUENTIAL"));
 	*/
 	
@@ -546,47 +545,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 	}
 
-	if (h->n <= limit_h_len || !prepare || !GMRFLib_internal_opt) {
-		if (1) {
-			// check if we have one of two special cases. sequential with or without all one, or all one. If so, add them
-			// spesifically
-			int is_sequential = 1, is_1 = 1;
-			for (int i = 1; is_sequential && i < h->n; i++) {
-				is_sequential = (h->idx[i] == h->idx[i - 1] + 1);
-			}
-			for (int i = 0; is_1 && i < h->n; i++) {
-				is_1 = (h->val[i] == 1.0);
-			}
-			if (is_sequential || is_1) {
-				h->g_n = 1;
-				h->g_len = Calloc(1, int);
-				h->g_len[0] = (is_sequential ? -h->n : h->n);
-
-				assert(h->n > 0);
-				h->g_n_mem = 2;
-				h->g_mem = Calloc(2, void *);
-				h->g_mem[0] = (void *) (Calloc(h->n, int));
-				h->g_mem[1] = (void *) (Calloc(h->n, double));
-
-				h->g_idx = Calloc(1, int *);
-				h->g_idx[0] = (int *) h->g_mem[0];
-				Memcpy(h->g_idx[0], h->idx, h->n * sizeof(int));
-
-				h->g_val = Calloc(1, double *);
-				h->g_val[0] = (double *) h->g_mem[1];
-				Memcpy(h->g_val[0], h->val, h->n * sizeof(double));
-
-				h->g_1 = Calloc(1, int);
-				h->g_1[0] = is_1;
-
-				h->preference = IDXVAL_GROUP_MKL;
-			} else {
-				h->preference = IDXVAL_SERIAL_MKL;
-			}
-		} else {
-			h->preference = IDXVAL_SERIAL_MKL;
-		}
-			
+	if (!prepare || !GMRFLib_internal_opt) {
+		h->preference = IDXVAL_SERIAL_MKL;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -936,15 +896,19 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial;
 		break;
 	case 1:
 		h->preference = IDXVAL_SERIAL_MKL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
 		break;
 	case 2:
 		h->preference = IDXVAL_GROUP;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group;
 		break;
 	case 3:
 		h->preference = IDXVAL_GROUP_MKL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_mkl;
 		break;
 	default:
 		assert(0 == 1);

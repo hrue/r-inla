@@ -54,7 +54,8 @@
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-    typedef struct {
+
+typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -86,24 +87,24 @@ typedef enum {
 	IDXVAL_GROUP_MKL
 } GMRFLib_idxval_preference_tp;
 
+typedef double GMRFLib_dot_product_tp(void *, void *);
+
 typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
-	int *idx;
-	GMRFLib_idxval_preference_tp preference;
-
-	double *val;
-
 	int g_n;					       /* number of groups with sequential indices */
+	int g_n_mem;
+	int *idx;
 	int *g_len;					       /* their length */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
 	int **g_idx;					       /* indexing */
-	double **g_val;
 	double cpu_gain;
-
-	int g_n_mem;
+	double **g_val;
+	double *val;
 	void **g_mem;
+	GMRFLib_idxval_preference_tp preference;
+	GMRFLib_dot_product_tp *dot_product_func;
 } GMRFLib_idxval_tp;
 
 typedef struct {
