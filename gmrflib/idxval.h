@@ -83,8 +83,10 @@ typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
 	IDXVAL_SERIAL_MKL,
+	IDXVAL_SERIAL_MKL_ALT,
 	IDXVAL_GROUP,
-	IDXVAL_GROUP_MKL
+	IDXVAL_GROUP_MKL, 
+	IDXVAL_GROUP_MKL_ALT
 } GMRFLib_idxval_preference_tp;
 
 typedef double GMRFLib_dot_product_tp(void *, void *);

@@ -32,6 +32,19 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/dot.h"
 
+double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	if (ELM_->dot_product_func) {
+		if (GMRFLib_dot_product_gain >= 0.0) {
+#pragma omp atomic
+			GMRFLib_dot_product_gain += ELM_->cpu_gain;
+		}
+		return (ELM_->dot_product_func((GMRFLib_idxval_tp *__restrict) ELM_,  (double *__restrict) ARR_));
+	} else {
+		return GMRFLib_dot_product_serial_mkl(ELM_, ARR_);
+	}
+}
+
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// this uses g_idx and g_val
@@ -76,6 +89,28 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double 
 	return value_;
 }
 
+double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	// this uses n_idx and n_val
+
+	double value_ = 0.0;
+	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
+		int len_ = ELM_->g_len[g_];
+		int *__restrict ii_ = ELM_->g_idx[g_];
+		double *__restrict vv_ = ELM_->g_val[g_];
+
+		if (len_ > 0) {
+			double *__restrict aa_ = &(ARR_[0]);
+			value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_idx(len_, aa_, ii_) : GMRFLib_ddot_idx_mkl_alt(len_, vv_, aa_, ii_));
+		} else if (len_ < 0) {
+			int llen_ = -len_;
+			double *__restrict aa_ = &(ARR_[ii_[0]]);
+			value_ += (ELM_->g_1[g_] ? GMRFLib_dsum(llen_, aa_) : GMRFLib_ddot(llen_, vv_, aa_));
+		}
+	}
+	return value_;
+}
+
 double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
@@ -94,17 +129,13 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double
 	return GMRFLib_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_);
 }
 
-double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
-	if (ELM_->dot_product_func) {
-		if (GMRFLib_dot_product_gain >= 0.0) {
-#pragma omp atomic
-			GMRFLib_dot_product_gain += ELM_->cpu_gain;
-		}
-		return (ELM_->dot_product_func((GMRFLib_idxval_tp *__restrict) ELM_,  (double *__restrict) ARR_));
-	} else {
-		return GMRFLib_dot_product_serial_mkl(ELM_, ARR_);
-	}
+	double *__restrict vv_ = ELM_->val;
+	double *__restrict aa_ = ARR_;
+	int *__restrict idx_ = ELM_->idx;
+
+	return GMRFLib_ddot_idx_mkl_alt(ELM_->n, vv_, aa_, idx_);
 }
 
 int GMRFLib_isum(int n, int *ix)
@@ -252,7 +283,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 
 #if defined(INLA_LINK_WITH_MKL)
 
-double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
 	double darr[3] = { 1.0, 0.0, 0.0 };
@@ -265,28 +296,14 @@ double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict 
 	return darr[2];
 }
 
-double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return cblas_ddoti(n, v, idx, a);
 }
 
-double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	if (n >= 512L) {
-		return GMRFLib_ddot_idx_mkl_OLD(n, v, a, idx);
-	} else {
-		return GMRFLib_ddot_idx_mkl_NEW(n, v, a, idx);
-	}
-}
-
 #else							       /* defined(INLA_LINK_WITH_MKL) */
 
-double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	return GMRFLib_ddot_idx(n, v, a, idx);
-}
-
-double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }

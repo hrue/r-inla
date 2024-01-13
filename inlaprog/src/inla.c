@@ -5558,23 +5558,23 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	// report timings
-	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-			for (j = 0; j < 9; j++) {
+			for (j = 0; j < 13; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
-		double time_sum = GMRFLib_dsum(4, time_loop);
+		double time_sum = GMRFLib_dsum(6, time_loop);
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(4, time_sum, time_loop);
-			time_loop[4] *= time_sum;
+			GMRFLib_dscale(6, time_sum, time_loop);
+			time_loop[6] *= time_sum;
 		}
-		time_sum = GMRFLib_dsum(4, time_loop + 5);
+		time_sum = GMRFLib_dsum(6, time_loop + 7);
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(4, time_sum, time_loop + 5);
+			GMRFLib_dscale(6, time_sum, time_loop + 7);
 		}
 	}
 
@@ -5608,17 +5608,13 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if defined(INLA_LINK_WITH_MKL)
-			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
-			printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
-			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-			printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
-#else
-			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
-			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
-			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-#endif
+			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1], time_loop[2]);
+			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4], time_loop[5]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[6]);
+			printf("\t                                serial[%4.1f] serial.mkl[%4.1f] serial.mkl.alt[%4.1f]\n",
+			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);
+			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
+			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
@@ -6803,7 +6799,7 @@ int main(int argc, char **argv)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
 	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-		GMRFLib_dot_product_optim_report[i] = Calloc(9, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(13, double);
 	}
 
 #if !defined(WINDOWS)

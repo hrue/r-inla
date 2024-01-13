@@ -2480,11 +2480,11 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = GMRFLib_ddot_idx_mkl_OLD(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_cpu();
 
 			tref3 -= GMRFLib_cpu();
-			sum3 = GMRFLib_ddot_idx_mkl_NEW(h->n, h->val, xx, h->idx);
+			sum3 = GMRFLib_ddot_idx_mkl_alt(h->n, h->val, xx, h->idx);
 			tref3 += GMRFLib_cpu();
 
 			tref4 -= GMRFLib_cpu();
@@ -2499,7 +2499,7 @@ int testit(int argc, char **argv)
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f mkl_OLD %.3f mkl_NEW %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		printf("dot_idx %.3f mkl %.3f mkl_alt %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
 		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
 		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
