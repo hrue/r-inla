@@ -73,7 +73,7 @@ void GMRFLib_isum_measure_time(double *tused);
 void GMRFLib_chose_threshold_ddot(void);
 
 #define GMRFLib_dot_product_INLINE(ans_, v_, a_)			\
-	if (v_->n > 4L) {						\
+	if (v_->n >= 8L) {						\
 		ans_ = GMRFLib_dot_product(v_, a_);			\
 	} else {							\
 		double *_v = v_->val;					\
@@ -84,7 +84,29 @@ void GMRFLib_chose_threshold_ddot(void);
 		case 1:	ans_ = _v[0] * a_[_idx[0]]; break;		\
 		case 2:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]]; break; \
 		case 3:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]]; break; \
-		case 4:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; \
+		case 4:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; break; \
+		case 5:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]]; break; \
+		case 6:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]]; break; \
+		case 7:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]] + _v[6] * a_[_idx[6]];	\
+		}							\
+	}
+
+#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)			\
+	if (v_->n >= 8L) {						\
+		ans_ += GMRFLib_dot_product(v_, a_);			\
+	} else {							\
+		double *_v = v_->val;					\
+		int *_idx = v_->idx;					\
+									\
+		switch(v_->n) {						\
+		case 0:	break;						\
+		case 1:	ans_ += _v[0] * a_[_idx[0]]; break;		\
+		case 2:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]]; break; \
+		case 3:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]]; break; \
+		case 4:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; break; \
+		case 5:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]]; break; \
+		case 6:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]]; break; \
+		case 7:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]] + _v[6] * a_[_idx[6]]; \
 		}							\
 	}
 
