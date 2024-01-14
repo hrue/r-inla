@@ -1,7 +1,7 @@
 
 /* pre-opt.c
  * 
- * Copyright (C) 2021-2023 Havard Rue
+ * Copyright (C) 2021-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -815,11 +815,13 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	// imin = node; imax = nnode;
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0];
-		value = GMRFLib_dot_product(elm, lc);
+		// value = GMRFLib_dot_product(elm, lc);
+		GMRFLib_dot_product_INLINE(value, elm, lc);
 	} else {
 		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
 		elm = a->AtA_idxval[node][k];
-		value = GMRFLib_dot_product(elm, lc);
+		// value = GMRFLib_dot_product(elm, lc);
+		GMRFLib_dot_product_INLINE(value, elm, lc);
 	}
 
 	return value;
@@ -836,7 +838,8 @@ double GMRFLib_preopt_like_Qfunc_k(int thread_id, int node, int k, double *UNUSE
 
 	if (lc) {
 		GMRFLib_idxval_tp *elm = a->AtA_idxval[node][k];
-		value = GMRFLib_dot_product(elm, lc);
+		// value = GMRFLib_dot_product(elm, lc);
+		GMRFLib_dot_product_INLINE(value, elm, lc);
 	}
 	return value;
 }
@@ -1001,11 +1004,13 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 		assert(preopt->mpred == 0);
 	}
 
+	// bnew[i] = GMRFLib_dot_product(elm, blike);
+
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
 		if (A[i]) {						\
 			GMRFLib_idxval_tp *elm = A[i];			\
-			bnew[i] = GMRFLib_dot_product(elm, blike);	\
+			GMRFLib_dot_product_INLINE(bnew[i], elm, blike); \
 		}							\
 	}
 
@@ -1094,17 +1099,21 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		if (preopt->pA_idxval) {
 			// both loops
 			double *pred_offset = pred + offset;
+
+			// pred_offset[i] = GMRFLib_dot_product(elm, latent); 
+			// pred[i] = GMRFLib_dot_product(elm, latent); 
+
 #define CODE_BLOCK							\
 			for (int j = 0; j < 2; j++) {			\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
 						GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-						pred_offset[i] = GMRFLib_dot_product(elm, latent); \
+						GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->mpred; i++) { \
 						GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-						pred[i] = GMRFLib_dot_product(elm, latent); \
+						GMRFLib_dot_product_INLINE(pred[i], elm, latent); \
 					}				\
 				}					\
 			}
@@ -1115,11 +1124,13 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		} else {
 			// one loop
 			double *pred_offset = pred + offset;
+
+			// pred_offset[i] = GMRFLib_dot_product(elm, latent); 
 #define CODE_BLOCK							\
 			for (int i = 0; i < preopt->npred; i++) {	\
 				if (preopt->A_idxval[i]) {		\
 					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-					pred_offset[i] = GMRFLib_dot_product(elm, latent); \
+					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
 				}					\
 			}
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -1178,10 +1189,11 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					}
 				}
 			} else {
+				// mean[i] = GMRFLib_dot_product(elm, mm); 
 #define CODE_BLOCK							\
 				for (int i = 0; i < mpred; i++) {	\
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-					mean[i] = GMRFLib_dot_product(elm, mm); \
+					GMRFLib_dot_product_INLINE(mean[i], elm, mm); \
 				}
 
 				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -1235,10 +1247,11 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				}
 			}
 		} else {
+			// mean_offset[i] += GMRFLib_dot_product(elm, mm); 
 #define CODE_BLOCK							\
 			for (int i = 0; i < npred; i++) {		\
 				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-				mean_offset[i] += GMRFLib_dot_product(elm, mm);	\
+				GMRFLib_dot_product_INLINE_ADDTO(mean_offset[i], elm, mm); \
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);

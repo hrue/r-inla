@@ -1,7 +1,7 @@
 
 /* utils.c
  * 
- * Copyright (C) 2006-2023 Havard Rue
+ * Copyright (C) 2006-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -433,6 +433,30 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 	} else {
 		for (i = len - 1; i >= 0; i--) {
 			if (array[i] != 0.0)
+				return i;
+		}
+		return -1;
+	}
+
+	return -1;
+}
+
+int GMRFLib_find_value(double *array, int len, int direction, double value)
+{
+	/*
+	 * return the first/last index in array such that array[idx] == value , and -1 if not there. direction > 0 : look for first. direction < 0 : look for last
+	 */
+	int i;
+
+	if (direction >= 0) {
+		for (i = 0; i < len; i++) {
+			if (array[i] == value)
+				return i;
+		}
+		return -1;
+	} else {
+		for (i = len - 1; i >= 0; i--) {
+			if (array[i] == value)
 				return i;
 		}
 		return -1;

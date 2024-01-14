@@ -1,7 +1,7 @@
 
 /* problem-setup.c
  * 
- * Copyright (C) 2001-2023 Havard Rue
+ * Copyright (C) 2001-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -205,11 +205,13 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		storage[id]->ii = ii;
 		storage[id]->jj = jj;
 	}
+
+	// value = GMRFLib_dot_product(constr->idxval[i], B + j * n); 
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k];	\
-		double value;						\
-		value = GMRFLib_dot_product(constr->idxval[i], B + j * n); \
+		double value = 0.0;					\
+		GMRFLib_dot_product_INLINE(value, constr->idxval[i], (B + j * n)); \
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
@@ -316,9 +318,10 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
 		nt = IMAX(1, IMIN(nc / f, GMRFLib_MAX_THREADS()));
 	}
 
+	// res[i] = GMRFLib_dot_product(constr->idxval[i], x);
 #define CODE_BLOCK							\
 	for (int i = 0; i < nc; i++) {					\
-		res[i] = GMRFLib_dot_product(constr->idxval[i], x);	\
+		GMRFLib_dot_product_INLINE(res[i], constr->idxval[i], x); \
 	}
 
 	RUN_CODE_BLOCK(nt, 0, 0);

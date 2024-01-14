@@ -1,4 +1,8 @@
-# INLA 24.01.
+# INLA 24.01.14
+* Optimization of sparse dot-products
+* Code cleanup
+
+# INLA 24.01.09
 * Fixe issue with 'r$mode$x'
 
 # INLA 24.01.07

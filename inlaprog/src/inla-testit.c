@@ -1,7 +1,7 @@
 
 /* inla-testit.c
  * 
- * Copyright (C) 2007-2023 Havard Rue
+ * Copyright (C) 2007-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,6 +110,9 @@ int testit(int argc, char **argv)
 	int test_no = -1;
 	char **args = NULL;
 	int nargs = 0;
+
+	// enable this global variable
+	GMRFLib_testit_mode = 1;
 
 	if (argc > 0) {
 		test_no = atoi(argv[0]);
@@ -733,47 +736,6 @@ int testit(int argc, char **argv)
 		printf("loop %.3f ddot %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 		Free(yy);
-	}
-		break;
-
-	case 25:
-	{
-		int n = 256 * 512;
-		double *xx = Calloc(n, double);
-
-		for (int i = 0; i < n; i++) {
-			xx[i] = GMRFLib_uniform();
-		}
-
-		GMRFLib_idxval_tp *h = NULL;
-		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : (int) (GMRFLib_uniform() * 8));
-			if (j >= n)
-				break;
-			GMRFLib_idxval_add(&h, j, xx[j]);
-		}
-		GMRFLib_idxval_sort(h);
-		assert(h);
-		P(h->g_n);
-		P(h->n / h->g_n);
-		double sum1 = 0.0, sum2 = 0.0;
-		double tref1 = 0.0, tref2 = 0.0;
-		for (int k = 0; k < 10000; k++) {
-			sum1 = sum2 = 0.0;
-			tref1 -= GMRFLib_cpu();
-			sum1 = GMRFLib_dot_product_serial(h, xx);
-			tref1 += GMRFLib_cpu();
-			tref2 -= GMRFLib_cpu();
-			sum2 = GMRFLib_dot_product_group(h, xx);
-			tref2 += GMRFLib_cpu();
-			if (ABS(sum1 - sum2) > 1e-8) {
-				P(sum1);
-				P(sum2);
-				exit(88);
-			}
-		}
-		printf("serial %.3f group %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
-		Free(xx);
 	}
 		break;
 
@@ -2297,79 +2259,44 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 82:
-	{
-		int n = atoi(args[0]);
-		int ntimes = atoi(args[1]);
-		double *x = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-			// x[i] = i+1;
-		}
-
-		P(n);
-		P(ntimes);
-
-		double tref[2] = { 0.0, 0.0 };
-		double r = 0.0, rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_dsum(n, x);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-#pragma omp simd reduction(+: rr)
-			for (int i = 0; i < n; i++) {
-				rr += x[i];
-			}
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("dsum %.3f plain %.3f (r-rr=%.12f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
-
-		Free(x);
-	}
-		break;
-
 	case 83:
 	{
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
+		int debug = atoi(args[2]);
 		double *xx = Calloc(n, double);
 
+		GMRFLib_testit_debug = debug;
+
 		for (int i = 0; i < n; i++) {
-			xx[i] = GMRFLib_uniform();
+			xx[i] = (GMRFLib_uniform() < 1.0 / 20.0 ? 1.0 : GMRFLib_uniform());
 		}
 
 		GMRFLib_idxval_tp *h = NULL;
-		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
-			if (j >= n)
+		for (int i = 0, j = 0;; i++) {
+			if (i >= n)
 				break;
-			GMRFLib_idxval_add(&h, j, xx[j]);
+			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
+			GMRFLib_idxval_add(&h, j, xx[i]);
 		}
 		GMRFLib_idxval_prepare(&h, 1, 1);
+		GMRFLib_idxval_info_printf(stdout, h, "INFO");
+		GMRFLib_idxval_printf(stdout, h, "INFO");
+
 		assert(h);
 		P(n);
 		P(h->g_n);
-		if (h->g_n)
-			P(h->n / h->g_n);
+		P(h->n / h->g_n);
 
-		if (h->g_n == 0)
-			FIXME("NEED TO DISABLE FREE OF GROUP in idxval.c");
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			// sum1 = GMRFLib_dot_product_serial(h, xx);
 			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			// sum2 = GMRFLib_dot_product_group(h, xx);
 			sum2 = GMRFLib_dot_product_group_mkl(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
@@ -2380,6 +2307,7 @@ int testit(int argc, char **argv)
 		}
 		printf("serial %.3f group %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
+		GMRFLib_idxval_free(h);
 	}
 		break;
 
@@ -2428,6 +2356,8 @@ int testit(int argc, char **argv)
 		}
 		printf("dot_idx %.3f serial %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
+		GMRFLib_idxval_free(h);
+		exit(0);
 	}
 		break;
 
@@ -2483,59 +2413,6 @@ int testit(int argc, char **argv)
 		for (x = 0;; x++) {
 			printf("x %f ldens %f\n", x, priorfunc_loggamma(&x, param));
 		}
-	}
-		break;
-
-	case 87:
-	{
-		int n = atoi(args[0]);
-		int ntimes = atoi(args[1]);
-		double *x = Calloc(n, double);
-		int *ix = Calloc(n, int);
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-			ix[i] = (int) (x[i] * 512 - 256);
-		}
-
-		P(n);
-		P(ntimes);
-
-		double tref[2] = { 0.0, 0.0 };
-		double r = 0.0, rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_dsum(n, x);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-			rr += GMRFLib_dsum2(n, x);
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("dsum %.3f dsum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P((r - rr) / r);
-
-		tref[0] = tref[1] = 0.0;
-		r = 0.0;
-		rr = 0.0;
-
-		for (int time = 0; time < ntimes; time++) {
-
-			tref[0] -= GMRFLib_cpu();
-			r += GMRFLib_isum(n, ix);
-			tref[0] += GMRFLib_cpu();
-
-			tref[1] -= GMRFLib_cpu();
-			rr += GMRFLib_isum2(n, ix);
-			tref[1] += GMRFLib_cpu();
-		}
-
-		printf("isum %.3f isum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P((r - rr) / r);
-
-		Free(x);
 	}
 		break;
 
@@ -2603,11 +2480,11 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = GMRFLib_ddot_idx_mkl_OLD(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_cpu();
 
 			tref3 -= GMRFLib_cpu();
-			sum3 = GMRFLib_ddot_idx_mkl_NEW(h->n, h->val, xx, h->idx);
+			sum3 = GMRFLib_ddot_idx_mkl_alt(h->n, h->val, xx, h->idx);
 			tref3 += GMRFLib_cpu();
 
 			tref4 -= GMRFLib_cpu();
@@ -2622,46 +2499,10 @@ int testit(int argc, char **argv)
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f mkl_OLD %.3f mkl_NEW %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		printf("dot_idx %.3f mkl %.3f mkl_alt %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
 		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
 		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
-		Free(xx);
-	}
-		break;
-
-	case 90:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		double *xx = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			xx[i] = GMRFLib_uniform();
-		}
-
-		P(n);
-		P(m);
-		double sum1 = 0.0, sum2 = 0.0;
-		double tref1 = 0.0, tref2 = 0.0;
-		for (int k = 0; k < m; k++) {
-			sum1 = sum2 = 0.0;
-			tref1 -= GMRFLib_cpu();
-			sum1 = GMRFLib_dsum(n, xx);
-			tref1 += GMRFLib_cpu();
-
-			tref2 -= GMRFLib_cpu();
-			sum2 = 0.0;
-			for (int i = 0; i < n; i++) {
-				sum2 += xx[i];
-			}
-			tref2 += GMRFLib_cpu();
-			if (ABS(sum1 - sum2) > 1e-8) {
-				P(sum1);
-				P(sum2);
-				exit(88);
-			}
-		}
-		printf("_dsum %.3f loop %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 	}
 		break;

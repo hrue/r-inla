@@ -1,7 +1,7 @@
 
 /* dot.h
  * 
- * Copyright (C) 2022-2023 Havard Rue
+ * Copyright (C) 2022-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,27 +53,27 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-double GMRFLib_dsum1(int n, double *x);
-double GMRFLib_dsum2(int n, double *x);
-int GMRFLib_isum1(int n, int *ix);
-int GMRFLib_isum2(int n, int *ix);
+double GMRFLib_dsum(int n, double *x);
+int GMRFLib_isum(int n, int *ix);
 double GMRFLib_ddot(int n, double *x, double *y);
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx);
 void GMRFLib_dsum_measure_time(double *tused);
 void GMRFLib_isum_measure_time(double *tused);
 void GMRFLib_chose_threshold_ddot(void);
 
 #define GMRFLib_dot_product_INLINE(ans_, v_, a_)			\
-	if (v_->n > 4L) {						\
+	if (v_->n >= 8L) {						\
 		ans_ = GMRFLib_dot_product(v_, a_);			\
 	} else {							\
 		double *_v = v_->val;					\
@@ -84,7 +84,29 @@ void GMRFLib_chose_threshold_ddot(void);
 		case 1:	ans_ = _v[0] * a_[_idx[0]]; break;		\
 		case 2:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]]; break; \
 		case 3:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]]; break; \
-		case 4:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; \
+		case 4:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; break; \
+		case 5:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]]; break; \
+		case 6:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]]; break; \
+		case 7:	ans_ = _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]] + _v[6] * a_[_idx[6]];	\
+		}							\
+	}
+
+#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)			\
+	if (v_->n >= 8L) {						\
+		ans_ += GMRFLib_dot_product(v_, a_);			\
+	} else {							\
+		double *_v = v_->val;					\
+		int *_idx = v_->idx;					\
+									\
+		switch(v_->n) {						\
+		case 0:	break;						\
+		case 1:	ans_ += _v[0] * a_[_idx[0]]; break;		\
+		case 2:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]]; break; \
+		case 3:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]]; break; \
+		case 4:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]]; break; \
+		case 5:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]]; break; \
+		case 6:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]]; break; \
+		case 7:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]] + _v[6] * a_[_idx[6]]; \
 		}							\
 	}
 

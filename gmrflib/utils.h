@@ -1,7 +1,7 @@
 
 /* utils.h
  * 
- * Copyright (C) 2006-2023 Havard Rue
+ * Copyright (C) 2006-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,6 +91,7 @@ int GMRFLib_dcmp_abs_r(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
+int GMRFLib_find_value(double *array, int len, int direction, double value);
 int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);

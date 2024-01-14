@@ -1,7 +1,7 @@
 
 /* approx-inference.c
  *
- * Copyright (C) 2006-2023 Havard Rue
+ * Copyright (C) 2006-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4776,7 +4776,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		int UNUSED(integer_one) = 1;
 
-#define COV_ETA_LATENT(value_, k_, cov_latent_) (value_) = GMRFLib_dot_product(A[k_], cov_latent_)
+//#define COV_ETA_LATENT(value_, k_, cov_latent_) (value_) = GMRFLib_dot_product(A[k_], cov_latent_)
+#define COV_ETA_LATENT(value_, k_, cov_latent_) GMRFLib_dot_product_INLINE(value_, A[k_], cov_latent_)
 
 #define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
 		if (1) {						\

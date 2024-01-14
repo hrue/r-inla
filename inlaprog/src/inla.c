@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2023 Havard Rue
+ * Copyright (C) 2007-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -5496,8 +5496,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
-	double time_isum[2] = { 0.0, 0.0 };
-	double time_dsum[2] = { 0.0, 0.0 };
 
 	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
@@ -5550,8 +5548,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
 
-		GMRFLib_isum_measure_time(time_isum);
-		GMRFLib_dsum_measure_time(time_dsum);
 		GMRFLib_chose_threshold_ddot();
 		GMRFLib_MKL_chose_thresholds();
 	} else {
@@ -5562,23 +5558,23 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	// report timings
-	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-			for (j = 0; j < 9; j++) {
+			for (j = 0; j < 13; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
-		double time_sum = GMRFLib_dsum(4, time_loop);
+		double time_sum = GMRFLib_dsum(6, time_loop);
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(4, time_sum, time_loop);
-			time_loop[4] *= time_sum;
+			GMRFLib_dscale(6, time_sum, time_loop);
+			time_loop[6] *= time_sum;
 		}
-		time_sum = GMRFLib_dsum(4, time_loop + 5);
+		time_sum = GMRFLib_dsum(6, time_loop + 7);
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(4, time_sum, time_loop + 5);
+			GMRFLib_dscale(6, time_sum, time_loop + 7);
 		}
 	}
 
@@ -5605,10 +5601,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing ddot............ [%1d]\n", GMRFLib_threshold_ddot);
-			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
-			       (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
-			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1],
-			       (GMRFLib_dsum == GMRFLib_dsum1 ? "dsum1" : "dsum2"));
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
 			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
@@ -5616,17 +5608,15 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if defined(INLA_LINK_WITH_MKL)
-			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
-			printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
-			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-			printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
-#else
-			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
-			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
-			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-#endif
+			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1],
+			       time_loop[2]);
+			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4],
+			       time_loop[5]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[6]);
+			printf("\t                                serial[%4.1f] serial.mkl[%4.1f] serial.mkl.alt[%4.1f]\n",
+			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);
+			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
+			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
@@ -6811,7 +6801,7 @@ int main(int argc, char **argv)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
 	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-		GMRFLib_dot_product_optim_report[i] = Calloc(9, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(13, double);
 	}
 
 #if !defined(WINDOWS)

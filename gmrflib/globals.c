@@ -1,7 +1,7 @@
 
 /* globals.c
  * 
- * Copyright (C) 2001-2023 Havard Rue
+ * Copyright (C) 2001-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,9 +170,6 @@ int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;
 int GMRFLib_save_memory = 0;
 
-GMRFLib_isum_tp *GMRFLib_isum = GMRFLib_isum1;
-GMRFLib_dsum_tp *GMRFLib_dsum = GMRFLib_dsum1;
-
 int GMRFLib_threshold_exp = 3;
 int GMRFLib_threshold_log = 3;
 int GMRFLib_threshold_log1p = 0;
@@ -182,3 +179,5 @@ int GMRFLib_threshold_mul = 255;
 int GMRFLib_threshold_ddot = 4;
 int GMRFLib_write_state = 0;
 int GMRFLib_gaussian_data = 0;
+int GMRFLib_testit_mode = 0;
+int GMRFLib_testit_debug = 0;

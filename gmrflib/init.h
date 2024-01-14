@@ -1,7 +1,7 @@
 
 /* init.h
  * 
- * Copyright (C) 2007-2023 Havard Rue
+ * Copyright (C) 2007-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,9 +63,6 @@ __BEGIN_DECLS
   \brief Define GMRFLib_TRUE as (1)
 */
 #define GMRFLib_TRUE  (1)
-typedef int GMRFLib_isum_tp(int, int *);
-typedef double GMRFLib_dsum_tp(int, double *);
-
 #endif
-__END_DECLS
+    __END_DECLS
 #endif
