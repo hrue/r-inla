@@ -78,6 +78,7 @@ int GMRFLib_my_taucs_check_flags(int flags);
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x);
 int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int from_idx, int to_idx);
 int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x);
+int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x);
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x);
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx);
@@ -108,6 +109,9 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 int METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
+
+taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L);
+void taucs_crs_free(taucs_crs_matrix *L);
 
 __END_DECLS
 #endif
