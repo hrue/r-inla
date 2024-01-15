@@ -1215,10 +1215,9 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	/*
 	 * convert from the real-world to the mapped world. source might be NULL. 
 	 */
-	if ((destination && source) && (destination != source)) {
-		for (int i = 0; i < graph->n; i++) {
-			destination[remap[i]] = source[i];
-		}
+	if ((destination && source) && !OVERLAP(destination, source, graph->n)) {
+		//for (int i = 0; i < graph->n; i++) destination[remap[i]] = source[i];
+		GMRFLib_unpack(graph->n, source, destination, remap);
 	} else {
 		static double **wwork = NULL;
 		static int *wwork_len = NULL;
@@ -1234,7 +1233,6 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		}
 
 		int cache_idx = 0;
-
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {
 			Free(wwork[cache_idx]);
@@ -1242,12 +1240,9 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 		}
 		work = wwork[cache_idx];
-		assert(work);
-
 		Memcpy(work, destination, graph->n * sizeof(double));
-		for (int i = 0; i < graph->n; i++) {
-			destination[remap[i]] = work[i];
-		}
+		//for (int i = 0; i < graph->n; i++) destination[remap[i]] = work[i];
+		GMRFLib_unpack(graph->n, work, destination, remap);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1257,10 +1252,9 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
-	if ((destination && source) && (destination != source)) {
-		for (int i = 0; i < graph->n; i++) {
-			destination[i] = source[remap[i]];
-		}
+	if ((destination && source) && !OVERLAP(destination, source, graph->n)) {
+		//for (int i = 0; i < graph->n; i++) destination[i] = source[remap[i]];
+		GMRFLib_pack(graph->n, source, remap, destination);
 	} else {
 		static double **wwork = NULL;
 		static int *wwork_len = NULL;
@@ -1276,7 +1270,6 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		}
 
 		int cache_idx = 0;
-
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {
 			Free(wwork[cache_idx]);
@@ -1284,12 +1277,10 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 		}
 		work = wwork[cache_idx];
-		assert(work);
 
 		Memcpy(work, destination, graph->n * sizeof(double));
-		for (int i = 0; i < graph->n; i++) {
-			destination[i] = work[remap[i]];
-		}
+		//for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
+		GMRFLib_pack(graph->n, work, remap, destination);
 	}
 	return GMRFLib_SUCCESS;
 }
