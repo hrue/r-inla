@@ -542,10 +542,21 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 	}
 
+#if defined(INLA_LINK_WITH_MKL)
+	assert(prepare || !prepare);			       /* fix compiler warning for unused variable */
+	h->preference = IDXVAL_SERIAL_MKL;
+	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
+	h->cpu_gain = 0.0;
+	return GMRFLib_SUCCESS;
+#else
 	if (!prepare || !GMRFLib_internal_opt) {
 		h->preference = IDXVAL_SERIAL_MKL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial;
+		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
 	}
+#endif
+
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;

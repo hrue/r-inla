@@ -1758,6 +1758,12 @@ int testit(int argc, char **argv)
 		P(OVERLAP(p, pp, 10));
 		P(OVERLAP(p, pp, 11));
 		P(OVERLAP(p, pp, 15));
+
+		P(OVERLAP(pp, p, 5));
+		P(OVERLAP(pp, p, 9));
+		P(OVERLAP(pp, p, 10));
+		P(OVERLAP(pp, p, 11));
+		P(OVERLAP(pp, p, 15));
 	}
 		break;
 
@@ -2413,6 +2419,49 @@ int testit(int argc, char **argv)
 		for (x = 0;; x++) {
 			printf("x %f ldens %f\n", x, priorfunc_loggamma(&x, param));
 		}
+	}
+		break;
+
+	case 87:
+	{
+		int n = atoi(args[ 0]);
+		int ntimes = atoi(args[1]);
+
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
+			j += 1 + ((int) (GMRFLib_uniform() * 64));
+			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
+		}
+		GMRFLib_idxval_prepare(&h, 1, 1);
+		GMRFLib_idxval_info_printf(stdout, h, "INFO");
+		GMRFLib_idxval_printf(stdout, h, "INFO");
+
+		int m = h->idx[h->n - 1];
+		double *xx = Calloc(m, double);
+		for (int i = 0; i < m; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < ntimes; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
+			tref1 += GMRFLib_cpu();
+
+			tref2 -= GMRFLib_cpu();
+			GMRFLib_dot_product_INLINE(sum2, h, xx);
+			tref2 += GMRFLib_cpu();
+			if (ABS(sum1 - sum2) > 1e-8) {
+				P(sum1);
+				P(sum2);
+				exit(88);
+			}
+		}
+		printf("MKL %.3f INLINE %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+		GMRFLib_idxval_free(h);
 	}
 		break;
 

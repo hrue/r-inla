@@ -5557,6 +5557,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_sort2_dd_cut_off = 128;		       // override value found 
 	}
 
+#if !defined(INLA_LINK_WITH_MKL)
 	// report timings
 	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
@@ -5577,7 +5578,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			GMRFLib_dscale(6, time_sum, time_loop + 7);
 		}
 	}
-
+#endif
+	
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
@@ -5608,6 +5610,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
+#if !defined(INLA_LINK_WITH_MKL)
 			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1],
 			       time_loop[2]);
 			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4],
@@ -5617,6 +5620,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);
 			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
 			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
+#endif
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
