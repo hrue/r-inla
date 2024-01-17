@@ -541,7 +541,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->n = k + 1;
 		}
 	}
-
 #if defined(INLA_LINK_WITH_MKL)
 	assert(prepare || !prepare);			       /* fix compiler warning for unused variable */
 	h->preference = IDXVAL_SERIAL_MKL;
@@ -790,6 +789,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_mem[1] = (void *) new_val;
 	Free(g_istart);
 
+#if defined(INLA_LINK_WITH_MKL)
 	int ntimes = 2;
 	double treff[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	double value[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -949,6 +949,117 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		GMRFLib_dot_product_optim_report[idx][6] += tmin;
 		GMRFLib_dot_product_optim_report[idx][7 + kmin]++;	/* count... */
 	}
+#else							       // if defined(INLA_LINK_WITH_MKL)
+
+	int ntimes = 2;
+	double treff[2] = { 0.0, 0.0 };
+	double value[2] = { 0.0, 0.0 };
+
+	for (int time = -1; time < ntimes; time++) {
+		if (time < 0) {
+			GMRFLib_dot_product_serial(h, x);
+			GMRFLib_dot_product_group(h, x);
+		} else {
+			treff[0] -= GMRFLib_cpu();
+			value[0] = GMRFLib_dot_product_serial(h, x);
+			treff[0] += GMRFLib_cpu();
+
+			treff[1] -= GMRFLib_cpu();
+			value[1] = GMRFLib_dot_product_group(h, x);
+			treff[1] += GMRFLib_cpu();
+
+			if (0) {
+				printf("idxval optimisation: length = %1d\n", h->n);
+				printf("\tserial         value   = %.16g\n", value[0]);
+				printf("\tgroup          abs.err = %.16g\n", ABS(value[1] - value[0]));
+			}
+		}
+	}
+
+	for (k = 0; k < 2; k++) {
+		treff[k] /= (double) ntimes;
+	}
+
+	for (k = 1; k < 2; k++) {
+		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
+			P(ABS(value[k] - value[0]));
+			P(k);
+			P(value[0]);
+			P(value[1]);
+
+			printf("n %d\n", h->n);
+			for (i = 0; i < h->n; i++) {
+				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
+			}
+			printf("ng %d\n", h->g_n);
+			if (0) {
+				for (g = 0; g < h->g_n; g++) {
+					printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
+					for (i = 0; i < IABS(h->g_len[g]); i++) {
+						printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+					}
+				}
+			}
+
+			P(ABS(value[k] - value[0]));
+			P(k);
+			P(value[0]);
+			P(value[1]);
+			assert(0 == 1);
+		}
+	}
+
+	int kmin = -1;
+	double tmin = GMRFLib_min_value(treff, 2, &kmin);
+
+	if (debug) {
+		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1]);
+		printf("for h with n= %1d chose kmin=%1d [serial= %.3f group= %.3f]\n", h->n, kmin, treff[0] * s, treff[1] * s);
+	}
+
+	switch (kmin) {
+	case 0:
+		h->preference = IDXVAL_SERIAL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial;
+		break;
+	case 1:
+		h->preference = IDXVAL_GROUP;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group;
+		break;
+	default:
+		assert(0 == 1);
+	}
+	h->cpu_gain = treff[0] - treff[kmin];
+	assert(h->cpu_gain >= 0);
+
+	if (!GMRFLib_testit_mode) {
+		if (h->preference == IDXVAL_SERIAL || h->preference == IDXVAL_SERIAL_MKL || h->preference == IDXVAL_SERIAL_MKL_ALT) {
+			/*
+			 * no need to keep the group info in the struct 
+			 */
+			h->g_n = 0;
+			Free(h->g_idx);
+			Free(h->g_val);
+			Free(h->g_len);
+			Free(h->g_1);
+			for (k = 0; k < h->g_n_mem; k++) {
+				Free(h->g_mem[k]);
+			}
+			Free(h->g_mem);
+			h->g_n_mem = 0;
+		}
+	}
+
+	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
+		int idx = 0;
+		GMRFLib_CACHE_SET_ID(idx);
+		for (k = 0; k < 2; k++) {
+			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
+		}
+		GMRFLib_dot_product_optim_report[idx][2] += tmin;
+		GMRFLib_dot_product_optim_report[idx][3 + kmin]++;	/* count... */
+	}
+#endif							       // if defined(INLA_LINK_WITH_MKL)
 
 	return GMRFLib_SUCCESS;
 }
@@ -1128,7 +1239,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
