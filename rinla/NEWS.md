@@ -1,3 +1,9 @@
+# INLA 24.01.18
+* Cleanup code for sparse dot-products
+* Intel MKL no longer supports MacOS and the Accelerate framework is now
+  used instead in the build
+* Some code optimization
+
 # INLA 24.01.14
 * Optimization of sparse dot-products
 * Code cleanup
