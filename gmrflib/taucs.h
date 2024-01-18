@@ -291,6 +291,26 @@ typedef struct {
 } taucs_ccs_matrix;
 
 typedef struct {
+	int n;						       /* columns */
+	int m;						       /* rows; don't use if symmetric */
+	int flags;
+	int *rowptr;					       /* pointers to where columns begin in rowind and values. */
+	/*
+	 * 0-based. Length is (n+1). 
+	 */
+	int *colind;					       /* row indices */
+
+	union {
+		void *v;
+		taucs_double *d;
+		taucs_single *s;
+		taucs_dcomplex *z;
+		taucs_scomplex *c;
+	} values;
+
+} taucs_crs_matrix;
+
+typedef struct {
 	int type;
 	int nmatrices;
 	void *type_specific;

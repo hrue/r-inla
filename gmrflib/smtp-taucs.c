@@ -831,7 +831,31 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	assert(graph->n == L->n);
+
 	GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
+
+	if (0) {
+		// this is testing-code for using both ccs and crs. not very successful
+
+		double *xx = Calloc(L->n, double);
+		Memcpy(xx, rhs, L->n * sizeof(double));
+
+		static double tref[2] = { 0, 0 };
+		tref[0] -= GMRFLib_cpu();
+		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
+		tref[0] += GMRFLib_cpu();
+
+		taucs_crs_matrix *LL = GMRFLib_ccs2crs(L);
+		tref[1] -= GMRFLib_cpu();
+		GMRFLib_my_taucs_dccs_solve_llt_test(L, LL, xx);
+		tref[1] += GMRFLib_cpu();
+
+		taucs_crs_free(LL);
+		Free(xx);
+		P(tref[1] / (tref[0] + tref[1]));
+	}
+
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
@@ -1505,11 +1529,15 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 	// not needed
 	// Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
+	// double tref[2] = {0, 0};
+
 	double *y = work;
 	if (n > 0) {
 		double *d = L->values.d;
 		int *colptr = L->colptr;
 		int *rowind = L->rowind;
+
+		// tref[0] -= GMRFLib_cpu();
 
 		for (int j = 0; j < n; j++) {
 			// .../Ajj
@@ -1523,12 +1551,99 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 			}
 		}
 
+		// tref[0] += GMRFLib_cpu();
+		// tref[1] -= GMRFLib_cpu();
+
 		for (int i = n - 1; i >= 0; i--) {
 			int jp = colptr[i];
 			int jp1 = jp + 1;
 			double inv_Aii = 1.0 / d[jp];
 			y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 			x[i] = y[i] * inv_Aii;
+		}
+
+		// tref[1] += GMRFLib_cpu();
+		// P(tref[0] / (tref[0] + tref[1]));
+	}
+
+
+	return 0;
+}
+
+int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x)
+{
+	// this version using both ccs and crs. not very successful
+
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	taucs_crs_matrix *LL = (taucs_crs_matrix *) vLL;
+	int n = L->n;
+
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical (Name_80df7c027d9d0a37fb394895c2424e2d3d203be6)
+		{
+			if (!wwork) {
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
+			}
+		}
+	}
+
+	int cache_idx = 0;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+
+	Memset(work, 0, n * sizeof(double));
+	double *y = work;
+
+	if (n > 0) {
+		int do_timing = 0;
+
+		double *d = LL->values.d;
+		int *rowptr = LL->rowptr;
+		int *colind = LL->colind;
+
+		double tref[2] = { 0, 0 };
+		if (do_timing)
+			tref[0] -= GMRFLib_cpu();
+
+		for (int i = 0; i < n; i++) {
+			if (i == 0) {
+				y[i] = x[i] / d[0];
+			} else {
+				// for (int j = rowptr[i]; j < rowptr[i+1]; j++) s += d[j] * y[colind[j]];
+				double s = GMRFLib_ddot_idx_mkl(rowptr[i + 1] - rowptr[i], d + rowptr[i], y, colind + rowptr[i]);
+				y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
+			}
+		}
+
+		if (do_timing) {
+			tref[0] += GMRFLib_cpu();
+			tref[1] -= GMRFLib_cpu();
+		}
+
+		d = L->values.d;
+		int *colptr = L->colptr;
+		int *rowind = L->rowind;
+
+		for (int i = n - 1; i >= 0; i--) {
+			int jp = colptr[i];
+			int jp1 = jp + 1;
+			double inv_Aii = 1.0 / d[jp];
+			y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+			x[i] = y[i] * inv_Aii;
+		}
+
+		if (do_timing) {
+			tref[1] += GMRFLib_cpu();
+			P(tref[0] / (tref[0] + tref[1]));
 		}
 	}
 
@@ -1821,4 +1936,104 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 	}
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
+}
+
+taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
+{
+	int debug = 0;
+	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
+
+	LL->n = L->n;
+	LL->m = L->m;
+	LL->flags = L->flags;
+
+	int n = L->n;
+	int nnz = L->colptr[n];
+
+	LL->rowptr = Calloc(n + 1, int);
+	LL->colind = Calloc(nnz, int);
+	LL->values.d = Calloc(nnz, double);
+
+	// number of elements pr column
+	int *clen = Calloc(n, int);
+
+	for (int j = 0; j < n; j++) {
+		int ip = L->colptr[j];
+		// double Ajj = L->values.d[ip];
+		clen[j]++;
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			int i = L->rowind[ip];
+			// double Aij = L->values.d[ip];
+			clen[i]++;
+		}
+	}
+
+	for (int i = 1; i <= n; i++) {
+		LL->rowptr[i] = LL->rowptr[i - 1] + clen[i - 1];
+	}
+
+	// reuse storage with a different name
+	int *rowidx = clen;
+	Memset(rowidx, 0, n * sizeof(int));
+
+	for (int j = 0; j < n; j++) {
+		int ip = L->colptr[j];
+		double Ajj = L->values.d[ip];
+
+		int k = LL->rowptr[j + 1] - 1;
+		LL->colind[k] = j;
+		LL->values.d[k] = Ajj;
+
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			int i = L->rowind[ip];
+			double Aij = L->values.d[ip];
+			k = LL->rowptr[i] + rowidx[i];
+			LL->colind[k] = j;
+			LL->values.d[k] = Aij;
+			rowidx[i]++;
+		}
+	}
+
+	if (debug) {
+		printf("CCS\n");
+		printf("colptr ");
+		for (int i = 0; i < n + 1; i++) {
+			printf(" %1d", L->colptr[i]);
+		}
+		printf("\nrowind ");
+		for (int i = 0; i < nnz; i++) {
+			printf(" %1d", L->rowind[i]);
+		}
+		printf("\nvalues ");
+		for (int i = 0; i < nnz; i++) {
+			printf(" %.2f", L->values.d[i]);
+		}
+		printf("\n");
+
+		printf("CRS\n");
+		printf("rowptr ");
+		for (int i = 0; i < n + 1; i++) {
+			printf(" %1d", LL->rowptr[i]);
+		}
+		printf("\ncolind ");
+		for (int i = 0; i < nnz; i++) {
+			printf(" %1d", LL->colind[i]);
+		}
+		printf("\nvalues ");
+		for (int i = 0; i < nnz; i++) {
+			printf(" %.2f", LL->values.d[i]);
+		}
+		printf("\n");
+	}
+
+	Free(rowidx);
+	return (LL);
+}
+
+void taucs_crs_free(taucs_crs_matrix *L)
+{
+	Free(L->rowptr);
+	Free(L->colind);
+	Free(L->values.d);
+	Free(L);
 }

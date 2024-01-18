@@ -72,7 +72,7 @@ void GMRFLib_dsum_measure_time(double *tused);
 void GMRFLib_isum_measure_time(double *tused);
 void GMRFLib_chose_threshold_ddot(void);
 
-#define GMRFLib_dot_product_INLINE(ans_, v_, a_)			\
+#define NOT_IN_USE____GMRFLib_dot_product_INLINE(ans_, v_, a_)		\
 	if (v_->n >= 8L) {						\
 		ans_ = GMRFLib_dot_product(v_, a_);			\
 	} else {							\
@@ -91,7 +91,7 @@ void GMRFLib_chose_threshold_ddot(void);
 		}							\
 	}
 
-#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)			\
+#define NOT_IN_USE____GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	\
 	if (v_->n >= 8L) {						\
 		ans_ += GMRFLib_dot_product(v_, a_);			\
 	} else {							\
@@ -109,6 +109,15 @@ void GMRFLib_chose_threshold_ddot(void);
 		case 7:	ans_ += _v[0] * a_[_idx[0]] + _v[1] * a_[_idx[1]] + _v[2] * a_[_idx[2]] + _v[3] * a_[_idx[3]] + _v[4] * a_[_idx[4]] + _v[5] * a_[_idx[5]] + _v[6] * a_[_idx[6]]; \
 		}							\
 	}
+
+
+#if defined(INLA_LINK_WITH_MKL)
+#define GMRFLib_dot_product_INLINE(ans_, v_, a_) ans_ = GMRFLib_dot_product_serial_mkl(v_, a_)
+#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_dot_product_serial_mkl(v_, a_)
+#else
+#define GMRFLib_dot_product_INLINE(ans_, v_, a_) ans_ = GMRFLib_dot_product(v_, a_)
+#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_dot_product(v_, a_)
+#endif
 
 __END_DECLS
 #endif

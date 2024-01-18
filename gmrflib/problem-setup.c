@@ -205,7 +205,6 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		storage[id]->ii = ii;
 		storage[id]->jj = jj;
 	}
-
 	// value = GMRFLib_dot_product(constr->idxval[i], B + j * n); 
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
