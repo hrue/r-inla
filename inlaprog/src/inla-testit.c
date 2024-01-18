@@ -2424,7 +2424,7 @@ int testit(int argc, char **argv)
 
 	case 87:
 	{
-		int n = atoi(args[ 0]);
+		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 
 		GMRFLib_idxval_tp *h = NULL;

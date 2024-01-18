@@ -837,7 +837,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRF
 
 	if (0) {
 		// this is testing-code for using both ccs and crs. not very successful
-		
+
 		double *xx = Calloc(L->n, double);
 		Memcpy(xx, rhs, L->n * sizeof(double));
 
@@ -1610,7 +1610,7 @@ int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x)
 		int *rowptr = LL->rowptr;
 		int *colind = LL->colind;
 
-		double tref[2] = {0, 0};
+		double tref[2] = { 0, 0 };
 		if (do_timing)
 			tref[0] -= GMRFLib_cpu();
 

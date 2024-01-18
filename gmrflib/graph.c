@@ -1216,7 +1216,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	 * convert from the real-world to the mapped world. source might be NULL. 
 	 */
 	if ((destination && source) && !OVERLAP(destination, source, graph->n)) {
-		//for (int i = 0; i < graph->n; i++) destination[remap[i]] = source[i];
+		// for (int i = 0; i < graph->n; i++) destination[remap[i]] = source[i];
 		GMRFLib_unpack(graph->n, source, destination, remap);
 	} else {
 		static double **wwork = NULL;
@@ -1241,7 +1241,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		}
 		work = wwork[cache_idx];
 		Memcpy(work, destination, graph->n * sizeof(double));
-		//for (int i = 0; i < graph->n; i++) destination[remap[i]] = work[i];
+		// for (int i = 0; i < graph->n; i++) destination[remap[i]] = work[i];
 		GMRFLib_unpack(graph->n, work, destination, remap);
 	}
 	return GMRFLib_SUCCESS;
@@ -1253,7 +1253,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
 	if ((destination && source) && !OVERLAP(destination, source, graph->n)) {
-		//for (int i = 0; i < graph->n; i++) destination[i] = source[remap[i]];
+		// for (int i = 0; i < graph->n; i++) destination[i] = source[remap[i]];
 		GMRFLib_pack(graph->n, source, remap, destination);
 	} else {
 		static double **wwork = NULL;
@@ -1279,7 +1279,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		work = wwork[cache_idx];
 
 		Memcpy(work, destination, graph->n * sizeof(double));
-		//for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
+		// for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
 		GMRFLib_pack(graph->n, work, remap, destination);
 	}
 	return GMRFLib_SUCCESS;
