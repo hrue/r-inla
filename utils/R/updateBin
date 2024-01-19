@@ -29,7 +29,9 @@ for m in 64; do
     rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
-    mv -f -v $DIR/libjemalloc.* $DIR/first
+    for f in $DIR/libjemalloc.*; do 
+	test -f "$f" && mv -f -v "$f"  $DIR/first
+    done
 done
 
 for m in Something; do
@@ -46,7 +48,9 @@ for m in Something; do
     rsync -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
-    mv -f -v $DIR/libjemalloc.* $DIR/first
+    for f in $DIR$/libjemalloc.*; do
+	test -f "$f" && mv -f -v "$f" $DIR/first
+    done
 done
 
 for m in 64; do

@@ -24,12 +24,14 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
     fi
 done
 
-for f in $DIR/first/lib*.so*; do
-    case "$f" in
-	$DIR/first/libjemalloc.so*)
-	    export LD_PRELOAD="$f";;
-    esac
-done
+if false; then
+    for f in $DIR/first/lib*.so*; do
+	case "$f" in
+	    $DIR/first/libjemalloc.so*)
+		export LD_PRELOAD="$f";;
+	esac
+    done
+fi
 
 if [ -n "${INLA_NATIVE_LD_LIBRARY_PATH}" ]; then
     ## so we can revert back to old behaviour
