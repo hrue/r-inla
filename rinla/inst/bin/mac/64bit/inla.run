@@ -44,14 +44,16 @@ pathA="/System/Library/Frameworks/ImageIO.framework/Versions/Current/Resources"
 pathB="/System/Library/Frameworks/OpenGL.framework/Versions/Current/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
-for f in $DIR/first/lib*.dylib*; do
-    case $f in
-	$DIR/first/libjemalloc*.dylib*)
+if false; then
+    for f in $DIR/first/lib*.dylib*; do
+	case $f in
+	    $DIR/first/libjemalloc*.dylib*)
 	    ##export DYLD_INSERT_LIBRARIES=$f
 	    ##export DYLD_FORCE_FLAT_NAMESPACE=1
 	    ;;
-    esac
-done
+	esac
+    done
+fi
 
 ## '-L' option may only be set, if mkl=FALSE
 if [ -z "$INLA_VECLIB_PATH" ]; then

@@ -15,14 +15,16 @@ else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-for f in $DIR/first/lib*.dylib*; do
-    case $f in
-	$DIR/first/libjemalloc*.dylib*)
+if false; then
+    for f in $DIR/first/lib*.dylib*; do
+	case $f in
+	    $DIR/first/libjemalloc*.dylib*)
 	    ##export DYLD_INSERT_LIBRARIES=$f
 	    ##export DYLD_FORCE_FLAT_NAMESPACE=1
 	    ;;
-    esac
-done
+	esac
+    done
+fi
 
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
