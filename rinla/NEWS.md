@@ -1,3 +1,7 @@
+# INLA 24.01.20
+* Code cleanup
+* Remove library jemalloc in builds
+
 # INLA 24.01.18
 * Cleanup code for sparse dot-products
 * Intel MKL no longer supports MacOS and the Accelerate framework is now
