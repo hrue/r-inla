@@ -318,19 +318,56 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 		if (dd) {
 			double *wfff = wf + 2 * wlength;
+			if (0) {
 #pragma omp simd reduction(+: df, ddf, dddf)
-			for (int i = 0; i < n; i++) {
-				double ff = f[i];
-				df += wf[i] * ff;
-				ddf += wff[i] * ff;
-				dddf += wfff[i] * ff;
+				for (int i = 0; i < n; i++) {
+					double ff = f[i];
+					df += wf[i] * ff;
+					ddf += wff[i] * ff;
+					dddf += wfff[i] * ff;
+				}
+			} else {
+				int iref = n / 2L;
+
+				double *f_ref = f + iref;
+				double *wf_ref = wf + iref;
+				double *wff_ref = wff + iref;
+				double *wfff_ref = wfff + iref;
+
+				df = wf_ref[0] * f_ref[0];
+				ddf = wff_ref[0] * f_ref[0];
+				dddf = wfff_ref[0] * f_ref[0];
+
+				for (int i = 1; i < n - iref; i++) {
+					double _a = f_ref[i], _b = f_ref[-i], _c = _a - _b;
+					df = fma(wf_ref[i], _c, df);
+					ddf = fma(wff_ref[i], _a + _b, ddf);
+					dddf = fma(wfff_ref[i], _c, dddf);
+				}
 			}
 		} else {
+			if (0) {
 #pragma omp simd reduction(+: df, ddf)
-			for (int i = 0; i < n; i++) {
-				double ff = f[i];
-				df += wf[i] * ff;
-				ddf += wff[i] * ff;
+				for (int i = 0; i < n; i++) {
+					double ff = f[i];
+					df += wf[i] * ff;
+					ddf += wff[i] * ff;
+				}
+			} else {
+				int iref = n / 2L;
+
+				double *f_ref = f + iref;
+				double *wf_ref = wf + iref;
+				double *wff_ref = wff + iref;
+
+				df = wf_ref[0] * f_ref[0];
+				ddf = wff_ref[0] * f_ref[0];
+
+				for (int i = 1; i < n - iref; i++) {
+					double _a = f_ref[i], _b = f_ref[-i];
+					df = fma(wf_ref[i], _a - _b, df);
+					ddf = fma(wff_ref[i], _a + _b, ddf);
+				}
 			}
 		}
 		df /= step;
