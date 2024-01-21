@@ -346,12 +346,8 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			double *wf_ref = wf + iref;
 			double *wff_ref = wff + iref;
 
-			// we know that wf_ref[0]=0
-			// df = wf_ref[0] * f_ref[0];
-			df = 0.0;
-			ddf = wff_ref[0] * f_ref[0];
-
 			// we know the sign is alternating with the same abs(coof)
+			df = 0.0;
 #pragma omp simd reduction(+: df)
 			for (int i = 1; i < n - iref; i++) {
 				double _a = f_ref[i], _b = f_ref[-i];
@@ -359,6 +355,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			}
 
 			// abs(coof) is the same but with oposite sign
+			ddf = wff_ref[0] * f_ref[0];
 #pragma omp simd reduction(+: ddf)
 			for (int i = 1; i < n - iref; i += 2) {
 				double _a = f_ref[i], _b = f_ref[-i];
@@ -368,9 +365,8 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
-				// we know that wfff_ref[0]=0
-				dddf = 0.0;
 				// we know the sign is alternating with the same abs(coof)
+				dddf = 0.0;
 #pragma omp simd reduction(+: dddf)
 				for (int i = 1; i < n - iref; i++) {
 					double _a = f_ref[i], _b = f_ref[-i];
