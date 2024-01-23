@@ -93,6 +93,7 @@
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
+#include "pc-bgev-link.h"
 #include "cgeneric.h"
 
 #define PREVIEW (10)
