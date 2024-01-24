@@ -318,7 +318,7 @@ hyper.tail = list(initial = tail.intern,
 ```
 
 \textbf{Note:} if we have reasons to believe that $\xi=0$ (Gumbel
-case), then a good initial value is $\infty$ (in the internal
+case), then a good initial value is $-\infty$ (in the internal
 parametrisation). We can generalise the prior specification for the
 tail to allow $\xi>0$ or $\xi=0$ as follows
 
