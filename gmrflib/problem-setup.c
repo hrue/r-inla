@@ -39,11 +39,7 @@
 
 int error_check_validate_constr1 = 0;
 
-#if defined(INLA_WINDOWS32)
-static int constr_store_use = 0;			       /* do not use it as the sha is not prepared for it */
-#else
 static int constr_store_use = 1;
-#endif
 static map_strvp constr_store;
 static int constr_store_must_init = 1;
 static int constr_store_debug = 0;
@@ -67,11 +63,7 @@ int GMRFLib_init_constr_store(void)
 }
 
 
-#if defined(INLA_WINDOWS32)
-static int constr_store_logdet_use = 0;			       /* do not use it as the sha is not prepared for it */
-#else
 static int constr_store_logdet_use = 1;
-#endif
 static map_strd constr_store_logdet;
 static int constr_store_logdet_must_init = 1;
 static int constr_store_logdet_debug = 0;
