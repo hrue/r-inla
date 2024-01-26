@@ -46,18 +46,10 @@ __BEGIN_DECLS
  *
  */
 
-typedef struct {
-	GMRFLib_spline_tp *cdf, *icdf;
-	double xi, xmin, xmax, pmin, pmax;
-} inla_link_bgev_table_tp;
-
-typedef struct {
-	double *interval;
-} inla_link_bgev_param_tp;
-
-double inla_pbgev(double y, double xi);
 double inla_log_pbgev(double y, double xi);
-double map_invbgev(double arg, map_arg_tp typ, void *param, double *covariates);
+double inla_pbgev(double y, double xi);
+double inla_inv_pbgev(double p, double xi);
+double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov));
 
 __END_DECLS
 #endif
