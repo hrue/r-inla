@@ -398,7 +398,8 @@ typedef enum {
 	LINK_SN,
 	LINK_LOGa,
 	LINK_POWER_LOGIT,
-	LINK_CCLOGLOG
+	LINK_CCLOGLOG,
+	LINK_BGEV
 } inla_component_tp;
 
 typedef enum {
@@ -797,6 +798,9 @@ typedef struct {
 	double *scale;
 	double **power_intern;
 	double **intercept_intern;
+	double **bgev_tail;
+	double **bgev_intercept;
+	double *bgev_tail_interval;
 } Link_param_tp;
 
 typedef struct {
@@ -1805,6 +1809,7 @@ double inla_negative_binomial_interval(double size, double mu, int y_from, int y
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
+double link_bgev(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);

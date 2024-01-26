@@ -2693,6 +2693,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case LINK_BGEV:
+			{
+				if (!ds->link_fixed[0]) {
+					double tail_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &tail_intern);
+					count++;
+				}
+				if (!ds->link_fixed[1]) {
+					double intercept_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[1], &intercept_intern);
+					count++;
+				}
+			}
+				break;
+
 			case LINK_POWER_LOGIT:
 			{
 				if (!ds->link_fixed[0]) {

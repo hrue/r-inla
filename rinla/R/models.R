@@ -7432,62 +7432,77 @@
                     doc = "The default link",
                     hyper = list()
                 ),
+
                 cloglog = list(
                     doc = "The complementary log-log link",
                     hyper = list()
                 ),
+
                 ccloglog = list(
                     doc = "The complement complementary log-log link",
                     hyper = list()
                 ),
+
                 loglog = list(
                     doc = "The log-log link",
                     hyper = list()
                 ),
+
                 identity = list(
                     doc = "The identity link",
                     hyper = list()
                 ),
+
                 inverse = list(
                     doc = "The inverse link",
                     hyper = list()
                 ),
+
                 log = list(
                     doc = "The log-link",
                     hyper = list()
                 ),
+
                 loga = list(
                     doc = "The loga-link",
                     hyper = list()
                 ),
+
                 neglog = list(
                     doc = "The negative log-link",
                     hyper = list()
                 ),
+
                 logit = list(
                     doc = "The logit-link",
                     hyper = list()
                 ),
+
                 probit = list(
                     doc = "The probit-link",
                     hyper = list()
                 ),
+
                 cauchit = list(
                     doc = "The cauchit-link",
                     hyper = list()
                 ),
+
                 tan = list(
                     doc = "The tan-link",
                     hyper = list()
                 ),
+
                 quantile = list(
                     doc = "The quantile-link",
                     hyper = list()
                 ),
+
                 pquantile = list(
                     doc = "The population quantile-link",
                     hyper = list()
                 ),
+
                 sslogit = list(
                     doc = "Logit link with sensitivity and specificity",
                     hyper = list(
@@ -7556,6 +7571,7 @@
                     status = "experimental",
                     pdf = "logitoffset"
                 ),
+
                 robit = list(
                     doc = "Robit link",
                     hyper = list(
@@ -7574,6 +7590,7 @@
                     status = "experimental",
                     pdf = "robit"
                 ),
+
                 sn = list(
                     doc = "Skew-normal link",
                     hyper = list(
@@ -7605,6 +7622,37 @@
                     ),
                     pdf = "linksn"
                 ),
+
+                bgev = list(
+                    doc = "bGEV link",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 49033,
+                            name = "tail",
+                            short.name = "xi",
+                            initial = -5,
+                            fixed = FALSE,
+                            prior = "pc.gevtail",
+                            param = c(7, 0.0, 0.5),
+                            to.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x)),
+                            from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
+                        ),
+                        theta2 = list(
+                            hyperid = 49034,
+                            name = "intercept",
+                            short.name = "intercept",
+                            initial = 0.0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 1), 
+                            to.theta = function(x) log(x / (1 - x)),
+                            from.theta = function(x) 1 / (1 + exp(-x))
+                        )
+                    ),
+                    status = "experimental",
+                    pdf = "linkbgev"
+                ),
+
                 powerlogit = list(
                     doc = "Power logit link",
                     hyper = list(
@@ -7633,6 +7681,7 @@
                     ),
                     pdf = "powerlogit"
                 ),
+
                 test1 = list(
                     doc = "A test1-link function (experimental)",
                     hyper = list(
@@ -8567,7 +8616,8 @@
                     status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
-                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog", "log"), 
+                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
+                             "ccloglog", "loglog", "log"),
                     link.simple = c("default", "logit", "cauchit", "probit", "cloglog", "ccloglog"), 
                     pdf = "0inflated"
                 ), 
@@ -8577,11 +8627,9 @@
                     hyper = list(),
                     survival = FALSE,
                     discrete = TRUE,
-                    link = c(
-                        "default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                        "powerlogit"
-                    ),
+                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
+                             "ccloglog", "loglog", "log", "sslogit", "logitoffset", "quantile",
+                             "pquantile", "robit", "sn", "powerlogit", "bgev"),
                     pdf = "binomial"
                 ),
 
@@ -8590,11 +8638,9 @@
                     hyper = list(),
                     survival = FALSE,
                     discrete = TRUE,
-                    link = c(
-                        "default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                        "powerlogit"
-                    ),
+                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
+                             "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
+                             "powerlogit", "bgev"),
                     pdf = "binomial",
                     status = "experimental"
                 ),

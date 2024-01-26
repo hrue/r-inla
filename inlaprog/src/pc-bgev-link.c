@@ -28,9 +28,6 @@
  *
  */
 
-#include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "inla.h"
 #include "rmath.h"
 #include "pc-bgev-link.h"
@@ -47,7 +44,6 @@ double inla_pbgev(double y, double xi)
 	}
 
 	double qalpha = 0, alpha = 0.5, beta = 0.5, sbeta = 1.0, pa = 0.1, pb = 0.2, c12 = 5.0;
-
 	double l1 = log(-log(alpha));
 	double l2 = log(-log(1.0 - beta / 2.0));
 	double l3 = log(-log(beta / 2.0));
@@ -67,6 +63,8 @@ double inla_pbgev(double y, double xi)
 	double part1 = _log_pfrechet(y);
 	double part2 = _log_pgumbel(y);
 	double value = exp(px * part1 + (1 - px) * part2);
+	FIXME("FIX");
+	value = exp(part1);
 
 #undef _log_pfrechet
 #undef _qfrechet
@@ -77,33 +75,24 @@ double inla_pbgev(double y, double xi)
 }
 
 
-double map_invbgev(double arg, map_arg_tp typ, void *param)
+double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
 #define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
 
-	static inla_bgev_table_tp **table = NULL;
+	static inla_link_bgev_table_tp **table = NULL;
 	static char first = 1;
 
 	int i, j, id = 0;
-	const int debug = 0;
-	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, xi, xi_intern, xi_max = 0.5;
-	double **par, intercept, intercept_intern;
+	const int debug = 1;
+	double dx = 0.02, range = 10.0, p, pp; 
+	double intercept;
 
-	par = (double **) param;
-	assert(par);
-	assert(par[0]);
-	assert(par[1]);
-	xi_intern = *(par[0]);
-	intercept_intern = *(par[1]);
-
-	// parameters are XI and INTERCEPT
-	xi = map_phi(xi_intern, MAP_FORWARD, (void *) &xi_max);
-
-	if (debug) {
-		printf("map_invbgev: enter with arg= %g, xi= %g\n", arg, xi);
-	}
+	Link_param_tp *par = (Link_param_tp *) param;
+	double xi_intern = par->bgev_tail[thread_id][0];
+	double intercept_intern = par->bgev_intercept[thread_id][0];
+	double xi = map_interval(xi_intern, MAP_FORWARD, (void *) par->bgev_tail_interval);
 
 	if (first) {
 #pragma omp critical (Name_f35fc78992e1ea9c433855032e75213c669a9284)
@@ -111,9 +100,9 @@ double map_invbgev(double arg, map_arg_tp typ, void *param)
 			if (debug) {
 				fprintf(stderr, "map_invbgev: build table\n");
 			}
-			table = Calloc(GMRFLib_CACHE_LEN(), inla_bgev_table_tp *);
+			table = Calloc(GMRFLib_CACHE_LEN(), inla_link_bgev_table_tp *);
 			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-				table[i] = Calloc(1, inla_bgev_table_tp);
+				table[i] = Calloc(1, inla_link_bgev_table_tp);
 				table[i]->xi = -INLA_REAL_BIG;
 				table[i]->cdf = NULL;
 				table[i]->icdf = NULL;
@@ -125,6 +114,11 @@ double map_invbgev(double arg, map_arg_tp typ, void *param)
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (!ISEQUAL(xi, table[id]->xi)) {
+
+		if (debug) {
+			printf("link_bgev: enter with arg= %g, xi= %g\n", arg, xi);
+		}
+
 		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
 		double *work, *x, *y, *yy, nc = 0.0, xx;
 
@@ -139,7 +133,7 @@ double map_invbgev(double arg, map_arg_tp typ, void *param)
 
 		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
-			y[i] = inla_pgev(x[i], xi);
+			y[i] = inla_pbgev(x[i], xi);
 			llen++;
 		}
 		len = llen;

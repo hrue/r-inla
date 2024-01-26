@@ -50,6 +50,8 @@ __BEGIN_DECLS
 #include <Rmath.h>
 #if defined(ISNAN)
 #undef ISNAN
+// same definition in GMRFLibP.h
+#define ISNAN(x) (isnan(x) != 0)
 #endif
     __END_DECLS
 #endif

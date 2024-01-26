@@ -9234,6 +9234,45 @@ Number of hyperparmeters is 2.
 }
 }
 }
+\item{Model 'bgev'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{\verb{bGEV link}}
+\item{pdf = }{\verb{linkbgev}}
+}
+}
+}
+Number of hyperparmeters is 2.
+\describe{
+\item{Hyperparameter 'theta1'}{
+\describe{
+\item{hyperid = }{\verb{49033}}
+\item{name = }{\verb{tail}}
+\item{short.name = }{\verb{xi}}
+\item{initial = }{\verb{-5}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{pc.xi}}
+\item{param = }{\verb{10}}
+\item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+\item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+}
+}
+\item{Hyperparameter 'theta2'}{
+\describe{
+\item{hyperid = }{\verb{49034}}
+\item{name = }{\verb{intercept}}
+\item{short.name = }{\verb{intercept}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{linkbgevintercept}}
+\item{param = }{\verb{0 0}}
+\item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+\item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+}
+}
+}
+}
 \item{Model 'powerlogit'.}{
 \describe{
 \item{Properties:}{

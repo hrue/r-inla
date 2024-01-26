@@ -424,8 +424,8 @@ typedef enum {
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define ISINF(x) isinf(x)
+// same definition in rmath.h
 #define ISNAN(x) (isnan(x) != 0)
-//#define ISQR(x) ((x)*(x))
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)

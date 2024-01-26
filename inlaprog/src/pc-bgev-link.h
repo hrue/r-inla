@@ -48,10 +48,14 @@ __BEGIN_DECLS
 typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
 	double xi, xmin, xmax, pmin, pmax;
-} inla_bgev_table_tp;
+} inla_link_bgev_table_tp;
+
+typedef struct {
+	double *interval;
+} inla_link_bgev_param_tp;
 
 double inla_pbgev(double y, double xi);
-double map_invbgev(double arg, map_arg_tp typ, void *param);
+double map_invbgev(double arg, map_arg_tp typ, void *param, double *covariates);
 
 __END_DECLS
 #endif
