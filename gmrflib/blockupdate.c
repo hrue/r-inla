@@ -356,11 +356,20 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 			// abs(coof) is the same but with oposite sign
 			ddf = wff_ref[0] * f_ref[0];
-#pragma omp simd reduction(+: ddf)
-			for (int i = 1; i < n - iref; i += 2) {
-				double _a = f_ref[i], _b = f_ref[-i];
-				double _aa = f_ref[i + 1], _bb = f_ref[-(i + 1)];
-				ddf += PROD_DIFF(wff_ref[i], _a + _b, -wff_ref[i + 1], _aa + _bb);
+			switch(n) {
+			case 5L: 
+				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
+				break;
+			case 7L: 
+				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
+					PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
+				break;
+			case 9L: 
+				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
+					PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
+				break;
+			default:
+				assert(0 == 1);
 			}
 
 			if (dd) {
@@ -373,7 +382,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 					dddf += PROD_DIFF(wfff_ref[i], _a, wfff_ref[i], _b);
 				}
 			}
-		}
+		} 
 
 		df /= step;
 		ddf /= SQR(step);
