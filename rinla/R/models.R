@@ -7630,7 +7630,7 @@
                             hyperid = 49033,
                             name = "tail",
                             short.name = "xi",
-                            initial = -5,
+                            initial = -3,
                             fixed = FALSE,
                             prior = "pc.gevtail",
                             param = c(7, 0.0, 0.5),

@@ -39,6 +39,7 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
+
 __BEGIN_DECLS
 
 /* 
@@ -55,6 +56,7 @@ typedef struct {
 } inla_link_bgev_param_tp;
 
 double inla_pbgev(double y, double xi);
+double inla_log_pbgev(double y, double xi);
 double map_invbgev(double arg, map_arg_tp typ, void *param, double *covariates);
 
 __END_DECLS

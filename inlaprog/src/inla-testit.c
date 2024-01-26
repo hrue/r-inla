@@ -543,7 +543,7 @@ int testit(int argc, char **argv)
 	{
 		double xi = GMRFLib_uniform()/2.0;
 		for(double y = -2.0; y < 4.0; y += 0.1) {
-			printf("y %.15f xi %.15f pbgev %.15f\n", y, xi, inla_pbgev(y, xi));
+			printf("y %.15f xi %.15f pbgev %.25f\n", y, xi, inla_pbgev(y, xi));
 		}
 	}
 		break;
