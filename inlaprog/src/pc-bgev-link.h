@@ -45,11 +45,10 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-double inla_log_pbgev(double y, double xi);
-double inla_pbgev(double y, double xi);
-double inla_inv_pbgev(double p, double xi);
-double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov));
+double inla_log_pbgev(double y, double xi, double *l_xi);
+double inla_pbgev(double y, double xi, double *l_xi);
+double inla_inv_pbgev(double p, double xi, double *l_xi);
+double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
 
 __END_DECLS
 #endif

@@ -118,6 +118,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y);
 void GMRFLib_fill(int n, double a, double *x);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_unpack(int n, double *a, double *y, int *iy);
+void GMRFLib_powx(int n, double *x, double a, double *y);
 
 __END_DECLS
 #endif

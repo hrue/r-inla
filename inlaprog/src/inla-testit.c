@@ -542,8 +542,12 @@ int testit(int argc, char **argv)
 	case 17:
 	{
 		double xi = GMRFLib_uniform()/2.0;
+		const double vec[3] = {-log(0.5), -log(1.0 - 0.5 / 2.0), -log(0.5 / 2.0)};
+		double l_xi[3];
+		GMRFLib_powx(3, (double *) vec, -xi, l_xi);
+		
 		for(double y = -2.0; y < 4.0; y += 0.1) {
-			printf("y %.15f xi %.15f pbgev %.25f\n", y, xi, inla_pbgev(y, xi));
+			printf("y %.15f xi %.15f pbgev %.25f\n", y, xi, inla_pbgev(y, xi, l_xi));
 		}
 	}
 		break;
