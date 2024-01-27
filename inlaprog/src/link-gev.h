@@ -1,5 +1,5 @@
 
-/* pc-bgev-link.h
+/* link-gev.h
  * 
  * Copyright (C) 2024-2024 Havard Rue
  * 
@@ -27,8 +27,8 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef __INLA_PC_BGEV_LINK_H__
-#define __INLA_PC_BGEV_LINK_H__
+#ifndef __INLA_LINK_GEV_H__
+#define __INLA_LINK_GEV_H__
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -45,10 +45,10 @@ __BEGIN_DECLS
 /* 
  *
  */
-double inla_log_pbgev(double y, double xi, double *l_xi);
-double inla_pbgev(double y, double xi, double *l_xi);
-double inla_inv_pbgev(double p, double xi, double *l_xi);
-double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
+double inla_log_pgev(double y, double xi, double *l_xi);
+double inla_pgev(double y, double xi, double *l_xi);
+double inla_inv_pgev(double p, double xi, double *l_xi);
+double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
 
 __END_DECLS
 #endif

@@ -1,5 +1,5 @@
 
-/* pc-bgev-link.c
+/* link-gev.c
  * 
  * Copyright (C) 2024-2024 Havard Rue
  * 
@@ -30,7 +30,7 @@
 
 #include "inla.h"
 #include "rmath.h"
-#include "pc-bgev-link.h"
+#include "link-gev.h"
 
 #define XI_MIN 1.0E-8
 #define P_MIN 1.0E-12
@@ -44,26 +44,26 @@
 // double l4_xi = l2_xi - l3_xi
 // double l5_xi = 1/l4_xi
 
-double inla_log_pbgev(double y, double xi, double *l_xi)
+double inla_log_pgev(double y, double xi, double *l_xi)
 {
 #define _log_pfrechet(y_) (-DMAX(0.0, pow((y_) * l_xi[3] + l_xi[0], -1.0/xi)))
 	return (_log_pfrechet(y));
 #undef _log_pfrechet
 }
 
-double inla_pbgev(double y, double xi, double *l_xi)
+double inla_pgev(double y, double xi, double *l_xi)
 {
-	return (exp(inla_log_pbgev(y, xi, l_xi)));
+	return (exp(inla_log_pgev(y, xi, l_xi)));
 }
 
-double inla_inv_pbgev(double p, double xi, double *l_xi)
+double inla_inv_pgev(double p, double xi, double *l_xi)
 {
 #define _qfrechet(p_) ((pow(-log(p_), -xi) - l_xi[0]) * l_xi[4])
 	return (_qfrechet(p));
 #undef _qfrechet
 }
 
-double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	// as the prev one, but return the log() if typ==MAP_FORWARD
 
@@ -110,8 +110,8 @@ double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double 
 		l_xi[4] = 1.0 / l_xi[3];
 
 		c[C_XI] = xi;
-		c[C_LOW] = inla_inv_pbgev(P_MIN, xi, l_xi);
-		c[C_HIGH] = inla_inv_pbgev(1.0 - P_MIN, xi, l_xi);
+		c[C_LOW] = inla_inv_pgev(P_MIN, xi, l_xi);
+		c[C_HIGH] = inla_inv_pgev(1.0 - P_MIN, xi, l_xi);
 		c[C_INTERCEPT_INTERN] = NAN;
 		c[C_INTERCEPT] = NAN;
 	} else {
@@ -122,7 +122,7 @@ double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double 
 	// ...as the mapping using this reparameterisation
 	if (!ISNAN(intercept_intern)) {
 		if (c[C_INTERCEPT_INTERN] != intercept_intern) {
-			intercept = inla_inv_pbgev(map_probability(intercept_intern, MAP_FORWARD, NULL), xi, l_xi);
+			intercept = inla_inv_pgev(map_probability(intercept_intern, MAP_FORWARD, NULL), xi, l_xi);
 			c[C_INTERCEPT_INTERN] = intercept_intern;
 			c[C_INTERCEPT] = intercept;
 		} else {
@@ -137,16 +137,16 @@ double link_bgev(int thread_id, double arg, map_arg_tp typ, void *param, double 
 
 	switch (typ) {
 	case MAP_FORWARD:
-		return (inla_pbgev(arg, xi, l_xi));
+		return (inla_pgev(arg, xi, l_xi));
 		
 	case MAP_BACKWARD:
-		return (inla_inv_pbgev(arg, xi, l_xi) - intercept);
+		return (inla_inv_pgev(arg, xi, l_xi) - intercept);
 
 	case MAP_DFORWARD:
 		// same derivative, but we compute the numerical one in log scale, as with
 		// f = exp(g) then f'= exp(g) * g' = f * g'
 		double h = 1.0e-5;
-		return (inla_pbgev(arg, xi, l_xi) * (inla_log_pbgev(arg + h, xi, l_xi) - inla_log_pbgev(arg - h, xi, l_xi)) / (2.0 * h));
+		return (inla_pgev(arg, xi, l_xi) * (inla_log_pgev(arg + h, xi, l_xi) - inla_log_pgev(arg - h, xi, l_xi)) / (2.0 * h));
 
 	case MAP_INCREASING:
 		return 1.0;

@@ -9234,12 +9234,13 @@ Number of hyperparmeters is 2.
 }
 }
 }
-\item{Model 'bgev'.}{
+\item{Model 'gev'.}{
 \describe{
 \item{Properties:}{
 \describe{
-\item{doc = }{\verb{bGEV link}}
-\item{pdf = }{\verb{linkbgev}}
+\item{doc = }{\verb{GEV link}}
+\item{status = }{\verb{experimental}}
+\item{pdf = }{\verb{linkgev}}
 }
 }
 }
@@ -9250,12 +9251,12 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{\verb{49033}}
 \item{name = }{\verb{tail}}
 \item{short.name = }{\verb{xi}}
-\item{initial = }{\verb{-5}}
+\item{initial = }{\verb{-3}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{pc.xi}}
-\item{param = }{\verb{10}}
-\item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
-\item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+\item{prior = }{\verb{pc.gevtail}}
+\item{param = }{\verb{7 0 0.5}}
+\item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+\item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
 }
 }
 \item{Hyperparameter 'theta2'}{
@@ -9265,8 +9266,8 @@ Number of hyperparmeters is 2.
 \item{short.name = }{\verb{intercept}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{linkbgevintercept}}
-\item{param = }{\verb{0 0}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 1}}
 \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
 \item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
 }
@@ -10486,7 +10487,7 @@ Number of hyperparmeters is 10.
 \item{doc = }{\verb{The Binomial likelihood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
-\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit}}
+\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev}}
 \item{pdf = }{\verb{binomial}}
 }
 }
@@ -10500,7 +10501,7 @@ Number of hyperparmeters is 0.
 \item{doc = }{\verb{The Binomial likelihood (expert version)}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
-\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit}}
+\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev}}
 \item{pdf = }{\verb{binomial}}
 \item{status = }{\verb{experimental}}
 }

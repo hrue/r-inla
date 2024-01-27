@@ -399,7 +399,7 @@ typedef enum {
 	LINK_LOGa,
 	LINK_POWER_LOGIT,
 	LINK_CCLOGLOG,
-	LINK_BGEV
+	LINK_GEV
 } inla_component_tp;
 
 typedef enum {

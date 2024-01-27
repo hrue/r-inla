@@ -7623,8 +7623,8 @@
                     pdf = "linksn"
                 ),
 
-                bgev = list(
-                    doc = "bGEV link",
+                gev = list(
+                    doc = "GEV link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49033,
@@ -7650,7 +7650,7 @@
                         )
                     ),
                     status = "experimental",
-                    pdf = "linkbgev"
+                    pdf = "linkgev"
                 ),
 
                 powerlogit = list(
@@ -8629,7 +8629,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
                              "ccloglog", "loglog", "log", "sslogit", "logitoffset", "quantile",
-                             "pquantile", "robit", "sn", "powerlogit", "bgev"),
+                             "pquantile", "robit", "sn", "powerlogit", "gev"),
                     pdf = "binomial"
                 ),
 
@@ -8640,7 +8640,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                             "powerlogit", "bgev"),
+                             "powerlogit", "gev"),
                     pdf = "binomial",
                     status = "experimental"
                 ),
