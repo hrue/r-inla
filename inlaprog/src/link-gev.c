@@ -51,9 +51,21 @@ double inla_log_pgev(double y, double xi, double *l_xi)
 #undef _log_pfrechet
 }
 
+double inla_log_pcgev(double y, double xi, double *l_xi)
+{
+#define _log_pfrechet(y_) (-DMAX(0.0, pow((y_) * l_xi[3] + l_xi[0], -1.0/xi)))
+	return (log1p(-exp(_log_pfrechet(y))));
+#undef _log_pfrechet
+}
+
 double inla_pgev(double y, double xi, double *l_xi)
 {
 	return (exp(inla_log_pgev(y, xi, l_xi)));
+}
+
+double inla_pcgev(double y, double xi, double *l_xi)
+{
+	return (exp(inla_log_pcgev(y, xi, l_xi)));
 }
 
 double inla_inv_pgev(double p, double xi, double *l_xi)
@@ -63,9 +75,35 @@ double inla_inv_pgev(double p, double xi, double *l_xi)
 #undef _qfrechet
 }
 
+double inla_inv_pcgev(double p, double xi, double *l_xi)
+{
+#define _qfrechet(p_) ((pow(-log(p_), -xi) - l_xi[0]) * l_xi[4])
+	return (_qfrechet(1.0 - p));
+#undef _qfrechet
+}
+
+
 double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
-	// as the prev one, but return the log() if typ==MAP_FORWARD
+	if (typ == MAP_INCREASING) {
+		return 1.0;
+	} else {
+		return link_gev_core(thread_id, arg, typ, param, 1);
+	}
+}
+
+double link_cgev(int thread_id, double arg, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	if (typ == MAP_INCREASING) {
+		return -1.0;
+	} else {
+		return link_gev_core(thread_id, arg, typ, param, -1);
+	}
+}
+
+double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int type)
+{
+	// type ==1 for gev, type == -1 for cgev
 
 	Link_param_tp *par = (Link_param_tp *) param;
 	double xi_intern = par->bgev_tail[thread_id][0];
@@ -78,7 +116,7 @@ double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *
 #define C_L_XI 0
 #define C_XI 5
 #define C_LOW 6
-#define C_HIGH 7 
+#define C_HIGH 7
 #define C_INTERCEPT_INTERN 9
 #define C_INTERCEPT 9
 	typedef struct {
@@ -110,8 +148,14 @@ double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *
 		l_xi[4] = 1.0 / l_xi[3];
 
 		c[C_XI] = xi;
-		c[C_LOW] = inla_inv_pgev(P_MIN, xi, l_xi);
-		c[C_HIGH] = inla_inv_pgev(1.0 - P_MIN, xi, l_xi);
+		if (type > 0) {
+			c[C_LOW] = inla_inv_pgev(P_MIN, xi, l_xi);
+			c[C_HIGH] = inla_inv_pgev(1.0 - P_MIN, xi, l_xi);
+		} else {
+			c[C_LOW] = inla_inv_pcgev(1.0 - P_MIN, xi, l_xi);
+			c[C_HIGH] = inla_inv_pcgev(P_MIN, xi, l_xi);
+		}
+
 		c[C_INTERCEPT_INTERN] = NAN;
 		c[C_INTERCEPT] = NAN;
 	} else {
@@ -122,7 +166,11 @@ double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *
 	// ...as the mapping using this reparameterisation
 	if (!ISNAN(intercept_intern)) {
 		if (c[C_INTERCEPT_INTERN] != intercept_intern) {
-			intercept = inla_inv_pgev(map_probability(intercept_intern, MAP_FORWARD, NULL), xi, l_xi);
+			if (type > 0) {
+				intercept = inla_inv_pgev(map_probability(intercept_intern, MAP_FORWARD, NULL), xi, l_xi);
+			} else {
+				intercept = inla_inv_pcgev(map_probability(intercept_intern, MAP_FORWARD, NULL), xi, l_xi);
+			}
 			c[C_INTERCEPT_INTERN] = intercept_intern;
 			c[C_INTERCEPT] = intercept;
 		} else {
@@ -135,25 +183,44 @@ double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *
 		arg = TRUNCATE(arg, c[C_LOW], c[C_HIGH]);
 	}
 
-	switch (typ) {
-	case MAP_FORWARD:
-		return (inla_pgev(arg, xi, l_xi));
-		
-	case MAP_BACKWARD:
-		return (inla_inv_pgev(arg, xi, l_xi) - intercept);
+	if (type > 0) {
+		switch (typ) {
+		case MAP_FORWARD:
+			return (inla_pgev(arg, xi, l_xi));
 
-	case MAP_DFORWARD:
-		// same derivative, but we compute the numerical one in log scale, as with
-		// f = exp(g) then f'= exp(g) * g' = f * g'
-		double h = 1.0e-5;
-		return (inla_pgev(arg, xi, l_xi) * (inla_log_pgev(arg + h, xi, l_xi) - inla_log_pgev(arg - h, xi, l_xi)) / (2.0 * h));
+		case MAP_BACKWARD:
+			return (inla_inv_pgev(arg, xi, l_xi) - intercept);
 
-	case MAP_INCREASING:
-		return 1.0;
+		case MAP_DFORWARD:
+			// same derivative, but we compute the numerical one in log scale, as with
+			// f = exp(g) then f'= exp(g) * g' = f * g'
+			double h = 1.0e-5;
+			return (inla_pgev(arg, xi, l_xi) * (inla_log_pgev(arg + h, xi, l_xi) - inla_log_pgev(arg - h, xi, l_xi)) / (2.0 * h));
 
-	default:
-		abort();
+		case MAP_INCREASING:
+		default:
+			abort();
+		}
+	} else {
+		switch (typ) {
+		case MAP_FORWARD:
+			return (inla_pcgev(arg, xi, l_xi));
+
+		case MAP_BACKWARD:
+			return (inla_inv_pcgev(arg, xi, l_xi) - intercept);
+
+		case MAP_DFORWARD:
+			// same derivative, but we compute the numerical one in log scale, as with
+			// f = exp(g) then f'= exp(g) * g' = f * g'
+			double h = 1.0e-5;
+			return (inla_pcgev(arg, xi, l_xi) * (inla_log_pcgev(arg + h, xi, l_xi) - inla_log_pcgev(arg - h, xi, l_xi)) / (2.0 * h));
+
+		case MAP_INCREASING:
+		default:
+			abort();
+		}
 	}
+
 #undef C_L_XI
 #undef C_XI
 #undef C_LOW

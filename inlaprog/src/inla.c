@@ -2694,6 +2694,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case LINK_GEV:
+			case LINK_CGEV:
 			{
 				if (!ds->link_fixed[0]) {
 					double tail_intern = theta[count];

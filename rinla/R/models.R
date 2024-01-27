@@ -7653,6 +7653,36 @@
                     pdf = "linkgev"
                 ),
 
+                cgev = list(
+                    doc = "Complement GEV link",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 49035,
+                            name = "tail",
+                            short.name = "xi",
+                            initial = -3,
+                            fixed = FALSE,
+                            prior = "pc.gevtail",
+                            param = c(7, 0.0, 0.5),
+                            to.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x)),
+                            from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
+                        ),
+                        theta2 = list(
+                            hyperid = 49036,
+                            name = "intercept",
+                            short.name = "intercept",
+                            initial = 0.0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 1), 
+                            to.theta = function(x) log(x / (1 - x)),
+                            from.theta = function(x) 1 / (1 + exp(-x))
+                        )
+                    ),
+                    status = "experimental",
+                    pdf = "linkgev"
+                ),
+
                 powerlogit = list(
                     doc = "Power logit link",
                     hyper = list(
@@ -8629,7 +8659,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
                              "ccloglog", "loglog", "log", "sslogit", "logitoffset", "quantile",
-                             "pquantile", "robit", "sn", "powerlogit", "gev"),
+                             "pquantile", "robit", "sn", "powerlogit", "gev", "cgev"),
                     pdf = "binomial"
                 ),
 
@@ -8640,7 +8670,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                             "powerlogit", "gev"),
+                             "powerlogit", "gev", "cgev"),
                     pdf = "binomial",
                     status = "experimental"
                 ),

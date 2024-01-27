@@ -7131,6 +7131,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_GEV;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_gev;
+	} else if (!strcasecmp(ds->link_model, "CGEV")) {
+		ds->link_id = LINK_CGEV;
+		ds->link_ntheta = 2;
+		ds->predictor_invlinkfunc = link_cgev;
 	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
 		ds->link_id = LINK_POWER_LOGIT;
 		ds->link_ntheta = 2;
@@ -7617,7 +7621,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case LINK_GEV:
+	case LINK_CGEV:
 	{
+		char *name = (ds->link_id == LINK_GEV ? GMRFLib_strdup("gev") : GMRFLib_strdup("cgev"));
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
@@ -7634,7 +7640,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		HYPER_NEW(ds->link_parameters->bgev_tail, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise link_gev_tail[%g]\n", ds->link_parameters->bgev_tail[0][0]);
+			printf("\t\tinitialise link_%s_tail[%g]\n", name, ds->link_parameters->bgev_tail[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 
@@ -7656,7 +7662,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "BGEV.TAIL.INTERVAL", ctmp);
 		}
 		if (mb->verbose) {
-			printf("\t\tgev.tail.interval [%g %g]\n", ds->link_parameters->bgev_tail_interval[0],
+			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_parameters->bgev_tail_interval[0],
 			       ds->link_parameters->bgev_tail_interval[1]);
 		}
 
@@ -7667,8 +7673,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev tail_intern", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev tail", mb->ds);
+			if (ds->link_id == LINK_GEV) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev tail_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev tail", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev tail_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev tail", mb->ds);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -7701,7 +7712,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 		HYPER_NEW(ds->link_parameters->bgev_intercept, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise link_gev intercept[%g]\n", ds->link_parameters->bgev_intercept[0][0]);
+			printf("\t\tinitialise link_%s intercept[%g]\n", name, ds->link_parameters->bgev_intercept[0][0]);
 			if (ISNAN(ds->link_parameters->bgev_intercept[0][0])) {
 				printf("\t\t *** Intercept is removed from link-model\n");
 			}
@@ -7719,8 +7730,15 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev intercept_intern", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev intercept", mb->ds);
+
+			if (ds->link_id == LINK_GEV) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev intercept", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev intercept", mb->ds);
+			}
+
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
