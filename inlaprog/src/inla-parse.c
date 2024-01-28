@@ -7127,6 +7127,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_SN;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
+	} else if (!strcasecmp(ds->link_model, "GEV")) {
+		ds->link_id = LINK_GEV;
+		ds->link_ntheta = 2;
+		ds->predictor_invlinkfunc = link_gev;
+	} else if (!strcasecmp(ds->link_model, "CGEV")) {
+		ds->link_id = LINK_CGEV;
+		ds->link_ntheta = 2;
+		ds->predictor_invlinkfunc = link_cgev;
 	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
 		ds->link_id = LINK_POWER_LOGIT;
 		ds->link_ntheta = 2;
@@ -7601,6 +7609,144 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_intercept;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+	}
+		break;
+
+	case LINK_GEV:
+	case LINK_CGEV:
+	{
+		char *name = (ds->link_id == LINK_GEV ? GMRFLib_strdup("gev") : GMRFLib_strdup("cgev"));
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
+		ds->link_parameters->order = -1;
+		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
+		}
+
+		ds->link_fixed = Calloc(2, int);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+
+		HYPER_NEW(ds->link_parameters->bgev_tail, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link_%s_tail[%g]\n", name, ds->link_parameters->bgev_tail[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+
+		ds->link_prior = Calloc(2, Prior_tp);
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "PCGEVTAIL", NULL);
+		ds->link_parameters->bgev_tail_interval = Calloc(2, double);
+		if (ds->link_prior[0].id == P_PC_GEVTAIL) {
+			ds->link_parameters->bgev_tail_interval[0] = ds->link_prior[0].parameters[1];
+			ds->link_parameters->bgev_tail_interval[1] = ds->link_prior[0].parameters[2];
+		} else {
+			// used a fixed interval then
+			ds->link_parameters->bgev_tail_interval[0] = 0.0;
+			ds->link_parameters->bgev_tail_interval[1] = 0.5;
+		}
+
+		if (DMIN(ds->link_parameters->bgev_tail_interval[0], ds->link_parameters->bgev_tail_interval[1]) < 0.0 ||
+		    DMAX(ds->link_parameters->bgev_tail_interval[0], ds->link_parameters->bgev_tail_interval[1]) > 0.5 ||
+		    ds->link_parameters->bgev_tail_interval[0] >= ds->link_parameters->bgev_tail_interval[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "BGEV.TAIL.INTERVAL", ctmp);
+		}
+		if (mb->verbose) {
+			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_parameters->bgev_tail_interval[0],
+			       ds->link_parameters->bgev_tail_interval[1]);
+		}
+
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			if (ds->link_id == LINK_GEV) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev tail_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev tail", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev tail_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev tail", mb->ds);
+			}
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+
+			mb->theta[mb->ntheta] = ds->link_parameters->bgev_tail;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_interval;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = (void *) (ds->link_parameters->bgev_tail_interval);
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL1"), 0);
+		ds->link_fixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED1"), 1);
+
+		// special option. If 'initial=NA' or 'Inf', then remove intercept from the model. This is done setting fixed=1
+		// and then recognising NAN in the map_invsn() function.
+		if (ISNAN(tmp) || ISINF(tmp)) {
+			tmp = NAN;
+			ds->link_fixed[1] = 1;
+		}
+
+		if (!ds->link_fixed[1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->link_parameters->bgev_intercept, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link_%s intercept[%g]\n", name, ds->link_parameters->bgev_intercept[0][0]);
+			if (ISNAN(ds->link_parameters->bgev_intercept[0][0])) {
+				printf("\t\t *** Intercept is removed from link-model\n");
+			}
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[1]);
+		}
+		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "NORMAL", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[1]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+			if (ds->link_id == LINK_GEV) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev intercept", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev intercept", mb->ds);
+			}
+
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->bgev_intercept;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;

@@ -74,7 +74,7 @@ ssh -x -t $IP "
 "
 
 tarfile="$D.tgz"
-ssh -x $IP 'cd builds/build64/64bit; mv -f -v libjemalloc* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first; mv -f -v libR* first'
+ssh -x $IP 'cd builds/build64/64bit; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first; mv -f -v libR* first'
 ssh -x $IP 'cd builds/build64/64bit; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
 ssh -x $IP 'cd builds/build64/64bit; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*'
 ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"

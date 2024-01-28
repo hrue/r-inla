@@ -118,7 +118,6 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 #define GMRFLib_L1_CACHELINE (64L)
 #define GMRFLib_MEM_ALIGN (32L)
 
-
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
 	GMRFLib_MODE_TWOSTAGE,
@@ -126,9 +125,6 @@ typedef enum {
 	GMRFLib_MODE_TWOSTAGE_PART2,
 	GMRFLib_MODE_COMPACT
 } GRMFLib_preopt_mode_tp;
-
-// 32bit ints -2147483648 to 2147483647
-#define GMRFLib_MAXINT (2147483647)
 
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
@@ -428,8 +424,8 @@ typedef enum {
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define ISINF(x) isinf(x)
+// same definition in rmath.h
 #define ISNAN(x) (isnan(x) != 0)
-//#define ISQR(x) ((x)*(x))
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)
@@ -437,16 +433,15 @@ typedef enum {
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
-#define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
-#define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
-#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.16f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.16f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.16f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
-#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
-#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, *((double *))pt); }
+#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.16f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
-//#define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++

@@ -93,6 +93,7 @@
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
+#include "link-gev.h"
 #include "cgeneric.h"
 
 #define PREVIEW (10)
@@ -2687,6 +2688,22 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				if (!ds->link_fixed[1]) {
 					double intercept = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[1], &intercept);
+					count++;
+				}
+			}
+				break;
+
+			case LINK_GEV:
+			case LINK_CGEV:
+			{
+				if (!ds->link_fixed[0]) {
+					double tail_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &tail_intern);
+					count++;
+				}
+				if (!ds->link_fixed[1]) {
+					double intercept_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[1], &intercept_intern);
 					count++;
 				}
 			}

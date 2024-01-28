@@ -1,7 +1,7 @@
 
-/* rmath.h
+/* link-gev.h
  * 
- * Copyright (C) 2019-2024 Havard Rue
+ * Copyright (C) 2024-2024 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,9 @@
  *        Email: haavard.rue@kaust.edu.sa
  *        Office: +966 (0)12 808 0640
  *
- *
  */
-#ifndef __INLA_RMATH_H__
-#define __INLA_RMATH_H__
+#ifndef __INLA_LINK_GEV_H__
+#define __INLA_LINK_GEV_H__
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -42,16 +41,19 @@
 #endif
 
 __BEGIN_DECLS
-#define MATHLIB_STANDALONE
-#define MATHLIB_FUN(_fun) _fun
-#if defined(ISNAN)
-#undef ISNAN
-#endif
-#include <Rmath.h>
-#if defined(ISNAN)
-#undef ISNAN
-// same definition in GMRFLibP.h
-#define ISNAN(x) (isnan(x) != 0)
-#endif
-    __END_DECLS
+
+/* 
+ *
+ */
+double inla_log_pgev(double y, double xi, double *l_xi);
+double inla_log_pcgev(double y, double xi, double *l_xi);
+double inla_pgev(double y, double xi, double *l_xi);
+double inla_pcgev(double y, double xi, double *l_xi);
+double inla_inv_pgev(double p, double xi, double *l_xi);
+double inla_inv_pcgev(double p, double xi, double *l_xi);
+double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
+double link_cgev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
+double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int type);
+
+__END_DECLS
 #endif

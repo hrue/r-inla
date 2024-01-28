@@ -2,7 +2,6 @@
 #' 
 #' Define link-functions and its inverse
 #' 
-#' 
 #' @aliases link inla.link
 #' @param x The argument. A numeric vector.
 #' @param df The degrees of freedom for the Student-t
@@ -14,10 +13,11 @@
 #' `a` can be given.
 #' @param a The `a`-parameter in the Skew-Normal.  Only one of `skew`
 #' and `a` can be given.
+#' @param tail The tail parameter in the GEV distribution (0 < tail <= 1/2)
 #' @param quantile The quantile level for quantile links
 #' @return Return the values of the link-function or its inverse.
 #' @note The `inv`-functions are redundant, as `inla.link.invlog(x) =
-#' inla.link.log(x, inverse=TRUE)` and so on, but they are simpler to use a
+#' inla.link.log(x, inverse=TRUE)` and so on, but they are simpler to use as
 #' arguments to other functions.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 
@@ -272,6 +272,49 @@ NULL
     return(inla.link.sn(x, intercept = intercept, skew = skew, a = a, inverse = !inverse))
 }
 
+#' @rdname link-functions
+#' @export
+`inla.link.gev` = function(x, tail = 0.1, inverse = FALSE) {
+    stopifnot(all(0 < tail & tail <= 0.5))
+    if (!inverse) {
+        Finv <- function(p) {
+            qalpha <- 0
+            alpha <- 0.5
+            beta <- 0.5
+            sbeta <- 1
+            l1.tail <- (-log(alpha))^(-tail)
+            l2.tail <- (-log(1-beta/2))^(-tail)
+            l3.tail <- (-log(beta/2))^(-tail)
+            qfrechet = function(p) {
+                return(((-log(p))^(-tail) - l1.tail) * sbeta * (l2.tail - l3.tail)^(-1) + qalpha)
+            }
+            return (qfrechet(p))
+        }
+        return (Finv(x))
+    } else {
+        F <- function(x) {
+            qalpha <- 0
+            alpha <- 0.5
+            beta <- 0.5
+            sbeta <- 1
+            l1.tail <- (-log(alpha))^(-tail)
+            l2.tail <- (-log(1-beta/2))^(-tail)
+            l3.tail <- (-log(beta/2))^(-tail)
+            pfrechet = function(y) {
+                aux1 <- (y - qalpha) / (sbeta * (l2.tail - l3.tail)^(-1)) + l1.tail
+                return (exp(-pmax(0, aux1^(-1/tail))))
+            }
+            return (pfrechet(x))
+        }
+        return (F(x))
+    }
+}
+
+#' @rdname link-functions
+#' @export
+`inla.link.invgev` = function(x, tail = 0.1, inverse = FALSE) {
+    return (inla.link.gev(x, tail = tail, inverse = !inverse))
+}
 
 ## These are the invalid ones
 #' @rdname link-functions
