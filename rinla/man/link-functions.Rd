@@ -30,6 +30,8 @@
 \alias{inla.link.invqpoisson}
 \alias{inla.link.sn}
 \alias{inla.link.invsn}
+\alias{inla.link.gev}
+\alias{inla.link.invgev}
 \alias{inla.link.invalid}
 \alias{inla.link.invinvalid}
 \title{Link functions in INLA}
@@ -88,6 +90,10 @@ inla.link.sn(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 
 inla.link.invsn(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 
+inla.link.gev(x, tail = 0.1, inverse = FALSE)
+
+inla.link.invgev(x, tail = 0.1, inverse = FALSE)
+
 inla.link.invalid(x, inverse = FALSE)
 
 inla.link.invinvalid(x, inverse = FALSE)
@@ -110,6 +116,8 @@ link}
 
 \item{a}{The \code{a}-parameter in the Skew-Normal.  Only one of \code{skew}
 and \code{a} can be given.}
+
+\item{tail}{The tail parameter in the GEV distribution (0 < tail <= 1/2)}
 }
 \value{
 Return the values of the link-function or its inverse.
@@ -118,7 +126,7 @@ Return the values of the link-function or its inverse.
 Define link-functions and its inverse
 }
 \note{
-The \code{inv}-functions are redundant, as \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)} and so on, but they are simpler to use a
+The \code{inv}-functions are redundant, as \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)} and so on, but they are simpler to use as
 arguments to other functions.
 }
 \author{
