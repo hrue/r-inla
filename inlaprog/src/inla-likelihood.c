@@ -4092,40 +4092,6 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	double off = OFFSET(idx);
 
-
-
-	if (0) {
-		double z = 0.2;
-		double gev = link_gev(thread_id, z, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-		double cgev = link_cgev(thread_id, z, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-
-		FIXME("value");
-		P(z);
-		P(gev);
-		P(cgev);
-
-		gev = link_gev(thread_id, z, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-		cgev = link_cgev(thread_id, z, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-
-		FIXME("deriv");
-		P(z);
-		P(gev);
-		P(cgev);
-		
-		gev = link_gev(thread_id, z, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-		gev = link_gev(thread_id, gev, MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-		cgev = link_cgev(thread_id, z, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-		cgev = link_cgev(thread_id, cgev, MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates);
-
-		FIXME("backward");
-		P(z);
-		P(gev);
-		P(cgev);
-
-		exit(0);
-	}
-
-
 	if (m > 0) {
 		gsl_sf_result res = { 0, 0 };
 		if (G_norm_const_compute[idx]) {
