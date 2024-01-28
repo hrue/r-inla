@@ -1,3 +1,7 @@
+# INLA 24.01.28
+* Improved control of rounding errors for numerical derivatives
+* New experimental link functions, `gev` and `cgec`
+
 # INLA 24.01.20
 * Code cleanup
 * Remove library jemalloc in builds
