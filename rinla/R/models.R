@@ -7650,7 +7650,7 @@
                         )
                     ),
                     status = "experimental",
-                    pdf = "linkgev"
+                    pdf = "gev"
                 ),
 
                 cgev = list(
@@ -7680,7 +7680,7 @@
                         )
                     ),
                     status = "experimental",
-                    pdf = "linkgev"
+                    pdf = "cgev"
                 ),
 
                 powerlogit = list(

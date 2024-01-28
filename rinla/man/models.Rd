@@ -9240,7 +9240,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{doc = }{\verb{GEV link}}
 \item{status = }{\verb{experimental}}
-\item{pdf = }{\verb{linkgev}}
+\item{pdf = }{\verb{gev}}
 }
 }
 }
@@ -9280,7 +9280,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{doc = }{\verb{Complement GEV link}}
 \item{status = }{\verb{experimental}}
-\item{pdf = }{\verb{linkgev}}
+\item{pdf = }{\verb{cgev}}
 }
 }
 }

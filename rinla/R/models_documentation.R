@@ -9230,7 +9230,7 @@
 #'             \describe{
 #'               \item{doc = }{\verb{GEV link}}
 #'               \item{status = }{\verb{experimental}}
-#'               \item{pdf = }{\verb{linkgev}}
+#'               \item{pdf = }{\verb{gev}}
 #'              }
 #'            }
 #'          }
@@ -9270,7 +9270,7 @@
 #'             \describe{
 #'               \item{doc = }{\verb{Complement GEV link}}
 #'               \item{status = }{\verb{experimental}}
-#'               \item{pdf = }{\verb{linkgev}}
+#'               \item{pdf = }{\verb{cgev}}
 #'              }
 #'            }
 #'          }
