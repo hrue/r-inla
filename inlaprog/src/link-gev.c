@@ -183,6 +183,7 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 		arg = TRUNCATE(arg, c[C_LOW], c[C_HIGH]);
 	}
 
+	double h = 1.0e-5;
 	if (type > 0) {
 		switch (typ) {
 		case MAP_FORWARD:
@@ -194,7 +195,6 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 		case MAP_DFORWARD:
 			// same derivative, but we compute the numerical one in log scale, as with
 			// f = exp(g) then f'= exp(g) * g' = f * g'
-			double h = 1.0e-5;
 			return (inla_pgev(arg, xi, l_xi) * (inla_log_pgev(arg + h, xi, l_xi) - inla_log_pgev(arg - h, xi, l_xi)) / (2.0 * h));
 
 		case MAP_INCREASING:
@@ -212,7 +212,6 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 		case MAP_DFORWARD:
 			// same derivative, but we compute the numerical one in log scale, as with
 			// f = exp(g) then f'= exp(g) * g' = f * g'
-			double h = 1.0e-5;
 			return (inla_pcgev(arg, xi, l_xi) * (inla_log_pcgev(arg + h, xi, l_xi) - inla_log_pcgev(arg - h, xi, l_xi)) / (2.0 * h));
 
 		case MAP_INCREASING:
