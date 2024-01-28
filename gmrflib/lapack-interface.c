@@ -1182,11 +1182,11 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #endif
 }
 
-void GMRFLib_powx(int n, double *x, double a, double *y) 
-{ // y = x^a
+void GMRFLib_powx(int n, double *x, double a, double *y)
+{							       // y = x^a
 
 //#if defined(INLA_LINK_WITH_MKL)
-//	vdPowx(n, x, a, y);
+//      vdPowx(n, x, a, y);
 //#else
 
 #pragma omp simd
@@ -1196,4 +1196,3 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 
 //#endif
 }
-	

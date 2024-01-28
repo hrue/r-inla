@@ -356,17 +356,17 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 			// abs(coof) is the same but with oposite sign
 			ddf = wff_ref[0] * f_ref[0];
-			switch(n) {
-			case 5L: 
+			switch (n) {
+			case 5L:
 				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
 				break;
-			case 7L: 
+			case 7L:
 				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-					PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
+				    PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
 				break;
-			case 9L: 
+			case 9L:
 				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-					PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
+				    PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
 				break;
 			default:
 				assert(0 == 1);
@@ -382,7 +382,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 					dddf += PROD_DIFF(wfff_ref[i], _a, wfff_ref[i], _b);
 				}
 			}
-		} 
+		}
 
 		df /= step;
 		ddf /= SQR(step);
