@@ -1,4 +1,5 @@
-# INLA 24.01.28
+# INLA 24.01.29
+* Minor bug fix
 * Improved control of rounding errors for numerical derivatives
 * New experimental link functions, `gev` and `cgec`
 

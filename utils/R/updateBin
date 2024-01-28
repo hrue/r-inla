@@ -17,7 +17,7 @@ fix-perm () {
 
 for m in 64; do
     DIR=$d/mac/${m}bit
-    for p in inla.mkl fmesher; do 
+    for p in inla fmesher; do 
 	for f in $(ssh -x $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
