@@ -6517,6 +6517,8 @@ int main(int argc, char **argv)
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 
+	GMRFLib_malloc_debug_check();
+	
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
 	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;

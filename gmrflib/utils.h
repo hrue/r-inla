@@ -144,6 +144,7 @@ void GMRFLib_delay_random(int msec_low, int msec_high);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno);
 void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem);
 void GMRFLib_printMem_core(FILE * fp, const char *file, int lineno);
+void GMRFLib_malloc_debug_check(void);
 void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n);
 void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n);
 void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n);
