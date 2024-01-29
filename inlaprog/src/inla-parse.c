@@ -716,6 +716,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "AGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_agaussian;
 		ds->data_id = L_AGAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "FL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_fl;
+		ds->data_id = L_FL;
 	} else if (!strcasecmp(ds->data_likelihood, "T")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_t;
 		ds->data_id = L_T;
@@ -1940,6 +1943,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case L_FL:
+		break;
+		
 	default:
 		break;
 	}
@@ -8419,6 +8425,28 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		GMRFLib_gaussian_data = GMRFLib_FALSE;
 	}
+
+	if (ds->data_id == L_FL) {
+		// replace the matrix with its transpose
+		double **cc = NULL, **c = ds->data_observations.fl_c;
+		int n = mb->predictor_ndata, m = 6;
+
+		cc = Calloc(n, double *);
+		for(i = 0; i < n; i++) {
+			cc[i] = Calloc(m, double);
+		}
+		for(j = 0; j < m; j++) {
+			for(i = 0; i < n; i++) {
+				cc[i][j] = c[j][i];
+			}
+		}
+		ds->data_observations.fl_c = cc;
+		for(j = 0; j < m; j++) {
+			Free(c[j]);
+		}
+		Free(c);
+	}
+	
 
 	return INLA_OK;
 }

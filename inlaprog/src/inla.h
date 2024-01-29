@@ -252,6 +252,7 @@ typedef enum {
 	L_STDGAUSSIAN,
 	L_GGAUSSIAN,
 	L_GGAUSSIANS,
+	L_FL, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -776,6 +777,9 @@ typedef struct {
 	double **ggaussian_x;
 	double *ggaussian_scale;			       // only ggaussian
 	double *ggaussian_offset;			       // only ggaussianS
+
+	//
+	double **fl_c;
 } Data_tp;
 
 typedef struct {

@@ -7965,6 +7965,17 @@
         likelihood =
             list(
                 ## the first non-default link-function is the default one.
+                ## the first non-default link-function is the default one.
+                fl = list(
+                    doc = "The fl likelihood",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "identity"), 
+                    status = "experimental", 
+                    pdf = "fl"
+                ),
+
                 poisson = list(
                     doc = "The Poisson likelihood",
                     hyper = list(),

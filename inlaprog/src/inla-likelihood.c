@@ -361,6 +361,18 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+
+	case L_FL: 
+	{
+		idiv = 8;
+		int m = 6;
+		ds->data_observations.fl_c = Calloc(m, double *);
+		for(k = 0; k < m; k++) {
+			a[k] = ds->data_observations.fl_c[k] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+	        break;
+	
 	case L_NMIX:
 	case L_NMIXNB:
 	{
@@ -1050,6 +1062,30 @@ int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, 
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv_NEW(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal,
 								     arg_str));
+}
+
+int loglikelihood_fl(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+{
+	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] * x)
+
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	LINK_INIT;
+	if (m > 0) {
+		double *c= ds->data_observations.fl_c[idx];
+		for(int i = 0; i < m; i++) {
+			double eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = c[0] + c[1] * eta - 1/2 * c[2] * SQR(c[3] - eta) - c[4] * exp(c[5] * eta);
+		}
+	} else {
+		assert(0 == 1);
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
 }
 
 int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg,

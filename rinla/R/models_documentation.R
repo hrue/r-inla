@@ -9666,6 +9666,21 @@
 #'
 #'    Valid models in this section are:
 #'      \describe{
+#'       \item{Model 'fl'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The fl likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{pdf = }{\verb{fl}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
 #'       \item{Model 'poisson'.}{
 #'          \describe{
 #'           \item{Properties:}{

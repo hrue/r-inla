@@ -2597,10 +2597,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_FL:
+				break;
+
 			default:
-				/*
-				 * nothing to do
-				 */
 				break;
 			}
 
