@@ -212,6 +212,8 @@ void GMRFLib_malloc_debug_check(void)
 		if (def) {
 			int val = atoi(def);
 			malloc_debug = (val > 0 ? 1 : 0);
+		} else {
+			malloc_debug = 0;
 		}
 	}
 }
