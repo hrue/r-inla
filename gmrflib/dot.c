@@ -157,62 +157,8 @@ double GMRFLib_dsum(int n, double *x)
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	if (n < GMRFLib_threshold_ddot) {
-		double dot = 0.0;
-#pragma omp simd reduction(+: dot)
-		for (int i = 0; i < n; i++) {
-			dot += x[i] * y[i];
-		}
-		return dot;
-	} else {
-		int one = 1;
-		return ddot_(&n, x, &one, y, &one);
-	}
-}
-
-void GMRFLib_chose_threshold_ddot(void)
-{
-	const int nmax = 512, ntimes = 512, verbose = 0;
-	double *x, *y;
-	x = Calloc(2 * nmax, double);
-	y = x + nmax;
-
-	GMRFLib_threshold_ddot = nmax;
-	for (int m = 1; m < nmax; m++) {
-
-		double tref[] = { 0, 0 };
-		double dd[] = { 0, 0 };
-		double dot = 0.0;
-
-		tref[0] -= GMRFLib_cpu();
-		for (int k = 0; k < ntimes; k++) {
-#pragma omp simd reduction(+: dot)
-			for (int i = 0; i < m; i++) {
-				dot += x[i] * y[i];
-			}
-		}
-		dd[0] = dot;
-		tref[0] += GMRFLib_cpu();
-
-		dot = 0.0;
-		int one = 1;
-		tref[1] -= GMRFLib_cpu();
-		for (int k = 0; k < ntimes; k++) {
-			dot += ddot_(&m, x, &one, y, &one);
-		}
-		dd[1] = dot;
-		tref[1] += GMRFLib_cpu();
-
-		assert(ABS(dd[0] - dd[1]) / (FLT_EPSILON + ABS(dd[0]) + ABS(dd[1])) < FLT_EPSILON);
-		if (verbose) {
-			printf("m %1d time simd %.3f   time ddot_ %.3f\n", m, tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		}
-
-		if (tref[1] < tref[0]) {
-			GMRFLib_threshold_ddot = m;
-			break;
-		}
-	}
+	int one = 1;
+	return ddot_(&n, x, &one, y, &one);
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)

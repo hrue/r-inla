@@ -147,7 +147,6 @@ extern int GMRFLib_threshold_sqr;
 
 extern int GMRFLib_threshold_add;
 extern int GMRFLib_threshold_mul;
-extern int GMRFLib_threshold_ddot;
 
 extern int GMRFLib_write_state;
 extern int GMRFLib_gaussian_data;
