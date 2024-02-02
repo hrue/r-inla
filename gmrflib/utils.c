@@ -268,15 +268,18 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 {
 	void *ptr = NULL;
 	char *msg = NULL;
-	void *s_ptr = old_ptr;
 
 	assert(size < PTRDIFF_MAX);
 	ptr = realloc(old_ptr, size);
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
 	if (malloc_debug > 0) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
-		       s_ptr, ptr);
+		       old_ptr, ptr);
 	}
+#pragma GCC diagnostic pop
 
 	if (ptr) {
 		return ptr;
