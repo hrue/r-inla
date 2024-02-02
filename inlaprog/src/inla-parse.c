@@ -8428,8 +8428,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	if (ds->data_id == L_FL) {
-
 		// mark those indices belonging to 'FL'
+		assert(mb->predictor_ndata >= 0);
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				mb->fl[i] = 1;
@@ -8439,7 +8439,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		// replace the matrix with its transpose
 		double **cc = NULL, **c = ds->data_observations.fl_c;
 		int n = mb->predictor_ndata, m = L_FL_NC;
-
 		cc = Calloc(n, double *);
 		for (i = 0; i < n; i++) {
 			cc[i] = Calloc(m, double);
