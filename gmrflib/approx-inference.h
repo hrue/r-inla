@@ -1090,7 +1090,7 @@ double GMRFLib_interpolator_distance2(int ndim, double *x, double *xx);
 int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** aipar);
 int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_marginal_hyperparam(int thread_id, double *logdens,
-				   double *x, double *b, double *c, double *mean, double *d,
+				   double *x, double *b, double *c, double *mean, double *d, int *fl,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * aipar, GMRFLib_ai_store_tp * store,
@@ -1116,7 +1116,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 				       GMRFLib_constr_tp * constr, double *bbb, double *ccc, double **covariances, int idx);
 int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * problem, int idx, double evalue, double **covariances);
 int GMRFLib_init_GMRF_approximation_store__intern(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-						  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+						  double *d, int *fl, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb,
@@ -1145,7 +1145,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp ** bfunc, double *d, int *fl, 
+				 GMRFLib_bfunc_tp ** bfunc, double *d, int *fl,
 				 GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,

@@ -5,7 +5,7 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{Fancy likelihood: ``fl''}
+\section*{Fancy likelihood: ``fl'' (EXPERIMENTAL)}
 
 \subsection*{Parametrisation}
 
@@ -21,12 +21,12 @@ The ``loglikelihood'' is
     c_5 \exp(c_6 + c_7 \eta)
 \end{displaymath}
 for constants $c_1, \ldots, c_7$. In most cases, only a few of the
-$c_i$'s will be non-zero. As there is no dependence on the reponse
-$y$, then $y$ itself is not part of the spesification.
+$c_i$'s will be non-zero. Note that there is no dependence on the
+reponse $y$, as $y$ itself is not part of the spesification.
 
 \subsection*{Link-function}
 
-Not relevant, so the identity link is used.
+The identity link is used.
 
 \subsection*{Hyperparameters}
 
@@ -37,14 +37,15 @@ None.
 \begin{itemize}
 \item \texttt{family="fl"}
 \item This family require the response to be a
-    \texttt{inla.mdata}-object, where each row defines the vector of
+    \texttt{inla.mdata}-object, where each row defines the vectorv
     $(c_1, \ldots, c_7)$ for each likelihood contribution. Any
     \texttt{NA}'s in the $c_i$'s will be converted to 0.
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
+
 \textbf{\texttt{family="fl"}}
-%%\input{../hyper/likelihood/fl.tex}
+\input{../hyper/likelihood/fl.tex}
 
 \subsection*{Example}
 
@@ -55,6 +56,9 @@ None.
 Since this is not a likelihood in the usual sense, it will not be used
 for CPO/GCPO calculations and not be influenced by the
 \texttt{control.inla=list(cmin=...)}-argument.
+
+This likelihood is EXPERIMENTAL and only supported in using the
+(default) \texttt{compact}-mode for the moment.
 
 \end{document}
 

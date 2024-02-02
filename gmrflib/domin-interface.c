@@ -75,7 +75,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 		      char *compute,
 		      double *x, double *b, double *c, double *mean,
-		      GMRFLib_bfunc_tp **bfunc, double *d,
+		      GMRFLib_bfunc_tp **bfunc, double *d, int *fl,
 		      GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
@@ -99,6 +99,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.mean = mean;
 	G.bfunc = bfunc;
 	G.d = d;
+	G.fl = fl;
 	G.loglFunc = loglFunc;
 	G.loglFunc_arg = loglFunc_arg;
 	G.graph = graph;
@@ -291,7 +292,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	}
 
 	GMRFLib_ai_marginal_hyperparam(thread_id,
-				       fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
+				       fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.fl, G.loglFunc, G.loglFunc_arg,
 				       G.graph,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local->Qfunc),
 				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt, G.d_idx);

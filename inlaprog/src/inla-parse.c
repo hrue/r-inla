@@ -1946,7 +1946,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_FL:
 		break;
-		
+
 	default:
 		break;
 	}
@@ -8441,21 +8441,21 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		int n = mb->predictor_ndata, m = L_FL_NC;
 
 		cc = Calloc(n, double *);
-		for(i = 0; i < n; i++) {
+		for (i = 0; i < n; i++) {
 			cc[i] = Calloc(m, double);
 		}
-		for(j = 0; j < m; j++) {
-			for(i = 0; i < n; i++) {
+		for (j = 0; j < m; j++) {
+			for (i = 0; i < n; i++) {
 				cc[i][j] = c[j][i];
 			}
 		}
 		ds->data_observations.fl_c = cc;
-		for(j = 0; j < m; j++) {
+		for (j = 0; j < m; j++) {
 			Free(c[j]);
 		}
 		Free(c);
 	}
-	
+
 
 	return INLA_OK;
 }

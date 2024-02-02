@@ -205,7 +205,7 @@ void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
 	return NULL;
 }
 
-void GMRFLib_malloc_debug_check(void) 
+void GMRFLib_malloc_debug_check(void)
 {
 	if (malloc_debug < 0) {
 		char *def = getenv("INLA_MALLOC_DEBUG");
@@ -227,9 +227,10 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	ptr = calloc(nmemb, size);
 
 	if (malloc_debug > 0) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size, ptr);
+		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
+		       ptr);
 	}
-	
+
 	if (ptr) {
 		return ptr;
 	}
@@ -251,7 +252,6 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	if (malloc_debug > 0) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
 	}
-	
 
 	if (ptr) {
 		return ptr;
@@ -268,12 +268,14 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 {
 	void *ptr = NULL;
 	char *msg = NULL;
+	void *s_ptr = old_ptr;
 
 	assert(size < PTRDIFF_MAX);
 	ptr = realloc(old_ptr, size);
 
 	if (malloc_debug > 0) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size, old_ptr, ptr);
+		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
+		       s_ptr, ptr);
 	}
 
 	if (ptr) {
@@ -289,11 +291,10 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 {
 	if (ptr) {
-		free(ptr);
-
 		if (malloc_debug > 0) {
 			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
 		}
+		free(ptr);
 	} else {
 		fprintf(stderr, "%s:%s:%d: Try to free a NULL-ptr\n", file, funcname, lineno);
 	}

@@ -62,6 +62,7 @@ typedef struct {
 	int *f_count;
 	int nhyper;
 	int use_directions;
+	int *fl;
 	void **Qfunc_arg;
 	void *log_extra_arg;
 	void *loglFunc_arg;
@@ -93,7 +94,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      char *compute,
 		      double *x, double *b, double *c, double *mean,
 		      GMRFLib_bfunc_tp ** bfunc,
-		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+		      double *d, int *fl, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		      GMRFLib_preopt_tp * preopt, GMRFLib_idx_tp * d_idx);

@@ -5931,7 +5931,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				     (mb->output->mlik ? &(mb->mlik) : NULL),
 				     mb->theta, mb->ntheta,
 				     extra, (void *) mb,
-				     x, b, c, NULL, bfunc, mb->d, mb->fl, 
+				     x, b, c, NULL, bfunc, mb->d, mb->fl,
 				     loglikelihood_inla, (void *) mb,
 				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
@@ -6519,7 +6519,7 @@ int main(int argc, char **argv)
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 
 	GMRFLib_malloc_debug_check();
-	
+
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
 	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;

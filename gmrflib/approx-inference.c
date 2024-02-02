@@ -406,7 +406,7 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 
 int GMRFLib_ai_marginal_hyperparam(int thread_id,
 				   double *logdens,
-				   double *x, double *b, double *c, double *mean, double *d,
+				   double *x, double *b, double *c, double *mean, double *d, int *fl,
 				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				   GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				   GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
@@ -498,12 +498,12 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	 */
 	if (ai_store->mode) {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-			       (thread_id, &problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc,
+			       (thread_id, &problem, ai_store->mode, b, c, mean, d, fl, loglFunc, loglFunc_arg, graph, Qfunc,
 				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
 				ai_par->cmin, ai_par->b_strategy, 0, preopt, d_idx));
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-			       (thread_id, &problem, x, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
+			       (thread_id, &problem, x, b, c, mean, d, fl, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
 				ai_par->cmin, ai_par->b_strategy, 0, preopt, d_idx));
 	}
@@ -640,7 +640,7 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 
 int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						  GMRFLib_problem_tp **problem, double *x, double *b, double *c, double *mean,
-						  double *d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
+						  double *d, int *fl, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 						  GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp *constr, GMRFLib_optimize_param_tp *optpar,
 						  GMRFLib_blockupdate_param_tp *blockupdate_par, GMRFLib_store_tp *store,
@@ -786,35 +786,42 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
 			int idx = d_idx->idx[i_];			\
 			double ccmin = cmin;				\
-			if (ISINF(ccmin) == 1) {			\
-				/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
-				/* If not successful then fall back to default step_len with cmin=0 */ \
-				double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
-				while(1) {				\
-					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-							      &step_len, &(optpar->stencil), NULL); \
-					/* if ok, we are done */	\
-					if (ccoof[idx] > 0.0) break;	\
-					/* otherwise, increase the step_len and retry */ \
-					step_len *= 10.0;		\
-					/* unless we have gone to far... */ \
-					if (step_len > 1.0) {		\
-						ccmin = DBL_EPSILON;	\
-						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-								      &(optpar->step_len), &(optpar->stencil), &ccmin); \
-						break;			\
-					}				\
-				}					\
-			} else {					\
+			double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
+			if (fl && fl[idx]) {				\
+				/* then do nothing fancy and no checks, cmin = NULL*/ \
 				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-						      &(optpar->step_len), &(optpar->stencil), &cmin); \
-			}						\
-			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
-			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
-				bcoof[idx] = 0.0;			\
+						      &step_len, &(optpar->stencil), NULL); \
+			} else {					\
+				if (ISINF(ccmin) == 1) {		\
+					/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
+					/* If not successful then fall back to default step_len with cmin=0 */ \
+					while(1) {			\
+						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+								      &step_len, &(optpar->stencil), NULL); \
+						/* if ok, we are done */ \
+						if (ccoof[idx] > 0.0) break; \
+						/* otherwise, increase the step_len and retry */ \
+						step_len *= 10.0;	\
+						/* unless we have gone to far... */ \
+						if (step_len > 1.0) {	\
+							ccmin = DBL_EPSILON; \
+							GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+									      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+									      &(optpar->step_len), &(optpar->stencil), &ccmin); \
+							break;		\
+						}			\
+					}				\
+				} else {				\
+					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+							      &(optpar->step_len), &(optpar->stencil), &cmin); \
+				}					\
+				cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
+				if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
+					bcoof[idx] = 0.0;		\
+				}					\
 			}						\
 			bb[idx] += bcoof[idx];				\
 			cc[idx] += ccoof[idx];				\
@@ -1020,7 +1027,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 							x[i] = 0.0;
 						}
 					}
-					retval = GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
+					retval = GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d, fl,
 											       loglFunc, loglFunc_arg,
 											       graph, Qfunc, Qfunc_arg, constr,
 											       &new_optpar, blockupdate_par, store,
@@ -1091,7 +1098,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp **bfunc, double *d, int *fl, 
+				 GMRFLib_bfunc_tp **bfunc, double *d, int *fl,
 				 GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
@@ -1295,7 +1302,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
-	GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
+	GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, fl, loglFunc,
 			  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 
 	if (nhyper > 0) {
@@ -1304,7 +1311,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 * '_setup' ensure that ai_store is changed for each call to _opt_f. this is a bit dirty programming, but there is no
 		 * good way to get around it for the moment.
 		 */
-		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
+		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, fl, loglFunc,
 				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 
 		/*
@@ -2666,7 +2673,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			if (fl[ii]) {
 				continue;
 			}
-			
+
 			double evalue = 0.0, evalue_sat = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
@@ -3346,25 +3353,21 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 
 		GMRFLib_idx_tp *selection = NULL;
-		int free_selection = 0;
-
 		if (!(gcpo_param->selection)) {
 			for (int i = 0; i < Npred; i++) {
 				if (!fl[i]) {
 					GMRFLib_idx_add(&selection, i);
 				}
 			}
-			free_selection = 1;
 		} else {
 			GMRFLib_idx_create_x(&selection, gcpo_param->selection->n);
-			free_selection = 1;
 			for (int i = 0; i < gcpo_param->selection->n; i++) {
 				int j = gcpo_param->selection->idx[i];
 				if (!fl[j]) {
 					GMRFLib_idx_add(&selection, j);
 				}
 			}
-			//selection = gcpo_param->selection;
+			// selection = gcpo_param->selection;
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}
@@ -3494,9 +3497,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
 #undef CODE_BLOCK
 
-		if (free_selection) {
-			GMRFLib_idx_free(selection);
-		}
+		GMRFLib_idx_free(selection);
 		Free(isd);
 		GMRFLib_free_ai_store(local_ai_store);
 	} else {
