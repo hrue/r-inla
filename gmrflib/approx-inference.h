@@ -1145,7 +1145,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp ** bfunc, double *d,
+				 GMRFLib_bfunc_tp ** bfunc, double *d, int *fl, 
 				 GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
@@ -1247,7 +1247,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments);
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
-					   GMRFLib_gcpo_param_tp * gcpo_param);
+					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl);
 
 double inla_compute_saturated_loglik(int, int, GMRFLib_logl_tp *, double *, void *);
 

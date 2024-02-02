@@ -1118,6 +1118,7 @@ struct inla_tp_struct {
 	int ds;						       /* current data-section (when reading) */
 	int nds;					       /* number of data-sections in total */
 	int data_ntheta_all;
+	int *fl;					       /* to flag 'fl' likelihood */
 	double *d;
 	void **loglikelihood_arg;
 	Data_section_tp *data_sections;

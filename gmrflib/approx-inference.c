@@ -1091,7 +1091,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp **bfunc, double *d,
+				 GMRFLib_bfunc_tp **bfunc, double *d, int *fl, 
 				 GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
@@ -1256,6 +1256,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		for (int jj = 0; jj < d_idx->n; jj++) {
 			int j = d_idx->idx[jj];
+			if (fl[j]) {
+				continue;
+			}
 			cpo_theta[j] = Calloc(dens_max, double);
 			pit_theta[j] = Calloc(dens_max, double);
 			failure_theta[j] = Calloc(dens_max, double);
@@ -1267,6 +1270,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		po3_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
 		for (int jj = 0; jj < d_idx->n; jj++) {
 			int j = d_idx->idx[jj];
+			if (fl[j]) {
+				continue;
+			}
 			po_theta[j] = Calloc(dens_max, double);
 			po2_theta[j] = Calloc(dens_max, double);
 			po3_theta[j] = Calloc(dens_max, double);
@@ -1276,6 +1282,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		deviance_theta = Calloc(preopt->Npred, double **);	/* mean of deviance conditioned on theta */
 		for (int jj = 0; jj < d_idx->n; jj++) {
 			int j = d_idx->idx[jj];
+			if (fl[j]) {
+				continue;
+			}
 			deviance_theta[j] = Calloc(dens_max, double *);
 		}
 	}
@@ -1912,7 +1921,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		assert(omp_get_thread_num() == 0);
 		GMRFLib_openmp_place_tp place = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
-		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param);
+		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
@@ -2122,6 +2131,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				int i = d_idx->idx[ii];
+				if (fl[i]) {
+					continue;
+				}
 				GMRFLib_density_tp *cpodens = NULL;
 				if (cpo) {
 					GMRFLib_compute_cpodens(thread_id, &cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
@@ -2651,6 +2663,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = d_idx->idx[j];
 
+			if (fl[ii]) {
+				continue;
+			}
+			
 			double evalue = 0.0, evalue_sat = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
@@ -3161,7 +3177,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 }
 
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
-					   GMRFLib_gcpo_param_tp *gcpo_param)
+					   GMRFLib_gcpo_param_tp *gcpo_param, int *fl)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
@@ -3334,11 +3350,21 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 		if (!(gcpo_param->selection)) {
 			for (int i = 0; i < Npred; i++) {
-				GMRFLib_idx_add(&selection, i);
+				if (!fl[i]) {
+					GMRFLib_idx_add(&selection, i);
+				}
 			}
 			free_selection = 1;
 		} else {
-			selection = gcpo_param->selection;
+			GMRFLib_idx_create_x(&selection, gcpo_param->selection->n);
+			free_selection = 1;
+			for (int i = 0; i < gcpo_param->selection->n; i++) {
+				int j = gcpo_param->selection->idx[i];
+				if (!fl[j]) {
+					GMRFLib_idx_add(&selection, j);
+				}
+			}
+			//selection = gcpo_param->selection;
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}

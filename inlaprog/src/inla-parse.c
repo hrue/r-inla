@@ -528,6 +528,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tndata=[%1d]\n", mb->predictor_ndata);
 	}
+	mb->fl = Calloc(mb->predictor_ndata, int);
 
 	mb->predictor_compute = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);	// mb->output->cpo ||
 	// mb->output->dic
@@ -8427,9 +8428,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	if (ds->data_id == L_FL) {
+
+		// mark those indices belonging to 'FL'
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				mb->fl[i] = 1;
+			}
+		}
+
 		// replace the matrix with its transpose
 		double **cc = NULL, **c = ds->data_observations.fl_c;
-		int n = mb->predictor_ndata, m = 6;
+		int n = mb->predictor_ndata, m = L_FL_NC;
 
 		cc = Calloc(n, double *);
 		for(i = 0; i < n; i++) {

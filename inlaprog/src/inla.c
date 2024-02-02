@@ -117,6 +117,9 @@
 #define CURE_MAXTHETA (10L)
 #define SCOPY_MAXTHETA (15L)
 
+#define L_FL_NC (7L)
+
+
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
 const int keywords_len = 7;
@@ -1359,7 +1362,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
-// disable '-O3' in this function
+// disable '-O3' in this function (I cannot recall why...????)
 #pragma GCC push_options
 #pragma GCC optimize ("O2")
 double extra(int thread_id, double *theta, int ntheta, void *argument)
@@ -5930,7 +5933,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				     (mb->output->mlik ? &(mb->mlik) : NULL),
 				     mb->theta, mb->ntheta,
 				     extra, (void *) mb,
-				     x, b, c, NULL, bfunc, mb->d,
+				     x, b, c, NULL, bfunc, mb->d, mb->fl, 
 				     loglikelihood_inla, (void *) mb,
 				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
