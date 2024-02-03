@@ -181,6 +181,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 	(*ai_par)->vb_iter_max = 5;
 	(*ai_par)->vb_f_enable_limit_mean = 20;
 	(*ai_par)->vb_f_enable_limit_variance = 10;
+	(*ai_par)->vb_f_enable_limit_mean_max = 1024;
+	(*ai_par)->vb_f_enable_limit_variance_max = 768;
 	(*ai_par)->vb_nodes_mean = NULL;
 	(*ai_par)->vb_nodes_variance = NULL;
 
@@ -384,16 +386,18 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 
 	if (ai_par->vb_enable) {
 		fprintf(fp, "\tVB correction is [Enabled]\n");
-		fprintf(fp, "\t\tstrategy            = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" :
+		fprintf(fp, "\t\tstrategy                    = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" :
 								 (ai_par->vb_strategy ==
 								  GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
-		fprintf(fp, "\t\tverbose             = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
-		fprintf(fp, "\t\tf_enable_limit_mean = [%1d]\n", ai_par->vb_f_enable_limit_mean);
-		fprintf(fp, "\t\tf_enable_limit_var  = [%1d]\n", ai_par->vb_f_enable_limit_variance);
-		fprintf(fp, "\t\titer_max            = [%1d]\n", ai_par->vb_iter_max);
-		fprintf(fp, "\t\temergency           = [%.2f]\n", ai_par->vb_emergency);
-		fprintf(fp, "\t\thessian_update      = [%1d]\n", ai_par->vb_hessian_update);
-		fprintf(fp, "\t\thessian_strategy    = [%s]\n", VB_HESSIAN_STRATEGY_NAME(ai_par->vb_hessian_strategy));
+		fprintf(fp, "\t\tverbose                     = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
+		fprintf(fp, "\t\tf_enable_limit_mean         = [%1d]\n", ai_par->vb_f_enable_limit_mean);
+		fprintf(fp, "\t\tf_enable_limit_var          = [%1d]\n", ai_par->vb_f_enable_limit_variance);
+		fprintf(fp, "\t\tf_enable_limit_mean_max     = [%1d]\n", ai_par->vb_f_enable_limit_mean_max);
+		fprintf(fp, "\t\tf_enable_limit_variance_max = [%1d]\n", ai_par->vb_f_enable_limit_variance_max);
+		fprintf(fp, "\t\titer_max                    = [%1d]\n", ai_par->vb_iter_max);
+		fprintf(fp, "\t\temergency                   = [%.2f]\n", ai_par->vb_emergency);
+		fprintf(fp, "\t\thessian_update              = [%1d]\n", ai_par->vb_hessian_update);
+		fprintf(fp, "\t\thessian_strategy            = [%s]\n", VB_HESSIAN_STRATEGY_NAME(ai_par->vb_hessian_strategy));
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}

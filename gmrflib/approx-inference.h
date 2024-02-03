@@ -569,6 +569,8 @@ typedef struct {
 	 */
 	int vb_f_enable_limit_mean;
 	int vb_f_enable_limit_variance;
+	int vb_f_enable_limit_mean_max;
+	int vb_f_enable_limit_variance_max;
 
 	/**
 	 * \brief List of nodes to VB correct for, if any.
