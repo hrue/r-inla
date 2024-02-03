@@ -40,7 +40,7 @@ otherwise names in the formula.  The values of the list, is interpreted as
 indices. If they are negative, they are interpreted as 'not', a zero is
 interpreted as 'all', and positive indices are interpreted as 'only'. The
 names of elements of each samples refer to the indices in the full sample.
-DO NOT USE this feature together with \code{inla.posterior.sample.eval}.}
+NOTE THAT USING THIS ARGUMENT WILL MAKE \code{inla.posterior.sample.eval} FAIL.}
 
 \item{intern}{Logical. If \code{TRUE} then produce samples in the internal
 scale for the hyperparmater, if \code{FALSE} then produce samples in the

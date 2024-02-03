@@ -33,7 +33,7 @@
 #' indices. If they are negative, they are interpreted as 'not', a zero is
 #' interpreted as 'all', and positive indices are interpreted as 'only'. The
 #' names of elements of each samples refer to the indices in the full sample.
-#' DO NOT USE this feature together with `inla.posterior.sample.eval`.
+#' NOTE THAT USING THIS ARGUMENT WILL MAKE `inla.posterior.sample.eval` FAIL.
 #' @param intern Logical. If `TRUE` then produce samples in the internal
 #' scale for the hyperparmater, if `FALSE` then produce samples in the
 #' user-scale. (For example log-precision (intern) and precision (user-scale))
