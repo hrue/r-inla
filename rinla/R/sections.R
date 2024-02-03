@@ -1110,6 +1110,8 @@
     if (length(lim) == 1) lim <- c(lim[1], ceiling(sqrt(lim[1])))
     cat("control.vb.f.enable.limit.mean = ", lim[1], "\n", file = file, append = TRUE)
     cat("control.vb.f.enable.limit.variance = ", lim[2], "\n", file = file, append = TRUE)
+    cat("control.vb.f.enable.limit.mean.max = ", lim[3], "\n", file = file, append = TRUE)
+    cat("control.vb.f.enable.limit.variance.max = ", lim[4], "\n", file = file, append = TRUE)
     cat("control.vb.iter.max = ", inla.spec$control.vb$iter.max, "\n", file = file, append = TRUE)
     cat("control.vb.emergency = ", abs(inla.spec$control.vb$emergency), "\n", file = file, append = TRUE)
     stopifnot(abs(inla.spec$control.vb$emergency) > 0)
