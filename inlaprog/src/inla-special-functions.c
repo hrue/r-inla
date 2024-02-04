@@ -151,3 +151,9 @@ double inla_lgamma_fast(double x)
 	}
 	return (val);
 }
+
+double inla_ipow(double x, int k) 
+{
+	// x^k
+	return gsl_sf_pow_int((const double) x, (const int) k);
+}

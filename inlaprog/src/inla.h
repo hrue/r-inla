@@ -1949,6 +1949,7 @@ double priorfunc_wishartk_18d(double *x, double *parameters);
 double priorfunc_wishartk_19d(double *x, double *parameters);
 double priorfunc_wishartk_20d(double *x, double *parameters);
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
+double inla_ipow(double x, int k);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);

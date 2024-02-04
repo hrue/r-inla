@@ -2642,7 +2642,7 @@ int loglikelihood_qcontpoisson(int thread_id, double *logll, double *x, int m, i
 
 double inla_poisson_interval(double mean, int ifrom, int ito)
 {
-	// Compute Prob(y_from <= Y <= y_to) for the poisson with given mean.
+	// Compute Prob(ifrom <= Y <= ito) for the poisson with given mean.
 	// NOTE1: Both ends of the interval are included.
 	// NOTE2: if ito < 0, then 'ito' is interpreted as INFINITY
 	// NOTE3: if ifrom < 0, then 'ifrom' is interpreted as INFINITY
@@ -2659,7 +2659,7 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 		}
 	} else {
 		assert(ito >= ifrom);
-		prob_sum = prob = pow(mean, (double) ifrom) * exp(-mean) / exp(my_gsl_sf_lnfact(ifrom));
+		prob_sum = prob = inla_ipow(mean, ifrom) * exp(-mean - my_gsl_sf_lnfact(ifrom));
 		for (int y = ifrom + 1; y <= ito; y++) {
 			prob *= mean / (double) y;
 			prob_sum += prob;
@@ -4525,7 +4525,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 				gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
 				logll[i] += res.val + y[j] * LOG_p(p) + (n - y[j]) * LOG_1mp(p);
 			}
-			tt = lambda * pow(1.0 - p, (double) ny);
+			tt = lambda * inla_ipow(1.0 - p, ny);
 			nmax = (int) DMAX(n + 50.0, DMIN(n + tt / 0.01, n + 500.0));	/* just to be sure */
 			for (k = nmax, fac = 1.0; k > n; k--) {
 				double kd = (double) k;
@@ -4620,9 +4620,9 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 				gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
 				logll[i] += res.val + y[j] * LOG_p(p) + (n - y[j]) * LOG_1mp(p);
 			}
-			tt = lambda * sqrt(1.0 + lambda / size) * pow(1.0 - p, (double) ny);
+			tt = lambda * sqrt(1.0 + lambda / size) * inla_ipow(1.0 - p, ny);
 			nmax = (int) DMAX(n + 50.0, DMIN(n + tt / 0.01, n + 500.0));	/* just to be sure */
-			tt = (1.0 - q) * pow(1.0 - p, ny);
+			tt = (1.0 - q) * inla_ipow(1.0 - p, ny);
 			for (k = nmax, fac = 1.0; k > n; k--) {
 				double kd = (double) k;
 				for (j = 0, tmp = 1.0; j < ny; j++) {
@@ -5007,7 +5007,8 @@ int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int 
 	}
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], k = ds->data_observations.cbinomial_k[idx], n = ds->data_observations.cbinomial_n[idx], p;
+	double y = ds->data_observations.y[idx], k = ds->data_observations.cbinomial_k[idx], p;
+	int n = ds->data_observations.cbinomial_n[idx];
 
 	LINK_INIT;
 	if (m > 0) {
@@ -5016,7 +5017,7 @@ int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int 
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = 1.0 - pow(1.0 - p, n);
+			p = 1.0 - inla_ipow(1.0 - p, n);
 			p = TRUNCATE(p, 0.0, 1.0);
 			if (ISEQUAL(p, 1.0)) {
 				/*
@@ -5044,7 +5045,7 @@ int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int 
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = 1.0 - pow(1.0 - p, n);
+			p = 1.0 - inla_ipow(1.0 - p, n);
 			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) k);
 		}
