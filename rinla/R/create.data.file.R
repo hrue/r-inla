@@ -452,6 +452,17 @@
         Y <- response[, col.y, drop = FALSE]
         idx <- response[, col.idx, drop = FALSE]
         response <- cbind(idx, Y)
+    } else if (inla.one.of(family, c("rcpoisson"))) {
+        response <- cbind(IDX = ind, y.orig)
+        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        idx <- response[, 1, drop = FALSE]
+        Y <- response[, 2, drop = FALSE]
+        E <- response[, 3, drop = FALSE]
+        event <- response[, 4, drop = FALSE]
+        offset <- response[, 5, drop = FALSE]
+        X <- response[, -(1:5), drop = FALSE]
+        response <- cbind(idx, E, event, offset, X, Y)
     } else if (inla.one.of(family, c("cenpoisson2"))) {
         if (is.null(E)) {
             E <- rep(1, n.data)

@@ -253,6 +253,7 @@ typedef enum {
 	L_GGAUSSIAN,
 	L_GGAUSSIANS,
 	L_FL,
+	L_RCPOISSON, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -780,6 +781,15 @@ typedef struct {
 
 	// 
 	double **fl_c;
+
+
+	// rcpoisson
+	double *rcp_E;
+	double *rcp_event;
+	double *rcp_offset;
+	double **rcp_x;
+	double ***rcp_beta;
+	int rcp_nbeta;
 } Data_tp;
 
 typedef struct {
@@ -2186,6 +2196,7 @@ int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

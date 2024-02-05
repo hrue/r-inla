@@ -428,6 +428,27 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_RCPOISSON:
+	{
+		assert(ncol_data_all <= 5 + RCPOISSON_MAXTHETA && ncol_data_all >= 5);
+		idiv = ncol_data_all;
+		int nbeta = ncol_data_all - 5;
+		na = 3 + nbeta;
+		ds->data_observations.rcp_nbeta = nbeta;
+		a[0] = ds->data_observations.rcp_E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.rcp_event = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.rcp_offset = Calloc(mb->predictor_ndata, double);
+		if (nbeta > 0) {
+			ds->data_observations.rcp_x = Calloc(nbeta, double *);
+			for (i = 0; i < nbeta; i++) {
+				a[3 + i] = ds->data_observations.rcp_x[i] = Calloc(mb->predictor_ndata, double);
+			}
+		} else {
+			ds->data_observations.rcp_x = NULL;
+		}
+	}
+		break;
+
 	case L_GGAUSSIAN:
 	{
 		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
@@ -2205,6 +2226,59 @@ int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int 
 	}
 
 	LINK_END;
+
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_tp *dtp = &(ds->data_observations);
+	double y = dtp->y[idx];
+	double E = dtp->rcp_E[idx];
+	int event = (int) dtp->rcp_event[idx];
+
+	LINK_INIT;
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		if (event == 1) {
+			double normc = my_gsl_sf_lnfact((int) y);
+			for (int i = 0; i < m; i++) {
+				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = -normc + y * log(lambda) - lambda;
+			}
+		} else if (event == 0) {
+			for (int i = 0; i < m; i++) {
+				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = (ISZERO(y) ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
+			}
+		} else {
+			double normc = my_gsl_sf_lnfact((int) y);
+			double lprob = dtp->rcp_offset[idx];
+			for (int i = 0; i < dtp->rcp_nbeta; i++) {
+				lprob += dtp->rcp_beta[i][thread_id][0] * dtp->rcp_x[i][idx];
+			}
+
+			double log_prob = -log1p(exp(-lprob));
+			double log_1mprob = -lprob + log_prob;
+
+			for (int i = 0; i < m; i++) {
+				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+				double logA = log_prob - normc + y * log(lambda) - lambda;
+				double logB = log_1mprob + (ISZERO(y) ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
+
+				logll[i] = eval_logsum_safe(logA, logB);
+			}
+		}
+	} 
+
+	LINK_END;
+
 	return GMRFLib_SUCCESS;
 }
 

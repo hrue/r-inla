@@ -116,6 +116,7 @@
 #define GGAUSSIAN_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 #define SCOPY_MAXTHETA (15L)
+#define RCPOISSON_MAXTHETA (10L)
 
 #define L_FL_NC (7L)
 
@@ -1943,6 +1944,19 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_GGAUSSIANS:
 			{
 				int nbeta = ds->data_observations.ggaussian_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
+			case L_RCPOISSON:
+			{
+				int nbeta = ds->data_observations.rcp_nbeta;
 				for (int k = 0; k < nbeta; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
