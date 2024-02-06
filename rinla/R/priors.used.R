@@ -113,20 +113,20 @@
                     h4cat(h3, name = h3$name)
                 } else {
                     for (j in seq_along(h3$hyper)) {
-                        if (count.theta >= ntheta) break
+                        ##if (count.theta >= ntheta) break
                         count.theta <- count.theta + h4cat(h3$hyper[[j]])
                     }
                 }
                 for (j in seq_along(h3$link$hyper)) {
-                    if (count.theta >= ntheta) break
+                    ##if (count.theta >= ntheta) break
                     count.theta <- count.theta + h4cat(h3$link$hyper[[j]], "link")
                 }
                 for (j in seq_along(h3$group.hyper)) {
-                    if (count.theta >= ntheta) break
+                    ##if (count.theta >= ntheta) break
                     count.theta <- count.theta + h4cat(h3$group.hyper[[j]], "group")
                 }
                 for (j in seq_along(h3$mix$hyper)) {
-                    if (count.theta >= ntheta) break
+                    ##if (count.theta >= ntheta) break
                     count.theta <- count.theta + h4cat(h3$mix$hyper[[j]], "mix")
                 }
             }

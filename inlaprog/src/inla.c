@@ -116,6 +116,10 @@
 #define GGAUSSIAN_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 #define SCOPY_MAXTHETA (15L)
+#define RCPOISSON_MAXTHETA (10L)
+
+#define L_FL_NC (7L)
+
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -1359,7 +1363,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
-// disable '-O3' in this function
+// disable '-O3' in this function (I cannot recall why...????)
 #pragma GCC push_options
 #pragma GCC optimize ("O2")
 double extra(int thread_id, double *theta, int ntheta, void *argument)
@@ -1940,6 +1944,19 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_GGAUSSIANS:
 			{
 				int nbeta = ds->data_observations.ggaussian_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
+			case L_RCPOISSON:
+			{
+				int nbeta = ds->data_observations.rcp_nbeta;
 				for (int k = 0; k < nbeta; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
@@ -2597,10 +2614,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_FL:
+				break;
+
 			default:
-				/*
-				 * nothing to do
-				 */
 				break;
 			}
 
@@ -5411,6 +5428,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		count += mb->f_Ntotal[i];
 	}
+	for (i = 0; i < mb->nlinear; i++) {
+		b[count] = mb->linear_precision[i] * mb->linear_mean[i];
+		count++;
+	}
+	assert(count == N);
 
 	// VB corrections
 	if (mb->ai_par->vb_enable) {
@@ -5431,11 +5453,21 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				int nngroup = n * ngroup;
 				assert(ntot == n * ngroup * nrep);
 
+				if (lim > 0) {
+					// yes, integer division here && we correct also for mb->nf
+					if (tp == 0) {
+						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_mean_max / (mb->nf * ngroup * nrep)));
+					} else {
+						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
+					}
+				}
+
 				if (debug) {
 					P(n);
 					P(ngroup);
 					P(nrep);
 					P(ntot);
+					P(lim);
 				}
 
 				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
@@ -5565,7 +5597,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
 
-		GMRFLib_chose_threshold_ddot();
 		GMRFLib_MKL_chose_thresholds();
 	} else {
 		GMRFLib_Qx_strategy = 0;
@@ -5641,7 +5672,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 #endif
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
-			printf("\tOptimizing ddot............ [%1d]\n", GMRFLib_threshold_ddot);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
 			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
@@ -5930,7 +5960,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				     (mb->output->mlik ? &(mb->mlik) : NULL),
 				     mb->theta, mb->ntheta,
 				     extra, (void *) mb,
-				     x, b, c, NULL, bfunc, mb->d,
+				     x, b, c, NULL, bfunc, mb->d, mb->fl,
 				     loglikelihood_inla, (void *) mb,
 				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
@@ -6516,6 +6546,8 @@ int main(int argc, char **argv)
 	inla_tp *mb = NULL;
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
+
+	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;

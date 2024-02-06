@@ -528,6 +528,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tndata=[%1d]\n", mb->predictor_ndata);
 	}
+	mb->fl = Calloc(mb->predictor_ndata, int);
 
 	mb->predictor_compute = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);	// mb->output->cpo ||
 	// mb->output->dic
@@ -695,6 +696,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "BGEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_bgev;
 		ds->data_id = L_BGEV;
+	} else if (!strcasecmp(ds->data_likelihood, "RCPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_rcpoisson;
+		ds->data_id = L_RCPOISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "GGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_ggaussian;
 		ds->data_id = L_GGAUSSIAN;
@@ -716,6 +720,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "AGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_agaussian;
 		ds->data_id = L_AGAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "FL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_fl;
+		ds->data_id = L_FL;
 	} else if (!strcasecmp(ds->data_likelihood, "T")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_t;
 		ds->data_id = L_T;
@@ -1052,6 +1059,19 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_GGAUSSIANS:
+		break;
+
+	case L_RCPOISSON:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: rcpoisson y[%1d]=[%g] is void\n", secname, i, ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
 		break;
 
 	case L_SIMPLEX:
@@ -1938,6 +1958,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 		}
 	}
+		break;
+
+	case L_FL:
 		break;
 
 	default:
@@ -3896,6 +3919,89 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.ggaussian_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
+		break;
+
+	case L_RCPOISSON:
+	{
+		for (i = 0; i < RCPOISSON_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_nfixed = Calloc(RCPOISSON_MAXTHETA + 1, int);
+		ds->data_nprior = Calloc(RCPOISSON_MAXTHETA, Prior_tp);
+		ds->data_observations.rcp_beta = Calloc(RCPOISSON_MAXTHETA, double **);
+
+		for (i = ds->data_observations.rcp_nbeta; i < RCPOISSON_MAXTHETA; i++) {
+			ds->data_nfixed[i] = 1;
+		}
+
+		for (i = 0; i < ds->data_observations.rcp_nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.rcp_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.rcp_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for rcpoisson observations", i + 1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.rcp_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
 				mb->theta_map[mb->ntheta] = map_identity;
@@ -8419,6 +8525,35 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		GMRFLib_gaussian_data = GMRFLib_FALSE;
 	}
+
+	if (ds->data_id == L_FL) {
+		// mark those indices belonging to 'FL'
+		assert(mb->predictor_ndata >= 0);
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				mb->fl[i] = 1;
+			}
+		}
+
+		// replace the matrix with its transpose
+		double **cc = NULL, **c = ds->data_observations.fl_c;
+		int n = mb->predictor_ndata, m = L_FL_NC;
+		cc = Calloc(n, double *);
+		for (i = 0; i < n; i++) {
+			cc[i] = Calloc(m, double);
+		}
+		for (j = 0; j < m; j++) {
+			for (i = 0; i < n; i++) {
+				cc[i][j] = c[j][i];
+			}
+		}
+		ds->data_observations.fl_c = cc;
+		for (j = 0; j < m; j++) {
+			Free(c[j]);
+		}
+		Free(c);
+	}
+
 
 	return INLA_OK;
 }
@@ -17046,6 +17181,9 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->vb_iter_max = IMAX(1, mb->ai_par->vb_iter_max);
 	mb->ai_par->vb_f_enable_limit_mean = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN"), 20);
 	mb->ai_par->vb_f_enable_limit_variance = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE"), 5);
+	mb->ai_par->vb_f_enable_limit_mean_max = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN.MAX"), 1024);
+	mb->ai_par->vb_f_enable_limit_variance_max =
+	    iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE.MAX"), 768);
 	mb->ai_par->vb_hessian_update = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.UPDATE"), 1);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), GMRFLib_strdup("MEAN")));

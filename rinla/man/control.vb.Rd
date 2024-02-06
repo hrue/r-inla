@@ -11,7 +11,7 @@ control.vb(
   verbose = TRUE,
   iter.max = 25,
   emergency = 25,
-  f.enable.limit = c(30, 25),
+  f.enable.limit = c(30, 25, 1024, 768),
   hessian.update = 2,
   hessian.strategy = c("default", "full", "partial", "diagonal")
 )
@@ -30,9 +30,11 @@ inla.set.control.vb.default(...)
 \item{emergency}{Numeric If the standardized correction for the mean is larger
 than this value, then call the vb.correction off and issue a warning}
 
-\item{f.enable.limit}{Vector of length 2. The size limit to correct for a \code{f()}.
+\item{f.enable.limit}{Vector of length 4. The size limit to correct for a \code{f()}.
 First element is for \code{strategy="mean"}.
-Second element is for \code{strategy="mean"}.}
+Second element is for \code{strategy="variance"}.
+Third element is overall maximum dimension of the correction for \code{strategy="mean"}.
+Forth element is overall maximum dimension of the correction for \code{strategy="variance"}.}
 
 \item{hessian.update}{How many times the Hessian is updated for each
 correction (\code{strategy="variance"} only).}

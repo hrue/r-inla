@@ -439,6 +439,30 @@
         Y <- response[, col.y, drop = FALSE]
         idx <- response[, col.idx, drop = FALSE]
         response <- cbind(idx, Y)
+    } else if (inla.one.of(family, c("fl"))) {
+        ## add fake response in the last column
+        response <- cbind(IDX = ind, y.orig, 0)
+        stopifnot(ncol(response) == 2 + 7)
+        ## remove entries with NA's in c_i's
+        col.y <- 2:8
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) any(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        col.y <- 2:9
+        col.idx <- 1
+        Y <- response[, col.y, drop = FALSE]
+        idx <- response[, col.idx, drop = FALSE]
+        response <- cbind(idx, Y)
+    } else if (inla.one.of(family, c("rcpoisson"))) {
+        response <- cbind(IDX = ind, y.orig)
+        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        idx <- response[, 1, drop = FALSE]
+        Y <- response[, 2, drop = FALSE]
+        E <- response[, 3, drop = FALSE]
+        event <- response[, 4, drop = FALSE]
+        offset <- response[, 5, drop = FALSE]
+        X <- response[, -(1:5), drop = FALSE]
+        response <- cbind(idx, E, event, offset, X, Y)
     } else if (inla.one.of(family, c("cenpoisson2"))) {
         if (is.null(E)) {
             E <- rep(1, n.data)

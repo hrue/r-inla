@@ -46,6 +46,8 @@
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
+static int malloc_debug = -1;
+
 /*
  * Measures the current (and peak) resident and virtual memories
  * usage of your linux C process, in kB
@@ -203,6 +205,19 @@ void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
 	return NULL;
 }
 
+void GMRFLib_malloc_debug_check(void)
+{
+	if (malloc_debug < 0) {
+		char *def = getenv("INLA_MALLOC_DEBUG");
+		if (def) {
+			int val = atoi(def);
+			malloc_debug = (val > 0 ? 1 : 0);
+		} else {
+			malloc_debug = 0;
+		}
+	}
+}
+
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno)
 {
 	void *ptr = NULL;
@@ -210,6 +225,11 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 
 	assert(nmemb * size < PTRDIFF_MAX);
 	ptr = calloc(nmemb, size);
+
+	if (malloc_debug > 0) {
+		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
+		       ptr);
+	}
 
 	if (ptr) {
 		return ptr;
@@ -228,9 +248,15 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 
 	assert(size < PTRDIFF_MAX);
 	ptr = malloc(size);
+
+	if (malloc_debug > 0) {
+		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
+	}
+
 	if (ptr) {
 		return ptr;
 	}
+
 	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
@@ -245,6 +271,16 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 
 	assert(size < PTRDIFF_MAX);
 	ptr = realloc(old_ptr, size);
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+	if (malloc_debug > 0) {
+		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
+		       old_ptr, ptr);
+	}
+#pragma GCC diagnostic pop
+
 	if (ptr) {
 		return ptr;
 	}
@@ -258,6 +294,9 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 {
 	if (ptr) {
+		if (malloc_debug > 0) {
+			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
+		}
 		free(ptr);
 	} else {
 		fprintf(stderr, "%s:%s:%d: Try to free a NULL-ptr\n", file, funcname, lineno);

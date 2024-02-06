@@ -38,7 +38,8 @@ general code.
 
 \code{inla.merge} is intented for merging a mixture of \code{inla}-objects,
 each run with the same formula and settings, except for a set of
-hyperparameters that are fixed to different values. Using this function, we
+hyperparameters, or other parameters in the model,
+that are fixed to different values. Using this function, we
 can then integrate over these hyperparameters using (unnormalized)
 integration weights \code{prob}. The main objects to be merged, are the
 summary statistics and marginal densities (like for hyperparameters, fixed,

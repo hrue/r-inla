@@ -7965,6 +7965,17 @@
         likelihood =
             list(
                 ## the first non-default link-function is the default one.
+                ## the first non-default link-function is the default one.
+                fl = list(
+                    doc = "The fl likelihood",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "identity"), 
+                    status = "experimental", 
+                    pdf = "fl"
+                ),
+
                 poisson = list(
                     doc = "The Poisson likelihood",
                     hyper = list(),
@@ -9948,7 +9959,7 @@
                     ),
                     status = "experimental", 
                     survival = FALSE,
-                    discrete = TRUE,
+                    discrete = FALSE,
                     link = c("default", "identity"), 
                     link.simple = c("default", "log"), 
                     pdf = "ggaussian"
@@ -10090,10 +10101,151 @@
                     ),
                     status = "experimental", 
                     survival = FALSE,
-                    discrete = TRUE,
+                    discrete = FALSE,
                     link = c("default", "log"), 
                     link.simple = c("default", "identity"), 
                     pdf = "ggaussian"
+                ), 
+
+                rcpoisson = list(
+                    doc = "Randomly censored Poisson",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 66701,
+                            name = "beta1",
+                            short.name = "beta1",
+                            output.name = "beta1 rcpoisson observations",
+                            output.name.intern = "beta1 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 66702,
+                            name = "beta2",
+                            short.name = "beta2",
+                            output.name = "beta2 rcpoisson observations",
+                            output.name.intern = "beta2 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 66703,
+                            name = "beta3",
+                            short.name = "beta3",
+                            output.name = "beta3 rcpoisson observations",
+                            output.name.intern = "beta3 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 66704,
+                            name = "beta4",
+                            short.name = "beta4",
+                            output.name = "beta4 rcpoisson observations",
+                            output.name.intern = "beta4 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 66705,
+                            name = "beta5",
+                            short.name = "beta5",
+                            output.name = "beta5 rcpoisson observations",
+                            output.name.intern = "beta5 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 66706,
+                            name = "beta6",
+                            short.name = "beta6",
+                            output.name = "beta6 rcpoisson observations",
+                            output.name.intern = "beta6 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 66707,
+                            name = "beta7",
+                            short.name = "beta7",
+                            output.name = "beta7 rcpoisson observations",
+                            output.name.intern = "beta7 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 66708,
+                            name = "beta8",
+                            short.name = "beta8",
+                            output.name = "beta8 rcpoisson observations",
+                            output.name.intern = "beta8 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 66709,
+                            name = "beta9",
+                            short.name = "beta9",
+                            output.name = "beta9 rcpoisson observations",
+                            output.name.intern = "beta9 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 66710,
+                            name = "beta10",
+                            short.name = "beta10",
+                            output.name = "beta10 rcpoisson observations",
+                            output.name.intern = "beta10 rcpoisson observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log"), 
+                    pdf = "rcpoisson"
                 ), 
 
                 circularnormal = list(

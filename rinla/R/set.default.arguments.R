@@ -590,10 +590,12 @@ control.vb <- function(
         #' @param emergency Numeric If the standardized correction for the mean is larger
         #'           than this value, then call the vb.correction off and issue a warning
         emergency = 25,
-        #' @param f.enable.limit Vector of length 2. The size limit to correct for a `f()`.
+        #' @param f.enable.limit Vector of length 4. The size limit to correct for a `f()`.
         #'         First element is for `strategy="mean"`.
-        #'         Second element is for `strategy="mean"`.
-        f.enable.limit = c(30, 25),
+        #'         Second element is for `strategy="variance"`.
+        #'         Third element is overall maximum dimension of the correction for `strategy="mean"`.
+        #'         Forth element is overall maximum dimension of the correction for `strategy="variance"`.
+        f.enable.limit = c(30, 25, 1024, 768),
         #' @param hessian.update How many times the Hessian is updated for each
         #'         correction (`strategy="variance"` only).
         hessian.update = 2,
