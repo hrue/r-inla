@@ -2240,7 +2240,7 @@ int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int 
 	Data_tp *dtp = &(ds->data_observations);
 	double y = dtp->y[idx];
 	double E = dtp->rcp_E[idx];
-	int event = (int) dtp->rcp_event[idx];
+	int event = (int) nearbyint(dtp->rcp_event[idx]);
 
 	LINK_INIT;
 

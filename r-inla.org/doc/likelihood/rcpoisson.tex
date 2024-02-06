@@ -22,7 +22,8 @@ or unknown censoring: \texttt{event}$=1$ its observed as is, with
 \begin{displaymath}
     \text{Prob}(Y \ge y) = \sum_{y' \ge y} \frac{\lambda^{y'}}{y'!}\exp(-\lambda),
 \end{displaymath}
-and for \texttt{event} $\not=0,1$, then its randomly censored where
+and for \texttt{event} $\not=0,1$ (after rounding from double to int)
+then its randomly censored where
 \begin{displaymath}
     \text{Prob}(\text{event} = 1) = p(\cdot)
 \end{displaymath}
