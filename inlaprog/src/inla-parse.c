@@ -3960,6 +3960,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->data_nprior = Calloc(RCPOISSON_MAXTHETA, Prior_tp);
 		ds->data_observations.rcp_beta = Calloc(RCPOISSON_MAXTHETA, double **);
 
+		for (i = ds->data_observations.rcp_nbeta; i < RCPOISSON_MAXTHETA; i++) {
+			ds->data_nfixed[i] = 1;
+		}
+
 		for (i = 0; i < ds->data_observations.rcp_nbeta; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */

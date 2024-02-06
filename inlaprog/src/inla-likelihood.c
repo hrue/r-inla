@@ -2240,7 +2240,7 @@ int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int 
 	Data_tp *dtp = &(ds->data_observations);
 	double y = dtp->y[idx];
 	double E = dtp->rcp_E[idx];
-	int event = (int) nearbyint(dtp->rcp_event[idx]);
+	int event = (int) round(dtp->rcp_event[idx]);
 
 	LINK_INIT;
 
@@ -5327,15 +5327,8 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *logll, double *x
 
 double eval_logsum_safe(double lA, double lB)
 {
-	/*
-	 * evaluate log( exp(lA) + exp(lB) ) in a safe way 
-	 */
-
-	if (lA > lB) {
-		return lA + log1p(exp(lB - lA));
-	} else {
-		return lB + log1p(exp(lA - lB));
-	}
+	// evaluate log( exp(lA) + exp(lB) ) in a safer way 
+	return (lA > lB ? lA + log1p(exp(lB - lA)) : lB + log1p(exp(lA - lB)));
 }
 
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
