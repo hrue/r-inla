@@ -2230,7 +2230,8 @@ int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg,
+			    char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -2275,7 +2276,7 @@ int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int 
 				logll[i] = eval_logsum_safe(logA, logB);
 			}
 		}
-	} 
+	}
 
 	LINK_END;
 
@@ -4970,9 +4971,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

@@ -387,8 +387,8 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 	if (ai_par->vb_enable) {
 		fprintf(fp, "\tVB correction is [Enabled]\n");
 		fprintf(fp, "\t\tstrategy                    = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" :
-								 (ai_par->vb_strategy ==
-								  GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
+									 (ai_par->vb_strategy ==
+									  GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
 		fprintf(fp, "\t\tverbose                     = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
 		fprintf(fp, "\t\tf_enable_limit_mean         = [%1d]\n", ai_par->vb_f_enable_limit_mean);
 		fprintf(fp, "\t\tf_enable_limit_var          = [%1d]\n", ai_par->vb_f_enable_limit_variance);

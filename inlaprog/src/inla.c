@@ -5461,7 +5461,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
 					}
 				}
-				
+
 				if (debug) {
 					P(n);
 					P(ngroup);

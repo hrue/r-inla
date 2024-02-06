@@ -17182,7 +17182,8 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->vb_f_enable_limit_mean = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN"), 20);
 	mb->ai_par->vb_f_enable_limit_variance = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE"), 5);
 	mb->ai_par->vb_f_enable_limit_mean_max = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN.MAX"), 1024);
-	mb->ai_par->vb_f_enable_limit_variance_max = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE.MAX"), 768);
+	mb->ai_par->vb_f_enable_limit_variance_max =
+	    iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE.MAX"), 768);
 	mb->ai_par->vb_hessian_update = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.UPDATE"), 1);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), GMRFLib_strdup("MEAN")));
