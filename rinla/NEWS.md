@@ -1,3 +1,12 @@
+# INLA 24.02.07
+* Fixed a bug: prior means for fixed effects was not included for
+  compact mode
+* New experimental likelihoods: `rcpoisson` and `fl`
+* New arguments to `control.vb$f.enable.limit` to limit
+  maximum dimension of vb-corrections (which is multiplied with
+  `replicates` and `group`)
+* Code cleanup
+
 # INLA 24.01.29
 * Minor bug fix
 * Improved control of rounding errors for numerical derivatives
