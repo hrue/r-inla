@@ -5428,6 +5428,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		count += mb->f_Ntotal[i];
 	}
+
 	for (i = 0; i < mb->nlinear; i++) {
 		b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 		count++;
