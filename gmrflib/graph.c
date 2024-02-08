@@ -1840,7 +1840,8 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	 */
 	nnb = GMRFLib_isum(newg->n, newg->nnbs);
 	hold = Calloc(IMAX(1, nnb), int);
-
+	assert(hold);
+	
 	for (i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
 			Memcpy(&hold[indx], newg->nbs[i], newg->nnbs[i] * sizeof(int));
