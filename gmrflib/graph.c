@@ -1796,7 +1796,8 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	newg->n = g->n;
 	newg->nnbs = Calloc(g->n, int);
 	newg->nbs = Calloc(g->n, int *);
-
+	assert(newg->nnbs && newg->nbs);
+	
 	for (i = 0; i < newg->n; i++) {
 		/*
 		 * count number of neighbours neighbours 
@@ -1806,6 +1807,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 		}
 		if (nneig) {
 			newg->nbs[i] = Calloc(nneig, int);
+			assert(newg->nbs[i]);
 
 			newg->nnbs[i] = 0;
 			for (j = 0, k = 0; j < g->nnbs[i]; j++) {
