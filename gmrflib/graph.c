@@ -1846,6 +1846,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	
 	for (i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
+			assert(newg->nbs[i]);
 			Memcpy(&hold[indx], newg->nbs[i], newg->nnbs[i] * sizeof(int));
 			Free(newg->nbs[i]);
 			newg->nbs[i] = &hold[indx];
