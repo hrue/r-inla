@@ -10410,7 +10410,7 @@
                     discrete = FALSE,
                     link = c("default", "tan"),
                     pdf = "circular-normal",
-                    status = "experimental"
+                    status = "disabled"
                 ),
 
                 wrappedcauchy = list(

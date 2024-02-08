@@ -12626,7 +12626,7 @@
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default tan}}
 #'               \item{pdf = }{\verb{circular-normal}}
-#'               \item{status = }{\verb{experimental}}
+#'               \item{status = }{\verb{disabled}}
 #'              }
 #'            }
 #'          }

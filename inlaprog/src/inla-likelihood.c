@@ -1174,6 +1174,10 @@ int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int id
 int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg,
 				  char **UNUSED(arg_str))
 {
+
+	// this needs to be redone....
+	assert(0 == 1);
+
 	/*
 	 * y ~ circular normal
 	 */
