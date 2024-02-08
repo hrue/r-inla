@@ -1241,12 +1241,12 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_cc
 				j = Qinv_L[i]->contents[k].key;
 				jjj = inv_remap[j];
 
-				double value = 0.0;
-				map_id_get(Qinv_L[i], j, &value);
+				double vvalue = 0.0;
+				map_id_get(Qinv_L[i], j, &vvalue);
 				for (kk = 0; kk < problem->sub_constr->nc; kk++) {
-					value -= problem->constr_m[iii + kk * n] * problem->qi_at_m[jjj + kk * n];
+					vvalue -= problem->constr_m[iii + kk * n] * problem->qi_at_m[jjj + kk * n];
 				}
-				map_id_set(Qinv_L[i], j, value);
+				map_id_set(Qinv_L[i], j, vvalue);
 			}
 		}
 	}
