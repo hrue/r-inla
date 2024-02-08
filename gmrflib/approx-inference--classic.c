@@ -2380,7 +2380,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 			if (ai_par->vb_enable) {
 				// no longer supported due likely issues with the prior mean? and the code is inefficient...
-				assert(0 == 1); abort();
+				assert(0 == 1);
+				abort();
 				GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}

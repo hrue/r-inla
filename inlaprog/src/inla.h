@@ -254,6 +254,7 @@ typedef enum {
 	L_GGAUSSIANS,
 	L_FL,
 	L_RCPOISSON,
+	L_TPOISSON,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -790,6 +791,14 @@ typedef struct {
 	double **rcp_x;
 	double ***rcp_beta;
 	int rcp_nbeta;
+
+	// tpoisson
+	double *tp_E;
+	double *tp_event;
+	double *tp_offset;
+	double **tp_x;
+	double ***tp_beta;
+	int tp_nbeta;
 } Data_tp;
 
 typedef struct {
@@ -2181,7 +2190,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2198,6 +2207,8 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
 			    char **arg_str);
+int loglikelihood_tpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+			   char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

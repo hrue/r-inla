@@ -449,6 +449,27 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_TPOISSON:
+	{
+		assert(ncol_data_all <= 5 + TPOISSON_MAXTHETA && ncol_data_all >= 5);
+		idiv = ncol_data_all;
+		int nbeta = ncol_data_all - 5;
+		na = 3 + nbeta;
+		ds->data_observations.tp_nbeta = nbeta;
+		a[0] = ds->data_observations.tp_E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.tp_event = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.tp_offset = Calloc(mb->predictor_ndata, double);
+		if (nbeta > 0) {
+			ds->data_observations.tp_x = Calloc(nbeta, double *);
+			for (i = 0; i < nbeta; i++) {
+				a[3 + i] = ds->data_observations.tp_x[i] = Calloc(mb->predictor_ndata, double);
+			}
+		} else {
+			ds->data_observations.tp_x = NULL;
+		}
+	}
+		break;
+
 	case L_GGAUSSIAN:
 	{
 		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
@@ -1535,8 +1556,8 @@ int loglikelihood_sn(int thread_id, double *logll, double *x, int m, int idx, do
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, sprec, w, xarg, ypred, *param[2], nan = NAN;
-	inla_sn_arg_tp sn_arg = {0.0, 0.0, 0.0, 0.0};
-	
+	inla_sn_arg_tp sn_arg = { 0.0, 0.0, 0.0, 0.0 };
+
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -2281,6 +2302,61 @@ int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int 
 
 	LINK_END;
 
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_tpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+			   char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_tp *dtp = &(ds->data_observations);
+	double y = dtp->y[idx];
+	double E = dtp->tp_E[idx];
+	int event = (int) round(dtp->tp_event[idx]);
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		double prob = 1.0;
+		if (event != 1) {
+			double lprob = dtp->tp_offset[idx];
+			for (int i = 0; i < dtp->tp_nbeta; i++) {
+				lprob += dtp->tp_beta[i][thread_id][0] * dtp->tp_x[i][idx];
+			}
+			prob = 1.0 / (1.0 + exp(-lprob));
+		}
+		for (int i = 0; i < m; i++) {
+			double lambda = prob * E * PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = -normc + y * log(lambda) - lambda;
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		double prob = 1.0;
+		if (event != 1) {
+			double lprob = dtp->tp_offset[idx];
+			for (int i = 0; i < dtp->tp_nbeta; i++) {
+				lprob += dtp->tp_beta[i][thread_id][0] * dtp->tp_x[i][idx];
+			}
+			prob = 1.0 / (1.0 + exp(-lprob));
+		}
+		for (int i = 0; i < -m; i++) {
+			double lambda = prob * E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = gsl_cdf_poisson_P((unsigned int) *yy, lambda);
+		}
+	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
@@ -4972,9 +5048,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

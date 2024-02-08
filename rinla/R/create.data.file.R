@@ -452,7 +452,7 @@
         Y <- response[, col.y, drop = FALSE]
         idx <- response[, col.idx, drop = FALSE]
         response <- cbind(idx, Y)
-    } else if (inla.one.of(family, c("rcpoisson"))) {
+    } else if (inla.one.of(family, c("rcpoisson", "tpoisson"))) {
         response <- cbind(IDX = ind, y.orig)
         na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
         response <- response[!na.y, , drop = FALSE]

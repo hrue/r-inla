@@ -12327,7 +12327,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12342,7 +12342,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12357,7 +12357,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12372,7 +12372,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12387,7 +12387,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12402,7 +12402,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12417,7 +12417,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12432,7 +12432,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12447,7 +12447,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -12462,7 +12462,174 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 0.001}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+}
+}
+\item{Model 'tpoisson'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{\verb{Thinned Poisson}}
+\item{status = }{\verb{experimental}}
+\item{survival = }{\verb{FALSE}}
+\item{discrete = }{\verb{TRUE}}
+\item{link = }{\verb{default log}}
+\item{pdf = }{\verb{tpoisson}}
+}
+}
+}
+Number of hyperparmeters is 10.
+\describe{
+\item{Hyperparameter 'theta1'}{
+\describe{
+\item{hyperid = }{\verb{66721}}
+\item{name = }{\verb{beta1}}
+\item{short.name = }{\verb{beta1}}
+\item{output.name = }{\verb{beta1 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta1 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta2'}{
+\describe{
+\item{hyperid = }{\verb{66722}}
+\item{name = }{\verb{beta2}}
+\item{short.name = }{\verb{beta2}}
+\item{output.name = }{\verb{beta2 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta2 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta3'}{
+\describe{
+\item{hyperid = }{\verb{66723}}
+\item{name = }{\verb{beta3}}
+\item{short.name = }{\verb{beta3}}
+\item{output.name = }{\verb{beta3 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta3 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta4'}{
+\describe{
+\item{hyperid = }{\verb{66724}}
+\item{name = }{\verb{beta4}}
+\item{short.name = }{\verb{beta4}}
+\item{output.name = }{\verb{beta4 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta4 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta5'}{
+\describe{
+\item{hyperid = }{\verb{66725}}
+\item{name = }{\verb{beta5}}
+\item{short.name = }{\verb{beta5}}
+\item{output.name = }{\verb{beta5 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta5 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta6'}{
+\describe{
+\item{hyperid = }{\verb{66726}}
+\item{name = }{\verb{beta6}}
+\item{short.name = }{\verb{beta6}}
+\item{output.name = }{\verb{beta6 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta6 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta7'}{
+\describe{
+\item{hyperid = }{\verb{66727}}
+\item{name = }{\verb{beta7}}
+\item{short.name = }{\verb{beta7}}
+\item{output.name = }{\verb{beta7 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta7 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta8'}{
+\describe{
+\item{hyperid = }{\verb{66728}}
+\item{name = }{\verb{beta8}}
+\item{short.name = }{\verb{beta8}}
+\item{output.name = }{\verb{beta8 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta8 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta9'}{
+\describe{
+\item{hyperid = }{\verb{66729}}
+\item{name = }{\verb{beta9}}
+\item{short.name = }{\verb{beta9}}
+\item{output.name = }{\verb{beta9 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta9 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta10'}{
+\describe{
+\item{hyperid = }{\verb{66730}}
+\item{name = }{\verb{beta10}}
+\item{short.name = }{\verb{beta10}}
+\item{output.name = }{\verb{beta10 tpoisson observations}}
+\item{output.name.intern = }{\verb{beta10 tpoisson observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }

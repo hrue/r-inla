@@ -1797,7 +1797,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	newg->nnbs = Calloc(g->n, int);
 	newg->nbs = Calloc(g->n, int *);
 	assert(newg->nnbs && newg->nbs);
-	
+
 	for (i = 0; i < newg->n; i++) {
 		/*
 		 * count number of neighbours neighbours 
@@ -1843,7 +1843,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	nnb = GMRFLib_isum(newg->n, newg->nnbs);
 	hold = Calloc(IMAX(1, nnb), int);
 	assert(hold);
-	
+
 	for (i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
 			assert(newg->nbs[i]);
@@ -2099,7 +2099,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp *g)
 	ccc = -1;					       /* the counter. yes, start at -1 */
 	visited = Calloc(n, char);
 	assert(visited);
-	
+
 	for (int i = 0; i < n; i++) {
 		if (!visited[i]) {
 			ccc++;

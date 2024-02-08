@@ -699,6 +699,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "RCPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_rcpoisson;
 		ds->data_id = L_RCPOISSON;
+	} else if (!strcasecmp(ds->data_likelihood, "TPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tpoisson;
+		ds->data_id = L_TPOISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "GGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_ggaussian;
 		ds->data_id = L_GGAUSSIAN;
@@ -1067,6 +1070,19 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: rcpoisson y[%1d]=[%g] is void\n", secname, i, ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
+
+	case L_TPOISSON:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: tpoisson y[%1d]=[%g] is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -3956,7 +3972,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
-		ds->data_nfixed = Calloc(RCPOISSON_MAXTHETA + 1, int);
+		ds->data_nfixed = Calloc(RCPOISSON_MAXTHETA, int);
 		ds->data_nprior = Calloc(RCPOISSON_MAXTHETA, Prior_tp);
 		ds->data_observations.rcp_beta = Calloc(RCPOISSON_MAXTHETA, double **);
 
@@ -4002,6 +4018,89 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.rcp_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
+		break;
+
+	case L_TPOISSON:
+	{
+		for (i = 0; i < TPOISSON_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_nfixed = Calloc(TPOISSON_MAXTHETA, int);
+		ds->data_nprior = Calloc(TPOISSON_MAXTHETA, Prior_tp);
+		ds->data_observations.tp_beta = Calloc(TPOISSON_MAXTHETA, double **);
+
+		for (i = ds->data_observations.tp_nbeta; i < TPOISSON_MAXTHETA; i++) {
+			ds->data_nfixed[i] = 1;
+		}
+
+		for (i = 0; i < ds->data_observations.tp_nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.tp_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.tp_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for tpoisson observations", i + 1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.tp_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
 				mb->theta_map[mb->ntheta] = map_identity;
