@@ -5372,7 +5372,6 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	return x;
 }
 
-
 int inla_INLA_preopt_experimental(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
@@ -5430,6 +5429,27 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 	for (i = 0; i < mb->nlinear; i++) {
 		b[count] = mb->linear_precision[i] * mb->linear_mean[i];
+		count++;
+	}
+	assert(count == N);
+
+	GMRFLib_prior_mean_tp **prior_mean = Calloc(N, GMRFLib_prior_mean_tp *);
+	for (count = 0, i = 0; i < mb->nf; i++) {
+		if (mb->f_bfunc2[i]) {
+			for (j = 0; j < mb->f_Ntotal[i]; j++) {
+				prior_mean[count + j] = Calloc(1, GMRFLib_prior_mean_tp);
+				prior_mean[count + j]->bdef = mb->f_bfunc2[i];
+				prior_mean[count + j]->idx = j;
+				prior_mean[count + j]->fixed_mean = 0.0;
+			}
+		}
+		count += mb->f_Ntotal[i];
+	}
+	for (i = 0; i < mb->nlinear; i++) {
+		prior_mean[count] = Calloc(1, GMRFLib_prior_mean_tp);
+		prior_mean[count]->bdef = NULL;
+		prior_mean[count]->idx = -1;
+		prior_mean[count]->fixed_mean = mb->linear_mean[i];
 		count++;
 	}
 	assert(count == N);
@@ -5960,7 +5980,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				     (mb->output->mlik ? &(mb->mlik) : NULL),
 				     mb->theta, mb->ntheta,
 				     extra, (void *) mb,
-				     x, b, c, NULL, bfunc, mb->d, mb->fl,
+				     x, b, c, NULL, bfunc, prior_mean, mb->d, mb->fl,
 				     loglikelihood_inla, (void *) mb,
 				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
@@ -5986,7 +6006,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	return INLA_OK;
 }
 
-
 int inla_computed(GMRFLib_density_tp **d, int n)
 {
 	/*
@@ -6004,7 +6023,6 @@ int inla_computed(GMRFLib_density_tp **d, int n)
 	}
 	return INLA_OK;
 }
-
 
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
