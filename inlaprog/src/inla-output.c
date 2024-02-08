@@ -2011,9 +2011,9 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 							printf("\n");
 						}
 					}
-					fclose(fp);
 				}
 				Free(buffer);
+				fclose(fp);
 			}
 		}
 	}

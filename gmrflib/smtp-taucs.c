@@ -1091,7 +1091,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 
 int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
-	double *ptr = NULL, value, diag, *Zj = NULL;
+	double *ptr = NULL, value = 0.0, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
 	taucs_ccs_matrix *L = NULL;

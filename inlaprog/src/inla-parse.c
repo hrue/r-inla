@@ -8568,7 +8568,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
+	int i, j, k, jj, nlocations = 0, nc = 0, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
 	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0, nbeta = 0, ncov = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,

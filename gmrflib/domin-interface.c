@@ -1129,6 +1129,8 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
+	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warn */
+	
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}

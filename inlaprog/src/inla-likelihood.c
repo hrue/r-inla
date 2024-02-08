@@ -77,7 +77,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 #define _DIM_A  (4096L)
 
 	double *x = NULL, *a[_DIM_A];
-	int n, na, i, j, ii, idiv = 0, k, ncol_data_all = -1;
+	int n = 0, na, i, j, ii, idiv = 0, k, ncol_data_all = -1;
 	Data_section_tp *ds = &(mb->data_sections[mb->nds - 1]);
 
 	/*
@@ -1535,7 +1535,8 @@ int loglikelihood_sn(int thread_id, double *logll, double *x, int m, int idx, do
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, sprec, w, xarg, ypred, *param[2], nan = NAN;
-	inla_sn_arg_tp sn_arg;
+	inla_sn_arg_tp sn_arg = {0.0, 0.0, 0.0, 0.0};
+	
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];

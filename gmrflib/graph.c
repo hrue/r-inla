@@ -953,11 +953,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int 
 	 * rearrange into linear storage and free temporary storage 
 	 */
 	nnb = GMRFLib_isum((*ngraph)->n, (*ngraph)->nnbs);
-	if (nnb) {
-		hold = Calloc(nnb, int);
-	} else {
-		hold = NULL;
-	}
+	hold = Calloc(IMAX(1, nnb), int);
 
 	for (i = 0, indx = 0; i < (*ngraph)->n; i++) {
 		if ((*ngraph)->nnbs[i]) {
@@ -970,6 +966,11 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int 
 		indx += (*ngraph)->nnbs[i];
 	}
 	GMRFLib_graph_prepare(*ngraph);
+
+	// doit like this, to prevent compiler warings
+	if (nnb == 0) {
+		Free(hold);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -1838,10 +1839,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	 * rearrange into linear storage and free temporary storage 
 	 */
 	nnb = GMRFLib_isum(newg->n, newg->nnbs);
-	if (nnb) {
-		hold = Calloc(nnb, int);
-	} else
-		hold = NULL;
+	hold = Calloc(IMAX(1, nnb), int);
 
 	for (i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
@@ -1855,6 +1853,10 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	}
 	GMRFLib_graph_prepare(newg);
 	*ng = newg;
+	// doit like this to prevent compiler warnings
+	if (nnb == 0) {
+		Free(hold);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -2092,7 +2094,8 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp *g)
 	cc = Calloc(n, int);
 	ccc = -1;					       /* the counter. yes, start at -1 */
 	visited = Calloc(n, char);
-
+	assert(visited);
+	
 	for (int i = 0; i < n; i++) {
 		if (!visited[i]) {
 			ccc++;
