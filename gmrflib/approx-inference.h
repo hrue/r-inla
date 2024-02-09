@@ -77,6 +77,12 @@ typedef struct {
 	GMRFLib_bfunc2_tp *bdef;			       /* doit like this, as many has the same 'bdef' */
 } GMRFLib_bfunc_tp;
 
+typedef struct {
+	int idx;
+	double fixed_mean;
+	GMRFLib_bfunc2_tp *bdef;			       /* use the same tp, as 'mfunc' is in there */
+} GMRFLib_prior_mean_tp;
+
 /** 
  * Available strategies
  */
@@ -1147,7 +1153,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp ** bfunc, double *d, int *fl,
+				 GMRFLib_bfunc_tp ** bfunc, GMRFLib_prior_mean_tp ** prior_mean,
+				 double *d, int *fl,
 				 GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
@@ -1222,6 +1229,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id, GMRFLib_density_tp *** dens
 				      int dens_count,
 				      double *c,
 				      double *d,
+				      GMRFLib_prior_mean_tp ** prior_mean,
 				      GMRFLib_ai_param_tp * ai_par,
 				      GMRFLib_ai_store_tp * ai_store,
 				      GMRFLib_graph_tp * graph,
@@ -1252,6 +1260,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl);
 
 double inla_compute_saturated_loglik(int, int, GMRFLib_logl_tp *, double *, void *);
+double GMRFLib_prior_mean_eval(int thread_id, GMRFLib_prior_mean_tp * pmean);
+int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp ** prior_mean);
 
 __END_DECLS
 #endif

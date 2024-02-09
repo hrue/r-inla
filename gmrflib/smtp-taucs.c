@@ -1091,7 +1091,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 
 int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
-	double *ptr = NULL, value, diag, *Zj = NULL;
+	double *ptr = NULL, value = 0.0, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
 	taucs_ccs_matrix *L = NULL;
@@ -1234,18 +1234,19 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_cc
 	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
 	 */
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
+#pragma omp parallel for private(i, iii, k, j, jjj, kk)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
 			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
 				jjj = inv_remap[j];
 
-				map_id_get(Qinv_L[i], j, &value);
+				double vvalue = 0.0;
+				map_id_get(Qinv_L[i], j, &vvalue);
 				for (kk = 0; kk < problem->sub_constr->nc; kk++) {
-					value -= problem->constr_m[iii + kk * n] * problem->qi_at_m[jjj + kk * n];
+					vvalue -= problem->constr_m[iii + kk * n] * problem->qi_at_m[jjj + kk * n];
 				}
-				map_id_set(Qinv_L[i], j, value);
+				map_id_set(Qinv_L[i], j, vvalue);
 			}
 		}
 	}

@@ -256,7 +256,7 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp *io)
 				return GMRFLib_SUCCESS;
 			}
 
-			if ((int) strlen(line) == maxlen - 1) {
+			if (line && (int) strlen(line) == maxlen - 1) {
 				/*
 				 * line is to short, increase length and reread line 
 				 */

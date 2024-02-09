@@ -420,7 +420,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
 	} else if (!strcasecmp(prior->name, "MVNORM") || !strcasecmp(prior->name, "MVGAUSSIAN")) {
-		int nparam, i, dim;
+		int nparam = 0, i, dim;
 		double *tmp;
 
 		prior->id = P_MVNORM;
@@ -1315,7 +1315,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_ar;
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
-			double tmp;
+			double tmp = 0.0;
 			if (inla_sread_doubles(&tmp, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}

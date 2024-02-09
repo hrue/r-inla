@@ -189,7 +189,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		Free(state);
 	}
 
-	int i, ns;
+	int i, ns = 0;
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;

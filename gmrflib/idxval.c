@@ -1197,6 +1197,7 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 	if ((*hold)->n + n > (*hold)->n_alloc) {
 		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, n + (*hold)->n / 4);
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+		assert((*hold)->idx);
 	}
 
 	Memcpy((*hold)->idx + (*hold)->n, idx, n * sizeof(int));

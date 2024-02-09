@@ -1102,7 +1102,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 double ***hyperparam, int nhyper,
 				 GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 				 double *x, double *b, double *c, double *mean,
-				 GMRFLib_bfunc_tp **bfunc, double *d, int *fl,
+				 GMRFLib_bfunc_tp **bfunc, GMRFLib_prior_mean_tp **prior_mean,
+				 double *d, int *fl,
 				 GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				 GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				 GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
@@ -2079,7 +2080,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN || ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
 			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count,
-							  c, d, ai_par, ai_store_id, graph,
+							  c, d, prior_mean, ai_par, ai_store_id, graph,
 							  (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
 							  loglFunc, loglFunc_arg, preopt, d_idx);
 		}
@@ -4106,7 +4107,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	// I do not use 'A'
 	// double A;
-	double B, C, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
+	double B, C, s_inv = 1.0 / sd, s2_inv = SQR(s_inv), tmp;
 
 	// optimized version. since xp and wp are symmetric and xp[idx]=0. We do not need 'A'
 	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
@@ -4118,11 +4119,12 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 #pragma omp simd reduction(+: C, B)
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
-		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
+		double tt = wp[i] * (loglik[i] + loglik[ii]);
+
 		// A += tt; add reduction...
-		C += tt * xp2[i];
 		B += tt2 * xp[i];
+		C += tt * xp2[i];
 	}
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
@@ -4226,6 +4228,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      int dens_count,
 				      double *UNUSED(c),
 				      double *d,
+				      GMRFLib_prior_mean_tp **prior_mean,
 				      GMRFLib_ai_param_tp *ai_par,
 				      GMRFLib_ai_store_tp *ai_store,
 				      GMRFLib_graph_tp *graph,
@@ -4233,7 +4236,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	GMRFLib_ENTER_ROUTINE;
-	Calloc_init(5 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 11);
+	Calloc_init(7 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 13);
 	FILE *fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
 	int verbose = ai_par->vb_verbose && ai_par->fp_log;
 
@@ -4315,6 +4318,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double *BB = Calloc_get(preopt->Npred);
 	double *CC = Calloc_get(preopt->Npred);
 
+	double *prior_mean_tmp = Calloc_get(graph->n);
+	double *prior_mean_fix = Calloc_get(graph->n);
+	GMRFLib_prior_mean_get(thread_id, prior_mean_fix, graph->n, prior_mean);
+
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) Qfunc_arg;
 	GMRFLib_tabulate_Qfunc_tp *prior = NULL;
 	assert(a == preopt && Qfunc == GMRFLib_preopt_Qfunc);
@@ -4394,7 +4401,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
-		GMRFLib_Qx(thread_id, tmp, x_mean, preopt->latent_graph, prior->Qfunc, prior->Qfunc_arg);
+
+#pragma omp simd
+		for (int ii = 0; ii < graph->n; ii++) {
+			prior_mean_tmp[ii] = x_mean[ii] - prior_mean_fix[ii];
+		}
+		GMRFLib_Qx(thread_id, tmp, prior_mean_tmp, preopt->latent_graph, prior->Qfunc, prior->Qfunc_arg);
+
 		for (int i = 0; i < graph->n; i++) {
 			tmp[i] += preopt->total_b[thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
@@ -6657,4 +6670,32 @@ double GMRFLib_bfunc_eval(int thread_id, double *constant, GMRFLib_bfunc_tp *bfu
 
 #undef MAPIDX
 	return b;
+}
+
+double GMRFLib_prior_mean_func_eval(int thread_id, GMRFLib_prior_mean_tp *prior_mean)
+{
+	// this code is extracted from bfunc...
+
+#define MAPIDX(_idx, _d) MOD(MOD(_idx, (_d)->n * (_d)->ngroup), (_d)->n)
+	GMRFLib_bfunc2_tp *d = prior_mean->bdef;
+	if (d) {
+		int idx = prior_mean->idx;
+		return (d->mfunc(thread_id, MAPIDX(idx, d), d->mfunc_arg));
+	} else {
+		return (prior_mean->fixed_mean);
+	}
+#undef MAPIDX
+	return 0.0;
+}
+
+int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp **prior_mean)
+{
+	if (prior_mean) {
+		for (int i = 0; i < n; i++) {
+			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
+		}
+	} else {
+		Memset(pmean, 0, n * sizeof(double));
+	}
+	return GMRFLib_SUCCESS;
 }

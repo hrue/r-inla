@@ -568,7 +568,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	 * read constraints from file 
 	 */
 	double *x = NULL;
-	int i, j, m, nc;
+	int i, j, m = 0, nc;
 
 	inla_read_data_all(&x, &m, filename, NULL);
 	nc = m / (n + 1);				       /* yes, integer division */

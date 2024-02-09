@@ -1533,6 +1533,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		}
 	}
 	x_mode = Calloc(graph->n, double);
+	assert(x_mode);
 	map_strd_init_hint(&hash_table, dens_max);
 	hash_table.alwaysdefault = 0;
 
@@ -2378,6 +2379,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			Free(ai_store_id);
 
 			if (ai_par->vb_enable) {
+				// no longer supported due likely issues with the prior mean? and the code is inefficient...
+				assert(0 == 1);
+				abort();
 				GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}
@@ -4524,6 +4528,10 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp **pool, GMRFLib_ai_param_tp *ai_par,
 	p->idx_next = 0;
 	iz = Calloc(p->nhyper, int);
 	izz = Calloc(p->nhyper, int);
+	assert(iz);
+	assert(izz);
+	Memset(iz, 0, p->nhyper * sizeof(int));
+	Memset(izz, 0, p->nhyper * sizeof(int));
 
 	/*
 	 * iz[i] goes from 0... len-1 izz[i] goes from -half_len ... half_len 
