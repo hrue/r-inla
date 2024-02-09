@@ -1,3 +1,8 @@
+# INLA 24.02.09
+* Fixed a bug: prior means was not accounted for, doing the VB mean correction
+* Added new (experimental) likelihood: `tpoisson`
+* Some code cleanup
+
 # INLA 24.02.07
 * Fixed a bug: prior means for fixed effects was not included for
   compact mode
