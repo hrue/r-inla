@@ -61,7 +61,8 @@ f(
   args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
   vb.correct = TRUE,
   locations = NULL,
-  debug = FALSE
+  debug = FALSE,
+  A.local = NULL
 )
 }
 \arguments{
@@ -246,6 +247,8 @@ used for other models at the time being.}
 \item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
 
 \item{debug}{Enable local debug output}
+
+\item{A.local}{Local A-matrix (experimental and in development, do not use)}
 }
 \value{
 TODO

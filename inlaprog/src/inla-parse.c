@@ -321,6 +321,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		char a = -1;
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
+		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
@@ -8758,6 +8759,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	mb->f_id_names = Realloc(mb->f_id_names, mb->nf + 1, inla_file_contents_tp *);
 	mb->f_correct = Realloc(mb->f_correct, mb->nf + 1, int);
 	mb->f_vb_correct = Realloc(mb->f_vb_correct, mb->nf + 1, GMRFLib_idx_tp *);
+	mb->f_Alocal = Realloc(mb->f_Alocal, mb->nf + 1, GMRFLib_matrix_tp *);
 
 	/*
 	 * set everything to `ZERO' initially 
@@ -8809,6 +8811,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	_SET(id_names, NULL);
 	_SET(correct, -1);
 	_SET(vb_correct, NULL);
+	_SET(Alocal, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
@@ -9421,6 +9424,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	char *str = iniparser_getstring(ini, inla_string_join(secname, "VB.CORRECT"), NULL);
 	int *idxs = NULL;
 	int n_idxs = 0;
+
 	inla_sread_ints_q(&idxs, &n_idxs, str);
 	if (n_idxs == 0) {
 		GMRFLib_idx_add(&(mb->f_vb_correct[mb->nf]), -1);
@@ -9483,6 +9487,22 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tnrep=[%1d]\n", mb->f_nrep[mb->nf]);
 		printf("\t\tngroup=[%1d]\n", mb->f_ngroup[mb->nf]);
+	}
+
+	char *fnm_Alocal = iniparser_getstring(ini, inla_string_join(secname, "A.local"), NULL);
+	if (fnm_Alocal) {
+		assert(GMRFLib_is_fmesher_file(fnm_Alocal, (long int) 0, -1) == GMRFLib_SUCCESS);
+		mb->f_Alocal[mb->nf] = GMRFLib_read_fmesher_file(fnm_Alocal, (long int) 0, -1);
+	}
+	if (mb->verbose) {
+		printf("\t\tAlocal=[%s]\n", (mb->f_Alocal[mb->nf] ? "yes" : "no"));
+		if (mb->f_Alocal[mb->nf]) {
+			printf("\t\t\tnrow x ncol =[%1d x %1d]\n", mb->f_Alocal[mb->nf]->nrow, mb->f_Alocal[mb->nf]->ncol);
+			printf("\t\t\ttype =[%s]\n", (mb->f_Alocal[mb->nf]->values ? "sparse" : "dense"));
+			if (mb->f_Alocal[mb->nf]->values) {
+				printf("\t\t\telems = [%1d]\n", mb->f_Alocal[mb->nf]->elems);
+			}
+		}
 	}
 
 	/*
