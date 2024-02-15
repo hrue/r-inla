@@ -306,18 +306,19 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 					iv->n = 0;
 				}
 				GMRFLib_matrix_get_row_idxval(&iv, i, f_Alocal[jj], 0);
+				if (iv) {
+					if (iv->n && !LEGAL(iv->idx[iv->n - 1], nn)) {
+						fprintf(stderr, "%s:%1d (%s) error: Illegal index in Alocal: idx.f = %1d idx = %1d n = %1d\n",
+							__FILE__, __LINE__, __GMRFLib_FuncName, jj, iv->idx[iv->n - 1], nn);
+						assert(LEGAL(iv->idx[iv->n - 1], nn));
+					}
 
-				if (!LEGAL(iv->idx[iv->n - 1], nn)) {
-					fprintf(stderr, "%s:%1d (%s) error: Illegal index in Alocal: idx.f = %1d idx = %1d n = %1d\n",
-						__FILE__, __LINE__, __GMRFLib_FuncName, jj, iv->idx[iv->n - 1], nn);
-					assert(LEGAL(iv->idx[iv->n - 1], nn));
-				}
-
-				for (int ii = 0; ii < iv->n; ii++) {
-					val = iv->val[ii];
-					if (!ISZERO(val)) {
-						idx = iv->idx[ii] + off;
-						GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
+					for (int ii = 0; ii < iv->n; ii++) {
+						val = iv->val[ii];
+						if (!ISZERO(val)) {
+							idx = iv->idx[ii] + off;
+							GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
+						}
 					}
 				}
 			}

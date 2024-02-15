@@ -2086,7 +2086,7 @@
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
-      try_catch_result <- tryCatch(
+        try_catch_result <- tryCatch(
         {
           if (ownfun) {
             ## undocumented feature for PB
@@ -2256,7 +2256,13 @@
             try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
         }
     } else {
-        ret <- NULL
+        ret <- list()
+        class(ret) <- "inla"
+    }
+
+    ## if we just write model-files, we can exit here
+    if (nchar(inla.call) == 0) {
+        return (ret)
     }
 
     ##
@@ -2264,7 +2270,6 @@
         ret$misc$inla.dir <- inla.dir
         ret.sub <- list(ret = ret, id = submit.id)
     } else {
-
         ## post-processign part. first the 'selection'. add the missing part and remove the
         ## 'selection' results from the other results
         if (!is.null(selection)) {

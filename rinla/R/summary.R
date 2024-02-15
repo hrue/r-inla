@@ -29,6 +29,7 @@
 #' @rdname summary
 #' @export
 `summary.inla` <- function(object, digits = 3L, include.lincomb = TRUE, ...) {
+
     `internal.summary.inla` <- function(object, digits = 3L, include.lincomb = TRUE, ...) {
         inla.eval.dots(...)
         ## provides a summary for a inla object
@@ -130,6 +131,10 @@
         return(ret)
     }
 
+    if (missing(object) || is.null(object) || length(object) == 0) {
+        return (invisible())
+    }
+
     ## for G & J
     if (!is.null(object$joint.model)) {
         return(summary(object$joint.model, ...))
@@ -157,14 +162,20 @@
 #' @export
 `print.summary.inla` <- function(x, digits = 3L, ...) 
 {
-    form <- strwrap(inla.formula2character(x$call))
-    if (!is.null(x$call)) {
-        cat("\nCall:\n")
-        for (i in seq_along(form)) {
-            cat("  ", form[i], "\n")
-        }
+    if (missing(x) || is.null(x) || length(x) == 0) {
+        return (invisible())
     }
 
+    if (FALSE) {
+        form <- strwrap(inla.formula2character(x$call))
+        if (!is.null(x$call)) {
+            cat("\nCall:\n")
+            for (i in seq_along(form)) {
+                cat("  ", form[i], "\n")
+            }
+        }
+    }
+    
     if (inla.is.element("cpu.used", x)) {
         cat("Time used:\n", "  ", x$cpu.used, "\n")
     }
