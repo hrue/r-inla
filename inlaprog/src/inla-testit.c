@@ -3026,7 +3026,7 @@ int testit(int argc, char **argv)
 		tref[1] += GMRFLib_cpu();
 		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
-		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		QSORT_FUN((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
 		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
@@ -3094,32 +3094,70 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-
 	case 111:
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
+
 		double *x = Calloc(n, double);
 		double *xx = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			x[i] = xx[i] = GMRFLib_uniform();
-		}
-
 		double tref[] = { 0, 0 };
+
 		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				x[ii] = xx[ii] = GMRFLib_uniform();
+			}
+
 			tref[0] -= GMRFLib_cpu();
 			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[0] += GMRFLib_cpu();
-			Memcpy(x, xx, n * sizeof(double));
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(x[i] <= x[i + 1]);
+				}
+			}
 
 			tref[1] -= GMRFLib_cpu();
-			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
+			fluxsort(xx, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[1] += GMRFLib_cpu();
-			Memcpy(x, xx, n * sizeof(double));
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(xx[i] <= xx[i + 1]);
+				}
+			}
 		}
-		printf("sorted arguments: qsort:  %.4f  mkl:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("sorted doubles: qsort:  %.4f  fluxsort:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		int *ix = Calloc(n, int);
+		int *ixx = Calloc(n, int);
+
+		tref[0] = tref[1] = 0;
+		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				ix[ii] = ixx[ii] = (int) (1.0 / GMRFLib_uniform());
+			}
+
+			tref[0] -= GMRFLib_cpu();
+			qsort(ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref[0] += GMRFLib_cpu();
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(ix[i] <= ix[i + 1]);
+				}
+			}
+
+			tref[1] -= GMRFLib_cpu();
+			fluxsort(ixx, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref[1] += GMRFLib_cpu();
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(ixx[i] <= ixx[i + 1]);
+				}
+			}
+		}
+		printf("sorted ints: qsort:  %.4f  fluxsort:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 

@@ -1133,7 +1133,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_cc
 	Qinv_L = Calloc(n, map_id *);
 #pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
-		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
+		QSORT_FUN(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
 	}
@@ -1336,7 +1336,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 			}
 		}
 		if (!is_sorted) {
-			qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
+			QSORT_FUN(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
 		}
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);

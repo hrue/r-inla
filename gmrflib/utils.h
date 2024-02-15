@@ -56,7 +56,8 @@ __BEGIN_DECLS
 #include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
 #define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
-    typedef struct {
+
+typedef struct {
 	int nrow;
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;

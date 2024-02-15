@@ -15481,7 +15481,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				if (def->jlist[jj] > j)
 					break;
 			}
-			qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
+			QSORT_FUN((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
 			k = jj;
 		}
 		assert(k == def->len_list);
@@ -16658,7 +16658,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					 * otherwise, we use the general function
 					 */
 					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
-					def->crwdef->n = ng;
+					def->crwdef->n = ng; assert(def->crwdef->n > 0);
 					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
 					def->crwdef->log_prec_omp = NULL;
 					def->crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;

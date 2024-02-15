@@ -1110,7 +1110,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	ixx = Calloc(nx, int);
 	Memcpy(ixx, ix, nx * sizeof(int));
-	qsort((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
+	QSORT_FUN((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
 
 	for (j = nu = i = 0; i < nx; i++) {
 		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
