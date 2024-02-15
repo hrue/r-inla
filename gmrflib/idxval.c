@@ -348,7 +348,7 @@ int GMRFLib_str_nprune(GMRFLib_str_tp **a, int n)
 int GMRFLib_idx_sort(GMRFLib_idx_tp *hold)
 {
 	if (hold) {
-		qsort((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
+		QSORT_FUN((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -358,7 +358,7 @@ int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n, int nt)
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
 		if (a[i] && a[i]->n > 1) {				\
-			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
+			QSORT_FUN((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
 		}							\
 	}
 

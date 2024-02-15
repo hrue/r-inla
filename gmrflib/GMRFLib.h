@@ -94,6 +94,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
  * include all the include-files in GMRFLib
  */
 #include "GMRFLib/init.h"
+#include "GMRFLib/fsort.h"
 #include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
 #include "GMRFLib/idxval.h"

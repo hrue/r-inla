@@ -395,7 +395,7 @@ double *my_compute_lbell(int nmax)
 		for (int k = 0; k < n; k++) {
 			terms[k] = my_gsl_sf_lnchoose((unsigned int) n1, (unsigned int) k) + log_bell[k];
 		}
-		qsort((void *) terms, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		QSORT_FUN((void *) terms, (size_t) n, sizeof(double), GMRFLib_dcmp);
 
 		// need to compute log(exp(terms[0]) + ... + exp(terms[n1])), do this the obvious way: summing the smallest terms first using
 		// the largest element (the last one) as scaling.

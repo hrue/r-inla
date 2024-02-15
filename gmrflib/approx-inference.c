@@ -6342,7 +6342,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 		Memcpy(xxx + npoints, extra_points, NEXTRA * sizeof(double));
 
 		npoints += NEXTRA;
-		qsort((void *) xxx, (size_t) npoints, sizeof(double), GMRFLib_dcmp);
+		QSORT_FUN((void *) xxx, (size_t) npoints, sizeof(double), GMRFLib_dcmp);
 		xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 		xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
 		x = Calloc(nhyper, double);
