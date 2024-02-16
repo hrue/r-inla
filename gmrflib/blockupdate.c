@@ -142,26 +142,20 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	double f0 = 0.0, df = 0.0, ddf = 0.0, dddf = 0.0;
 	int rescue = 0;
 
-	if (ISZERO(d)) {
-		f0 = df = ddf = dddf = 0.0;
-	} else {
-		if (!INVALID(x0)) {
-			GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg,
-						   step_len, stencil);
+	GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg,
+				   step_len, stencil);
+	if (INVALID(ddf)) {
+		//if (INVALID(x0) || INVALID(f0) || INVALID(df) || INVALID(ddf)) {
+		fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
+		f0 = df = 0.0;
+		ddf = -1.0;			       /* we try with this */
+		if (dd) {
+			dddf = 0.0;
 		}
-
-		if (INVALID(x0) || INVALID(f0) || INVALID(df) || INVALID(ddf)) {
-			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
-			f0 = df = 0.0;
-			ddf = -1.0;			       /* we try with this */
-			if (dd) {
-				dddf = 0.0;
-			}
-			rescue = 1;
-		} else {
-			if (cmin) {
-				ddf = DMIN(-(*cmin), ddf);
-			}
+		rescue = 1;
+	} else {
+		if (cmin) {
+			ddf = DMIN(-(*cmin), ddf);
 		}
 	}
 

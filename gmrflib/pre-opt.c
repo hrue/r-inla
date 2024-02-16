@@ -1311,7 +1311,6 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
-
 	} else {
 
 		// both mean and variance
