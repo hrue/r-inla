@@ -60,11 +60,13 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h io.h sha.h \
+	tabulate-Qfunc.h io.h \
 	approx-inference.h density.h utils.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
 	interpol.h pre-opt.h cores.h fsort.h
+HEADERS1 = fsort/fluxsort.c fsort/fluxsort.h fsort/quadsort.c fsort/quadsort.h
+
 EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-blockupdate.c examples/example-graph1.c \
 	examples/example-graph2.c examples/example-sample.c \
@@ -155,7 +157,11 @@ install: $(ALL)
 	 $(INSTALL) -m$$mode $(LIBNAME) $(PREFIX)/lib; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/GMRFLib; \
 	 for header in $(HEADERS); do \
-	    $(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
+		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
+	 done; \
+	 mkdir -p $(PREFIX)/include/GMRFLib/fsort; \
+	 for header in $(HEADERS1); do \
+		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib/fsort; \
 	 done; \
 	 for ex in $(EXAMPLES); do \
 	    $(INSTALL) -m$$mode $$ex $(PREFIX)/doc/GMRFLib/examples; \
