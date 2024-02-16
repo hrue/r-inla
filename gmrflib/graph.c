@@ -804,13 +804,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp *graph)
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
 		if (graph->nnbs[i]) {					\
-			int j, is_sorted = 1;				\
-			if (graph->nnbs[i]) {				\
-				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) { \
-					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j - 1]); \
-				}					\
-			}						\
-			if (!is_sorted) {				\
+			if (!GMRFLib_is_sorted(graph->nbs[i], (size_t) graph->nnbs[i], GMRFLib_icmp)) {	\
 				QSORT_FUN(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp); \
 			}						\
 		}							\

@@ -72,11 +72,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		}
 	}
 	// normally, 'xx' is sorted, but...
-	int is_sorted = 1;
-	for (int i = 1; i < n && is_sorted; i++) {
-		is_sorted = (xx[i] > xx[i - 1]);
-	}
-	if (!is_sorted) {
+	if (!GMRFLib_is_sorted_dinc(n, xx)) {
 		// gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
 		my_sort2_dd(xx, yy, n);
 	}

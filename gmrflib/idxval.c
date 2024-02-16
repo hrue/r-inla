@@ -517,11 +517,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 	// sort
 	if (h->n > 1) {
-		int is_sorted = 1;
-		for (int j = 1; is_sorted && j < h->n; j++) {
-			is_sorted = (h->idx[j] >= h->idx[j - 1]);
-		}
-		if (!is_sorted) {
+		if (!GMRFLib_is_sorted_iinc(h->n, h->idx)) {
 			my_sort2_id(h->idx, h->val, h->n);
 		}
 	}

@@ -1329,13 +1329,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
 		// looks like it is sorted, but its best to check...
-		int is_sorted = 1;
-		for (int j = 0; j < nnbs[i] - 1 && is_sorted; j++) {
-			if (nbs[i][j] > nbs[i][j + 1]) {
-				is_sorted = 0;
-			}
-		}
-		if (!is_sorted) {
+		if (!GMRFLib_is_sorted(nbs[i], (size_t) nnbs[i], GMRFLib_icmp)) {
 			QSORT_FUN(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
 		}
 		Qinv_L[i] = Calloc(1, map_id);
