@@ -3914,6 +3914,80 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 134:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		int *iy = Calloc(n, int);
+		int *iyy = Calloc(n, int);
+		double *y = Calloc(n, double);
+		double *yy = Calloc(n, double);
+
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0};
+		for (int i = 0; i < m; i++) {
+			int res = 0;
+			for (int j = 0; j < n; j++) {
+				iy[j] = iyy[j] =IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
+				y[j] = yy[j] = GMRFLib_uniform();
+			}
+			QSORT_FUN(iy, n, sizeof(int), GMRFLib_icmp);
+			QSORT_FUN(iyy, n, sizeof(int), GMRFLib_icmp_r);
+			QSORT_FUN(y, n, sizeof(double), GMRFLib_dcmp);
+			QSORT_FUN(yy, n, sizeof(double), GMRFLib_dcmp_r);
+
+			tref[0] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_iinc(n, iy);
+			tref[0] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[1] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_iinc_plain(n, iy);
+			tref[1] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[2] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_idec(n, iyy);
+			tref[2] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[3] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_idec_plain(n, iyy);
+			tref[3] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[4] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_dinc(n, y);
+			tref[4] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[5] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_dinc_plain(n, y);
+			tref[5] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[6] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_ddec(n, yy);
+			tref[6] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[7] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_ddec_plain(n, yy);
+			tref[7] += GMRFLib_cpu();
+			assert(res == 1);
+
+		}
+		printf("ii new=%.4f plain=%.4f id %.4f %.4f di %.4f %.4f dd %.4f %.4f\n",
+		       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
+		       tref[2] / (tref[2] + tref[3]), tref[3] / (tref[2] + tref[3]),
+		       tref[4] / (tref[4] + tref[5]), tref[5] / (tref[4] + tref[5]),
+		       tref[6] / (tref[6] + tref[7]), tref[7] / (tref[6] + tref[7]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

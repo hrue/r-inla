@@ -2345,3 +2345,118 @@ size_t GMRFLib_align(size_t n, size_t size)
 
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
+
+int GMRFLib_is_sorted_iinc(int n, int *a) 
+{
+	// increasing ints
+	const int roll = 4;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+	for (int i = 0; i < m; i += roll) 
+		if (a[i+1] < a[i] || a[i+2] < a[i+1] || a[i+3] < a[i+2]) 
+			return 0;
+	for (int i = m; i < n - 1; i++) 
+		if (a[i+1] < a[i]) 
+			return 0;
+	return 1;
+}
+
+int GMRFLib_is_sorted_idec(int n, int *a) 
+{
+	// decreasing ints
+	const int roll = 4;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+	for (int i = 0; i < m; i += roll) 
+		if (a[i+1] > a[i] || a[i+2] > a[i+1] || a[i+3] > a[i+2]) 
+			return 0;
+	for (int i = m; i < n - 1; i++) 
+		if (a[i+1] > a[i]) 
+			return 0;
+	return 1;
+}
+
+int GMRFLib_is_sorted_dinc(int n, double *a) 
+{
+	// increasing doubles
+	const int roll = 4;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+	for (int i = 0; i < m; i += roll) 
+		if (a[i+1] < a[i] || a[i+2] < a[i+1] || a[i+3] < a[i+2]) 
+			return 0;
+	for (int i = m; i < n - 1; i++) 
+		if (a[i+1] < a[i]) 
+			return 0;
+	return 1;
+}
+
+int GMRFLib_is_sorted_ddec(int n, double *a) 
+{
+	// decreasing doubles
+	const int roll = 4;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+	for (int i = 0; i < m; i += roll) 
+		if (a[i+1] > a[i] || a[i+2] > a[i+1] || a[i+3] > a[i+2]) 
+			return 0;
+	for (int i = m; i < n - 1; i++) 
+		if (a[i+1] > a[i]) 
+			return 0;
+	return 1;
+}
+
+// the plain versions, takes about 2 x the time of the unrolled ones
+int GMRFLib_is_sorted_iinc_plain(int n, int *a) 
+{
+	for (int i = 0; i < n - 1; i++)
+		if (a[i+1] < a[i])
+			return 0;
+	return 1;
+}
+int GMRFLib_is_sorted_idec_plain(int n, int *a) 
+{
+	for (int i = 0; i < n - 1; i++) 
+		if (a[i+1] > a[i]) 
+			return 0;
+	return 1;
+}
+int GMRFLib_is_sorted_dinc_plain(int n, double *a) 
+{
+	for (int i = 0; i < n - 1; i++) 
+		if (a[i+1] < a[i]) 
+			return 0;
+	return 1;
+}
+int GMRFLib_is_sorted_ddec_plain(int n, double *a) 
+{
+	for (int i = 0; i < n - 1; i++) 
+		if (a[i+1] > a[i]) 
+			return 0;
+	return 1;
+}
+
+int GMRFLib_is_sorted(void *a, size_t n, int (*cmp) (const void *, const void *))
+{
+	if (cmp == (void *) GMRFLib_icmp) {
+		// increasing ints
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
+	} else if (cmp == (void *) GMRFLib_icmp_r) {
+		// decreasing ints
+		return GMRFLib_is_sorted_idec(n, (int *) a);
+	} else if (cmp == (void *) GMRFLib_dcmp) {
+		// increasing doubles
+		return GMRFLib_is_sorted_dinc(n, (double *) a);
+	} else if (cmp == (void *) GMRFLib_dcmp_r) {
+		// decreasing doubles
+		return GMRFLib_is_sorted_ddec(n, (double *) a);
+	} else {
+		assert(0 == 1);
+		abort();
+	}
+	return 0;
+}

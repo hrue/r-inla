@@ -166,6 +166,15 @@ void GMRFLib_add(int n, double *x, double *y, double *z);
 void GMRFLib_mul(int n, double *x, double *y, double *z);
 void GMRFLib_MKL_chose_thresholds(void);
 
+int GMRFLib_is_sorted(void *a, size_t n, int (*cmp) (const void *, const void *));
+int GMRFLib_is_sorted_ddec(int n, double *a);
+int GMRFLib_is_sorted_ddec_plain(int n, double *a);
+int GMRFLib_is_sorted_dinc(int n, double *a);
+int GMRFLib_is_sorted_dinc_plain(int n, double *a);
+int GMRFLib_is_sorted_idec(int n, int *a);
+int GMRFLib_is_sorted_idec_plain(int n, int *a);
+int GMRFLib_is_sorted_iinc(int n, int *a);
+int GMRFLib_is_sorted_iinc_plain(int n, int *a);
 
 __END_DECLS
 #endif
