@@ -731,7 +731,8 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp **graph, GMRFLib_crwdef_tp *def)
 	int i, *hold = NULL, n;
 	GMRFLib_graph_tp *gg = NULL;
 
-	n = def->n; assert(n > 0);
+	n = def->n;
+	assert(n > 0);
 	if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
 		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_graph_mk_linear(graph, n, n, 0);
 		GMRFLib_graph_mk_linear(graph, n, def->order, 0);

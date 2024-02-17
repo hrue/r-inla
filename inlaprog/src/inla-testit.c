@@ -3927,11 +3927,11 @@ int testit(int argc, char **argv)
 		double *y = Calloc(n, double);
 		double *yy = Calloc(n, double);
 
-		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0};
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int i = 0; i < m; i++) {
 			int res = 0;
 			for (int j = 0; j < n; j++) {
-				iy[j] = iyy[j] =IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
+				iy[j] = iyy[j] = IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
 				y[j] = yy[j] = GMRFLib_uniform();
 			}
 			QSORT_FUN(iy, n, sizeof(int), GMRFLib_icmp);
@@ -3983,8 +3983,7 @@ int testit(int argc, char **argv)
 		printf("ii new=%.4f plain=%.4f id %.4f %.4f di %.4f %.4f dd %.4f %.4f\n",
 		       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
 		       tref[2] / (tref[2] + tref[3]), tref[3] / (tref[2] + tref[3]),
-		       tref[4] / (tref[4] + tref[5]), tref[5] / (tref[4] + tref[5]),
-		       tref[6] / (tref[6] + tref[7]), tref[7] / (tref[6] + tref[7]));
+		       tref[4] / (tref[4] + tref[5]), tref[5] / (tref[4] + tref[5]), tref[6] / (tref[6] + tref[7]), tref[7] / (tref[6] + tref[7]));
 	}
 		break;
 
@@ -3995,7 +3994,7 @@ int testit(int argc, char **argv)
 
 		P(n);
 		P(m);
-		
+
 		int *iy1 = Calloc(n, int);
 		int *iy2 = Calloc(n, int);
 		int *iy3 = Calloc(n, int);
@@ -4005,7 +4004,7 @@ int testit(int argc, char **argv)
 		double *y3 = Calloc(n, double);
 		double *y4 = Calloc(n, double);
 
-		double tref[] = { 0, 0, 0, 0};
+		double tref[] = { 0, 0, 0, 0 };
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
 				iy1[j] = iy2[j] = iy3[j] = iy4[j] = IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));

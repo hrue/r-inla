@@ -279,12 +279,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		GMRFLib_idxval_tp *iv = NULL;
 		double val = 0.0;
 		int idx = 0;
-		
+
 		for (int jj = 0; jj < nf; jj++) {
 			int have_Alocal = ((f_Alocal != NULL) && (f_Alocal[jj] != NULL) && LEGAL(i, f_Alocal[jj]->nrow));
 			int nn = f_graph[jj]->n;
 			int off = idx_map_f[jj];
-			
+
 			val = ww[jj][i];
 			if (c[jj][i] >= 0 && !ISZERO(val)) {
 				idx = c[jj][i] + off;

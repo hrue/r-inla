@@ -56,8 +56,7 @@ __BEGIN_DECLS
 #include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
 #define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
-
-typedef struct {
+    typedef struct {
 	int nrow;
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;
@@ -165,7 +164,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z);
 void GMRFLib_mul(int n, double *x, double *y, double *z);
 void GMRFLib_MKL_chose_thresholds(void);
 
-int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp) (const void *, const void *));
+int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
 int GMRFLib_is_sorted_ddec(int n, double *a);
 int GMRFLib_is_sorted_ddec_plain(int n, double *a);
 int GMRFLib_is_sorted_dinc(int n, double *a);
@@ -174,7 +173,7 @@ int GMRFLib_is_sorted_idec(int n, int *a);
 int GMRFLib_is_sorted_idec_plain(int n, int *a);
 int GMRFLib_is_sorted_iinc(int n, int *a);
 int GMRFLib_is_sorted_iinc_plain(int n, int *a);
-void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp) (const void *, const void *));
+void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
 
 __END_DECLS

@@ -15474,7 +15474,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		// we need to revert the order of the list. pretty annoying...
-		// GMRFLib_qsort2((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+		// GMRFLib_qsort2((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0,
+		// GMRFLib_icmp);
 		my_sort2_ii(def->jlist, def->ilist, def->len_list);
 
 		// now we need to sort within each value of jlist.
@@ -16661,7 +16662,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					 * otherwise, we use the general function
 					 */
 					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
-					def->crwdef->n = ng; assert(def->crwdef->n > 0);
+					def->crwdef->n = ng;
+					assert(def->crwdef->n > 0);
 					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
 					def->crwdef->log_prec_omp = NULL;
 					def->crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;

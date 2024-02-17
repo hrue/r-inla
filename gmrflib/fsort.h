@@ -1,3 +1,4 @@
+
 /* fsort.h
  * 
  * Copyright (C) 2024-2024 Havard Rue
@@ -53,8 +54,7 @@ __BEGIN_DECLS
 
 /*
  */
-
-void fluxsort(void *array, size_t nmemb, size_t size, int (*cmp) (const void *,  const void *));
+void fluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
 #define QSORT_FUN fluxsort
 //#define QSORT_FUN qsort
 

@@ -35,4 +35,3 @@
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/fsort/fluxsort.h"
 #pragma GCC diagnostic pop
-

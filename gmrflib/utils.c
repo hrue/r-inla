@@ -1744,22 +1744,22 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
 	if (n == 0)
 		return;
-	
+
 	if (1) {
 		// this one is now a better option (feb'2024). no need to initialize with 0's
-		int *ixy = Malloc(n * 2, int);	
+		int *ixy = Malloc(n * 2, int);
 #pragma omp simd
-		for(int i = 0; i < n; i++) {
-			int j = 2*i;
+		for (int i = 0; i < n; i++) {
+			int j = 2 * i;
 			ixy[j] = ix[i];
-			ixy[j+1] = x[i];
+			ixy[j + 1] = x[i];
 		}
 		QSORT_FUN((void *) ixy, (size_t) n, 2 * sizeof(int), GMRFLib_icmp);
 #pragma omp simd
-		for(int i = 0; i < n; i++) {
-			int j = 2*i;
+		for (int i = 0; i < n; i++) {
+			int j = 2 * i;
 			ix[i] = ixy[j];
-			x[i] = ixy[j+1];
+			x[i] = ixy[j + 1];
 		}
 		Free(ixy);
 		return;
@@ -2322,25 +2322,25 @@ size_t GMRFLib_align(size_t n, size_t size)
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
 	// increasing ints
-	SOURCE_INLUCDE( < );
+	SOURCE_INLUCDE(<);
 }
 
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
 	// increasing doubles
-	SOURCE_INLUCDE( < );
+	SOURCE_INLUCDE(<);
 }
 
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing ints
-	SOURCE_INLUCDE( > );
+	SOURCE_INLUCDE(>);
 }
 
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing doubles
-	SOURCE_INLUCDE( > );
+	SOURCE_INLUCDE(>);
 }
 
 // the plain versions, takes about 1.5 to 2 times the time
@@ -2353,27 +2353,27 @@ int GMRFLib_is_sorted_ddec(int n, double *a)
 
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	SOURCE_INLUCDE( < );
+	SOURCE_INLUCDE(<);
 }
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	SOURCE_INLUCDE( < );
+	SOURCE_INLUCDE(<);
 }
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	SOURCE_INLUCDE( > );
+	SOURCE_INLUCDE(>);
 }
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	SOURCE_INLUCDE( > );
+	SOURCE_INLUCDE(>);
 }
 #undef SOURCE_INLUCDE
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
+	if (cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2393,26 +2393,26 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y)
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y)
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 
 	// there could be a test for GMRFLib_icmp_r but since I do not use it, I do not include it here
 	if (compar == GMRFLib_icmp && size_x == size_y && size_x == sizeof(int)) {
-		my_sort2_ii((int *)x, (int *)y, (int) nmemb);
+		my_sort2_ii((int *) x, (int *) y, (int) nmemb);
 		return;
 	}
 
 	if (compar == GMRFLib_dcmp && size_x == size_y && size_x == sizeof(double)) {
-		my_sort2_dd((double *)x, (double *)y, (int) nmemb);
+		my_sort2_dd((double *) x, (double *) y, (int) nmemb);
 		return;
 	}
 
