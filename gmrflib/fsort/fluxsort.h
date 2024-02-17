@@ -205,6 +205,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
+/*
 #if (DBL_MANT_DIG < LDBL_MANT_DIG)
 #define VAR long double
 #define FUNC(NAME) NAME##128
@@ -212,6 +213,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 #undef VAR
 #undef FUNC
 #endif
+*/
 
 //////////////////////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────────────────────┐//
@@ -246,12 +248,6 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	case sizeof(long long):
 		fluxsort64(array, nmemb, cmp);
 		break;
-#if (DBL_MANT_DIG < LDBL_MANT_DIG)
-	case sizeof(long double):
-		fluxsort128(array, nmemb, cmp);
-		break;
-#endif
-
 	default:
 		qsort(array, nmemb, size, cmp);
 	}

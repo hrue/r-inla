@@ -613,7 +613,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		/*
 		 * sort with respect to number of neigbours and carry the node-number along 
 		 */
-		GMRFLib_qsorts((void *) nnbs, (size_t) ng, sizeof(int), (void *) node, sizeof(int), NULL, 0, GMRFLib_icmp);
+		// GMRFLib_qsort2((void *) nnbs, (size_t) ng, sizeof(int), (void *) node, sizeof(int), NULL, 0, GMRFLib_icmp);
+		my_sort2_ii(nnbs, node, ng);
 
 		for (i = 0, j = ns; i < ng; i++, j++) {
 			iperm_new[node[i]] = j;
@@ -1328,10 +1329,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	Qinv_L = Calloc(n, map_id *);
 #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
-		// looks like it is sorted, but its best to check...
-		if (!GMRFLib_is_sorted(nbs[i], (size_t) nnbs[i], GMRFLib_icmp)) {
-			QSORT_FUN(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
-		}
+		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
 	}

@@ -609,74 +609,6 @@ int GMRFLib_dcmp_abs_r(const void *a, const void *b)
 	return (-GMRFLib_dcmp_abs(a, b));
 }
 
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *))
-{
-	/*
-	 * sort x and optionally sort y and z along
-	 * 
-	 * if z is non-NULL, then y must be so as well. 
-	 */
-
-	char *xyz = NULL, *xx = NULL, *yy = NULL, *zz = NULL;
-	size_t siz, i, offset;
-
-	if (nmemb == 0) {
-		return GMRFLib_SUCCESS;
-	}
-	if (z) {
-		GMRFLib_ASSERT(y, GMRFLib_EINVARG);
-	}
-	xx = (char *) x;
-	yy = (char *) y;
-	zz = (char *) z;
-
-	siz = size_x;
-	if (y) {
-		siz += size_y;
-		if (z) {
-			siz += size_z;
-		}
-	}
-	xyz = Calloc(nmemb * siz, char);
-
-	for (i = 0; i < nmemb; i++) {
-		Memcpy((void *) &xyz[i * siz], (void *) &xx[i * size_x], size_x);
-	}
-	if (y) {
-		offset = size_x;
-		for (i = 0; i < nmemb; i++) {
-			Memcpy((void *) &xyz[i * siz + offset], (void *) &yy[i * size_y], size_y);
-		}
-		if (z) {
-			offset = size_x + size_y;
-			for (i = 0; i < nmemb; i++) {
-				Memcpy((void *) &xyz[i * siz + offset], (void *) &zz[i * size_z], size_z);
-			}
-		}
-	}
-
-	qsort((void *) xyz, nmemb, siz, compar);
-
-	for (i = 0; i < nmemb; i++) {
-		Memcpy((void *) &xx[i * size_x], (void *) &xyz[i * siz], size_x);
-	}
-	if (y) {
-		offset = size_x;
-		for (i = 0; i < nmemb; i++) {
-			Memcpy((void *) &yy[i * size_y], (void *) &xyz[i * siz + offset], size_y);
-		}
-		if (z) {
-			offset = size_x + size_y;
-			for (i = 0; i < nmemb; i++) {
-				Memcpy((void *) &zz[i * size_z], (void *) &xyz[i * siz + offset], size_z);
-			}
-		}
-	}
-
-	Free(xyz);
-
-	return GMRFLib_SUCCESS;
-}
 
 double GMRFLib_log_apbex(double a, double b)
 {
@@ -1810,10 +1742,33 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
-	if (n < GMRFLib_sort2_id_cut_off) {
-		my_insertionSort_ii(ix, x, n);
+	if (n == 0)
+		return;
+	
+	if (1) {
+		// this one is now a better option (feb'2024). no need to initialize with 0's
+		int *ixy = Malloc(n * 2, int);	
+#pragma omp simd
+		for(int i = 0; i < n; i++) {
+			int j = 2*i;
+			ixy[j] = ix[i];
+			ixy[j+1] = x[i];
+		}
+		QSORT_FUN((void *) ixy, (size_t) n, 2 * sizeof(int), GMRFLib_icmp);
+#pragma omp simd
+		for(int i = 0; i < n; i++) {
+			int j = 2*i;
+			ix[i] = ixy[j];
+			x[i] = ixy[j+1];
+		}
+		Free(ixy);
+		return;
 	} else {
-		gsl_sort2_ii(ix, x, n);
+		if (n < GMRFLib_sort2_id_cut_off) {
+			my_insertionSort_ii(ix, x, n);
+		} else {
+			gsl_sort2_ii(ix, x, n);
+		}
 	}
 }
 
@@ -2346,117 +2301,164 @@ size_t GMRFLib_align(size_t n, size_t size)
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
-int GMRFLib_is_sorted_iinc(int n, int *a) 
+int GMRFLib_is_sorted_iinc(int n, int *a)
 {
 	// increasing ints
 	const int roll = 4;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0; i < m; i += roll) 
-		if (a[i+1] < a[i] || a[i+2] < a[i+1] || a[i+3] < a[i+2]) 
+	for (int i = 0; i < m; i += roll)
+		if (a[i + 1] < a[i] || a[i + 2] < a[i + 1] || a[i + 3] < a[i + 2])
 			return 0;
-	for (int i = m; i < n - 1; i++) 
-		if (a[i+1] < a[i]) 
+	for (int i = m; i < n - 1; i++)
+		if (a[i + 1] < a[i])
 			return 0;
 	return 1;
 }
 
-int GMRFLib_is_sorted_idec(int n, int *a) 
+int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing ints
 	const int roll = 4;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0; i < m; i += roll) 
-		if (a[i+1] > a[i] || a[i+2] > a[i+1] || a[i+3] > a[i+2]) 
+	for (int i = 0; i < m; i += roll)
+		if (a[i + 1] > a[i] || a[i + 2] > a[i + 1] || a[i + 3] > a[i + 2])
 			return 0;
-	for (int i = m; i < n - 1; i++) 
-		if (a[i+1] > a[i]) 
+	for (int i = m; i < n - 1; i++)
+		if (a[i + 1] > a[i])
 			return 0;
 	return 1;
 }
 
-int GMRFLib_is_sorted_dinc(int n, double *a) 
+int GMRFLib_is_sorted_dinc(int n, double *a)
 {
 	// increasing doubles
 	const int roll = 4;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0; i < m; i += roll) 
-		if (a[i+1] < a[i] || a[i+2] < a[i+1] || a[i+3] < a[i+2]) 
+	for (int i = 0; i < m; i += roll)
+		if (a[i + 1] < a[i] || a[i + 2] < a[i + 1] || a[i + 3] < a[i + 2])
 			return 0;
-	for (int i = m; i < n - 1; i++) 
-		if (a[i+1] < a[i]) 
+	for (int i = m; i < n - 1; i++)
+		if (a[i + 1] < a[i])
 			return 0;
 	return 1;
 }
 
-int GMRFLib_is_sorted_ddec(int n, double *a) 
+int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing doubles
 	const int roll = 4;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0; i < m; i += roll) 
-		if (a[i+1] > a[i] || a[i+2] > a[i+1] || a[i+3] > a[i+2]) 
+	for (int i = 0; i < m; i += roll)
+		if (a[i + 1] > a[i] || a[i + 2] > a[i + 1] || a[i + 3] > a[i + 2])
 			return 0;
-	for (int i = m; i < n - 1; i++) 
-		if (a[i+1] > a[i]) 
+	for (int i = m; i < n - 1; i++)
+		if (a[i + 1] > a[i])
 			return 0;
 	return 1;
 }
 
 // the plain versions, takes about 2 x the time of the unrolled ones
-int GMRFLib_is_sorted_iinc_plain(int n, int *a) 
+int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
 	for (int i = 0; i < n - 1; i++)
-		if (a[i+1] < a[i])
+		if (a[i + 1] < a[i])
 			return 0;
 	return 1;
 }
-int GMRFLib_is_sorted_idec_plain(int n, int *a) 
+int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	for (int i = 0; i < n - 1; i++) 
-		if (a[i+1] > a[i]) 
+	for (int i = 0; i < n - 1; i++)
+		if (a[i + 1] > a[i])
 			return 0;
 	return 1;
 }
-int GMRFLib_is_sorted_dinc_plain(int n, double *a) 
+int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	for (int i = 0; i < n - 1; i++) 
-		if (a[i+1] < a[i]) 
+	for (int i = 0; i < n - 1; i++)
+		if (a[i + 1] < a[i])
 			return 0;
 	return 1;
 }
-int GMRFLib_is_sorted_ddec_plain(int n, double *a) 
+int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	for (int i = 0; i < n - 1; i++) 
-		if (a[i+1] > a[i]) 
+	for (int i = 0; i < n - 1; i++)
+		if (a[i + 1] > a[i])
 			return 0;
 	return 1;
 }
 
-int GMRFLib_is_sorted(void *a, size_t n, int (*cmp) (const void *, const void *))
+int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if (cmp == (void *) GMRFLib_icmp) {
+	if(cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
-	} else if (cmp == (void *) GMRFLib_icmp_r) {
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
+	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp) {
+	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp_r) {
+	} else if (cmp == (void *) GMRFLib_dcmp_r && size == sizeof(double)) {
 		// decreasing doubles
 		return GMRFLib_is_sorted_ddec(n, (double *) a);
 	} else {
-		assert(0 == 1);
-		abort();
+		// by default not sorted
+		return 0;
 	}
 	return 0;
+}
+
+void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
+{
+	// sort if not sorted
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+		QSORT_FUN(a, n, size, cmp);
+	}
+}
+
+void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
+{
+	if (!y)
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (nmemb == 0)
+		return;
+
+	// there could be a test for GMRFLib_icmp_r but since I do not use it, I do not include it here
+	if (compar == GMRFLib_icmp && size_x == size_y && size_x == sizeof(int)) {
+		my_sort2_ii((int *)x, (int *)y, (int) nmemb);
+		return;
+	}
+
+	if (compar == GMRFLib_dcmp && size_x == size_y && size_x == sizeof(double)) {
+		my_sort2_dd((double *)x, (double *)y, (int) nmemb);
+		return;
+	}
+
+	size_t siz = size_x + size_y;
+	char *xy = Calloc(nmemb * siz, char);
+	char *xx = (char *) x;
+	char *yy = (char *) y;
+
+	for (size_t i = 0, offset = 0; i < nmemb; i++) {
+		Memcpy((void *) &xy[offset], (void *) &xx[i * size_x], size_x);
+		offset += size_x;
+		Memcpy((void *) &xy[offset], (void *) &yy[i * size_y], size_y);
+		offset += size_y;
+	}
+	qsort((void *) xy, nmemb, siz, compar);
+	for (size_t i = 0, offset = 0; i < nmemb; i++) {
+		Memcpy((void *) &xx[i * size_x], (void *) &xy[offset], size_x);
+		offset += size_x;
+		Memcpy((void *) &yy[i * size_y], (void *) &xy[offset], size_y);
+		offset += size_y;
+	}
+	Free(xy);
 }

@@ -173,7 +173,8 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
 	 */
-	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(double), NULL, 0, GMRFLib_icmp);
+	// GMRFLib_qsort2((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(double), NULL, 0, GMRFLib_icmp);
+	my_sort2_id(lc->idx, lc->weight, lc->n);
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
 		printf("\t\tLincomb = \tidx \tweight\n");
@@ -15473,7 +15474,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		// we need to revert the order of the list. pretty annoying...
-		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+		// GMRFLib_qsort2((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+		my_sort2_ii(def->jlist, def->ilist, def->len_list);
+
 		// now we need to sort within each value of jlist.
 		assert(def->jlist[0] == 0);
 		for (j = k = 0; j < graph->n; j++) {

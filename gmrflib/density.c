@@ -1376,7 +1376,6 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 	 * sort xx and remove ties.  we need to sort first, but in most cases we do not
 	 */
 	if (!GMRFLib_is_sorted_dinc(n, xx)) {
-		// gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
 		my_sort2_dd(xx, ldens, n);
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GSL_SQRT_DBL_EPSILON);

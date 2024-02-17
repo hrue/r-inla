@@ -73,7 +73,6 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	}
 	// normally, 'xx' is sorted, but...
 	if (!GMRFLib_is_sorted_dinc(n, xx)) {
-		// gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
 		my_sort2_dd(xx, yy, n);
 	}
 	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);

@@ -118,7 +118,6 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff);
 int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 int GMRFLib_trace_functions(const char *name);
@@ -166,7 +165,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z);
 void GMRFLib_mul(int n, double *x, double *y, double *z);
 void GMRFLib_MKL_chose_thresholds(void);
 
-int GMRFLib_is_sorted(void *a, size_t n, int (*cmp) (const void *, const void *));
+int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp) (const void *, const void *));
 int GMRFLib_is_sorted_ddec(int n, double *a);
 int GMRFLib_is_sorted_ddec_plain(int n, double *a);
 int GMRFLib_is_sorted_dinc(int n, double *a);
@@ -175,6 +174,8 @@ int GMRFLib_is_sorted_idec(int n, int *a);
 int GMRFLib_is_sorted_idec_plain(int n, int *a);
 int GMRFLib_is_sorted_iinc(int n, int *a);
 int GMRFLib_is_sorted_iinc_plain(int n, int *a);
+void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp) (const void *, const void *));
+void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
 
 __END_DECLS
 #endif

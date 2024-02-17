@@ -133,7 +133,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			cdf[i] = Probit_P(x[i], power);
 		}
 
-		GMRFLib_qsorts((void *) x, (size_t) len, sizeof(double), (void *) cdf, sizeof(double), (void *) NULL, (size_t) 0, GMRFLib_dcmp);
+		// GMRFLib_qsort2((void *) x, (size_t) len, sizeof(double), (void *) cdf, sizeof(double), (void *) NULL, (size_t) 0, GMRFLib_dcmp);
+		my_sort2_dd(x, cdf, len);
 
 		/*
 		 * moments computed from the CDF, using:

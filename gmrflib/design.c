@@ -358,24 +358,21 @@ int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 	}
 
 	const int debug = 0;
-	int i, *idx = NULL;
+	int *idx = NULL, i = 0;
 	double *w = NULL, sumw = 0.0;
 
-	w = Calloc(design->nexperiments, double);
-	idx = Calloc(design->nexperiments, int);
-
 	int n = design->nexperiments, m;
+	w = Calloc(n, double);
+	idx = Calloc(n, int);
 
 	for (i = 0; i < n; i++) {
 		idx[i] = i;
 		w[i] = design->int_weight[i];
-		sumw += w[i];
-	}
-	for (i = 0; i < n; i++) {
-		w[i] /= sumw;
 	}
 
-	GMRFLib_qsorts(w, n, sizeof(double), idx, sizeof(int), NULL, 0, GMRFLib_dcmp_r);
+	sumw = GMRFLib_dsum(n, w);
+	GMRFLib_dscale(n, 1.0 / sumw, w);
+	GMRFLib_qsort2(w, n, sizeof(double), idx, sizeof(int), GMRFLib_dcmp_r);
 
 	sumw = 0.0;
 	for (i = 0; i < n; i++) {
@@ -398,13 +395,8 @@ int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 		ww[i] = design->int_weight[idx[i]];
 	}
 
-	sumw = 0;
-	for (i = 0; i < m; i++) {
-		sumw += ww[i];
-	}
-	for (i = 0; i < m; i++) {
-		ww[i] /= sumw;
-	}
+	sumw = GMRFLib_dsum(m, ww);
+	GMRFLib_dscale(m, 1.0 / sumw, ww);
 
 	for (i = 0; i < design->nexperiments; i++) {
 		Free(design->experiment[i]);

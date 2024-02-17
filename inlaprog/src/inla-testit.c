@@ -3988,6 +3988,58 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 135:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+		
+		int *iy1 = Calloc(n, int);
+		int *iy2 = Calloc(n, int);
+		int *iy3 = Calloc(n, int);
+		int *iy4 = Calloc(n, int);
+		double *y1 = Calloc(n, double);
+		double *y2 = Calloc(n, double);
+		double *y3 = Calloc(n, double);
+		double *y4 = Calloc(n, double);
+
+		double tref[] = { 0, 0, 0, 0};
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				iy1[j] = iy2[j] = iy3[j] = iy4[j] = IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
+				y1[j] = y2[j] = y3[j] = y4[j] = GMRFLib_uniform();
+			}
+			tref[0] -= GMRFLib_cpu();
+			GMRFLib_qsort2(iy1, n, sizeof(int), iy2, sizeof(int), GMRFLib_icmp);
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			my_sort2_ii(iy3, iy4, n);
+			tref[1] += GMRFLib_cpu();
+
+			tref[2] -= GMRFLib_cpu();
+			GMRFLib_qsort2(y1, n, sizeof(double), y2, sizeof(double), GMRFLib_dcmp);
+			tref[2] += GMRFLib_cpu();
+
+			tref[3] -= GMRFLib_cpu();
+			my_sort2_dd(y3, y4, n);
+			tref[3] += GMRFLib_cpu();
+
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy1));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy2));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy3));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy4));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y1));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y2));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y3));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y4));
+		}
+		printf("ii qsort2=%.4f sort2=%.4f dd qsorts=%.4f sort2=%.4f\n", tref[0], tref[1], tref[2], tref[3]);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
