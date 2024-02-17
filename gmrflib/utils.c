@@ -2301,99 +2301,73 @@ size_t GMRFLib_align(size_t n, size_t size)
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
+#define SOURCE_INLUCDE(CMP)						\
+	const int roll = 4;						\
+	div_t d = div(n, roll);						\
+	int m = d.quot * roll;						\
+	if (m > 0 && (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2])) \
+		return 0;						\
+	for (int i = roll; i < m; i += roll)				\
+		if (a[i] CMP a[i-1] || a[i + 1] CMP a[i] || a[i + 2] CMP a[i + 1] || a[i + 3] CMP a[i + 2]) \
+			return 0;					\
+	if (n > m) {							\
+		if (m > 0 && a[m] CMP a[m-1])				\
+			return 0;					\
+		for (int i = m; i < n - 1; i++)				\
+			if (a[i + 1] CMP a[i])				\
+				return 0;				\
+	}								\
+	return 1
+
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
 	// increasing ints
-	const int roll = 4;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-	for (int i = 0; i < m; i += roll)
-		if (a[i + 1] < a[i] || a[i + 2] < a[i + 1] || a[i + 3] < a[i + 2])
-			return 0;
-	for (int i = m; i < n - 1; i++)
-		if (a[i + 1] < a[i])
-			return 0;
-	return 1;
-}
-
-int GMRFLib_is_sorted_idec(int n, int *a)
-{
-	// decreasing ints
-	const int roll = 4;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-	for (int i = 0; i < m; i += roll)
-		if (a[i + 1] > a[i] || a[i + 2] > a[i + 1] || a[i + 3] > a[i + 2])
-			return 0;
-	for (int i = m; i < n - 1; i++)
-		if (a[i + 1] > a[i])
-			return 0;
-	return 1;
+	SOURCE_INLUCDE( < );
 }
 
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
 	// increasing doubles
-	const int roll = 4;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
+	SOURCE_INLUCDE( < );
+}
 
-	for (int i = 0; i < m; i += roll)
-		if (a[i + 1] < a[i] || a[i + 2] < a[i + 1] || a[i + 3] < a[i + 2])
-			return 0;
-	for (int i = m; i < n - 1; i++)
-		if (a[i + 1] < a[i])
-			return 0;
-	return 1;
+int GMRFLib_is_sorted_idec(int n, int *a)
+{
+	// decreasing ints
+	SOURCE_INLUCDE( > );
 }
 
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing doubles
-	const int roll = 4;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-	for (int i = 0; i < m; i += roll)
-		if (a[i + 1] > a[i] || a[i + 2] > a[i + 1] || a[i + 3] > a[i + 2])
-			return 0;
-	for (int i = m; i < n - 1; i++)
-		if (a[i + 1] > a[i])
-			return 0;
-	return 1;
+	SOURCE_INLUCDE( > );
 }
 
-// the plain versions, takes about 2 x the time of the unrolled ones
+// the plain versions, takes about 1.5 to 2 times the time
+#undef SOURCE_INLUCDE
+#define SOURCE_INLUCDE(CMP)			\
+	for (int i = 0; i < n - 1; i++)		\
+		if (a[i + 1] CMP a[i])		\
+			return 0;		\
+	return 1
+
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	for (int i = 0; i < n - 1; i++)
-		if (a[i + 1] < a[i])
-			return 0;
-	return 1;
-}
-int GMRFLib_is_sorted_idec_plain(int n, int *a)
-{
-	for (int i = 0; i < n - 1; i++)
-		if (a[i + 1] > a[i])
-			return 0;
-	return 1;
+	SOURCE_INLUCDE( < );
 }
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	for (int i = 0; i < n - 1; i++)
-		if (a[i + 1] < a[i])
-			return 0;
-	return 1;
+	SOURCE_INLUCDE( < );
+}
+int GMRFLib_is_sorted_idec_plain(int n, int *a)
+{
+	SOURCE_INLUCDE( > );
 }
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	for (int i = 0; i < n - 1; i++)
-		if (a[i + 1] > a[i])
-			return 0;
-	return 1;
+	SOURCE_INLUCDE( > );
 }
+#undef SOURCE_INLUCDE
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
