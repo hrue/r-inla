@@ -115,6 +115,31 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 	return (ixx * ixx);
 }
 
+//#define DMAX(a,b) GSL_MAX_DBL(a, b)
+//#define DMIN(a,b) GSL_MIN_DBL(a, b)
+//#define IMAX(a,b) GSL_MAX_INT(a, b)
+//#define IMIN(a,b) GSL_MIN_INT(a, b)
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(DMAX)(double a, double b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(DMIN)(double a, double b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMAX)(int a, int b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMIN)(int a, int b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
 #define GMRFLib_L1_CACHELINE (64L)
 #define GMRFLib_MEM_ALIGN (32L)
 
@@ -412,15 +437,11 @@ typedef enum {
 
 
 #define ABS(x)   fabs(x)
-#define DMAX(a,b) GSL_MAX_DBL(a, b)
-#define DMIN(a,b) GSL_MIN_DBL(a, b)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
 #define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
 #define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define IABS(x)   abs(x)
-#define IMAX(a,b) GSL_MAX_INT(a, b)
-#define IMIN(a,b) GSL_MIN_INT(a, b)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define ISINF(x) isinf(x)
