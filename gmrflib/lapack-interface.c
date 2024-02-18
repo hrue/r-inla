@@ -1100,7 +1100,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < m; i += roll) {
 			y[i] = a * x[i] + b;
 			y[i + 1] = a * x[i + 1] + b;
@@ -1108,7 +1108,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 			y[i + 3] = a * x[i + 3] + b;
 		}
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = m; i < n; i++) {
 			y[i] = a * x[i] + b;
 		}
