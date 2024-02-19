@@ -313,8 +313,8 @@ NULL
         ## this will go into error...
         arg <- match.arg(arg, c("default", "je", "tc", "mi"), several.ok = FALSE)
         if (arg != "default") {
-            if (grep(paste0("lib", arg, "malloc"),
-                     dir(paste0(dirname(inla.call.builtin()),"/malloc"))) == 0) {
+            if (length(grep(paste0("lib", arg, "malloc"),
+                            dir(paste0(dirname(inla.call.builtin()),"/malloc")))) == 0) {
                 warning("Value for option 'malloc.lib, ", arg, ", is not availble")
             }
         }
