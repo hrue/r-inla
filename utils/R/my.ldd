@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/builds/build64/local/lib:$LD_LIBRARY_PATH
 {
