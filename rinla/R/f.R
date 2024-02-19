@@ -246,7 +246,10 @@
                 locations = NULL,
 
                 #' @param debug Enable local debug output
-                debug = FALSE) {
+                debug = FALSE,
+
+                #' @param A.local Local A-matrix (experimental and in development, do not use)
+                A.local = NULL) {
     #'
     #' @returns TODO
 
@@ -1054,7 +1057,8 @@
         args.slm = args.slm,
         args.ar1c = args.ar1c,
         vb.correct = vb.correct,
-        locations = locations
+        locations = locations,
+        A.local = A.local
     )
 
     if (debug) print(ret)

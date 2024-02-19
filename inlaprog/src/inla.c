@@ -5571,7 +5571,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
-			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
+			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->f_Alocal,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);

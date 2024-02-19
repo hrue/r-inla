@@ -670,9 +670,9 @@ int GMRFLib_init_problem_store(int thread_id,
 					int kk = k * sub_n;
 					double *yy = (*problem)->qi_at_m + kk;
 					double *xx = (*problem)->sub_constr->a_matrix + k;
-#pragma GCC ivdep
-					for (int i = 0, j = 0; i < sub_n; i++, j += nc) {
-						yy[i] = xx[j];
+#pragma omp simd
+					for (int i = 0; i < sub_n; i++) {
+						yy[i] = xx[i * nc];
 					}
 				}
 				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
@@ -686,9 +686,9 @@ int GMRFLib_init_problem_store(int thread_id,
 					int kk = k * sub_n;
 					double *yy = (*problem)->qi_at_m + kk;
 					double *xx = (*problem)->sub_constr->a_matrix + k;
-#pragma GCC ivdep
-					for (int i = 0, j = 0; i < sub_n; i++, j += nc) {
-						yy[i] = xx[j];
+#pragma omp simd
+					for (int i = 0; i < sub_n; i++) {
+						yy[i] = xx[i * nc];
 					}
 				}
 				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
@@ -736,9 +736,9 @@ int GMRFLib_init_problem_store(int thread_id,
 			for (int j = 0; j < nc; j++) {
 				double *yy = tmp_vector + j;
 				double *xx = (*problem)->qi_at_m + j * sub_n;
-#pragma GCC ivdep
-				for (int i = 0, k = 0; i < sub_n; i++, k += nc) {
-					yy[k] = xx[i];
+#pragma omp simd
+				for (int i = 0; i < sub_n; i++) {
+					yy[i * nc] = xx[i];
 				}
 			}
 
@@ -747,9 +747,9 @@ int GMRFLib_init_problem_store(int thread_id,
 			for (int j = 0; j < nc; j++) {
 				double *yy = (*problem)->constr_m + j * sub_n;
 				double *xx = tmp_vector + j;
-#pragma GCC ivdep
-				for (int i = 0, k = 0; i < sub_n; i++, k += nc) {
-					yy[i] = xx[k];
+#pragma omp simd
+				for (int i = 0; i < sub_n; i++) {
+					yy[i] = xx[i * nc];
 				}
 			}
 

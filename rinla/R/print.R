@@ -12,14 +12,21 @@
 #' @rdname print
 #' @method print inla
 #' @export
-`print.inla` <- function(x, digits = 3L, ...) {
-    nsmall <- 2L
-    form <- strwrap(inla.formula2character(x$call))
-    cat("Call:\n")
-    for (i in seq_along(form)) {
-        cat("  ", form[i], "\n")
+`print.inla` <- function(x, digits = 3L, ...)
+{
+    if (missing(x) || is.null(x) || length(x) == 0) {
+        return (invisible())
     }
 
+    ## not that informative any more
+    if (FALSE) {
+        form <- strwrap(inla.formula2character(x$call))
+        cat("Call:\n")
+        for (i in seq_along(form)) {
+            cat("  ", form[i], "\n")
+        }
+    }
+    
     if (inla.is.element("cpu.used", x)) {
         cat("Time used:\n  ")
         cat(

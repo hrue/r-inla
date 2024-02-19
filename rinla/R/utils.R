@@ -1110,3 +1110,20 @@
     return (r);
 }
 
+`inla.toeplitz` <- function (x)
+{ 
+    ## code is taken from from R-4.0
+
+    ## > my.toeplitz(c(2,1,0,-1))
+    ## [,1] [,2] [,3] [,4]
+    ## [1,]    2    1    0   -1
+    ## [2,]   -1    2    1    0
+    ## [3,]    0   -1    2    1
+    ## [4,]    1    0   -1    2
+
+    if(!is.vector(x)) stop("'x' is not a vector")
+    n <- length(x)
+    A <- matrix(raw(), n, n)
+    ## the change is here
+    matrix(x[(((col(A) - row(A)) + n) %% n) + 1L], n, n)
+}

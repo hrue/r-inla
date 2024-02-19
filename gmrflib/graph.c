@@ -804,15 +804,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp *graph)
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
 		if (graph->nnbs[i]) {					\
-			int j, is_sorted = 1;				\
-			if (graph->nnbs[i]) {				\
-				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) { \
-					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j - 1]); \
-				}					\
-			}						\
-			if (!is_sorted) {				\
-				qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp); \
-			}						\
+			GMRFLib_qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp); \
 		}							\
 	}
 
@@ -1824,7 +1816,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 			/*
 			 * make them unique 
 			 */
-			qsort((void *) newg->nbs[i], (size_t) newg->nnbs[i], sizeof(int), GMRFLib_icmp);
+			QSORT_FUN((void *) newg->nbs[i], (size_t) newg->nnbs[i], sizeof(int), GMRFLib_icmp);
 			for (j = k = 0; j < newg->nnbs[i]; j++) {
 				if (j == 0 || newg->nbs[i][j] != newg->nbs[i][k - 1]) {
 					newg->nbs[i][k++] = newg->nbs[i][j];
@@ -1966,7 +1958,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
 	 */
 	for (i = 0, n_neig_tot = 0; i < (*n_graph)->n; i++) {
 		if ((*n_graph)->nnbs[i]) {
-			qsort((*n_graph)->nbs[i], (size_t) (*n_graph)->nnbs[i], sizeof(int), GMRFLib_icmp);
+			QSORT_FUN((*n_graph)->nbs[i], (size_t) (*n_graph)->nnbs[i], sizeof(int), GMRFLib_icmp);
 			for (j = 1, k = 0; j < (*n_graph)->nnbs[i]; j++) {
 				if ((*n_graph)->nbs[i][j] != (*n_graph)->nbs[i][k]) {
 					(*n_graph)->nbs[i][++k] = (*n_graph)->nbs[i][j];

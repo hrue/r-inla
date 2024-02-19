@@ -115,6 +115,43 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 	return (ixx * ixx);
 }
 
+//#define DMAX(a,b) GSL_MAX_DBL(a, b)
+//#define DMIN(a,b) GSL_MIN_DBL(a, b)
+//#define IMAX(a,b) GSL_MAX_INT(a, b)
+//#define IMIN(a,b) GSL_MIN_INT(a, b)
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(DMAX)(double a, double b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(DMIN)(double a, double b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMAX)(int a, int b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMIN)(int a, int b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE)(int x, int low, int high) {
+	//#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+	return IMIN(IMAX(x, low), high);
+}
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE)(double x, double low, double high) {
+	// #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high) 
+	return DMIN(DMAX(x, low), high);
+}
+
 #define GMRFLib_L1_CACHELINE (64L)
 #define GMRFLib_MEM_ALIGN (32L)
 
@@ -386,7 +423,7 @@ typedef enum {
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
-#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) (((size_t)(n_) * sizeof(type_)) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
@@ -405,22 +442,12 @@ typedef enum {
 #endif
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
-
-/* 
-   ABS is for double, IABS is for int, and so on.
-*/
-
-
-#define ABS(x)   fabs(x)
-#define DMAX(a,b) GSL_MAX_DBL(a, b)
-#define DMIN(a,b) GSL_MIN_DBL(a, b)
+#define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
 #define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
 #define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define IABS(x)   abs(x)
-#define IMAX(a,b) GSL_MAX_INT(a, b)
-#define IMIN(a,b) GSL_MIN_INT(a, b)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define ISINF(x) isinf(x)
@@ -429,7 +456,6 @@ typedef enum {
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)
-#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
@@ -443,7 +469,6 @@ typedef enum {
 #define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.16f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
-#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
 
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \

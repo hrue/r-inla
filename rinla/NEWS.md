@@ -1,3 +1,7 @@
+# INLA 24.02.19
+* Code cleanup and improvements
+* New option 'malloc.lib' in 'inla.setOption' (experimental)
+
 # INLA 24.02.09
 * Fixed a bug: prior means was not accounted for, doing the VB mean correction
 * Added new (experimental) likelihood: `tpoisson`

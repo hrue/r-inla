@@ -171,7 +171,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, dou
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			double *f_diag,
-			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
+			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg, GMRFLib_matrix_tp ** f_Alocal,
 			int nbeta, double **covariate, double *prior_precision,
 			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_pA_fnm,
 			GMRFLib_matrix_tp ** global_constr);

@@ -3026,7 +3026,7 @@ int testit(int argc, char **argv)
 		tref[1] += GMRFLib_cpu();
 		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
-		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		QSORT_FUN((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
 		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
@@ -3094,32 +3094,70 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-
 	case 111:
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
+
 		double *x = Calloc(n, double);
 		double *xx = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			x[i] = xx[i] = GMRFLib_uniform();
-		}
-
 		double tref[] = { 0, 0 };
+
 		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				x[ii] = xx[ii] = GMRFLib_uniform();
+			}
+
 			tref[0] -= GMRFLib_cpu();
 			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[0] += GMRFLib_cpu();
-			Memcpy(x, xx, n * sizeof(double));
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(x[i] <= x[i + 1]);
+				}
+			}
 
 			tref[1] -= GMRFLib_cpu();
-			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
+			fluxsort(xx, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[1] += GMRFLib_cpu();
-			Memcpy(x, xx, n * sizeof(double));
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(xx[i] <= xx[i + 1]);
+				}
+			}
 		}
-		printf("sorted arguments: qsort:  %.4f  mkl:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("sorted doubles: qsort:  %.4f  fluxsort:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		int *ix = Calloc(n, int);
+		int *ixx = Calloc(n, int);
+
+		tref[0] = tref[1] = 0;
+		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				ix[ii] = ixx[ii] = (int) (1.0 / GMRFLib_uniform());
+			}
+
+			tref[0] -= GMRFLib_cpu();
+			qsort(ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref[0] += GMRFLib_cpu();
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(ix[i] <= ix[i + 1]);
+				}
+			}
+
+			tref[1] -= GMRFLib_cpu();
+			fluxsort(ixx, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref[1] += GMRFLib_cpu();
+			if (i == 0) {
+				for (int j = 0; j < n - 1; j++) {
+					assert(ixx[i] <= ixx[i + 1]);
+				}
+			}
+		}
+		printf("sorted ints: qsort:  %.4f  fluxsort:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 
@@ -3873,6 +3911,131 @@ int testit(int argc, char **argv)
 			       log(map_invccloglog(x, MAP_FORWARD, NULL)),
 			       link_log_invccloglog(x), log(1.0 - map_invccloglog(x, MAP_FORWARD, NULL)), link_log_1m_invccloglog(x));
 		}
+	}
+		break;
+
+	case 134:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		int *iy = Calloc(n, int);
+		int *iyy = Calloc(n, int);
+		double *y = Calloc(n, double);
+		double *yy = Calloc(n, double);
+
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int i = 0; i < m; i++) {
+			int res = 0;
+			for (int j = 0; j < n; j++) {
+				iy[j] = iyy[j] = IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
+				y[j] = yy[j] = GMRFLib_uniform();
+			}
+			QSORT_FUN(iy, n, sizeof(int), GMRFLib_icmp);
+			QSORT_FUN(iyy, n, sizeof(int), GMRFLib_icmp_r);
+			QSORT_FUN(y, n, sizeof(double), GMRFLib_dcmp);
+			QSORT_FUN(yy, n, sizeof(double), GMRFLib_dcmp_r);
+
+			tref[0] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_iinc(n, iy);
+			tref[0] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[1] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_iinc_plain(n, iy);
+			tref[1] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[2] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_idec(n, iyy);
+			tref[2] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[3] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_idec_plain(n, iyy);
+			tref[3] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[4] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_dinc(n, y);
+			tref[4] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[5] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_dinc_plain(n, y);
+			tref[5] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[6] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_ddec(n, yy);
+			tref[6] += GMRFLib_cpu();
+			assert(res == 1);
+
+			tref[7] -= GMRFLib_cpu();
+			res = GMRFLib_is_sorted_ddec_plain(n, yy);
+			tref[7] += GMRFLib_cpu();
+			assert(res == 1);
+
+		}
+		printf("ii new=%.4f plain=%.4f id %.4f %.4f di %.4f %.4f dd %.4f %.4f\n",
+		       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
+		       tref[2] / (tref[2] + tref[3]), tref[3] / (tref[2] + tref[3]),
+		       tref[4] / (tref[4] + tref[5]), tref[5] / (tref[4] + tref[5]), tref[6] / (tref[6] + tref[7]), tref[7] / (tref[6] + tref[7]));
+	}
+		break;
+
+	case 135:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		int *iy1 = Calloc(n, int);
+		int *iy2 = Calloc(n, int);
+		int *iy3 = Calloc(n, int);
+		int *iy4 = Calloc(n, int);
+		double *y1 = Calloc(n, double);
+		double *y2 = Calloc(n, double);
+		double *y3 = Calloc(n, double);
+		double *y4 = Calloc(n, double);
+
+		double tref[] = { 0, 0, 0, 0 };
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				iy1[j] = iy2[j] = iy3[j] = iy4[j] = IMAX(0, (int) 1.0 / (1.0E-6 + 0.01 * GMRFLib_uniform()));
+				y1[j] = y2[j] = y3[j] = y4[j] = GMRFLib_uniform();
+			}
+			tref[0] -= GMRFLib_cpu();
+			GMRFLib_qsort2(iy1, n, sizeof(int), iy2, sizeof(int), GMRFLib_icmp);
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			my_sort2_ii(iy3, iy4, n);
+			tref[1] += GMRFLib_cpu();
+
+			tref[2] -= GMRFLib_cpu();
+			GMRFLib_qsort2(y1, n, sizeof(double), y2, sizeof(double), GMRFLib_dcmp);
+			tref[2] += GMRFLib_cpu();
+
+			tref[3] -= GMRFLib_cpu();
+			my_sort2_dd(y3, y4, n);
+			tref[3] += GMRFLib_cpu();
+
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy1));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy2));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy3));
+			assert(1 == GMRFLib_is_sorted_iinc(n, iy4));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y1));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y2));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y3));
+			assert(1 == GMRFLib_is_sorted_dinc(n, y4));
+		}
+		printf("ii qsort2=%.4f sort2=%.4f dd qsorts=%.4f sort2=%.4f\n", tref[0], tref[1], tref[2], tref[3]);
 	}
 		break;
 

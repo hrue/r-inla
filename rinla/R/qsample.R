@@ -203,7 +203,7 @@
         }
     }
 
-    inla.set.sparselib.env(inla.dir = t.dir)
+    inla.set.environment()
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         if (.debug) {
             print(paste(

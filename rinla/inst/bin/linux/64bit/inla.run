@@ -24,15 +24,6 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
     fi
 done
 
-if false; then
-    for f in $DIR/first/lib*.so*; do
-	case "$f" in
-	    $DIR/first/libjemalloc.so*)
-		export LD_PRELOAD="$f";;
-	esac
-    done
-fi
-
 if [ -n "${INLA_NATIVE_LD_LIBRARY_PATH}" ]; then
     ## so we can revert back to old behaviour
     export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
@@ -46,9 +37,30 @@ export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
 export PARDISOLICMESSAGE=1
-export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always'
+
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export LD_PRELOAD="${INLA_MALLOC_LIB}:$LD_PRELOAD"
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.so*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc.so*)
+			export LD_PRELOAD="$f:$LD_PRELOAD";;
+		esac
+	    done
+	done
+    fi
+    case "$LD_PRELOAD" in
+	*libjemalloc*) 
+	    export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always';;
+    esac
+fi
 
 if [ -n "${INLA_DEBUG}" ]; then
+    for var in $(set | grep ^INLA_); do
+	echo "*** $0 *** $var"
+    done
     echo "*** $0 *** MALLOC_CONF=$MALLOC_CONF"
     echo "*** $0 *** LD_PRELOAD=$LD_PRELOAD"
     echo "*** $0 *** LD_LIBRARY_PATH=$LD_LIBRARY_PATH"

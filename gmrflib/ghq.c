@@ -219,8 +219,8 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		/*
 		 * reverse the order so its small to large, and sort the weights along 
 		 */
-		GMRFLib_qsorts((void *) x, (size_t) n, sizeof(double), w, sizeof(double), NULL, 0, GMRFLib_dcmp);
-
+		// GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), w, sizeof(double), NULL, 0, GMRFLib_dcmp);
+		my_sort2_dd(x, w, n);
 		map_ivp_set(abscissas[idx], n, (void *) x);
 		map_ivp_set(weights[idx], n, (void *) w);
 

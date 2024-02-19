@@ -1205,6 +1205,8 @@ struct inla_tp_struct {
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interactions */
 	void ***ff_Qfunc_arg;
 
+	GMRFLib_matrix_tp **f_Alocal;
+
 	/*
 	 * type Linear
 	 */

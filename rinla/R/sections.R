@@ -896,6 +896,17 @@
     cat("vb.correct = ", sort(as.numeric(random.spec$vb.correct)), "\n", append = TRUE, sep = " ", file = file)
     cat("\n", sep = " ", file = file, append = TRUE)
 
+    if (!is.null(random.spec$A.local)) {
+        stopifnot(inla.is.matrix(random.spec$A.local))
+        Aloc <- inla.as.sparse(random.spec$A.local)
+        if (length(Aloc@i) > 0) { ## if matrix is empty, then skip
+            file.A.local <- inla.tempfile(tmpdir = data.dir)
+            inla.write.fmesher.file(Aloc, filename = file.A.local)
+            file.A.local <- gsub(data.dir, "$inladatadir", file.A.local, fixed = TRUE)
+            cat("A.local = ", file.A.local, "\n", append = TRUE, sep = " ", file = file)
+        }
+    }
+
     ## need to store the updated one
     return(random.spec)
 }

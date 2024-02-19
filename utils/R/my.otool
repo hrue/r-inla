@@ -104,11 +104,15 @@ replace () {
 	fi
     done
 
+    for f in {/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+	     
     if $(uname -a |grep -q ARM64); then 
 	dummy=1
-	###echo $HOME/builds/arm64/local/lib/libpardiso720-MACOS-ARM64-RINLA.so
     else
-	###echo $HOME/builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
 	MKL=/opt/intel/oneapi/mkl/latest/lib
 	if false; then
 	    echo $(myreadlink $MKL/libmkl_intel_lp64.2.dylib)
@@ -120,5 +124,3 @@ replace () {
 	fi
     fi
 } | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq
-
-

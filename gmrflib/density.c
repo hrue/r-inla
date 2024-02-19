@@ -1373,14 +1373,9 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 	Memcpy(ldens, logdens, (size_t) n * sizeof(double));
 
 	/*
-	 * sort xx and remove ties. that that we need to sort first. In most cases we do not
+	 * sort xx and remove ties.  we need to sort first, but in most cases we do not
 	 */
-	int is_sorted = 1;
-	for (i = 1; i < n && is_sorted; i++) {
-		is_sorted = (xx[i] > xx[i - 1]);
-	}
-	if (!is_sorted) {
-		// gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
+	if (!GMRFLib_is_sorted_dinc(n, xx)) {
 		my_sort2_dd(xx, ldens, n);
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GSL_SQRT_DBL_EPSILON);

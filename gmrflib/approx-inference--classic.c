@@ -480,7 +480,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 	n_points = ai_par->n_points;
 	n_points = 2 * (ai_par->n_points / 2) + 1;	       /* ensure its odd */
 	GMRFLib_ghq_abscissas(&x_points, n_points);	       /* get the x-points */
-	qsort(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */
+	QSORT_FUN(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */
 	x_points[0] = 0.0;
 
 	log_density = Calloc(n_points, double);		       /* values of the log_density */

@@ -1995,6 +1995,8 @@
         cat("Run inla...")
     }
 
+    inla.set.environment()
+
     if (is.null(inla.arg)) {
         arg.arg <- ""
 
@@ -2028,21 +2030,6 @@
 
     ## collect all. we might add '-p' later if inla.call="submit"
     all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.P, sep = " ")
-
-    ## define some environment variables for remote computing
-    vars <- list(
-        INLA_PATH = system.file("bin", package = "INLA"),
-        INLA_OS = inla.os.type(),
-        INLA_VERSION = inla.version("version"),
-        INLA_RVERSION = paste0(
-            R.Version()$major, ".",
-            strsplit(R.Version()$minor, "[.]")[[1]][1]
-        ),
-        INLA_RHOME = Sys.getenv("R_HOME")
-    )
-    do.call("Sys.setenv", vars)
-    inla.set.sparselib.env(inla.dir)
-
     if (debug) {
         print(paste("all.args: ", all.args))
     }
@@ -2071,7 +2058,7 @@
     ## write the list of environment variables set, so they can be reset if needed
     env <- Sys.getenv()
     env.n <- names(env)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISO)", env.n)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS)", env.n)
     env.list <- env[idx]
     file.env <- paste0(inla.dir, "/environment")
     cat(file = file.env)
@@ -2086,7 +2073,7 @@
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
-      try_catch_result <- tryCatch(
+        try_catch_result <- tryCatch(
         {
           if (ownfun) {
             ## undocumented feature for PB
@@ -2256,7 +2243,13 @@
             try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
         }
     } else {
-        ret <- NULL
+        ret <- list()
+        class(ret) <- "inla"
+    }
+
+    ## if we just write model-files, we can exit here
+    if (nchar(inla.call) == 0) {
+        return (ret)
     }
 
     ##
@@ -2264,7 +2257,6 @@
         ret$misc$inla.dir <- inla.dir
         ret.sub <- list(ret = ret, id = submit.id)
     } else {
-
         ## post-processign part. first the 'selection'. add the missing part and remove the
         ## 'selection' results from the other results
         if (!is.null(selection)) {
@@ -2625,14 +2617,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return(data)
 }
 
-`inla.set.sparselib.env` <- function(inla.dir = NULL)
-{
-    if (Sys.getenv("PARDISO_LIC_PATH") == "") {
-        do.call("Sys.setenv", list(PARDISO_LIC_PATH = inla.get.HOME()))
-    }
-    return(invisible())
-}
-
 `inla.parse.num.threads` <- function(num.threads)
 {
     ## it is easier to do the parsing of 'num.threads' here. use '0' to represent a value to
@@ -2687,4 +2671,21 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     }
 
     return(num.threads)
+}
+
+`inla.set.environment` <- function() {
+    ## define some environment variables 
+    vars <- list(
+        INLA_PATH = system.file("bin", package = "INLA"),
+        INLA_OS = inla.os.type(),
+        INLA_VERSION = inla.version("version"),
+        INLA_RVERSION = paste0(
+            R.Version()$major, ".",
+            strsplit(R.Version()$minor, "[.]")[[1]][1]
+        ),
+        INLA_RHOME = Sys.getenv("R_HOME"),
+        INLA_MALLOC_LIB = inla.getOption("malloc.lib")
+    )
+    do.call("Sys.setenv", vars)
+    return (invisible())
 }
