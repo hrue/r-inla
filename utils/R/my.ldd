@@ -1,6 +1,14 @@
 #!/bin/sh
 
 export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/builds/build64/local/lib:$LD_LIBRARY_PATH
-for f in "$@"; do
-    ldd -r "$f" | awk '/ => / {print $3}' | grep / | grep -v libc.so | grep -v libpthread.so | grep -v librt.so | grep -v libm.so
-done
+{
+    for f in "$@"; do
+	ldd -r "$f" | awk '/ => / {print $3}' | grep / | grep -v libc.so | grep -v libpthread.so | grep -v librt.so | grep -v libm.so
+    done
+
+    for f in {/usr/lib64,/usr/lib/x86_64-linux-gnu}/lib{mi,tc,je}malloc.so; do
+	if [ -f "$f" ]; then 
+	    echo $(readlink -f $f)
+	fi
+    done
+} | sort | uniq

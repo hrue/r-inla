@@ -29,8 +29,8 @@ for m in 64; do
     rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
-    for f in $DIR/libjemalloc.*; do 
-	test -f "$f" && mv -f -v "$f"  $DIR/first
+    for f in $DIR/lib*malloc.*; do 
+	test -f "$f" && mv -f -v "$f"  $DIR/malloc
     done
 done
 
@@ -47,9 +47,8 @@ for m in Something; do
     done
     rsync -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
-    ## those we like be be first
-    for f in $DIR$/libjemalloc.*; do
-	test -f "$f" && mv -f -v "$f" $DIR/first
+    for f in $DIR/lib*malloc.*; do 
+	test -f "$f" && mv -f -v "$f"  $DIR/malloc
     done
 done
 
@@ -73,8 +72,11 @@ for m in 64; do
     rm -f $DIR/libm.so*
     rm -f $DIR/libdl.so*
     ## those we like be be first
-    for f in $DIR/libjemalloc* $DIR/libopenblas* $DIR/libblas* $DIR/liblapack* $DIR/libstdc* $DIR/libgcc* $DIR/libpardiso* $DIR/libR*; do
+    for f in $DIR/libopenblas* $DIR/libblas* $DIR/liblapack* $DIR/libstdc* $DIR/libgcc* $DIR/libpardiso* $DIR/libR*; do
 	test -f "$f" && mv -f -v "$f" $DIR/first
+    done
+    for f in $DIR/lib*malloc.*; do 
+	test -f "$f" && mv -f -v "$f" $DIR/malloc
     done
 done
 

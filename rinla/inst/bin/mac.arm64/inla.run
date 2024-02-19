@@ -15,23 +15,33 @@ else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-if false; then
-    for f in $DIR/first/lib*.dylib*; do
-	case $f in
-	    $DIR/first/libjemalloc*.dylib*)
-	    ##export DYLD_INSERT_LIBRARIES=$f
-	    ##export DYLD_FORCE_FLAT_NAMESPACE=1
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export DYLD_INSERT_LIBRARIES="${INLA_MALLOC_LIB}:$DYLD_INSERT_LIBRARIES"
+	export DYLD_FORCE_FLAT_NAMESPACE=1
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.dylib*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc.dylib*)
+			export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+			export DYLD_FORCE_FLAT_NAMESPACE=1
+			;;
+		esac
+	    done
+	done
+    fi
+    case "$DYLD_INSERT_LIBRARIES" in
+	*libjemalloc*) 
+	    export MALLOC_CONF='abort_conf:true,metadata_thp:always'
 	    ;;
-	esac
-    done
+    esac
 fi
 
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
 export PARDISOLICMESSAGE=1
-##export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always'
-export MALLOC_CONF='abort_conf:true,metadata_thp:always'
 export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:/usr/lib:/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
@@ -40,9 +50,6 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
 
-    p="/usr/bin/sw_vers"
-    test -x $p && $p
-    
     ##export DYLD_PRINT_OPTS="1"
     ##export DYLD_PRINT_ENV="1"
     export DYLD_PRINT_LIBRARIES="1"
@@ -55,6 +62,9 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     ##export DYLD_PRINT_STATISTICS="1"
     ##export DYLD_PRINT_DOFS="1"
     ##export DYLD_PRINT_RPATHS="1"
+
+    p="/usr/bin/sw_vers"
+    test -x $p && $p
 fi
 
 export PARDISOLICMESSAGE=1

@@ -44,78 +44,40 @@ pathA="/System/Library/Frameworks/ImageIO.framework/Versions/Current/Resources"
 pathB="/System/Library/Frameworks/OpenGL.framework/Versions/Current/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
-if false; then
-    for f in $DIR/first/lib*.dylib*; do
-	case $f in
-	    $DIR/first/libjemalloc*.dylib*)
-	    ##export DYLD_INSERT_LIBRARIES=$f
-	    ##export DYLD_FORCE_FLAT_NAMESPACE=1
-	    ;;
-	esac
-    done
-fi
-
-## '-L' option may only be set, if mkl=FALSE
-if [ -z "$INLA_VECLIB_PATH" ]; then
-    vecLibPathDefault="/System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current"
-else
-    vecLibPathDefault="$INLA_VECLIB_PATH"
-fi
-vecLibPath=""
-vecLibLink="$HOME/.R/INLA/vecLib"
-for arg in "$@"; do 
-    case "$arg" in
-	-L) ## this option is also allowed in the inla-program, but do nothing	    
-	    vecLibPath="$vecLibPathDefault"
-	    if [ -f "$vecLibPath/libBLAS.dylib" -a -f "$vecLibPath/libLAPACK.dylib" ]; then
-		## all ok
-		if [ "${INLA_DEBUG}XX" != "XX" ]; then
-		    echo "Load vecLib BLAS and LAPACK from [$vecLibPath]"
-		fi
-	    else
-		## vecLib libraries are not there
-		if [ "${INLA_DEBUG}XX" != "XX" ]; then
-		    echo "vecLib BLAS and LAPACK is not installed in [$vecLibPath]"
-		    echo "revert back to libRblas and libRlapack"
-		fi
-		veclibPath=""
-	    fi
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export DYLD_INSERT_LIBRARIES="${INLA_MALLOC_LIB}:$DYLD_INSERT_LIBRARIES"
+	export DYLD_FORCE_FLAT_NAMESPACE=1
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.dylib*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc.dylib*)
+			export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+			export DYLD_FORCE_FLAT_NAMESPACE=1
+			;;
+		esac
+	    done
+	done
+    fi
+    case "$DYLD_INSERT_LIBRARIES" in
+	*libjemalloc*) 
+	    export MALLOC_CONF='abort_conf:true,metadata_thp:always'
 	    ;;
     esac
-done
-
-if [ "$vecLibPath"XX != "XX" ]; then
-    if [ "${INLA_DEBUG}XX" != "XX" ]; then
-	echo "soft-link vecLib-libraries to $vecLibLink"
-    fi
-    test -d "$vecLibLink" || mkdir -p "$vecLibLink"
-    ( 
-	cd "$vecLibLink"
-	ln -sf "$vecLibPath"/* .
-	## need other names as well
-	ln -sf "$vecLibPath"/libLAPACK.dylib libRlapack.dylib
-	ln -sf "$vecLibPath"/libBLAS.dylib libRblas.dylib
-    )
-else 
-    vecLibLink=""
 fi
 
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
 export PARDISOLICMESSAGE=1
-##export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always'
-export MALLOC_CONF='abort_conf:true,metadata_thp:always'
-export DYLD_LIBRARY_PATH="$DIR/first:$vecLibLink:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "MALLOC_CONF=$MALLOC_CONF"
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-    
-    p="/usr/bin/sw_vers"
-    test -x $p && $p
     
     ##export DYLD_PRINT_OPTS="1"
     ##export DYLD_PRINT_ENV="1"
@@ -129,9 +91,11 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     ##export DYLD_PRINT_STATISTICS="1"
     ##export DYLD_PRINT_DOFS="1"
     ##export DYLD_PRINT_RPATHS="1"
+
+    p="/usr/bin/sw_vers"
+    test -x $p && $p
 fi
 
-export PARDISOLICMESSAGE=1
 nt="-t0:1"
 for arg in "$@"; do 
     case "$arg" in

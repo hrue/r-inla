@@ -71,6 +71,14 @@
 #' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
 #' options are `"classic"` and `"twostage"`.}
 #' 
+#' \item{malloc.lib}{Optional alternative malloc library to use: `"je"`, `"tc"` or `"mi"`.
+#' Default option is `"default"` which use the compiler's implementation. The library
+#' is loaded using `LD_PRELOAD` and similar functionality. Loosely, `jemalloc` is from Facebook,
+#' `tcmalloc` is from Google and `mimalloc` is from Microsoft. This option is not available for
+#' Windows and not all options might be available for every arch. 
+#' If `malloc.lib` is a complete path to an external library, that file will be used
+#' instead of one of the supported ones. }
+#'
 #' \item{fmesher.evolution}{Control use of fmesher methods during the transition
 #' to a separate fmesher package. Levels of
 #' `fmesher.evolution`:
@@ -129,6 +137,7 @@ NULL
             inla.timeout = 0, 
             fmesher.timeout = 0,
             inla.mode = "compact",
+            malloc.lib = "default", 
             fmesher.evolution = 2L,
             fmesher.evolution.warn = FALSE,
             fmesher.evolution.verbosity = "default"
@@ -160,6 +169,7 @@ NULL
                                  "inla.timeout", 
                                  "fmesher.timeout",
                                  "inla.mode",
+                                 "malloc.lib",
                                  "fmesher.evolution",
                                  "fmesher.evolution.warn",
                                  "fmesher.evolution.verbosity"
@@ -252,6 +262,7 @@ NULL
                                           "inla.timeout", 
                                           "fmesher.timeout",
                                           "inla.mode",
+                                          "malloc.lib",
                                           "fmesher.evolution",
                                           "fmesher.evolution.warn",
                                           "fmesher.evolution.verbosity"
@@ -263,12 +274,12 @@ NULL
         }
         if (is.character(value)) {
             eval(parse(text = paste("inla.options$", option, "=", shQuote(value), sep = "")),
-                envir = envir
-            )
+                 envir = envir
+                 )
         } else {
             eval(parse(text = paste("inla.options$", option, "=", inla.ifelse(is.null(value), "NULL", value), sep = "")),
-                envir = envir
-            )
+                 envir = envir
+                 )
         }
         return(invisible())
     }
@@ -289,6 +300,24 @@ NULL
                        several.ok = FALSE)
     if (dummy == "experimental") {
         inla.setOption(inla.mode = "compact")
+    }
+
+    arg <- inla.getOption("malloc.lib")
+    if (is.null(arg)) { ## NULL means default
+        inla.setOption(malloc.lib = "default")
+    } else if (length(grep("^/", arg)) == 1) {
+        if (!file.exists(arg)) {
+            warning("User-defined library for option 'malloc.lib, ",  arg, ", does not exists")
+        }
+    } else {
+        ## this will go into error...
+        arg <- match.arg(arg, c("default", "je", "tc", "mi"), several.ok = FALSE)
+        if (arg != "default") {
+            if (grep(paste0("lib", arg, "malloc"),
+                     dir(paste0(dirname(inla.call.builtin()),"/malloc"))) == 0) {
+                warning("Value for option 'malloc.lib, ", arg, ", is not availble")
+            }
+        }
     }
 
     return(invisible())
