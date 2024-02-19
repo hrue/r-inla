@@ -140,6 +140,18 @@ static int POSSIBLY_UNUSED_FUNCTION(IMIN)(int a, int b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE)(int x, int low, int high) {
+	//#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+	return IMIN(IMAX(x, low), high);
+}
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE)(double x, double low, double high) {
+	// #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high) 
+	return DMIN(DMAX(x, low), high);
+}
+
 #define GMRFLib_L1_CACHELINE (64L)
 #define GMRFLib_MEM_ALIGN (32L)
 
@@ -430,13 +442,7 @@ typedef enum {
 #endif
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
-
-/* 
-   ABS is for double, IABS is for int, and so on.
-*/
-
-
-#define ABS(x)   fabs(x)
+#define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
 #define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
@@ -450,7 +456,6 @@ typedef enum {
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)
-#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
@@ -464,7 +469,6 @@ typedef enum {
 #define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.16f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
-#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
 
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
