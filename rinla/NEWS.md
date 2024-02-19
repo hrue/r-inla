@@ -1,4 +1,4 @@
-# INLA 24.02.19
+# INLA 24.02.20
 * Code cleanup and improvements
 * New option 'malloc.lib' in 'inla.setOption' (experimental)
 
