@@ -52,8 +52,12 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 	for nm in ${INLA_MALLOC_LIB}; do
 	    for f in $DIR/malloc/lib*.dylib*; do
 		case "$f" in
-		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc.dylib*)
-			export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc*.dylib)
+			if [ -n "$DYLD_INSERT_LIBRARIES" ]; then
+			    export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+			else
+			    export DYLD_INSERT_LIBRARIES="$f"
+			fi
 			export DYLD_FORCE_FLAT_NAMESPACE=1
 			;;
 		esac
@@ -61,7 +65,7 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 	done
     fi
     case "$DYLD_INSERT_LIBRARIES" in
-	*libjemalloc*) 
+	*libjemalloc*.dylib) 
 	    export MALLOC_CONF='abort_conf:true,metadata_thp:always'
 	    ;;
     esac
