@@ -23,7 +23,7 @@
     res <- matrix(NA, np, res.ncol)
 
     if (FALSE) {
-        ## this loops over columns
+        ## slow: this loops over columns
         for (j in 1L:(res.ncol %/% 2L)) {
             idx <- seq.int(ii, by = 2L, length.out = np)
             res[, m] <- xx[idx]
@@ -33,14 +33,24 @@
         }
         stopifnot(res.ncol == m - 1L) ## since we start from 1L
         stopifnot(len == ii - 3L)
-    } else {
-        ## this loops over rows,  better
+    }
+    if (FALSE) {
+        ## better: this loops over rows
         idx <- seq.int(from = 3L, by = np2, length.out = res.ncol2)
         idx2 <- seq.int(1L, by = 2L, length.out = res.ncol2)
         for(i in 1L:np) {
             res[i, idx2] <- xx[idx]
             res[i, idx2 + 1L] <- xx[idx + 1L]
             idx <- idx + 2L
+        }
+    }
+    if (TRUE) {
+        ## best 
+        idx <- seq.int(from = 3L, by = np2, length.out = res.ncol2)
+        idx2 <- seq.int(1L, by = 2L, length.out = res.ncol2)
+        for(i in 1L:np) {
+            res[i, idx2] <- xx[idx + 2L * (i-1L)]
+            res[i, idx2 + 1L] <- xx[idx + 2L * (i-1L) + 1L]
         }
     }
 
