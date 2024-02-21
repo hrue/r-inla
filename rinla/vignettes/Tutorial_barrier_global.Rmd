@@ -1,0 +1,69 @@
+---
+title: "Global oceanic barrier model on the sphere"
+author: Alba Fuster-Alonso^[afuster@icm.csic.es, Institut de Ciències del Mar (ICM) - CSIC, Barcelona, Spain.] $\;$  Elias T Krainski^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$  Haavard Rue^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$ Finn Lindgren^[University of Edinburgh (UoE), Edinburgh, Scotland.]
+
+format:
+  html:
+    page-layout: full
+    fig-width: 11.5
+    fig-height: 8.5
+    embed-resources: true
+    self-contained-math: true
+    toc: true
+    toc-location: left
+    toc-title: Outline
+    toc-expand: 1
+    toc_float: 
+      collapsed: true
+    code-fold: true
+    code-tools: true
+    number-sections: true
+editor_options: 
+  chunk_output_type: console
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Global oceanic barrier model on the sphere}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+---
+
+```{=html}
+<style> body {text-align: justify} </style>
+```
+<!-- Justify text. -->
+
+```{r setup, include=FALSE}
+set.seed(123)
+library(INLA)
+##inla.setOption(num.threads="4:1")
+##inla.setOption(smtp="taucs")
+##if (file.exists("myinit.R")) source("myinit.R")
+library(knitr)
+library(rmarkdown)
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(fig.path="figures/barrier-global/")
+```
+
+# Introduction
+
+In this tutorial, we illustrate the implementation of the barrier
+model proposed in Bakka et al. (2019) in the sphere. It considers the
+problem of modeling over a spatial domain, taking into account
+physical barriers and the spherical shape of the Earth. Since we are
+working on the global oceans, continents can be considered as physical
+barriers, and this aspect has to be taken into account in the
+modeling. When using a barrier model, the range is not only determined
+by the distance to points. If there is a barrier between two points,
+the range should decrease quickly, and the correlation over the
+barrier should approach zero. Additionally, the Earth's spherical
+shape is a crucial factor in this particular case, as considering a
+planar approximation can bias the results when working on a global
+scale. Therefore, this tutorial is developed using a projection onto a
+sphere. We are using the new implementation of the INLA package.
+
+
+**Since the compiled vignette is large is size, we do not include it the
+R-INLA package, but you can download the vignette source at
+``[https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global/Tutorial_barrier_global.Rmd](https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global/Tutorial_barrier_global.Rmd)''
+and compile it yourself.**
+
