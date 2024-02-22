@@ -4357,9 +4357,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	for (int iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
+		int measure_time = (iter == 0);
 		double err_dx = 0.0;
 		double ratio = NAN;
-		double time_grad = 0.0, time_hess = 0.0, time_ref_grad, time_ref_hess;
+		double time_grad = 0.0, time_hess = 0.0, time_ref_grad = 0.0, time_ref_hess = 0.0;
 
 		if (ratio_ok) {
 			// this override options, as the decision is that it is most efficient to update MM all the time
@@ -4381,11 +4382,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 		// I know I compute the mean twice for iter=0, but then the timing gets right
 		time_grad = 0.0;
-		time_ref_grad = GMRFLib_cpu();
+		if (measure_time) {
+			time_ref_grad = GMRFLib_cpu();
+		}
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
-		time_grad += GMRFLib_cpu() - time_ref_grad;
-		time_ref_grad = GMRFLib_cpu();
-
+		if (measure_time) {
+			time_grad += GMRFLib_cpu() - time_ref_grad;
+			time_ref_grad = GMRFLib_cpu();
+		}
+		
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
@@ -4403,7 +4408,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
-
 #pragma omp simd
 		for (int ii = 0; ii < graph->n; ii++) {
 			prior_mean_tmp[ii] = x_mean[ii] - prior_mean_fix[ii];
@@ -4414,19 +4418,29 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			tmp[i] += preopt->total_b[thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
-		time_grad += GMRFLib_cpu() - time_ref_grad;
-		time_ref_grad = GMRFLib_cpu();
-
-		if (update_MM) {
-			time_ref_hess = GMRFLib_cpu();
-			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
-			time_hess += GMRFLib_cpu() - time_ref_hess;
+		if (measure_time) {
+			time_grad += GMRFLib_cpu() - time_ref_grad;
+			time_ref_grad = GMRFLib_cpu();
 		}
 
 		if (update_MM) {
-			time_ref_hess = GMRFLib_cpu();
+			if (measure_time) {
+				time_ref_hess = GMRFLib_cpu();
+			}
+			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
+			if (measure_time) {
+				time_hess += GMRFLib_cpu() - time_ref_hess;
+			}
+		}
+
+		if (update_MM) {
+			if (measure_time) {
+				time_ref_hess = GMRFLib_cpu();
+			}
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
-			time_hess += GMRFLib_cpu() - time_ref_hess;
+			if (measure_time) {
+				time_hess += GMRFLib_cpu() - time_ref_hess;
+			}
 		}
 
 		// no timing; this one is common
@@ -4443,9 +4457,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				time_ref_hess = GMRFLib_cpu();
+				if (measure_time) {
+					time_ref_hess = GMRFLib_cpu();
+				}
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
-				time_hess += GMRFLib_cpu() - time_ref_hess;
+				if (measure_time) {
+					time_hess += GMRFLib_cpu() - time_ref_hess;
+				}
 			}
 			if (debug) {
 				printf("MM\n");
@@ -4490,7 +4508,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
