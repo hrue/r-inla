@@ -4067,11 +4067,10 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd)
+			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
-	/*
-	 * compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x
-	 */
+	// compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
+	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
 
 	// Normal kernel: deriv: ... * (x-m)/s^2
 	// dderiv: ... * ((x-m)^2 - s^2)/s^4
@@ -4101,8 +4100,13 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
-	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = NULL, *loglik = NULL;
+	if (workspace) {
+		x_user = workspace;
+	} else {
+		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+	}
+	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4133,15 +4137,18 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
+	if (!workspace) {
+		Free(x_user);
+	}
+
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, int idx, double d,
-				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
+				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
-	/*
-	 * compute the Taylor-expansion of the integral of -loglikelihood * density(x), for the variance of x (assuming its N())
-	 */
+	// compute the Taylor-expansion of the integral of -loglikelihood * density(x), for the variance of x (assuming its N())
+	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
 
 	if (ISZERO(d)) {
 		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
@@ -4171,8 +4178,13 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
-	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = NULL, *loglik = NULL;
+	if (workspace) {
+		x_user = workspace;
+	} else {
+		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+	}
+	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4201,6 +4213,10 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
 	coofs->coofs[2] = -d * C * 0.25 * SQR(s2_inv);
+
+	if (!workspace) {
+		Free(x_user);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -4395,7 +4411,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
+			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			if (debug) {					\
 				fprintf(fp, "[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
@@ -4404,7 +4420,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
@@ -4815,7 +4831,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
+			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			if (debug && 0) {				\
 				fprintf(fp, "\t[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
@@ -4823,8 +4839,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
-
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		if (enable_tref_a) {
