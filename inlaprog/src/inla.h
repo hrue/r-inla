@@ -57,7 +57,6 @@ __BEGIN_DECLS
 #define INLA_FAIL  1
 #define INLA_OK    0
 // just to have a big and small number to use
-#include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
 #define INLA_REAL_SMALL FLT_EPSILON
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
