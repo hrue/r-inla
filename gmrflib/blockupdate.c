@@ -37,14 +37,16 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-forceinline double PROD_DIFF(double a, double b, double c, double d)
+#pragma omp declare simd
+static double PROD_DIFF(double a, double b, double c, double d)
 {
 	// return a*b-c*d
 	// reference: https://pharr.org/matt/blog/2019/11/03/difference-of-floats 
+
 	double cd = c * d;
-	double err = fma(-c, d, cd);
-	double dop = fma(a, b, -cd);
-	return dop + err;
+	//double err = fma(-c, d, cd);
+	//double dop = fma(a, b, -cd);
+	return fma(a, b, -cd) + fma(-c, d, cd);
 }
 
 int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate_par)
@@ -79,24 +81,18 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 					   stencil);
 	}
 
-	if (a)
-		*a = f0;
-	if (b)
-		*b = df;
-	if (c)
-		*c = ddf;
-	if (dd)
-		*dd = dddf;
+	*a = f0;
+	*b = df;
+	*c = ddf;
+	if (dd) *dd = dddf;
 
 	if (d != 1.0) {
-		if (a)
-			*a *= d;
-		if (b)
-			*b *= d;
-		if (c)
-			*c *= d;
-		if (dd)
+		*a *= d;
+		*b *= d;
+		*c *= d;
+		if (dd) {
 			*dd *= d;
+		}
 	}
 
 	return GMRFLib_SUCCESS;
@@ -159,33 +155,27 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	}
 
 	if (rescue) {
-		if (a)
-			*a = 0.0;
-		if (b)
-			*b = 0.0;
-		if (c)
-			*c = -d * ddf;
-		if (dd)
+		*a = 0.0;
+		*b = 0.0;
+		*c = -d * ddf;
+		if (dd) {
 			*dd = 0.0;
+		}
 	} else {
-		if (a)
-			*a = f0 + x0 * (-df + 0.5 * x0 * (ddf + 0.3333333333333333333 * dddf * x0));
-		if (b)
-			*b = df + x0 * (-ddf + 0.5 * dddf * x0);
-		if (c)
-			*c = -ddf + dddf * x0;
-		if (dd)
+		*a = f0 + x0 * (-df + 0.5 * x0 * (ddf + 0.3333333333333333333 * dddf * x0));
+		*b = df + x0 * (-ddf + 0.5 * dddf * x0);
+		*c = -ddf + dddf * x0;
+		if (dd) {
 			*dd = dddf;
+		}
 
 		if (d != 1.0) {
-			if (a)
-				*a *= d;
-			if (b)
-				*b *= d;
-			if (c)
-				*c *= d;
-			if (dd)
+			*a *= d;
+			*b *= d;
+			*c *= d;
+			if (dd) {
 				*dd *= d;
+			}
 		}
 	}
 
@@ -197,6 +187,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 					   double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
+	int stenc = (stencil ? *stencil : 5);
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -216,121 +207,65 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
 		ddf = (-1.0 / 12.0 * f[4] - 4.0 / 3.0 * f[3] - 5.0 / 2.0 * f[2] + 4.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / SQR(step);
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / POW3(step);
-	} else if (stencil && *stencil == 3) {
-		// special implementation for *stencil==3, which is ONLY used for initial values
-		step = 1.0e-4;
-		int n = 3;
-		xx[0] = x0 - step;
-		xx[1] = x0;
-		xx[2] = x0 + step;
-
-		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
-
-		f0 = f[1];
-		df = 0.5 * (-f[0] + f[2]);
-		ddf = f[0] - 2.0 * f[1] + f[2];
-
-		df /= step;
-		ddf /= SQR(step);
-		dddf = 0.0;
 	} else {
-		// DOES NOT WORK FOR n==3!
 
-		int num_points = (stencil ? *stencil : 5);
+		// this is the plain code
+		//df=GMRFLib_ddot(n, wf, f);
+		//ddf=GMRFLib_ddot(n, wff, f);
 
-		if (!step_len || ISZERO(*step_len)) {
-			static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
-			step = ref * (*stencil == 5 || *stencil == 3 ? 1.0e-4 : (*stencil == 7 ? 5.0e-4 : 1.0e-3));
-		} else {
-			step = *step_len;
+		switch(stenc){
+		case 3: 
+		{
+			// special implementation: ONLY used for initial values
+			step = 1.0e-4;
+			int n = 3;
+			xx[0] = x0 - step;
+			xx[1] = x0;
+			xx[2] = x0 + step;
+
+			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+
+			f0 = f[1];
+			df = 0.5 * (-f[0] + f[2]);
+			ddf = f[0] - 2.0 * f[1] + f[2];
 		}
+		break;
 
-		// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
-		int n, nn, wlength;
-
-		/*
-		 * static double wf3[] = { // -0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, // 1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, // 0.0, 0.0, 
-		 * 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; 
-		 */
-		static double wf5[] = {
-			// 
-			0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333, 0.0, 0.0, 0.0,
-			// 
-			-0.08333333333333333, 1.333333333333333, -2.5, 1.333333333333333, -0.08333333333333333, 0.0, 0.0, 0.0,
-			// 
-			-0.5, 1.0, 0.0, -1.0, 0.5, 0.0, 0.0, 0.0
-		};
-
-		static double wf7[] = {
-			// 
-			-0.01666666666666667, 0.15, -0.75, 0.0, 0.75, -0.15, 0.01666666666666667, 0.0,
-			// 
-			0.01111111111111111, -0.15, 1.5, -2.722222222222222, 1.5, -0.15, 0.01111111111111111, 0.0,
-			// 
-			0.125, -1.0, 1.625, 0.0, -1.625, 1.0, -0.125, 0.0
-		};
-
-		static double wf9[] = {
-			// 
-			0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571, 0.0, 0.0,
-			0.0, 0.0, 0.0, 0.0, 0.0,
-			// 
-			-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
-			-0.001785714285714286, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-			// 
-			-0.02916666666666667, 0.3, -1.408333333333333, 2.033333333333333, 0.0, -2.033333333333333, 1.408333333333333, -0.3,
-			0.02916666666666667, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		};
-
-		double *wf = NULL;
-
-		switch (num_points) {
-			/*
-			 * case 3: n = 3; nn = 1; wlength = 8; wf = wf3; break; 
-			 */
-		case 5:
-			n = 5;
-			nn = 2;
-			wlength = 8;
-			wf = wf5;
-			break;
-		case 7:
-			n = 7;
-			nn = 3;
-			wlength = 8;
-			wf = wf7;
-			break;
-		case 9:
-			n = 9;
-			nn = 4;
-			wlength = 16;
-			wf = wf9;
-			break;
-		default:
-			GMRFLib_ASSERT(num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);
-			abort();
-		}
-
-		double *wff = wf + wlength;
-		double *wfff = wf + 2 * wlength;
-
-		x00 = x0 - nn * step;
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			xx[i] = x00 + i * step;
-		}
-
-		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
-		f0 = f[nn];
-
-		if (0) {
-			// this is the plain code
-			df = GMRFLib_ddot(n, wf, f);
-			ddf = GMRFLib_ddot(n, wff, f);
-			if (dd) {
-				dddf = GMRFLib_ddot(n, wfff, f);
+		case 5: 
+		{
+			if (!step_len || ISZERO(*step_len)) {
+				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+				step = ref * 1.0e-4; 
+			} else {
+				step = *step_len;
 			}
-		} else {
+
+			// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
+			static double wf5[] = {
+				// 
+				0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333, 0.0, 0.0, 0.0,
+				// 
+				-0.08333333333333333, 1.333333333333333, -2.5, 1.333333333333333, -0.08333333333333333, 0.0, 0.0, 0.0,
+				// 
+				-0.5, 1.0, 0.0, -1.0, 0.5, 0.0, 0.0, 0.0
+			};
+
+			int n = 5;
+			int nn = 2;
+			int wlength = 8;
+			double *wf = wf5;
+			double *wff = wf + wlength;
+			double *wfff = wf + 2 * wlength;
+
+			x00 = x0 - nn * step;
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				xx[i] = x00 + i * step;
+			}
+
+			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			f0 = f[nn];
+
 			// better code to protect for rounding errors, as we know how the signs change.
 			// see www-reference in PROD_DIFF function
 
@@ -349,21 +284,74 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 			// abs(coof) is the same but with oposite sign
 			ddf = wff_ref[0] * f_ref[0];
-			switch (n) {
-			case 5L:
-				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
-				break;
-			case 7L:
-				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-				    PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
-				break;
-			case 9L:
-				ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-				    PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
-				break;
-			default:
-				assert(0 == 1);
+			ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
+			if (dd) {
+				double *wfff_ref = wfff + iref;
+				// we know the sign is alternating with the same abs(coof)
+				dddf = 0.0;
+#pragma omp simd reduction(+: dddf)
+				for (int i = 1; i < n - iref; i++) {
+					double _a = f_ref[i], _b = f_ref[-i];
+					dddf += PROD_DIFF(wfff_ref[i], _a, wfff_ref[i], _b);
+				}
 			}
+		}
+		break;
+
+		case 7: 
+		{
+			if (!step_len || ISZERO(*step_len)) {
+				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+				step = ref * 5.0e-4; 
+			} else {
+				step = *step_len;
+			}
+
+			static double wf7[] = {
+				// 
+				-0.01666666666666667, 0.15, -0.75, 0.0, 0.75, -0.15, 0.01666666666666667, 0.0,
+				// 
+				0.01111111111111111, -0.15, 1.5, -2.722222222222222, 1.5, -0.15, 0.01111111111111111, 0.0,
+				// 
+				0.125, -1.0, 1.625, 0.0, -1.625, 1.0, -0.125, 0.0
+			};
+
+			int n = 7;
+			int nn = 3;
+			int wlength = 8;
+			double *wf = wf7;
+			double *wff = wf + wlength;
+			double *wfff = wf + 2 * wlength;
+
+			x00 = x0 - nn * step;
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				xx[i] = x00 + i * step;
+			}
+
+			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			f0 = f[nn];
+
+			// better code to protect for rounding errors, as we know how the signs change.
+			// see www-reference in PROD_DIFF function
+
+			int iref = n / 2L;
+			double *f_ref = f + iref;
+			double *wf_ref = wf + iref;
+			double *wff_ref = wff + iref;
+
+			// we know the sign is alternating with the same abs(coof)
+			df = 0.0;
+#pragma omp simd reduction(+: df)
+			for (int i = 1; i < n - iref; i++) {
+				double _a = f_ref[i], _b = f_ref[-i];
+				df += PROD_DIFF(wf_ref[i], _a, wf_ref[i], _b);
+			}
+
+			// abs(coof) is the same but with oposite sign
+			ddf = wff_ref[0] * f_ref[0];
+			ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
+				PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
@@ -376,12 +364,89 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				}
 			}
 		}
+		break;
 
-		df /= step;
-		ddf /= SQR(step);
-		if (dd) {
-			dddf /= POW3(step);
+		case 9: 
+		{
+			if (!step_len || ISZERO(*step_len)) {
+				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+				step = ref * 1.0e-3;
+			} else {
+				step = *step_len;
+			}
+
+			static double wf9[] = {
+				// 
+				0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0,
+				// 
+				-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
+				-0.001785714285714286, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				// 
+				-0.02916666666666667, 0.3, -1.408333333333333, 2.033333333333333, 0.0, -2.033333333333333, 1.408333333333333, -0.3,
+				0.02916666666666667, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+			};
+
+			int n = 9;
+			int nn = 4;
+			int wlength = 16;
+			double *wf = wf9;
+			double *wff = wf + wlength;
+			double *wfff = wf + 2 * wlength;
+
+			x00 = x0 - nn * step;
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				xx[i] = x00 + i * step;
+			}
+
+			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			f0 = f[nn];
+
+			// better code to protect for rounding errors, as we know how the signs change.
+			// see www-reference in PROD_DIFF function
+
+			int iref = n / 2L;
+			double *f_ref = f + iref;
+			double *wf_ref = wf + iref;
+			double *wff_ref = wff + iref;
+
+			// we know the sign is alternating with the same abs(coof)
+			df = 0.0;
+#pragma omp simd reduction(+: df)
+			for (int i = 1; i < n - iref; i++) {
+				double _a = f_ref[i], _b = f_ref[-i];
+				df += PROD_DIFF(wf_ref[i], _a, wf_ref[i], _b);
+			}
+
+			// abs(coof) is the same but with oposite sign
+			ddf = wff_ref[0] * f_ref[0];
+			ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
+				PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
+
+			if (dd) {
+				double *wfff_ref = wfff + iref;
+				// we know the sign is alternating with the same abs(coof)
+				dddf = 0.0;
+#pragma omp simd reduction(+: dddf)
+				for (int i = 1; i < n - iref; i++) {
+					double _a = f_ref[i], _b = f_ref[-i];
+					dddf += PROD_DIFF(wfff_ref[i], _a, wfff_ref[i], _b);
+				}
+			}
 		}
+		break;
+
+		default: 
+			assert(0 == 1);
+		}
+	}
+
+	double istep = 1.0/step;
+	df  *= istep;
+	ddf *=  SQR(istep);
+	if (dd) {
+		dddf *= POW3(istep);
 	}
 
 	*a = f0;

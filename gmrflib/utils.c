@@ -1104,7 +1104,6 @@ int GMRFLib_adjust_vector(double *x, int n)
 	/*
 	 * x := x - max(x[]) 
 	 */
-	int i;
 	double max_value;
 
 	if (n <= 0 || !x) {
@@ -1112,8 +1111,8 @@ int GMRFLib_adjust_vector(double *x, int n)
 	}
 
 	max_value = GMRFLib_max_value(x, n, NULL);
-#pragma GCC ivdep
-	for (i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		x[i] -= max_value;
 	}
 

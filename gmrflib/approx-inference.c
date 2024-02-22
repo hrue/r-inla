@@ -927,8 +927,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 			for (int i = 0; i < d_idx->n; i++) {
 				int idx = d_idx->idx[i];
+				double local_bb, local_cc;
 				GMRFLib_2order_approx(thread_id,
-						      &(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
+						      &(aa[idx]), &local_bb, &local_cc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 		}
@@ -2197,8 +2198,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			ll_info = Calloc(3 * preopt->Npred, double);
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j;
+				double local_aa;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
+					GMRFLib_2order_taylor(thread_id, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
 							      lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len,
 							      &ai_par->stencil);
 				} else {
@@ -3774,10 +3776,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		for(int i = 0; i < ng; i++) {				\
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean_old, (size_t) i, lpred_mode[nnode]); \
-			double ll = 0.0, local_bb = 0.0, local_cc = 0.0; \
+			double ll = 0.0, local_aa = 0.0, local_bb = 0.0, local_cc = 0.0; \
 			if (d[nnode]) {					\
 				if (corr_hypar) loglFunc(thread_id, &ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg, NULL); \
-				GMRFLib_2order_approx(thread_id, NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
+				GMRFLib_2order_approx(thread_id, &local_aa, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 			}						\
 			if (corr_hypar) {				\
