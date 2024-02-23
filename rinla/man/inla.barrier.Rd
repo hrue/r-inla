@@ -18,7 +18,8 @@ inla.barrier.pcmatern(
   barrier.triangles,
   prior.range,
   prior.sigma,
-  range.fraction = 0.2
+  range.fraction = 0.2,
+  enable.INLAspacetime = TRUE
 )
 
 inla.barrier.polygon(mesh, barrier.triangles, Omega = NULL)
@@ -43,6 +44,11 @@ used as a fixed sigma value (not tested).}
 
 \item{range.fraction}{The length of the spatial range inside the barrier
 area, as a fraction of the range parameter.}
+
+\item{enable.INLAspacetime}{Use the implentation in the package \code{INLAspacetime}
+instead if available (default TRUE) if its available.
+You may need set this option to \code{FALSE} if you want to
+extract properties of the model for other use,  like for example \code{inla.rgeneric.q}.}
 
 \item{Omega}{Advanced option for creating a set of permeable barriers (not
 documented)}

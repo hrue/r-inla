@@ -2,24 +2,13 @@
 
 ## Various utility functions
 
-`inla.numlen` <- function(n) {
-    ## number of digits required to represent a specific (integer)
-    ## numb{e{r
-    return(floor(log10(max(abs(n)))) + 1L)
+`inla.numlen` <- function(x) {
+    ## number of digits required to represent a integers 'x'
+    return(floor(log10(max(abs(x)))) + 1L)
 }
 
 `inla.num` <- function(x, width = if (length(x) > 1L) inla.numlen(x) else 8L, digits = max(4L, width)) {
     ## format numbers using preceeding zeros.
-    ## > inla.num(sqrt(2))
-    ## [1] "0001.414"
-    ## > inla.num(2)
-    ## [1] "00000002"
-
-    ## for a sequence of numbers, the width is calculated
-    ## automatically.> inla.num(1:10)
-    ## > inla.num(1:10)
-    ## [1] "01" "02" "03" "04" "05" "06" "07" "08" "09" "10"
-
     return(formatC(x, format = "g", width = width, flag = "0", digits = digits))
 }
 

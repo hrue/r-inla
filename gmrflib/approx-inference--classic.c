@@ -550,7 +550,8 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 					double dd;
 					i = ai_store->d_idx->idx[ii];
 					ai_store->correction_idx[ai_store->nidx++] = i;
-					GMRFLib_2order_approx(thread_id, NULL, NULL, NULL, &dd, d[i], fixed_mode[i] + deldif, i,
+					double aa, bb, cc;
+					GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &dd, d[i], fixed_mode[i] + deldif, i,
 							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
 					ai_store->derivative3[i] = dd;
 					ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
@@ -559,10 +560,10 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 						// have to redo this later if this gets serious
 						double d3[2];
 						double s = 1.0 / (2.0 * deldif);
-						GMRFLib_2order_approx(thread_id, NULL, NULL, NULL, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
+						GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
 								      fixed_mode, loglFunc, loglFunc_arg,
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);
-						GMRFLib_2order_approx(thread_id, NULL, NULL, NULL, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
+						GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
 								      fixed_mode, loglFunc, loglFunc_arg,
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);
 						ai_store->derivative4[i] = (d3[1] - d3[0]) * s;

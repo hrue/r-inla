@@ -450,14 +450,8 @@
     control.group <- ctrl_object(control.group, "group")
     cont.group <- ctrl_update(control.group)
     
-    ## otherwise, the 'experimental' warning is triggered without using 'scopy'
-    if (!is.null(scopy)) {
-        control.scopy <- ctrl_object(control.scopy, "scopy")
-        cont.scopy <- ctrl_update(control.scopy)
-    } else {
-        cont.scopy <- NULL
-    }
-    
+    control.scopy <- ctrl_object(control.scopy, "scopy")
+    cont.scopy <- ctrl_update(control.scopy)
 
     ## CHECK ARGUMENTS.
     ## This is a bit tricky. We want to check if there are arguments

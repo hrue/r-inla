@@ -59,40 +59,45 @@ __BEGIN_DECLS
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
 
-#include <stdlib.h>
-
 /* 
  *  include files we need from GSL
  */
-#include <gsl/gsl_types.h>
+#define GSL_RANGE_CHECK_OFF
+#define HAVE_INLINE
+#include <gsl/gsl_inline.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_eigen.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_machine.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_multifit.h>
 #include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_poly.h>
 #include <gsl/gsl_pow_int.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_roots.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_statistics.h>
 #include <gsl/gsl_sf.h>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_eigen.h>
 #include <gsl/gsl_sf_psi.h>
-#include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_sys.h>
+#include <gsl/gsl_types.h>
+#include <gsl/gsl_vector.h>
+
 
 /* 
  * include all the include-files in GMRFLib
  */
+#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/init.h"
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/error-handler.h"

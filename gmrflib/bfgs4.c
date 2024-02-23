@@ -38,16 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_poly.h>
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_randist.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/bfgs4.h"
 
 static const int debug = 0;

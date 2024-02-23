@@ -927,8 +927,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 			for (int i = 0; i < d_idx->n; i++) {
 				int idx = d_idx->idx[i];
+				double local_bb, local_cc;
 				GMRFLib_2order_approx(thread_id,
-						      &(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
+						      &(aa[idx]), &local_bb, &local_cc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 		}
@@ -2197,8 +2198,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			ll_info = Calloc(3 * preopt->Npred, double);
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j;
+				double local_aa;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
+					GMRFLib_2order_taylor(thread_id, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
 							      lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len,
 							      &ai_par->stencil);
 				} else {
@@ -3774,10 +3776,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		for(int i = 0; i < ng; i++) {				\
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean_old, (size_t) i, lpred_mode[nnode]); \
-			double ll = 0.0, local_bb = 0.0, local_cc = 0.0; \
+			double ll = 0.0, local_aa = 0.0, local_bb = 0.0, local_cc = 0.0; \
 			if (d[nnode]) {					\
 				if (corr_hypar) loglFunc(thread_id, &ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg, NULL); \
-				GMRFLib_2order_approx(thread_id, NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
+				GMRFLib_2order_approx(thread_id, &local_aa, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 			}						\
 			if (corr_hypar) {				\
@@ -4065,11 +4067,10 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd)
+			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
-	/*
-	 * compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x
-	 */
+	// compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
+	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
 
 	// Normal kernel: deriv: ... * (x-m)/s^2
 	// dderiv: ... * ((x-m)^2 - s^2)/s^4
@@ -4099,8 +4100,13 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
-	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = NULL, *loglik = NULL;
+	if (workspace) {
+		x_user = workspace;
+	} else {
+		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+	}
+	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4131,15 +4137,18 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
+	if (!workspace) {
+		Free(x_user);
+	}
+
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, int idx, double d,
-				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
+				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
-	/*
-	 * compute the Taylor-expansion of the integral of -loglikelihood * density(x), for the variance of x (assuming its N())
-	 */
+	// compute the Taylor-expansion of the integral of -loglikelihood * density(x), for the variance of x (assuming its N())
+	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
 
 	if (ISZERO(d)) {
 		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
@@ -4169,8 +4178,13 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
-	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = NULL, *loglik = NULL;
+	if (workspace) {
+		x_user = workspace;
+	} else {
+		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+	}
+	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4199,6 +4213,10 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
 	coofs->coofs[2] = -d * C * 0.25 * SQR(s2_inv);
+
+	if (!workspace) {
+		Free(x_user);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -4355,9 +4373,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	for (int iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
+		int measure_time = (iter == 0);
 		double err_dx = 0.0;
 		double ratio = NAN;
-		double time_grad = 0.0, time_hess = 0.0, time_ref_grad, time_ref_hess;
+		double time_grad = 0.0, time_hess = 0.0, time_ref_grad = 0.0, time_ref_hess = 0.0;
 
 		if (ratio_ok) {
 			// this override options, as the decision is that it is most efficient to update MM all the time
@@ -4379,16 +4398,20 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 		// I know I compute the mean twice for iter=0, but then the timing gets right
 		time_grad = 0.0;
-		time_ref_grad = GMRFLib_cpu();
+		if (measure_time) {
+			time_ref_grad = GMRFLib_cpu();
+		}
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
-		time_grad += GMRFLib_cpu() - time_ref_grad;
-		time_ref_grad = GMRFLib_cpu();
+		if (measure_time) {
+			time_grad += GMRFLib_cpu() - time_ref_grad;
+			time_ref_grad = GMRFLib_cpu();
+		}
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
+			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			if (debug) {					\
 				fprintf(fp, "[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
@@ -4397,11 +4420,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
-
 #pragma omp simd
 		for (int ii = 0; ii < graph->n; ii++) {
 			prior_mean_tmp[ii] = x_mean[ii] - prior_mean_fix[ii];
@@ -4412,19 +4434,29 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			tmp[i] += preopt->total_b[thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
-		time_grad += GMRFLib_cpu() - time_ref_grad;
-		time_ref_grad = GMRFLib_cpu();
-
-		if (update_MM) {
-			time_ref_hess = GMRFLib_cpu();
-			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
-			time_hess += GMRFLib_cpu() - time_ref_hess;
+		if (measure_time) {
+			time_grad += GMRFLib_cpu() - time_ref_grad;
+			time_ref_grad = GMRFLib_cpu();
 		}
 
 		if (update_MM) {
-			time_ref_hess = GMRFLib_cpu();
+			if (measure_time) {
+				time_ref_hess = GMRFLib_cpu();
+			}
+			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
+			if (measure_time) {
+				time_hess += GMRFLib_cpu() - time_ref_hess;
+			}
+		}
+
+		if (update_MM) {
+			if (measure_time) {
+				time_ref_hess = GMRFLib_cpu();
+			}
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
-			time_hess += GMRFLib_cpu() - time_ref_hess;
+			if (measure_time) {
+				time_hess += GMRFLib_cpu() - time_ref_hess;
+			}
 		}
 
 		// no timing; this one is common
@@ -4441,9 +4473,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				time_ref_hess = GMRFLib_cpu();
+				if (measure_time) {
+					time_ref_hess = GMRFLib_cpu();
+				}
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
-				time_hess += GMRFLib_cpu() - time_ref_hess;
+				if (measure_time) {
+					time_hess += GMRFLib_cpu() - time_ref_hess;
+				}
 			}
 			if (debug) {
 				printf("MM\n");
@@ -4488,7 +4524,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
@@ -4795,7 +4831,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
+			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			if (debug && 0) {				\
 				fprintf(fp, "\t[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
@@ -4804,7 +4840,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		if (enable_tref_a) {

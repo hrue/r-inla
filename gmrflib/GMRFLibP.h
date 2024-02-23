@@ -121,34 +121,34 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 //#define IMIN(a,b) GSL_MIN_INT(a, b)
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMAX)(double a, double b) {
+static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMIN)(double a, double b) {
+static double POSSIBLY_UNUSED_FUNCTION(DMIN) (double a, double b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMAX)(int a, int b) {
+static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMIN)(int a, int b) {
+static int POSSIBLY_UNUSED_FUNCTION(IMIN) (int a, int b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE)(int x, int low, int high) {
-	//#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE) (int x, int low, int high) {
+	// #define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 	return IMIN(IMAX(x, low), high);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE)(double x, double low, double high) {
-	// #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high) 
+static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE) (double x, double low, double high) {
+	// #define TRUNCATE(x, low, high) DMIN( DMAX(x, low), high) 
 	return DMIN(DMAX(x, low), high);
 }
 

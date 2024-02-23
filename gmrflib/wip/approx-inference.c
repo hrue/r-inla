@@ -960,8 +960,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 			for (int i = 0; i < nidx; i++) {
 				int idx = idxs[i];
+				double bb, cc;
 				GMRFLib_2order_approx(thread_id,
-						      &(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
+						      &(aa[idx]), &bb, &cc, d[idx], linear_predictor[idx], idx, mode, loglFunc,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 		}
@@ -3802,7 +3803,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			double ll = 0.0, local_bb = 0.0, local_cc = 0.0; \
 			if (d[nnode]) {					\
 				if (corr_hypar) loglFunc(thread_id, &ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg, NULL); \
-				GMRFLib_2order_approx(thread_id, NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
+				double local_aa;			\
+				GMRFLib_2order_approx(thread_id, &local_aa, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 			}						\
 			if (corr_hypar) {				\

@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "iniparser.h"
-#include "gsl/gsl_math.h"
 #include "my-fix.h"
 #include "strlib.h"
 

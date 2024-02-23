@@ -1182,10 +1182,10 @@ int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, G
 			  void *loglFunc_arg, double *x_vec);
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd);
+			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
 int GMRFLib_ai_vb_prepare_variance(int thread_id,
 				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
-				   void *loglFunc_arg, double *x_vec, double mean, double sd);
+				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
