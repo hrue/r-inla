@@ -156,7 +156,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "rgeneric"
                 ),
 
@@ -171,7 +170,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "rgeneric" ## Yes
                 ),
 
@@ -416,7 +414,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "bym2"
                 ),
 
@@ -454,7 +451,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "besagproper"
                 ),
 
@@ -492,7 +488,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "besagproper2"
                 ),
 
@@ -656,7 +651,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "ar1c"
                 ),
 
@@ -989,7 +983,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "intslope"
                 ),
 
@@ -1252,7 +1245,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "generic3"
                 ),
 
@@ -6412,8 +6404,7 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    pdf = "z",
-                    status = "experimental"
+                    pdf = "z"
                 ),
 
                 rw2d = list(
@@ -6476,7 +6467,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "rw2diid"
                 ),
 
@@ -6514,8 +6504,7 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    pdf = "slm",
-                    status = "experimental"
+                    pdf = "slm"
                 ),
 
                 matern2d = list(
@@ -6600,7 +6589,6 @@
                     n.div.by = NULL,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental",
                     pdf = "dmatern"
                 ),
 
@@ -6829,7 +6817,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    status = "experimental", 
                     pdf = "scopy"
                 ),
 
@@ -6928,7 +6915,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    status = "experimental",
                     pdf = "sigm"
                 ),
 
@@ -6977,7 +6963,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    status = "experimental",
                     pdf = "sigm"
                 ),
 
@@ -7026,7 +7011,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    status = "experimental",
                     pdf = "log1exp"
                 ),
 
@@ -7075,7 +7059,6 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    status = "experimental",
                     pdf = "logdist"
                 )
                 ##
@@ -7568,7 +7551,6 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     pdf = "logitoffset"
                 ),
 
@@ -7587,7 +7569,6 @@
                             from.theta = function(x) 2 + exp(x)
                         )
                     ),
-                    status = "experimental",
                     pdf = "robit"
                 ),
 
@@ -7649,7 +7630,6 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    status = "experimental",
                     pdf = "gev"
                 ),
 
@@ -7679,7 +7659,6 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    status = "experimental",
                     pdf = "cgev"
                 ),
 
@@ -8055,8 +8034,7 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset"),
-                    pdf = "gpoisson",
-                    status = "experimental"
+                    pdf = "gpoisson"
                 ),
 
                 poisson.special1 = list(
@@ -8216,7 +8194,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "quantile"), 
@@ -8358,7 +8335,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
@@ -8371,7 +8347,6 @@
                 bell = list(
                     doc = "The Bell likelihood",
                     hyper = list(),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log"), 
@@ -8512,7 +8487,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog", "log"), 
@@ -8654,7 +8628,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
@@ -8682,8 +8655,7 @@
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
                              "powerlogit", "gev", "cgev"),
-                    pdf = "binomial",
-                    status = "experimental"
+                    pdf = "binomial"
                 ),
 
                 pom = list(
@@ -8820,7 +8792,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "identity"),
@@ -8987,7 +8958,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity", "log"),
@@ -9166,7 +9136,6 @@
                     ), 
                     survival = TRUE,
                     discrete = FALSE,
-                    status = "experimental",
                     link = c("default", "log", "neglog", "quantile"),
                     pdf = "gammasurv"
                 ),
@@ -9340,7 +9309,6 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
-                    status = "experimental",
                     pdf = "gammacount"
                 ),
 
@@ -9621,7 +9589,6 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog", "robit", "sn"),
-                    status = "experimental",
                     pdf = "cbinomial"
                 ),
 
@@ -9674,7 +9641,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset", "quantile"),
@@ -9792,7 +9758,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "probit"), 
@@ -9816,7 +9781,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity", "logit", "loga", "cauchit", "log", "logoffset"),
@@ -9957,7 +9921,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"), 
@@ -10099,7 +10062,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"), 
@@ -10589,7 +10551,6 @@
                             from.theta = function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"),
@@ -11383,7 +11344,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -11535,7 +11495,6 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -11559,7 +11518,6 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -11773,7 +11731,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog", "robit", "sn"),
@@ -12035,7 +11992,6 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -12189,7 +12145,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -12620,7 +12575,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "probit"),
@@ -12839,7 +12793,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "probit"),
@@ -12863,7 +12816,6 @@
                             from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "quantile"),
@@ -12887,7 +12839,6 @@
                             from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
                         )
                     ),
-                    status = "experimental",
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "quantile"),
@@ -12971,7 +12922,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -13010,7 +12960,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = TRUE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -13037,7 +12986,6 @@
                             from.theta = function(x, sc = 0.1) exp(sc * x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
@@ -13194,7 +13142,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = TRUE,
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
@@ -14994,7 +14941,6 @@
             stopifnot(any(inla.strcasecmp(status.core, c("experimental", "disabled", "changed"))))
             envir <- inla.get.inlaEnv()
             var <- paste("processed.status.for.model.", model, ".in.section.", section, sep = "")
-
             if (inla.strcasecmp(status.core, "experimental")) {
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     assign(var, TRUE, envir = envir)

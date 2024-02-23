@@ -207,7 +207,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{rgeneric}}
 #'              }
 #'            }
@@ -227,7 +226,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{rgeneric}}
 #'              }
 #'            }
@@ -514,7 +512,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{bym2}}
 #'              }
 #'            }
@@ -562,7 +559,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{besagproper}}
 #'              }
 #'            }
@@ -610,7 +606,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{besagproper2}}
 #'              }
 #'            }
@@ -816,7 +811,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{ar1c}}
 #'              }
 #'            }
@@ -1075,7 +1069,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{intslope}}
 #'              }
 #'            }
@@ -1428,7 +1421,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{generic3}}
 #'              }
 #'            }
@@ -7680,7 +7672,6 @@
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
 #'               \item{pdf = }{\verb{z}}
-#'               \item{status = }{\verb{experimental}}
 #'              }
 #'            }
 #'          }
@@ -7748,7 +7739,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{rw2diid}}
 #'              }
 #'            }
@@ -7797,7 +7787,6 @@
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
 #'               \item{pdf = }{\verb{slm}}
-#'               \item{status = }{\verb{experimental}}
 #'              }
 #'            }
 #'          }
@@ -7891,7 +7880,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{dmatern}}
 #'              }
 #'            }
@@ -7986,7 +7974,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{scopy}}
 #'              }
 #'            }
@@ -8237,7 +8224,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{sigm}}
 #'              }
 #'            }
@@ -8298,7 +8284,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{sigm}}
 #'              }
 #'            }
@@ -8359,7 +8344,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{log1exp}}
 #'              }
 #'            }
@@ -8420,7 +8404,6 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{logdist}}
 #'              }
 #'            }
@@ -9136,7 +9119,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Logit-link with an offset}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{logitoffset}}
 #'              }
 #'            }
@@ -9163,7 +9145,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Robit link}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{robit}}
 #'              }
 #'            }
@@ -9229,7 +9210,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{GEV link}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{gev}}
 #'              }
 #'            }
@@ -9269,7 +9249,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Complement GEV link}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{cgev}}
 #'              }
 #'            }
@@ -9760,7 +9739,6 @@
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default log logoffset}}
 #'               \item{pdf = }{\verb{gpoisson}}
-#'               \item{status = }{\verb{experimental}}
 #'              }
 #'            }
 #'          }
@@ -9834,7 +9812,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{New 0-inflated Poisson}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default log quantile}}
@@ -10002,7 +9979,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{New 0-inflated Poisson Swap}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit}}
@@ -10170,7 +10146,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The Bell likelihood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default log}}
@@ -10185,7 +10160,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{New 0-inflated Binomial}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
@@ -10353,7 +10327,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{New 0-inflated Binomial Swap}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
@@ -10539,7 +10512,6 @@
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
 #'               \item{pdf = }{\verb{binomial}}
-#'               \item{status = }{\verb{experimental}}
 #'              }
 #'            }
 #'          }
@@ -10550,7 +10522,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Likelihood for the proportional odds model}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default identity}}
@@ -10717,7 +10688,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The blended Generalized Extreme Value likelihood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity log}}
@@ -10947,7 +10917,6 @@
 #'               \item{doc = }{\verb{The Gamma likelihood (survival)}}
 #'               \item{survival = }{\verb{TRUE}}
 #'               \item{discrete = }{\verb{FALSE}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{link = }{\verb{default log neglog quantile}}
 #'               \item{pdf = }{\verb{gammasurv}}
 #'              }
@@ -11310,7 +11279,6 @@
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{gammacount}}
 #'              }
 #'            }
@@ -11678,7 +11646,6 @@
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{pdf = }{\verb{cbinomial}}
 #'              }
 #'            }
@@ -11735,7 +11702,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The CenNegBinomial2 likelihood (similar to cenpoisson2)}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default log logoffset quantile}}
@@ -11858,7 +11824,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The GaussianJW likelihoood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default logit probit}}
@@ -11920,7 +11885,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The aggregated Gaussian likelihoood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity logit loga cauchit log logoffset}}
@@ -11952,7 +11916,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Generalized Gaussian}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity}}
@@ -12120,7 +12083,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Generalized GaussianS}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -12843,7 +12805,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The Skew-Normal likelihoood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity}}
@@ -13798,7 +13759,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The SkewNormal stochvol likelihood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -14015,7 +13975,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Zero-inflated censored Poisson, type 0}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -14047,7 +14006,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Zero-inflated censored Poisson, type 1}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -14310,7 +14268,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Zero and N inflated binomial, type 3}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
@@ -14495,7 +14452,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 2}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -14677,7 +14633,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 3}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -15132,7 +15087,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Binomial-Poisson mixture}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga probit}}
@@ -15374,7 +15328,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{NegBinomial-Poisson mixture}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga probit}}
@@ -15631,7 +15584,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Generalized Pareto likelihood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default quantile}}
@@ -15663,7 +15615,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{Discrete generalized Pareto likelihood}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default quantile}}
@@ -15755,7 +15706,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{fmri distribution (special nc-chi)}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -15802,7 +15752,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{fmri distribution (special nc-chi)}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{TRUE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
@@ -15849,7 +15798,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{gompertz distribution}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log neglog}}
@@ -15881,7 +15829,6 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{gompertz distribution}}
-#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{TRUE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log neglog}}

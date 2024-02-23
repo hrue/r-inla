@@ -205,7 +205,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{rgeneric}}
 }
 }
@@ -225,7 +224,6 @@ Number of hyperparmeters is 0.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{rgeneric}}
 }
 }
@@ -512,7 +510,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{bym2}}
 }
 }
@@ -560,7 +557,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{besagproper}}
 }
 }
@@ -608,7 +604,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{besagproper2}}
 }
 }
@@ -814,7 +809,6 @@ Number of hyperparmeters is 3.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{ar1c}}
 }
 }
@@ -1073,7 +1067,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{intslope}}
 }
 }
@@ -1426,7 +1419,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{generic3}}
 }
 }
@@ -7678,7 +7670,6 @@ Number of hyperparmeters is 3.
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
 \item{pdf = }{\verb{z}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -7746,7 +7737,6 @@ Number of hyperparmeters is 1.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{rw2diid}}
 }
 }
@@ -7795,7 +7785,6 @@ Number of hyperparmeters is 2.
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
 \item{pdf = }{\verb{slm}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -7889,7 +7878,6 @@ Number of hyperparmeters is 2.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{TRUE}}
 \item{set.default.values = }{\verb{TRUE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{dmatern}}
 }
 }
@@ -7984,7 +7972,6 @@ Number of hyperparmeters is 1.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{scopy}}
 }
 }
@@ -8235,7 +8222,6 @@ Number of hyperparmeters is 1.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{sigm}}
 }
 }
@@ -8296,7 +8282,6 @@ Number of hyperparmeters is 3.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{sigm}}
 }
 }
@@ -8357,7 +8342,6 @@ Number of hyperparmeters is 3.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{log1exp}}
 }
 }
@@ -8418,7 +8402,6 @@ Number of hyperparmeters is 3.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{logdist}}
 }
 }
@@ -9146,7 +9129,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Logit-link with an offset}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{logitoffset}}
 }
 }
@@ -9173,7 +9155,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Robit link}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{robit}}
 }
 }
@@ -9239,7 +9220,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{GEV link}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{gev}}
 }
 }
@@ -9279,7 +9259,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Complement GEV link}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{cgev}}
 }
 }
@@ -9779,7 +9758,6 @@ Number of hyperparmeters is 0.
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default log logoffset}}
 \item{pdf = }{\verb{gpoisson}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -9853,7 +9831,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{New 0-inflated Poisson}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default log quantile}}
@@ -10021,7 +9998,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{New 0-inflated Poisson Swap}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit}}
@@ -10189,7 +10165,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The Bell likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default log}}
@@ -10204,7 +10179,6 @@ Number of hyperparmeters is 0.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{New 0-inflated Binomial}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
@@ -10372,7 +10346,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{New 0-inflated Binomial Swap}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
@@ -10558,7 +10531,6 @@ Number of hyperparmeters is 0.
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
 \item{pdf = }{\verb{binomial}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -10569,7 +10541,6 @@ Number of hyperparmeters is 0.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Likelihood for the proportional odds model}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default identity}}
@@ -10736,7 +10707,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The blended Generalized Extreme Value likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity log}}
@@ -10966,7 +10936,6 @@ Number of hyperparmeters is 1.
 \item{doc = }{\verb{The Gamma likelihood (survival)}}
 \item{survival = }{\verb{TRUE}}
 \item{discrete = }{\verb{FALSE}}
-\item{status = }{\verb{experimental}}
 \item{link = }{\verb{default log neglog quantile}}
 \item{pdf = }{\verb{gammasurv}}
 }
@@ -11329,7 +11298,6 @@ Number of hyperparmeters is 10.
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{gammacount}}
 }
 }
@@ -11697,7 +11665,6 @@ Number of hyperparmeters is 1.
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{cbinomial}}
 }
 }
@@ -11754,7 +11721,6 @@ Number of hyperparmeters is 0.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The CenNegBinomial2 likelihood (similar to cenpoisson2)}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default log logoffset quantile}}
@@ -11877,7 +11843,6 @@ Number of hyperparmeters is 0.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The GaussianJW likelihoood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default logit probit}}
@@ -11939,7 +11904,6 @@ Number of hyperparmeters is 3.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The aggregated Gaussian likelihoood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity logit loga cauchit log logoffset}}
@@ -11971,7 +11935,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Generalized Gaussian}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity}}
@@ -12139,7 +12102,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Generalized GaussianS}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -12862,7 +12824,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The Skew-Normal likelihoood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity}}
@@ -13817,7 +13778,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The SkewNormal stochvol likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -14034,7 +13994,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Zero-inflated censored Poisson, type 0}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -14066,7 +14025,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Zero-inflated censored Poisson, type 1}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -14329,7 +14287,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Zero and N inflated binomial, type 3}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
@@ -14514,7 +14471,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 2}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -14696,7 +14652,6 @@ Number of hyperparmeters is 11.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 3}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -15151,7 +15106,6 @@ Number of hyperparmeters is 11.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Binomial-Poisson mixture}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga probit}}
@@ -15393,7 +15347,6 @@ Number of hyperparmeters is 15.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{NegBinomial-Poisson mixture}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit loga probit}}
@@ -15650,7 +15603,6 @@ Number of hyperparmeters is 16.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Generalized Pareto likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default quantile}}
@@ -15682,7 +15634,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Discrete generalized Pareto likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default quantile}}
@@ -15774,7 +15725,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{fmri distribution (special nc-chi)}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -15821,7 +15771,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{fmri distribution (special nc-chi)}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{TRUE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log}}
@@ -15868,7 +15817,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{gompertz distribution}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log neglog}}
@@ -15900,7 +15848,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{gompertz distribution}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{TRUE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default log neglog}}
