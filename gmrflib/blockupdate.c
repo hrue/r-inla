@@ -44,8 +44,8 @@ static double PROD_DIFF(double a, double b, double c, double d)
 	// reference: https://pharr.org/matt/blog/2019/11/03/difference-of-floats 
 
 	double cd = c * d;
-	//double err = fma(-c, d, cd);
-	//double dop = fma(a, b, -cd);
+	// double err = fma(-c, d, cd);
+	// double dop = fma(a, b, -cd);
 	return fma(a, b, -cd) + fma(-c, d, cd);
 }
 
@@ -84,7 +84,8 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 	*a = f0;
 	*b = df;
 	*c = ddf;
-	if (dd) *dd = dddf;
+	if (dd)
+		*dd = dddf;
 
 	if (d != 1.0) {
 		*a *= d;
@@ -210,11 +211,11 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 	} else {
 
 		// this is the plain code
-		//df=GMRFLib_ddot(n, wf, f);
-		//ddf=GMRFLib_ddot(n, wff, f);
+		// df=GMRFLib_ddot(n, wf, f);
+		// ddf=GMRFLib_ddot(n, wff, f);
 
-		switch(stenc){
-		case 3: 
+		switch (stenc) {
+		case 3:
 		{
 			// special implementation: ONLY used for initial values
 			step = 1.0e-4;
@@ -229,13 +230,13 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			df = 0.5 * (-f[0] + f[2]);
 			ddf = f[0] - 2.0 * f[1] + f[2];
 		}
-		break;
+			break;
 
-		case 5: 
+		case 5:
 		{
 			if (!step_len || ISZERO(*step_len)) {
 				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
-				step = ref * 1.0e-4; 
+				step = ref * 1.0e-4;
 			} else {
 				step = *step_len;
 			}
@@ -296,13 +297,13 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				}
 			}
 		}
-		break;
+			break;
 
-		case 7: 
+		case 7:
 		{
 			if (!step_len || ISZERO(*step_len)) {
 				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
-				step = ref * 5.0e-4; 
+				step = ref * 5.0e-4;
 			} else {
 				step = *step_len;
 			}
@@ -351,7 +352,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			// abs(coof) is the same but with oposite sign
 			ddf = wff_ref[0] * f_ref[0];
 			ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-				PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
+			    PROD_DIFF(wff_ref[3], f_ref[3], -wff_ref[3], f_ref[-3]);
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
@@ -364,9 +365,9 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				}
 			}
 		}
-		break;
+			break;
 
-		case 9: 
+		case 9:
 		{
 			if (!step_len || ISZERO(*step_len)) {
 				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
@@ -377,7 +378,8 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 
 			static double wf9[] = {
 				// 
-				0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571, 0.0, 0.0,
+				0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571,
+				    0.0, 0.0,
 				0.0, 0.0, 0.0, 0.0, 0.0,
 				// 
 				-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
@@ -422,7 +424,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			// abs(coof) is the same but with oposite sign
 			ddf = wff_ref[0] * f_ref[0];
 			ddf += PROD_DIFF(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-				PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
+			    PROD_DIFF(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
@@ -435,16 +437,16 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				}
 			}
 		}
-		break;
+			break;
 
-		default: 
+		default:
 			assert(0 == 1);
 		}
 	}
 
-	double istep = 1.0/step;
-	df  *= istep;
-	ddf *=  SQR(istep);
+	double istep = 1.0 / step;
+	df *= istep;
+	ddf *= SQR(istep);
 	if (dd) {
 		dddf *= POW3(istep);
 	}

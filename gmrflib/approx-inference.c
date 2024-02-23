@@ -4406,7 +4406,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			time_grad += GMRFLib_cpu() - time_ref_grad;
 			time_ref_grad = GMRFLib_cpu();
 		}
-		
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
@@ -4839,7 +4839,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
-		
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
