@@ -1730,7 +1730,7 @@
                     paste0("Predictor.", inla.num(1L:n))
                 )
             } else {
-                names(rr) <- paste0("Predictor.", as.character(1L:length(rr)))
+                names(rr) <- paste0("Predictor.", inla.num(1L:n))
             }
             names.rr <- names(rr)
             for (i in 1L:length(rr)) {
@@ -1811,7 +1811,7 @@
                         paste0("fitted.Predictor.", inla.num(1:n))
                         )
                 } else {
-                    names(rr) <- paste0("fitted.Predictor.", inla.num(1L:length(rr)))
+                    names(rr) <- paste0("fitted.Predictor.", inla.num(1L:n))
                 }
                 names.rr <- names(rr)
                 for (i in 1L:length(rr)) {
