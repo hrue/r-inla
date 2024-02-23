@@ -1,3 +1,9 @@
+# INLA 24.02.23
+* Code optimization
+* Remove `experimental` status of many likelihoods and model
+  components
+* Fixed an issue with `scopy`
+
 # INLA 24.02.21
 * New vignette added (barrier model on the world's oceans)
 * Small fix for 'malloc.lib' for Mac's
