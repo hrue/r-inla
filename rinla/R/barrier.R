@@ -21,6 +21,10 @@
 #' area, as a fraction of the range parameter.
 #' @param Omega Advanced option for creating a set of permeable barriers (not
 #' documented)
+#' @param enable.INLAspacetime Use the implentation in the package `INLAspacetime`
+#' instead if available (default TRUE). You may set this option to `FALSE` if you want to
+#' extract properties of the model for other use,  like using
+#' `inla.rgeneric.q` for example.
 #' @return
 #' * `inla.barrier.pcmatern` gives the (rgeneric) model object
 #' for fitting the model in INLA
@@ -37,7 +41,8 @@
 #' @rdname inla.barrier
 #' @details * `inla.barrier.pcmatern`
 #' This function creates the model component used in inla(...)
-`inla.barrier.pcmatern` <- function(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction = 0.2) {
+`inla.barrier.pcmatern` <- function(mesh, barrier.triangles, prior.range, prior.sigma,
+                                    range.fraction = 0.2, enable.INLAspacetime = TRUE) {
     ## Give default values if absolutely needed
     if (missing(prior.range)) {
         warning("Arbitrary prior values chosen automatically. This may suffice for a first attempt, 
@@ -53,18 +58,18 @@
     stopifnot(inherits(mesh, "inla.mesh"))
     stopifnot(range.fraction > 0.000001)
 
-    if(requireNamespace("INLAspacetime")) {
+    if (enable.INLAspacetime && requireNamespace("INLAspacetime")) {
 	warning("Using implementation from the `INLAspacetime` package")
 	return(INLAspacetime::barrierModel.define(
-	    mesh = mesh,
-            barrier.triangles = barrier.triangles,
-            prior.range = prior.range, 
-            prior.sigma = prior.sigma,
-            range.fraction = range.fraction))
+                                  mesh = mesh,
+                                  barrier.triangles = barrier.triangles,
+                                  prior.range = prior.range, 
+                                  prior.sigma = prior.sigma,
+                                  range.fraction = range.fraction))
     } else {
 	warning(paste(
-	"Please install the `INLAspacetime` package\n",
-        "which contains an implementation that runs faster!"))
+            "Please install the `INLAspacetime` package\n",
+            "which contains an implementation that runs faster!"))
     }
 
     ## ## ## FUNCTIONS FOR RGENERIC MODEL SETUP ## ## ##
@@ -466,15 +471,15 @@
 
     xi <- length(Omega)
     
-    if(requireNamespace("INLAspacetime")) {
+    if (requireNamespace("INLAspacetime")) {
         warning("Using implementation from the `INLAspacetime` package")
         fem <- INLAspacetime::mesh2fem.barrier(
-	    mesh = mesh, 
-	    barrier.triangles = Omega[[2L]])
+                                  mesh = mesh, 
+                                  barrier.triangles = Omega[[2L]])
     } else {
         warning(paste(
-        "Please install the `INLAspacetime` package\n",
-        "which contains an implementation that runs faster!"))
+            "Please install the `INLAspacetime` package\n",
+            "which contains an implementation that runs faster!"))
         fem <- list()
         fem$I <- dt.fem.identity(mesh)
         fem$D <- list()
