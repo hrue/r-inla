@@ -22,9 +22,9 @@
 #' @param Omega Advanced option for creating a set of permeable barriers (not
 #' documented)
 #' @param enable.INLAspacetime Use the implentation in the package `INLAspacetime`
-#' instead if available (default TRUE). You may set this option to `FALSE` if you want to
-#' extract properties of the model for other use,  like using
-#' `inla.rgeneric.q` for example.
+#' instead if available (default TRUE) if its available.
+#' You may need set this option to `FALSE` if you want to
+#' extract properties of the model for other use,  like for example `inla.rgeneric.q`.
 #' @return
 #' * `inla.barrier.pcmatern` gives the (rgeneric) model object
 #' for fitting the model in INLA
