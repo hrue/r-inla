@@ -1,22 +1,6 @@
 #' @include spde.common.R
 NULL
 
-## 'spde3' model functions
-## External: inla.spde.precision!inla.spde3
-## External: inla.spde.result!inla.spde3 inla.spde3.generic
-## External: inla.spde3.matern param2.matern.orig
-## External: inla.spde3.matern.sd.basis inla.spde3.models
-## External: inla.spde3.precision inla.spde3.result
-## External: inla.spde3.theta2phi0 inla.spde3.theta2phi1
-## External: inla.spde3.theta2phi2 inla.spde3.theta2phi3
-##
-## Internal: inla.internal.spde3.matern.B.tau
-## Internal: inla.internal.test.spde3.sd.basis
-
-
-
-
-
 inla.spde3.generic <-
     function(M0, M1, M2, M3, B0, B1, B2, B3, theta.mu, theta.Q,
              transform = c("identity","log","logit","shiftedlog","oldlogit"),
@@ -801,6 +785,7 @@ inla.spde3.theta2phi3 = function(spde, theta)
         return(exp(spde$param.inla$B3[,1, drop=TRUE]))
 }
 
+#' @noRd
 inla.spde3.precision =
     function(spde, theta=NULL,
              phi0=inla.spde3.theta2phi0(spde, theta),
@@ -828,98 +813,7 @@ inla.spde3.precision =
     return(Q)
 }
 
-inla.spde3.result = function(inla, name, spde, do.transform=TRUE, ...)
-{
-    inla.require.inherits(inla, "inla", "'inla'")
-    inla.require.inherits(spde, "inla.spde3", "'spde'")
-    if (!spde$f$model=="spde3") {
-        stop("'inla.spde3.result' only supports internal inla models 'spde3'")
-    }
-
-    result = list()
-    ## Setup rownames
-    BLC.names = rownames(spde$param.inla$BLC)
-
-    ## Values
-    result$summary.values = inla$summary.random[[name]]
-
-    ## Marginals for values
-    if (!is.null(inla$marginals.random[[name]])) {
-        result$marginals.values = inla$marginals.random[[name]]
-    }
-
-    ## Theta
-    result$summary.hyperpar =
-        inla.extract.el(inla$summary.hyperpar,
-                        paste("Theta[^ ]+ for ", name, "$", sep=""))
-
-    ## Marginals for theta
-    if (!is.null(inla$marginals$hyperpar)) {
-        result$marginals.hyperpar =
-            inla.extract.el(inla$marginals.hyperpar,
-                            paste("Theta[^ ]+ for ", name, "$", sep=""))
-    }
-
-    ## log-tau/kappa/variance/range
-    if (!is.null(inla$summary.spde3.blc[[name]])) {
-        rownames(inla$summary.spde3.blc[[name]]) <- BLC.names
-
-        result$summary.theta =
-            inla.extract.el(inla$summary.spde3.blc[[name]],
-                            "theta\\.[^ ]+$")
-        result$summary.log.tau =
-            inla.extract.el(inla$summary.spde3.blc[[name]],
-                            "tau\\.[^ ]+$")
-        result$summary.log.kappa =
-            inla.extract.el(inla$summary.spde3.blc[[name]],
-                            "kappa\\.[^ ]+$")
-        result$summary.log.variance.nominal =
-            inla.extract.el(inla$summary.spde3.blc[[name]],
-                            "variance.nominal\\.[^ ]+$")
-        result$summary.log.range.nominal =
-            inla.extract.el(inla$summary.spde3.blc[[name]],
-                            "range.nominal\\.[^ ]+$")
-    }
-
-    ## Marginals for log-tau/kappa/variance/range
-    if (!is.null(inla$marginals.spde3.blc[[name]])) {
-        names(inla$marginals.spde3.blc[[name]]) <- BLC.names
-
-        result$marginals.theta =
-            inla.extract.el(inla$marginals.spde3.blc[[name]],
-                            "theta\\.[^ ]+$")
-        result$marginals.log.tau =
-            inla.extract.el(inla$marginals.spde3.blc[[name]],
-                            "tau\\.[^ ]+$")
-        result$marginals.log.kappa =
-            inla.extract.el(inla$marginals.spde3.blc[[name]],
-                            "kappa\\.[^ ]+$")
-        result$marginals.log.variance.nominal =
-            inla.extract.el(inla$marginals.spde3.blc[[name]],
-                            "variance.nominal\\.[^ ]+$")
-        result$marginals.log.range.nominal =
-            inla.extract.el(inla$marginals.spde3.blc[[name]],
-                            "range.nominal\\.[^ ]+$")
-
-        if (do.transform) {
-            result$marginals.tau =
-                lapply(result$marginals.log.tau,
-                       function(x) inla.tmarginal(function(y) exp(y), x))
-            result$marginals.kappa =
-                lapply(result$marginals.log.kappa,
-                       function(x) inla.tmarginal(function(y) exp(y), x))
-            result$marginals.variance.nominal =
-                lapply(result$marginals.log.variance.nominal,
-                       function(x) inla.tmarginal(function(y) exp(y), x))
-            result$marginals.range.nominal =
-                lapply(result$marginals.log.range.nominal,
-                       function(x) inla.tmarginal(function(y) exp(y), x))
-        }
-    }
-
-    return(result)
-}
-
+#' @noRd
 inla.spde3.result = function(inla, name, spde, do.transform=TRUE, ...)
 {
     inla.require.inherits(inla, "inla", "'inla'")
