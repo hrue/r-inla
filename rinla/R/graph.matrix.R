@@ -73,10 +73,9 @@
     ## add this test here, as otherwise, this can be very inefficient
     ## for large matrices. this is because we convert it into a graph
     ## and then back to a matrix.
-    M <- try(inla.as.sparse(graph, ...), silent = TRUE)
+    M <- try(inla.as.sparse(graph), silent = TRUE)
     if (inherits(M, "try-error")) {
         M <- inla.graph2matrix(graph, ...)
-        M <- inla.as.sparse(M)
     }
     if (!is.null(reordering)) {
         if (any(names(reordering) %in% "reordering")) {
@@ -84,10 +83,13 @@
         } else {
             r <- reordering
         }
-        M@i <- as.integer(r[1L + M@i]-1L)
-        M@j <- as.integer(r[1L + M@j]-1L)
+        M@i <- as.integer(r[1L + M@i]) - 1L
+        M@j <- as.integer(r[1L + M@j]) - 1L
     }
     d <- dim(M)
-    plot(NA, NA, xlim = c(0, d[2]+1), ylim = c(0, d[1]+1))
-    points(1+M@j, d[1] - M@i, pch = 19)
+    xx <- c(0, d[2]+1, d[2]+1, 0, 0)
+    yy <- c(0, 0, d[1]+1, d[1]+1, 0)
+    plot(xx, yy, type = "l", bty = "L",
+         xlim = c(0, d[2]+1), ylim = c(0, d[1]+1), lwd = 2, asp = 1)
+    points(1L+M@j, d[1] - M@i, pch = 19)
 }
