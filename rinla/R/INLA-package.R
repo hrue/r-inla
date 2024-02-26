@@ -14,11 +14,13 @@
 #'
 #' See the web-site <https://www.r-inla.org> for further details.
 #'
+
 #' @name INLA-package
-#' @aliases INLA-package INLA
+#' @aliases INLA-package
+#' @aliases INLA
+#' @aliases R-INLA
 #' @docType package
-#' @author Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson and Andrea
-#' Riebler
+#' @author Havard Rue, Sara Martino, Finn Lindgren, ...
 NULL
 
 # Need to import something from every Imports package...
