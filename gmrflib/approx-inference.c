@@ -3497,6 +3497,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}						\
 			/* no prepare or accumulate */			\
 			GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
+			/* this can happen: ensure node is part of its own group, as it might have been thrown out */ \
+			/* due to max_size is reached. */ \
+			if (GMRFLib_iwhich_sorted(node, groups[node]->idx, groups[node]->n) < 0) { \
+				GMRFLib_idxval_add(&(groups[node]), node, 1.0);	\
+				GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
+			}						\
 			if (0) P(node);					\
 			if (0) GMRFLib_idxval_printf(stdout, groups[node], "after adding friends"); \
 		}
