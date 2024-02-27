@@ -10,16 +10,11 @@
 #' @param reordering A possible reordering. Typical the one obtained from a
 #' `inla`-call, `result$misc$reordering`, or the result of
 #' `inla.qreordering`.
-#' @param factor A scaling of the `inla.graph`-object to reduce the size.
-#' @param max.dim Maximum dimension of the `inla.graph`-object plotted; if
-#' `missing(factor)` and `max.dim` is set, then `factor` is
-#' computed automatically to give the given `max.dim`.
 #' @param ... Additional arguments to `inla.read.graph()`
 #' @return `inla.graph2matrix` returns a sparse symmetric matrix where the
 #' non-zero pattern is defined by the `graph`.  The `inla.spy`
-#' function, plots a binary image of a `graph`. The `reordering`
-#' argument is typically the reordering used by `inla`, found in
-#' `result$misc$reordering`.
+#' function, plots the associated sparse matrix defined by the `graph`. The `reordering`
+#' argument is typically the reordering found by `inla.qreordering()`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso [inla.read.graph()], [inla.qreordering()]
 #' @examples
@@ -74,23 +69,27 @@
 
 #' @rdname graph.matrix
 #' @export
-`inla.spy` <- function(graph, ..., reordering = NULL, factor = 1.0, max.dim = NULL) {
+`inla.spy` <- function(graph, ..., reordering = NULL) {
     ## add this test here, as otherwise, this can be very inefficient
     ## for large matrices. this is because we convert it into a graph
     ## and then back to a matrix.
-    M <- try(inla.as.dgTMatrix(graph, ...), silent = TRUE)
+    M <- try(inla.as.sparse(graph), silent = TRUE)
     if (inherits(M, "try-error")) {
         M <- inla.graph2matrix(graph, ...)
     }
-
-    ## if max.dim is set, compute the corresponding factor
-    if (missing(factor) && !is.null(max.dim) && max.dim > 0) {
-        d.max <- max(dim(M))
-        factor <- min(1.0, max.dim / d.max)
+    if (!is.null(reordering)) {
+        if (any(names(reordering) %in% "reordering")) {
+            r <- reordering$reordering
+        } else {
+            r <- reordering
+        }
+        M@i <- as.integer(r[1L + M@i]) - 1L
+        M@j <- as.integer(r[1L + M@j]) - 1L
     }
-
-    M <- inla.sparse.matrix.pattern(M, factor = factor, reordering = reordering)
-
-    ## plot -M,  to make the background white
-    inla.display.matrix(-M, nlevel = 2)
+    d <- dim(M)
+    xx <- c(0, d[2]+1, d[2]+1, 0, 0)
+    yy <- c(0, 0, d[1]+1, d[1]+1, 0)
+    plot(xx, yy, type = "l", bty = "L",
+         xlim = c(0, d[2]+1), ylim = c(0, d[1]+1), lwd = 2, asp = 1)
+    points(1L+M@j, d[1] - M@i, pch = 19)
 }

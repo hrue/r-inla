@@ -65,6 +65,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #define GSL_RANGE_CHECK_OFF
 #define HAVE_INLINE
 #include <gsl/gsl_inline.h>
+#include <gsl/gsl_math.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_eigen.h>
@@ -73,7 +74,6 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_machine.h>
-#include <gsl/gsl_math.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_multifit_nlin.h>

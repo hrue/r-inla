@@ -4,6 +4,7 @@
 \name{INLA-package}
 \alias{INLA-package}
 \alias{INLA}
+\alias{R-INLA}
 \title{Integrated Nested Laplace Approximation}
 \description{
 Package to perform full Bayesian analysis on generalised additive mixed
@@ -22,6 +23,5 @@ See \url{https://github.com/hrue/r-inla/} and
 See the web-site \url{https://www.r-inla.org} for further details.
 }
 \author{
-Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson and Andrea
-Riebler
+Havard Rue, Sara Martino, Finn Lindgren, ...
 }

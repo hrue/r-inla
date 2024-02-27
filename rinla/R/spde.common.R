@@ -1,6 +1,3 @@
-## Internal: inla.spde.homogenise_B_matrix inla.regex.match
-
-
 
 #' Build a block-diagonal sparse matrix.
 #'
@@ -1142,17 +1139,7 @@ inla.spde.make.A <-
         return(A)
     }
 
-
-
-
-
-
-
-
-
-
-
-# Internal function for merging raw stack information
+#' @noRd
 rbind.inla.data.stack.info <- function(...) {
     l <- list(...)
     names(l) <- NULL

@@ -43,7 +43,6 @@ __BEGIN_DECLS
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
 /*---------------------------------------------------------------------------

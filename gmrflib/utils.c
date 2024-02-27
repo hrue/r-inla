@@ -412,8 +412,9 @@ int GMRFLib_iwhich_sorted_g(int val, int *__restrict ix, int len, int *__restric
 
 int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess)
 {
-	int low = *low_guess, mid, top, val, *piv = NULL, *base = ix;
+	// THIS FUNCTION IS NOT IN USE
 
+	int low = *low_guess, mid, top, val, *piv = NULL, *base = ix;
 	if (key < ix[low]) {
 		low = 0;
 	}
@@ -438,13 +439,11 @@ int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__res
 
 int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
 {
-	int mid, top, val, *piv = NULL, *base = ix;
-
-	mid = top = len;
+	int mid = len, top = len, *base = ix;
 	while (mid) {
 		mid = top / 2;
-		piv = base + mid;
-		val = key - *piv;
+		int *piv = base + mid;
+		int val = key - *piv;
 		if (val == 0) {
 			return piv - ix;
 		}
