@@ -1,3 +1,9 @@
+# INLA 24.02.27
+* Fixed an regression since cf5714584c6ea59911526fb3952193bfb9f550c6
+  for the marginal of one hyperparameter only
+* Improved function `inla.spy`
+* Minor code edits
+
 # INLA 24.02.23
 * Code optimization
 * Remove `experimental` status of many likelihoods and model
