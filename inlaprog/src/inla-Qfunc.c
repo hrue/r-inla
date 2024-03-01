@@ -298,13 +298,10 @@ double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void
 		return NAN;
 	}
 
-	int ii, jj;
 	inla_replicate_tp *a = (inla_replicate_tp *) arg;
+	div_t di = div(i, a->n), dj = div(j, a->n);
 
-	ii = MOD(i, a->n);
-	jj = MOD(j, a->n);
-
-	return a->Qfunc(thread_id, ii, jj, NULL, a->Qfunc_arg);
+	return a->Qfunc(thread_id, di.rem, dj.rem, NULL, a->Qfunc_arg);
 }
 
 double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
