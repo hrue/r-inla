@@ -170,12 +170,6 @@ int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;
 int GMRFLib_save_memory = 0;
 
-int GMRFLib_threshold_exp = 3;
-int GMRFLib_threshold_log = 3;
-int GMRFLib_threshold_log1p = 0;
-int GMRFLib_threshold_sqr = 255;
-int GMRFLib_threshold_add = 255;
-int GMRFLib_threshold_mul = 255;
 int GMRFLib_write_state = 0;
 int GMRFLib_gaussian_data = 0;
 int GMRFLib_testit_mode = 0;

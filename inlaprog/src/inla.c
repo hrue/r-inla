@@ -5630,8 +5630,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
-
-		GMRFLib_MKL_chose_thresholds();
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
@@ -5700,10 +5698,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-#if defined(INLA_LINK_WITH_MKL)
-			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp,
-			       GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
-#endif
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",

@@ -140,14 +140,6 @@ extern int GMRFLib_save_memory;
 extern int GMRFLib_sort2_id_cut_off;
 extern int GMRFLib_sort2_dd_cut_off;
 
-extern int GMRFLib_threshold_exp;
-extern int GMRFLib_threshold_log;
-extern int GMRFLib_threshold_log1p;
-extern int GMRFLib_threshold_sqr;
-
-extern int GMRFLib_threshold_add;
-extern int GMRFLib_threshold_mul;
-
 extern int GMRFLib_write_state;
 extern int GMRFLib_gaussian_data;
 
