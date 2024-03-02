@@ -104,6 +104,18 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
 
+double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+{
+	if (j < 0) {
+		return NAN;
+	}
+
+	inla_replicate_tp *a = (inla_replicate_tp *) arg;
+	div_t di = div(i, a->n), dj = div(j, a->n);
+
+	return a->Qfunc(thread_id, di.rem, dj.rem, NULL, a->Qfunc_arg);
+}
+
 double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	// spell out map_precision(...)
@@ -119,17 +131,18 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 	div_t ii = div(i, n);
 	div_t jj = div(j, n);
-	
+
 	int igroup = ii.quot;
 	int jgroup = jj.quot;
 	int irem = ii.rem;
 	int jrem = jj.rem;
-	
+	int is_eq = (igroup == jgroup);
+
 	switch (a->type) {
-	case G_EXCHANGEABLE: 
+	case G_EXCHANGEABLE:
 	{
 		rho = map_group_rho(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		if (igroup == jgroup) {
+		if (is_eq) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else {
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
@@ -140,7 +153,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	case G_EXCHANGEABLE_POS:
 	{
 		rho = map_probability(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		if (igroup == jgroup) {
+		if (is_eq) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else {
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
@@ -151,7 +164,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	case G_AR1:
 	{
 		rho = map_rho(a->group_rho_intern[thread_id][0], MAP_FORWARD, NULL);
-		if (igroup == jgroup) {
+		if (is_eq) {
 			if (!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1)) {
 				fac = 1.0 / (1.0 - SQR(rho));
 			} else {
@@ -172,7 +185,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	case G_RW1:
 	case G_RW2:
 	{
-		//prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+		// prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
 		prec = exp(a->group_prec_intern[thread_id][0]);
 		if (a->crwdef) {
 			fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
@@ -184,7 +197,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 	case G_BESAG:
 	{
-		//prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+		// prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
 		prec = exp(a->group_prec_intern[thread_id][0]);
 		fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
 	}
@@ -192,8 +205,8 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 	case G_IID:
 	{
-		if (igroup == jgroup) {
-			//fac = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+		if (is_eq) {
+			// fac = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
 			fac = exp(a->group_prec_intern[thread_id][0]);
 		} else {
 			fac = 0.0;
@@ -290,18 +303,6 @@ double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void 
 	val *= prec_common;
 
 	return (val);
-}
-
-double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
-{
-	if (j < 0) {
-		return NAN;
-	}
-
-	inla_replicate_tp *a = (inla_replicate_tp *) arg;
-	div_t di = div(i, a->n), dj = div(j, a->n);
-
-	return a->Qfunc(thread_id, di.rem, dj.rem, NULL, a->Qfunc_arg);
 }
 
 double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
