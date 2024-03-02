@@ -104,164 +104,123 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
 
-double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	if (j < 0) {
 		return NAN;
 	}
 
+	inla_replicate_tp *a = (inla_replicate_tp *) arg;
+	div_t di = div(i, a->n), dj = div(j, a->n);
+
+	return a->Qfunc(thread_id, di.rem, dj.rem, NULL, a->Qfunc_arg);
+}
+
+double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+{
+	// spell out map_precision(...)
+	if (j < 0) {
+		return NAN;
+	}
+
 	inla_group_def_tp *a = (inla_group_def_tp *) arg;
-	ar_def_tp *ardef = NULL;
-	double rho = 0, val, fac, ngroup, prec = 0;
-	int igroup, irem, jgroup, jrem, n;
+	double val = 0.0, fac = 0.0, rho = 0.0, prec = 0.0;
+
+	int n = a->N;					       /* this is the size before group */
+	int ngroup = a->ngroup;
+
+	div_t ii = div(i, n);
+	div_t jj = div(j, n);
+
+	int igroup = ii.quot;
+	int jgroup = jj.quot;
+	int irem = ii.rem;
+	int jrem = jj.rem;
+	int is_eq = (igroup == jgroup);
 
 	switch (a->type) {
 	case G_EXCHANGEABLE:
+	{
 		rho = map_group_rho(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		break;
+		if (is_eq) {
+			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		} else {
+			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		}
+	}
+	break;
 
 	case G_EXCHANGEABLE_POS:
+	{
 		rho = map_probability(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		break;
+		if (is_eq) {
+			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		} else {
+			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		}
+	}
+	break;
 
 	case G_AR1:
+	{
 		rho = map_rho(a->group_rho_intern[thread_id][0], MAP_FORWARD, NULL);
-		break;
-
-	case G_AR:
-		ardef = a->ardef;
-		break;
-
-	case G_IID:
-	case G_RW1:
-	case G_RW2:
-	case G_BESAG:
-		prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
-		break;
-
-	default:
-		inla_error_general("This should not happen.");
-		abort();
-	}
-
-	n = a->N;					       /* this is the size before group */
-	ngroup = a->ngroup;
-
-	igroup = i / n;
-	irem = i % n;
-	jgroup = j / n;
-	jrem = j % n;
-
-	if (igroup == jgroup) {
-
-		switch (a->type) {
-		case G_EXCHANGEABLE:
-		case G_EXCHANGEABLE_POS:
-		{
-			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
-		}
-			break;
-
-		case G_AR1:
-		{
+		if (is_eq) {
 			if (!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1)) {
 				fac = 1.0 / (1.0 - SQR(rho));
 			} else {
 				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
 			}
-		}
-			break;
-
-		case G_AR:
-		{
-			fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) ardef);
-		}
-			break;
-
-		case G_RW1:
-		case G_RW2:
-		{
-			if (a->crwdef) {
-				fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
-			} else {
-				fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
-			}
-		}
-			break;
-
-		case G_BESAG:
-		{
-			fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
-		}
-			break;
-
-		case G_IID:
-		{
-			fac = prec;
-		}
-			break;
-
-		default:
-			inla_error_general("This should not happen.");
-			abort();
-		}
-
-		val = a->Qfunc(thread_id, irem, jrem, NULL, a->Qfunc_arg) * fac;
-	} else {
-		switch (a->type) {
-		case G_EXCHANGEABLE:
-		case G_EXCHANGEABLE_POS:
-		{
-			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
-		}
-			break;
-
-		case G_AR1:
-		{
+		} else {
 			fac = -rho / (1.0 - SQR(rho));
 		}
-			break;
+	}
+	break;
 
-		case G_AR:
-		{
-			fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) ardef);
+	case G_AR:
+	{
+		fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) a->ardef);
+	}
+	break;
+
+	case G_RW1:
+	case G_RW2:
+	{
+		// prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+		prec = exp(a->group_prec_intern[thread_id][0]);
+		if (a->crwdef) {
+			fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
+		} else {
+			fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
 		}
-			break;
+	}
+	break;
 
-		case G_RW1:
-		case G_RW2:
-		{
-			if (a->crwdef) {
-				fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
-			} else {
-				fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
-			}
+	case G_BESAG:
+	{
+		// prec = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+		prec = exp(a->group_prec_intern[thread_id][0]);
+		fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
+	}
+	break;
+
+	case G_IID:
+	{
+		if (is_eq) {
+			// fac = map_precision(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
+			fac = exp(a->group_prec_intern[thread_id][0]);
+		} else {
+			fac = 0.0;
 		}
-			break;
+	}
+	break;
 
-		case G_BESAG:
-		{
-			fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
-		}
-			break;
-
-		case G_IID:
-		{
-			fac = prec * 0.0;
-		}
-			break;
-
-		default:
-			inla_error_general("This should not happen.");
-			abort();
-		}
-
-		val = a->Qfunc(thread_id, irem, jrem, NULL, a->Qfunc_arg) * fac;
+	default:
+		assert(0 == 1);
 	}
 
+	val = a->Qfunc(thread_id, irem, jrem, NULL, a->Qfunc_arg) * fac;
 	return val;
 }
-
 
 double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
@@ -344,21 +303,6 @@ double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void 
 	val *= prec_common;
 
 	return (val);
-}
-
-double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
-{
-	if (j < 0) {
-		return NAN;
-	}
-
-	int ii, jj;
-	inla_replicate_tp *a = (inla_replicate_tp *) arg;
-
-	ii = MOD(i, a->n);
-	jj = MOD(j, a->n);
-
-	return a->Qfunc(thread_id, ii, jj, NULL, a->Qfunc_arg);
 }
 
 double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)

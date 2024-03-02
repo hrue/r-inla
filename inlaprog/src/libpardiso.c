@@ -27,6 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
+
+#if !defined(PARDISO8)
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -67,9 +70,10 @@ void pardiso_delete_symbolic_factor_single(void *a, int *b, int *c) NO_PARDISO_L
 
 #pragma GCC diagnostic pop
 
-
 int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
+
+#endif	/* if !defined(PARDISO8) */

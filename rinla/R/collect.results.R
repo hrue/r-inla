@@ -215,6 +215,14 @@
     }
 
     names(theta.mode) <- theta.tags
+
+    filename <- paste0(results.dir, "/cpu-intern")
+    if (file.exists(filename)) {
+        cpu.intern <- readLines(filename)
+    } else {
+        cpu.intern <- NULL
+    }
+
     res <- c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
              list(cpo = res.cpo.pit), list(gcpo = res.gcpo), list(po = res.po), list(waic = res.waic),
              list(residuals = res.deviance.residuals), 
@@ -232,7 +240,8 @@
              ),
              list(Q = res.q),
              res.graph,
-             ok = res.ok
+             ok = res.ok, 
+             cpu.intern = list(cpu.intern)
              )
     class(res) <- "inla"
     return(res)

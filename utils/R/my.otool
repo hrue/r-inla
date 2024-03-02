@@ -110,6 +110,12 @@ replace () {
 	fi
     done
 	     
+    for f in $HOME/builds/build64/local/lib/libiomp5.dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+	     
     if $(uname -a |grep -q ARM64); then 
 	dummy=1
     else

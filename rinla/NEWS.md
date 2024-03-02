@@ -1,3 +1,7 @@
+# INLA 24.03.02
+* Updated PARDISO library to version 8.2
+* Various code improvements
+
 # INLA 24.02.27
 * Fixed an regression since cf5714584c6ea59911526fb3952193bfb9f550c6
   for the marginal of one hyperparameter only

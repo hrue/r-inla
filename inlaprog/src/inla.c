@@ -5630,8 +5630,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
-
-		GMRFLib_MKL_chose_thresholds();
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
@@ -5700,10 +5698,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-#if defined(INLA_LINK_WITH_MKL)
-			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp,
-			       GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
-#endif
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
@@ -7199,24 +7193,30 @@ int main(int argc, char **argv)
 			time_used[2] = GMRFLib_cpu() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
-#define PEFF_OUTPUT if (1) {						\
-				printf("Total:");			\
-				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
-				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
+#define PEFF_OUTPUT(fp_)						\
+			if (1) {					\
+				char *tab = "";				\
+				if (fp_ == stdout) tab = "\t";		\
+				fprintf(fp_, "Total:");			\
+				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]); \
+				fprintf(fp_, "%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
+				fprintf(fp_, "%sEfficiency using %1d threads = %.2f%%\n", tab, GMRFLib_MAX_THREADS(), \
+					100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
-#define PEFF_PREOPT_OUTPUT if (1) {					\
-				printf("Stage1:");			\
-				eff_nt = ((double)(atime_used[0] + atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[3]);	\
-				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
-				printf("Stage2:");			\
+#define PEFF_PREOPT_OUTPUT(fp_)						\
+			if (1) {					\
+				char *tab = "";				\
+				if (fp_ == stdout) tab = "\t";		\
+				fprintf(fp_, "Stage1:");		\
+				eff_nt = ((double)(atime_used[0] + atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[3]); \
+				fprintf(fp_,"%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
+				fprintf(fp_,"%sEfficiency using %1d threads = %.2f%%\n", tab, GMRFLib_MAX_THREADS(), \
+					100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
+				fprintf(fp_,"Stage2:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[1] - atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1] - time_used[3]); \
-				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
+				fprintf(fp_,"%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
+				fprintf(fp_,"%sEfficiency using %1d threads = %.2f%%\n", tab, GMRFLib_MAX_THREADS(), \
+					100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
 
 			if (!silent) {
@@ -7225,9 +7225,9 @@ int main(int argc, char **argv)
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
 #if !defined(WINDOWS)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
-					PEFF_PREOPT_OUTPUT;
+					PEFF_PREOPT_OUTPUT(stdout);
 				}
-				PEFF_OUTPUT;
+				PEFF_OUTPUT(stdout);
 #endif
 				fflush(stdout);
 			}
@@ -7277,11 +7277,67 @@ int main(int argc, char **argv)
 				}
 #if !defined(WINDOWS)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
-					PEFF_PREOPT_OUTPUT;
+					PEFF_PREOPT_OUTPUT(stdout);
 				}
-				PEFF_OUTPUT;
+				PEFF_OUTPUT(stdout);
 #endif
 				printf("\n");
+			}
+
+			if (mb->dir) {
+				// just a copy of what is above
+				char *nfile = NULL;
+				GMRFLib_sprintf(&nfile, "%s/cpu-intern", mb->dir);
+				FILE *fp = fopen(nfile, "w");
+				if (fp) {
+					fprintf(fp, "Wall-clock time used on [%s]\n", argv[arg]);
+					fprintf(fp, "Preparations             : %7.3f seconds\n", time_used[0]);
+					if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+						fprintf(fp, "Approx inference         : %7.3f seconds\n", time_used[1]);
+					} else {
+						fprintf(fp, "Approx inference (stage1): %7.3f seconds\n", time_used[3]);
+						fprintf(fp, "Approx inference (stage2): %7.3f seconds\n", time_used[1] - time_used[3]);
+						fprintf(fp, "Approx inference (total) : %7.3f seconds\n", time_used[1]);
+					}
+					fprintf(fp, "Output                   : %7.3f seconds\n", time_used[2]);
+					fprintf(fp, "------------------------------------------\n");
+					fprintf(fp, "Total                    : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
+				}
+
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+					fprintf(fp, "Number of fn-calls= %1d with %.4f sec/fn-call\n",
+						mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
+					if (R_rgeneric_cputime > 0.0) {
+						fprintf(fp, "rgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
+							R_rgeneric_cputime,
+							R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc),
+							R_rgeneric_cputime / time_used[1] * 100.0);
+					}
+				} else {
+					fprintf(fp, "Stage1:");
+					fprintf(fp, "Number of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
+					if (rgeneric_cpu[0] > 0.0) {
+						fprintf(fp, "rgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
+							rgeneric_cpu[0],
+							rgeneric_cpu[0] / IMAX(1, nfunc[0]), rgeneric_cpu[0] / time_used[3] * 100.0);
+					}
+					fprintf(fp, "Stage2:");
+					fprintf(fp, "Number of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
+					if (rgeneric_cpu[1] > 0.0) {
+						fprintf(fp, "rgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
+							rgeneric_cpu[1],
+							rgeneric_cpu[1] / IMAX(1, nfunc[1]),
+							rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
+					}
+				}
+#if !defined(WINDOWS)
+				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
+					PEFF_PREOPT_OUTPUT(fp);
+				}
+				PEFF_OUTPUT(fp);
+#endif
+				fclose(fp);
+				Free(nfile);
 			}
 		}
 	}
