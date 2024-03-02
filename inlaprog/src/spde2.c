@@ -104,7 +104,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	}
 }
 
-double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	// do not use directly. need ``if (jj < 0)'' code
 
@@ -122,23 +122,16 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	}
 
 	if (nc < use_ddot_lim) {
-		// better to inline the code, as the vectors are pretty short
-		if (0) {
-			d_i[0] = exp(GMRFLib_ddot(nc, vals_i, theta));
-			d_i[1] = exp(GMRFLib_ddot(nc, vals_i + nc, theta));
-			d_i[2] = GMRFLib_ddot(nc, vals_i + 2 * nc, theta);
-		} else {
-			double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
-			for (int k = 0; k < nc; k++) {
-				d0 += vals_i[k] * theta[k];
-				d1 += vals_i[k + nc] * theta[k];
-				d2 += vals_i[k + nc2] * theta[k];
-			}
-			d_i[0] = exp(d0);
-			d_i[1] = exp(d1);
-			d_i[2] = d2;
+		for (int k = 0; k < nc; k++) {
+			d0 += vals_i[k] * theta[k];
+			d1 += vals_i[k + nc] * theta[k];
+			d2 += vals_i[k + nc2] * theta[k];
 		}
+		d_i[0] = exp(d0);
+		d_i[1] = exp(d1);
+		d_i[2] = d2;
 	} else {
 		int m = nc;
 		int lda = nc;
@@ -179,23 +172,16 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	double *vals_j = vals_j_p->V;
 
 	if (nc < use_ddot_lim) {
-		// better to inline the code, as the vectors are pretty short
-		if (0) {
-			d_j[0] = exp(GMRFLib_ddot(nc, vals_j, theta));
-			d_j[1] = exp(GMRFLib_ddot(nc, vals_j + nc, theta));
-			d_j[2] = GMRFLib_ddot(nc, vals_j + 2 * nc, theta);
-		} else {
-			double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
-			for (int k = 0; k < nc; k++) {
-				d0 += vals_j[k] * theta[k];
-				d1 += vals_j[k + nc] * theta[k];
-				d2 += vals_j[k + nc2] * theta[k];
-			}
-			d_j[0] = exp(d0);
-			d_j[1] = exp(d1);
-			d_j[2] = d2;
+		for (int k = 0; k < nc; k++) {
+			d0 += vals_j[k] * theta[k];
+			d1 += vals_j[k + nc] * theta[k];
+			d2 += vals_j[k + nc2] * theta[k];
 		}
+		d_j[0] = exp(d0);
+		d_j[1] = exp(d1);
+		d_j[2] = d2;
 	} else {
 		int m = nc;
 		int lda = nc;
