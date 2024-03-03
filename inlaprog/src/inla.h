@@ -1866,37 +1866,50 @@ double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double
 double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+
 double map_1exp(double arg, map_arg_tp typ, void *param);
+double map_1exp_forward(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
-double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
+double map_dof_forward(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
+double map_exp_forward(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
+double map_identity_forward(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
-double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invcauchit_forward(double arg, map_arg_tp typ, void *param);
 double map_invccloglog(double arg, map_arg_tp typ, void *param);
+double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
+double map_inverse_forward(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
+double map_invloglog_forward(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
+double map_negexp_forward(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
+double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
+double map_precision_forward(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
+double map_probability_forward(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
+double map_rho_forward(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
+double map_sqrt1exp_forward(double arg, map_arg_tp typ, void *param);
 double mfunc_ar1(int thread_id, int i, void *arg);
 double mfunc_cgeneric(int thread_id, int i, void *arg);
 double mfunc_clinear(int thread_id, int i, void *arg);
@@ -2191,7 +2204,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

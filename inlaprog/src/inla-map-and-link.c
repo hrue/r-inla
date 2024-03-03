@@ -59,6 +59,10 @@ double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+double map_identity_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return arg;
+}
 
 double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 {
@@ -91,6 +95,11 @@ double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 	}
 	abort();
 	return 0.0;
+}
+
+double map_inverse_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return 1.0 / arg;
 }
 
 double map_identity_scale(double arg, map_arg_tp typ, void *param)
@@ -161,6 +170,11 @@ double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_exp_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(arg);
+}
+
 double map_exp_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -226,6 +240,11 @@ double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 	}
 	abort();
 	return 0.0;
+}
+
+double map_negexp_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(-arg);
 }
 
 double map_exp_scale2(double arg, map_arg_tp typ, void *param)
@@ -596,6 +615,11 @@ double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_invloglog_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(-exp(-arg));
+}
+
 double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -627,6 +651,11 @@ double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 	}
 	abort();
 	return 0.0;
+}
+
+double map_invcauchit_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return M_1_PI * atan(arg) + 0.5;
 }
 
 double link_log_invcloglog(double x)
@@ -821,6 +850,11 @@ double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_1exp_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(-arg);
+}
+
 double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -854,6 +888,11 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_sqrt1exp_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(-0.5 * arg);
+}
+
 double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -885,6 +924,11 @@ double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 	}
 	abort();
 	return 0.0;
+}
+
+double map_dof_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return 2.0 + exp(arg);
 }
 
 double map_phi(double arg, map_arg_tp typ, void *param)
@@ -926,12 +970,47 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_rho(double arg, map_arg_tp typ, void *param)
+double map_rho(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
-	 * the map-function for the correlation in the 2D iid model
+	 * the map-function for the lag-1 correlation in the AR(1) model. The
+	 * extra argument, if present, is the range (default = 1)
 	 */
-	return map_phi(arg, typ, param);
+	double xx;
+
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		xx = exp(-arg);
+		return (2.0 / (1.0 + xx) - 1.0);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log((1.0 + arg) / (1.0 - arg));
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		xx = exp(arg);
+		return (2.0 * xx / SQR(1.0 + xx));
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+
+double map_rho_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return (2.0 / (1.0 + exp(-arg)) - 1.0);
 }
 
 double map_precision(double arg, map_arg_tp typ, void *param)
@@ -940,6 +1019,11 @@ double map_precision(double arg, map_arg_tp typ, void *param)
 	 * the map-function for the precision variables 
 	 */
 	return map_exp(arg, typ, param);
+}
+
+double map_precision_forward(double arg, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return exp(arg);
 }
 
 double map_range(double arg, map_arg_tp typ, void *param)
@@ -1023,6 +1107,11 @@ double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 	return 0.0;
+}
+
+double map_probability_forward(double x, map_arg_tp UNUSED(typ), void *UNUSED(param))
+{
+	return 1.0 / (1.0 + exp(-x));
 }
 
 double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))

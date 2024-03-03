@@ -16575,7 +16575,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 							mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][ntheta_orig + i].to_theta);
 							mb->theta[mb->ntheta] = pacf_intern[i - 1];
 							mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-							mb->theta_map[mb->ntheta] = map_phi;
+							mb->theta_map[mb->ntheta] = map_rho;
 							mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 							mb->theta_map_arg[mb->ntheta] = NULL;
 							mb->ntheta++;
