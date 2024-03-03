@@ -66,12 +66,12 @@ int main(int argc, char **argv)
 	retval = GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, Qfunc_invalid, NULL, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	printf("retval = %d with meaning [%s]\n", retval, GMRFLib_error_reason(retval));
 
-	fnm = GMRFLib_strdup("this graph does not exists.graph");
+	fnm = Strdup("this graph does not exists.graph");
 	retval = GMRFLib_read_graph(&graph, fnm);
 	printf("retval = %d with meaning [%s]\n", retval, GMRFLib_error_reason(retval));
 	free(fnm);
 
-	fnm = GMRFLib_strdup("graph-with-error.graph");
+	fnm = Strdup("graph-with-error.graph");
 	retval = GMRFLib_read_graph(&graph, fnm);
 	printf("retval = %d with meaning [%s]\n", retval, GMRFLib_error_reason(retval));
 	free(fnm);

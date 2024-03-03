@@ -92,7 +92,7 @@ int read_graph_and_data(void)
 	FILE *fp;
 	char *fnm;
 
-	fnm = GMRFLib_strdup(GRAPH);
+	fnm = Strdup(GRAPH);
 	GMRFLib_read_graph(&G.graph, fnm);
 	G.y = Calloc(G.graph->n, double);
 	G.E = Calloc(G.graph->n, double);

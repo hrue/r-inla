@@ -86,7 +86,7 @@ int read_graph_and_data(void)
 	char *fnm;
 	GMRFLib_io_tp *io = NULL;
 
-	fnm = GMRFLib_strdup(GRAPH);
+	fnm = Strdup(GRAPH);
 	GMRFLib_read_graph(&G.graph, fnm);
 	Free(fnm);
 

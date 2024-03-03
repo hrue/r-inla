@@ -48,6 +48,12 @@
 
 static int malloc_debug = -1;
 
+// better with function then macro...
+char *Strdup(const char *s) 
+{
+	return (s ? strdup(s) : (char *) NULL);
+}
+
 /*
  * Measures the current (and peak) resident and virtual memories
  * usage of your linux C process, in kB
@@ -625,32 +631,6 @@ double GMRFLib_log_apbex(double a, double b)
 	} else {
 		return log(a) + log1p(0.0 + B / a);
 	}
-}
-
-char *GMRFLib_strdup(const char *ptr)
-{
-	/*
-	 * strdup is not part of ANSI-C 
-	 */
-#if defined(__STRICT_ANSI__)
-	if (ptr) {
-		size_t len = strlen(ptr);
-		char *str = Malloc(len + 1, char);
-
-		return strcpy(str, ptr);
-	} else {
-		return (char *) NULL;
-	}
-#else
-	if (ptr) {
-		char *p = strdup(ptr);
-		GMRFLib_ASSERT_RETVAL(p, GMRFLib_EMEMORY, (char *) NULL);
-
-		return p;
-	} else {
-		return NULL;
-	}
-#endif
 }
 
 int GMRFLib_normalize(int n, double *x)
@@ -1290,7 +1270,7 @@ int GMRFLib_debug_functions(const char *name)
 		int verbose = 0;
 
 		if (def) {
-			def = GMRFLib_strdup(def);
+			def = Strdup(def);
 		}
 		if (verbose) {
 			printf("\t\tREAD %s\n", def);
@@ -1386,7 +1366,7 @@ int GMRFLib_trace_functions(const char *name)
 		int verbose = 0;
 
 		if (def) {
-			def = GMRFLib_strdup(def);
+			def = Strdup(def);
 		}
 		if (verbose) {
 			printf("\t\tREAD %s\n", def);
@@ -1992,7 +1972,7 @@ double GMRFLib_erfc_inv(double x)
 // 
 /////////////////////////////////////////////////////////////////////////
 
-forceinline void GMRFLib_exp(int n, double *x, double *y)
+void GMRFLib_exp(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdExp(n, x, y);
@@ -2004,7 +1984,7 @@ forceinline void GMRFLib_exp(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
+void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdExpI(n, x, inc, y, inc);
@@ -2016,7 +1996,7 @@ forceinline void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 #endif
 }
 
-forceinline void GMRFLib_log(int n, double *x, double *y)
+void GMRFLib_log(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdLn(n, x, y);
@@ -2028,7 +2008,7 @@ forceinline void GMRFLib_log(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_log1p(int n, double *x, double *y)
+void GMRFLib_log1p(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdLog1p(n, x, y);
@@ -2040,7 +2020,7 @@ forceinline void GMRFLib_log1p(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_sqr(int n, double *x, double *y)
+void GMRFLib_sqr(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdSqr(n, x, y);
@@ -2052,7 +2032,7 @@ forceinline void GMRFLib_sqr(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_add(int n, double *x, double *y, double *z)
+void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdAdd(n, x, y, z);
@@ -2064,7 +2044,7 @@ forceinline void GMRFLib_add(int n, double *x, double *y, double *z)
 #endif
 }
 
-forceinline void GMRFLib_mul(int n, double *x, double *y, double *z)
+void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdMul(n, x, y, z);
@@ -2158,9 +2138,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
+	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2180,15 +2160,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y)
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y)
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 

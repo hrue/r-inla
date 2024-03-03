@@ -207,7 +207,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	int ret;
 
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf(GMRFLib_strdup("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n"));
+		taucs_printf(Strdup("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -216,7 +216,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	 * this routine may actually work on UPPER as well 
 	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf(GMRFLib_strdup("taucs_ccs_metis: the lower part of the matrix must be represented.\n"));
+		taucs_printf(Strdup("taucs_ccs_metis: the lower part of the matrix must be represented.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -490,62 +490,62 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		switch (reorder) {
 		case GMRFLib_REORDER_IDENTITY:
 		{
-			p = GMRFLib_strdup("identity");
+			p = Strdup("identity");
 		}
 			break;
 
 		case GMRFLib_REORDER_REVERSE_IDENTITY:
 		{
-			p = GMRFLib_strdup("reverseidentity");
+			p = Strdup("reverseidentity");
 		}
 			break;
 
 		case GMRFLib_REORDER_DEFAULT:
 		case GMRFLib_REORDER_METIS:
 		{
-			p = GMRFLib_strdup("metis");
+			p = Strdup("metis");
 		}
 			break;
 
 		case GMRFLib_REORDER_GENMMD:
 		{
-			p = GMRFLib_strdup("genmmd");
+			p = Strdup("genmmd");
 		}
 			break;
 
 		case GMRFLib_REORDER_AMD:
 		{
-			p = GMRFLib_strdup("amd");
+			p = Strdup("amd");
 		}
 			break;
 
 		case GMRFLib_REORDER_AMDC:
 		{
-			p = GMRFLib_strdup("amdc");
+			p = Strdup("amdc");
 		}
 			break;
 
 		case GMRFLib_REORDER_AMDBAR:
 		{
-			p = GMRFLib_strdup("amdbar");
+			p = Strdup("amdbar");
 		}
 			break;
 
 		case GMRFLib_REORDER_AMDBARC:
 		{
-			p = GMRFLib_strdup("amdbarc");
+			p = Strdup("amdbarc");
 		}
 			break;
 
 		case GMRFLib_REORDER_MD:
 		{
-			p = GMRFLib_strdup("md");
+			p = Strdup("md");
 		}
 			break;
 
 		case GMRFLib_REORDER_MMD:
 		{
-			p = GMRFLib_strdup("mmd");
+			p = Strdup("mmd");
 		}
 			break;
 

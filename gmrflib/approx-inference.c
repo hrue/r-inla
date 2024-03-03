@@ -1486,7 +1486,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							n_warnings++;
 							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
 							misc_output->warnings[n_warnings - 1] =
-							    GMRFLib_strdup
+							    Strdup
 							    ("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
 							misc_output->warnings[n_warnings] = NULL;
 						}
@@ -1919,8 +1919,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			for (int j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s =
-					    GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
+					char *s = Strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -3725,7 +3724,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
 					       (int) gcpo[node]->idx_node);
-					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, GMRFLib_strdup("nodes in this group"));
+					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, Strdup("nodes in this group"));
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}

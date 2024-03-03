@@ -262,7 +262,7 @@ void dictionary_set(dictionary *d, char *key, char *val)
 		 */
 		if (d->val[i] != NULL)
 			free(d->val[i]);
-		d->val[i] = val ? strdup(val) : NULL;
+		d->val[i] = val ? Strdup(val) : NULL;
 		map_stri_set(&(d->strihash), d->val[i], 0);
 	} else {
 		/*
@@ -307,8 +307,8 @@ void dictionary_set(dictionary *d, char *key, char *val)
 		/*
 		 * Copy key 
 		 */
-		d->key[i] = strdup(key);
-		d->val[i] = val ? strdup(val) : NULL;
+		d->key[i] = Strdup(key);
+		d->val[i] = val ? Strdup(val) : NULL;
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);

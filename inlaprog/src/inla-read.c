@@ -170,12 +170,12 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 	char *strtok_ptr = NULL, *token;
 	const char *delim = ":";
 	int ok = 1;
-	char *p = GMRFLib_strdup(str);
+	char *p = Strdup(str);
 
 	token = GMRFLib_strtok_r(p, delim, &strtok_ptr);
 	if (token) {
 		p = NULL;
-		*tag = GMRFLib_strdup(token);
+		*tag = Strdup(token);
 		token = GMRFLib_strtok_r(p, delim, &strtok_ptr);
 		if (sscanf(token, "%d", i) != 1)
 			ok = 0;
@@ -189,12 +189,12 @@ int inla_sread_str_str(char **tag, int nmax, char *str)
 {
 	char *strtok_ptr = NULL, *token;
 	const char *delim = ":";
-	char *p = GMRFLib_strdup(str);
+	char *p = Strdup(str);
 	int i = 0;
 
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
-		tag[i++] = GMRFLib_strdup(token);
+		tag[i++] = Strdup(token);
 		if (i == nmax)
 			break;
 	}
@@ -235,7 +235,7 @@ int inla_sread(void *x, int nx, const char *str, int code)
 		printf("read %d entries from %s\n", nx, str);
 
 	assert(code == 0 || code == 1);
-	p = GMRFLib_strdup(str);
+	p = Strdup(str);
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
 		ok = 1;
@@ -287,7 +287,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 	int ok;
 
 	assert(code == 0 || code == 1);
-	p = GMRFLib_strdup(str);
+	p = Strdup(str);
 
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
@@ -383,7 +383,7 @@ int inla_is_NAs(int nx, const char *string)
 	if (!string && !nx)
 		return GMRFLib_SUCCESS;
 
-	scopy = GMRFLib_strdup(string);
+	scopy = Strdup(string);
 	p = strtok(scopy, sep);
 	nna += (p && !strcmp(p, NA));
 
@@ -495,10 +495,10 @@ int inla_error_file_error2(const char *funcname, const char *filename, int n, in
 
 int inla_read_fileinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file, const char *FILENAME)
 {
-	char *tag = (FILENAME ? GMRFLib_strdup(FILENAME) : GMRFLib_strdup("FILENAME"));
-	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	char *tag = (FILENAME ? Strdup(FILENAME) : Strdup("FILENAME"));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 
-	file->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, tag), NULL));
+	file->name = Strdup(iniparser_getstring(ini, inla_string_join(secname, tag), NULL));
 
 	/*
 	 * Only signal error if FILENAME is NULL. 
@@ -516,9 +516,9 @@ int inla_read_fileinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file, con
 
 int inla_read_weightsinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file)
 {
-	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 
-	file->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
+	file->name = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
 	if (!file->name) {
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, "filename");
 	}

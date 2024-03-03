@@ -807,8 +807,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						}
 #pragma omp critical (Name_8c313c5cb0ba5eb20ede5a81e455580200ca1348)
 						{
-							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha),
-								     (*problem)->logdet_aat);
+							map_strd_set(&constr_store_logdet, Strdup((char *) con->sha), (*problem)->logdet_aat);
 						}
 					}
 				}

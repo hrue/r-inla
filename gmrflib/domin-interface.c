@@ -1560,11 +1560,11 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 		return;
 	}
 
-	char *template = NULL;
-	GMRFLib_sprintf(&template, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
+	char *templat = NULL;
+	GMRFLib_sprintf(&templat, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
 
 	ssize_t rval;
-	int fd = mkstemp(template);
+	int fd = mkstemp(templat);
 	rval = write(fd, &fval, sizeof(double));
 	assert(rval >= 0);
 	rval = write(fd, &nfun, sizeof(int));
@@ -1583,6 +1583,6 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	}
 	close(fd);
 
-	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", template);
+	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", templat);
 }
 #endif

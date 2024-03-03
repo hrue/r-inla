@@ -62,9 +62,10 @@ __BEGIN_DECLS
 } GMRFLib_vmatrix_tp;
 
 
+char *Strdup(const char *s);
+
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno);
 char *GMRFLib_rindex(const char *p, int ch);
-char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 char *GMRFLib_vec2char(double *arr, int len);
 const char *GMRFLib_function_name_strip(const char *name);

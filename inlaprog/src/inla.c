@@ -199,7 +199,7 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 	if (1) {						\
 		int _id = (Id);					\
 		WRITE(fd, &_id, 1, int);			\
-		char *dup_msg = GMRFLib_strdup(msg);		\
+		char *dup_msg = Strdup(msg);		\
 		WRITE(fd, dup_msg, strlen(dup_msg)+1, char);	\
 		Free(dup_msg);					\
 	}
@@ -277,8 +277,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * first check that "type" is present in each section 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "type"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "type"), NULL)));
 		if (!sectype) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "type");
 		}
@@ -303,8 +303,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * 
 	 */
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LIBR")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[LIBR]\n", sec, iniparser_getsecname(ini, sec));
@@ -321,8 +321,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "EXPERT")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[EXPERT]\n", sec, iniparser_getsecname(ini, sec));
@@ -339,8 +339,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "MODE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[MODE]\n", sec, iniparser_getsecname(ini, sec));
@@ -357,8 +357,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PROBLEM")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PROBLEM]\n", sec, iniparser_getsecname(ini, sec));
@@ -382,8 +382,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = predictor 
 	 */
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PREDICTOR")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PREDICTOR]\n", sec, iniparser_getsecname(ini, sec));
@@ -408,8 +408,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	mb->ds = 0;
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "DATA")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[DATA]\n", sec, iniparser_getsecname(ini, sec));
@@ -431,8 +431,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = ffield 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "FFIELD")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[FFIELD]\n", sec, iniparser_getsecname(ini, sec));
@@ -452,8 +452,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = linear 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINEAR")) {
 			if (mb->verbose) {
 				printf("\tsection=[%1d] name=[%s] type=[LINEAR]\n", sec, iniparser_getsecname(ini, sec));
@@ -473,8 +473,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->ai_par->fixed_mode = mb->fixed_mode;	       /* need to pass this one as well */
 
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "UPDATE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[UPDATE]\n", sec, iniparser_getsecname(ini, sec));
@@ -490,8 +490,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = PARDISO
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PARDISO")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
@@ -507,8 +507,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = LPSCALE
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LP.SCALE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[LP.SCALE]\n", sec, iniparser_getsecname(ini, sec));
@@ -530,23 +530,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 	j = idx = 0;
 	if (mb->predictor_m > 0) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->Apredictor_tag);
+		mb->idx_tag[j] = Strdup(mb->Apredictor_tag);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = mb->predictor_m;
 		idx += mb->idx_n[j++];
 	}
-	mb->idx_tag[j] = GMRFLib_strdup(mb->predictor_tag);
+	mb->idx_tag[j] = Strdup(mb->predictor_tag);
 	mb->idx_start[j] = idx;
 	mb->idx_n[j] = mb->predictor_n;
 	idx += mb->idx_n[j++];
 	for (i = 0; i < mb->nf; i++) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->f_tag[i]);
+		mb->idx_tag[j] = Strdup(mb->f_tag[i]);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = mb->f_Ntotal[i];
 		idx += mb->idx_n[j++];
 	}
 	for (i = 0; i < mb->nlinear; i++) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->linear_tag[i]);
+		mb->idx_tag[j] = Strdup(mb->linear_tag[i]);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = 1;
 		idx += mb->idx_n[j++];
@@ -556,7 +556,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 	map_stri_init_hint(&(mb->idx_hash), mb->idx_tot);
 	for (i = 0; i < mb->idx_tot; i++) {
-		map_stri_set(&(mb->idx_hash), GMRFLib_strdup(mb->idx_tag[i]), i);
+		map_stri_set(&(mb->idx_hash), Strdup(mb->idx_tag[i]), i);
 	}
 
 	if (mb->verbose) {
@@ -589,8 +589,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "INLA")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[INLA]\n", sec, iniparser_getsecname(ini, sec));
@@ -611,8 +611,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * first we count them
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINCOMB")) {
 			numsec++;
 		}
@@ -623,8 +623,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		 */
 		secmap = Calloc(numsec, int);
 		for (sec = 0; sec < nsec; sec++) {
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			if (!strcmp(sectype, "LINCOMB")) {
 				int ordering;
 				ordering = (int) iniparser_getdouble(ini, inla_string_join((const char *) secname, "LINCOMB.ORDER"), -1);
@@ -638,8 +638,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		 */
 		for (isec = 0; isec < numsec; isec++) {
 			sec = secmap[isec];
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			if (!strcmp(sectype, "LINCOMB")) {
 				/*
 				 * we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
@@ -681,8 +681,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	for (sec = 0; sec < nsec; sec++) {
 		if (!sec_read[sec]) {
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			GMRFLib_sprintf(&msg, "%s: section=[%s] is not used; please check its type=[%s]", __GMRFLib_FuncName, secname, sectype);
 			inla_error_general(msg);
 		}
@@ -1528,7 +1528,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
 					for (i = 0; i < mb->ntheta; i++) {
-						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
+						vec_str[i] = Strdup(mb->theta_tag[i]);
 					}
 				}
 				jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
@@ -7195,8 +7195,8 @@ int main(int argc, char **argv)
 
 #define PEFF_OUTPUT(fp_)						\
 			if (1) {					\
-				char *tab = "";				\
-				if (fp_ == stdout) tab = "\t";		\
+				char *tab = Strdup("");			\
+				if (fp_ == stdout) tab = Strdup("\t");	\
 				fprintf(fp_, "Total:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]); \
 				fprintf(fp_, "%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
@@ -7205,8 +7205,8 @@ int main(int argc, char **argv)
 			}
 #define PEFF_PREOPT_OUTPUT(fp_)						\
 			if (1) {					\
-				char *tab = "";				\
-				if (fp_ == stdout) tab = "\t";		\
+				char *tab = Strdup("");			\
+				if (fp_ == stdout) tab = Strdup("\t");	\
 				fprintf(fp_, "Stage1:");		\
 				eff_nt = ((double)(atime_used[0] + atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[3]); \
 				fprintf(fp_,"%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \

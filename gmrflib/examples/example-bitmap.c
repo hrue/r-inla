@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	GMRFLib_make_crw_graph(&graph, crwdef);
 	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, NULL, GMRFLib_NEW_PROBLEM);
 
-	char *fnm = GMRFLib_strdup("example");
+	char *fnm = Strdup("example");
 
 	GMRFLib_bitmap_problem(fnm, problem);
 

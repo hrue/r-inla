@@ -9924,7 +9924,7 @@ mapkit_error map_strstr_init_hint(map_strstr *spm, mapkit_size_t used)
 	spm->insertionindexs = spm->insertionindex_collisions = 0;
 	spm->keyindexs = spm->keyindex_collisions = 0;
 #endif
-	spm->defaultvalue = GMRFLib_strdup("");
+	spm->defaultvalue = Strdup("");
 	spm->alwaysdefault = 0;
 
 	return map_strstr_reallocate(spm, map_strstr_meansize(spm, used));

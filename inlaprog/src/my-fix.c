@@ -35,7 +35,7 @@ char *my_strlwc(const char *s)
 	const int debug = 0;
 	char *f, *str;
 
-	str = GMRFLib_strdup(s);
+	str = Strdup(s);
 	if (debug)
 		printf("str in %s\n", str);
 	f = strchr(str, INIPARSER_SEP);

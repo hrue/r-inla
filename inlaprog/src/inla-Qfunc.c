@@ -148,7 +148,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		}
 	}
-	break;
+		break;
 
 	case G_EXCHANGEABLE_POS:
 	{
@@ -159,7 +159,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		}
 	}
-	break;
+		break;
 
 	case G_AR1:
 	{
@@ -174,13 +174,13 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			fac = -rho / (1.0 - SQR(rho));
 		}
 	}
-	break;
+		break;
 
 	case G_AR:
 	{
 		fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) a->ardef);
 	}
-	break;
+		break;
 
 	case G_RW1:
 	case G_RW2:
@@ -193,7 +193,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
 		}
 	}
-	break;
+		break;
 
 	case G_BESAG:
 	{
@@ -201,7 +201,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 		prec = exp(a->group_prec_intern[thread_id][0]);
 		fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
 	}
-	break;
+		break;
 
 	case G_IID:
 	{
@@ -212,7 +212,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			fac = 0.0;
 		}
 	}
-	break;
+		break;
 
 	default:
 		assert(0 == 1);

@@ -43,14 +43,14 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
 	mb->lc_order = Realloc(mb->lc_order, mb->nlc + 1, double);
-	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->lc_tag[mb->nlc])));
+	mb->lc_tag[mb->nlc] = secname = Strdup(iniparser_getsecname(ini, sec));
+	mb->lc_dir[mb->nlc] = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->lc_tag[mb->nlc])));
 
 	if (mb->verbose) {
 		printf("\tinla_parse_lincomb...\n\t\tsecname = [%s]\n", mb->lc_tag[mb->nlc]);
 	}
 
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
 	if (!filename) {
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, "filename");
 	}
@@ -204,8 +204,8 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_mode...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
 
 	/*
 	 * first try if 'tmp' is a filename, is so, read (using binary format) from that. format: NTHETA theta[0] theta[1] .... theta[ NTHETA-1 ] 
@@ -254,7 +254,7 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "X"), NULL));
+	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "X"), NULL));
 	if (tmp) {
 		/*
 		 * this is new code that use binary i/o 
@@ -301,17 +301,17 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\tinla_parse_problem...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	mb->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "NAME"), NULL));
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	mb->name = Strdup(iniparser_getstring(ini, inla_string_join(secname, "NAME"), NULL));
 	if (!mb->name) {
-		mb->name = GMRFLib_strdup(secname);
+		mb->name = Strdup(secname);
 	}
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
 
-	rinla_version = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.VERSION"), GMRFLib_strdup("UNKNOWN")));
-	build_date = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.BDATE"), GMRFLib_strdup("UNKNOWN")));
+	rinla_version = Strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.VERSION"), Strdup("UNKNOWN")));
+	build_date = Strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.BDATE"), Strdup("UNKNOWN")));
 	if (mb->verbose) {
 		printf("\t\tR-INLA version = [%s]\n", rinla_version);
 		printf("\t\tR-INLA build date = [%s]\n", build_date);
@@ -325,7 +325,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
 	}
 
-	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
+	openmp_strategy = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), Strdup("DEFAULT")));
 	if (mb->verbose) {
 		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
 	}
@@ -357,9 +357,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
-						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ?
-						   GMRFLib_strdup("PARDISO") : GMRFLib_strdup("DEFAULT"))));
+	smtp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
+					  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ? Strdup("PARDISO") : Strdup("DEFAULT"))));
 	if (smtp) {
 		if (!strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
@@ -377,20 +376,20 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-				openmp_strategy = GMRFLib_strdup("pardiso");
+				openmp_strategy = Strdup("pardiso");
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-				smtp = GMRFLib_strdup("pardiso");
+				smtp = Strdup("pardiso");
 			} else {
 				if (mb->verbose) {
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "no");
 				}
 				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO) {
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-					openmp_strategy = GMRFLib_strdup("default");
+					openmp_strategy = Strdup("default");
 				}
 
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
-				smtp = GMRFLib_strdup("taucs");
+				smtp = Strdup("taucs");
 			}
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
@@ -400,13 +399,13 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_pardiso_set_parallel_reordering(1);
 	}
-	mb->smtp = GMRFLib_strdup(GMRFLib_SMTP_NAME(GMRFLib_smtp));
+	mb->smtp = Strdup(GMRFLib_SMTP_NAME(GMRFLib_smtp));
 	if (mb->verbose) {
 		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", smtp, openmp_strategy);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, &GMRFLib_smtp);
 
-	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
+	mb->dir = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup("results-%1d")));
 	ok = 0;
 	int accept_argument = 0;
 
@@ -457,14 +456,14 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_predictor ...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	mb->predictor_tag = GMRFLib_strdup("Predictor");
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	mb->predictor_tag = Strdup("Predictor");
 	GMRFLib_sprintf(&(mb->Apredictor_tag), "A%s", mb->predictor_tag);
 
 	if (mb->verbose) {
 		printf("\t\tsection=[%s]\n", secname);
 	}
-	mb->predictor_dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->predictor_tag)));
+	mb->predictor_dir = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->predictor_tag)));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->predictor_dir);
 	}
@@ -491,14 +490,14 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 		mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 		mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-		mb->theta_tag[mb->ntheta] = GMRFLib_strdup("Log precision for the linear predictor");
-		mb->theta_tag_userscale[mb->ntheta] = GMRFLib_strdup("Precision for the linear predictor");
-		mb->theta_dir[mb->ntheta] = GMRFLib_strdup(mb->predictor_dir);
+		mb->theta_tag[mb->ntheta] = Strdup("Log precision for the linear predictor");
+		mb->theta_tag_userscale[mb->ntheta] = Strdup("Precision for the linear predictor");
+		mb->theta_dir[mb->ntheta] = Strdup(mb->predictor_dir);
 
 		mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 		mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-		mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->predictor_prior.from_theta);
-		mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->predictor_prior.to_theta);
+		mb->theta_from[mb->ntheta] = Strdup(mb->predictor_prior.from_theta);
+		mb->theta_to[mb->ntheta] = Strdup(mb->predictor_prior.to_theta);
 
 		mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 		mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -548,7 +547,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 		inla_error_general(msg);
 	}
 
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OFFSET"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OFFSET"), NULL));
 	if (filename) {
 		if (mb->verbose) {
 			printf("\t\tread offsets from file=[%s]\n", filename);
@@ -558,7 +557,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 		mb->offset = Calloc(mb->predictor_n + mb->predictor_m, double);
 	}
 
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.FITTED.VALUES"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.FITTED.VALUES"), NULL));
 	if (filename) {
 		if (mb->verbose) {
 			printf("\t\tread link.fitted.values from file=[%s]\n", filename);
@@ -580,9 +579,9 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	mb->predictor_cross_sumzero = NULL;
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS_CONSTRAINT"), NULL));
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS.CONSTRAINT"), filename));
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSSCONSTRAINT"), filename));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS_CONSTRAINT"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS.CONSTRAINT"), filename));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSSCONSTRAINT"), filename));
 
 	double *dcross = NULL;
 	int *icross = NULL, len_cross = 0, nu = 0;
@@ -613,8 +612,8 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * these are for the extended observational model. only valid if predictor_m > 0.
 	 */
-	mb->predictor_A_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "A"), NULL));
-	mb->predictor_Aext_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "AEXT"), NULL));
+	mb->predictor_A_fnm = Strdup(iniparser_getstring(ini, inla_string_join(secname, "A"), NULL));
+	mb->predictor_Aext_fnm = Strdup(iniparser_getstring(ini, inla_string_join(secname, "AEXT"), NULL));
 	mb->predictor_Aext_precision = iniparser_getdouble(ini, inla_string_join(secname, "AEXTPRECISION"), 1.0e8);
 
 	if (mb->verbose) {
@@ -654,11 +653,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_data [section %1d]...\n", mb->nds);
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\ttag=[%s]\n", secname);
 	}
-	ds->data_likelihood = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LIKELIHOOD"), NULL)));
+	ds->data_likelihood = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LIKELIHOOD"), NULL)));
 	inla_trim_family(ds->data_likelihood);
 
 	if (mb->verbose) {
@@ -2037,8 +2036,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2097,8 +2096,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2151,8 +2150,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2220,8 +2219,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2265,8 +2264,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i - 1];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2348,8 +2347,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.gjw_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2427,8 +2426,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2483,8 +2482,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_simplex;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2519,7 +2518,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 * get options related to the cenpoisson 
 		 */
 		ds->data_observations.cenpoisson_interval = Calloc(2, double);
-		ctmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CENPOISSON.I"), NULL));
+		ctmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CENPOISSON.I"), NULL));
 		if (inla_sread_doubles(ds->data_observations.cenpoisson_interval, 2, ctmp) == INLA_FAIL) {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "CENPOISSON.I", ctmp);
 		}
@@ -2573,8 +2572,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gpoisson_overdispersion;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2617,8 +2616,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gpoisson_p;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2636,7 +2635,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		/*
 		 */
-		char *lname = (ds->data_id == L_FMRI ? GMRFLib_strdup(" fmri") : GMRFLib_strdup(" fmrisurv"));
+		char *lname = (ds->data_id == L_FMRI ? Strdup(" fmri") : Strdup(" fmrisurv"));
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), -4.0);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
@@ -2667,8 +2666,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.fmri_lprec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2713,8 +2712,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.fmri_ldof;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2740,7 +2739,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->data_nprior = Calloc(POM_MAXTHETA, Prior_tp);
 
 		ds->data_observations.pom_fast_probit = iniparser_getboolean(ini, inla_string_join(secname, "POM.FAST.PROBIT"), 0);
-		ctmp = iniparser_getstring(ini, inla_string_join(secname, "pom.cdf"), GMRFLib_strdup("DEFAULT"));
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "pom.cdf"), Strdup("DEFAULT"));
 		if (!strcasecmp(ctmp, "DEFAULT")) {
 			ds->data_observations.pom_cdf = POM_CDF_DEFAULT;
 		} else if (!strcasecmp(ctmp, "LOGIT")) {
@@ -2823,8 +2822,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[count].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.pom_theta[count];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2884,8 +2883,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_circular_normal;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2932,8 +2931,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_wrapped_cauchy;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -2981,8 +2980,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.tweedie_p_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3028,8 +3027,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.tweedie_phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3104,8 +3103,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gp_intern_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3152,8 +3151,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.iid_gamma_log_shape;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3196,8 +3195,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.iid_gamma_log_rate;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3244,8 +3243,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.iid_logitbeta_log_a;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3288,8 +3287,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.iid_logitbeta_log_b;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3337,8 +3336,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_loggamma_frailty;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3385,8 +3384,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_logistic;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3433,8 +3432,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.sn_lprec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3474,8 +3473,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
@@ -3532,8 +3531,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gev;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3579,8 +3578,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.xi_gev;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3612,7 +3611,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tbgev.q.spread [%g]\n", ds->data_observations.bgev_qspread);
 		}
 
-		ctmp = iniparser_getstring(ini, inla_string_join(secname, "bgev.q.mix"), GMRFLib_strdup("0.10 0.20"));
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "bgev.q.mix"), Strdup("0.10 0.20"));
 		ds->data_observations.bgev_qmix = Calloc(2, double);
 		if (inla_sread_doubles(ds->data_observations.bgev_qmix, 2, ctmp) == INLA_FAIL ||
 		    DMIN(ds->data_observations.bgev_qmix[0], ds->data_observations.bgev_qmix[1]) <= 0.0 ||
@@ -3697,8 +3696,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.bgev_log_spread;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3757,8 +3756,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[1].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.bgev_intern_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3821,8 +3820,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[idx].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[idx].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[idx].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[idx].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.bgev_betas[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -3894,7 +3893,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
 		}
 
-		const char *suff = GMRFLib_strdup((ds->data_id == L_GGAUSSIAN ? "" : "S"));
+		const char *suff = Strdup((ds->data_id == L_GGAUSSIAN ? "" : "S"));
 		ds->data_nfixed = Calloc(GGAUSSIAN_MAXTHETA + 1, int);
 		ds->data_nprior = Calloc(GGAUSSIAN_MAXTHETA, Prior_tp);
 		ds->data_observations.ggaussian_beta = Calloc(GGAUSSIAN_MAXTHETA, double **);
@@ -3933,8 +3932,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.ggaussian_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4016,8 +4015,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.rcp_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4099,8 +4098,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.tp_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4162,7 +4161,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
 		}
 
-		const char *suff = GMRFLib_strdup((ds->data_id == L_0POISSON ? "" : "S"));
+		const char *suff = Strdup((ds->data_id == L_0POISSON ? "" : "S"));
 		ds->data_nfixed = Calloc(POISSON0_MAXTHETA + 1, int);
 		ds->data_nprior = Calloc(POISSON0_MAXTHETA, Prior_tp);
 		ds->data_observations.poisson0_beta = Calloc(POISSON0_MAXTHETA, double **);
@@ -4201,8 +4200,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.poisson0_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4264,7 +4263,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
 		}
 
-		const char *suff = GMRFLib_strdup((ds->data_id == L_0BINOMIAL ? "" : "S"));
+		const char *suff = Strdup((ds->data_id == L_0BINOMIAL ? "" : "S"));
 		ds->data_nfixed = Calloc(BINOMIAL0_MAXTHETA + 1, int);
 		ds->data_nprior = Calloc(BINOMIAL0_MAXTHETA, Prior_tp);
 		ds->data_observations.binomial0_beta = Calloc(BINOMIAL0_MAXTHETA, double **);
@@ -4303,8 +4302,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.binomial0_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4353,8 +4352,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gamma_log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4426,8 +4425,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gamma_log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4471,8 +4470,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i - 1];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4563,8 +4562,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4618,8 +4617,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gammacount_log_alpha;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4668,8 +4667,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.qkumar_log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4723,8 +4722,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4804,8 +4803,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4852,8 +4851,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i - 1];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4915,8 +4914,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.beta_precision_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -4963,8 +4962,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.betabinomial_overdispersion_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5011,8 +5010,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.betabinomial_overdispersion_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5066,8 +5065,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_size;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5121,8 +5120,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_size;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5175,8 +5174,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_size;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5228,8 +5227,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5283,8 +5282,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_rho_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5336,8 +5335,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5384,8 +5383,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_size;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5443,8 +5442,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[count].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5492,8 +5491,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5551,8 +5550,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[count].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.log_sizes[count];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5600,8 +5599,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_size;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5644,8 +5643,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5690,8 +5689,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_t;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5735,8 +5734,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_t;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5805,8 +5804,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_tstrata;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5867,8 +5866,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[k].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.log_prec_tstrata[k - 1];	/* yes its a -1 */
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5925,8 +5924,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5973,8 +5972,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
@@ -6018,8 +6017,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6068,8 +6067,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_svt;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6132,8 +6131,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.skew_intern_svnig;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6157,8 +6156,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.shape_intern_svnig;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6209,8 +6208,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6281,8 +6280,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6326,8 +6325,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i - 1];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6390,8 +6389,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6464,8 +6463,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6509,8 +6508,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i - 1];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6564,8 +6563,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6602,7 +6601,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		if (ds->data_id == L_ZEROINFLATEDCENPOISSON0 || ds->data_id == L_ZEROINFLATEDCENPOISSON1) {
 			ds->data_observations.cenpoisson_interval = Calloc(2, double);
-			ctmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CENPOISSON.I"), NULL));
+			ctmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CENPOISSON.I"), NULL));
 			if (inla_sread_doubles(ds->data_observations.cenpoisson_interval, 2, ctmp) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "CENPOISSON.I", ctmp);
 			}
@@ -6659,8 +6658,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6708,8 +6707,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6758,8 +6757,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6808,8 +6807,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha1_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6848,8 +6847,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha2_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
@@ -6897,8 +6896,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha0_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6937,8 +6936,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alphaN_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
@@ -6986,8 +6985,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7028,8 +7027,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_delta_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7086,8 +7085,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7106,7 +7105,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * get options related to the nmix and nmixnb
 		 */
-		char *suff = (ds->data_id == L_NMIX ? GMRFLib_strdup("") : GMRFLib_strdup("nb"));
+		char *suff = (ds->data_id == L_NMIX ? Strdup("") : Strdup("nb"));
 		if (mb->verbose) {
 			printf("\t\tmodel for N in the mixture[%s]\n", (ds->data_id == L_NMIX ? "Poisson" : "NegativeBinomial"));
 		}
@@ -7184,8 +7183,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[k].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.nmix_beta[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7238,8 +7237,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[k].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.nmix_log_overdispersion;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7263,7 +7262,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * setup the link-model
 	 */
-	ds->link_model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK.MODEL"), GMRFLib_strdup("default"))));
+	ds->link_model = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK.MODEL"), Strdup("default"))));
 	inla_trim_family(ds->link_model);
 
 	if (!strcasecmp(ds->link_model, "IDENTITY")) {
@@ -7454,7 +7453,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	 * read possible link_covariates 
 	 */
 	char *link_cov_filename;
-	link_cov_filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.COVARIATES"), NULL));
+	link_cov_filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.COVARIATES"), NULL));
 
 	if (link_cov_filename) {
 		ds->link_covariates = GMRFLib_read_fmesher_file(link_cov_filename, (long int) 0, -1);
@@ -7605,8 +7604,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sensitivity_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7641,8 +7640,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->specificity_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7698,8 +7697,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->dof_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7758,8 +7757,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_skew;
 
 			double *skewmax = Calloc(1, double);
@@ -7813,8 +7812,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_intercept;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7830,7 +7829,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case LINK_GEV:
 	case LINK_CGEV:
 	{
-		char *name = (ds->link_id == LINK_GEV ? GMRFLib_strdup("gev") : GMRFLib_strdup("cgev"));
+		char *name = (ds->link_id == LINK_GEV ? Strdup("gev") : Strdup("cgev"));
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
@@ -7892,8 +7891,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->link_parameters->bgev_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -7951,8 +7950,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->bgev_intercept;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8011,8 +8010,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->power_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8061,8 +8060,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->intercept_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8118,8 +8117,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->beta_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8175,8 +8174,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->prob_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8231,8 +8230,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->beta;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8287,8 +8286,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->beta;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8403,8 +8402,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[0].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[0].to_theta);
 					mb->theta[mb->ntheta] = ds->link_parameters->log_prec;
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_precision;
@@ -8441,8 +8440,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(ds->link_prior[1].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(ds->link_prior[1].to_theta);
 					mb->theta[mb->ntheta] = ds->link_parameters->betas[i - 1];	/* yes! */
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_identity;
@@ -8478,8 +8477,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		ds->mix_npoints = iniparser_getint(ini, inla_string_join(secname, "MIX.NPOINTS"), 99);
 		assert(ds->mix_npoints >= 5);
-		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
-		integrator = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
+		model = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
+		integrator = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
 		if (!strcasecmp(integrator, "default")) {
 			ds->mix_integrator = MIX_INT_DEFAULT;
 		} else if (!strcasecmp(integrator, "quadrature")) {
@@ -8540,8 +8539,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->mix_prior.from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->mix_prior.to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.mix_log_prec_gaussian;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8599,8 +8598,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				}
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->mix_prior.from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->mix_prior.to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.mix_log_prec_loggamma;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -8702,7 +8701,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection=[%s]\n", secname);
 	}
@@ -8815,8 +8814,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	_SET(Alocal, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
-	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
-	mb->f_dir[mb->nf] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->f_tag[mb->nf])));
+	mb->f_tag[mb->nf] = (secname ? strdup(secname) : strdup(default_tag));
+	mb->f_dir[mb->nf] = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->f_tag[mb->nf])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->f_dir[mb->nf]);
 	}
@@ -8854,7 +8853,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * start parsing 
 	 */
-	model = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "MODEL"), NULL));
+	model = Strdup(iniparser_getstring(ini, inla_string_join(secname, "MODEL"), NULL));
 	if (mb->verbose) {
 		printf("\t\tmodel=[%s]\n", model);
 	}
@@ -8862,200 +8861,200 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	if (_OneOf("RW2D")) {
 		mb->f_id[mb->nf] = F_RW2D;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Random walk 2D");
+		mb->f_modelname[mb->nf] = Strdup("Random walk 2D");
 	} else if (_OneOf("RW2DIID")) {
 		mb->f_id[mb->nf] = F_RW2DIID;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Random walk 2DIID");
+		mb->f_modelname[mb->nf] = Strdup("Random walk 2DIID");
 	} else if (_OneOf("BESAG")) {
 		mb->f_id[mb->nf] = F_BESAG;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Besags ICAR model");
+		mb->f_modelname[mb->nf] = Strdup("Besags ICAR model");
 	} else if (_OneOf("BESAG2")) {
 		mb->f_id[mb->nf] = F_BESAG2;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Besags ICAR model for joint models");
+		mb->f_modelname[mb->nf] = Strdup("Besags ICAR model for joint models");
 	} else if (_OneOf("BYM")) {
 		mb->f_id[mb->nf] = F_BYM;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("BYM model");
+		mb->f_modelname[mb->nf] = Strdup("BYM model");
 	} else if (_OneOf("BYM2")) {
 		mb->f_id[mb->nf] = F_BYM2;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("BYM2 model");
+		mb->f_modelname[mb->nf] = Strdup("BYM2 model");
 	} else if (_OneOf("BESAGPROPER")) {
 		mb->f_id[mb->nf] = F_BESAGPROPER;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Proper version of Besags ICAR model");
+		mb->f_modelname[mb->nf] = Strdup("Proper version of Besags ICAR model");
 	} else if (_OneOf("BESAGPROPER2")) {
 		mb->f_id[mb->nf] = F_BESAGPROPER2;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Proper version of Besags ICAR model version 2");
+		mb->f_modelname[mb->nf] = Strdup("Proper version of Besags ICAR model version 2");
 	} else if (_OneOf2("GENERIC", "GENERIC0")) {
 		mb->f_id[mb->nf] = F_GENERIC0;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic0 model");
+		mb->f_modelname[mb->nf] = Strdup("Generic0 model");
 	} else if (_OneOf("GENERIC1")) {
 		mb->f_id[mb->nf] = F_GENERIC1;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic1 model");
+		mb->f_modelname[mb->nf] = Strdup("Generic1 model");
 	} else if (_OneOf("GENERIC2")) {
 		mb->f_id[mb->nf] = F_GENERIC2;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic2 model");
+		mb->f_modelname[mb->nf] = Strdup("Generic2 model");
 	} else if (_OneOf("GENERIC3")) {
 		mb->f_id[mb->nf] = F_GENERIC3;
 		mb->f_ntheta[mb->nf] = GENERIC3_MAXTHETA;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic3 model");
+		mb->f_modelname[mb->nf] = Strdup("Generic3 model");
 	} else if (_OneOf("SEASONAL")) {
 		mb->f_id[mb->nf] = F_SEASONAL;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Seasonal model");
+		mb->f_modelname[mb->nf] = Strdup("Seasonal model");
 	} else if (_OneOf("IID")) {
 		mb->f_id[mb->nf] = F_IID;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID model");
+		mb->f_modelname[mb->nf] = Strdup("IID model");
 	} else if (_OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID1D model");
+		mb->f_modelname[mb->nf] = Strdup("IID1D model");
 	} else if (_OneOf("IID2D")) {
 		mb->f_id[mb->nf] = F_IID2D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID2D model");
+		mb->f_modelname[mb->nf] = Strdup("IID2D model");
 	} else if (_OneOf("IID3D")) {
 		mb->f_id[mb->nf] = F_IID3D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID3D model");
+		mb->f_modelname[mb->nf] = Strdup("IID3D model");
 	} else if (_OneOf("IID4D")) {
 		mb->f_id[mb->nf] = F_IID4D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID4D model");
+		mb->f_modelname[mb->nf] = Strdup("IID4D model");
 	} else if (_OneOf("IID5D")) {
 		mb->f_id[mb->nf] = F_IID5D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID5D model");
+		mb->f_modelname[mb->nf] = Strdup("IID5D model");
 	} else if (_OneOf("IIDKD")) {
 		mb->f_id[mb->nf] = F_IIDKD;
 		mb->f_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "ORDER"), 0);
 		mb->f_ntheta[mb->nf] = INLA_WISHARTK_NTHETA(mb->f_order[mb->nf]);
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IIDKD model");
+		mb->f_modelname[mb->nf] = Strdup("IIDKD model");
 	} else if (_OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID model");
+		mb->f_modelname[mb->nf] = Strdup("2DIID model");
 	} else if (_OneOf("INTSLOPE")) {
 		mb->f_id[mb->nf] = F_INTSLOPE;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(2L) + INTSLOPE_MAXTHETA;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("INTSLOPE model");
+		mb->f_modelname[mb->nf] = Strdup("INTSLOPE model");
 	} else if (_OneOf("MEC")) {
 		mb->f_id[mb->nf] = F_MEC;
 		mb->f_ntheta[mb->nf] = 4;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("MEC");
+		mb->f_modelname[mb->nf] = Strdup("MEC");
 	} else if (_OneOf("MEB")) {
 		mb->f_id[mb->nf] = F_MEB;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("MEB");
+		mb->f_modelname[mb->nf] = Strdup("MEB");
 	} else if (_OneOf("RGENERIC")) {
 		mb->f_id[mb->nf] = F_R_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric2");
+		mb->f_modelname[mb->nf] = Strdup("RGeneric2");
 	} else if (_OneOf("CGENERIC")) {
 		mb->f_id[mb->nf] = F_C_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("CGeneric");
+		mb->f_modelname[mb->nf] = Strdup("CGeneric");
 	} else if (_OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("RW1 model");
+		mb->f_modelname[mb->nf] = Strdup("RW1 model");
 	} else if (_OneOf("RW2")) {
 		mb->f_id[mb->nf] = F_RW2;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("RW2 model");
+		mb->f_modelname[mb->nf] = Strdup("RW2 model");
 	} else if (_OneOf("CRW2")) {
 		mb->f_id[mb->nf] = F_CRW2;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("CRW2 model");
+		mb->f_modelname[mb->nf] = Strdup("CRW2 model");
 	} else if (_OneOf("AR1")) {
 		mb->f_id[mb->nf] = F_AR1;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1 model");
+		mb->f_modelname[mb->nf] = Strdup("AR1 model");
 	} else if (_OneOf("AR1C")) {
 		mb->f_id[mb->nf] = F_AR1C;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1C model");
+		mb->f_modelname[mb->nf] = Strdup("AR1C model");
 	} else if (_OneOf("FGN")) {
 		mb->f_id[mb->nf] = F_FGN;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("FGN model");
+		mb->f_modelname[mb->nf] = Strdup("FGN model");
 	} else if (_OneOf("FGN2")) {
 		mb->f_id[mb->nf] = F_FGN2;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("FGN2 model");
+		mb->f_modelname[mb->nf] = Strdup("FGN2 model");
 	} else if (_OneOf("OU")) {
 		mb->f_id[mb->nf] = F_OU;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Ornstein-Uhlenbeck model");
+		mb->f_modelname[mb->nf] = Strdup("Ornstein-Uhlenbeck model");
 	} else if (_OneOf("MATERN2D")) {
 		mb->f_id[mb->nf] = F_MATERN2D;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Matern2D model");
+		mb->f_modelname[mb->nf] = Strdup("Matern2D model");
 	} else if (_OneOf("DMATERN")) {
 		mb->f_id[mb->nf] = F_DMATERN;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("DMatern model");
+		mb->f_modelname[mb->nf] = Strdup("DMatern model");
 	} else if (_OneOf("Z")) {
 		mb->f_id[mb->nf] = F_Z;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Z model");
+		mb->f_modelname[mb->nf] = Strdup("Z model");
 	} else if (_OneOf("SLM")) {
 		mb->f_id[mb->nf] = F_SLM;
 		mb->f_ntheta[mb->nf] = 2;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("SLM model");
+		mb->f_modelname[mb->nf] = Strdup("SLM model");
 	} else if (_OneOf("SPDE")) {
 		mb->f_id[mb->nf] = F_SPDE;
 		mb->f_ntheta[mb->nf] = 4;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE model");
+		mb->f_modelname[mb->nf] = Strdup("SPDE model");
 	} else if (_OneOf("SPDE2")) {
 		mb->f_id[mb->nf] = F_SPDE2;
 		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE2 model");
+		mb->f_modelname[mb->nf] = Strdup("SPDE2 model");
 	} else if (_OneOf("SPDE3")) {
 		mb->f_id[mb->nf] = F_SPDE3;
 		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE3 model");
+		mb->f_modelname[mb->nf] = Strdup("SPDE3 model");
 	} else if (_OneOf("AR")) {
 		mb->f_id[mb->nf] = F_AR;
 		mb->f_ntheta[mb->nf] = AR_MAXTHETA + 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR(p) model");
+		mb->f_modelname[mb->nf] = Strdup("AR(p) model");
 	} else if (_OneOf("COPY")) {
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Copy");
+		mb->f_modelname[mb->nf] = Strdup("Copy");
 	} else if (_OneOf("SCOPY")) {
 		mb->f_id[mb->nf] = F_SCOPY;
 		mb->f_ntheta[mb->nf] = SCOPY_MAXTHETA;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("SCopy");
+		mb->f_modelname[mb->nf] = Strdup("SCopy");
 	} else if (_OneOf("CLINEAR")) {
 		mb->f_id[mb->nf] = F_CLINEAR;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Constrained linear");
+		mb->f_modelname[mb->nf] = Strdup("Constrained linear");
 	} else if (_OneOf("LOG1EXP")) {
 		mb->f_id[mb->nf] = F_LOG1EXP;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Log1Exp");
+		mb->f_modelname[mb->nf] = Strdup("Log1Exp");
 	} else if (_OneOf("LOGDIST")) {
 		mb->f_id[mb->nf] = F_LOGDIST;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("LogDist");
+		mb->f_modelname[mb->nf] = Strdup("LogDist");
 	} else if (_OneOf("SIGM")) {
 		mb->f_id[mb->nf] = F_SIGM;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Sigmodial");
+		mb->f_modelname[mb->nf] = Strdup("Sigmodial");
 	} else if (_OneOf("REVSIGM")) {
 		mb->f_id[mb->nf] = F_REVSIGM;
 		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Reverse sigmodial");
+		mb->f_modelname[mb->nf] = Strdup("Reverse sigmodial");
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 	}
@@ -9453,7 +9452,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tdiagonal=[%g]\n", mb->f_diag[mb->nf]);
 	}
-	mb->f_id_names[mb->nf] = inla_read_file_contents(GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ID.NAMES"), NULL)));
+	mb->f_id_names[mb->nf] = inla_read_file_contents(Strdup(iniparser_getstring(ini, inla_string_join(secname, "ID.NAMES"), NULL)));
 	if (mb->verbose) {
 		printf("\t\tid.names=%s\n", (mb->f_id_names[mb->nf] ? "<read>" : "<not present>"));
 	}
@@ -9509,8 +9508,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * to avoid errors from the R-interface. This just mark them as 'read'. For some reason file_loc is fine here, but later on it just return "", FIXME! 
 	 */
-	ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-	file_loc = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LOCATIONS"), NULL));
+	ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+	file_loc = Strdup(iniparser_getstring(ini, inla_string_join(secname, "LOCATIONS"), NULL));
 
 	if ((mb->f_id[mb->nf] == F_MATERN2D) || (mb->f_id[mb->nf] == F_RW2D) || (mb->f_id[mb->nf] == F_RW2DIID)) {
 		/*
@@ -9518,8 +9517,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 *
 		 * if predictor->nrow exists this is the default and must be equal if NROW exists. same with NCOL.
 		 */
-		char *tmp_nrow = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "NROW"), NULL));
-		char *tmp_ncol = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "NCOL"), NULL));
+		char *tmp_nrow = Strdup(iniparser_getstring(ini, inla_string_join(secname, "NROW"), NULL));
+		char *tmp_ncol = Strdup(iniparser_getstring(ini, inla_string_join(secname, "NCOL"), NULL));
 
 		if (!tmp_nrow) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "nrow");
@@ -9568,7 +9567,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * read the covariates 
 		 */
-		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
+		filenamec = Strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariates");
 		}
@@ -9580,7 +9579,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * read weights 
 		 */
-		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "WEIGHTS"), NULL));
+		filenamec = Strdup(iniparser_getstring(ini, inla_string_join(secname, "WEIGHTS"), NULL));
 		if (!filenamec) {
 			mb->f_weights[mb->nf] = NULL;	       /* default */
 		} else {
@@ -9593,7 +9592,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * read the covariates 
 		 */
-		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
+		filenamec = Strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariates");
 		}
@@ -9605,7 +9604,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * read weights 
 		 */
-		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "WEIGHTS"), NULL));
+		filenamec = Strdup(iniparser_getstring(ini, inla_string_join(secname, "WEIGHTS"), NULL));
 		if (!filenamec) {
 			mb->f_weights[mb->nf] = NULL;
 		} else {
@@ -9623,7 +9622,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 */
 			GMRFLib_tabulate_Qfunc_tp *tab = NULL;
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "Cmatrix");
 			}
@@ -9653,7 +9652,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			int nn = -1;
 			GMRFLib_graph_tp *g = NULL;
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "Cmatrix");
 			}
@@ -9726,7 +9725,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			int nn = -1, ii;
 			GMRFLib_graph_tp *g = NULL;
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CMATRIX"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "Cmatrix");
 			}
@@ -9788,7 +9787,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			for (k = 0; k < arg->m; k++) {
 				ctmp = NULL;
 				GMRFLib_sprintf(&ctmp, "generic3.Cmatrix.%1d", k);
-				filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL));
+				filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL));
 				assert(filename != NULL);
 				if (mb->verbose) {
 					printf("\t\tread Cmatrix[[%1d]] from file=[%s]\n", k, filename);
@@ -9819,7 +9818,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
 			}
@@ -9842,7 +9841,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
 			}
@@ -9869,7 +9868,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
 			}
@@ -9893,7 +9892,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
 			if (!filename) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
 			}
@@ -9916,7 +9915,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * seasonal component; need length N, seasonal length SEASON, and a boolean CYCLIC
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -9928,7 +9927,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tn=[%1d]\n", n);
 			}
 			Free(ptmp);
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SEASON"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SEASON"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "SEASON");
 			}
@@ -9959,7 +9958,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * FGN/FGN2-model; need length N 
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -9990,7 +9989,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * AR1-model; need length N and a boolean CYCLIC
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10015,7 +10014,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * AR(p)-model; need length N and order P
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10042,7 +10041,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * AR1-model; need length N and a boolean CYCLIC
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10140,7 +10139,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * 2DIID-model; need length N
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10168,7 +10167,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			int dim = WISHART_DIM(mb->nf);
 			assert(dim > 0);
 
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10196,7 +10195,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 * WISHART-model; need length N
 			 */
 			int dim = mb->f_order[mb->nf];
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
 			}
@@ -10239,7 +10238,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
 			}
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "intslope.def"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "intslope.def"), NULL));
 			assert(filename != NULL);
 			intslope_def = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 
@@ -10283,12 +10282,12 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
-			filename = GMRFLib_strdup(file_loc);
+			filename = Strdup(file_loc);
 			if (!filename) {
 				if (mb->verbose) {
 					printf("\t\tfile for locations=[(NULL)]: read n...\n");
 				}
-				ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+				ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 				if (!ptmp) {
 					GMRFLib_sprintf(&msg, "%s: section[%s]: LOCATIONS is NULL hence N is required",
 							__GMRFLib_FuncName, secname);
@@ -10365,7 +10364,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	// read locations also here if not read before
 	if (!mb->f_locations[mb->nf] && mb->f_n[mb->nf] > 0) {
-		filename = GMRFLib_strdup(file_loc);
+		filename = Strdup(file_loc);
 		if (filename)
 			if (mb->verbose) {
 				printf("\t\tfile for locations=[%s]\n", filename);
@@ -10436,8 +10435,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -10454,7 +10453,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		char *spde_prefix;
 		int nT, nK;
 
-		spde_prefix = GMRFLib_strdup(".");
+		spde_prefix = Strdup(".");
 		spde_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE_PREFIX"), spde_prefix);
 		spde_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE.PREFIX"), spde_prefix);
 		spde_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDEPREFIX"), spde_prefix);
@@ -10499,8 +10498,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		nT = spde_model->Tmodel->ntheta;
 		nK = spde_model->Kmodel->ntheta;
 		mb->f_ntheta[mb->nf] = IMAX(4, nT + nK + 1);
-		mb->f_Tmodel[mb->nf] = GMRFLib_strdup("basisT");
-		mb->f_Kmodel[mb->nf] = GMRFLib_strdup("basisK");
+		mb->f_Tmodel[mb->nf] = Strdup("basisT");
+		mb->f_Kmodel[mb->nf] = Strdup("basisK");
 
 		if (mb->verbose) {
 			printf("\t\tnT=[%d]\n", nT);
@@ -10645,8 +10644,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					pri = 2;
 				}
 
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][pri].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][pri].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][pri].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][pri].to_theta);
 
 				mb->ntheta++;
 			}
@@ -10658,13 +10657,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		char *spde2_prefix, *transform;
 
-		spde2_prefix = GMRFLib_strdup(".");
+		spde2_prefix = Strdup(".");
 		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.PREFIX"), spde2_prefix);
 		if (mb->verbose) {
 			printf("\t\tspde2.prefix = [%s]\n", spde2_prefix);
 		}
 
-		transform = GMRFLib_strdup("logit");
+		transform = Strdup("logit");
 		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.TRANSFORM"), transform);
 		if (mb->verbose) {
 			printf("\t\tspde2.transform = [%s]\n", transform);
@@ -10772,8 +10771,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					mb->theta_dir[mb->ntheta] = msg;
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>exp(x)");	/* they are not there... */
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>log(x)");	/* .... */
+					mb->theta_from[mb->ntheta] = Strdup("function (x) <<NEWLINE>>exp(x)");	/* they are not there... */
+					mb->theta_to[mb->ntheta] = Strdup("function (x) <<NEWLINE>>log(x)");	/* .... */
 					mb->theta[mb->ntheta] = spde2_model->theta[i];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_exp;
@@ -10786,10 +10785,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					mb->theta_dir[mb->ntheta] = msg;
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0, which
-															 * is a joint prior */
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0, which
-															 * is a joint prior */
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0, which * is a
+														 * joint prior */
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0, which * is a
+														 * joint prior */
 					mb->theta[mb->ntheta] = spde2_model->theta[i];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_identity;
@@ -10844,7 +10843,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		char *spde3_prefix, *transform;
 
-		spde3_prefix = GMRFLib_strdup(".");
+		spde3_prefix = Strdup(".");
 		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3_PREFIX"), spde3_prefix);
 		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3.PREFIX"), spde3_prefix);
 		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3PREFIX"), spde3_prefix);
@@ -10852,7 +10851,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tspde3.prefix = [%s]\n", spde3_prefix);
 		}
 
-		transform = GMRFLib_strdup("logit");
+		transform = Strdup("logit");
 		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3_TRANSFORM"), transform);
 		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3.TRANSFORM"), transform);
 		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3TRANSFORM"), transform);
@@ -10969,8 +10968,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
 
 			mb->theta[mb->ntheta] = spde3_model->theta[i];
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11079,8 +11078,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][i].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][i].to_theta);
 					mb->theta[mb->ntheta] = log_prec;
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_precision;
@@ -11117,8 +11116,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][i].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][i].to_theta);
 					mb->theta[mb->ntheta] = pacf_intern[i - 1];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = ar_map_pacf;
@@ -11179,8 +11178,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11220,8 +11219,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11262,8 +11261,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].to_theta);
 
 			mb->theta[mb->ntheta] = mean_x;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11303,8 +11302,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][3].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][3].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][3].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][3].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec_x;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11361,8 +11360,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11402,8 +11401,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11532,8 +11531,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup("function(x) x");
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup("function(x) x");
+			mb->theta_from[mb->ntheta] = Strdup("function(x) x");
+			mb->theta_to[mb->ntheta] = Strdup("function(x) x");
 
 			mb->theta[mb->ntheta] = mb->f_theta[mb->nf][i];
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11752,8 +11751,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup("function(x) x");
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup("function(x) x");
+			mb->theta_from[mb->ntheta] = Strdup("function(x) x");
+			mb->theta_to[mb->ntheta] = Strdup("function(x) x");
 
 			mb->theta[mb->ntheta] = mb->f_theta[mb->nf][i];
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11801,8 +11800,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11842,8 +11841,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = H_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11889,8 +11888,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11930,8 +11929,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -11971,8 +11970,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = mean_x;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12019,8 +12018,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12060,8 +12059,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12107,8 +12106,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12148,8 +12147,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = rho_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12195,8 +12194,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12236,8 +12235,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12282,8 +12281,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12323,8 +12322,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = a_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12369,8 +12368,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12410,8 +12409,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_diag;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12456,8 +12455,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12497,8 +12496,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12543,8 +12542,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12584,8 +12583,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = beta_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12630,8 +12629,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12671,8 +12670,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = h2_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12735,8 +12734,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 				mb->theta[mb->ntheta] = a->log_prec[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12830,8 +12829,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12880,13 +12879,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 		assert(nbeta <= SCOPY_MAXTHETA);
 
-		char *filenameW = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.W"), NULL));
+		char *filenameW = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.W"), NULL));
 		if (!filenameW) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "W");
 		}
 		W = GMRFLib_read_fmesher_file(filenameW, (long int) 0, -1);
 
-		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.COVARIATE"), NULL));
+		filenamec = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.COVARIATE"), NULL));
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariate");
 		}
@@ -12964,8 +12963,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 					mb->theta[mb->ntheta] = betas[i];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13037,8 +13036,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13053,7 +13052,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_SIGM:
 	case F_REVSIGM:
 	{
-		char *local_name = (mb->f_id[mb->nf] == F_SIGM ? GMRFLib_strdup("SIGM") : GMRFLib_strdup("REVSIGM"));
+		char *local_name = (mb->f_id[mb->nf] == F_SIGM ? Strdup("SIGM") : Strdup("REVSIGM"));
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
@@ -13087,8 +13086,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13129,8 +13128,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_halflife;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13171,8 +13170,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].to_theta);
 
 			mb->theta[mb->ntheta] = log_shape;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13187,7 +13186,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_LOG1EXP:
 	{
-		char *local_name = GMRFLib_strdup("LOG1EXP");
+		char *local_name = Strdup("LOG1EXP");
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
@@ -13221,8 +13220,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13263,8 +13262,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = alpha;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13305,8 +13304,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].to_theta);
 
 			mb->theta[mb->ntheta] = gama;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13321,7 +13320,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_LOGDIST:
 	{
-		char *local_name = GMRFLib_strdup("LOGDIST");
+		char *local_name = Strdup("LOGDIST");
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
@@ -13355,8 +13354,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13397,8 +13396,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = alpha1;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13439,8 +13438,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].to_theta);
 
 			mb->theta[mb->ntheta] = alpha2;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13493,8 +13492,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec0;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13520,8 +13519,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec1;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13576,8 +13575,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec0;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13603,8 +13602,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13659,8 +13658,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13686,8 +13685,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13740,8 +13739,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec0;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13767,8 +13766,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec1;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13805,8 +13804,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][2].to_theta);
 
 			mb->theta[mb->ntheta] = rho_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13877,8 +13876,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 				mb->theta[mb->ntheta] = theta_iidwishart[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -13927,8 +13926,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 					mb->theta[mb->ntheta] = theta_iidwishart[k];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14003,8 +14002,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 				mb->theta[mb->ntheta] = theta_iidwishart[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14065,8 +14064,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 				mb->theta[mb->ntheta] = theta_iidwishart[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14115,8 +14114,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 					mb->theta[mb->ntheta] = theta_iidwishart[k];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14173,8 +14172,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][k].to_theta);
 
 				mb->theta[mb->ntheta] = intslope_gamma[kk];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14229,8 +14228,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14271,8 +14270,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = range_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14318,8 +14317,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
 
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14360,8 +14359,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = range_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -14402,8 +14401,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
 
 			mb->theta[mb->ntheta] = nu_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -15269,7 +15268,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * MEC
 		 */
 		char *filename_s;
-		filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+		filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 		if (filename_s) {
 			if (mb->verbose) {
 				printf("\t\tread scale from file=[%s]\n", filename_s);
@@ -15323,7 +15322,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * MEB
 		 */
 		char *filename_s;
-		filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+		filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 		if (filename_s) {
 			if (mb->verbose) {
 				printf("\t\tread scale from file=[%s]\n", filename_s);
@@ -15377,8 +15376,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp), *def_orig = Calloc(1, inla_rgeneric_tp);
 		double ***tptr;
 
-		def->filename = GMRFLib_strdup(rgeneric_filename);
-		def->model = GMRFLib_strdup(rgeneric_model);
+		def->filename = Strdup(rgeneric_filename);
+		def->model = Strdup(rgeneric_model);
 		def->mu = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def->mu_param = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def->ntheta = mb->f_ntheta[mb->nf];
@@ -15395,8 +15394,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			def->theta = NULL;
 		}
 
-		def_orig->filename = GMRFLib_strdup(rgeneric_filename);
-		def_orig->model = GMRFLib_strdup(rgeneric_model);
+		def_orig->filename = Strdup(rgeneric_filename);
+		def_orig->model = Strdup(rgeneric_model);
 		def_orig->mu = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def_orig->mu_param = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def_orig->ntheta = mb->f_ntheta[mb->nf];
@@ -15526,11 +15525,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_cgeneric_tp *def = Calloc(1, inla_cgeneric_tp), *def_orig = Calloc(1, inla_cgeneric_tp);
 		double ***tptr;
 
-		def->shlib = GMRFLib_strdup(cgeneric_shlib);
-		def->model = GMRFLib_strdup(cgeneric_model);
+		def->shlib = Strdup(cgeneric_shlib);
+		def->model = Strdup(cgeneric_model);
 		def->model_func = model_func;
 		def->data = cgeneric_data;
-		def->secname = GMRFLib_strdup(secname);
+		def->secname = Strdup(secname);
 		def->debug = cgeneric_debug;
 		def->mu = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def->mu_param = Calloc(GMRFLib_CACHE_LEN(), double *);
@@ -15549,11 +15548,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			def->theta = NULL;
 		}
 
-		def_orig->shlib = GMRFLib_strdup(cgeneric_shlib);
-		def_orig->model = GMRFLib_strdup(cgeneric_model);
+		def_orig->shlib = Strdup(cgeneric_shlib);
+		def_orig->model = Strdup(cgeneric_model);
 		def_orig->model_func = model_func;
 		def_orig->data = cgeneric_data;
-		def_orig->secname = GMRFLib_strdup(secname);
+		def_orig->secname = Strdup(secname);
 		def_orig->debug = cgeneric_debug;
 		def_orig->mu = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def_orig->mu_param = Calloc(GMRFLib_CACHE_LEN(), double *);
@@ -15808,15 +15807,15 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tN=[%1d]\n", def->N);
 		}
 		if (def->m > 0) {
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL));
 			def->Z = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL));
 			def->ZZ = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
 
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL));
+			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL));
 			def->Qbeta = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
 			{
@@ -15924,7 +15923,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		dmatern_arg_tp *arg = Calloc(1, dmatern_arg_tp);
 		dmatern_arg_tp *arg_orig = Calloc(1, dmatern_arg_tp);
 
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "dmatern.locations"), NULL));
+		filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "dmatern.locations"), NULL));
 		arg->locations = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		Free(filename);
 
@@ -16033,7 +16032,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				 * this case has an extra option: scale
 				 */
 				char *filename_s;
-				filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+				filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 				if (filename_s) {
 					if (mb->verbose) {
 						printf("\t\tread scale from file=[%s]\n", filename_s);
@@ -16086,7 +16085,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				 * this case has an extra option: scale
 				 */
 				char *filename_s;
-				filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+				filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 				if (filename_s) {
 					if (mb->verbose) {
 						printf("\t\tread scale from file=[%s]\n", filename_s);
@@ -16163,7 +16162,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * read optional extra constraint 
 	 */
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "EXTRACONSTRAINT"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "EXTRACONSTRAINT"), NULL));
 	if (filename) {
 		if (mb->verbose) {
 			printf("\t\tread extra constraint from file=[%s]\n", filename);
@@ -16234,8 +16233,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * add groups! 
 			 */
-			ptmp = GMRFLib_strdup("EXCHANGEABLE");
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), ptmp));
+			ptmp = Strdup("EXCHANGEABLE");
+			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), ptmp));
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
 				mb->f_group_model[mb->nf] = G_EXCHANGEABLE;
 			} else if (!strcasecmp(ptmp, "EXCHANGEABLEPOS")) {
@@ -16258,7 +16257,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				abort();
 			}
 
-			ptmp2 = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.GRAPH"), NULL));
+			ptmp2 = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.GRAPH"), NULL));
 			if (ptmp2) {
 				GMRFLib_graph_read(&(mb->f_group_graph[mb->nf]), ptmp2);
 			}
@@ -16427,8 +16426,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(pri->from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(pri->to_theta);
+					mb->theta_from[mb->ntheta] = Strdup(pri->from_theta);
+					mb->theta_to[mb->ntheta] = Strdup(pri->to_theta);
 
 					mb->ntheta++;
 				}
@@ -16533,9 +16532,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 							mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 							mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-							mb->theta_from[mb->ntheta] =
-							    GMRFLib_strdup(mb->f_prior[mb->nf][ntheta_orig + 0].from_theta);
-							mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][ntheta_orig + 0].to_theta);
+							mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][ntheta_orig + 0].from_theta);
+							mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][ntheta_orig + 0].to_theta);
 							mb->theta[mb->ntheta] = log_prec;
 							mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 							mb->theta_map[mb->ntheta] = map_precision;
@@ -16573,9 +16571,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 							mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 							mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-							mb->theta_from[mb->ntheta] =
-							    GMRFLib_strdup(mb->f_prior[mb->nf][ntheta_orig + i].from_theta);
-							mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][ntheta_orig + i].to_theta);
+							mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][ntheta_orig + i].from_theta);
+							mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][ntheta_orig + i].to_theta);
 							mb->theta[mb->ntheta] = pacf_intern[i - 1];
 							mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 							mb->theta_map[mb->ntheta] = map_phi;
@@ -16784,7 +16781,7 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_linear...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
@@ -16796,13 +16793,12 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 	mb->linear_compute = Realloc(mb->linear_compute, mb->nlinear + 1, int);
 	mb->linear_output = Realloc(mb->linear_output, mb->nlinear + 1, Output_tp *);
 	sprintf(default_tag, "default tag for linear %d", (int) (10000 * GMRFLib_uniform()));
-	mb->linear_tag[mb->nlinear] = GMRFLib_strdup((secname ? secname : default_tag));
-	mb->linear_dir[mb->nlinear] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->linear_tag[mb->nlinear])));
+	mb->linear_tag[mb->nlinear] = (secname ? strdup(secname) : strdup(default_tag));
+	mb->linear_dir[mb->nlinear] = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->linear_tag[mb->nlinear])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->linear_dir[mb->nlinear]);
 	}
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "COVARIATES"), NULL));
 	if (!filename) {
 		if (mb->verbose) {
 			printf("\t\tfile for covariates=[(NULL)]: set all covariates to 1\n");
@@ -16853,7 +16849,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	if (mb->verbose) {
 		printf("\tinla_parse_INLA...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
@@ -16864,8 +16860,8 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 		printf("\t\t\tlincomb.derived.correlation.matrix = [%s]\n", (mb->lc_derived_correlation_matrix ? "Yes" : "No"));
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMIZER"), opt));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMIZER"), opt));
 	if (!opt) {
 		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
 	} else if (!strcasecmp(opt, "DEFAULT")) {
@@ -16898,11 +16894,11 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
 
 	if (mb->verbose > 2) {
-		ctmp = GMRFLib_strdup("STDOUT");
+		ctmp = Strdup("STDOUT");
 	} else {
 		ctmp = NULL;
 	}
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR.FP"), ctmp));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR.FP"), ctmp));
 
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
@@ -16927,19 +16923,19 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	switch (mb->ai_par->int_strategy) {
 	case GMRFLib_AI_INT_STRATEGY_AUTO:
 	{
-		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_AUTO");
+		default_int_strategy = Strdup("GMRFLib_AI_INT_STRATEGY_AUTO");
 	}
 		break;
 
 	case GMRFLib_AI_INT_STRATEGY_GRID:
 	{
-		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_GRID");
+		default_int_strategy = Strdup("GMRFLib_AI_INT_STRATEGY_GRID");
 	}
 		break;
 
 	case GMRFLib_AI_INT_STRATEGY_CCD:
 	{
-		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_CCD");
+		default_int_strategy = Strdup("GMRFLib_AI_INT_STRATEGY_CCD");
 	}
 		break;
 
@@ -16947,7 +16943,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), GMRFLib_strdup("AUTO")));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), Strdup("AUTO")));
 	if (!strcasecmp(opt, "AUTO")) {
 		mb->ai_par->strategy = (mb->idx_ntot < 5000 ? GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN : GMRFLib_AI_STRATEGY_ADAPTIVE);
 	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_GAUSSIAN") || !strcasecmp(opt, "GAUSSIAN")) {
@@ -16976,7 +16972,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->adapt_max = iniparser_getint(ini, inla_string_join(secname, "ADAPTIVE.MAX"), 5);
 
 	mb->ai_par->fast = iniparser_getboolean(ini, inla_string_join(secname, "FAST"), mb->ai_par->fast);
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), NULL));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE") || !strcasecmp(opt, "CENTRAL_DIFFERENCE")) {
 			mb->ai_par->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE;
@@ -17002,7 +16998,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	}
 
 	mb->ai_par->cutoff = iniparser_getdouble(ini, inla_string_join(secname, "CUTOFF"), mb->ai_par->cutoff);
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.LOG"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.LOG"), NULL));
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
 			mb->ai_par->fp_log = stdout;
@@ -17023,10 +17019,10 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 		}
 	}
 	GMRFLib_sprintf(&defname, ".inla_hyper");
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), defname));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), defname));
 	Free(defname);
 	if (!filename) {
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), NULL));
+		filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), NULL));
 	}
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
@@ -17047,7 +17043,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 			mb->ai_par->fp_hyperparam = fp;
 		}
 	}
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.STRATEGY"), default_int_strategy));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.STRATEGY"), default_int_strategy));
 	if (opt) {
 		if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_AUTO") || !strcasecmp(opt, "AUTO")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_AUTO;
@@ -17080,7 +17076,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
 	    mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 		GMRFLib_matrix_tp *D = NULL;
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
+		filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
 		if (my_file_exists(filename) != INLA_OK)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int.design", filename);
 		D = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
@@ -17140,21 +17136,21 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	 */
 	char *ans;
 
-	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.GRADIENT"), GMRFLib_strdup("central"));
+	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.GRADIENT"), Strdup("central"));
 	if (!strcasecmp(ans, "central")) {
 		mb->ai_par->gradient_forward_finite_difference = GMRFLib_FALSE;
 	} else {
 		mb->ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
 	}
 
-	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.HESSIAN"), GMRFLib_strdup("central"));
+	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.HESSIAN"), Strdup("central"));
 	if (!strcasecmp(ans, "central")) {
 		mb->ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
 	} else {
 		mb->ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
 	}
 
-	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("smart"));
+	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), Strdup("smart"));
 	if (!strcasecmp(ans, "smart")) {
 		mb->ai_par->optimise_smart = GMRFLib_TRUE;
 	} else {
@@ -17189,7 +17185,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->hessian_force_diagonal =
 	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE") || !strcasecmp(opt, "WEIGHTED_DISTANCE")
 		    || !strcasecmp(opt, "WEIGHTED.DISTANCE")) {
@@ -17250,7 +17246,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 
 	Memcpy((void *) &(mb->gn), (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
 
-	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
+	r = Strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
 	if (mb->verbose) {
 		printf("\t\treordering = %s\n", (r ? r : "(default)"));
 	}
@@ -17310,7 +17306,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	    iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE.MAX"), 768);
 	mb->ai_par->vb_hessian_update = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.UPDATE"), 1);
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), GMRFLib_strdup("MEAN")));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), Strdup("MEAN")));
 	if (!strcasecmp(opt, "MEAN")) {
 		mb->ai_par->vb_strategy = GMRFLib_AI_VB_MEAN;
 	} else if (!strcasecmp(opt, "VARIANCE")) {
@@ -17319,7 +17315,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("FULL")));
+	opt = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), Strdup("FULL")));
 	if (!strcasecmp(opt, "FULL")) {
 		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_FULL;
 	} else if (!strcasecmp(opt, "PARTIAL")) {
@@ -17360,14 +17356,14 @@ int inla_parse_update(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir
 	if (mb->verbose) {
 		printf("\tinla_parse_update...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
+	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
 	if (mb->verbose) {
-		printf("\t\tfilename[%s]\n", filename);
+		printf("\t\tfilename[%s]\n", (filename ? filename : "NULL"));
 	}
 
 	if (filename) {
@@ -17439,7 +17435,7 @@ int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_di
 	if (mb->verbose) {
 		printf("\tinla_parse_pardiso...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
@@ -17484,7 +17480,7 @@ int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_d
 	if (mb->verbose) {
 		printf("\tinla_parse_lp_scale...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
@@ -17563,8 +17559,8 @@ int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_d
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->lp_scale_nprior[k].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->lp_scale_nprior[k].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->lp_scale_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->lp_scale_nprior[k].to_theta);
 
 				mb->theta[mb->ntheta] = ds->lp_scale_beta[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -17599,7 +17595,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_expert...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
@@ -17653,8 +17649,8 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 	if (model) {
 		mb->jp = Calloc(1, inla_jp_tp);
-		mb->jp->file = GMRFLib_strdup(file);
-		mb->jp->model = GMRFLib_strdup(model);
+		mb->jp->file = Strdup(file);
+		mb->jp->model = Strdup(model);
 		inla_R_library("INLA");			       /* initialize here */
 	} else {
 		mb->jp = NULL;
@@ -17697,8 +17693,8 @@ int inla_theta_map(inla_tp *mb)
 	// map theta[1] from "A" (in R format) to theta[1] in "B"
 
 	assert(mb);
-	char *tag_f = GMRFLib_strdup("idx.v:1");
-	char *tag_t = GMRFLib_strdup("idx.u:1");
+	char *tag_f = Strdup("idx.v:1");
+	char *tag_t = Strdup("idx.u:1");
 
 	char *tag_from = NULL, *tag_to = NULL;
 	int ifrom = 0, ito = 0;

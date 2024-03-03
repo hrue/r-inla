@@ -470,7 +470,6 @@ typedef enum {
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
-
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 

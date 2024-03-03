@@ -4822,7 +4822,7 @@ int inla_mix_int_quadrature_gaussian(int thread_id, double **x, double **w, int 
 
 int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
-	char *msg = GMRFLib_strdup("This function is not yet implemented.");
+	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
 	exit(1);
 	return GMRFLib_SUCCESS;
@@ -4830,7 +4830,7 @@ int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), double **UNUSED(x), 
 
 int inla_mix_int_quadrature_mloggamma(int UNUSED(thread_id), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
-	char *msg = GMRFLib_strdup("This function is not yet implemented.");
+	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
 	exit(1);
 	return GMRFLib_SUCCESS;
@@ -5052,9 +5052,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6530,8 +6530,8 @@ int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int 
 		double dummy;
 		loglfun(thread_id, &dummy, x, 1, idx, x_vec, NULL, arg, &b);
 
-		char *str_cov = GMRFLib_strdup("");
-		char *str_beta = GMRFLib_strdup("");
+		char *str_cov = Strdup("");
+		char *str_beta = Strdup("");
 
 		if (ncov) {
 			double *cov = ds->data_observations.cure_cov + idx * ncov;
