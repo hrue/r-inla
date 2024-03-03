@@ -59,6 +59,7 @@
 
 __BEGIN_DECLS
 //
+
 char *Strdup(const char *s);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
