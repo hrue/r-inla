@@ -39,7 +39,8 @@ double Qfunc_bym(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 	inla_bym_Qfunc_arg_tp *a = (inla_bym_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec_iid = map_precision(a->log_prec_iid[thread_id][0], MAP_FORWARD, NULL);
+	// double prec_iid = map_precision(a->log_prec_iid[thread_id][0], MAP_FORWARD, NULL);
+	double prec_iid = exp(a->log_prec_iid[thread_id][0]);
 
 	if (IMAX(i, j) < n) {
 		/*
@@ -74,14 +75,19 @@ double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi = map_probability(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
+
 	if (IMAX(i, j) < n) {
+		double prec = exp(a->log_prec[thread_id][0]);
 		return prec / (1.0 - phi);
 	}
+
 	if (IMIN(i, j) >= n) {
 		return (i == j ? phi / (1.0 - phi) : 0.0) + Qfunc_besag(thread_id, i - n, j - n, NULL, a->besag_arg);
 	}
+
+	double prec = exp(a->log_prec[thread_id][0]);
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
 
@@ -93,7 +99,8 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 
 	inla_rw2diid_Qfunc_arg_tp *a = (inla_rw2diid_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double prec = exp(a->log_prec[thread_id][0]);
 	double phi = map_probability(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - phi);
@@ -118,7 +125,6 @@ double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void
 
 double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	// spell out map_precision(...)
 	if (j < 0) {
 		return NAN;
 	}
@@ -230,7 +236,8 @@ double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void 
 
 	inla_generic1_tp *a = (inla_generic1_tp *) arg;
 	double beta = map_probability(a->beta[thread_id][0], MAP_FORWARD, NULL);
-	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double prec = exp(a->log_prec[thread_id][0]);
 
 	return prec * ((i == j ? 1.0 : 0.0) - (beta / a->max_eigenvalue) * a->tab->Qfunc(thread_id, i, j, NULL, a->tab->Qfunc_arg));
 }
@@ -247,8 +254,9 @@ double Qfunc_generic2(int thread_id, int i, int j, double *UNUSED(values), void 
 
 	inla_generic2_tp *a = (inla_generic2_tp *) arg;
 
-	double prec_cmatrix = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL),
-	    h2 = map_probability(a->h2_intern[thread_id][0], MAP_FORWARD, NULL), prec_unstruct;
+	// double prec_cmatrix = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double prec_cmatrix = exp(a->log_prec[thread_id][0]);
+	double h2 = map_probability(a->h2_intern[thread_id][0], MAP_FORWARD, NULL), prec_unstruct;
 	int n = a->n;
 
 	prec_unstruct = h2 / (1.0 - h2) * prec_cmatrix;
@@ -295,11 +303,13 @@ double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void 
 
 	for (k = 0; k < a->m; k++) {
 		if (same || GMRFLib_graph_is_nb(i, j, a->g[k])) {
-			prec = map_precision(a->log_prec[k][thread_id][0], MAP_FORWARD, NULL);
+			// prec = map_precision(a->log_prec[k][thread_id][0], MAP_FORWARD, NULL);
+			prec = exp(a->log_prec[k][thread_id][0]);
 			val += prec * a->tab[k]->Qfunc(thread_id, i, j, NULL, a->tab[k]->Qfunc_arg);
 		}
 	}
-	prec_common = map_precision(a->log_prec[GENERIC3_MAXTHETA - 1][thread_id][0], MAP_FORWARD, NULL);
+	// prec_common = map_precision(a->log_prec[GENERIC3_MAXTHETA - 1][thread_id][0], MAP_FORWARD, NULL);
+	prec_common = exp(a->log_prec[GENERIC3_MAXTHETA - 1][thread_id][0]);
 	val *= prec_common;
 
 	return (val);
@@ -323,7 +333,8 @@ double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		 */
 		double q = a->Qfunc_B->Qfunc(thread_id, i, j, NULL, a->Qfunc_B->Qfunc_arg);
 		if (q) {
-			value += q * map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+			// value += q * map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+			value += q * exp(a->log_prec[thread_id][0]);
 		}
 	}
 	return value;
@@ -338,7 +349,8 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	inla_slm_arg_tp *a = (inla_slm_arg_tp *) arg;
 	double value = 0.0, prec, rho, rho_std;
 
-	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec = exp(a->log_prec[thread_id][0]);
 	rho_std = map_probability(a->logit_rho[thread_id][0], MAP_FORWARD, NULL);
 	rho = a->rho_min + rho_std * (a->rho_max - a->rho_min);
 
@@ -811,8 +823,10 @@ double mfunc_sigm(int thread_id, int i, void *arg)
 	double beta, halflife, shape, x, xx;
 
 	beta = a->beta[thread_id][0];
-	halflife = map_precision(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
-	shape = map_precision(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
+	// halflife = map_precision(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
+	halflife = exp(a->log_halflife[thread_id][0]);
+	// shape = map_precision(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
+	shape = exp(a->log_shape[thread_id][0]);
 	x = a->x[i];
 	assert(x >= 0.0);
 
@@ -826,8 +840,10 @@ double mfunc_revsigm(int thread_id, int i, void *arg)
 	double beta, halflife, shape, x, xx;
 
 	beta = a->beta[thread_id][0];
-	halflife = map_precision(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
-	shape = map_precision(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
+	// halflife = map_precision(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
+	halflife = exp(a->log_halflife[thread_id][0]);
+	// shape = map_precision(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
+	shape = exp(a->log_shape[thread_id][0]);
 	x = a->x[i];
 	assert(x >= 0.0);
 
@@ -870,8 +886,10 @@ double Qfunc_mec(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	inla_mec_tp *a = (inla_mec_tp *) arg;
-	double prec_x = map_precision(a->log_prec_x[thread_id][0], MAP_FORWARD, NULL);
-	double prec_obs = map_precision(a->log_prec_obs[thread_id][0], MAP_FORWARD, NULL);
+	// double prec_x = map_precision(a->log_prec_x[thread_id][0], MAP_FORWARD, NULL);
+	double prec_x = exp(a->log_prec_x[thread_id][0]);
+	// double prec_obs = map_precision(a->log_prec_obs[thread_id][0], MAP_FORWARD, NULL);
+	double prec_obs = exp(a->log_prec_obs[thread_id][0]);
 	double beta = map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
@@ -882,8 +900,10 @@ double Qfunc_mec(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 double mfunc_mec(int thread_id, int i, void *arg)
 {
 	inla_mec_tp *a = (inla_mec_tp *) arg;
-	double prec_x = map_precision(a->log_prec_x[thread_id][0], MAP_FORWARD, NULL);
-	double prec_obs = map_precision(a->log_prec_obs[thread_id][0], MAP_FORWARD, NULL);
+	// double prec_x = map_precision(a->log_prec_x[thread_id][0], MAP_FORWARD, NULL);
+	double prec_x = exp(a->log_prec_x[thread_id][0]);
+	// double prec_obs = map_precision(a->log_prec_obs[thread_id][0], MAP_FORWARD, NULL);
+	double prec_obs = exp(a->log_prec_obs[thread_id][0]);
 	double beta = map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double mean_x = map_identity(a->mean_x[thread_id][0], MAP_FORWARD, NULL);
 	double *x_obs = a->x_obs;
@@ -900,7 +920,8 @@ double Qfunc_meb(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 	inla_meb_tp *a = (inla_meb_tp *) arg;
 
-	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double prec = exp(a->log_prec[thread_id][0]);
 	double beta = map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
@@ -948,7 +969,8 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 		/*
 		 *  Fast return for the IID1D model; no need to do complicate things in this case
 		 */
-		return map_precision(a->log_prec[0][thread_id][0], MAP_FORWARD, NULL);
+		// return map_precision(a->log_prec[0][thread_id][0], MAP_FORWARD, NULL);
+		return exp(a->log_prec[0][thread_id][0]);
 	}
 
 	/*
@@ -968,7 +990,8 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	vec = Calloc(n_theta, double);
 	k = 0;
 	for (i = 0; i < dim; i++) {
-		vec[k] = map_precision(a->log_prec[i][thread_id][0], MAP_FORWARD, NULL);
+		// vec[k] = map_precision(a->log_prec[i][thread_id][0], MAP_FORWARD, NULL);
+		vec[k] = exp(a->log_prec[i][thread_id][0]);
 		k++;
 	}
 	for (i = 0; i < n_theta - dim; i++) {
@@ -1083,8 +1106,10 @@ double Qfunc_iid2d(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	inla_iid2d_arg_tp *a = (inla_iid2d_arg_tp *) arg;
 	double prec0, prec1, rho;
 
-	prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
-	prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	// prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
+	prec0 = exp(a->log_prec0[thread_id][0]);
+	// prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	prec1 = exp(a->log_prec1[thread_id][0]);
 	rho = map_rho(a->rho_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	if (i == j) {
@@ -1107,8 +1132,10 @@ double Qfunc_2diid(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
-	prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
-	prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	// prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
+	prec0 = exp(a->log_prec0[thread_id][0]);
+	// prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	prec1 = exp(a->log_prec1[thread_id][0]);
 	rho = map_rho(a->rho_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	if (i == j) {
@@ -1131,8 +1158,10 @@ double Qfunc_2diid_wishart(int thread_id, int i, int j, double *UNUSED(values), 
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
-	prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
-	prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	// prec0 = map_precision(a->log_prec0[thread_id][0], MAP_FORWARD, NULL);
+	prec0 = exp(a->log_prec0[thread_id][0]);
+	// prec1 = map_precision(a->log_prec1[thread_id][0], MAP_FORWARD, NULL);
+	prec1 = exp(a->log_prec1[thread_id][0]);
 	rho = map_rho(a->rho_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	if (i == j) {
@@ -1159,7 +1188,8 @@ double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	 * the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovation or conditional noise. 
 	 */
 	phi = map_phi(a->phi_intern[thread_id][0], MAP_FORWARD, NULL);
-	prec_marginal = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec_marginal = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec_marginal = exp(a->log_prec[thread_id][0]);
 	prec = prec_marginal / (1.0 - SQR(phi));
 
 	if (a->cyclic) {
@@ -1197,7 +1227,8 @@ double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	 * the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovations
 	 */
 	phi = map_phi(a->phi_intern[thread_id][0], MAP_FORWARD, NULL);
-	prec_marginal = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec_marginal = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec_marginal = exp(a->log_prec[thread_id][0]);
 	prec = prec_marginal / (1.0 - SQR(phi));
 
 	ii = IMIN(i, j);
@@ -1243,7 +1274,8 @@ double Qfunc_ou(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	double phi, prec, w, v, delta;
 
 	phi = map_exp(a->phi_intern[thread_id][0], MAP_FORWARD, NULL);
-	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec = exp(a->log_prec[thread_id][0]);
 
 	if (i != j) {
 		int ii = IMAX(i, j);
@@ -1289,7 +1321,8 @@ double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	double prec;
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
-	prec = (a->log_prec ? map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL) : 1.0);
+	// prec = (a->log_prec ? map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL) : 1.0);
+	prec = (a->log_prec ? exp(a->log_prec[thread_id][0]) : 1.0);
 
 	if (a->prec_scale) {
 		if (a->prec_scale[i] > 0.0) {
@@ -1350,7 +1383,8 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), vo
 	double prec;
 
 	a = (inla_besag_proper_Qfunc_arg_tp *) arg;
-	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec = exp(a->log_prec[thread_id][0]);
 	if (i == j) {
 		double diag = map_exp(a->log_diag[thread_id][0], MAP_FORWARD, NULL);
 		return prec * (diag + a->graph->nnbs[i]);
@@ -1370,7 +1404,8 @@ double Qfunc_besagproper2(int thread_id, int i, int j, double *UNUSED(values), v
 	double lambda;
 
 	a = (inla_besag_proper2_Qfunc_arg_tp *) arg;
-	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	prec = exp(a->log_prec[thread_id][0]);
 	lambda = map_probability(a->logit_lambda[thread_id][0], MAP_FORWARD, NULL);
 	if (i == j) {
 		return prec * ((1.0 - lambda) + lambda * a->graph->nnbs[i]);

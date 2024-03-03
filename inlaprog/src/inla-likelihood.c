@@ -729,8 +729,10 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 		lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
 		prec = exp(lprec);
 	} else {
-		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
-		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+		// double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
+		double prec_offset = exp(ds->data_observations.log_prec_gaussian_offset[thread_id][0]);
+		// double prec_var = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+		double prec_var = exp(ds->data_observations.log_prec_gaussian[thread_id][0]);
 		double prec_tmp = 1.0 / (1.0 / prec_offset + 1.0 / prec_var);
 		prec = prec_tmp * w;
 		lprec = log(prec);
@@ -921,7 +923,8 @@ int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int 
 	double y, v, ldet_s, mm, nn;
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0];
-	prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	// prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	prec = exp(ds->data_observations.log_prec_gaussian[thread_id][0]);
 	y = ds->data_observations.y[idx];
 	v = ds->data_observations.agaussian[0][idx];
 	ldet_s = ds->data_observations.agaussian[1][idx];
@@ -1082,7 +1085,8 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 	lw = cache[2];
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + lw;
-	prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
+	// prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = exp(ds->data_observations.log_prec_gaussian[thread_id][0]) * w;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -1151,7 +1155,8 @@ int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int id
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_simplex[idx];
 	lprec = ds->data_observations.log_prec_simplex[thread_id][0] + log(w);
-	prec = map_precision(ds->data_observations.log_prec_simplex[thread_id][0], MAP_FORWARD, NULL) * w;
+	// prec = map_precision(ds->data_observations.log_prec_simplex[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = exp(ds->data_observations.log_prec_simplex[thread_id][0]) * w;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -1192,7 +1197,8 @@ int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_circular_normal[idx];
-	prec = map_precision(ds->data_observations.log_prec_circular_normal[thread_id][0], MAP_FORWARD, NULL) * w;
+	// prec = map_precision(ds->data_observations.log_prec_circular_normal[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = exp(ds->data_observations.log_prec_circular_normal[thread_id][0]) * w;
 
 	/*
 	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa)),
@@ -1284,7 +1290,8 @@ int loglikelihood_stochvol(int thread_id, double *logll, double *x, int m, int i
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], var;
-	double tau = map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double tau = map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	double tau = exp(ds->data_observations.log_offset_prec[thread_id][0]);
 	double var_offset;
 
 	LINK_INIT;
@@ -1477,7 +1484,8 @@ int loglikelihood_loggamma_frailty(int thread_id, double *logll, double *x, int 
 
 	// LINK_INIT;
 	lprec = ds->data_observations.log_prec_loggamma_frailty[thread_id][0];
-	prec = map_precision(lprec, MAP_FORWARD, NULL);
+	// prec = map_precision(lprec, MAP_FORWARD, NULL);
+	prec = exp(lprec);
 	log_gamma = gsl_sf_lngamma(prec);
 
 	if (m > 0) {
@@ -1527,7 +1535,8 @@ int loglikelihood_logistic(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_logistic[idx];
-	prec = map_precision(ds->data_observations.log_prec_logistic[thread_id][0], MAP_FORWARD, NULL) * w;
+	// prec = map_precision(ds->data_observations.log_prec_logistic[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = exp(ds->data_observations.log_prec_logistic[thread_id][0]) * w;
 	precA = prec * A;
 	lprecA = log(precA);
 
@@ -1610,7 +1619,8 @@ int loglikelihood_stochvol_sn(int thread_id, double *logll, double *x, int m, in
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	// var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	var_offset = 1.0 / exp(ds->data_observations.log_offset_prec[thread_id][0]);
 	param[0] = ds->data_observations.sn_skew[thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
@@ -1645,7 +1655,8 @@ int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, d
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gev[idx];
-	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[thread_id][0], MAP_FORWARD, NULL) * w);
+	// sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[thread_id][0], MAP_FORWARD, NULL) * w);
+	sprec = sqrt(exp(ds->data_observations.log_prec_gev[thread_id][0]) * w);
 	/*
 	 * map_identity_scale(theta, MAP_FORWARD, arg...);
 	 */
@@ -4799,7 +4810,8 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 int inla_mix_int_quadrature_gaussian(int thread_id, double **x, double **w, int *n, void *arg)
 {
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	double prec = exp(ds->data_observations.mix_log_prec_gaussian[thread_id][0]);
 	double sd = sqrt(1.0 / prec);
 	double *xx = NULL, *ww = NULL, wmin;
 	int i, j;
@@ -4840,7 +4852,8 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 {
 #define DENS(_x) exp(-0.5 * SQR(_x))
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	// double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	double prec = exp(ds->data_observations.mix_log_prec_gaussian[thread_id][0]);
 	double sd = sqrt(1.0 / prec);
 
 	typedef struct {
@@ -4938,7 +4951,8 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 #define DENS(_z, _a) exp( (_a)*((_z) -exp(_z) + 1.0) )
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double shape = map_precision(ds->data_observations.mix_log_prec_loggamma[thread_id][0], MAP_FORWARD, NULL);
+	// double shape = map_precision(ds->data_observations.mix_log_prec_loggamma[thread_id][0], MAP_FORWARD, NULL);
+	double shape = exp(ds->data_observations.mix_log_prec_loggamma[thread_id][0]);
 
 	typedef struct {
 		int n, np;				       /* 'n' is the requested length and 'np' is the pruned length */
@@ -5052,9 +5066,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
