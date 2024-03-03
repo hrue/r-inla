@@ -16071,7 +16071,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				}
 			}
 
-			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
+			mb->f_Qfunc[mb->nf] = (rwdef->order == 0 ? GMRFLib_rw0 : GMRFLib_rw);
 			mb->f_Qfunc_arg[mb->nf] = (void *) rwdef;
 			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
 		} else if ((mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_RW1 ||
