@@ -1868,18 +1868,14 @@ double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 
 // define macros for some of the forward calls, but it seems like the compiler figure this out itself
-#define map_identity_forward(arg_, a1_, a2_) (arg_)
-#define map_inverse_forward(arg_, a1_, a2_) (1.0/(arg_))
-#define map_exp_forward(arg_, a1_, a2_) exp(arg_)
-#define map_negexp_forward(arg_, a1_, a2_) exp(-(arg_))
-#define map_invloglog_forward(arg_, a1_, a2_) exp(-exp(-(arg_)))
-#define map_invcauchit_forward(arg_, a1_, a2_) (M_1_PI * atan(arg_) + 0.5)
-#define map_1exp_forward(arg_, a1_, a2_) exp(-(arg_))
-#define map_sqrt1exp_forward(arg_, a1_, a2_) exp(-0.5 * (arg_))
-#define map_dof_forward(arg_, a1_, a2_) (2.0 + exp(arg_))
-#define map_rho_forward(arg_, a1_, a2_) (2.0 / (1.0 + exp(-(arg_)) - 1.0))
-#define map_precision_forward(arg_, a1_, a2_) exp(arg_)
-#define map_probability_forward(arg_, a1_, a2_) (1.0 / (1.0 + exp(-(arg_))))
+#define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))
+#define map_exp_forward(a1_, a2_, a3_) exp(a1_)
+#define map_identity_forward(a1_, a2_, a3_) (a1_)
+#define map_inverse_forward(a1_, a2_, a3_) (1.0/(a1_))
+#define map_negexp_forward(a1_, a2_, a3_) exp(-(a1_))
+#define map_precision_forward(a1_, a2_, a3_) exp(a1_)
+#define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
+#define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_)) - 1.0))
 
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
