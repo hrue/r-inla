@@ -1875,7 +1875,7 @@ double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void
 #define map_negexp_forward(a1_, a2_, a3_) exp(-(a1_))
 #define map_precision_forward(a1_, a2_, a3_) exp(a1_)
 #define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
-#define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_)) - 1.0))
+#define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
 
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);

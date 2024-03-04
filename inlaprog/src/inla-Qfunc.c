@@ -1150,14 +1150,13 @@ double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
-	double phi, prec_marginal, prec, val;
+	double phi, prec, val;
 
 	/*
 	 * the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovation or conditional noise. 
 	 */
 	phi = map_rho_forward(a->phi_intern[thread_id][0], MAP_FORWARD, NULL);
-	prec_marginal = map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
-	prec = prec_marginal / (1.0 - SQR(phi));
+	prec = map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL) / (1.0 - SQR(phi));
 
 	if (a->cyclic) {
 		if (i == j) {
