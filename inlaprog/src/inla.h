@@ -1867,6 +1867,7 @@ double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *co
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 
+// define macros for some of the forward calls, but it seems like the compiler figure this out itself
 #define map_identity_forward(arg_, a1_, a2_) (arg_)
 #define map_inverse_forward(arg_, a1_, a2_) (1.0/(arg_))
 #define map_exp_forward(arg_, a1_, a2_) exp(arg_)
@@ -1879,7 +1880,6 @@ double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void
 #define map_rho_forward(arg_, a1_, a2_) (2.0 / (1.0 + exp(-(arg_)) - 1.0))
 #define map_precision_forward(arg_, a1_, a2_) exp(arg_)
 #define map_probability_forward(arg_, a1_, a2_) (1.0 / (1.0 + exp(-(arg_))))
-
 
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
