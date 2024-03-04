@@ -1867,49 +1867,51 @@ double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *co
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 
+#define map_identity_forward(arg_, a1_, a2_) (arg_)
+#define map_inverse_forward(arg_, a1_, a2_) (1.0/(arg_))
+#define map_exp_forward(arg_, a1_, a2_) exp(arg_)
+#define map_negexp_forward(arg_, a1_, a2_) exp(-(arg_))
+#define map_invloglog_forward(arg_, a1_, a2_) exp(-exp(-(arg_)))
+#define map_invcauchit_forward(arg_, a1_, a2_) (M_1_PI * atan(arg_) + 0.5)
+#define map_1exp_forward(arg_, a1_, a2_) exp(-(arg_))
+#define map_sqrt1exp_forward(arg_, a1_, a2_) exp(-0.5 * (arg_))
+#define map_dof_forward(arg_, a1_, a2_) (2.0 + exp(arg_))
+#define map_rho_forward(arg_, a1_, a2_) (2.0 / (1.0 + exp(-(arg_)) - 1.0))
+#define map_precision_forward(arg_, a1_, a2_) exp(arg_)
+#define map_probability_forward(arg_, a1_, a2_) (1.0 / (1.0 + exp(-(arg_))))
+
+
 double map_1exp(double arg, map_arg_tp typ, void *param);
-double map_1exp_forward(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
-double map_dof_forward(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
-double map_exp_forward(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
-double map_identity_forward(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
-double map_invcauchit_forward(double arg, map_arg_tp typ, void *param);
 double map_invccloglog(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
-double map_inverse_forward(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
-double map_invloglog_forward(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
-double map_negexp_forward(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
-double map_precision_forward(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
-double map_probability_forward(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
-double map_rho_forward(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
-double map_sqrt1exp_forward(double arg, map_arg_tp typ, void *param);
 double mfunc_ar1(int thread_id, int i, void *arg);
 double mfunc_cgeneric(int thread_id, int i, void *arg);
 double mfunc_clinear(int thread_id, int i, void *arg);

@@ -4039,6 +4039,38 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 136:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double *y1 = Calloc(n, double);
+		double *y2 = Calloc(n, double);
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				y1[j] = y2[j] = GMRFLib_uniform();
+			}
+			tref[0] -= GMRFLib_cpu();
+			for(int j = 0; j < n; j++) {
+				y2[j] = map_probability(y1[j], MAP_FORWARD, NULL);
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			for(int j = 0; j < n; j++) {
+				y2[j] = map_probability_forward(y1[j], MAP_FORWARD, NULL);
+			}
+			tref[1] += GMRFLib_cpu();
+		}
+		printf("ii plain=%.4f forward=%.4f\n", tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

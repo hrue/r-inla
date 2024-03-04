@@ -72,7 +72,6 @@ typedef double GMRFLib_uniform_tp(void);
 typedef int GMRFLib_uniform_init_tp(unsigned long int seed);
 typedef void *GMRFLib_uniform_getstate_tp(size_t *siz);
 typedef int GMRFLib_uniform_setstate_tp(void *state);
-typedef double GMRFLib_cpu_tp(void);
 
 typedef double *GMRFLib_ai_INLA_userfunc0_tp(int thread_id, GMRFLib_problem_tp * problem, double *theta, int nhyper);
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(int thread_id, double *theta, int nhyper, double *covmat);
@@ -94,7 +93,6 @@ extern GMRFLib_uniform_tp *GMRFLib_uniform;
 extern GMRFLib_uniform_init_tp *GMRFLib_uniform_init;
 extern GMRFLib_uniform_getstate_tp *GMRFLib_uniform_getstate;
 extern GMRFLib_uniform_setstate_tp *GMRFLib_uniform_setstate;
-extern GMRFLib_cpu_tp *GMRFLib_cpu;
 
 extern GMRFLib_ai_INLA_userfunc0_tp *GMRFLib_ai_INLA_userfunc0;	/* points to the function */
 extern int GMRFLib_ai_INLA_userfunc0_dim;		       /* dimension of func() */

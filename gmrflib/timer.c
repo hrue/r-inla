@@ -39,36 +39,3 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
-
-
-#if defined(WINDOWS)
-
-// define the function in the high-prec-timer.cpp
-
-#else							       // if defined(WINDOWS)
-
-#if defined(_OPENMP)
-
-#include <sys/time.h>
-#include <omp.h>
-double GMRFLib_cpu_default(void)
-{
-	return (omp_get_wtime());
-}
-
-#else							       // if defined(_OPENMP)
-
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
-double GMRFLib_cpu_default(void)
-{
-	struct timeval time1;
-	double time;
-	gettimeofday(&time1, NULL);
-	time = time1.tv_sec + time1.tv_usec * 1.0e-6;
-	return (time);
-}
-
-#endif							       // if defined(_OPENMP)
-#endif							       // if defined(WINDOWS)

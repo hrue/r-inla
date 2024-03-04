@@ -34,9 +34,9 @@
 #include <chrono>
 using namespace std;
  
-extern "C" double GMRFLib_cpu_default(void);
+extern "C" double GMRFLib_cpu_windows(void);
 
-double GMRFLib_cpu_default()
+double GMRFLib_cpu_windows(void)
 {
 	static auto start = chrono::high_resolution_clock::now();
 	static int first = 1;
