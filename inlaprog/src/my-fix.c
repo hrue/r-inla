@@ -55,14 +55,7 @@ double drand48(void)
 {
 	return GMRFLib_uniform();
 }
-void srand48(long int seed)
-{
-	return;
-}
-#endif
-
-#if 0
-void _mm_pause(void)
+void srand48(long int UNUSED(seed))
 {
 	return;
 }
