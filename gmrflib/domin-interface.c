@@ -267,7 +267,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	int i;
 	const int debug = 0;
 	double ffx, fx_local;
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 
 	/*
 	 * tabulate Qfunc here. store it in argument 'tagQfunc' if present, otherwise, use local storage. 
@@ -312,7 +312,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 		       (fx_local < B.f_best ? "BETTER!" : ""));
 	}
 
-	tref = GMRFLib_cpu() - tref;
+	tref = GMRFLib_timer() - tref;
 #pragma omp atomic
 	fncall_timing.time_used += tref;
 #pragma omp atomic

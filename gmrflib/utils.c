@@ -1787,7 +1787,7 @@ int my_sort2_id_test_cutoff(int verbose)
 	double cutoff = 1;
 	double b;
 
-	time_used -= GMRFLib_cpu();
+	time_used -= GMRFLib_timer();
 
 	for (int n = nmin; n <= nmax; n += nstep) {
 
@@ -1804,15 +1804,15 @@ int my_sort2_id_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			time[0] -= GMRFLib_cpu();
+			time[0] -= GMRFLib_timer();
 			my_insertionSort_id(ixx, xx, n);
-			time[0] += GMRFLib_cpu();
+			time[0] += GMRFLib_timer();
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			time[1] -= GMRFLib_cpu();
+			time[1] -= GMRFLib_timer();
 			gsl_sort2_id(ixx, xx, n);
-			time[1] += GMRFLib_cpu();
+			time[1] += GMRFLib_timer();
 		}
 
 		slope_xx += SQR(n);
@@ -1834,7 +1834,7 @@ int my_sort2_id_test_cutoff(int verbose)
 	// this is a global variable
 	GMRFLib_sort2_id_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
-	time_used += GMRFLib_cpu();
+	time_used += GMRFLib_timer();
 	if (verbose) {
 		printf("sort-test took %.4f seconds\n", time_used);
 	}
@@ -1864,7 +1864,7 @@ int my_sort2_dd_test_cutoff(int verbose)
 	double cutoff = 1;
 	double b;
 
-	time_used -= GMRFLib_cpu();
+	time_used -= GMRFLib_timer();
 
 	for (int n = nmin; n <= nmax; n += nstep) {
 
@@ -1881,15 +1881,15 @@ int my_sort2_dd_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(double));
 			Memcpy(xx, x, n * sizeof(double));
-			time[0] -= GMRFLib_cpu();
+			time[0] -= GMRFLib_timer();
 			my_insertionSort_dd(ixx, xx, n);
-			time[0] += GMRFLib_cpu();
+			time[0] += GMRFLib_timer();
 
 			Memcpy(ixx, ix, n * sizeof(double));
 			Memcpy(xx, x, n * sizeof(double));
-			time[1] -= GMRFLib_cpu();
+			time[1] -= GMRFLib_timer();
 			gsl_sort2_dd(ixx, xx, n);
-			time[1] += GMRFLib_cpu();
+			time[1] += GMRFLib_timer();
 		}
 
 		slope_xx += SQR(n);
@@ -1911,7 +1911,7 @@ int my_sort2_dd_test_cutoff(int verbose)
 	// this is a global variable
 	GMRFLib_sort2_dd_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
-	time_used += GMRFLib_cpu();
+	time_used += GMRFLib_timer();
 	if (verbose) {
 		printf("sort-test took %.4f seconds\n", time_used);
 	}

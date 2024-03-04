@@ -1924,7 +1924,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 			 */
 			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n - 1))) {
 
-				cputime[k] = GMRFLib_cpu();
+				cputime[k] = GMRFLib_timer();
 				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kkk], &lgn);
 
 				perm = Calloc(n, int);
@@ -1940,7 +1940,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 				taucs_ccs_free(L);
 				taucs_supernodal_factor_free(TAUCS_symb_fact);
 
-				cputime[k] = GMRFLib_cpu() - cputime[k];
+				cputime[k] = GMRFLib_timer() - cputime[k];
 
 				if (debug) {
 #pragma omp critical (Name_4dc800d9b856792e63baa1e9a01d82865c857322)

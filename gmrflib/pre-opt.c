@@ -47,8 +47,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #define SHOW_TIME(_msg)							\
 	if (debug) {							\
-		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
-		tref =  GMRFLib_cpu();					\
+		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_timer() - tref); \
+		tref =  GMRFLib_timer();					\
 	}
 
 	if (!preopt) {
@@ -61,7 +61,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	const int debug_detailed = 0;
 	const int do_prune = 1;
 
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	double **ww = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 	GMRFLib_idx_tp **pAA_pattern = NULL;
@@ -1473,7 +1473,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	void *like_Qfunc_arg = preopt->like_Qfunc_arg;
 
 	// this will be measure with serial or with group
-	cpu[0] = -GMRFLib_cpu();
+	cpu[0] = -GMRFLib_timer();
 	for (int i = 0; i < like_graph->n; i++) {
 		value += GMRFLib_preopt_like_Qfunc(thread_id, i, i, NULL, like_Qfunc_arg);
 		for (int jj = 0, j; jj < like_graph->lnnbs[i]; jj++) {
@@ -1481,7 +1481,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 			value += GMRFLib_preopt_like_Qfunc(thread_id, i, j, NULL, like_Qfunc_arg);
 		}
 	}
-	cpu[0] += GMRFLib_cpu();
+	cpu[0] += GMRFLib_timer();
 	assert(!ISNAN(value));
 
 	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
@@ -1504,9 +1504,9 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	GMRFLib_tabulate_Qfunc_core(thread_id, &tab, graph, Qfunc, Qfunc_arg, NULL, 1);
 
 	// this will be measured with serial or parallel
-	cpu[1] = -GMRFLib_cpu();
+	cpu[1] = -GMRFLib_timer();
 	GMRFLib_Qx(thread_id, xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
-	cpu[1] += GMRFLib_cpu();
+	cpu[1] += GMRFLib_timer();
 
 	if (0) {
 		double check = 0.0;
@@ -1539,9 +1539,9 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp *preopt)
 	for (int i = 0; i < preopt->n; i++) {
 		lat[i] = GMRFLib_uniform();
 	}
-	cpu[0] = -GMRFLib_cpu();
+	cpu[0] = -GMRFLib_timer();
 	GMRFLib_preopt_full_predictor(pred, lat, preopt);
-	cpu[0] += GMRFLib_cpu();
+	cpu[0] += GMRFLib_timer();
 	Calloc_free();
 
 	return cpu;

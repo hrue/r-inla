@@ -616,7 +616,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	assert(mb->f_Alocal == NULL);
 
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
@@ -629,7 +629,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	if (mb->verbose) {
 		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
-		printf("\tSetup.................... [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tSetup.................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);

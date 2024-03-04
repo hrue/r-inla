@@ -834,14 +834,14 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRF
 		Memcpy(xx, rhs, L->n * sizeof(double));
 
 		static double tref[2] = { 0.0, 0.0 };
-		tref[0] -= GMRFLib_cpu();
+		tref[0] -= GMRFLib_timer();
 		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
-		tref[0] += GMRFLib_cpu();
+		tref[0] += GMRFLib_timer();
 
 		taucs_crs_matrix *LL = GMRFLib_ccs2crs(L);
-		tref[1] -= GMRFLib_cpu();
+		tref[1] -= GMRFLib_timer();
 		GMRFLib_my_taucs_dccs_solve_llt_test(L, LL, xx);
-		tref[1] += GMRFLib_cpu();
+		tref[1] += GMRFLib_timer();
 
 		taucs_crs_free(LL);
 		Free(xx);
@@ -1076,13 +1076,13 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 	} else {
 		double tref[] = { 0, 0 };
 		FIXME("NEW");
-		tref[0] -= GMRFLib_cpu();
+		tref[0] -= GMRFLib_timer();
 		GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL);
-		tref[0] += GMRFLib_cpu();
+		tref[0] += GMRFLib_timer();
 		FIXME("OLD");
-		tref[1] -= GMRFLib_cpu();
+		tref[1] -= GMRFLib_timer();
 		GMRFLib_compute_Qinv_TAUCS_compute_OLD(problem, NULL);
-		tref[1] += GMRFLib_cpu();
+		tref[1] += GMRFLib_timer();
 		P(tref[0] / (tref[0] + tref[1]));
 		P(tref[1] / (tref[0] + tref[1]));
 	}
@@ -1520,7 +1520,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		int *rowind = L->rowind;
 
 		if (do_timing) {
-			tref[0] -= GMRFLib_cpu();
+			tref[0] -= GMRFLib_timer();
 		}
 
 		for (int j = 0; j < n; j++) {
@@ -1536,8 +1536,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		}
 
 		if (do_timing) {
-			tref[0] += GMRFLib_cpu();
-			tref[1] -= GMRFLib_cpu();
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
 		}
 
 		for (int i = n - 1; i >= 0; i--) {
@@ -1549,7 +1549,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		}
 
 		if (do_timing) {
-			tref[1] += GMRFLib_cpu();
+			tref[1] += GMRFLib_timer();
 			P(tref[0] / (tref[0] + tref[1]));
 		}
 	}
@@ -1599,7 +1599,7 @@ int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x)
 
 		double tref[2] = { 0.0, 0.0 };
 		if (do_timing)
-			tref[0] -= GMRFLib_cpu();
+			tref[0] -= GMRFLib_timer();
 
 		y[0] = x[0] / d[0];
 		for (int i = 1; i < n; i++) {
@@ -1609,8 +1609,8 @@ int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x)
 		}
 
 		if (do_timing) {
-			tref[0] += GMRFLib_cpu();
-			tref[1] -= GMRFLib_cpu();
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
 		}
 
 		d = L->values.d;
@@ -1626,7 +1626,7 @@ int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x)
 		}
 
 		if (do_timing) {
-			tref[1] += GMRFLib_cpu();
+			tref[1] += GMRFLib_timer();
 			P(tref[0] / (tref[0] + tref[1]));
 		}
 	}

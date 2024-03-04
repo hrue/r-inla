@@ -5565,7 +5565,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 	}
 
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
@@ -5685,7 +5685,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
-		printf("\tSetup...................... [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -5886,7 +5886,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values) {
-		tref = -GMRFLib_cpu();
+		tref = -GMRFLib_timer();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -5958,7 +5958,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			norm_initial = norm;
 		}
 
-		tref += GMRFLib_cpu();
+		tref += GMRFLib_timer();
 		if (mb->verbose) {
 			printf("\tInitial values computed in %.4f seconds\n", tref);
 			for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
@@ -7086,28 +7086,28 @@ int main(int argc, char **argv)
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS());
 			}
-			time_used[0] = GMRFLib_cpu();
+			time_used[0] = GMRFLib_timer();
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
-			time_used[0] = GMRFLib_cpu() - time_used[0];
+			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
 			if (!silent) {
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				fflush(stdout);
 			}
-			time_used[1] = GMRFLib_cpu();
+			time_used[1] = GMRFLib_timer();
 			atime_used[1] = clock();
 
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
-				time_used[3] = GMRFLib_cpu();
+				time_used[3] = GMRFLib_timer();
 				inla_INLA_preopt_experimental(mb);
-				time_used[3] = GMRFLib_cpu() - time_used[1];
+				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
 				rgeneric_cpu[0] = R_rgeneric_cputime;
@@ -7136,10 +7136,10 @@ int main(int argc, char **argv)
 
 				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
-				time_used[3] = GMRFLib_cpu();
+				time_used[3] = GMRFLib_timer();
 				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
 				inla_INLA_preopt_stage1(mb, rpreopt);
-				time_used[3] = GMRFLib_cpu() - time_used[1];
+				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
 				rgeneric_cpu[0] = R_rgeneric_cputime;
@@ -7174,7 +7174,7 @@ int main(int argc, char **argv)
 				assert(0 == 1);
 			}
 
-			time_used[1] = GMRFLib_cpu() - time_used[1];
+			time_used[1] = GMRFLib_timer() - time_used[1];
 			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
@@ -7186,11 +7186,11 @@ int main(int argc, char **argv)
 				}
 				fflush(stdout);
 			}
-			time_used[2] = GMRFLib_cpu();
+			time_used[2] = GMRFLib_timer();
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			inla_output(mb);
-			time_used[2] = GMRFLib_cpu() - time_used[2];
+			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
 #define PEFF_OUTPUT(fp_)						\

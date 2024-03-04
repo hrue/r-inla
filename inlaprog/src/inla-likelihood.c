@@ -3590,13 +3590,13 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					s[time] = exp(2.0 * (GMRFLib_uniform() - 0.5));
 				}
 
-				t[0] = -GMRFLib_cpu();
+				t[0] = -GMRFLib_timer();
 				for (int time = 0; time < ntimes; time++) {
 					tmp0 += gsl_sf_lngamma(yy + s[time]) - gsl_sf_lngamma(s[time]);
 				}
-				t[0] += GMRFLib_cpu();
+				t[0] += GMRFLib_timer();
 
-				t[1] -= GMRFLib_cpu();
+				t[1] -= GMRFLib_timer();
 				for (int time = 0; time < ntimes; time++) {
 					double ss = s[time];
 #pragma omp simd reduction(+: tmp1)
@@ -3604,7 +3604,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 						tmp1 += log(y1 + ss);
 					}
 				}
-				t[1] += GMRFLib_cpu();
+				t[1] += GMRFLib_timer();
 
 				assert(ABS(((tmp0 - tmp1)) / (tmp0 + tmp1)) < FLT_EPSILON);
 				if (verbose) {

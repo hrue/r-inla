@@ -266,10 +266,10 @@ typedef enum {
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
 		double _tref;				\
-		_tref = GMRFLib_cpu();			\
+		_tref = GMRFLib_timer();			\
 		_ntimes++;				\
 		expression;						\
-		_tacc += GMRFLib_cpu() - _tref;				\
+		_tacc += GMRFLib_timer() - _tref;				\
 		printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n", \
 		       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
@@ -279,11 +279,11 @@ typedef enum {
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
 		double _tref;				\
-		_tref = GMRFLib_cpu();			\
+		_tref = GMRFLib_timer();			\
 		_ntimes++;
 
 #define GMRFLib_MEASURE_CPU_END(msg)					\
-	_tacc += GMRFLib_cpu() - _tref;					\
+	_tacc += GMRFLib_timer() - _tref;					\
 	printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n",	\
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}

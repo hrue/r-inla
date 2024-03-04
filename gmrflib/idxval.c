@@ -809,29 +809,29 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			GMRFLib_dot_product_group_mkl(h, x);
 			GMRFLib_dot_product_group_mkl_alt(h, x);
 		} else {
-			treff[0] -= GMRFLib_cpu();
+			treff[0] -= GMRFLib_timer();
 			value[0] = GMRFLib_dot_product_serial(h, x);
-			treff[0] += GMRFLib_cpu();
+			treff[0] += GMRFLib_timer();
 
-			treff[1] -= GMRFLib_cpu();
+			treff[1] -= GMRFLib_timer();
 			value[1] = GMRFLib_dot_product_serial_mkl(h, x);
-			treff[1] += GMRFLib_cpu();
+			treff[1] += GMRFLib_timer();
 
-			treff[2] -= GMRFLib_cpu();
+			treff[2] -= GMRFLib_timer();
 			value[2] = GMRFLib_dot_product_serial_mkl_alt(h, x);
-			treff[2] += GMRFLib_cpu();
+			treff[2] += GMRFLib_timer();
 
-			treff[3] -= GMRFLib_cpu();
+			treff[3] -= GMRFLib_timer();
 			value[3] = GMRFLib_dot_product_group(h, x);
-			treff[3] += GMRFLib_cpu();
+			treff[3] += GMRFLib_timer();
 
-			treff[4] -= GMRFLib_cpu();
+			treff[4] -= GMRFLib_timer();
 			value[4] = GMRFLib_dot_product_group_mkl(h, x);
-			treff[4] += GMRFLib_cpu();
+			treff[4] += GMRFLib_timer();
 
-			treff[5] -= GMRFLib_cpu();
+			treff[5] -= GMRFLib_timer();
 			value[5] = GMRFLib_dot_product_group_mkl_alt(h, x);
-			treff[5] += GMRFLib_cpu();
+			treff[5] += GMRFLib_timer();
 
 			if (0) {
 				printf("idxval optimisation: length = %1d\n", h->n);
@@ -966,13 +966,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			GMRFLib_dot_product_serial(h, x);
 			GMRFLib_dot_product_group(h, x);
 		} else {
-			treff[0] -= GMRFLib_cpu();
+			treff[0] -= GMRFLib_timer();
 			value[0] = GMRFLib_dot_product_serial(h, x);
-			treff[0] += GMRFLib_cpu();
+			treff[0] += GMRFLib_timer();
 
-			treff[1] -= GMRFLib_cpu();
+			treff[1] -= GMRFLib_timer();
 			value[1] = GMRFLib_dot_product_group(h, x);
-			treff[1] += GMRFLib_cpu();
+			treff[1] += GMRFLib_timer();
 
 			if (0) {
 				printf("idxval optimisation: length = %1d\n", h->n);

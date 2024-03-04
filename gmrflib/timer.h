@@ -56,11 +56,10 @@ __BEGIN_DECLS
    dummy comment
  */
 
-#if defined(WINDOWS)
-#define GMRFLib_cpu() GMRFLib_cpu_windows()
-#else
-#define GMRFLib_cpu() omp_get_wtime()
-#endif
+// defined in high-prec-timer.cpp
+double GMRFLib_timer_chrono(void);
+//#define GMRFLib_timer() omp_get_wtime()
+#define GMRFLib_timer() GMRFLib_timer_chrono()
 
 typedef struct {
 	char *name;					       /* function name */
@@ -80,16 +79,16 @@ typedef struct {
 	_Pragma("omp threadprivate(trace_cpu_acc_)")			\
 	static double trace_cpu_ = 0.0;					\
 	_Pragma("omp threadprivate(trace_cpu_)")			\
-	trace_cpu_ = GMRFLib_cpu();					\
+	trace_cpu_ = GMRFLib_timer();					\
 	GMRFLib_TRACE_i("Enter, total", trace_count_);
 
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
-		trace_cpu_acc_ += (GMRFLib_cpu() - trace_cpu_);		\
+		trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
 		GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
 	}
 
-double GMRFLib_cpu_windows(void);
+double GMRFLib_timer_windows(void);
 
 __END_DECLS
 #endif
