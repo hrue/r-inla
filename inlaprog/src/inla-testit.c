@@ -4073,6 +4073,23 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 137:
+	{
+		int n = atoi(args[0]);
+		double tref[] = { 0, 0, 0};
+		tref[2] -= GMRFLib_timer();
+		for (int i = 0; i < n; i++) {
+			tref[0] -= GMRFLib_timer();
+			tref[0] += GMRFLib_timer();
+			tref[1] -= omp_get_wtime();
+			tref[1] += omp_get_wtime();
+		}
+		tref[2] += GMRFLib_timer();
+		tref[2] /= n;
+		printf("timer=%.4g wtime=%.4g\n", tref[0] / n, tref[1] / n);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

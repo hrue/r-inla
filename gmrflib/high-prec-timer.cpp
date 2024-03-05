@@ -37,13 +37,6 @@ extern "C" double GMRFLib_timer_chrono(void);
 double GMRFLib_timer_chrono(void)
 {
 	static auto start = chrono::high_resolution_clock::now();
-	static char first = 1;
-	if (first) {
-		start = chrono::high_resolution_clock::now();
-		first = 0;
-	}
-
 	auto now = chrono::high_resolution_clock::now();
-	double time_taken = (chrono::duration_cast<chrono::nanoseconds>(now - start).count()) * 1.0E-09;
-	return time_taken;
+	return ((chrono::duration_cast<chrono::nanoseconds>(now - start).count()) * 1.0E-09);
 }
