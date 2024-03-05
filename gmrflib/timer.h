@@ -55,7 +55,6 @@ __BEGIN_DECLS
 /* 
    dummy comment
  */
-
 // defined in high-prec-timer.cpp
 double GMRFLib_timer_chrono(void);
 //#define GMRFLib_timer() omp_get_wtime()

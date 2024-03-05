@@ -328,7 +328,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n", GMRFLib_timer() - t_ref, (double) ns / (GMRFLib_timer() - t_ref));
+		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n", GMRFLib_timer() - t_ref,
+			(double) ns / (GMRFLib_timer() - t_ref));
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {

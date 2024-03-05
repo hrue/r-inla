@@ -4057,26 +4057,26 @@ int testit(int argc, char **argv)
 			}
 			tref[0] -= GMRFLib_timer();
 #pragma omp simd
-			for(int j = 0; j < n; j++) {
+			for (int j = 0; j < n; j++) {
 				y2[j] = map_probability(y1[j], MAP_FORWARD, NULL);
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
 #pragma omp simd
-			for(int j = 0; j < n; j++) {
+			for (int j = 0; j < n; j++) {
 				y2[j] = map_probability_forward(y1[j], MAP_FORWARD, NULL);
 			}
 			tref[1] += GMRFLib_timer();
 		}
-		printf("ii plain=%.4f forward=%.4f\n", tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+		printf("ii plain=%.4f forward=%.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 
 	case 137:
 	{
 		int n = atoi(args[0]);
-		double tref[] = { 0, 0, 0};
+		double tref[] = { 0, 0, 0 };
 		tref[2] -= GMRFLib_timer();
 		for (int i = 0; i < n; i++) {
 			tref[0] -= GMRFLib_timer();

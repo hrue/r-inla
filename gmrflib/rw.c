@@ -42,7 +42,7 @@ double GMRFLib_rw0(int thread_id, int node, int nnode, double *UNUSED(values), v
 	if (node != nnode) {
 		return 0.0;
 	}
-	
+
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
 	double prec = GMRFLib_SET_PREC(rwdef);
 
@@ -51,7 +51,7 @@ double GMRFLib_rw0(int thread_id, int node, int nnode, double *UNUSED(values), v
 	}
 
 	if (rwdef->scale0) {
-		prec *= rwdef->scale0[node]; 
+		prec *= rwdef->scale0[node];
 	}
 
 	return prec;
