@@ -232,8 +232,8 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 
 	case GMRFLib_SMTP_TAUCS:
 	{
-		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo),
-							    &(sm_fact->TAUCS_L_inv_diag));
+		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->TAUCS_cache), 
+							    &(sm_fact->finfo), &(sm_fact->TAUCS_L_inv_diag));
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}
@@ -275,10 +275,12 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 
 		case GMRFLib_SMTP_TAUCS:
 		{
-			GMRFLib_EWRAP1(GMRFLib_free_fact_sparse_matrix_TAUCS
-				       (sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact));
+			GMRFLib_free_fact_sparse_matrix_TAUCS(sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact);
+			GMRFLib_taucs_cache_free(sm_fact->TAUCS_cache);
 			sm_fact->TAUCS_L = NULL;
 			sm_fact->TAUCS_symb_fact = NULL;
+			sm_fact->TAUCS_symb_fact = NULL;
+			sm_fact->TAUCS_cache = NULL;
 		}
 			break;
 

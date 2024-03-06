@@ -598,6 +598,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
+		(*problem)->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
 	}
 
 	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
@@ -623,6 +624,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
+		store->TAUCS_cache = GMRFLib_taucs_cache_duplicate((*problem)->sub_sm_fact.TAUCS_cache);
 	}
 
 	/*
@@ -1080,6 +1082,9 @@ int GMRFLib_free_store(GMRFLib_store_tp *store)
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
+		if (store->TAUCS_cache) {
+			GMRFLib_taucs_cache_free(store->TAUCS_cache);
+		}
 	}
 
 	if (store->copy_pardiso_ptr) {
@@ -1095,6 +1100,7 @@ int GMRFLib_free_store(GMRFLib_store_tp *store)
 
 	store->sub_graph = NULL;
 	store->TAUCS_symb_fact = NULL;
+	store->TAUCS_cache = NULL;
 
 	/*
 	 * free the diag and sub-store. its of the same type, therefore we can do this recursively. 
@@ -1654,6 +1660,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 		np->sub_sm_fact.TAUCS_L_inv_diag = NULL;
 	}
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
+	np->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(problem->sub_sm_fact.TAUCS_cache);
 	COPY(sub_sm_fact.finfo);
 
 	if (problem->sub_sm_fact.PARDISO_fact) {
@@ -1775,9 +1782,11 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 		 */
 		new_store->sub_graph = store->sub_graph;
 		new_store->TAUCS_symb_fact = store->TAUCS_symb_fact;
+		new_store->TAUCS_cache = store->TAUCS_cache;
 	} else {
 		GMRFLib_graph_duplicate(&(new_store->sub_graph), store->sub_graph);
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
+		new_store->TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
 	}
 	new_store->copy_ptr = copy_ptr;
 	new_store->copy_pardiso_ptr = copy_pardiso_ptr;

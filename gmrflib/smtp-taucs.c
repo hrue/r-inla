@@ -46,7 +46,30 @@
 #include "amd.h"
 #include "metis.h"
 
-taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
+GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache) 
+{
+	if (cache) {
+		GMRFLib_taucs_cache_tp *nc = Calloc(1, GMRFLib_taucs_cache_tp);
+		nc->n = cache->n;
+		nc->nnz = cache->nnz;
+		if (nc->n && cache->len) {
+			nc->len = Calloc(nc->n, int);
+			Memcpy(nc->len, cache->len,  nc->n * sizeof(int));
+		}
+		return nc;
+	}
+	return NULL;
+}
+
+void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache) 
+{
+	if (cache) {
+		Free(cache->len);
+		Free(cache);
+	}
+}
+
+taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_cache_tp **cache)
 {
 	/*
 	 * this is to be called for a lower triangular double matrix only.
@@ -64,34 +87,68 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	if (n == 0) {
 		return NULL;
 	}
-	len = Calloc(n, int);
 
-	for (int sn = 0; sn < L->n_sn; sn++) {
-		int Lsize = L->sn_size[sn];
-		int Lup_size = L->sn_up_size[sn];
-		int *Lss = L->sn_struct[sn];
+	const int verbose = 0;
+	static int cs[] = {0, 0, 0};
+	
+	if (cache == NULL || *cache == NULL) {
+		len = Calloc(n, int);
+		for (int sn = 0; sn < L->n_sn; sn++) {
+			int Lsize = L->sn_size[sn];
+			int Lup_size = L->sn_up_size[sn];
+			int *Lss = L->sn_struct[sn];
 
-		for (int jp = 0; jp < Lsize; jp++) {
-			int j = Lss[jp];
-			int *len_j = len + j;
-			*len_j = 0;
-			for (int ip = jp; ip < Lsize; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					(*len_j)++;
-					nnz++;
+			for (int jp = 0; jp < Lsize; jp++) {
+				int j = Lss[jp];
+				int *len_j = len + j;
+				*len_j = 0;
+
+				for (int ip = jp; ip < Lsize; ip++) {
+					int i = Lss[ip];
+					if (i >= j) {
+						(*len_j)++;
+						nnz++;
+					}
 				}
-			}
-			for (int ip = Lsize; ip < Lup_size; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					(*len_j)++;
-					nnz++;
+
+				for (int ip = Lsize; ip < Lup_size; ip++) {
+					int i = Lss[ip];
+					if (i >= j) {
+						(*len_j)++;
+						nnz++;
+					}
 				}
 			}
 		}
+		if (cache) {
+			if (verbose) {
+#pragma omp atomic
+				cs[0]++;
+			}
+			*cache = Calloc(1, GMRFLib_taucs_cache_tp);
+			(*cache)->n = n;
+			(*cache)->nnz = nnz;
+			(*cache)->len = len;
+		} else {
+			if (verbose){
+#pragma omp atomic
+				cs[1]++;
+			}
+		}
+	} else {
+		nnz = (*cache)->nnz;
+		len = (*cache)->len;
+		if (verbose) {
+#pragma omp atomic
+			cs[2]++;
+		}
 	}
-
+	
+	if (verbose) {
+#pragma omp critical
+		printf("cache init %d miss %d use %d\n", cs[0], cs[1], cs[2]);
+	}
+	       
 	C = taucs_dccs_create(n, n, nnz);
 	C->flags = TAUCS_DOUBLE;
 	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
@@ -113,9 +170,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 		for (int jp = 0; jp < Lsize; jp++) {
 			int j = Lss[jp];
 			int next = C->colptr[j];
-
 			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
 			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
+
 			for (int ip = jp; ip < Lsize; ip++) {
 				int i = Lss[ip];
 				if (i >= j) {
@@ -125,6 +182,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 					next++;
 				}
 			}
+
 			for (int ip = Lsize; ip < Lup_size; ip++) {
 				int i = Lss[ip];
 				if (i >= j) {
@@ -137,7 +195,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 		}
 	}
 
-	Free(len);
+	if (!cache) Free(len);
 	return C;
 }
 
@@ -713,8 +771,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_fact_info_tp *finfo,
-					  double **L_inv_diag)
+int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache, 
+					  GMRFLib_fact_info_tp *finfo, double **L_inv_diag)
 {
 	int flags, k, retval;
 
@@ -743,7 +801,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	}
 	taucs_ccs_free(*L);
 
-	*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact);
+	*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact, cache);
 	assert(*L);
 	(*L)->flags = flags & ~TAUCS_SYMMETRIC;		       /* fixes a bug in ver 2.0 av TAUCS */
 	taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */

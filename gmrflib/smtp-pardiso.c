@@ -857,7 +857,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 	}
 	// Revert back to C indexing ?
 	if (GMRFLib_imin_value(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm, n, NULL) == 1) {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < n; i++) {
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
 		}
@@ -1365,7 +1365,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 			}
 		}
 	}
-
+	
 	assert(found == 1);
 	if (S.static_pstores[idx]) {
 		if (debug) {
@@ -1401,7 +1401,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 	if (S.s_verbose) {
 		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) nnew), ((void *) old), idx);
 	}
-
+	
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

@@ -122,6 +122,15 @@ typedef struct {
 	int nfillin;
 } GMRFLib_fact_info_tp;
 
+typedef struct
+{
+	int n;
+	int nnz;
+	int *len;
+}
+	GMRFLib_taucs_cache_tp;
+
+
 typedef struct {
 
 	/**
@@ -158,6 +167,8 @@ typedef struct {
 	 *  \brief The inverse of the diagonal of L (smtp = TAUCS)
 	 */
 	double *TAUCS_L_inv_diag;
+
+	GMRFLib_taucs_cache_tp *TAUCS_cache;
 
 	 /**
 	 *  \brief Info about the factorization 
