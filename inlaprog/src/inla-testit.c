@@ -4090,6 +4090,21 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 138: 
+	{
+		int n = atoi(args[0]);
+		assert(n > 0);
+		double *x = Calloc(n, double);
+		for(int i = 0; i < n; i++) {
+			printf("x[%d]:  via adress %d\n", i, (int) ((x + i) - x));
+		}
+		int *ix = (int *) x;
+		for(int i = 0; i < n; i++) {
+			printf("x[%d]:  via adress %d\n", i, (int) ((ix + i) - ix));
+		}
+	}
+	break;
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
