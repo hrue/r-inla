@@ -76,17 +76,17 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
+	GMRFLib_ENTER_ROUTINE;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-	taucs_ccs_matrix *C = NULL;
-	int n, nnz = 0, *len = NULL;
 
-	n = L->n;
+	int n = L->n;
 	if (n == 0) {
 		return NULL;
 	}
 
-	const int verbose = 0;
-	static int cs[] = { 0, 0, 0 };
+	taucs_ccs_matrix *C = NULL;
+	int nnz = 0, *len = NULL;
+	int nt = (n < 1E3 ? 1 : (n < 10E4 ? 2 : 4));
 
 	if (cache == NULL || *cache == NULL) {
 		len = Calloc(n, int);
@@ -118,37 +118,18 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 			}
 		}
 		if (cache) {
-			if (verbose) {
-#pragma omp atomic
-				cs[0]++;
-			}
 			*cache = Calloc(1, GMRFLib_taucs_cache_tp);
 			(*cache)->n = n;
 			(*cache)->nnz = nnz;
 			(*cache)->len = len;
-		} else {
-			if (verbose) {
-#pragma omp atomic
-				cs[1]++;
-			}
 		}
 	} else {
 		nnz = (*cache)->nnz;
 		len = (*cache)->len;
-		if (verbose) {
-#pragma omp atomic
-			cs[2]++;
-		}
-	}
-
-	if (verbose) {
-#pragma omp critical
-		printf("cache init %d miss %d use %d\n", cs[0], cs[1], cs[2]);
 	}
 
 	C = taucs_dccs_create(n, n, nnz);
-	C->flags = TAUCS_DOUBLE;
-	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
+	C->flags = TAUCS_DOUBLE | TAUCS_TRIANGULAR | TAUCS_LOWER;
 
 	(C->colptr)[0] = 0;
 	for (int j = 1; j <= n; j++) {
@@ -158,83 +139,84 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	if (cache && (*cache)->rowind) {
 		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
 	} else {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-		for (int sn = 0; sn < L->n_sn; sn++) {
-			int *Lss = L->sn_struct[sn];
-			int Lsbl = L->sn_blocks_ld[sn];
-			int Lsize = L->sn_size[sn];
-			int Lubl = L->up_blocks_ld[sn];
-			int Lup_size = L->sn_up_size[sn];
-			taucs_datatype *Lsb = L->sn_blocks[sn];
-			taucs_datatype *Lub = L->up_blocks[sn];
-
-			for (int jp = 0; jp < Lsize; jp++) {
-				int j = Lss[jp];
-				int next = C->colptr[j];
-
-				for (int ip = jp; ip < Lsize; ip++) {
-					int i = Lss[ip];
-					if (i >= j) {
-						C->rowind[next++] = i;
-					}
-				}
-
-				for (int ip = Lsize; ip < Lup_size; ip++) {
-					int i = Lss[ip];
-					if (i >= j) {
-						C->rowind[next++] = i;
-					}
-				}
-			}
+#define CODE_BLOCK							\
+		for (int sn = 0; sn < L->n_sn; sn++) {			\
+			int *Lss = L->sn_struct[sn];			\
+			int Lsbl = L->sn_blocks_ld[sn];			\
+			int Lsize = L->sn_size[sn];			\
+			int Lubl = L->up_blocks_ld[sn];			\
+			int Lup_size = L->sn_up_size[sn];		\
+			taucs_datatype *Lsb = L->sn_blocks[sn];		\
+			taucs_datatype *Lub = L->up_blocks[sn];		\
+			for (int jp = 0; jp < Lsize; jp++) {		\
+				int j = Lss[jp];			\
+				int next = C->colptr[j];		\
+				for (int ip = jp; ip < Lsize; ip++) {	\
+					int i = Lss[ip];		\
+					if (i >= j) {			\
+						C->rowind[next++] = i;	\
+					}				\
+				}					\
+				for (int ip = Lsize; ip < Lup_size; ip++) { \
+					int i = Lss[ip];		\
+					if (i >= j) {			\
+						C->rowind[next++] = i;	\
+					}				\
+				}					\
+			}						\
 		}
 
+		RUN_CODE_BLOCK(nt, 0, 0);
+#undef CODE_BLOCK		
 		if (cache) {
 			(*cache)->rowind = Calloc(nnz, int);
 			Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 		}
 	}
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-	for (int sn = 0; sn < L->n_sn; sn++) {
-		int *Lss = L->sn_struct[sn];
-		int Lsbl = L->sn_blocks_ld[sn];
-		int Lsize = L->sn_size[sn];
-		int Lubl = L->up_blocks_ld[sn];
-		int Lup_size = L->sn_up_size[sn];
-		taucs_datatype *Lsb = L->sn_blocks[sn];
-		taucs_datatype *Lub = L->up_blocks[sn];
-
-		for (int jp = 0; jp < Lsize; jp++) {
-			int j = Lss[jp];
-			int next = C->colptr[j];
-			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
-			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
-
-			for (int ip = jp; ip < Lsize; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					C->values.d[next++] = Lsb_p[ip];
-				}
-			}
-
-			for (int ip = Lsize; ip < Lup_size; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					C->values.d[next++] = Lub_p[ip];
-				}
-			}
-		}
+#define CODE_BLOCK							\
+	for (int sn = 0; sn < L->n_sn; sn++) {				\
+		int *Lss = L->sn_struct[sn];				\
+		int Lsbl = L->sn_blocks_ld[sn];				\
+		int Lsize = L->sn_size[sn];				\
+		int Lubl = L->up_blocks_ld[sn];				\
+		int Lup_size = L->sn_up_size[sn];			\
+		taucs_datatype *Lsb = L->sn_blocks[sn];			\
+		taucs_datatype *Lub = L->up_blocks[sn];			\
+		for (int jp = 0; jp < Lsize; jp++) {			\
+			int j = Lss[jp];				\
+			int next = C->colptr[j];			\
+			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;	\
+			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize; \
+			for (int ip = jp; ip < Lsize; ip++) {		\
+				int i = Lss[ip];			\
+				if (i >= j) {				\
+					C->values.d[next++] = Lsb_p[ip]; \
+				}					\
+			}						\
+			for (int ip = Lsize; ip < Lup_size; ip++) {	\
+				int i = Lss[ip];			\
+				if (i >= j) {				\
+					C->values.d[next++] = Lub_p[ip]; \
+				}					\
+			}						\
+		}							\
 	}
+
+	RUN_CODE_BLOCK(nt, 0, 0);
+#undef CODE_BLOCK		
 
 	if (!cache) {
 		Free(len);
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return C;
 }
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp **UNUSED(cache))
 {
+	GMRFLib_ENTER_ROUTINE;
 	// original version, with added unused argument
 
         supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
@@ -320,6 +302,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_tauc
         }
 
         Free(len);
+	GMRFLib_LEAVE_ROUTINE;
         return C;
 }
 
