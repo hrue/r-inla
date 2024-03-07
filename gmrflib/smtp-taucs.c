@@ -163,7 +163,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		}
 
 		RUN_CODE_BLOCK(nt, 0, 0);
-#undef CODE_BLOCK		
+#undef CODE_BLOCK
 		if (cache) {
 			(*cache)->rowind = Calloc(nnz, int);
 			Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
@@ -200,7 +200,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	}
 
 	RUN_CODE_BLOCK(nt, 0, 0);
-#undef CODE_BLOCK		
+#undef CODE_BLOCK
 
 	if (!cache) {
 		Free(len);
@@ -215,91 +215,91 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_tauc
 	GMRFLib_ENTER_ROUTINE;
 	// original version, with added unused argument
 
-        supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-        taucs_ccs_matrix *C = NULL;
-        int n, nnz = 0, *len = NULL;
-        taucs_datatype v;
+	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+	taucs_ccs_matrix *C = NULL;
+	int n, nnz = 0, *len = NULL;
+	taucs_datatype v;
 
-        n = L->n;
-        if (n == 0) {
-                return NULL;
-        }
-        len = Calloc(n, int);
+	n = L->n;
+	if (n == 0) {
+		return NULL;
+	}
+	len = Calloc(n, int);
 
-        for (int sn = 0; sn < L->n_sn; sn++) {
-                int Lsize = L->sn_size[sn];
-                int Lup_size = L->sn_up_size[sn];
-                int *Lss = L->sn_struct[sn];
+	for (int sn = 0; sn < L->n_sn; sn++) {
+		int Lsize = L->sn_size[sn];
+		int Lup_size = L->sn_up_size[sn];
+		int *Lss = L->sn_struct[sn];
 
-                for (int jp = 0; jp < Lsize; jp++) {
-                        int j = Lss[jp];
-                        int *len_j = len + j;
-                        *len_j = 0;
-                        for (int ip = jp; ip < Lsize; ip++) {
-                                int i = Lss[ip];
-                                if (i >= j) {
-                                        (*len_j)++;
-                                        nnz++;
-                                }
-                        }
-                        for (int ip = Lsize; ip < Lup_size; ip++) {
-                                int i = Lss[ip];
-                                if (i >= j) {
-                                        (*len_j)++;
-                                        nnz++;
-                                }
-                        }
-                }
-        }
+		for (int jp = 0; jp < Lsize; jp++) {
+			int j = Lss[jp];
+			int *len_j = len + j;
+			*len_j = 0;
+			for (int ip = jp; ip < Lsize; ip++) {
+				int i = Lss[ip];
+				if (i >= j) {
+					(*len_j)++;
+					nnz++;
+				}
+			}
+			for (int ip = Lsize; ip < Lup_size; ip++) {
+				int i = Lss[ip];
+				if (i >= j) {
+					(*len_j)++;
+					nnz++;
+				}
+			}
+		}
+	}
 
-        C = taucs_dccs_create(n, n, nnz);
-        C->flags = TAUCS_DOUBLE;
-        C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
+	C = taucs_dccs_create(n, n, nnz);
+	C->flags = TAUCS_DOUBLE;
+	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
 
-        (C->colptr)[0] = 0;
-        for (int j = 1; j <= n; j++) {
-                (C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
-        }
+	(C->colptr)[0] = 0;
+	for (int j = 1; j <= n; j++) {
+		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
+	}
 
-        for (int sn = 0; sn < L->n_sn; sn++) {
-                int *Lss = L->sn_struct[sn];
-                int Lsbl = L->sn_blocks_ld[sn];
-                int Lsize = L->sn_size[sn];
-                int Lubl = L->up_blocks_ld[sn];
-                int Lup_size = L->sn_up_size[sn];
-                taucs_datatype *Lsb = L->sn_blocks[sn];
-                taucs_datatype *Lub = L->up_blocks[sn];
+	for (int sn = 0; sn < L->n_sn; sn++) {
+		int *Lss = L->sn_struct[sn];
+		int Lsbl = L->sn_blocks_ld[sn];
+		int Lsize = L->sn_size[sn];
+		int Lubl = L->up_blocks_ld[sn];
+		int Lup_size = L->sn_up_size[sn];
+		taucs_datatype *Lsb = L->sn_blocks[sn];
+		taucs_datatype *Lub = L->up_blocks[sn];
 
-                for (int jp = 0; jp < Lsize; jp++) {
-                        int j = Lss[jp];
-                        int next = C->colptr[j];
+		for (int jp = 0; jp < Lsize; jp++) {
+			int j = Lss[jp];
+			int next = C->colptr[j];
 
-                        taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
-                        taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
-                        for (int ip = jp; ip < Lsize; ip++) {
-                                int i = Lss[ip];
-                                if (i >= j) {
-                                        v = Lsb_p[ip];
-                                        C->rowind[next] = i;
-                                        C->values.d[next] = v;
-                                        next++;
-                                }
-                        }
-                        for (int ip = Lsize; ip < Lup_size; ip++) {
-                                int i = Lss[ip];
-                                if (i >= j) {
-                                        v = Lub_p[ip];
-                                        C->rowind[next] = i;
-                                        C->values.d[next] = v;
-                                        next++;
-                                }
-                        }
-                }
-        }
+			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
+			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
+			for (int ip = jp; ip < Lsize; ip++) {
+				int i = Lss[ip];
+				if (i >= j) {
+					v = Lsb_p[ip];
+					C->rowind[next] = i;
+					C->values.d[next] = v;
+					next++;
+				}
+			}
+			for (int ip = Lsize; ip < Lup_size; ip++) {
+				int i = Lss[ip];
+				if (i >= j) {
+					v = Lub_p[ip];
+					C->rowind[next] = i;
+					C->values.d[next] = v;
+					next++;
+				}
+			}
+		}
+	}
 
-        Free(len);
+	Free(len);
 	GMRFLib_LEAVE_ROUTINE;
-        return C;
+	return C;
 }
 
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix *L)
