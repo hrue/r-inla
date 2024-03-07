@@ -142,12 +142,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 #define CODE_BLOCK							\
 		for (int sn = 0; sn < L->n_sn; sn++) {			\
 			int *Lss = L->sn_struct[sn];			\
-			int Lsbl = L->sn_blocks_ld[sn];			\
 			int Lsize = L->sn_size[sn];			\
-			int Lubl = L->up_blocks_ld[sn];			\
 			int Lup_size = L->sn_up_size[sn];		\
-			taucs_datatype *Lsb = L->sn_blocks[sn];		\
-			taucs_datatype *Lub = L->up_blocks[sn];		\
 			for (int jp = 0; jp < Lsize; jp++) {		\
 				int j = Lss[jp];			\
 				int next = C->colptr[j];		\
