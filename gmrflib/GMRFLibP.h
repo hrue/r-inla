@@ -420,10 +420,7 @@ typedef enum {
 #define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_);}
 #define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
 
-/* 
-   for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
-*/
-#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) (((size_t)(n_) * sizeof(type_)) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
