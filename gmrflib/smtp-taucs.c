@@ -46,7 +46,7 @@
 #include "amd.h"
 #include "metis.h"
 
-GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache) 
+GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
 		GMRFLib_taucs_cache_tp *nc = Calloc(1, GMRFLib_taucs_cache_tp);
@@ -54,14 +54,14 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 		nc->nnz = cache->nnz;
 		if (nc->n && cache->len) {
 			nc->len = Calloc(nc->n, int);
-			Memcpy(nc->len, cache->len,  nc->n * sizeof(int));
+			Memcpy(nc->len, cache->len, nc->n * sizeof(int));
 		}
 		return nc;
 	}
 	return NULL;
 }
 
-void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache) 
+void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
 		Free(cache->len);
@@ -69,7 +69,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	}
 }
 
-taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_cache_tp **cache)
+taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
 	/*
 	 * this is to be called for a lower triangular double matrix only.
@@ -89,8 +89,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_ca
 	}
 
 	const int verbose = 0;
-	static int cs[] = {0, 0, 0};
-	
+	static int cs[] = { 0, 0, 0 };
+
 	if (cache == NULL || *cache == NULL) {
 		len = Calloc(n, int);
 		for (int sn = 0; sn < L->n_sn; sn++) {
@@ -130,7 +130,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_ca
 			(*cache)->nnz = nnz;
 			(*cache)->len = len;
 		} else {
-			if (verbose){
+			if (verbose) {
 #pragma omp atomic
 				cs[1]++;
 			}
@@ -143,12 +143,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_ca
 			cs[2]++;
 		}
 	}
-	
+
 	if (verbose) {
 #pragma omp critical
 		printf("cache init %d miss %d use %d\n", cs[0], cs[1], cs[2]);
 	}
-	       
+
 	C = taucs_dccs_create(n, n, nnz);
 	C->flags = TAUCS_DOUBLE;
 	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
@@ -195,7 +195,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, 	GMRFLib_taucs_ca
 		}
 	}
 
-	if (!cache) Free(len);
+	if (!cache)
+		Free(len);
 	return C;
 }
 
@@ -771,7 +772,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache, 
+int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
 					  GMRFLib_fact_info_tp *finfo, double **L_inv_diag)
 {
 	int flags, k, retval;

@@ -122,13 +122,11 @@ typedef struct {
 	int nfillin;
 } GMRFLib_fact_info_tp;
 
-typedef struct
-{
+typedef struct {
 	int n;
 	int nnz;
 	int *len;
-}
-	GMRFLib_taucs_cache_tp;
+} GMRFLib_taucs_cache_tp;
 
 
 typedef struct {

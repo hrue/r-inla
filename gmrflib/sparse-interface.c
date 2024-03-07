@@ -232,7 +232,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 
 	case GMRFLib_SMTP_TAUCS:
 	{
-		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->TAUCS_cache), 
+		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->TAUCS_cache),
 							    &(sm_fact->finfo), &(sm_fact->TAUCS_L_inv_diag));
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
@@ -287,7 +287,7 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 		case GMRFLib_SMTP_PARDISO:
 		{
 			if (sm_fact->PARDISO_fact) {
-				GMRFLib_EWRAP1(GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact)));
+				GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact));
 				sm_fact->PARDISO_fact = NULL;
 			}
 		}

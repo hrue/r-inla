@@ -2838,7 +2838,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		GMRFLib_store_tp *store;
 	} Store_tp;
 	static Store_tp ***sstore = NULL;
-	
+
 	if (!sstore) {
 #pragma omp critical (Name_87d8c02a8a06b017c5015b7132be14e8b5996507)
 		if (!sstore) {
@@ -2847,22 +2847,20 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	}
 	int cidx = 0;
 	GMRFLib_CACHE_SET_ID(cidx);
-	
+
 	if (!sstore[cidx]) {
 		sstore[cidx] = Calloc(mb->nf, Store_tp *);
 	}
-	
+
 	for (i = 0; i < mb->nf; i++) {
 
 		GMRFLib_store_tp *store = NULL;
-		if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
-			if (!sstore[cidx][i]) {
-				sstore[cidx][i] = Calloc(1, Store_tp);
-				sstore[cidx][i]->store = Calloc(1, GMRFLib_store_tp);
-			}
-			store = sstore[cidx][i]->store;
+		if (!sstore[cidx][i]) {
+			sstore[cidx][i] = Calloc(1, Store_tp);
+			sstore[cidx][i]->store = Calloc(1, GMRFLib_store_tp);
 		}
-		
+		store = sstore[cidx][i]->store;
+
 		switch (mb->f_id[i]) {
 		case F_RW2D:
 		case F_BESAG:
@@ -2897,7 +2895,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 		}
-		break;
+			break;
 
 		case F_SPDE:
 		{
@@ -3141,7 +3139,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			Free(Tpar);
 			Free(Kpar);
 		}
-		break;
+			break;
 
 		case F_SPDE2:
 		{
@@ -3193,8 +3191,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i],
-								    store);
+								    spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3620,7 +3617,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			while (!ok) {
 				retval =
 				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
+							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3697,7 +3694,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			while (!ok) {
 				retval =
 				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
+							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3777,7 +3774,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i], store);
+								    mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i],
+								    store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3875,8 +3873,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i],
-							      mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
+								    mb->f_graph_orig[i],
+								    mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -4120,7 +4118,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 				while (!ok) {
 					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
+									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
@@ -4291,7 +4289,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 				while (!ok) {
 					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
+									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
@@ -4958,7 +4956,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(2);
 
 			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-					     (void *) h->matern2ddef, mb->f_constr_orig[i], store);
+						   (void *) h->matern2ddef, mb->f_constr_orig[i], store);
 			if (debug) {
 				P(h->precision);
 				P(h->range);
@@ -5122,7 +5120,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(2);
 
 			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-					     (void *) h->def, mb->f_constr_orig[i], store);
+						   (void *) h->def, mb->f_constr_orig[i], store);
 			if (debug) {
 				P(h->log_prec[thread_id][0]);
 				P(h->log_diag[thread_id][0]);
@@ -6407,7 +6405,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 
 			while (!ok) {
 				retval =
-					GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, constr);
+				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, constr);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{

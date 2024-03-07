@@ -606,7 +606,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 		s->graph = (*problem)->sub_graph;
 		// use the internal cached storage
-		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE);
+		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE, graph);
 		Free(s);
 	}
 
@@ -1664,7 +1664,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	COPY(sub_sm_fact.finfo);
 
 	if (problem->sub_sm_fact.PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr);
+		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr,
+						NULL);
 	}
 
 	/*
@@ -1791,7 +1792,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 	new_store->copy_ptr = copy_ptr;
 	new_store->copy_pardiso_ptr = copy_pardiso_ptr;
 	if (store->PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr);
+		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr, NULL);
 	}
 
 	char *tmp = Calloc(1, char);
