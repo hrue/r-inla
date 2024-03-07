@@ -1127,6 +1127,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	double *x, *gradx;
 	int ierr, i;
 
+	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warn */
@@ -1154,6 +1155,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	double *x, *gradx;
 	int ierr, i;
 
+	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warning... */
