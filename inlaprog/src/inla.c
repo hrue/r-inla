@@ -7295,7 +7295,7 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-				if (GMRFLib_dot_product_gain >= 0.0) {
+				if (GMRFLib_dot_product_gain > 0.0) {
 					printf("\nDot-product gain: %.3f seconds, %.6f seconds/fn-call\n\n", GMRFLib_dot_product_gain,
 					       GMRFLib_dot_product_gain / nfunc[0]);
 				}
