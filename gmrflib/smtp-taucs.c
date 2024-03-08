@@ -632,7 +632,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		}
 
 		Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-		Q->flags = (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
+		Q->flags |= (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
 		Q->colptr[0] = 0;
 
 		for (i = 0, ic = 0; i < n; i++) {

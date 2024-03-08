@@ -3686,10 +3686,11 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					}
 				}
 			} else {
+				double lEsize = log(E) - lsize;
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					double t1 = log(size + E * exp(xx));
+					double t1 = lsize + log1p(exp(lEsize + xx));
 					logll[i] = t2 + t3 * t1 + y * xx;
 				}
 			}
