@@ -1,3 +1,6 @@
+# INLA 24.03.09
+* Code optimization and improvement
+
 # INLA 24.03.02
 * Updated PARDISO library to version 8.2
 * Various code improvements
