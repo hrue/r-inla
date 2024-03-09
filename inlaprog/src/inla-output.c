@@ -345,7 +345,7 @@ int inla_output(inla_tp *mb)
 				 * we need to create the corresponding normal as well 
 				 */
 				char *sdir;
-				sdir = GMRFLib_strdup("random.effect.UserFunction0");
+				sdir = Strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, NULL,
 						   GMRFLib_ai_INLA_userfunc0_dim, 1, mb->output, sdir, mb->output->return_marginals,
 						   NULL, NULL, NULL, "UserFunction0", NULL, local_verbose);
@@ -357,7 +357,7 @@ int inla_output(inla_tp *mb)
 				 * we need to create the corresponding normal as well 
 				 */
 				char *sdir;
-				sdir = GMRFLib_strdup("random.effect.UserFunction1");
+				sdir = Strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL,
 						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, mb->output->return_marginals,
 						   NULL, NULL, NULL, "UserFunction1", NULL, local_verbose);
@@ -1164,7 +1164,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 						fwrite((void *) &one, sizeof(double), 1, fp);
 
 						char **s = mo->configs_preopt[id]->config[i]->arg_str;
-						char *null_str = GMRFLib_strdup("");
+						char *null_str = Strdup("");
 						for (int ii = 0; ii < mo->configs_preopt[id]->Npred; ii++) {
 							char *str = (s[ii] ? s[ii] : null_str);
 							fwrite((void *) str, 1, (size_t) strlen(str) + 1, fp);
@@ -1479,7 +1479,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 		d_mode[i] = NAN;
 	}
 
-	ssdir = GMRFLib_strdup(sdir);
+	ssdir = Strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
@@ -1807,7 +1807,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	int i, j, use_defaults = 1, ret, ngroups_eff = 0;
 	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *ffile = NULL;
 
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
 		/*
 		 * set default options 
@@ -1883,21 +1883,21 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		char *str_ptr = NULL;
 		char *token = NULL;
 		const char *delim = " \t";
-		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
+		str = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
 		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->keep), token);
 		}
 
 		str_ptr = NULL;
-		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
+		str = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
 		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->remove), token);
 		}
 
 		char *tstr = NULL;
-		tstr = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), GMRFLib_strdup("posterior")));
+		tstr = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), Strdup("posterior")));
 		if (!strcasecmp(tstr, "posterior")) {
 			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR;
 		} else if (!strcasecmp(tstr, "prior")) {
@@ -1907,9 +1907,9 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			assert(0 == 1);
 		}
 
-		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
-		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
-		ffile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
+		gfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
+		sfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
+		ffile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
 		assert(!(gfile && sfile && ffile));
 
 		if (gfile) {
@@ -2042,7 +2042,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->config = 1;
 	}
 
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
+	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
 	if (G.mode == INLA_MODE_HYPER) {
 		/*
@@ -2073,7 +2073,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			}
 		}
 	}
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CDF"), NULL));
+	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "CDF"), NULL));
 	if (tmp) {
 		inla_sread_doubles_q(&((*out)->cdf), &((*out)->ncdf), tmp);
 		if ((*out)->ncdf == 0) {

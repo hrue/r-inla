@@ -729,8 +729,8 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 		lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
 		prec = exp(lprec);
 	} else {
-		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
-		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+		double prec_offset = map_precision_forward(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
+		double prec_var = map_precision_forward(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
 		double prec_tmp = 1.0 / (1.0 / prec_offset + 1.0 / prec_var);
 		prec = prec_tmp * w;
 		lprec = log(prec);
@@ -921,7 +921,7 @@ int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int 
 	double y, v, ldet_s, mm, nn;
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0];
-	prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	prec = map_precision_forward(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	v = ds->data_observations.agaussian[0][idx];
 	ldet_s = ds->data_observations.agaussian[1][idx];
@@ -1082,7 +1082,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 	lw = cache[2];
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + lw;
-	prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = map_precision_forward(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -1151,7 +1151,7 @@ int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int id
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_simplex[idx];
 	lprec = ds->data_observations.log_prec_simplex[thread_id][0] + log(w);
-	prec = map_precision(ds->data_observations.log_prec_simplex[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = map_precision_forward(ds->data_observations.log_prec_simplex[thread_id][0], MAP_FORWARD, NULL) * w;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -1192,7 +1192,7 @@ int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_circular_normal[idx];
-	prec = map_precision(ds->data_observations.log_prec_circular_normal[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = map_precision_forward(ds->data_observations.log_prec_circular_normal[thread_id][0], MAP_FORWARD, NULL) * w;
 
 	/*
 	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa)),
@@ -1244,7 +1244,7 @@ int loglikelihood_wrapped_cauchy(int thread_id, double *logll, double *x, int m,
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_wrapped_cauchy[idx];
-	rho = map_probability(ds->data_observations.log_prec_wrapped_cauchy[thread_id][0], MAP_FORWARD, NULL) * w;
+	rho = map_probability_forward(ds->data_observations.log_prec_wrapped_cauchy[thread_id][0], MAP_FORWARD, NULL) * w;
 	rho2 = SQR(rho);
 
 	for (i = 0; i < m; i++) {
@@ -1284,7 +1284,7 @@ int loglikelihood_stochvol(int thread_id, double *logll, double *x, int m, int i
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], var;
-	double tau = map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	double tau = map_precision_forward(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
 	double var_offset;
 
 	LINK_INIT;
@@ -1321,7 +1321,7 @@ int loglikelihood_stochvol_t(int thread_id, double *logll, double *x, int m, int
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double dof, y, sd, sd2, obs, var_u;
 
-	dof = map_dof(ds->data_observations.dof_intern_svt[thread_id][0], MAP_FORWARD, NULL);
+	dof = map_dof_forward(ds->data_observations.dof_intern_svt[thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	sd2 = dof / (dof - 2.0);
 	sd = sqrt(sd2);
@@ -1408,8 +1408,8 @@ int loglikelihood_iid_gamma(int thread_id, double *logll, double *x, int m, int 
 
 	LINK_INIT;
 	w = ds->data_observations.iid_gamma_scale[idx];
-	shape = map_exp(ds->data_observations.iid_gamma_log_shape[thread_id][0], MAP_FORWARD, NULL);
-	rate = map_exp(ds->data_observations.iid_gamma_log_rate[thread_id][0], MAP_FORWARD, NULL) * w;
+	shape = map_exp_forward(ds->data_observations.iid_gamma_log_shape[thread_id][0], MAP_FORWARD, NULL);
+	rate = map_exp_forward(ds->data_observations.iid_gamma_log_rate[thread_id][0], MAP_FORWARD, NULL) * w;
 	cons = -shape * log(rate) - gsl_sf_lngamma(shape);
 
 	if (m > 0) {
@@ -1445,8 +1445,8 @@ int loglikelihood_iid_logitbeta(int thread_id, double *logll, double *x, int m, 
 	double a, b, cons;
 
 	LINK_INIT;
-	a = map_exp(ds->data_observations.iid_logitbeta_log_a[thread_id][0], MAP_FORWARD, NULL);
-	b = map_exp(ds->data_observations.iid_logitbeta_log_b[thread_id][0], MAP_FORWARD, NULL);
+	a = map_exp_forward(ds->data_observations.iid_logitbeta_log_a[thread_id][0], MAP_FORWARD, NULL);
+	b = map_exp_forward(ds->data_observations.iid_logitbeta_log_b[thread_id][0], MAP_FORWARD, NULL);
 	cons = gsl_sf_lngamma(a + b) - (gsl_sf_lngamma(a) + gsl_sf_lngamma(b));
 
 	if (m > 0) {
@@ -1477,7 +1477,7 @@ int loglikelihood_loggamma_frailty(int thread_id, double *logll, double *x, int 
 
 	// LINK_INIT;
 	lprec = ds->data_observations.log_prec_loggamma_frailty[thread_id][0];
-	prec = map_precision(lprec, MAP_FORWARD, NULL);
+	prec = map_precision_forward(lprec, MAP_FORWARD, NULL);
 	log_gamma = gsl_sf_lngamma(prec);
 
 	if (m > 0) {
@@ -1527,7 +1527,7 @@ int loglikelihood_logistic(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_logistic[idx];
-	prec = map_precision(ds->data_observations.log_prec_logistic[thread_id][0], MAP_FORWARD, NULL) * w;
+	prec = map_precision_forward(ds->data_observations.log_prec_logistic[thread_id][0], MAP_FORWARD, NULL) * w;
 	precA = prec * A;
 	lprecA = log(precA);
 
@@ -1610,7 +1610,7 @@ int loglikelihood_stochvol_sn(int thread_id, double *logll, double *x, int m, in
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
+	var_offset = 1.0 / map_precision_forward(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
 	param[0] = ds->data_observations.sn_skew[thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
@@ -1645,7 +1645,7 @@ int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, d
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gev[idx];
-	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[thread_id][0], MAP_FORWARD, NULL) * w);
+	sprec = sqrt(map_precision_forward(ds->data_observations.log_prec_gev[thread_id][0], MAP_FORWARD, NULL) * w);
 	/*
 	 * map_identity_scale(theta, MAP_FORWARD, arg...);
 	 */
@@ -1791,7 +1791,7 @@ int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, 
 	for (i = 0; i < ds->data_observations.bgev_nbetas[0]; i++) {
 		log_spread += ds->data_observations.bgev_betas[i + off][thread_id][0] * ds->data_observations.bgev_x[i + off][idx];
 	}
-	spread = map_exp(log_spread, MAP_FORWARD, NULL) / sqrt(w);
+	spread = map_exp_forward(log_spread, MAP_FORWARD, NULL) / sqrt(w);
 
 	off = ds->data_observations.bgev_nbetas[0];
 	log_xi = ds->data_observations.bgev_intern_tail[thread_id][0];
@@ -1954,7 +1954,7 @@ int loglikelihood_t(int thread_id, double *logll, double *x, int m, int idx, dou
 	double y, prec, w, dof, y_std, fac, ypred;
 
 	LINK_INIT;
-	dof = map_dof(ds->data_observations.dof_intern_t[thread_id][0], MAP_FORWARD, NULL);
+	dof = map_dof_forward(ds->data_observations.dof_intern_t[thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_t[idx];
 	prec = exp(ds->data_observations.log_prec_t[thread_id][0]) * w;
@@ -1998,7 +1998,7 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 	double y, prec, w, dof, y_std, fac, ypred;
 
 	LINK_INIT;
-	dof = map_dof(ds->data_observations.dof_intern_tstrata[thread_id][0], MAP_FORWARD, NULL);
+	dof = map_dof_forward(ds->data_observations.dof_intern_tstrata[thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_tstrata[idx];
 	strata = (int) (ds->data_observations.strata_tstrata[idx] + INLA_REAL_SMALL);
@@ -2041,8 +2041,8 @@ int loglikelihood_gpoisson(int thread_id, double *logll, double *x, int m, int i
 	int i, yy;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double phi = map_exp(ds->data_observations.gpoisson_overdispersion[thread_id][0], MAP_FORWARD, NULL);
-	double p = map_identity(ds->data_observations.gpoisson_p[thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_exp_forward(ds->data_observations.gpoisson_overdispersion[thread_id][0], MAP_FORWARD, NULL);
+	double p = map_identity_forward(ds->data_observations.gpoisson_p[thread_id][0], MAP_FORWARD, NULL);
 	double E = ds->data_observations.E[idx];
 	double a, b, lambda, mu;
 
@@ -3008,7 +3008,7 @@ int loglikelihood_zeroinflated_cenpoisson0(int thread_id, double *logll, double 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
-	double mu, p0, fac, p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double mu, p0, fac, p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y), lambda;
 
 	LINK_INIT;
@@ -3083,7 +3083,7 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *logll, double 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
-	double mu, p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double mu, p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y), lambda;
 
 	LINK_INIT;
@@ -3189,7 +3189,7 @@ int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, d
 
 	for (i = 0; i < nclasses - 1; i++) {
 		k = 1 + i;
-		theta = map_identity(ds->data_observations.pom_theta[i][thread_id][0], MAP_FORWARD, NULL);
+		theta = map_identity_forward(ds->data_observations.pom_theta[i][thread_id][0], MAP_FORWARD, NULL);
 		alpha[k] = (k == 1 ? theta : alpha[k - 1] + exp(theta));
 	}
 
@@ -3241,7 +3241,7 @@ int loglikelihood_zeroinflated_poisson0(int thread_id, double *logll, double *x,
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
-	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda;
+	    p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda;
 
 	LINK_INIT;
 	if ((int) y == 0) {
@@ -3298,7 +3298,7 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, double *logll, double *x,
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
-	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
+	    p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
 
 	LINK_INIT;
 	if ((int) y == 0) {
@@ -3356,7 +3356,7 @@ int loglikelihood_zeroinflated_poisson2(int thread_id, double *logll, double *x,
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
-	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p, lambda;
+	    alpha = map_exp_forward(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p, lambda;
 
 	LINK_INIT;
 	if ((int) y == 0) {
@@ -3452,7 +3452,7 @@ int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
-	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
+	    p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
 
 	LINK_INIT;
 
@@ -3590,13 +3590,13 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					s[time] = exp(2.0 * (GMRFLib_uniform() - 0.5));
 				}
 
-				t[0] = -GMRFLib_cpu();
+				t[0] = -GMRFLib_timer();
 				for (int time = 0; time < ntimes; time++) {
 					tmp0 += gsl_sf_lngamma(yy + s[time]) - gsl_sf_lngamma(s[time]);
 				}
-				t[0] += GMRFLib_cpu();
+				t[0] += GMRFLib_timer();
 
-				t[1] -= GMRFLib_cpu();
+				t[1] -= GMRFLib_timer();
 				for (int time = 0; time < ntimes; time++) {
 					double ss = s[time];
 #pragma omp simd reduction(+: tmp1)
@@ -3604,7 +3604,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 						tmp1 += log(y1 + ss);
 					}
 				}
-				t[1] += GMRFLib_cpu();
+				t[1] += GMRFLib_timer();
 
 				assert(ABS(((tmp0 - tmp1)) / (tmp0 + tmp1)) < FLT_EPSILON);
 				if (verbose) {
@@ -3686,10 +3686,11 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					}
 				}
 			} else {
+				double lEsize = log(E) - lsize;
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					double t1 = log(size + E * exp(xx));
+					double t1 = lsize + log1p(exp(lEsize + xx));
 					logll[i] = t2 + t3 * t1 + y * xx;
 				}
 			}
@@ -3807,7 +3808,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double size = exp(ds->data_observations.log_size[thread_id][0]);
-	double p_zeroinflated = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double p_zeroinflated = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, prob_y_is_zero, lambda;
@@ -3890,7 +3891,7 @@ int loglikelihood_zeroinflated_negative_binomial1(int thread_id, double *logll, 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double size = exp(ds->data_observations.log_size[thread_id][0]);
-	double p_zeroinflated = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double p_zeroinflated = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
@@ -3984,7 +3985,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, double 
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 	double p_zeroinflated;
 
-	p_zeroinflated = map_probability(ds->data_observations.probN_intern[strata][thread_id][0], MAP_FORWARD, NULL);
+	p_zeroinflated = map_probability_forward(ds->data_observations.probN_intern[strata][thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
@@ -4074,7 +4075,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, double 
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
-	p_zeroinflated = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	p_zeroinflated = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	size = exp(ds->data_observations.log_sizes[strata][thread_id][0]);
 
 	LINK_INIT;
@@ -4159,7 +4160,7 @@ int loglikelihood_zeroinflated_negative_binomial2(int thread_id, double *logll, 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double size = exp(ds->data_observations.log_size[thread_id][0]);
-	double alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	double alpha = map_exp_forward(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p_zeroinflated = 0.0;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
@@ -4720,7 +4721,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 		log_lambda += ds->data_observations.nmix_beta[i][thread_id][0] * ds->data_observations.nmix_x[i][idx];
 	}
 	lambda = exp(log_lambda);
-	size = 1.0 / map_exp(ds->data_observations.nmix_log_overdispersion[thread_id][0], MAP_FORWARD, NULL);
+	size = 1.0 / map_exp_forward(ds->data_observations.nmix_log_overdispersion[thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 
@@ -4799,7 +4800,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 int inla_mix_int_quadrature_gaussian(int thread_id, double **x, double **w, int *n, void *arg)
 {
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	double prec = map_precision_forward(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
 	double sd = sqrt(1.0 / prec);
 	double *xx = NULL, *ww = NULL, wmin;
 	int i, j;
@@ -4822,7 +4823,7 @@ int inla_mix_int_quadrature_gaussian(int thread_id, double **x, double **w, int 
 
 int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
-	char *msg = GMRFLib_strdup("This function is not yet implemented.");
+	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
 	exit(1);
 	return GMRFLib_SUCCESS;
@@ -4830,7 +4831,7 @@ int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), double **UNUSED(x), 
 
 int inla_mix_int_quadrature_mloggamma(int UNUSED(thread_id), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
-	char *msg = GMRFLib_strdup("This function is not yet implemented.");
+	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
 	exit(1);
 	return GMRFLib_SUCCESS;
@@ -4840,7 +4841,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 {
 #define DENS(_x) exp(-0.5 * SQR(_x))
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
+	double prec = map_precision_forward(ds->data_observations.mix_log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
 	double sd = sqrt(1.0 / prec);
 
 	typedef struct {
@@ -4938,7 +4939,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 #define DENS(_z, _a) exp( (_a)*((_z) -exp(_z) + 1.0) )
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double shape = map_precision(ds->data_observations.mix_log_prec_loggamma[thread_id][0], MAP_FORWARD, NULL);
+	double shape = map_precision_forward(ds->data_observations.mix_log_prec_loggamma[thread_id][0], MAP_FORWARD, NULL);
 
 	typedef struct {
 		int n, np;				       /* 'n' is the requested length and 'np' is the pruned length */
@@ -5052,9 +5053,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -5224,7 +5225,7 @@ int loglikelihood_zeroinflated_binomial0(int thread_id, double *logll, double *x
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
-	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), prob = 0.0;
+	    p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), prob = 0.0;
 
 	LINK_INIT;
 	if ((int) y == 0) {
@@ -5278,7 +5279,7 @@ int loglikelihood_zeroinflated_binomial1(int thread_id, double *logll, double *x
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
-	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), prob = 0.0, logA, logB;
+	    p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), prob = 0.0, logA, logB;
 
 	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -5335,7 +5336,7 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *logll, double *x
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
-	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), logA, logB;
+	    alpha = map_exp_forward(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), logA, logB;
 
 	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -5429,8 +5430,8 @@ int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
-	    alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[thread_id][0], MAP_FORWARD, NULL),
-	    alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[thread_id][0], MAP_FORWARD, NULL), p, p1, p2, logA, logB;
+	    alpha1 = map_exp_forward(ds->data_observations.zero_n_inflated_alpha1_intern[thread_id][0], MAP_FORWARD, NULL),
+	    alpha2 = map_exp_forward(ds->data_observations.zero_n_inflated_alpha2_intern[thread_id][0], MAP_FORWARD, NULL), p, p1, p2, logA, logB;
 
 	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -5521,8 +5522,8 @@ int loglikelihood_zero_n_inflated_binomial3(int thread_id, double *logll, double
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
-	    alpha0 = map_exp(ds->data_observations.zero_n_inflated_alpha0_intern[thread_id][0], MAP_FORWARD, NULL),
-	    alphaN = map_exp(ds->data_observations.zero_n_inflated_alphaN_intern[thread_id][0], MAP_FORWARD, NULL), p, p0, pN, logA, logB;
+	    alpha0 = map_exp_forward(ds->data_observations.zero_n_inflated_alpha0_intern[thread_id][0], MAP_FORWARD, NULL),
+	    alphaN = map_exp_forward(ds->data_observations.zero_n_inflated_alphaN_intern[thread_id][0], MAP_FORWARD, NULL), p, p0, pN, logA, logB;
 
 	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -5574,7 +5575,7 @@ int loglikelihood_gamma(int thread_id, double *logll, double *x, int m, int idx,
 	double y = ds->data_observations.y[idx];
 	// 'scale' is not used for the survival version
 	double s = (ds->data_observations.gamma_scale ? ds->data_observations.gamma_scale[idx] : 1.0);
-	double phi_param = map_exp(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double phi_param = map_exp_forward(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi, mu, a, b, c;
 
 	phi = phi_param * s;
@@ -5665,7 +5666,7 @@ int loglikelihood_gammacount(int thread_id, double *logll, double *x, int m, int
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
-	double alpha = map_exp(ds->data_observations.gammacount_log_alpha[thread_id][0], MAP_FORWARD, NULL);
+	double alpha = map_exp_forward(ds->data_observations.gammacount_log_alpha[thread_id][0], MAP_FORWARD, NULL);
 	double beta, mu, p, logp;
 
 	LINK_INIT;
@@ -5835,7 +5836,7 @@ int loglikelihood_beta(int thread_id, double *logll, double *x, int m, int idx, 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double w = ds->data_observations.beta_weight[idx];
-	double phi = map_exp(ds->data_observations.beta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
+	double phi = map_exp_forward(ds->data_observations.beta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
 	double a, b, mu, lbeta;
 	double censor_value = ds->data_observations.beta_censor_value;
 	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
@@ -5912,7 +5913,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
-	double rho = map_probability(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
+	double rho = map_probability_forward(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b;
 	double normc;
 
@@ -6020,7 +6021,7 @@ int loglikelihood_betabinomialna(int thread_id, double *logll, double *x, int m,
 	double y = ds->data_observations.y[idx];
 	double n = ds->data_observations.nb[idx];
 	double s = ds->data_observations.betabinomialnb_scale[idx];
-	double rho = map_probability(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
+	double rho = map_probability_forward(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, prec, lprec, ypred;
 
 	LINK_INIT;
@@ -6063,7 +6064,7 @@ int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int id
 	double w = (ds->data_observations.tweedie_w ? ds->data_observations.tweedie_w[idx] : 1.0);
 	double interval[2] = { 1.0, 2.0 };
 	double p = map_interval(ds->data_observations.tweedie_p_intern[thread_id][0], MAP_FORWARD, (void *) interval);
-	double phi = map_exp(ds->data_observations.tweedie_phi_intern[thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_exp_forward(ds->data_observations.tweedie_phi_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	phi /= w;
 	LINK_INIT;
@@ -6128,8 +6129,8 @@ int loglikelihood_zeroinflated_betabinomial0(int thread_id, double *logll, doubl
 	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
-	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[thread_id][0], MAP_FORWARD, NULL);
-	double pzero = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double rho = map_probability_forward(ds->data_observations.zeroinflated_rho_intern[thread_id][0], MAP_FORWARD, NULL);
+	double pzero = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b, prob_zero;
 	double normc = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
 	double normc_zero = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(yzero + 1) - _LOGGAMMA_INT(n - yzero + 1);
@@ -6196,8 +6197,8 @@ int loglikelihood_zeroinflated_betabinomial1(int thread_id, double *logll, doubl
 	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
-	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[thread_id][0], MAP_FORWARD, NULL);
-	double pzero = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
+	double rho = map_probability_forward(ds->data_observations.zeroinflated_rho_intern[thread_id][0], MAP_FORWARD, NULL);
+	double pzero = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b, tmp;
 	double normc = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
 
@@ -6258,8 +6259,8 @@ int loglikelihood_zeroinflated_betabinomial2(int thread_id, double *logll, doubl
 	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 	double pzero, p;
-	double alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL);
-	double delta = map_exp(ds->data_observations.zeroinflated_delta_intern[thread_id][0], MAP_FORWARD, NULL);
+	double alpha = map_exp_forward(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	double delta = map_exp_forward(ds->data_observations.zeroinflated_delta_intern[thread_id][0], MAP_FORWARD, NULL);
 	double logA, logB;
 
 	LINK_INIT;
@@ -6511,7 +6512,7 @@ int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int 
 		for (int i = 0; i < ncov; i++) {
 			sum += cov[i] * ds->data_observations.cure_beta[i][thread_id][0];
 		}
-		pcure = map_probability(sum, MAP_FORWARD, NULL);
+		pcure = map_probability_forward(sum, MAP_FORWARD, NULL);
 		l_1mpcure = log(1.0 - pcure);
 	}
 
@@ -6530,8 +6531,8 @@ int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int 
 		double dummy;
 		loglfun(thread_id, &dummy, x, 1, idx, x_vec, NULL, arg, &b);
 
-		char *str_cov = GMRFLib_strdup("");
-		char *str_beta = GMRFLib_strdup("");
+		char *str_cov = Strdup("");
+		char *str_beta = Strdup("");
 
 		if (ncov) {
 			double *cov = ds->data_observations.cure_cov + idx * ncov;
@@ -6865,7 +6866,7 @@ int loglikelihood_loglogistic(int thread_id, double *logll, double *x, int m, in
 	double y, ly = 0, lambda, alpha, lalpha = 0;
 
 	y = ds->data_observations.y[idx];
-	alpha = map_exp(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_exp_forward(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
 	LINK_INIT;
 
 	if (m > 0) {
@@ -6937,7 +6938,7 @@ int loglikelihood_qloglogistic(int thread_id, double *logll, double *x, int m, i
 	double y, yq, ly = NAN, lambda, alpha, lalpha = NAN, q, qq;
 
 	y = ds->data_observations.y[idx];
-	alpha = map_exp(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_exp_forward(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
 	q = ds->data_observations.quantile;
 	qq = 1.0 / q - 1.0;
 	LINK_INIT;
@@ -7023,8 +7024,8 @@ int loglikelihood_fmri(int thread_id, double *logll, double *x, int m, int idx, 
 	double eta, y, yy, prec, dof, ncp, scale, l2y, y2, yy2;
 
 	y = ds->data_observations.y[idx];
-	prec = map_exp(ds->data_observations.fmri_lprec[thread_id][0], MAP_FORWARD, NULL);
-	dof = map_identity(ds->data_observations.fmri_ldof[thread_id][0], MAP_FORWARD, NULL);
+	prec = map_exp_forward(ds->data_observations.fmri_lprec[thread_id][0], MAP_FORWARD, NULL);
+	dof = map_identity_forward(ds->data_observations.fmri_ldof[thread_id][0], MAP_FORWARD, NULL);
 	scale = (ds->data_observations.fmri_scale ? ds->data_observations.fmri_scale[idx] : 1.0);
 
 	prec *= scale;

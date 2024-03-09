@@ -697,9 +697,14 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 		GMRFLib_csr_print(stdout, Q);
 	}
 
-	n = Q->s->n;
+	assert(Q->s->n == store->graph->n);
+	n = store->graph->n;
 	store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm = Calloc(n, int);
 	store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm = Calloc(n, int);
+
+	if (S.s_verbose) {
+		printf("Init store perm and iperm with n = %1d\n", n);
+	}
 
 	if (S.parallel_reordering) {
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
@@ -857,7 +862,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 	}
 	// Revert back to C indexing ?
 	if (GMRFLib_imin_value(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm, n, NULL) == 1) {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < n; i++) {
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
 		}
@@ -1169,99 +1174,122 @@ int GMRFLib_pardiso_exit(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp **store)
+int GMRFLib_pardiso_pstores_do(GMRFLib_pardiso_store_tp **store)
 {
-	int tnum = omp_get_thread_num();
-	if (store == NULL || *store == NULL) {
-		return GMRFLib_SUCCESS;
-	}
+	// if STORE and *STORE is !NULL, then free STORE and its storage.
+	// is STORE is NULL, return IDX for a new storage
 
-	if ((*store)->copy_pardiso_ptr) {
-		// this is special
-		if (S.s_verbose) {
-			FIXME("Free pardiso store with copy_pardiso_ptr = 1");
-		}
-		if ((*store)->pstore) {
-			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
-				if ((*store)->pstore[i]) {
-					Free((*store)->pstore[i]->perm);
-					Free((*store)->pstore[i]->iperm);
-					Free((*store)->pstore[i]);
+	int retval = -1;
+	int tnum = 0;
+	GMRFLib_CACHE_SET_ID(tnum);
+
+	// need critical, as we operate on the global variable S.static_...
+#pragma omp critical
+	{
+		if (store && *store) {
+			if ((*store)->copy_pardiso_ptr) {
+				// this is special
+				if (S.s_verbose) {
+					FIXME("Free pardiso store with copy_pardiso_ptr = 1");
+				}
+				if ((*store)->pstore) {
+					for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+						if ((*store)->pstore[i]) {
+							Free((*store)->pstore[i]->perm);
+							Free((*store)->pstore[i]->iperm);
+							Free((*store)->pstore[i]);
+						}
+					}
+				}
+				Free((*store)->pstore);
+				Free((*store));
+				*store = NULL;
+				retval = -1;
+			} else {
+				if (S.s_verbose) {
+					PP("free: old=", *store);
+				}
+
+				int found = 0;
+				if (S.static_pstores != NULL) {
+					if (S.s_verbose) {
+						for (int i = 0; i < PSTORES_NUM; i++) {
+							if (S.busy[i]) {
+								printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
+							}
+						}
+					}
+					for (int i = 0; i < PSTORES_NUM && !found; i++) {
+						if (S.static_pstores[i] == *store) {
+							found = 1;
+							if (S.busy[i]) {
+								S.busy[i] = 0;
+								if (S.s_verbose) {
+									printf("==> S.busy[%1d] = 1\n", i);
+									PP("S.static_pstores[i]", S.static_pstores[i]);
+									PP("*store", *store);
+									printf("==> free store[%1d]\n", i);
+								}
+							} else {
+								if (S.s_verbose) {
+									printf("==> this one is already free [%1d]. ignore\n", i);
+								}
+							}
+						}
+					}
+				}
+				if (!found) {
+					if (S.s_verbose) {
+						printf("==> free manually as not found\n");
+					}
+					if ((*store)->pstore[tnum]) {
+						(*store)->pstore[tnum]->phase = -1;
+						int mnum1 = 1;
+						pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
+							&((*store)->pstore[tnum]->phase),
+							&((*store)->pstore[tnum]->idummy),
+							&((*store)->pstore[tnum]->dummy), &((*store)->pstore[tnum]->idummy),
+							&((*store)->pstore[tnum]->idummy),
+							&((*store)->pstore[tnum]->idummy),
+							&((*store)->pstore[tnum]->nrhs), (*store)->pstore[tnum]->iparm, &((*store)->msglvl),
+							NULL, NULL, &((*store)->pstore[tnum]->err_code), (*store)->pstore[tnum]->dparm);
+
+						GMRFLib_csr_free(&((*store)->pstore[GMRFLib_PSTORE_TNUM_REF]->Q));
+						GMRFLib_csr_free(&((*store)->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv));
+						Free((*store)->pstore[tnum]);
+					}
+
+					GMRFLib_graph_free((*store)->graph);
+					Free((*store)->iparm_default);
+					Free((*store)->dparm_default);
+					Free(*store);
 				}
 			}
-		}
-		Free((*store)->pstore);
-		Free((*store));
-		*store = NULL;
+		} else {
+			// find a new IDX
 
-		return GMRFLib_SUCCESS;
-	}
-
-	if (S.s_verbose) {
-		PP("free: old=", *store);
-	}
-
-	int found = 0;
-	if (S.static_pstores != NULL) {
-		if (S.s_verbose) {
+			int idx = -1;
 			for (int i = 0; i < PSTORES_NUM; i++) {
-				if (S.busy[i]) {
-					printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
+				if (!S.busy[i]) {
+					S.busy[i] = 1;
+					idx = i;
+					break;
 				}
 			}
-		}
-		for (int i = 0; i < PSTORES_NUM && !found; i++) {
-
-			if (S.static_pstores[i] == *store) {
-				found = 1;
-				if (S.busy[i]) {
-					S.busy[i] = 0;
-					if (S.s_verbose) {
-						printf("==> S.busy[%1d] = 1\n", i);
-						PP("S.static_pstores[i]", S.static_pstores[i]);
-						PP("*store", *store);
-						printf("==> free store[%1d]\n", i);
-					}
-				} else {
-					if (S.s_verbose) {
-						printf("==> this one is already free [%1d]. ignore\n", i);
-					}
-				}
-			}
+			retval = idx;
 		}
 	}
-	if (!found) {
-		if (S.s_verbose) {
-			printf("==> free manually as not found\n");
-		}
 
-		if ((*store)->pstore[tnum]) {
-			(*store)->pstore[tnum]->phase = -1;
-			int mnum1 = 1;
-			pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
-				&((*store)->pstore[tnum]->phase),
-				&((*store)->pstore[tnum]->idummy),
-				&((*store)->pstore[tnum]->dummy), &((*store)->pstore[tnum]->idummy),
-				&((*store)->pstore[tnum]->idummy),
-				&((*store)->pstore[tnum]->idummy),
-				&((*store)->pstore[tnum]->nrhs), (*store)->pstore[tnum]->iparm, &((*store)->msglvl),
-				NULL, NULL, &((*store)->pstore[tnum]->err_code), (*store)->pstore[tnum]->dparm);
-
-			GMRFLib_csr_free(&((*store)->pstore[GMRFLib_PSTORE_TNUM_REF]->Q));
-			GMRFLib_csr_free(&((*store)->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv));
-			Free((*store)->pstore[tnum]);
-		}
-
-		GMRFLib_graph_free((*store)->graph);
-		Free((*store)->iparm_default);
-		Free((*store)->dparm_default);
-		Free(*store);
-	}
-
-	return GMRFLib_SUCCESS;
+	return retval;
 }
 
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_pardiso_store_tp *old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
+int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp **store)
+{
+	return GMRFLib_pardiso_pstores_do(store);
+}
+
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_pardiso_store_tp *old, int UNUSED(copy_ptr),
+				    int copy_pardiso_ptr, GMRFLib_graph_tp *graph)
 {
 	int tnum = omp_get_thread_num();
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
@@ -1272,7 +1300,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 	}
 
 	if (failsafe_mode) {
-		// FIXME("-->duplicate by creating a new one each time");
+		FIXME1("-->duplicate by creating a new one each time");
 		GMRFLib_pardiso_init(nnew);
 		GMRFLib_pardiso_reorder(*nnew, old->graph);
 		return GMRFLib_SUCCESS;
@@ -1284,11 +1312,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 #define CP2(_what) dup->pstore[tnum]->_what = old->pstore[tnum]->_what
 #define CP2_ref(_what) dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what = old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what
 #define CPv_ref(_what, type, len)					\
-		if (old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what) {			\
+		if (old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what) {	\
 			dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what = Calloc(len, type); \
-			Memcpy((void *) (dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what), (void *) (old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what), (len) * sizeof(type)); \
+			Memcpy((void *) (dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what), \
+			       (void *) (old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what), (len) * sizeof(type)); \
 		} else {						\
-			dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what = NULL;		\
+			dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what = NULL; \
 		}							\
 
 		GMRFLib_pardiso_store_tp *dup = Calloc(1, GMRFLib_pardiso_store_tp);
@@ -1354,19 +1383,13 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 		}
 	}
 
-	int found = 0, idx = -1, ok = 0;
-#pragma omp critical (Name_29873421a20baf5374230cb83067fb5810469371)
-	{
-		for (int i = 0; i < PSTORES_NUM && !found; i++) {
-			if (!S.busy[i]) {
-				S.busy[i] = 1;
-				idx = i;
-				found = 1;
-			}
-		}
+	int idx = GMRFLib_pardiso_pstores_do(NULL);
+	int ok = 1;
+
+	if (S.s_verbose) {
+		printf("pstores_do return idx=%d\n", idx);
 	}
 
-	assert(found == 1);
 	if (S.static_pstores[idx]) {
 		if (debug) {
 			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__,
@@ -1385,13 +1408,23 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 	}
 
 	if (S.static_pstores[idx] && ok) {
+		int redo_reordering = 0;
 		*nnew = S.static_pstores[idx];
+		if (graph && (graph->sha == NULL || S.static_pstores[idx]->graph->sha == NULL ||
+			      strcmp((const char *) S.static_pstores[idx]->graph->sha, (const char *) graph->sha) != 0)) {
+			S.static_pstores[idx]->done_with_reorder = GMRFLib_FALSE;
+			GMRFLib_pardiso_reorder(S.static_pstores[idx], graph);
+			redo_reordering = 1;
+		}
 		if (S.s_verbose) {
-			printf("==> reuse store[%1d]\n", idx);
+			printf("==> reuse store[%1d]  redo_reordering[%1d]\n", idx, redo_reordering);
 		}
 	} else {
+		if (S.static_pstores[idx]) {
+			GMRFLib_pardiso_free(&(S.static_pstores[idx]));
+		}
 		GMRFLib_pardiso_init(&(S.static_pstores[idx]));
-		GMRFLib_pardiso_reorder(S.static_pstores[idx], old->graph);
+		GMRFLib_pardiso_reorder(S.static_pstores[idx], (graph && graph->n > 0 ? graph : old->graph));
 		*nnew = S.static_pstores[idx];
 		if (S.s_verbose) {
 			printf("==> new store[%1d]\n", idx);

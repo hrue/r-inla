@@ -245,7 +245,7 @@ char *iniparser_getstring(dictionary *d, const char *key, char *def)
 	if (d == NULL || key == NULL)
 		return def;
 
-	if (!(lc_key = strdup(MY_STRING_LOWERCASE(key)))) {
+	if (!(lc_key = Strdup(MY_STRING_LOWERCASE(key)))) {
 		return NULL;
 	}
 	sval = dictionary_get(d, lc_key, def);

@@ -86,7 +86,7 @@ int read_graph_and_data(void)
 	char *fnm;
 	GMRFLib_io_tp *io = NULL;
 
-	fnm = GMRFLib_strdup(GRAPH);
+	fnm = Strdup(GRAPH);
 	GMRFLib_read_graph(&G.graph, fnm);
 	Free(fnm);
 
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 	/*
 	 * start sampling, just go on forever 
 	 */
-	timeref = GMRFLib_cpu();
+	timeref = GMRFLib_timer();
 	while (++counter) {
 
 		/*
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 		 * that's it ! 
 		 */
 		eprob += exp(DMIN(0.0, lacc));
-		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter, 1. / ((GMRFLib_cpu() - timeref) / counter), kappa);
+		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter, 1. / ((GMRFLib_timer() - timeref) / counter), kappa);
 	}
 	return 0;
 }

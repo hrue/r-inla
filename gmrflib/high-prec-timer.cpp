@@ -28,26 +28,15 @@
  *
  */
 
-#if defined(WINDOWS)
-
 #include <bits/stdc++.h>
 #include <chrono>
-using namespace std;
- 
-extern "C" double GMRFLib_cpu_default(void);
 
-double GMRFLib_cpu_default()
+using namespace std;
+extern "C" double GMRFLib_timer_chrono(void);
+
+double GMRFLib_timer_chrono(void)
 {
 	static auto start = chrono::high_resolution_clock::now();
-	static int first = 1;
-	if (first) {
-		start = chrono::high_resolution_clock::now();
-		first = 0;
-	}
-
 	auto now = chrono::high_resolution_clock::now();
-	double time_taken = (chrono::duration_cast<chrono::nanoseconds>(now - start).count()) * 1.0e-9;
-	return time_taken;
+	return ((chrono::duration_cast<chrono::nanoseconds>(now - start).count()) * 1.0E-09);
 }
-
-#endif

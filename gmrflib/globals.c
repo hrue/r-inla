@@ -91,8 +91,6 @@ GMRFLib_reorder_tp GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 int GMRFLib_blas_level = BLAS_LEVEL3;
 int GMRFLib_verify_graph_read_from_disc = GMRFLib_FALSE;
 
-GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
-
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 

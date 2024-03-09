@@ -364,7 +364,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	/*
 	 * add fileinfo 
 	 */
-	M->filename = GMRFLib_strdup(filename);
+	M->filename = Strdup(filename);
 	M->offset = offset;
 	M->whence = whence;
 	M->tell = ftell(fp);
@@ -771,11 +771,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		M->ncol = 1;
 		M->A = Calloc(n, double);
 
-		int i;
-		for (i = 0; i < n; i++) {
-			M->A[i] = 1.0;
-		}
-
+		GMRFLib_fill(n, 1.0, M->A);
 		M->filename = NULL;
 		M->offset = 0L;
 		M->whence = SEEK_SET;
@@ -853,7 +849,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 
 	GMRFLib_matrix_add_graph_and_hash(N);
 
-	N->filename = GMRFLib_strdup(M->filename);
+	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
 	N->whence = M->whence;
 	N->tell = M->tell;

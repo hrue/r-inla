@@ -217,8 +217,8 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			    void *UNUSED(args))
 {
 	char *secname = NULL, *param = NULL;
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	prior->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, prior_tag), GMRFLib_strdup(default_prior)));
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	prior->name = Strdup(iniparser_getstring(ini, inla_string_join(secname, prior_tag), Strdup(default_prior)));
 
 	if (!prior->name) {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, NULL);
@@ -232,7 +232,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		 * remove trailing -[a-zA-Z]*$ 
 		 */
 		char *p, *new_name;
-		new_name = GMRFLib_strdup(prior->name);
+		new_name = Strdup(prior->name);
 		p = GMRFLib_rindex((const char *) new_name, '-');
 		if (p) {
 			*p = '\0';
@@ -246,8 +246,8 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	}
 
 	prior->hyperid = inla_create_hyperid(iniparser_getint(ini, inla_string_join(secname, hyperid), 0), secname);
-	prior->from_theta = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, from_theta), NULL));
-	prior->to_theta = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, to_theta), NULL));
+	prior->from_theta = Strdup(iniparser_getstring(ini, inla_string_join(secname, from_theta), NULL));
+	prior->to_theta = Strdup(iniparser_getstring(ini, inla_string_join(secname, to_theta), NULL));
 	if (mb->verbose) {
 		printf("\t\thyperid=[%s]\n", prior->hyperid);
 		printf("\t\t%s->from_theta=[%s]\n", prior_tag, prior->from_theta);
@@ -255,10 +255,10 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	}
 	// this is special
 	if (!strcasecmp(prior->name, "WISHARTKD")) {
-		prior->name = GMRFLib_strdup(default_prior);
+		prior->name = Strdup(default_prior);
 	}
 
-	param = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, param_tag), NULL));
+	param = Strdup(iniparser_getstring(ini, inla_string_join(secname, param_tag), NULL));
 	if (!strcasecmp(prior->name, "LAPLACE")) {
 		prior->id = P_LAPLACE;
 		prior->priorfunc = priorfunc_laplace;
@@ -1358,7 +1358,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
 		prior->id = P_EXPRESSION;
-		prior->expression = GMRFLib_strdup(prior->name);
+		prior->expression = Strdup(prior->name);
 		prior->name[strlen("EXPRESSION")] = '\0';
 		prior->parameters = NULL;
 
@@ -1367,7 +1367,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 	} else if (!strncasecmp(prior->name, "TABLE:", strlen("TABLE:"))) {
 		prior->id = P_TABLE;
-		prior->expression = GMRFLib_strdup(prior->name);	/* yes, use the same storage */
+		prior->expression = Strdup(prior->name);       /* yes, use the same storage */
 		prior->name[strlen("TABLE")] = '\0';
 		prior->parameters = NULL;
 
@@ -1378,7 +1378,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_RPRIOR;
 		char *tag[3] = { NULL, NULL, NULL };
 		inla_sread_str_str(tag, 3, prior->name);       // rprior:RPRIOR_FUNCTION:FILENAME
-		prior->rprior = GMRFLib_strdup(tag[1]);
+		prior->rprior = Strdup(tag[1]);
 		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
 		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);
 		prior->parameters = NULL;

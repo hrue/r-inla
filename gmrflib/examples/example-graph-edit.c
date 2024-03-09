@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	 * done! build the graph, and write it to file 
 	 */
 	GMRFLib_ged_build(&gg, ged);
-	char *fnm = GMRFLib_strdup("graph-edit-example.graph");
+	char *fnm = Strdup("graph-edit-example.graph");
 
 	GMRFLib_write_graph(fnm, gg);
 

@@ -1184,7 +1184,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[0] = GMRFLib_cpu();
+		timer[0] = GMRFLib_timer();
 	}
 
 	/*
@@ -1303,8 +1303,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[0] = GMRFLib_cpu() - timer[0];	       /* preparation */
-		timer[1] = GMRFLib_cpu();
+		timer[0] = GMRFLib_timer() - timer[0];	       /* preparation */
+		timer[1] = GMRFLib_timer();
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
@@ -1486,7 +1486,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							n_warnings++;
 							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
 							misc_output->warnings[n_warnings - 1] =
-							    GMRFLib_strdup
+							    Strdup
 							    ("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
 							misc_output->warnings[n_warnings] = NULL;
 						}
@@ -1874,8 +1874,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[1] = GMRFLib_cpu() - timer[1];
-		timer[2] = GMRFLib_cpu();
+		timer[1] = GMRFLib_timer() - timer[1];
+		timer[2] = GMRFLib_timer();
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
@@ -1919,8 +1919,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			for (int j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s =
-					    GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
+					char *s = Strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -2068,7 +2067,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			izs[dens_count][i] = z_local[i];
 		}
 
-		tref = GMRFLib_cpu();
+		tref = GMRFLib_timer();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
@@ -2115,9 +2114,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (gcpo) {
 			if (misc_output->configs_preopt) {
 				gcpodens_moments = Calloc(3 * preopt->Npred, double);
-				for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
-					gcpodens_moments[ii] = NAN;
-				}
+				GMRFLib_fill(3 * preopt->Npred, NAN, gcpodens_moments);
 			}
 			gcpo_theta[dens_count] = GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups,
 							      d, loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments);
@@ -2135,9 +2132,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *cpodens_moments = NULL;
 		if (misc_output->configs_preopt && cpo) {
 			cpodens_moments = Calloc(3 * preopt->Npred, double);
-			for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
-				cpodens_moments[ii] = NAN;
-			}
+			GMRFLib_fill(3 * preopt->Npred, NAN, cpodens_moments);
 		}
 
 		if (cpo || dic || po) {
@@ -2217,7 +2212,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			free_if_not_configs = 0;
 		}
 
-		tu = GMRFLib_cpu() - tref;
+		tu = GMRFLib_timer() - tref;
 		if (ai_par->fp_log) {
 #pragma omp critical (Name_8a7254c4a570078955ae0e221dd0594e23386e57)
 			{
@@ -2271,8 +2266,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (timer) {
-		timer[2] = GMRFLib_cpu() - timer[2];
-		timer[3] = GMRFLib_cpu();
+		timer[2] = GMRFLib_timer() - timer[2];
+		timer[3] = GMRFLib_timer();
 	}
 
 	*density = Calloc(preopt->n + preopt->mnpred, GMRFLib_density_tp *);
@@ -3143,7 +3138,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[3] = GMRFLib_cpu() - timer[3];
+		timer[3] = GMRFLib_timer() - timer[3];
 	}
 
 	GMRFLib_idx_free(d_idx);
@@ -3232,12 +3227,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			double big = 1.0 / GSL_DBL_EPSILON;
 
-			// default
-#pragma omp simd
-			for (int i = 0; i < nn; i++) {
-				mask[i] = 1.0;
-			}
-			Memset(diag, 0, nn * sizeof(double));
+			GMRFLib_fill(nn, 1.0, mask);
+			GMRFLib_fill(nn, 0.0, diag);
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);
@@ -3405,12 +3396,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double *cor_abs = CODE_BLOCK_WORK_PTR(3);	\
 			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
-			if (show) tref[0] -= GMRFLib_cpu();		\
+			if (show) tref[0] -= GMRFLib_timer();		\
 									\
 			GMRFLib_unpack(v->n, v->val, a, v->idx);	\
 			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
 									\
-			if (show) tref[0] += GMRFLib_cpu();		\
+			if (show) tref[0] += GMRFLib_timer();		\
 									\
 			double eps = 1.0E-4 * min_sd / isd[node];	\
 			_Pragma("omp simd")				\
@@ -3418,7 +3409,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0; \
 				}					\
 									\
-			if (show) tref[1] -= GMRFLib_cpu();		\
+			if (show) tref[1] -= GMRFLib_timer();		\
 									\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
@@ -3430,7 +3421,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}						\
 									\
 			if (show) {					\
-				tref[1] += GMRFLib_cpu();		\
+				tref[1] += GMRFLib_timer();		\
 				printf("gcpo_build: rel.time solve %g dot %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1])); \
 				printf("gcpo_build: abs.time solve %g dot %g\n", tref[0], tref[1]); \
 			}						\
@@ -3725,7 +3716,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
 					       (int) gcpo[node]->idx_node);
-					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, GMRFLib_strdup("nodes in this group"));
+					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, Strdup("nodes in this group"));
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}
@@ -4266,8 +4257,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
-		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
-		_tref = GMRFLib_cpu();					\
+		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_timer()-_tref); \
+		_tref = GMRFLib_timer();					\
 	}
 
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
@@ -4281,7 +4272,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	int emergency = 0;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double max_correct = 5.001;
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
 	if (!(ai_par->vb_enable && ai_par->vb_nodes_mean)) {
@@ -4405,12 +4396,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		// I know I compute the mean twice for iter=0, but then the timing gets right
 		time_grad = 0.0;
 		if (measure_time) {
-			time_ref_grad = GMRFLib_cpu();
+			time_ref_grad = GMRFLib_timer();
 		}
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
 		if (measure_time) {
-			time_grad += GMRFLib_cpu() - time_ref_grad;
-			time_ref_grad = GMRFLib_cpu();
+			time_grad += GMRFLib_timer() - time_ref_grad;
+			time_ref_grad = GMRFLib_timer();
 		}
 
 #define CODE_BLOCK							\
@@ -4441,27 +4432,27 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			gsl_vector_set(B, i, tmp[i]);
 		}
 		if (measure_time) {
-			time_grad += GMRFLib_cpu() - time_ref_grad;
-			time_ref_grad = GMRFLib_cpu();
+			time_grad += GMRFLib_timer() - time_ref_grad;
+			time_ref_grad = GMRFLib_timer();
 		}
 
 		if (update_MM) {
 			if (measure_time) {
-				time_ref_hess = GMRFLib_cpu();
+				time_ref_hess = GMRFLib_timer();
 			}
 			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
 			if (measure_time) {
-				time_hess += GMRFLib_cpu() - time_ref_hess;
+				time_hess += GMRFLib_timer() - time_ref_hess;
 			}
 		}
 
 		if (update_MM) {
 			if (measure_time) {
-				time_ref_hess = GMRFLib_cpu();
+				time_ref_hess = GMRFLib_timer();
 			}
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 			if (measure_time) {
-				time_hess += GMRFLib_cpu() - time_ref_hess;
+				time_hess += GMRFLib_timer() - time_ref_hess;
 			}
 		}
 
@@ -4480,11 +4471,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
 				if (measure_time) {
-					time_ref_hess = GMRFLib_cpu();
+					time_ref_hess = GMRFLib_timer();
 				}
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
 				if (measure_time) {
-					time_hess += GMRFLib_cpu() - time_ref_hess;
+					time_hess += GMRFLib_timer() - time_ref_hess;
 				}
 			}
 			if (debug) {
@@ -4565,7 +4556,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
-					omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
+					omp_get_thread_num(), iter, niter, GMRFLib_timer() - tref, ratio);
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -4639,7 +4630,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	int hessian_update = ai_par->vb_hessian_update;
 	assert(hessian_update > 0);
 
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	double grad_err = 0.0;
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
@@ -4763,7 +4754,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	for (iter = 0; iter < niter + 1; iter++) {	       /* yes, it should be '+1': we 'break' at the top */
 
 		if (enable_tref_a) {
-			tref_a[0] -= GMRFLib_cpu();
+			tref_a[0] -= GMRFLib_timer();
 		}
 		// first we need to define a new 'problem' with the current values of thetas
 		Memcpy(c_add, c, graph->n * sizeof(double));
@@ -4791,7 +4782,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			GMRFLib_Qinv(problem);
 		}
 		if (enable_tref_a) {
-			tref_a[0] += GMRFLib_cpu();
+			tref_a[0] += GMRFLib_timer();
 		}
 
 		if (iter > 0) {
@@ -4810,7 +4801,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #pragma omp critical (Name_665f8b032e79706ed21a89a78c139f0eac1f454a)
 				{
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
-						tn, iter, niter, GMRFLib_cpu() - tref);
+						tn, iter, niter, GMRFLib_timer() - tref);
 					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n",
 						(int) vb_idx->n, grad_err, diff_sigma_max, (pass ? "PASS" : "FAIL"));
 					if (pass) {
@@ -4830,7 +4821,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean);
 
 		if (enable_tref_a) {
-			tref_a[1] -= GMRFLib_cpu();
+			tref_a[1] -= GMRFLib_timer();
 		}
 
 #define CODE_BLOCK							\
@@ -4850,7 +4841,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #undef CODE_BLOCK
 
 		if (enable_tref_a) {
-			tref_a[1] += GMRFLib_cpu();
+			tref_a[1] += GMRFLib_timer();
 		}
 
 		GMRFLib_idxval_tp **A = NULL;
@@ -4874,7 +4865,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 
 		if (enable_tref_a) {
-			tref_a[2] -= GMRFLib_cpu();
+			tref_a[2] -= GMRFLib_timer();
 		}
 
 #define CODE_BLOCK							\
@@ -4903,13 +4894,13 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #undef CODE_BLOCK
 
 		if (enable_tref_a) {
-			tref_a[2] += GMRFLib_cpu();
+			tref_a[2] += GMRFLib_timer();
 		}
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			if (enable_tref_a) {				\
-				tref_a[3] -= GMRFLib_cpu();		\
+				tref_a[3] -= GMRFLib_timer();		\
 			}						\
 			int i = vb_idx->idx[ii];			\
 			STORAGE_TP *cov_latent_i = cov_latent_store[ii]; \
@@ -4941,14 +4932,14 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			}						\
 			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i); \
 			if (enable_tref_a) {				\
-				tref_a[3] += GMRFLib_cpu();		\
+				tref_a[3] += GMRFLib_timer();		\
 			}						\
 			if (debug) {					\
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
 			}						\
 									\
 			if (enable_tref_a) {				\
-				tref_a[4] -= GMRFLib_cpu();		\
+				tref_a[4] -= GMRFLib_timer();		\
 			}						\
 			if (iter < hessian_update) {			\
 				int jj_upper = (hessian_diagonal ? ii + 1 : vb_idx->n); \
@@ -4998,7 +4989,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				}					\
 			}						\
 			if (enable_tref_a) {				\
-				tref_a[4] += GMRFLib_cpu();		\
+				tref_a[4] += GMRFLib_timer();		\
 			}						\
 		}
 
@@ -5016,7 +5007,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		// GMRFLib_printf_gsl_matrix(stdout, hessian, "%.2g ");
 
 		if (enable_tref_a) {
-			tref_a[5] -= GMRFLib_cpu();
+			tref_a[5] -= GMRFLib_timer();
 		}
 
 		grad_err = 0.0;
@@ -5045,7 +5036,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			}
 		}
 		if (enable_tref_a) {
-			tref_a[5] += GMRFLib_cpu();
+			tref_a[5] += GMRFLib_timer();
 		}
 	}
 

@@ -200,8 +200,8 @@ int inla_integrate_func_ORIG(double *d_mean, double *d_stdev, double *d_mode, GM
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[count].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -263,8 +263,8 @@ int inla_integrate_func_ORIG(double *d_mean, double *d_stdev, double *d_mode, GM
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[count].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);

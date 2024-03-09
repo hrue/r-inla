@@ -65,7 +65,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 			GMRFLib_EWRAP0(GMRFLib_sprintf(&pp, "%s:%s", p, GMRFLib_path));
 			p = pp;
 		} else {
-			p = GMRFLib_strdup(GMRFLib_path);      /* use default if it does not exists */
+			p = Strdup(GMRFLib_path);	       /* use default if it does not exists */
 		}
 
 		path = p;
@@ -99,8 +99,8 @@ int GMRFLib_io_open(GMRFLib_io_tp **io, const char *filename, const char *mode)
 	GMRFLib_ASSERT(io, GMRFLib_EPARAMETER);
 
 	*io = Calloc(1, GMRFLib_io_tp);
-	(*io)->filename = GMRFLib_strdup(filename);
-	(*io)->mode = GMRFLib_strdup(mode);
+	(*io)->filename = Strdup(filename);
+	(*io)->mode = Strdup(mode);
 	(*io)->strtok_ptr = NULL;
 	(*io)->lines_read = 0;
 	(*io)->tokens_read = 0;

@@ -574,7 +574,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		Memcpy(bb, b, sub_n * sizeof(double));
 	}
 
-	if (mean) {
+	if (!GMRFLib_is_zero(mean, sub_n)) {
 		double *tmp = Calloc(sub_n, double);
 		GMRFLib_Qx(thread_id, tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
 		GMRFLib_daddto(sub_n, tmp, bb);
@@ -598,6 +598,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
+		(*problem)->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
 	}
 
 	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
@@ -605,7 +606,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 		s->graph = (*problem)->sub_graph;
 		// use the internal cached storage
-		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE);
+		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE, graph);
 		Free(s);
 	}
 
@@ -623,6 +624,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
+		store->TAUCS_cache = GMRFLib_taucs_cache_duplicate((*problem)->sub_sm_fact.TAUCS_cache);
 	}
 
 	/*
@@ -807,8 +809,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						}
 #pragma omp critical (Name_8c313c5cb0ba5eb20ede5a81e455580200ca1348)
 						{
-							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha),
-								     (*problem)->logdet_aat);
+							map_strd_set(&constr_store_logdet, Strdup((char *) con->sha), (*problem)->logdet_aat);
 						}
 					}
 				}
@@ -1081,6 +1082,9 @@ int GMRFLib_free_store(GMRFLib_store_tp *store)
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
+		if (store->TAUCS_cache) {
+			GMRFLib_taucs_cache_free(store->TAUCS_cache);
+		}
 	}
 
 	if (store->copy_pardiso_ptr) {
@@ -1096,6 +1100,7 @@ int GMRFLib_free_store(GMRFLib_store_tp *store)
 
 	store->sub_graph = NULL;
 	store->TAUCS_symb_fact = NULL;
+	store->TAUCS_cache = NULL;
 
 	/*
 	 * free the diag and sub-store. its of the same type, therefore we can do this recursively. 
@@ -1655,10 +1660,12 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 		np->sub_sm_fact.TAUCS_L_inv_diag = NULL;
 	}
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
+	np->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(problem->sub_sm_fact.TAUCS_cache);
 	COPY(sub_sm_fact.finfo);
 
 	if (problem->sub_sm_fact.PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr);
+		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr,
+						NULL);
 	}
 
 	/*
@@ -1776,14 +1783,16 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 		 */
 		new_store->sub_graph = store->sub_graph;
 		new_store->TAUCS_symb_fact = store->TAUCS_symb_fact;
+		new_store->TAUCS_cache = store->TAUCS_cache;
 	} else {
 		GMRFLib_graph_duplicate(&(new_store->sub_graph), store->sub_graph);
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
+		new_store->TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
 	}
 	new_store->copy_ptr = copy_ptr;
 	new_store->copy_pardiso_ptr = copy_pardiso_ptr;
 	if (store->PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr);
+		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr, NULL);
 	}
 
 	char *tmp = Calloc(1, char);
@@ -1925,7 +1934,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 			 */
 			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n - 1))) {
 
-				cputime[k] = GMRFLib_cpu();
+				cputime[k] = GMRFLib_timer();
 				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kkk], &lgn);
 
 				perm = Calloc(n, int);
@@ -1941,7 +1950,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 				taucs_ccs_free(L);
 				taucs_supernodal_factor_free(TAUCS_symb_fact);
 
-				cputime[k] = GMRFLib_cpu() - cputime[k];
+				cputime[k] = GMRFLib_timer() - cputime[k];
 
 				if (debug) {
 #pragma omp critical (Name_4dc800d9b856792e63baa1e9a01d82865c857322)

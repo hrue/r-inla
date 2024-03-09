@@ -111,12 +111,12 @@ int inla_parse_libR(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_libR...\n");
 	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	mb->libR_R_HOME = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
+	mb->libR_R_HOME = Strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
 	if (mb->verbose) {
 		printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
 	}

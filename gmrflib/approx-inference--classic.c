@@ -1505,7 +1505,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[0] = GMRFLib_cpu();
+		timer[0] = GMRFLib_timer();
 	}
 
 	/*
@@ -1628,8 +1628,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		/*
 		 * preparations 
 		 */
-		timer[0] = GMRFLib_cpu() - timer[0];
-		timer[1] = GMRFLib_cpu();
+		timer[0] = GMRFLib_timer() - timer[0];
+		timer[1] = GMRFLib_timer();
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
@@ -2339,8 +2339,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		}
 
 		if (timer) {
-			timer[1] = GMRFLib_cpu() - timer[1];
-			timer[2] = GMRFLib_cpu();
+			timer[1] = GMRFLib_timer() - timer[1];
+			timer[2] = GMRFLib_timer();
 		}
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
 
@@ -2555,7 +2555,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 					izs[dens_count][i] = z_local[i];
 				}
 
-				tref = GMRFLib_cpu();
+				tref = GMRFLib_timer();
 
 				if (need_Qinv) {
 					GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv */
@@ -2591,7 +2591,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				}
 				COMPUTE_LINDENS(ai_store_id, GMRFLib_FALSE);
 				ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens_orig);
-				tu = GMRFLib_cpu() - tref;
+				tu = GMRFLib_timer() - tref;
 				if (ai_par->fp_log) {
 #pragma omp critical (Name_ef0a51d4c8b775aad87f67bb17dd269e61620fab)
 					{
@@ -2658,7 +2658,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				 * if we get a new config, then go on, otherwise, do nothing 
 				 */
 				if (err == GMRFLib_SUCCESS) {
-					tref = GMRFLib_cpu();
+					tref = GMRFLib_timer();
 					if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 						if (!ais[thread_id]) {
 							ais[thread_id] =
@@ -2689,7 +2689,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 									fprintf(ai_par->fp_log, " %6.3f", z_local[i]);
 								}
 								fprintf(ai_par->fp_log,
-									" ] log(rel.dens)= %6.3f, reject, %.2fs\n", val, GMRFLib_cpu() - tref);
+									" ] log(rel.dens)= %6.3f, reject, %.2fs\n", val, GMRFLib_timer() - tref);
 							}
 						}
 					} else {
@@ -2752,7 +2752,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 							userfunc_values_local =
 							    GMRFLib_ai_INLA_userfunc0(thread_id, ai_store_id->problem, theta_local, nhyper);
 						}
-						tu = GMRFLib_cpu() - tref;
+						tu = GMRFLib_timer() - tref;
 
 // not the best, but at least now its all about storing only...
 #pragma omp critical (Name_36b1b7dfeb7a205ea072f283e7f5ed9408c3aca1)
@@ -2864,7 +2864,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		assert(omp_get_thread_num() == 0);
 		if (timer) {
 			timer[1] = 0.0;
-			timer[2] = GMRFLib_cpu();
+			timer[2] = GMRFLib_timer();
 		}
 
 		if (nlin) {
@@ -2963,8 +2963,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (timer) {
-		timer[2] = GMRFLib_cpu() - timer[2];
-		timer[3] = GMRFLib_cpu();
+		timer[2] = GMRFLib_timer() - timer[2];
+		timer[3] = GMRFLib_timer();
 	}
 
 	/*
@@ -3920,7 +3920,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	}
 
 	if (timer) {
-		timer[3] = GMRFLib_cpu() - timer[3];
+		timer[3] = GMRFLib_timer() - timer[3];
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -4830,7 +4830,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 	if (vb_idx->n > 0) {
 
 		double *sd = Calloc(graph->n, double);
-		double tref = GMRFLib_cpu();
+		double tref = GMRFLib_timer();
 		double *mode = Calloc(graph->n, double);
 		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
 		for (int i = 0; i < graph->n; i++) {
@@ -4969,7 +4969,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 		}
 
 		if (ai_par->vb_verbose) {
-			printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_cpu() - tref);
+			printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_timer() - tref);
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
 			printf("\t\tIter.max [%1d]\n", (int) ai_par->vb_iter_max);
 			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, max_correct);

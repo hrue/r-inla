@@ -123,6 +123,14 @@ typedef struct {
 } GMRFLib_fact_info_tp;
 
 typedef struct {
+	int n;
+	int nnz;
+	int *len;
+	int *rowind;
+} GMRFLib_taucs_cache_tp;
+
+
+typedef struct {
 
 	/**
 	 * \brief Sparse-matrix type.					       
@@ -158,6 +166,8 @@ typedef struct {
 	 *  \brief The inverse of the diagonal of L (smtp = TAUCS)
 	 */
 	double *TAUCS_L_inv_diag;
+
+	GMRFLib_taucs_cache_tp *TAUCS_cache;
 
 	 /**
 	 *  \brief Info about the factorization 

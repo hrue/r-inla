@@ -31,18 +31,44 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+double GMRFLib_rw0(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
+{
+	// this is order=0 case, simpler
+
+	if (nnode < 0) {
+		return NAN;
+	}
+
+	if (node != nnode) {
+		return 0.0;
+	}
+
+	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
+	double prec = GMRFLib_SET_PREC(rwdef);
+
+	if (rwdef->prec_scale) {
+		prec *= rwdef->prec_scale[0];
+	}
+
+	if (rwdef->scale0) {
+		prec *= rwdef->scale0[node];
+	}
+
+	return prec;
+}
+
 double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (nnode < 0) {
 		return NAN;
 	}
 
-	int imax, imin, idiff, edge;
-	double prec;
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
+	double prec = GMRFLib_SET_PREC(rwdef);
 
-	prec = GMRFLib_SET_PREC(rwdef);
-	prec *= (rwdef->prec_scale ? rwdef->prec_scale[0] : 1.0);
+	if (rwdef->prec_scale) {
+		prec *= rwdef->prec_scale[0];
+	}
 
 	/*
 	 * this is the easy case. Note that this case has an additional 'scale0' parameter
@@ -50,6 +76,8 @@ double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), vo
 	if (rwdef->order == 0) {
 		return (node == nnode ? ((rwdef->scale0 ? rwdef->scale0[node] : 1.0) * prec) : 0.0);
 	}
+
+	int imax, imin, idiff, edge;
 
 	if (rwdef->cyclic) {
 		/*

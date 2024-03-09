@@ -62,9 +62,10 @@ __BEGIN_DECLS
 } GMRFLib_vmatrix_tp;
 
 
+char *Strdup(const char *s);
+
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno);
 char *GMRFLib_rindex(const char *p, int ch);
-char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 char *GMRFLib_vec2char(double *arr, int len);
 const char *GMRFLib_function_name_strip(const char *name);
@@ -96,6 +97,7 @@ int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
+int GMRFLib_is_zero(double *x, int n);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_icmp_r(const void *a, const void *b);
 int GMRFLib_imax_value(int *x, int n, int *idx);

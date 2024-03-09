@@ -55,7 +55,12 @@ __BEGIN_DECLS
 /* 
    dummy comment
  */
-    typedef struct {
+// defined in high-prec-timer.cpp
+double GMRFLib_timer_chrono(void);
+//#define GMRFLib_timer() omp_get_wtime()
+#define GMRFLib_timer() GMRFLib_timer_chrono()
+
+typedef struct {
 	char *name;					       /* function name */
 	double ntimes;					       /* number of times called */
 	double ctime_acc;				       /* accumulated ctime */
@@ -66,9 +71,6 @@ __BEGIN_DECLS
 	double ctime_acc2;				       /* accumulated ctime^2 */
 } GMRFLib_timer_hashval_tp;
 
-/*!
-  \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
-*/
 #define GMRFLib_ENTER_ROUTINE \
 	GMRFLib_DEBUG_INIT();						\
 	GMRFLib_TRACE_INIT();						\
@@ -76,20 +78,16 @@ __BEGIN_DECLS
 	_Pragma("omp threadprivate(trace_cpu_acc_)")			\
 	static double trace_cpu_ = 0.0;					\
 	_Pragma("omp threadprivate(trace_cpu_)")			\
-	trace_cpu_ = GMRFLib_cpu();					\
+	trace_cpu_ = GMRFLib_timer();					\
 	GMRFLib_TRACE_i("Enter, total", trace_count_);
 
-/*!
-  \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.
-*/
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
-		trace_cpu_acc_ += (GMRFLib_cpu() - trace_cpu_);		\
+		trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
 		GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
 	}
 
-double GMRFLib_cpu_default(void);
-
+double GMRFLib_timer_windows(void);
 
 __END_DECLS
 #endif

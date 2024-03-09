@@ -267,7 +267,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	int i;
 	const int debug = 0;
 	double ffx, fx_local;
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 
 	/*
 	 * tabulate Qfunc here. store it in argument 'tagQfunc' if present, otherwise, use local storage. 
@@ -312,7 +312,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 		       (fx_local < B.f_best ? "BETTER!" : ""));
 	}
 
-	tref = GMRFLib_cpu() - tref;
+	tref = GMRFLib_timer() - tref;
 #pragma omp atomic
 	fncall_timing.time_used += tref;
 #pragma omp atomic
@@ -1127,6 +1127,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	double *x, *gradx;
 	int ierr, i;
 
+	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warn */
@@ -1154,6 +1155,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	double *x, *gradx;
 	int ierr, i;
 
+	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warning... */
@@ -1560,11 +1562,11 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 		return;
 	}
 
-	char *template = NULL;
-	GMRFLib_sprintf(&template, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
+	char *templat = NULL;
+	GMRFLib_sprintf(&templat, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
 
 	ssize_t rval;
-	int fd = mkstemp(template);
+	int fd = mkstemp(templat);
 	rval = write(fd, &fval, sizeof(double));
 	assert(rval >= 0);
 	rval = write(fd, &nfun, sizeof(int));
@@ -1583,6 +1585,6 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	}
 	close(fd);
 
-	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", template);
+	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", templat);
 }
 #endif

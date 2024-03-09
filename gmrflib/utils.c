@@ -48,6 +48,12 @@
 
 static int malloc_debug = -1;
 
+// better with function then macro...
+char *Strdup(const char *s)
+{
+	return (s ? strdup(s) : (char *) NULL);
+}
+
 /*
  * Measures the current (and peak) resident and virtual memories
  * usage of your linux C process, in kB
@@ -627,32 +633,6 @@ double GMRFLib_log_apbex(double a, double b)
 	}
 }
 
-char *GMRFLib_strdup(const char *ptr)
-{
-	/*
-	 * strdup is not part of ANSI-C 
-	 */
-#if defined(__STRICT_ANSI__)
-	if (ptr) {
-		size_t len = strlen(ptr);
-		char *str = Malloc(len + 1, char);
-
-		return strcpy(str, ptr);
-	} else {
-		return (char *) NULL;
-	}
-#else
-	if (ptr) {
-		char *p = strdup(ptr);
-		GMRFLib_ASSERT_RETVAL(p, GMRFLib_EMEMORY, (char *) NULL);
-
-		return p;
-	} else {
-		return NULL;
-	}
-#endif
-}
-
 int GMRFLib_normalize(int n, double *x)
 {
 	// scale x so the sum is 1
@@ -1136,6 +1116,33 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_is_zero(double *x, int n) 
+{
+	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
+	if (!x) {
+		return 1;
+	}
+	const int nstart = 32L;
+	int m = IMIN(n, nstart);
+
+	for(int i = 0; i < m; i++) {
+		if (!ISZERO(x[i])){
+			return 0;
+		}
+	}
+
+	if (n > m) {
+		for (int offset = nstart; offset < n; offset += offset) {
+			int len = IMIN(offset, n - offset);
+			if (len <= 0 || memcmp(x, x+offset, len * sizeof(double))) {
+				return 0;
+			}
+		}
+	}
+	
+	return 1;
+}
+
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*
@@ -1290,7 +1297,7 @@ int GMRFLib_debug_functions(const char *name)
 		int verbose = 0;
 
 		if (def) {
-			def = GMRFLib_strdup(def);
+			def = Strdup(def);
 		}
 		if (verbose) {
 			printf("\t\tREAD %s\n", def);
@@ -1386,7 +1393,7 @@ int GMRFLib_trace_functions(const char *name)
 		int verbose = 0;
 
 		if (def) {
-			def = GMRFLib_strdup(def);
+			def = Strdup(def);
 		}
 		if (verbose) {
 			printf("\t\tREAD %s\n", def);
@@ -1807,7 +1814,7 @@ int my_sort2_id_test_cutoff(int verbose)
 	double cutoff = 1;
 	double b;
 
-	time_used -= GMRFLib_cpu();
+	time_used -= GMRFLib_timer();
 
 	for (int n = nmin; n <= nmax; n += nstep) {
 
@@ -1824,15 +1831,15 @@ int my_sort2_id_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			time[0] -= GMRFLib_cpu();
+			time[0] -= GMRFLib_timer();
 			my_insertionSort_id(ixx, xx, n);
-			time[0] += GMRFLib_cpu();
+			time[0] += GMRFLib_timer();
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			time[1] -= GMRFLib_cpu();
+			time[1] -= GMRFLib_timer();
 			gsl_sort2_id(ixx, xx, n);
-			time[1] += GMRFLib_cpu();
+			time[1] += GMRFLib_timer();
 		}
 
 		slope_xx += SQR(n);
@@ -1854,7 +1861,7 @@ int my_sort2_id_test_cutoff(int verbose)
 	// this is a global variable
 	GMRFLib_sort2_id_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
-	time_used += GMRFLib_cpu();
+	time_used += GMRFLib_timer();
 	if (verbose) {
 		printf("sort-test took %.4f seconds\n", time_used);
 	}
@@ -1884,7 +1891,7 @@ int my_sort2_dd_test_cutoff(int verbose)
 	double cutoff = 1;
 	double b;
 
-	time_used -= GMRFLib_cpu();
+	time_used -= GMRFLib_timer();
 
 	for (int n = nmin; n <= nmax; n += nstep) {
 
@@ -1901,15 +1908,15 @@ int my_sort2_dd_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(double));
 			Memcpy(xx, x, n * sizeof(double));
-			time[0] -= GMRFLib_cpu();
+			time[0] -= GMRFLib_timer();
 			my_insertionSort_dd(ixx, xx, n);
-			time[0] += GMRFLib_cpu();
+			time[0] += GMRFLib_timer();
 
 			Memcpy(ixx, ix, n * sizeof(double));
 			Memcpy(xx, x, n * sizeof(double));
-			time[1] -= GMRFLib_cpu();
+			time[1] -= GMRFLib_timer();
 			gsl_sort2_dd(ixx, xx, n);
-			time[1] += GMRFLib_cpu();
+			time[1] += GMRFLib_timer();
 		}
 
 		slope_xx += SQR(n);
@@ -1931,7 +1938,7 @@ int my_sort2_dd_test_cutoff(int verbose)
 	// this is a global variable
 	GMRFLib_sort2_dd_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
-	time_used += GMRFLib_cpu();
+	time_used += GMRFLib_timer();
 	if (verbose) {
 		printf("sort-test took %.4f seconds\n", time_used);
 	}
@@ -1992,7 +1999,7 @@ double GMRFLib_erfc_inv(double x)
 // 
 /////////////////////////////////////////////////////////////////////////
 
-forceinline void GMRFLib_exp(int n, double *x, double *y)
+void GMRFLib_exp(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdExp(n, x, y);
@@ -2004,7 +2011,7 @@ forceinline void GMRFLib_exp(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
+void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdExpI(n, x, inc, y, inc);
@@ -2016,7 +2023,7 @@ forceinline void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 #endif
 }
 
-forceinline void GMRFLib_log(int n, double *x, double *y)
+void GMRFLib_log(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdLn(n, x, y);
@@ -2028,7 +2035,7 @@ forceinline void GMRFLib_log(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_log1p(int n, double *x, double *y)
+void GMRFLib_log1p(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdLog1p(n, x, y);
@@ -2040,7 +2047,7 @@ forceinline void GMRFLib_log1p(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_sqr(int n, double *x, double *y)
+void GMRFLib_sqr(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdSqr(n, x, y);
@@ -2052,7 +2059,7 @@ forceinline void GMRFLib_sqr(int n, double *x, double *y)
 #endif
 }
 
-forceinline void GMRFLib_add(int n, double *x, double *y, double *z)
+void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdAdd(n, x, y, z);
@@ -2064,7 +2071,7 @@ forceinline void GMRFLib_add(int n, double *x, double *y, double *z)
 #endif
 }
 
-forceinline void GMRFLib_mul(int n, double *x, double *y, double *z)
+void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_LINK_WITH_MKL)
 	vdMul(n, x, y, z);

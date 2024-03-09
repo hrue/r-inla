@@ -239,6 +239,7 @@ typedef struct {
 	double *prec_scale;
 } GMRFLib_rw2ddef_tp;
 
+double GMRFLib_rw0(int thread_id, int node, int nnode, double *values, void *def);
 double GMRFLib_rw(int thread_id, int node, int nnode, double *values, void *rwdef);
 double GMRFLib_crw(int thread_id, int node, int nnode, double *values, void *crwdef);
 double GMRFLib_rw2d(int thread_id, int node, int nnode, double *values, void *rw2ddef);

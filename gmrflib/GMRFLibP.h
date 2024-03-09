@@ -266,10 +266,10 @@ typedef enum {
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
 		double _tref;				\
-		_tref = GMRFLib_cpu();			\
+		_tref = GMRFLib_timer();			\
 		_ntimes++;				\
 		expression;						\
-		_tacc += GMRFLib_cpu() - _tref;				\
+		_tacc += GMRFLib_timer() - _tref;				\
 		printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n", \
 		       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
@@ -279,11 +279,11 @@ typedef enum {
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
 		double _tref;				\
-		_tref = GMRFLib_cpu();			\
+		_tref = GMRFLib_timer();			\
 		_ntimes++;
 
 #define GMRFLib_MEASURE_CPU_END(msg)					\
-	_tacc += GMRFLib_cpu() - _tref;					\
+	_tacc += GMRFLib_timer() - _tref;					\
 	printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n",	\
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
@@ -420,10 +420,7 @@ typedef enum {
 #define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_);}
 #define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
 
-/* 
-   for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
-*/
-#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) (((size_t)(n_) * sizeof(type_)) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
@@ -470,7 +467,6 @@ typedef enum {
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
-
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 

@@ -95,9 +95,15 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		double *d_i = dij;
 		double *vv = v;
 		double *d_j = dij;
-		for (int kk = 0; kk < 1 + nb; kk++, vv += 4, d_j += 3) {
+
+		// for (int kk = 0; kk < 1 + nb; kk++, vv += 4, d_j += 3) 
+		//     values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
+#pragma omp simd
+		for (int kk = 0; kk < 1 + nb; kk++) {
 			values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
+			vv += 4; d_j += 3;
 		}
+		
 		return 0.0;
 	} else {
 		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);

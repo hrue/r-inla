@@ -57,7 +57,10 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS int my_file_exists(const char *filename);
+__BEGIN_DECLS
+//
+char *Strdup(const char *s);
+int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
@@ -216,10 +219,10 @@ int inla_R_init_(void)
 					Free(rhome);
 				}
 				char *Rargv[4];
-				Rargv[0] = strdup("REmbeddedPostgres");
-				Rargv[1] = strdup("--gui=none");
-				Rargv[2] = strdup("--no-save");
-				Rargv[3] = strdup("--no-restore");
+				Rargv[0] = Strdup("REmbeddedPostgres");
+				Rargv[1] = Strdup("--gui=none");
+				Rargv[2] = Strdup("--no-save");
+				Rargv[3] = Strdup("--no-restore");
 				int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 				Rf_initEmbeddedR(Rargc, Rargv);
 

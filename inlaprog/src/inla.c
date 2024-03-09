@@ -199,7 +199,7 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 	if (1) {						\
 		int _id = (Id);					\
 		WRITE(fd, &_id, 1, int);			\
-		char *dup_msg = GMRFLib_strdup(msg);		\
+		char *dup_msg = Strdup(msg);		\
 		WRITE(fd, dup_msg, strlen(dup_msg)+1, char);	\
 		Free(dup_msg);					\
 	}
@@ -277,8 +277,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * first check that "type" is present in each section 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "type"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "type"), NULL)));
 		if (!sectype) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "type");
 		}
@@ -303,8 +303,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * 
 	 */
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LIBR")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[LIBR]\n", sec, iniparser_getsecname(ini, sec));
@@ -321,8 +321,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "EXPERT")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[EXPERT]\n", sec, iniparser_getsecname(ini, sec));
@@ -339,8 +339,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "MODE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[MODE]\n", sec, iniparser_getsecname(ini, sec));
@@ -357,8 +357,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PROBLEM")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PROBLEM]\n", sec, iniparser_getsecname(ini, sec));
@@ -382,8 +382,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = predictor 
 	 */
 	for (sec = found = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PREDICTOR")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PREDICTOR]\n", sec, iniparser_getsecname(ini, sec));
@@ -408,8 +408,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	mb->ds = 0;
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "DATA")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[DATA]\n", sec, iniparser_getsecname(ini, sec));
@@ -431,8 +431,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = ffield 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "FFIELD")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[FFIELD]\n", sec, iniparser_getsecname(ini, sec));
@@ -452,8 +452,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = linear 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINEAR")) {
 			if (mb->verbose) {
 				printf("\tsection=[%1d] name=[%s] type=[LINEAR]\n", sec, iniparser_getsecname(ini, sec));
@@ -473,8 +473,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->ai_par->fixed_mode = mb->fixed_mode;	       /* need to pass this one as well */
 
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "UPDATE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[UPDATE]\n", sec, iniparser_getsecname(ini, sec));
@@ -490,8 +490,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = PARDISO
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PARDISO")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
@@ -507,8 +507,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = LPSCALE
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LP.SCALE")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[LP.SCALE]\n", sec, iniparser_getsecname(ini, sec));
@@ -530,23 +530,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 	j = idx = 0;
 	if (mb->predictor_m > 0) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->Apredictor_tag);
+		mb->idx_tag[j] = Strdup(mb->Apredictor_tag);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = mb->predictor_m;
 		idx += mb->idx_n[j++];
 	}
-	mb->idx_tag[j] = GMRFLib_strdup(mb->predictor_tag);
+	mb->idx_tag[j] = Strdup(mb->predictor_tag);
 	mb->idx_start[j] = idx;
 	mb->idx_n[j] = mb->predictor_n;
 	idx += mb->idx_n[j++];
 	for (i = 0; i < mb->nf; i++) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->f_tag[i]);
+		mb->idx_tag[j] = Strdup(mb->f_tag[i]);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = mb->f_Ntotal[i];
 		idx += mb->idx_n[j++];
 	}
 	for (i = 0; i < mb->nlinear; i++) {
-		mb->idx_tag[j] = GMRFLib_strdup(mb->linear_tag[i]);
+		mb->idx_tag[j] = Strdup(mb->linear_tag[i]);
 		mb->idx_start[j] = idx;
 		mb->idx_n[j] = 1;
 		idx += mb->idx_n[j++];
@@ -556,7 +556,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 	map_stri_init_hint(&(mb->idx_hash), mb->idx_tot);
 	for (i = 0; i < mb->idx_tot; i++) {
-		map_stri_set(&(mb->idx_hash), GMRFLib_strdup(mb->idx_tag[i]), i);
+		map_stri_set(&(mb->idx_hash), Strdup(mb->idx_tag[i]), i);
 	}
 
 	if (mb->verbose) {
@@ -589,8 +589,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "INLA")) {
 			if (mb->verbose) {
 				printf("\tparse section=[%1d] name=[%s] type=[INLA]\n", sec, iniparser_getsecname(ini, sec));
@@ -611,8 +611,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * first we count them
 	 */
 	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINCOMB")) {
 			numsec++;
 		}
@@ -623,8 +623,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		 */
 		secmap = Calloc(numsec, int);
 		for (sec = 0; sec < nsec; sec++) {
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			if (!strcmp(sectype, "LINCOMB")) {
 				int ordering;
 				ordering = (int) iniparser_getdouble(ini, inla_string_join((const char *) secname, "LINCOMB.ORDER"), -1);
@@ -638,8 +638,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		 */
 		for (isec = 0; isec < numsec; isec++) {
 			sec = secmap[isec];
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			if (!strcmp(sectype, "LINCOMB")) {
 				/*
 				 * we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
@@ -681,8 +681,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	for (sec = 0; sec < nsec; sec++) {
 		if (!sec_read[sec]) {
-			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			secname = Strdup(iniparser_getsecname(ini, sec));
+			sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 			GMRFLib_sprintf(&msg, "%s: section=[%s] is not used; please check its type=[%s]", __GMRFLib_FuncName, secname, sectype);
 			inla_error_general(msg);
 		}
@@ -1364,9 +1364,6 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
-// disable '-O3' in this function (I cannot recall why...????)
-#pragma GCC push_options
-#pragma GCC optimize ("O2")
 double extra(int thread_id, double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
@@ -1528,7 +1525,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
 					for (i = 0; i < mb->ntheta; i++) {
-						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
+						vec_str[i] = Strdup(mb->theta_tag[i]);
 					}
 				}
 				jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
@@ -2836,7 +2833,34 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		}
 	}
 
+
+	typedef struct {
+		GMRFLib_store_tp *store;
+	} Store_tp;
+	static Store_tp ***sstore = NULL;
+
+	if (!sstore) {
+#pragma omp critical (Name_87d8c02a8a06b017c5015b7132be14e8b5996507)
+		if (!sstore) {
+			sstore = Calloc(GMRFLib_CACHE_LEN(), Store_tp **);
+		}
+	}
+	int cidx = 0;
+	GMRFLib_CACHE_SET_ID(cidx);
+
+	if (!sstore[cidx]) {
+		sstore[cidx] = Calloc(mb->nf, Store_tp *);
+	}
+
 	for (i = 0; i < mb->nf; i++) {
+
+		GMRFLib_store_tp *store = NULL;
+		if (!sstore[cidx][i]) {
+			sstore[cidx][i] = Calloc(1, Store_tp);
+			sstore[cidx][i]->store = Calloc(1, GMRFLib_store_tp);
+		}
+		store = sstore[cidx][i]->store;
+
 		switch (mb->f_id[i]) {
 		case F_RW2D:
 		case F_BESAG:
@@ -3066,8 +3090,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      spde->graph, spde->Qfunc, spde->Qfunc_arg, mb->f_constr_orig[i]);
+				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+								    spde->graph, spde->Qfunc, spde->Qfunc_arg, mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3166,8 +3190,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i]);
+				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+								    spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3267,8 +3291,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, mb->f_constr_orig[i]);
+				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+								    spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3500,8 +3524,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval =
-				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
+				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3592,8 +3616,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval =
-				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
+				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3669,8 +3693,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval =
-				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
+				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3749,8 +3773,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i]);
+				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+								    mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i],
+								    store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -3847,9 +3872,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i],
-							      mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
+				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+								    mb->f_graph_orig[i],
+								    mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -4092,8 +4117,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 
 				while (!ok) {
-					retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i]);
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
@@ -4263,8 +4288,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 
 				while (!ok) {
-					retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i]);
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
@@ -4930,8 +4955,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-					     (void *) h->matern2ddef, mb->f_constr_orig[i]);
+			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+						   (void *) h->matern2ddef, mb->f_constr_orig[i], store);
 			if (debug) {
 				P(h->precision);
 				P(h->range);
@@ -5094,8 +5119,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-					     (void *) h->def, mb->f_constr_orig[i]);
+			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+						   (void *) h->def, mb->f_constr_orig[i], store);
 			if (debug) {
 				P(h->log_prec[thread_id][0]);
 				P(h->log_diag[thread_id][0]);
@@ -5192,8 +5217,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-					     (void *) h->def, mb->f_constr_orig[i]);
+			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+						   (void *) h->def, mb->f_constr_orig[i], store);
 
 			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
@@ -5345,7 +5370,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 #undef _NOT_FIXED
 	return val;
 }
-#pragma GCC pop_options
 
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
@@ -5565,7 +5589,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 	}
 
-	double tref = GMRFLib_cpu();
+	double tref = GMRFLib_timer();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
@@ -5685,7 +5709,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
-		printf("\tSetup...................... [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -5886,7 +5910,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values) {
-		tref = -GMRFLib_cpu();
+		tref = -GMRFLib_timer();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -5958,7 +5982,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			norm_initial = norm;
 		}
 
-		tref += GMRFLib_cpu();
+		tref += GMRFLib_timer();
 		if (mb->verbose) {
 			printf("\tInitial values computed in %.4f seconds\n", tref);
 			for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
@@ -7086,28 +7110,28 @@ int main(int argc, char **argv)
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS());
 			}
-			time_used[0] = GMRFLib_cpu();
+			time_used[0] = GMRFLib_timer();
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
-			time_used[0] = GMRFLib_cpu() - time_used[0];
+			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
 			if (!silent) {
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				fflush(stdout);
 			}
-			time_used[1] = GMRFLib_cpu();
+			time_used[1] = GMRFLib_timer();
 			atime_used[1] = clock();
 
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
-				time_used[3] = GMRFLib_cpu();
+				time_used[3] = GMRFLib_timer();
 				inla_INLA_preopt_experimental(mb);
-				time_used[3] = GMRFLib_cpu() - time_used[1];
+				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
 				rgeneric_cpu[0] = R_rgeneric_cputime;
@@ -7136,10 +7160,10 @@ int main(int argc, char **argv)
 
 				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
-				time_used[3] = GMRFLib_cpu();
+				time_used[3] = GMRFLib_timer();
 				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
 				inla_INLA_preopt_stage1(mb, rpreopt);
-				time_used[3] = GMRFLib_cpu() - time_used[1];
+				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
 				rgeneric_cpu[0] = R_rgeneric_cputime;
@@ -7174,7 +7198,7 @@ int main(int argc, char **argv)
 				assert(0 == 1);
 			}
 
-			time_used[1] = GMRFLib_cpu() - time_used[1];
+			time_used[1] = GMRFLib_timer() - time_used[1];
 			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
@@ -7186,17 +7210,17 @@ int main(int argc, char **argv)
 				}
 				fflush(stdout);
 			}
-			time_used[2] = GMRFLib_cpu();
+			time_used[2] = GMRFLib_timer();
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			inla_output(mb);
-			time_used[2] = GMRFLib_cpu() - time_used[2];
+			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
 #define PEFF_OUTPUT(fp_)						\
 			if (1) {					\
-				char *tab = "";				\
-				if (fp_ == stdout) tab = "\t";		\
+				char *tab = Strdup("");			\
+				if (fp_ == stdout) tab = Strdup("\t");	\
 				fprintf(fp_, "Total:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]); \
 				fprintf(fp_, "%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
@@ -7205,8 +7229,8 @@ int main(int argc, char **argv)
 			}
 #define PEFF_PREOPT_OUTPUT(fp_)						\
 			if (1) {					\
-				char *tab = "";				\
-				if (fp_ == stdout) tab = "\t";		\
+				char *tab = Strdup("");			\
+				if (fp_ == stdout) tab = Strdup("\t");	\
 				fprintf(fp_, "Stage1:");		\
 				eff_nt = ((double)(atime_used[0] + atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[3]); \
 				fprintf(fp_,"%sAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", tab, eff_nt); \
@@ -7271,7 +7295,7 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-				if (GMRFLib_dot_product_gain >= 0.0) {
+				if (GMRFLib_dot_product_gain > 0.0) {
 					printf("\nDot-product gain: %.3f seconds, %.6f seconds/fn-call\n\n", GMRFLib_dot_product_gain,
 					       GMRFLib_dot_product_gain / nfunc[0]);
 				}

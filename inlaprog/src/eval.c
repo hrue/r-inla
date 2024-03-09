@@ -128,7 +128,7 @@ muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 	}
 	a->value[a->n] = Calloc(1, muFloat_t);
 	a->value[a->n][0] = a->default_value;
-	a->name[a->n] = GMRFLib_strdup(a_szName);
+	a->name[a->n] = Strdup(a_szName);
 
 	if (debug) {
 		printf("Eval: Add variable [%s] = %g\n", a->name[a->n], a->value[a->n][0]);
