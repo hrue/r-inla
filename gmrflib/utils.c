@@ -1116,6 +1116,30 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_is_zero(double *x, int n) 
+{
+	// return 1 if x is a zero vector, 0 otherwise
+	const int nstart = 32L;
+	int m = IMIN(n, nstart);
+
+	for(int i = 0; i < m; i++) {
+		if (!ISZERO(x[i])){
+			return 0;
+		}
+	}
+
+	if (n > m) {
+		for (int offset = nstart; offset < n; offset += offset) {
+			int len = IMIN(offset, n - offset);
+			if (len <= 0 || memcmp(x, x+offset, len * sizeof(double))) {
+				return 0;
+			}
+		}
+	}
+	
+	return 1;
+}
+
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*

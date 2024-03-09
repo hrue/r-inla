@@ -4105,6 +4105,39 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 139:
+	{
+		int n = atoi(args[0]);
+		assert(n > 0);
+		double *x = Calloc(n, double);
+		x[n-1] = 1;
+		int nz_true = 0;
+		double tref[] = {0, 0};
+		tref[0] -= GMRFLib_timer();
+		int nz = 0;
+		for (int i = 0; i < n; i++) {
+			nz += GMRFLib_is_zero(x, n);
+		}
+		tref[0] += GMRFLib_timer();
+		assert(nz == nz_true);
+		nz = 0;
+		tref[1] -= GMRFLib_timer();
+		for(int k = 0; k < n; k++) {
+			int iszero = 1;
+			for (int i = 0; i < n; i++) {
+				if (!ISZERO(x[i])) {
+					iszero = 0;
+					break;
+				}
+			}
+			nz += iszero;
+		}
+		tref[1] += GMRFLib_timer();
+		assert(nz == nz_true);
+		P(tref[0]/(tref[0] + tref[1]));
+		P(tref[1]/(tref[0] + tref[1]));
+	}
+		break;
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

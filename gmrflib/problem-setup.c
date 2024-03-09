@@ -574,7 +574,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		Memcpy(bb, b, sub_n * sizeof(double));
 	}
 
-	if (mean) {
+	if (!GMRFLib_is_zero(mean, sub_n)) {
 		double *tmp = Calloc(sub_n, double);
 		GMRFLib_Qx(thread_id, tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
 		GMRFLib_daddto(sub_n, tmp, bb);
