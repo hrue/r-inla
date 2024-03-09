@@ -2114,9 +2114,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (gcpo) {
 			if (misc_output->configs_preopt) {
 				gcpodens_moments = Calloc(3 * preopt->Npred, double);
-				for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
-					gcpodens_moments[ii] = NAN;
-				}
+				GMRFLib_fill(3 * preopt->Npred, NAN, gcpodens_moments);
 			}
 			gcpo_theta[dens_count] = GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups,
 							      d, loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments);
@@ -2134,9 +2132,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *cpodens_moments = NULL;
 		if (misc_output->configs_preopt && cpo) {
 			cpodens_moments = Calloc(3 * preopt->Npred, double);
-			for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
-				cpodens_moments[ii] = NAN;
-			}
+			GMRFLib_fill(3 * preopt->Npred, NAN, cpodens_moments);
 		}
 
 		if (cpo || dic || po) {
@@ -3231,12 +3227,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			double big = 1.0 / GSL_DBL_EPSILON;
 
-			// default
-#pragma omp simd
-			for (int i = 0; i < nn; i++) {
-				mask[i] = 1.0;
-			}
-			Memset(diag, 0, nn * sizeof(double));
+			GMRFLib_fill(nn, 1.0, mask);
+			GMRFLib_fill(nn, 0.0, diag);
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);

@@ -1118,7 +1118,10 @@ int GMRFLib_scale_vector(double *x, int n)
 
 int GMRFLib_is_zero(double *x, int n) 
 {
-	// return 1 if x is a zero vector, 0 otherwise
+	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
+	if (!x) {
+		return 1;
+	}
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
 
