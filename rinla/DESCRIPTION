@@ -28,12 +28,12 @@ Imports:
     splines,
     stats,
     utils,
-    withr
+    withr,
+    MatrixModels
 Suggests:
     Deriv,
     Ecdat,
     HKprocess,
-    MatrixModels,
     Rgraphviz,
     deldir,
     devtools,
