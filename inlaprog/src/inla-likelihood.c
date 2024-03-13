@@ -1113,7 +1113,7 @@ int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, 
 int loglikelihood_fl(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg,
 		     char **UNUSED(arg_str))
 {
-	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] + c[6] * x)
+	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] + c[6] * x) + c[7] * (exp(c[8]*x)-1)/x
 
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -1126,6 +1126,14 @@ int loglikelihood_fl(int thread_id, double *logll, double *x, int m, int idx, do
 		for (int i = 0; i < m; i++) {
 			double eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = c[0] + c[1] * eta - 0.5 * c[2] * SQR(c[3] - eta) - c[4] * exp(c[5] + c[6] * eta);
+			if (!ISZERO(c[4])) {
+				logll[i] += (- c[4] * exp(c[5] + c[6] * eta));
+			}
+			if (!ISZERO(c[7])) {
+				if (!ISZERO(c[8])) {
+					logll[i] += c[7] * (exp(c[8] * eta) - 1.0) / PUSH_AWAY(eta);
+				}
+			}
 		}
 	} else {
 		assert(0 == 1);
