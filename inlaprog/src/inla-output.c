@@ -1805,7 +1805,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	 * the program defaults are NULL. 
 	 */
 	int i, j, use_defaults = 1, ret, ngroups_eff = 0;
-	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *ffile = NULL;
+	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *gsfile = NULL, *ffile = NULL;
 
 	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
@@ -1909,8 +1909,9 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 		gfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
+		gsfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUP.SELECTION"), NULL));
 		ffile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
-		assert(!(gfile && sfile && ffile));
+		assert(!(gfile && (sfile || ffile || gsfile)));
 
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
@@ -1970,6 +1971,28 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				fclose(fp);
 				Free(buffer);
 			}
+
+			if (gsfile) {
+				FILE *fp = fopen(gsfile, "rb");
+				int len;
+				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+				assert(ret == 1);
+				if (mb->gcpo_param->verbose) {
+					printf("%s: read group.selection len %d\n", __GMRFLib_FuncName, len);
+				}
+				int *buffer = Calloc(len, int);
+				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
+				assert(ret == len);
+				for (i = 0; i < len; i++) {
+					if (mb->gcpo_param->verbose) {
+						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
+					}
+					GMRFLib_idx_add(&(mb->gcpo_param->group_selection), buffer[i]);
+				}
+				fclose(fp);
+				Free(buffer);
+			}
+
 			if (ffile) {
 				FILE *fp = fopen(ffile, "rb");
 				int len;

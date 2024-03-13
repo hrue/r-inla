@@ -40,6 +40,11 @@
              #' all data are used.
              selection = NULL, 
 
+             #' @param group.selection An optional list of data-indices to use when building the
+             #' groups. If given, each group beyond the observation itself, must be a subset of
+             #' `group.selection`. If not given, then all data are used. 
+             group.selection = NULL, 
+
              #' @param friends An optional list of lists of indices to use a friends
              friends = NULL, 
 
@@ -91,6 +96,7 @@
                       strategy = match.arg(strategy), 
                       groups = groups, 
                       selection = selection, 
+                      group.selection = group.selection, 
                       friends = friends, 
                       verbose = verbose, 
                       epsilon = epsilon, 

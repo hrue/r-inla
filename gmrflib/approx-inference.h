@@ -828,6 +828,7 @@ typedef struct {
 	GMRFLib_gcpo_build_strategy_tp build_strategy;	       /* 0=posterior, 1=prior (see above) */
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
+	GMRFLib_idx_tp *group_selection;
 
 	int friends_n;
 	GMRFLib_idx_tp **friends;

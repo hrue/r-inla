@@ -3189,6 +3189,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *fl)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
+			     GMRFLib_iwhich_sorted(node_,		\
+						   gcpo_param->group_selection->idx, \
+						   gcpo_param->group_selection->n) >= 0)
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -3353,17 +3357,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_idx_tp *selection = NULL;
 		if (!(gcpo_param->selection)) {
 			for (int i = 0; i < Npred; i++) {
-				if (!fl[i]) {
-					GMRFLib_idx_add(&selection, i);
-				}
+				GMRFLib_idx_add(&selection, i);
 			}
 		} else {
 			GMRFLib_idx_create_x(&selection, gcpo_param->selection->n);
 			for (int i = 0; i < gcpo_param->selection->n; i++) {
 				int j = gcpo_param->selection->idx[i];
-				if (!fl[j]) {
-					GMRFLib_idx_add(&selection, j);
-				}
+				GMRFLib_idx_add(&selection, j);
 			}
 			// selection = gcpo_param->selection;
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
@@ -3443,21 +3443,23 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
-					if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
-						nlevels++;		\
-						i_prev = i;		\
-						cor_abs_prev = cor_abs_new; \
-						if (nlevels <= gcpo_param->num_level_sets) { \
-							GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
-							GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
+					if (LEGAL_TO_ADD(i_new)) {	\
+						if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
+							nlevels++;	\
+							i_prev = i;	\
+							cor_abs_prev = cor_abs_new; \
+							if (nlevels <= gcpo_param->num_level_sets) { \
+								GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
+								GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
+							} else {	\
+								levels_ok = 1; \
+							}		\
 						} else {		\
-							levels_ok = 1;	\
+							cor_abs[i_new] = cor_abs_prev; \
+							cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
+							GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
+							GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 						}			\
-					} else {			\
-						cor_abs[i_new] = cor_abs_prev; \
-						cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
-						GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
-						GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 					}				\
 					if (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max) { \
 						levels_ok = 1;		\
@@ -3489,7 +3491,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			/* no prepare or accumulate */			\
 			GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
 			/* this can happen: ensure node is part of its own group, as it might have been thrown out */ \
-			/* due to max_size is reached. */ \
+			/* due to max_size is reached or there are to many with |correlation| = 1 */ \
 			if (GMRFLib_iwhich_sorted(node, groups[node]->idx, groups[node]->n) < 0) { \
 				GMRFLib_idxval_add(&(groups[node]), node, 1.0);	\
 				GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
@@ -3566,6 +3568,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 	}
 
+#undef LEGAL_TO_ADD
 #undef A_idx
 
 	GMRFLib_LEAVE_ROUTINE;

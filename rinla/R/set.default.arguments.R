@@ -267,6 +267,8 @@ control.gcpo <-
         groups = NULL,
         #' @param selection TODO
         selection = NULL,
+        #' @param group.selection TODO
+        group.selection = NULL,
         #' @param friends TODO
         friends = NULL,
         #' @param verbose TODO

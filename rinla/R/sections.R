@@ -1351,6 +1351,7 @@
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))
+        stopifnot(is.null(gcpo$group.selection))
         stopifnot(is.null(gcpo$friends))
 
         file.groups <- inla.tempfile(tmpdir = data.dir)
@@ -1415,6 +1416,21 @@
             close(fp.binary)
             fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
             cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
+        }
+
+        if (!is.null(gcpo$group.selection)) {
+            group.selection <- gcpo$group.selection[!is.na(gcpo$group.selection)]
+            group.selection <- unique(sort(group.selection))
+            stopifnot(all(group.selection >= 1))
+            group.selection <- group.selection - 1 ## to C indexing
+            len <- length(group.selection)
+            file.group.selection <- inla.tempfile(tmpdir = data.dir)
+            fp.binary <- file(file.group.selection, "wb")
+            writeBin(as.integer(len), fp.binary)
+            writeBin(as.integer(group.selection), fp.binary)
+            close(fp.binary)
+            fnm <- gsub(data.dir, "$inladatadir", file.group.selection, fixed = TRUE)
+            cat("gcpo.group.selection =", fnm, "\n", file = file, append = TRUE)
         }
 
         if (!is.null(gcpo$friends)) {

@@ -1116,7 +1116,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_is_zero(double *x, int n) 
+int GMRFLib_is_zero(double *x, int n)
 {
 	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
 	if (!x) {
@@ -1125,8 +1125,8 @@ int GMRFLib_is_zero(double *x, int n)
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
 
-	for(int i = 0; i < m; i++) {
-		if (!ISZERO(x[i])){
+	for (int i = 0; i < m; i++) {
+		if (!ISZERO(x[i])) {
 			return 0;
 		}
 	}
@@ -1134,12 +1134,12 @@ int GMRFLib_is_zero(double *x, int n)
 	if (n > m) {
 		for (int offset = nstart; offset < n; offset += offset) {
 			int len = IMIN(offset, n - offset);
-			if (len <= 0 || memcmp(x, x+offset, len * sizeof(double))) {
+			if (len <= 0 || memcmp(x, x + offset, len * sizeof(double))) {
 				return 0;
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -2165,9 +2165,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
+	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2187,15 +2187,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y)
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y)
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 
