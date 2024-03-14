@@ -98,7 +98,7 @@
                             #' @param covariate The covariate for the scopy function
                             covariate = NULL,
 
-                            #' @param n Number of locations in the RW2 (n >= 5)
+                            #' @param n Number of locations in the RW2 (n = 2 or 5 <= n <= 15)
                             n = 11
                             ) {
     ctrl_object(as.list(environment()), "scopy", check = FALSE)
