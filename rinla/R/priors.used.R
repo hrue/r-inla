@@ -100,7 +100,7 @@
                     "]", "\n",
                     sep = ""
                 )
-                if (nm %in% "fixed") {
+                if (nm %in% c("fixed", "linear")) {
                     ## this is a special case
                     h3$hyper <- list(list(
                         name = h3$label,
