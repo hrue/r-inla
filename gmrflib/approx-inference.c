@@ -3186,7 +3186,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 }
 
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
-					   GMRFLib_gcpo_param_tp *gcpo_param, int *fl)
+					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl))
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
