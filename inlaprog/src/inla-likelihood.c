@@ -755,7 +755,8 @@ int loglikelihood_gaussian(int thread_id, double *__restrict logll, double *__re
 			if (PREDICTOR_SCALE == 1.0 && off == 0.0) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
-				if (0 && m >= 8L) {
+				int mkl_lim = 8;
+				if (0 && m >= mkl_lim) {
 					double tmp[m];
 					GMRFLib_daxpb(m, -1.0, x, y, tmp);
 					GMRFLib_sqr(m, tmp, tmp);
@@ -1116,7 +1117,7 @@ int loglikelihood_lognormalsurv(int thread_id, double *__restrict logll, double 
 int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
 		     void *arg, char **UNUSED(arg_str))
 {
-	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] + c[6] * x) + c[7] * (exp(c[8]*x)-exp(c[9]*x))/x
+	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] + c[6] * x) + c[7] * (exp(c[9]*x)-exp(c[8]*x))/x
 
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -1131,12 +1132,11 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 			for (int i = 0; i < m; i++) {
 				double eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = c[0] + c[1] * eta - 0.5 * c[2] * SQR(c[3] - eta) - c[4] * exp(c[5] + c[6] * eta)
-				    + c[7] * (exp(c[8] * eta) - exp(c[9] * eta)) / PUSH_AWAY(eta);
+					+ c[7] * (exp(c[9] * eta) - exp(c[8] * eta)) / PUSH_AWAY(eta);
 			}
 		}
 
-		double eta[2 * m];
-		double *work = eta + m;
+		double eta[m];
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = c[0] + c[1] * eta[i];
@@ -1152,21 +1152,13 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 		if (!ISZERO(c[4])) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
-				work[i] = c[5] + c[6] * eta[i];
-			}
-#pragma omp simd
-			for (int i = 0; i < m; i++) {
-				logll[i] += (-c[4] * exp(work[i]));
+				logll[i] += (-c[4] * exp(c[5] + c[6] * eta[i]));
 			}
 		}
 
 		if (!ISZERO(c[7])) {
 			for (int i = 0; i < m; i++) {
-				work[i] = c[7] / PUSH_AWAY(eta[i]);
-			}
-#pragma omp simd
-			for (int i = 0; i < m; i++) {
-				logll[i] += work[i] * (exp(c[8] * eta[i]) - exp(c[9] * eta[i]));
+				logll[i] += c[7] * (exp(c[9] * eta[i]) - exp(c[8] * eta[i])) / PUSH_AWAY(eta[i]);
 			}
 		}
 	} else {
@@ -4355,7 +4347,7 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 		// special code for this case
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			if (ISZERO(y)) {
-				if (m > mkl_lim) {
+				if (m >= mkl_lim) {
 					double work[3 * m];
 					double *v_eta = work;
 					double *v_ee = work + m;
@@ -4386,7 +4378,7 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 					}
 				}
 			} else if (ISZERO(ny)) {
-				if (m > mkl_lim) {
+				if (m >= mkl_lim) {
 					double work[3 * m];
 					double *v_eta = work;
 					double *v_ee = work + m;
@@ -4420,7 +4412,7 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 					}
 				}
 			} else {
-				if (m > mkl_lim) {
+				if (m >= mkl_lim) {
 					double work[6 * m];
 					double *v_eta = work;
 					double *v_meta = work + m;
