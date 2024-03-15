@@ -50,6 +50,23 @@
 #endif
 
 __BEGIN_DECLS
+//
+    typedef struct {
+	gsl_matrix *U;
+	gsl_matrix *D;
+	gsl_vector *S;
+	gsl_eigen_symmv_workspace *work;
+} GMRFLib_gsl_low_rank_store_tp;
+
+typedef struct {
+	gsl_matrix *U;
+	gsl_matrix *M1;
+	gsl_matrix *M2;
+	gsl_matrix *AA;
+	gsl_vector *S;
+	gsl_eigen_symmv_workspace *work;
+} GMRFLib_gsl_ensure_spd_store_tp;
+
 #define BLAS_LEVEL2 2
 #define BLAS_LEVEL3 3
 int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
@@ -75,10 +92,18 @@ int idamax_(int *, double *, int *);
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode);
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
+
+
+
+GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n);
+int GMRFLib_gsl_ensure_spd_store_free(GMRFLib_gsl_ensure_spd_store_tp * S);
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg);
+int GMRFLib_gsl_ensure_spd_x(gsl_matrix * A, double tol, char **mgs, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol, char **msg);
-int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg);
+int GMRFLib_gsl_ensure_spd_inverse_x(gsl_matrix * A, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
+int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg);
+int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
 
 int daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
@@ -98,7 +123,13 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A);
 gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix * A);
-gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * C, double tol);
+gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix * A, gsl_matrix * At);
+
+GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
+int GMRFLib_gsl_low_rank_store_free(GMRFLib_gsl_low_rank_store_tp * S);
+gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol, gsl_matrix * B);
+gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix * Cov, double tol, gsl_matrix * B, GMRFLib_gsl_low_rank_store_tp * store);
+
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 int GMRFLib_gsl_mgs(gsl_matrix * A);

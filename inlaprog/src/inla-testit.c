@@ -854,7 +854,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 		printf("\n");
-		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8);
+		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, B, " %.12f");
 		gsl_matrix_free(A);
 		gsl_matrix_free(B);

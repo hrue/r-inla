@@ -1124,7 +1124,7 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 			for (int i = 0; i < m; i++) {
 				double eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = c[0] + c[1] * eta - 0.5 * c[2] * SQR(c[3] - eta) - c[4] * exp(c[5] + c[6] * eta)
-					+ c[7] * (exp(c[9] * eta) - exp(c[8] * eta)) / PUSH_AWAY(eta);
+				    + c[7] * (exp(c[9] * eta) - exp(c[8] * eta)) / PUSH_AWAY(eta);
 			}
 		}
 
@@ -5080,9 +5080,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
