@@ -5873,7 +5873,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
-		double dmin = GMRFLib_max_value(ll, np, NULL);
+		double dmin = GMRFLib_min_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
 #pragma omp simd
