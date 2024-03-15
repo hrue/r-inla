@@ -3799,117 +3799,79 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_printf_gsl_vector(stdout, mean_old, " %.8f "); \
 		}							\
 									\
-		if (1) { /* the new low-rank solution... */		\
-			double low_rank_eps = GSL_ROOT3_DBL_EPSILON;	\
-			/* new low-rank approach */			\
-			size_t n = (size_t) ng;				\
-			gsl_matrix *Cov = S;				\
-			gsl_matrix *B = GMRFLib_gsl_low_rank(Cov, low_rank_eps); \
-			gsl_matrix *Bt = GMRFLib_gsl_transpose_matrix(B); \
-			size_t m = B->size2;				\
-			gsl_matrix *H = gsl_matrix_alloc(n, n);		\
-			gsl_matrix_set_zero(H);				\
-			for(size_t i = 0; i < n; i++) {			\
-				gsl_matrix_set(H, i, i, cc[i]);		\
-			}						\
+		double low_rank_eps = GSL_ROOT3_DBL_EPSILON;		\
+		/* new low-rank approach */				\
+		size_t n = (size_t) ng;					\
+		gsl_matrix *Cov = S;					\
+		gsl_matrix *B = GMRFLib_gsl_low_rank(Cov, low_rank_eps); \
+		gsl_matrix *Bt = GMRFLib_gsl_transpose_matrix(B);	\
+		size_t m = B->size2;					\
+		gsl_matrix *H = gsl_matrix_alloc(n, n);			\
+		gsl_matrix_set_zero(H);					\
+		for(size_t i = 0; i < n; i++) {				\
+			gsl_matrix_set(H, i, i, cc[i]);			\
+		}							\
 									\
-			gsl_vector *ztmp = gsl_vector_alloc(n);		\
-			GMRFLib_gsl_mv(H, mean_old, ztmp);		\
-			for(size_t i = 0; i < n; i++) {			\
-				gsl_vector_set(ztmp, i, gsl_vector_get(ztmp, i) - bb[i]); \
-			}						\
-			gsl_vector *zb = gsl_vector_alloc(m);		\
-			GMRFLib_gsl_mv(Bt, ztmp, zb);			\
+		gsl_vector *ztmp = gsl_vector_alloc(n);			\
+		GMRFLib_gsl_mv(H, mean_old, ztmp);			\
+		for(size_t i = 0; i < n; i++) {				\
+			gsl_vector_set(ztmp, i, gsl_vector_get(ztmp, i) - bb[i]); \
+		}							\
+		gsl_vector *zb = gsl_vector_alloc(m);			\
+		GMRFLib_gsl_mv(Bt, ztmp, zb);				\
 									\
-			gsl_matrix *BtHB = gsl_matrix_calloc(m, m);	\
-			GMRFLib_gsl_mmm(Bt, H, B, BtHB);		\
-			gsl_matrix *QQ = gsl_matrix_alloc(m, m);	\
-			gsl_matrix_set_zero(QQ);			\
-			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, QQ, NULL, 1); \
-			}						\
-			for(size_t i = 0; i < m; i++) {			\
-				for(size_t j = 0; j < m; j++) {		\
-					if (i == j) {			\
-						gsl_matrix_set(QQ, i, j, DMAX(0, 1.0 - gsl_matrix_get(BtHB, i, j))); \
-					} else {			\
-						gsl_matrix_set(QQ, i, j, - gsl_matrix_get(QQ, i, j)); \
-					}				\
+		gsl_matrix *BtHB = gsl_matrix_calloc(m, m);		\
+		GMRFLib_gsl_mmm(Bt, H, B, BtHB);			\
+		gsl_matrix *QQ = gsl_matrix_alloc(m, m);		\
+		gsl_matrix_set_zero(QQ);				\
+		if (corr_hypar) {					\
+			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, QQ, NULL, 1); \
+		}							\
+		for(size_t i = 0; i < m; i++) {				\
+			for(size_t j = 0; j < m; j++) {			\
+				if (i == j) {				\
+					gsl_matrix_set(QQ, i, j, DMAX(0, 1.0 - gsl_matrix_get(BtHB, i, j))); \
+				} else {				\
+					gsl_matrix_set(QQ, i, j, - gsl_matrix_get(QQ, i, j)); \
 				}					\
 			}						\
-			/* same ptr */					\
-			gsl_matrix *SS = QQ;				\
-			GMRFLib_gsl_ensure_spd_inverse(SS, low_rank_eps, NULL); \
-									\
-			gsl_vector *zmean = gsl_vector_alloc(m);	\
-			GMRFLib_gsl_mv(SS, zb, zmean);			\
-									\
-			if (detailed_output) {				\
-				printf("node %d, cov.mat and mean after correction (low-rank)\n", node); \
-				GMRFLib_printf_gsl_matrix(stdout, SS, " %.8f "); \
-				GMRFLib_printf_gsl_vector(stdout, zmean, " %.8f "); \
-			}						\
-									\
-			gsl_vector *Bzmean = gsl_vector_alloc(n);	\
-			GMRFLib_gsl_mv(B, zmean, Bzmean);		\
-			for(size_t i = 0; i < n; i++) {			\
-				gsl_vector_set(mean, i, gsl_vector_get(mean_old, i) + gsl_vector_get(Bzmean, i)); \
-			}						\
-			GMRFLib_gsl_mmm(B, SS, Bt, S);			\
-									\
-			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(NULL, zmean, NULL, SS, 0); \
-				/* we define the correction to be multiplicative */ \
-				gcpo[node]->marg_theta_correction *= -1.0; \
-			}						\
-									\
-			gsl_matrix_free(B);				\
-			gsl_matrix_free(Bt);				\
-			gsl_matrix_free(H);				\
-			gsl_matrix_free(BtHB);				\
-			gsl_matrix_free(QQ);				\
-			gsl_vector_free(ztmp);				\
-			gsl_vector_free(zb);				\
-			gsl_vector_free(zmean);				\
-			gsl_vector_free(Bzmean);			\
-									\
-		} else {						\
-									\
-			for(size_t i = 0; i < (size_t) ng; i++) {	\
-				gsl_matrix_set(Q, i, i, gsl_matrix_get(Q, i, i) * diag_scale); \
-			}						\
-			GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL); \
-			GMRFLib_gsl_mv(Q, mean_old, b);			\
-			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0); \
-			}						\
-									\
-			for(size_t i = 0; i < (size_t) ng; i++) {	\
-				gsl_matrix_set(Q, i, i, DMAX(0.0, gsl_matrix_get(Q, i, i) - cc[i])); \
-				gsl_vector_set(b, i, gsl_vector_get(b, i) - bb[i]); \
-			}						\
-									\
-			if (detailed_output) {				\
-				printf("node %d, prec mat and b after correction\n", node); \
-				GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
-				GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
-			}						\
-									\
-			GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL); \
-			GMRFLib_gsl_mv(S, b, mean);			\
-			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S, 0); \
-				/* we define the correction to be multiplicative */ \
-				gcpo[node]->marg_theta_correction *= -1.0; \
-			}						\
-									\
-			if (detailed_output) {				\
-				printf("node %d, new cov mat and mean\n", node); \
-				GMRFLib_printf_gsl_matrix(stdout, S, " %.8f ");	\
-				GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
-			}						\
-									\
 		}							\
+		/* same ptr */						\
+		gsl_matrix *SS = QQ;					\
+		GMRFLib_gsl_ensure_spd_inverse(SS, low_rank_eps, NULL);	\
+									\
+		gsl_vector *zmean = gsl_vector_alloc(m);		\
+		GMRFLib_gsl_mv(SS, zb, zmean);				\
+									\
+		if (detailed_output) {					\
+			printf("node %d, cov.mat and mean after correction (low-rank)\n", node); \
+			GMRFLib_printf_gsl_matrix(stdout, SS, " %.8f "); \
+			GMRFLib_printf_gsl_vector(stdout, zmean, " %.8f "); \
+		}							\
+									\
+		gsl_vector *Bzmean = gsl_vector_alloc(n);		\
+		GMRFLib_gsl_mv(B, zmean, Bzmean);			\
+		for(size_t i = 0; i < n; i++) {				\
+			gsl_vector_set(mean, i, gsl_vector_get(mean_old, i) + gsl_vector_get(Bzmean, i)); \
+		}							\
+		GMRFLib_gsl_mmm(B, SS, Bt, S);				\
+									\
+		if (corr_hypar) {					\
+			gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(NULL, zmean, NULL, SS, 0); \
+			/* we define the correction to be multiplicative */ \
+			gcpo[node]->marg_theta_correction *= -1.0;	\
+		}							\
+									\
+		gsl_matrix_free(B);					\
+		gsl_matrix_free(Bt);					\
+		gsl_matrix_free(H);					\
+		gsl_matrix_free(BtHB);					\
+		gsl_matrix_free(QQ);					\
+		gsl_vector_free(ztmp);					\
+		gsl_vector_free(zb);					\
+		gsl_vector_free(zmean);					\
+		gsl_vector_free(Bzmean);				\
+									\
 		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + (lpred_mean[node] - lpred_mode[node])); \
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
 		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node) / (1 + 0.0 * diag_scale))); \
