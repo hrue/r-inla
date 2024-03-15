@@ -4138,6 +4138,34 @@ int testit(int argc, char **argv)
 		P(tref[1] / (tref[0] + tref[1]));
 	}
 		break;
+
+	case 140:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		assert(n > 0);
+		double *A = Calloc(ISQR(n), double);
+		double *b = Calloc(n, double);
+		double *x = Calloc(n, double);
+		for(int i = 0; i < ISQR(n); i++) A[i] = GMRFLib_uniform();
+		for(int i = 0; i < n; i++) x[i] = GMRFLib_uniform();
+		
+		int ione = 1;
+		double done = 1.0, beta = 0;
+		double tref[] = { 0, 0 };
+		for(int k = 0; k < m; k++) {
+			tref[0] -= GMRFLib_timer();
+			dgemv_("N", &n, &n, &done, A, &n, x, &ione, &beta, b, &ione, F_ONE);
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
+			dgemv_("T", &n, &n, &done, A, &n, x, &ione, &beta, b, &ione, F_ONE);
+			tref[1] += GMRFLib_timer();
+		}
+		P(tref[0] / (tref[0] + tref[1]));
+		P(tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
