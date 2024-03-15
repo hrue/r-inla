@@ -177,7 +177,6 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		map_ivp_init(weights[idx]);
 	}
 
-	int i;
 	double *x, *w;
 	void *ptr, *pptr;
 
@@ -203,18 +202,17 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		 * compute new ones 
 		 */
 
-		x = Calloc(n, double);
-		w = Calloc(n, double);
-
-		GMRFLib_EWRAP0(GMRFLib_ghq__intern(x, w, n));
+		// this storage is never free'd
+		x = Calloc(2 * n, double);
+		w = x + n;
+		GMRFLib_ghq__intern(x, w, n);
 
 		/*
 		 * the Gauss-Hermite is with kernel exp(-x^2), transform to kernel exp(-x^2/2)/sqrt(2*pi)
 		 */
-		for (i = 0; i < n; i++) {
-			x[i] *= M_SQRT2;
-			w[i] *= M_SQRT2 / sqrt(2.0 * M_PI);
-		}
+		double s = 1.0 / sqrt(2.0 * M_PI);
+		GMRFLib_dscale(n, M_SQRT2, x);
+		GMRFLib_dscale(n, M_SQRT2 * s, w);
 
 		/*
 		 * reverse the order so its small to large, and sort the weights along 
