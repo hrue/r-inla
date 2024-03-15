@@ -755,18 +755,10 @@ int loglikelihood_gaussian(int thread_id, double *__restrict logll, double *__re
 			if (PREDICTOR_SCALE == 1.0 && off == 0.0) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
-				int mkl_lim = 8;
-				if (0 && m >= mkl_lim) {
-					double tmp[m];
-					GMRFLib_daxpb(m, -1.0, x, y, tmp);
-					GMRFLib_sqr(m, tmp, tmp);
-					GMRFLib_daxpb(m, a, tmp, b, logll);
-				} else {
 #pragma omp simd
-					for (int i = 0; i < m; i++) {
-						double res = y - x[i];
-						logll[i] = b + a * SQR(res);
-					}
+				for (int i = 0; i < m; i++) {
+					double res = y - x[i];
+					logll[i] = b + a * SQR(res);
 				}
 			} else {
 #pragma omp simd
