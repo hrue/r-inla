@@ -547,7 +547,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->n = k + 1;
 		}
 	}
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	assert(prepare || !prepare);			       /* fix compiler warning for unused variable */
 	h->preference = IDXVAL_SERIAL_MKL;
 	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
@@ -795,7 +795,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_mem[1] = (void *) new_val;
 	Free(g_istart);
 
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	int ntimes = 2;
 	double treff[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	double value[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -955,7 +955,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		GMRFLib_dot_product_optim_report[idx][6] += tmin;
 		GMRFLib_dot_product_optim_report[idx][7 + kmin]++;	/* count... */
 	}
-#else							       // if defined(INLA_LINK_WITH_MKL)
+#else							       // if defined(INLA_WITH_MKL)
 
 	int ntimes = 2;
 	double treff[2] = { 0.0, 0.0 };
@@ -1065,7 +1065,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		GMRFLib_dot_product_optim_report[idx][2] += tmin;
 		GMRFLib_dot_product_optim_report[idx][3 + kmin]++;	/* count... */
 	}
-#endif							       // if defined(INLA_LINK_WITH_MKL)
+#endif							       // if defined(INLA_WITH_MKL)
 
 	return GMRFLib_SUCCESS;
 }

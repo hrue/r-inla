@@ -1223,7 +1223,7 @@ int GMRFLib_dscale(int n, double a, double *x)
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 {
 	// y = a * x + b * y
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
@@ -1325,7 +1325,7 @@ void GMRFLib_fill(int n, double a, double *x)
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
 #else
 #pragma omp simd
@@ -1338,7 +1338,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
 #pragma omp simd
@@ -1351,7 +1351,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {							       // y = x^a
 
-//#if defined(INLA_LINK_WITH_MKL)
+//#if defined(INLA_WITH_MKL)
 //      vdPowx(n, x, a, y);
 //#else
 

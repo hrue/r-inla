@@ -3505,7 +3505,7 @@ int testit(int argc, char **argv)
 		double *x = Calloc(4 * n, double);
 		double *y = x + n;
 		double *yy = x + 2 * n;
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 		double *z = x + 3 * n;
 #endif
 		for (int i = 0; i < n; i++) {
@@ -3522,7 +3522,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdExp(n, x, z);
 			GMRFLib_daxpbyz(n, 1.0, x, 1.0, z, yy);
 #else
@@ -3569,7 +3569,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdSqr(n, x, yy);
 #else
 #pragma omp simd
@@ -3615,7 +3615,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdLog1p(n, x, yy);
 #else
 #pragma omp simd

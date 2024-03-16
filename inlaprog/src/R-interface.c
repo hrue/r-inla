@@ -76,6 +76,8 @@ double R_rgeneric_cputime = 0.0;
 #error "OpenMP must be enabled."
 #endif
 
+#if defined(INLA_WITH_LIBR)
+
 int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6)
 {
 	if (R_init) {
@@ -607,3 +609,83 @@ void *inla_R_vector_of_strings(int n, char **s)
 
 	return ((void *) sexp);
 }
+
+#else  /* if defined(INLA_WITH_LIBR) */
+
+void inla_R_no_lib(void) 
+{
+	fprintf(stderr,  "\n\n *** ERROR *** libR is not supported in this build\n\n");
+	exit(1);
+}
+
+int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_exit_(void)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_init_(void)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_library_(const char *library)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_source_(const char *filename)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_load_(const char *filename)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_inlaload_(const char *filename)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const char *tag, int *n, double *x)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_funcall1_(int *n_out, double **x_out, const char *function, int *n, double *x)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n, double *x, void *sexp)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_assign_(const char *variable, int *n, double *x)
+{
+	inla_R_no_lib();
+}
+
+int inla_R_get_(int *n_out, double **x_out, const char *variable)	
+{
+	inla_R_no_lib();
+}
+
+int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *model, int *n, double *theta)
+{
+	inla_R_no_lib();
+}
+
+void *inla_R_vector_of_strings(int n, char **s)
+{
+	inla_R_no_lib();
+}
+
+#endif

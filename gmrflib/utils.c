@@ -2001,7 +2001,7 @@ double GMRFLib_erfc_inv(double x)
 
 void GMRFLib_exp(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdExp(n, x, y);
 #else
 #pragma omp simd
@@ -2013,7 +2013,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdExpI(n, x, inc, y, inc);
 #else
 #pragma omp simd
@@ -2025,7 +2025,7 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 
 void GMRFLib_log(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdLn(n, x, y);
 #else
 #pragma omp simd
@@ -2037,7 +2037,7 @@ void GMRFLib_log(int n, double *x, double *y)
 
 void GMRFLib_log1p(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdLog1p(n, x, y);
 #else
 #pragma omp simd
@@ -2049,7 +2049,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 
 void GMRFLib_sqr(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdSqr(n, x, y);
 #else
 #pragma omp simd
@@ -2061,7 +2061,7 @@ void GMRFLib_sqr(int n, double *x, double *y)
 
 void GMRFLib_add(int n, double *x, double *y, double *z)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
 #else
 #pragma omp simd
@@ -2073,7 +2073,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);
 #else
 #pragma omp simd

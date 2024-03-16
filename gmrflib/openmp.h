@@ -129,7 +129,7 @@ int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);
 int GMRFLib_openmp_implement_strategy_special(int outer, int inner);
 
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 void MKL_Set_Num_Threads(int);
 #endif
 
