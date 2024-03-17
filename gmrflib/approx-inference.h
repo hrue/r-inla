@@ -823,8 +823,10 @@ typedef struct {
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;
+	int len_weights;				       /* need to check later for Npred... */
 	double epsilon;
 	double prior_diagonal;
+	double *weights;
 	GMRFLib_gcpo_build_strategy_tp build_strategy;	       /* 0=posterior, 1=prior (see above) */
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;

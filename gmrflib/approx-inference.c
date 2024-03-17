@@ -3202,6 +3202,19 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idxval_tp **groups = NULL;
 
+	if (!(gcpo_param->weights) || (gcpo_param->weights && gcpo_param->len_weights < Npred)) {
+		double *w = Calloc(Npred, double);
+		GMRFLib_fill(Npred, 1.0, w); 
+		if (gcpo_param->weights) {
+			// use those who already are defined
+			Memcpy(w, gcpo_param->weights, gcpo_param->len_weights * sizeof(double));
+			Free(gcpo_param->weights);
+		}
+		gcpo_param->weights = w;
+		gcpo_param->len_weights = Npred;
+	}
+#define W(idx_) (gcpo_param->weights[idx_])
+
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose || detailed_output) {
 			printf("%s[%1d]: Build groups, strategy[%s]\n", __GMRFLib_FuncName, omp_get_thread_num(),
@@ -3437,19 +3450,20 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				levels_magnify *= 4;			\
 				GMRFLib_DEBUG_i_v("node siz_g Npred num_level_sets levels_magnify", node, siz_g, Npred, gcpo_param->num_level_sets, levels_magnify); \
 				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
-				int nlevels = 1;			\
-				int i_prev = 0;				\
+									\
+				double sumw = W(node);			\
+				int i_prev = (int) largest[0];		\
 				double cor_abs_prev = 1.0;		\
-				GMRFLib_idxval_add(&(groups[node]), (int) largest[i_prev], cor_abs_prev); \
+				GMRFLib_idxval_add(&(groups[node]), i_prev, cor_abs_prev); \
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
 					if (LEGAL_TO_ADD(i_new)) {	\
 						if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
-							nlevels++;	\
-							i_prev = i;	\
+							sumw += W(i_new); \
+							i_prev = i_new;	\
 							cor_abs_prev = cor_abs_new; \
-							if (nlevels <= gcpo_param->num_level_sets) { \
+							if (sumw < gcpo_param->num_level_sets) { \
 								GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
 								GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
 							} else {	\
@@ -3460,19 +3474,25 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
 							GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
 							GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
+							/* use the maximum weight when they are equal */ \
+							if (W(i_new) > W(i_prev)) { \
+								/* then we need to correct sumw, and reset i_prev */ \
+								sumw += W(i_new) - W(i_prev); \
+								i_prev =  i_new; \
+							}		\
 						}			\
 					}				\
 					if (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max) { \
 						levels_ok = 1;		\
 					}				\
 				}					\
-				if (siz_g == Npred) levels_ok = 1;	\
+				if (groups[node]->n >= Npred) levels_ok = 1; /* emergency option */ \
 				if (levels_ok) {			\
 					if (gcpo_param->verbose || detailed_output) { \
-						printf("%s[%1d]: for node=%1d, number of levels is %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  nlevels); \
+						printf("%s[%1d]: for node=%1d, sum of weights is %g\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  sumw); \
 						printf("%s[%1d]: either because there are no more levels, or size.max is reached.\n", __GMRFLib_FuncName, omp_get_thread_num()); } \
 				}					\
-				GMRFLib_DEBUG_i("found nlevels", nlevels); \
+				GMRFLib_DEBUG_d("found group with sum of weights", sumw); \
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
 			}						\
 			if (gcpo_param->friends) {			\
@@ -3571,7 +3591,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #undef LEGAL_TO_ADD
 #undef A_idx
-
+#undef W
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
 }

@@ -1432,6 +1432,18 @@
             cat("gcpo.group.selection =", fnm, "\n", file = file, append = TRUE)
         }
 
+        if (!is.null(gcpo$weights)) {
+            weights <- gcpo$weights
+            len <- length(weights)
+            file.weights <- inla.tempfile(tmpdir = data.dir)
+            fp.binary <- file(file.weights, "wb")
+            writeBin(as.integer(len), fp.binary)
+            writeBin(weights, fp.binary)
+            close(fp.binary)
+            fnm <- gsub(data.dir, "$inladatadir", file.weights, fixed = TRUE)
+            cat("gcpo.weights =", fnm, "\n", file = file, append = TRUE)
+        }
+
         if (!is.null(gcpo$friends)) {
             friends <- gcpo$friends
             len <- length(friends)

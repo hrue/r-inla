@@ -12,7 +12,9 @@ control.gcpo(
   strategy = c("posterior", "prior"),
   groups = NULL,
   selection = NULL,
+  group.selection = NULL,
   friends = NULL,
+  weights = NULL,
   verbose = FALSE,
   epsilon = 0.005,
   prior.diagonal = 1e-04,
@@ -37,7 +39,11 @@ inla.set.control.gcpo.default(...)
 
 \item{selection}{TODO}
 
+\item{group.selection}{TODO}
+
 \item{friends}{TODO}
+
+\item{weights}{TODO}
 
 \item{verbose}{TODO}
 

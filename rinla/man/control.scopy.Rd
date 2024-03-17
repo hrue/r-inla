@@ -12,7 +12,7 @@ inla.set.control.scopy.default(...)
 \arguments{
 \item{covariate}{The covariate for the scopy function}
 
-\item{n}{Number of locations in the RW2 (n >= 5)}
+\item{n}{Number of locations in the RW2 (n = 2 or 5 <= n <= 15)}
 
 \item{...}{Named arguments passed on to the main function}
 }

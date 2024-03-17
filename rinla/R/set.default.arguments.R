@@ -271,6 +271,8 @@ control.gcpo <-
         group.selection = NULL,
         #' @param friends TODO
         friends = NULL,
+        #' @param weights TODO
+        weights = NULL, 
         #' @param verbose TODO
         verbose = FALSE,
         #' @param epsilon TODO
