@@ -1851,12 +1851,12 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		xx = x + offset_j;
 		// for(int k = 0; k < nrhs; k++) yy[k] = xx[k] * iAjj;
 #pragma omp simd
-		for(int k = 0; k < nrhs; k++) {
+		for (int k = 0; k < nrhs; k++) {
 			yy[k] = xx[k] * iAjj;
 		}
 
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-			Aij = - L->values.d[ip]; // OOOPS! add minus here for daxpy_
+			Aij = -L->values.d[ip];		       // OOOPS! add minus here for daxpy_
 			offset_i = L->rowind[ip] * nrhs;
 			xx = x + offset_i;
 			yy = y + offset_j;
@@ -1887,7 +1887,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		yy = y + offset_i;
 		// for(int k = 0; k < nrhs; k++) xx[k] = yy[k] * iAii;
 #pragma omp simd
-		for(int k = 0; k < nrhs; k++) {
+		for (int k = 0; k < nrhs; k++) {
 			xx[k] = yy[k] * iAii;
 		}
 	}

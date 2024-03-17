@@ -1406,8 +1406,7 @@
         if (!is.null(gcpo$selection)) {
             selection <- gcpo$selection[!is.na(gcpo$selection)]
             selection <- unique(sort(selection))
-            stopifnot(all(selection >= 1))
-            selection <- selection - 1 ## to C indexing
+            stopifnot(all(selection != 0))
             len <- length(selection)
             file.selection <- inla.tempfile(tmpdir = data.dir)
             fp.binary <- file(file.selection, "wb")

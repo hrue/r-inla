@@ -67,6 +67,16 @@ typedef struct {
 	gsl_eigen_symmv_workspace *work;
 } GMRFLib_gsl_ensure_spd_store_tp;
 
+typedef struct {
+	gsl_matrix *L;
+	gsl_vector *S;
+} GMRFLib_gsl_spd_solve_store_tp;
+
+typedef struct {
+	gsl_matrix *L;
+	gsl_vector *xx;
+} GMRFLib_gsl_ldnorm_store_tp;
+
 #define BLAS_LEVEL2 2
 #define BLAS_LEVEL3 3
 int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
@@ -117,13 +127,20 @@ double dasum_(int *n, double *x, int *inc);
 
 int GMRFLib_dscale(int n, double a, double *x);
 
+GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
+int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp * store);
+double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
+double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity,
+			       GMRFLib_gsl_ldnorm_store_tp * store);
+
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);
-double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A);
 gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix * A);
 gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix * A, gsl_matrix * At);
+gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector * a);
+double GMRFLib_gsl_rms(gsl_vector * a, gsl_vector * b);
 
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
 int GMRFLib_gsl_low_rank_store_free(GMRFLib_gsl_low_rank_store_tp * S);
@@ -139,6 +156,11 @@ int GMRFLib_gsl_mmm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, gsl_matrix *
 int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol);
 int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
+
+GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
+int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
+int GMRFLib_gsl_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x);
+int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
 
 void GMRFLib_daddto(int n, double *x, double *y);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);

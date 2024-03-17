@@ -1881,17 +1881,17 @@ int testit(int argc, char **argv)
 		gsl_vector_set(mean, 1, 3.45);
 		gsl_vector_set(mean, 2, 1.25);
 
-		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(x, mean, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(x, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(x, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(x, NULL, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, mean, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, NULL, Q, NULL, 0));
 	}
 		break;
 
@@ -4147,13 +4147,15 @@ int testit(int argc, char **argv)
 		double *A = Calloc(ISQR(n), double);
 		double *b = Calloc(n, double);
 		double *x = Calloc(n, double);
-		for(int i = 0; i < ISQR(n); i++) A[i] = GMRFLib_uniform();
-		for(int i = 0; i < n; i++) x[i] = GMRFLib_uniform();
-		
+		for (int i = 0; i < ISQR(n); i++)
+			A[i] = GMRFLib_uniform();
+		for (int i = 0; i < n; i++)
+			x[i] = GMRFLib_uniform();
+
 		int ione = 1;
 		double done = 1.0, beta = 0;
 		double tref[] = { 0, 0 };
-		for(int k = 0; k < m; k++) {
+		for (int k = 0; k < m; k++) {
 			tref[0] -= GMRFLib_timer();
 			dgemv_("N", &n, &n, &done, A, &n, x, &ione, &beta, b, &ione, F_ONE);
 			tref[0] += GMRFLib_timer();

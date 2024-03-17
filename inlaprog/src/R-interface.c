@@ -610,11 +610,11 @@ void *inla_R_vector_of_strings(int n, char **s)
 	return ((void *) sexp);
 }
 
-#else  /* if defined(INLA_WITH_LIBR) */
+#else							       /* if defined(INLA_WITH_LIBR) */
 
-void inla_R_no_lib(void) 
+void inla_R_no_lib(void)
 {
-	fprintf(stderr,  "\n\n *** ERROR *** libR is not supported in this build\n\n");
+	fprintf(stderr, "\n\n *** ERROR *** libR is not supported in this build\n\n");
 	exit(1);
 }
 
@@ -673,7 +673,7 @@ int inla_R_assign_(const char *variable, int *n, double *x)
 	inla_R_no_lib();
 }
 
-int inla_R_get_(int *n_out, double **x_out, const char *variable)	
+int inla_R_get_(int *n_out, double **x_out, const char *variable)
 {
 	inla_R_no_lib();
 }

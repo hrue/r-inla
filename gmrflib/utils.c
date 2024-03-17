@@ -1234,6 +1234,28 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
+int GMRFLib_iamax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return IMAX(abs(x[]))
+	 */
+	int i, imax, max_val;
+
+	max_val = IABS(x[0]);
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (IABS(x[i]) > max_val) {
+			max_val = IABS(x[i]);
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
+}
+
 double GMRFLib_logit(double p)
 {
 	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
@@ -2165,9 +2187,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
+	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2187,15 +2209,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y)
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y)
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 

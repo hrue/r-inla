@@ -59,7 +59,29 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 	return sqr;
 }
 
-double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity)
+GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n)
+{
+	GMRFLib_gsl_ldnorm_store_tp *S = Calloc(1, GMRFLib_gsl_ldnorm_store_tp);
+	S->L = gsl_matrix_alloc(n, n);
+	S->xx = gsl_vector_alloc(n);
+	return S;
+}
+int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp *store)
+{
+	if (store) {
+		gsl_matrix_free(store->L);
+		gsl_vector_free(store->xx);
+		Free(store);
+	}
+	return 0;
+}
+
+double GMRFLib_gsl_ldnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity)
+{
+	return GMRFLib_gsl_ldnorm_x(x, mean, Q, S, identity, NULL);
+}
+
+double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity, GMRFLib_gsl_ldnorm_store_tp *store)
 {
 	// 'identity' says that Q=S=I
 
@@ -72,6 +94,10 @@ double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl
 			n = Q->size1;
 		} else if (S) {
 			n = S->size1;
+		} else if (mean) {
+			n = mean->size;
+		} else if (x) {
+			n = x->size;
 		} else {
 			assert(0 == 1);
 		}
@@ -79,7 +105,14 @@ double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl
 	} else {
 		if (Q) {
 			n = Q->size1;
-			L_Q = GMRFLib_gsl_duplicate_matrix(Q);
+			if (store) {
+				store->L->size1 = n;
+				store->L->size2 = n;
+				L_Q = store->L;
+				gsl_matrix_memcpy(L_Q, Q);
+			} else {
+				L_Q = GMRFLib_gsl_duplicate_matrix(Q);
+			}
 			gsl_linalg_cholesky_decomp(L_Q);
 			for (size_t i = 0; i < n; i++) {
 				log_det_Q += log(gsl_matrix_get(L_Q, i, i));
@@ -87,16 +120,30 @@ double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl
 			log_det_Q *= 2.0;
 		} else {
 			n = S->size1;
-			L_S = GMRFLib_gsl_duplicate_matrix(S);
+			if (store) {
+				store->L->size1 = n;
+				store->L->size2 = n;
+				L_S = store->L;
+				gsl_matrix_memcpy(L_S, S);
+			} else {
+				L_S = GMRFLib_gsl_duplicate_matrix(S);
+			}
 			gsl_linalg_cholesky_decomp(L_S);
 			for (size_t i = 0; i < n; i++) {
-				log_det_Q += log(gsl_matrix_get(L_S, i, i));
+				log_det_Q += log(gsl_matrix_get(L_S, i, i));	/* yes */
 			}
-			log_det_Q *= (-2.0);
+			log_det_Q *= (-2.0);		       /* yes */
 		}
 	}
 
-	gsl_vector *xx = gsl_vector_alloc(n);
+	gsl_vector *xx = NULL;
+	if (store) {
+		store->xx->size = n;
+		xx = store->xx;
+	} else {
+		xx = gsl_vector_alloc(n);
+	}
+
 	if (x && mean) {
 		for (size_t i = 0; i < n; i++) {
 			gsl_vector_set(xx, i, gsl_vector_get(x, i) - gsl_vector_get(mean, i));
@@ -133,13 +180,15 @@ double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl
 		}
 	}
 
-	if (L_S) {
-		gsl_matrix_free(L_S);
+	if (!store) {
+		if (L_S) {
+			gsl_matrix_free(L_S);
+		}
+		if (L_Q) {
+			gsl_matrix_free(L_Q);
+		}
+		gsl_vector_free(xx);
 	}
-	if (L_Q) {
-		gsl_matrix_free(L_Q);
-	}
-	gsl_vector_free(xx);
 
 	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
@@ -414,6 +463,41 @@ gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix *A)
 		gsl_matrix_memcpy(B, A);
 	}
 	return B;
+}
+
+gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
+{
+	/*
+	 * return a new (alloced) copy of vector 'a'
+	 */
+	gsl_vector *b = NULL;
+	if (a) {
+		b = gsl_vector_alloc(a->size);
+		gsl_vector_memcpy(b, a);
+	}
+	return b;
+}
+
+double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
+{
+	double rms = 0.0;
+
+	if (!a && !b) {
+		return 0.0;
+	} else if (!a && b) {
+		return GMRFLib_gsl_rms(b, NULL);
+	} else if (a && !b) {
+		for (size_t i = 0; i < a->size; i++) {
+			rms += SQR(gsl_vector_get(a, i));
+		}
+	} else if (a && b) {
+		for (size_t i = 0; i < a->size; i++) {
+			rms += SQR(gsl_vector_get(a, i) - gsl_vector_get(b, i));
+		}
+	} else {
+		assert(0 == 1);
+	}
+	return sqrt(rms / a->size);
 }
 
 gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
@@ -780,6 +864,56 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	}
 
 	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n)
+{
+	GMRFLib_gsl_spd_solve_store_tp *S = Calloc(1, GMRFLib_gsl_spd_solve_store_tp);
+	S->L = gsl_matrix_alloc(n, n);
+	S->S = gsl_vector_alloc(n);
+	return S;
+}
+
+int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp *store)
+{
+	if (store) {
+		gsl_matrix_free(store->L);
+		gsl_vector_free(store->S);
+		Free(store);
+	}
+	return 0;
+}
+
+int GMRFLib_gsl_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x)
+{
+	return GMRFLib_gsl_spd_solve_x(A, b, x, NULL);
+}
+
+int GMRFLib_gsl_spd_solve_x(gsl_matrix *A, gsl_vector *b, gsl_vector *x, GMRFLib_gsl_spd_solve_store_tp *store)
+{
+	gsl_matrix *L = NULL;
+	gsl_vector *S = NULL;
+
+	if (store) {
+		assert(store->L);
+		store->L->size1 = A->size1;
+		store->L->size2 = A->size2;
+		L = store->L;
+		gsl_matrix_memcpy(L, A);
+		store->S->size = A->size1;
+		S = store->S;
+	} else {
+		L = GMRFLib_gsl_duplicate_matrix(A);
+		S = gsl_vector_alloc(A->size1);
+	}
+
+	gsl_linalg_cholesky_decomp2(L, S);
+	gsl_linalg_cholesky_solve2(L, S, b, x);
+	if (!store) {
+		gsl_matrix_free(L);
+		gsl_vector_free(S);
+	}
+	return 0;
 }
 
 int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, double tol)

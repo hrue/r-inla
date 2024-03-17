@@ -1962,11 +1962,16 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int *buffer = Calloc(len, int);
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
+				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
+				int mx = GMRFLib_iamax_value(buffer, len, NULL);
+				mb->gcpo_param->type = Calloc(mx, char);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
-					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
+					int idx = IABS(buffer[i]) - 1;	/* to C indexing */
+					GMRFLib_idx_add(&(mb->gcpo_param->selection), idx);
+					mb->gcpo_param->type[i] = (buffer[i] > 0 ? 0 : 1);
 				}
 				fclose(fp);
 				Free(buffer);

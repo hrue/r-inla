@@ -829,9 +829,10 @@ typedef struct {
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
 	GMRFLib_idx_tp *group_selection;
+	char *type;					       /* 0: normal, != joint */
 
-	int friends_n;
 	GMRFLib_idx_tp **friends;
+	int friends_n;
 
 	int remove_fixed;
 	GMRFLib_str_tp *remove;				       /* only one of these can be !NULL */
@@ -1256,7 +1257,8 @@ int GMRFLib_equal_cor(double c1, double c2, double eps);
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
 				   double *lpred_variance, GMRFLib_preopt_tp * preopt,
 				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments);
+				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments,
+				   GMRFLib_idx_tp * d_idx);
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
 					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl);
 
