@@ -119,7 +119,7 @@
 #define RCPOISSON_MAXTHETA (10L)
 #define TPOISSON_MAXTHETA (10L)
 
-#define L_FL_NC (10L)
+#define L_FL_NC (9L)
 
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };

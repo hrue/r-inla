@@ -3489,8 +3489,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				if (groups[node]->n >= Npred) levels_ok = 1; /* emergency option */ \
 				if (levels_ok) {			\
 					if (gcpo_param->verbose || detailed_output) { \
-						printf("%s[%1d]: for node=%1d, sum of weights is %g\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  sumw); \
-						printf("%s[%1d]: either because there are no more levels, or size.max is reached.\n", __GMRFLib_FuncName, omp_get_thread_num()); } \
+						printf("%s[%1d]: for node=%1d : sumw %g, num.nodes %1d\n", \
+						       __GMRFLib_FuncName, omp_get_thread_num(), node,  sumw, groups[node]->n); \
+						printf("%s[%1d]: stop because there are no more levels or size.max is reached.\n", \
+						       __GMRFLib_FuncName, omp_get_thread_num()); } \
 				}					\
 				GMRFLib_DEBUG_d("found group with sum of weights", sumw); \
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
