@@ -3459,15 +3459,17 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
 					if (LEGAL_TO_ADD(i_new)) {	\
+						/* we have to go to one more before we stop as we need to add all equal ones first */ \
 						if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
-							sumw += W(i_new); \
-							i_prev = i_new;	\
-							cor_abs_prev = cor_abs_new; \
-							if (sumw < gcpo_param->num_level_sets) { \
+							if ((sumw >= gcpo_param->num_level_sets)) { \
+								/* then we will go over if adding, then skip */ \
+								levels_ok = 1; \
+							} else {	\
+								sumw += W(i_new); \
+								i_prev = i_new;	\
+								cor_abs_prev = cor_abs_new; \
 								GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
 								GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
-							} else {	\
-								levels_ok = 1; \
 							}		\
 						} else {		\
 							cor_abs[i_new] = cor_abs_prev; \
@@ -3476,17 +3478,20 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 							/* use the maximum weight when they are equal */ \
 							if (W(i_new) > W(i_prev)) { \
-								/* then we need to correct sumw, and reset i_prev */ \
+								/* correct sumw, reset i_prev to point to the max weight one */ \
 								sumw += W(i_new) - W(i_prev); \
 								i_prev =  i_new; \
 							}		\
 						}			\
 					}				\
-					if (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max) { \
-						levels_ok = 1;		\
+					if (!levels_ok) {		\
+						if ((sumw > gcpo_param->num_level_sets) || \
+						    (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max)) { \
+							levels_ok = 1;	\
+						}			\
 					}				\
+					if (groups[node]->n >= Npred) levels_ok = 1; /* emergency option */ \
 				}					\
-				if (groups[node]->n >= Npred) levels_ok = 1; /* emergency option */ \
 				if (levels_ok) {			\
 					if (gcpo_param->verbose || detailed_output) { \
 						printf("%s[%1d]: for node=%1d : sumw %g, num.nodes %1d\n", \
@@ -3928,11 +3933,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		for(int i = 0; i < ng; i++) {				\
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean_old, (size_t) i, lpred_mode[nnode]); \
-			if (d[nnode] && corr_hyper) {			\
-				double ll = 0.0;			\
-				loglFunc(thread_id, &ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg, NULL); \
-				gcpo[node]->marg_theta_correction += d[nnode] * ll; \
-			}						\
 			bb[i] += local_bb[nnode];			\
 			cc[i] += local_cc[nnode];			\
 			if (i == (int) idx_node) {			\
@@ -3970,9 +3970,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		GMRFLib_gsl_mmm(Bt, H, B, BtHB);			\
 		QQ->size1 = QQ->size2 = m;				\
 		SS->size1 = SS->size2 = m;				\
-		if (corr_hyper) {					\
-			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_ldnorm_x(NULL, NULL, QQ, NULL, 1, lstore->log_dnorm_store); \
-		}							\
 		for(size_t i = 0; i < m; i++) {				\
 			gsl_matrix_set(QQ, i, i, DMAX(0, 1.0 - gsl_matrix_get(BtHB, i, i))); \
 			for(size_t j = 0; j < i; j++) {			\
@@ -3996,11 +3993,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			gsl_vector_set(mean, i, gsl_vector_get(mean_old, i) + gsl_vector_get(Bzmean, i)); \
 		}							\
 		GMRFLib_gsl_mmm(B, SS, Bt, S);				\
-		if (corr_hyper) {					\
-			gcpo[node]->marg_theta_correction += GMRFLib_gsl_ldnorm_x(NULL, zmean, NULL, SS, 0, lstore->log_dnorm_store); \
-			/* we define the correction to be multiplicative */ \
-			gcpo[node]->marg_theta_correction *= -1.0;	\
-		}							\
 									\
 		double mean_idx_node = gsl_vector_get(mean, idx_node) + (lpred_mean[node] - lpred_mode[node]); \
 		gcpo[node]->lpred_mean = mean_idx_node;			\
@@ -4047,6 +4039,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					* weights[i];			\
 			}						\
 			gcpo[node]->value = val * sqrt(lp_prec/loc_prec); \
+			gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
 		} else if (d[node] && gcpo_param->type && gcpo_param->type[node] != 0) { \
 			/* x = B z + mean_old */			\
 			/* zmean */					\
@@ -4127,9 +4120,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				if (detailed_output) GMRFLib_printf_gsl_vector(stdout, zstar, "\t%.6g"); \
 				if (rms < eps) break;			\
 			}						\
-			/* need to divide this call to avoid potential issue with common store */ \
+			/* need to divide the call to _dnorm to avoid potential issue with common store */ \
 			lla += GMRFLib_gsl_ldnorm_x(zstar, zmean, QQ, NULL, 0, lstore->log_dnorm_store); \
 			gcpo[node]->value = lla - GMRFLib_gsl_ldnorm_x(NULL, NULL, Qstar, NULL, 0, lstore->log_dnorm_store); \
+			gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
+			gcpo[node]->value = exp(gcpo[node]->value);	\
 		} else {						\
 			gcpo[node]->value = NAN;			\
 		}							\
