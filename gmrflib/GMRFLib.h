@@ -139,7 +139,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
 
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);
 void vdExpI(int, const double *, int, double *, int);

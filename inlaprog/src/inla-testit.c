@@ -854,7 +854,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 		printf("\n");
-		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8);
+		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, B, " %.12f");
 		gsl_matrix_free(A);
 		gsl_matrix_free(B);
@@ -1881,17 +1881,17 @@ int testit(int argc, char **argv)
 		gsl_vector_set(mean, 1, 3.45);
 		gsl_vector_set(mean, 2, 1.25);
 
-		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(x, mean, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(x, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(x, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(x, NULL, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, mean, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S, 0));
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_ldnorm(NULL, NULL, Q, NULL, 0));
 	}
 		break;
 
@@ -3505,7 +3505,7 @@ int testit(int argc, char **argv)
 		double *x = Calloc(4 * n, double);
 		double *y = x + n;
 		double *yy = x + 2 * n;
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 		double *z = x + 3 * n;
 #endif
 		for (int i = 0; i < n; i++) {
@@ -3522,7 +3522,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdExp(n, x, z);
 			GMRFLib_daxpbyz(n, 1.0, x, 1.0, z, yy);
 #else
@@ -3569,7 +3569,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdSqr(n, x, yy);
 #else
 #pragma omp simd
@@ -3615,7 +3615,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 			vdLog1p(n, x, yy);
 #else
 #pragma omp simd
@@ -4110,9 +4110,9 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		assert(n > 0);
 		double *x = Calloc(n, double);
-		x[n-1] = 1;
+		x[n - 1] = 1;
 		int nz_true = 0;
-		double tref[] = {0, 0};
+		double tref[] = { 0, 0 };
 		tref[0] -= GMRFLib_timer();
 		int nz = 0;
 		for (int i = 0; i < n; i++) {
@@ -4122,7 +4122,7 @@ int testit(int argc, char **argv)
 		assert(nz == nz_true);
 		nz = 0;
 		tref[1] -= GMRFLib_timer();
-		for(int k = 0; k < n; k++) {
+		for (int k = 0; k < n; k++) {
 			int iszero = 1;
 			for (int i = 0; i < n; i++) {
 				if (!ISZERO(x[i])) {
@@ -4134,10 +4134,40 @@ int testit(int argc, char **argv)
 		}
 		tref[1] += GMRFLib_timer();
 		assert(nz == nz_true);
-		P(tref[0]/(tref[0] + tref[1]));
-		P(tref[1]/(tref[0] + tref[1]));
+		P(tref[0] / (tref[0] + tref[1]));
+		P(tref[1] / (tref[0] + tref[1]));
 	}
 		break;
+
+	case 140:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		assert(n > 0);
+		double *A = Calloc(ISQR(n), double);
+		double *b = Calloc(n, double);
+		double *x = Calloc(n, double);
+		for (int i = 0; i < ISQR(n); i++)
+			A[i] = GMRFLib_uniform();
+		for (int i = 0; i < n; i++)
+			x[i] = GMRFLib_uniform();
+
+		int ione = 1;
+		double done = 1.0, beta = 0;
+		double tref[] = { 0, 0 };
+		for (int k = 0; k < m; k++) {
+			tref[0] -= GMRFLib_timer();
+			dgemv_("N", &n, &n, &done, A, &n, x, &ione, &beta, b, &ione, F_ONE);
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
+			dgemv_("T", &n, &n, &done, A, &n, x, &ione, &beta, b, &ione, F_ONE);
+			tref[1] += GMRFLib_timer();
+		}
+		P(tref[0] / (tref[0] + tref[1]));
+		P(tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

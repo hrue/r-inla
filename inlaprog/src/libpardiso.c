@@ -28,7 +28,7 @@
  *
  */
 
-#if !defined(PARDISO8)
+#if !defined(INLA_WITH_PARDISO)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,4 +76,4 @@ int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *op
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
 
-#endif							       /* if !defined(PARDISO8) */
+#endif							       /* if !defined(INLA_WITH_PARDISO) */

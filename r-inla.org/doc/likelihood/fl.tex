@@ -18,9 +18,9 @@ needs.
 The ``loglikelihood'' is
 \begin{displaymath}
     \log f(y) = c_1 + c_2 \eta -\frac{1}{2} c_3 (c_4 - \eta)^{2} -
-    c_5 \exp(c_6 + c_7 \eta)
+    c_5 \exp(c_6 + c_7 \eta) - c_8\;\log\left( \frac{\exp(c_9\eta)-1}{\text{sign}(c_9)\eta}\right)
 \end{displaymath}
-for constants $c_1, \ldots, c_7$. In most cases, only a few of the
+for constants $c_1, \ldots, c_{9}$. In most cases, only a few of the
 $c_i$'s will be non-zero. Note that there is no dependence on the
 reponse $y$, as $y$ itself is not part of the spesification.
 
@@ -38,7 +38,7 @@ None.
 \item \texttt{family="fl"}
 \item This family require the response to be a
     \texttt{inla.mdata}-object, where each row defines the vectorv
-    $(c_1, \ldots, c_7)$ for each likelihood contribution. Any
+    $(c_1, \ldots, c_{9})$ for each likelihood contribution. Any
     \texttt{NA}'s in the $c_i$'s will be converted to 0.
 \end{itemize}
 
@@ -54,7 +54,7 @@ None.
 \subsection*{Notes}
 
 Since this is not a likelihood in the usual sense, it will not be used
-for CPO/GCPO calculations and not be influenced by the
+for CPO/PO calculations and not be influenced by the
 \texttt{control.inla=list(cmin=...)}-argument.
 
 This likelihood is EXPERIMENTAL and only supported in using the

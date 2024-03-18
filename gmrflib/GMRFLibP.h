@@ -467,6 +467,7 @@ typedef enum {
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
+#define PUSH_AWAY(x_) (DMAX(GSL_DBL_EPSILON, ABS(x_)) * SIGN(x_))
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
@@ -560,6 +561,32 @@ typedef enum {
 			CODE_BLOCK;					\
 		}							\
 		Free(work__);						\
+        }
+
+#define CODE_BLOCK_WORK_TP_PTR() work_t__[omp_get_thread_num()]
+// CODE_BLOCK_WORK_TP_FREE(ptr_) needs to be defined
+#define RUN_CODE_BLOCK_X(thread_max_, n_work_, len_work_, work_tp_)	\
+	if (1) {							\
+		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
+			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
+		int tmax__ = thread_max_;				\
+		int len_work__ = GMRFLib_align(IMAX(1, len_work_), sizeof(double)); \
+		int n_work__ = IMAX(1, n_work_);			\
+		work_tp_ ** work_t__ = Calloc(tmax__, work_tp_ *);	\
+		for (int i_ = 0; i_ < tmax__; i_++) work_t__[i_] = Calloc(1, work_tp_); \
+		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
+		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		if (nt__ > 1) {						\
+			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		Free(work__);						\
+		for (int i_ = 0; i_ < tmax__; i_++) {			\
+			CODE_BLOCK_WORK_TP_FREE(work_t__[i_]);	\
+		}							\
+		Free(work_t__);						\
         }
 
 #define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */

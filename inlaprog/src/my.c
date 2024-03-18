@@ -236,7 +236,7 @@ double my_betabinomial_helper(int n, double a)
 	int m = d.quot * roll;
 
 	/*
-	 * #if defined(INLA_LINK_WITH_MKL) int nn = d.quot; double z[nn]; int j = 0; #pragma omp simd reduction(+: s0) for (int i = 0; i < m; i +=
+	 * #if defined(INLA_WITH_MKL) int nn = d.quot; double z[nn]; int j = 0; #pragma omp simd reduction(+: s0) for (int i = 0; i < m; i +=
 	 * roll) { double aa = i + a; z[j++] = aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0); } GMRFLib_log(nn, z, z); s0 = GMRFLib_dsum(nn, z); 
 	 */
 

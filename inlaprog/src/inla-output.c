@@ -1805,7 +1805,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	 * the program defaults are NULL. 
 	 */
 	int i, j, use_defaults = 1, ret, ngroups_eff = 0;
-	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *ffile = NULL;
+	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *gsfile = NULL, *ffile = NULL, *wfile = NULL;
 
 	secname = Strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
@@ -1909,8 +1909,10 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 		gfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
+		wfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.WEIGHTS"), NULL));
+		gsfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUP.SELECTION"), NULL));
 		ffile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
-		assert(!(gfile && sfile && ffile));
+		assert(!(gfile && (sfile || ffile || gsfile)));
 
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
@@ -1961,15 +1963,59 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int *buffer = Calloc(len, int);
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
+				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
+				int mx = GMRFLib_iamax_value(buffer, len, NULL);
+				mb->gcpo_param->type = Calloc(mx, char);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
-					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
+					int idx = IABS(buffer[i]) - 1;	/* to C indexing */
+					GMRFLib_idx_add(&(mb->gcpo_param->selection), idx);
+					mb->gcpo_param->type[i] = (buffer[i] > 0 ? 0 : 1);
 				}
 				fclose(fp);
 				Free(buffer);
 			}
+
+			if (gsfile) {
+				FILE *fp = fopen(gsfile, "rb");
+				int len;
+				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+				assert(ret == 1);
+				if (mb->gcpo_param->verbose) {
+					printf("%s: read group.selection len %d\n", __GMRFLib_FuncName, len);
+				}
+				int *buffer = Calloc(len, int);
+				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
+				assert(ret == len);
+				for (i = 0; i < len; i++) {
+					if (mb->gcpo_param->verbose) {
+						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
+					}
+					GMRFLib_idx_add(&(mb->gcpo_param->group_selection), buffer[i]);
+				}
+				fclose(fp);
+				Free(buffer);
+			}
+
+			if (wfile) {
+				FILE *fp = fopen(wfile, "rb");
+				int len;
+				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+				assert(ret == 1);
+				assert(len >= 0);
+				if (mb->gcpo_param->verbose) {
+					printf("%s: read weights len %d\n", __GMRFLib_FuncName, len);
+				}
+				double *buffer = Calloc(len, double);
+				ret = fread((void *) buffer, sizeof(double), (size_t) len, fp);
+				assert(ret == len);
+				mb->gcpo_param->len_weights = len;	/* need to validate later that len >= Npred */
+				mb->gcpo_param->weights = buffer;
+				fclose(fp);
+			}
+
 			if (ffile) {
 				FILE *fp = fopen(ffile, "rb");
 				int len;

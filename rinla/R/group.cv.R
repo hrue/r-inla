@@ -28,8 +28,11 @@
              #' vignette for details.
              strategy = c("posterior", "prior"), 
              
-             #' @param size.max The maximum size of a group. If the computed group-size is
-             #' larger, it will be truncated to `size.max`.
+             #' @param size.max The maximum size (number of nodes) of a group. If the computed
+             #' group-size is larger, it will be truncated to `size.max`. With `weights`, then
+             #' this corresponds to the number of nodes in the group, and NOT the sum of the
+             #' weights. This is ment as an emergency option to avoid the size of the
+             #' group to go nuts.
              size.max = 32,
              
              #' @param groups An (optional) predefined list of groups.  See the vignette for
@@ -40,8 +43,18 @@
              #' all data are used.
              selection = NULL, 
 
+             #' @param group.selection An optional list of data-indices to use when building the
+             #' groups. If given, each group beyond the observation itself, must be a subset of
+             #' `group.selection`. If not given, then all data are used. 
+             group.selection = NULL, 
+
              #' @param friends An optional list of lists of indices to use a friends
              friends = NULL, 
+
+             #' @param weights An optional positive weight attached to each datapoint. The sume
+             #'  of the weights define the size of the group. If `NULL`, then unit weight is
+             #'  used.
+             weights = NULL, 
 
              #' @param verbose Run with `verbose` output of some of the internals in
              #' the calculations. This option will also enable `inla(...,
@@ -75,6 +88,9 @@
 {
     stopifnot(!missing(result))
     stopifnot(inherits(result, "inla"))
+    if (!is.null(weights))
+        stopifnot(all(weights >= 0))
+
     if (!is.null(group.cv)) {
         stopifnot(inherits(group.cv, "inla.group.cv"))
         get.groups <- function(cv) {
@@ -91,7 +107,9 @@
                       strategy = match.arg(strategy), 
                       groups = groups, 
                       selection = selection, 
+                      group.selection = group.selection, 
                       friends = friends, 
+                      weights = weights, 
                       verbose = verbose, 
                       epsilon = epsilon, 
                       prior.diagonal = prior.diagonal, 
@@ -137,4 +155,3 @@
     class(group.cv) <- "inla.group.cv"
     return (group.cv)
 }
-

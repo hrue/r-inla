@@ -12,7 +12,9 @@ inla.group.cv(
   size.max = 32,
   groups = NULL,
   selection = NULL,
+  group.selection = NULL,
   friends = NULL,
+  weights = NULL,
   verbose = FALSE,
   epsilon = 0.005,
   prior.diagonal = 1e-04,
@@ -35,8 +37,11 @@ inla.group.cv(
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
 vignette for details.}
 
-\item{size.max}{The maximum size of a group. If the computed group-size is
-larger, it will be truncated to \code{size.max}.}
+\item{size.max}{The maximum size (number of nodes) of a group. If the computed
+group-size is larger, it will be truncated to \code{size.max}. With \code{weights}, then
+this corresponds to the number of nodes in the group, and NOT the sum of the
+weights. This is ment as an emergency option to avoid the size of the
+group to go nuts.}
 
 \item{groups}{An (optional) predefined list of groups.  See the vignette for
 details.}
@@ -44,7 +49,15 @@ details.}
 \item{selection}{An optional list of data-indices to use. If not given, then
 all data are used.}
 
+\item{group.selection}{An optional list of data-indices to use when building the
+groups. If given, each group beyond the observation itself, must be a subset of
+\code{group.selection}. If not given, then all data are used.}
+
 \item{friends}{An optional list of lists of indices to use a friends}
+
+\item{weights}{An optional positive weight attached to each datapoint. The sume
+of the weights define the size of the group. If \code{NULL}, then unit weight is
+used.}
 
 \item{verbose}{Run with \code{verbose} output of some of the internals in
 the calculations. This option will also enable \code{inla(..., verbose=TRUE)} if its not enabled already.}

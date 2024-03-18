@@ -111,7 +111,7 @@ void GMRFLib_chose_threshold_ddot(void);
 	}
 
 
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 #define GMRFLib_dot_product_INLINE(ans_, v_, a_) ans_ = GMRFLib_dot_product_serial_mkl(v_, a_)
 #define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_dot_product_serial_mkl(v_, a_)
 #else

@@ -442,12 +442,12 @@
     } else if (inla.one.of(family, c("fl"))) {
         ## add fake response in the last column
         response <- cbind(IDX = ind, y.orig, 0)
-        stopifnot(ncol(response) == 2 + 7)
+        stopifnot(ncol(response) == 2 + 9)
         ## remove entries with NA's in c_i's
-        col.y <- 2:8
+        col.y <- 2:10
         na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) any(is.na(x)))
         response <- response[!na.y, , drop = FALSE]
-        col.y <- 2:9
+        col.y <- 2:11
         col.idx <- 1
         Y <- response[, col.y, drop = FALSE]
         idx <- response[, col.idx, drop = FALSE]

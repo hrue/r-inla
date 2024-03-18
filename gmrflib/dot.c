@@ -35,7 +35,7 @@
 double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	if (ELM_->dot_product_func) {
-#if !defined(INLA_LINK_WITH_MKL)
+#if !defined(INLA_WITH_MKL)
 		if (GMRFLib_dot_product_gain >= 0.0) {
 #pragma omp atomic
 			GMRFLib_dot_product_gain += ELM_->cpu_gain;
@@ -223,7 +223,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 	return s0 + s1 + s2 + s3;
 }
 
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 
 double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
@@ -243,7 +243,7 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 	return cblas_ddoti(n, v, idx, a);
 }
 
-#else							       /* defined(INLA_LINK_WITH_MKL) */
+#else							       /* defined(INLA_WITH_MKL) */
 
 double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
@@ -255,4 +255,4 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
 
-#endif							       /* if defined(INLA_LINK_WITH_MKL) */
+#endif							       /* if defined(INLA_WITH_MKL) */

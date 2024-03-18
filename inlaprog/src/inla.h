@@ -1816,7 +1816,6 @@ double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
-double inla_interpolate_mode(double *x, double *y);
 double inla_Phi(double x);
 double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
@@ -1826,13 +1825,13 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 double inla_dmatern_cf(double dist, double range, double nu);
 double inla_dnchisq(double x, double df, double ncp);
 double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
+double inla_interpolate_mode(double *x, double *y);
 double inla_lgamma_fast(double x);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
-double inla_poisson_interval(double lambda, int y_from, int y_to);
 double inla_negative_binomial_interval(double size, double mu, int y_from, int y_to);
-double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
+double inla_poisson_interval(double lambda, int y_from, int y_to);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_bgev(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -1866,6 +1865,7 @@ double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double
 double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 
 // define macros for some of the forward calls, but it seems like the compiler figure this out itself
 #define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))
@@ -1877,6 +1877,7 @@ double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void
 #define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
 #define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
 
+double inla_ipow(double x, int k);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
@@ -1908,6 +1909,7 @@ double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
+
 double mfunc_ar1(int thread_id, int i, void *arg);
 double mfunc_cgeneric(int thread_id, int i, void *arg);
 double mfunc_clinear(int thread_id, int i, void *arg);
@@ -1917,6 +1919,7 @@ double mfunc_mec(int thread_id, int i, void *arg);
 double mfunc_revsigm(int thread_id, int i, void *arg);
 double mfunc_rgeneric(int thread_id, int i, void *arg);
 double mfunc_sigm(int thread_id, int i, void *arg);
+
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
@@ -1942,8 +1945,8 @@ double priorfunc_pc_cor1(double *x, double *parameters);
 double priorfunc_pc_dof(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
-double priorfunc_pc_matern(double *x, double *parameters);
 double priorfunc_pc_gevtail(double *x, double *parameters);
+double priorfunc_pc_matern(double *x, double *parameters);
 double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
@@ -1960,14 +1963,6 @@ double priorfunc_wishart3d(double *x, double *parameters);
 double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
-double priorfunc_wishartk_2d(double *x, double *parameters);
-double priorfunc_wishartk_3d(double *x, double *parameters);
-double priorfunc_wishartk_4d(double *x, double *parameters);
-double priorfunc_wishartk_5d(double *x, double *parameters);
-double priorfunc_wishartk_6d(double *x, double *parameters);
-double priorfunc_wishartk_7d(double *x, double *parameters);
-double priorfunc_wishartk_8d(double *x, double *parameters);
-double priorfunc_wishartk_9d(double *x, double *parameters);
 double priorfunc_wishartk_10d(double *x, double *parameters);
 double priorfunc_wishartk_11d(double *x, double *parameters);
 double priorfunc_wishartk_12d(double *x, double *parameters);
@@ -1979,11 +1974,20 @@ double priorfunc_wishartk_17d(double *x, double *parameters);
 double priorfunc_wishartk_18d(double *x, double *parameters);
 double priorfunc_wishartk_19d(double *x, double *parameters);
 double priorfunc_wishartk_20d(double *x, double *parameters);
+double priorfunc_wishartk_2d(double *x, double *parameters);
+double priorfunc_wishartk_3d(double *x, double *parameters);
+double priorfunc_wishartk_4d(double *x, double *parameters);
+double priorfunc_wishartk_5d(double *x, double *parameters);
+double priorfunc_wishartk_6d(double *x, double *parameters);
+double priorfunc_wishartk_7d(double *x, double *parameters);
+double priorfunc_wishartk_8d(double *x, double *parameters);
+double priorfunc_wishartk_9d(double *x, double *parameters);
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
-double inla_ipow(double x, int k);
+
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
+
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
@@ -1992,18 +1996,19 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
+int inla_INLA_preopt_experimental(inla_tp * mb);
 int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
-int inla_INLA_preopt_experimental(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_add_scopyof(inla_tp * mb);
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
+int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
-int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_divisible(int n, int by);
 int inla_endian(void);
+
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val);
 int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2);
@@ -2014,6 +2019,7 @@ int inla_error_general(const char *msg);
 int inla_error_general2(const char *msg, const char *msg2);
 int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field);
 int inla_error_open_file(const char *msg);
+
 int inla_fgn(char *H_arg, char *outfile);
 int inla_finn(const char *filename);
 int inla_iid3d_adjust(double *rho);
@@ -2049,22 +2055,22 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mix_int_simpson_mloggamma(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mkdir(const char *dirname);
-
 int inla_ncpu(void);
+
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
-		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg,
-		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
-int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose);
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep, Output_tp * output, const char *sdir,
+		       int return_marginals, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc, const char *tag,
+		       const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
-int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_gitid(const char *dir);
+int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
 int inla_output_linkfunctions(const char *dir, inla_tp * mb);
@@ -2074,7 +2080,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
-int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir));
+
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
@@ -2082,17 +2088,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir));
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out);
+int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
-int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile,
 		 const char *mufile, const char *constr_file, const char *meanfile, const char *selectionfile, int verbose);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
+
 int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_all);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose,
 			   double default_value);
@@ -2133,6 +2142,7 @@ int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * pr
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
+
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
 int inla_sread(void *x, int nx, const char *str, int code);
@@ -2149,137 +2159,209 @@ int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
-int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_beta(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_betabinomialna(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_xbinomial(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+
+int loglikelihood_0binomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			    char **arg_str);
-int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_cenpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_contpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_dgp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_exp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_expsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_fmri(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_fmrisurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_ggaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_ggaussianS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gammajw(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gammasurvjw(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gammacount(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_stdgaussian(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
-			      char **arg_str);
-int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+int loglikelihood_0binomialS(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			     char **arg_str);
-int loglikelihood_gompertz(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gompertzsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			       GMRFLib_logl_tp * loglfun, char **arg_str);
-int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   GMRFLib_logl_tp * loglfun, char **arg_str);
-int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_gpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_iid_gamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_iid_logitbeta(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_inla(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_loggamma_frailty(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   char **arg_str);
-int loglikelihood_logistic(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_loglogistic(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_loglogisticsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+int loglikelihood_0poisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   char **arg_str);
-int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_nbinomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				    char **arg_str);
-int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_rcpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+int loglikelihood_0poissonS(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			    char **arg_str);
-int loglikelihood_tpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+int loglikelihood_agaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_agaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_bell(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_bell(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_betabinomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_betabinomialna(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				 void *arg, char **arg_str);
+int loglikelihood_bgev(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   char **arg_str);
-int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   char **arg_str);
-int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_qcontpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_qkumar(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_qloglogistic(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_qloglogisticsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   char **arg_str);
-int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_skew_normal(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_stochvol(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_stochvol_sn(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_stochvol_nig(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_stochvol_t(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_t(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_testit(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_testit1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_weibullsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_wrapped_cauchy(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
-int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					    char **arg_str);
-int loglikelihood_zero_n_inflated_binomial3(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					    char **arg_str);
-int loglikelihood_zeroinflated_betabinomial0(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					     char **arg_str);
-int loglikelihood_zeroinflated_betabinomial1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					     char **arg_str);
-int loglikelihood_zeroinflated_betabinomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					     char **arg_str);
-int loglikelihood_zeroinflated_binomial0(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					 char **arg_str);
-int loglikelihood_zeroinflated_binomial1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					 char **arg_str);
-int loglikelihood_zeroinflated_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					 char **arg_str);
-int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-						  char **arg_str);
-int loglikelihood_zeroinflated_negative_binomial1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-						  char **arg_str);
-int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
-							  void *arg, char **arg_str);
-int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
-							  void *arg, char **arg_str);
-int loglikelihood_zeroinflated_negative_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-						  char **arg_str);
-int loglikelihood_zeroinflated_poisson0(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					char **arg_str);
-int loglikelihood_zeroinflated_poisson1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					char **arg_str);
-int loglikelihood_zeroinflated_poisson2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					char **arg_str);
-int loglikelihood_zeroinflated_cenpoisson0(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					   char **arg_str);
-int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-					   char **arg_str);
+int loglikelihood_cbinomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_cenpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str);
+int loglikelihood_cenpoisson2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_circular_normal(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				  void *arg, char **arg_str);
+int loglikelihood_contpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_dgp(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		      char **arg_str);
+int loglikelihood_exp(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		      char **arg_str);
+int loglikelihood_expsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_fmri(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_fmrisurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_gamma(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			char **arg_str);
+int loglikelihood_gammacount(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str);
+int loglikelihood_gammajw(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_gammasurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_gammasurvjw(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_gaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_gaussianjw(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			     void *arg, char **arg_str);
+int loglikelihood_generic_surv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, GMRFLib_logl_tp * loglfun, char **arg_str);
+int loglikelihood_generic_surv_NEW(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg, GMRFLib_logl_tp * loglfun, char **arg_str);
+int loglikelihood_gev(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		      char **arg_str);
+int loglikelihood_ggaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_ggaussianS(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str);
+int loglikelihood_gompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_gompertzsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_gp(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		     char **arg_str);
+int loglikelihood_gpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_iid_gamma(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_iid_logitbeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				void *arg, char **arg_str);
+int loglikelihood_inla(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_loggamma_frailty(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg, char **arg_str);
+int loglikelihood_logistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_loglogisticsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				  void *arg, char **arg_str);
+int loglikelihood_lognormal(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_lognormalsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				void *arg, char **arg_str);
+int loglikelihood_logperiodogram(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				 void *arg, char **arg_str);
+int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   char **arg_str);
+int loglikelihood_mix_loggamma(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_mix_mloggamma(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				void *arg, char **arg_str);
+int loglikelihood_nbinomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str);
+int loglikelihood_negative_binomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				    void *arg, char **arg_str);
+int loglikelihood_nmix(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		       char **arg_str);
+int loglikelihood_nmixnb(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			 char **arg_str);
+int loglikelihood_nzpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			    char **arg_str);
+int loglikelihood_poisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_poisson_special1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg, char **arg_str);
+int loglikelihood_pom(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		      char **arg_str);
+int loglikelihood_qcontpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_qkumar(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			 char **arg_str);
+int loglikelihood_qloglogistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_qloglogisticsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg, char **arg_str);
+int loglikelihood_rcpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **arg_str);
+int loglikelihood_simplex(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_skew_normal(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
+int loglikelihood_stochvol_nig(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str);
+int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_stochvol_t(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str);
+int loglikelihood_t(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+		    char **arg_str);
+int loglikelihood_testit(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			 char **arg_str);
+int loglikelihood_testit1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_tpoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **arg_str);
+int loglikelihood_tstrata(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_tweedie(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			  char **arg_str);
+int loglikelihood_weibullsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			      void *arg, char **arg_str);
+int loglikelihood_wrapped_cauchy(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				 void *arg, char **arg_str);
+int loglikelihood_xbinomial(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **arg_str);
+int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					    double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zero_n_inflated_binomial3(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					    double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_betabinomial0(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					     double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_betabinomial1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					     double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_betabinomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					     double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_binomial0(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					 double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_binomial1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					 double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					 double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_cenpoisson0(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					   double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+					   double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_negative_binomial1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx,
+							  double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx,
+							  double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_negative_binomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_zeroinflated_poisson0(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg, char **arg_str);
+int loglikelihood_zeroinflated_poisson1(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg, char **arg_str);
+int loglikelihood_zeroinflated_poisson2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg, char **arg_str);
+
 int inla_reset(void);
 int inla_testit_timer(void);
 int my_dir_exists(const char *dirname);

@@ -39,7 +39,7 @@
 int GMRFLib_set_blas_num_threads(int threads)
 {
 	if (threads > 0) {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 		void MKL_Set_Num_Threads(int);
 		MKL_Set_Num_Threads(threads);
 #endif

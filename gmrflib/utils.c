@@ -1116,7 +1116,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_is_zero(double *x, int n) 
+int GMRFLib_is_zero(double *x, int n)
 {
 	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
 	if (!x) {
@@ -1125,8 +1125,8 @@ int GMRFLib_is_zero(double *x, int n)
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
 
-	for(int i = 0; i < m; i++) {
-		if (!ISZERO(x[i])){
+	for (int i = 0; i < m; i++) {
+		if (!ISZERO(x[i])) {
 			return 0;
 		}
 	}
@@ -1134,12 +1134,12 @@ int GMRFLib_is_zero(double *x, int n)
 	if (n > m) {
 		for (int offset = nstart; offset < n; offset += offset) {
 			int len = IMIN(offset, n - offset);
-			if (len <= 0 || memcmp(x, x+offset, len * sizeof(double))) {
+			if (len <= 0 || memcmp(x, x + offset, len * sizeof(double))) {
 				return 0;
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -1224,6 +1224,28 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	for (i = 1; i < n; i++) {
 		if (x[i] > max_val) {
 			max_val = x[i];
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
+}
+
+int GMRFLib_iamax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return IMAX(abs(x[]))
+	 */
+	int i, imax, max_val;
+
+	max_val = IABS(x[0]);
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (IABS(x[i]) > max_val) {
+			max_val = IABS(x[i]);
 			imax = i;
 		}
 	}
@@ -2001,7 +2023,7 @@ double GMRFLib_erfc_inv(double x)
 
 void GMRFLib_exp(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdExp(n, x, y);
 #else
 #pragma omp simd
@@ -2013,7 +2035,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdExpI(n, x, inc, y, inc);
 #else
 #pragma omp simd
@@ -2025,7 +2047,7 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 
 void GMRFLib_log(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdLn(n, x, y);
 #else
 #pragma omp simd
@@ -2037,7 +2059,7 @@ void GMRFLib_log(int n, double *x, double *y)
 
 void GMRFLib_log1p(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdLog1p(n, x, y);
 #else
 #pragma omp simd
@@ -2049,7 +2071,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 
 void GMRFLib_sqr(int n, double *x, double *y)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdSqr(n, x, y);
 #else
 #pragma omp simd
@@ -2061,7 +2083,7 @@ void GMRFLib_sqr(int n, double *x, double *y)
 
 void GMRFLib_add(int n, double *x, double *y, double *z)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
 #else
 #pragma omp simd
@@ -2073,7 +2095,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
-#if defined(INLA_LINK_WITH_MKL)
+#if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);
 #else
 #pragma omp simd

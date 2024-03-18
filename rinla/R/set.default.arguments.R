@@ -98,7 +98,7 @@
                             #' @param covariate The covariate for the scopy function
                             covariate = NULL,
 
-                            #' @param n Number of locations in the RW2 (n >= 5)
+                            #' @param n Number of locations in the RW2 (n = 2 or 5 <= n <= 15)
                             n = 11
                             ) {
     ctrl_object(as.list(environment()), "scopy", check = FALSE)
@@ -267,8 +267,12 @@ control.gcpo <-
         groups = NULL,
         #' @param selection TODO
         selection = NULL,
+        #' @param group.selection TODO
+        group.selection = NULL,
         #' @param friends TODO
         friends = NULL,
+        #' @param weights TODO
+        weights = NULL, 
         #' @param verbose TODO
         verbose = FALSE,
         #' @param epsilon TODO
