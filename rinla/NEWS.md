@@ -1,3 +1,8 @@
+# INLA 24.03.18
+* gcpo development (new features) and code improvement
+* likelihood `fl` changes
+* `MatrixModels` moved to Imports
+
 # INLA 24.03.09
 * Code optimization and improvement
 
