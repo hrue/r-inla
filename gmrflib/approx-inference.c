@@ -3204,7 +3204,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 	if (!(gcpo_param->weights) || (gcpo_param->weights && gcpo_param->len_weights < Npred)) {
 		double *w = Calloc(Npred, double);
-		GMRFLib_fill(Npred, 1.0, w); 
+		GMRFLib_fill(Npred, 1.0, w);
 		if (gcpo_param->weights) {
 			// use those who already are defined
 			Memcpy(w, gcpo_param->weights, gcpo_param->len_weights * sizeof(double));

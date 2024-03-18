@@ -130,8 +130,7 @@ int GMRFLib_dscale(int n, double a, double *x);
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp * store);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
-double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity,
-			       GMRFLib_gsl_ldnorm_store_tp * store);
+double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity, GMRFLib_gsl_ldnorm_store_tp * store);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);

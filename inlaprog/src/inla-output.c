@@ -2011,7 +2011,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				double *buffer = Calloc(len, double);
 				ret = fread((void *) buffer, sizeof(double), (size_t) len, fp);
 				assert(ret == len);
-				mb->gcpo_param->len_weights = len; /*  need to validate later that len >= Npred */
+				mb->gcpo_param->len_weights = len;	/* need to validate later that len >= Npred */
 				mb->gcpo_param->weights = buffer;
 				fclose(fp);
 			}
