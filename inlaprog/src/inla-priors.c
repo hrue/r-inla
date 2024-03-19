@@ -1385,7 +1385,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 
 #pragma omp critical (Name_efff84617ceb85320978c2deffcb5b8433bc888d)
 		{
-			inla_R_init_();
+			inla_R_init();
 			inla_R_load(tag[2]);
 		}
 
