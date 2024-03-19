@@ -1124,7 +1124,8 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 			for (int i = 0; i < m; i++) {
 				double eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = c[0] + c[1] * eta - 0.5 * c[2] * SQR(c[3] - eta) - c[4] * exp(c[5] + c[6] * eta)
-				    + c[7] * (exp(c[9] * eta) - exp(c[8] * eta)) / PUSH_AWAY(eta);
+					+ c[7] * expm1(c[8] * eta) / PUSH_AWAY(eta);
+				// + c[7] * (exp(c[8] * eta) - 1.0) / PUSH_AWAY(eta);
 			}
 		}
 
@@ -1151,7 +1152,7 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 		if (!ISZERO(c[7])) {
 			double sign = SIGN(c[8]);
 			for (int i = 0; i < m; i++) {
-				logll[i] += (-c[7] * log((exp(c[8] * eta[i]) - 1.0) / (sign * PUSH_AWAY(eta[i]))));
+				logll[i] += (-c[7] * log(expm1(c[8] * eta[i]) / (sign * PUSH_AWAY(eta[i]))));
 			}
 		}
 	} else {
