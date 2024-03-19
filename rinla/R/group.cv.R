@@ -21,16 +21,18 @@
              group.cv = NULL,
              
              #' @param num.level.sets Number of level.sets to use. The default value
-             #' `-1` corresponds to leave-one-out cross-validation.
+             #' `-1` corresponds to leave-one-out cross-validation. If argument `weights` is
+             #' used, then this is the minimum weighted sum of a group. 
              num.level.sets = -1, 
 
              #' @param strategy One of `"posterior"` or `"prior"`. See the
              #' vignette for details.
              strategy = c("posterior", "prior"), 
              
-             #' @param size.max The maximum size (number of nodes) of a group. If the computed
-             #' group-size is larger, it will be truncated to `size.max`. With `weights`, then
-             #' this corresponds to the number of nodes in the group, and NOT the sum of the
+             #' @param size.max The maximum size (measure in the number of nodes) of a group. If the computed
+             #' group-size is larger, it will be truncated to `size.max`. Note that: If
+             #' `weights` are in use, then
+             #' this still corresponds to the number of nodes in the group, and not the sum of the
              #' weights. This is ment as an emergency option to avoid the size of the
              #' group to go nuts.
              size.max = 32,
