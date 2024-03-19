@@ -4001,12 +4001,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
 									\
-		if (gcpodens_moments) {					\
-			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
-			gcpodens_moments[node * 3 + 1] = SQR(gcpo[node]->lpred_sd); \
-			gcpodens_moments[node * 3 + 2] = gcpo[node]->marg_theta_correction; \
-		}							\
-									\
 		if (d[node] && (!(gcpo_param->type) || gcpo_param->type[node] == 0)) { \
 			/* do the integral by approximating phi(x)*exp(ll(x)) with a normal, and */ \
 			/* then do the GHQ with respect to that normal as the kernel, with the */ \
@@ -4039,7 +4033,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					* weights[i];			\
 			}						\
 			gcpo[node]->value = val * sqrt(lp_prec/loc_prec); \
-			gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
+			if (corr_hyper) {				\
+				gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
+			}						\
 		} else if (d[node] && gcpo_param->type && gcpo_param->type[node] != 0) { \
 			/* x = B z + mean_old */			\
 			/* zmean */					\
@@ -4123,10 +4119,19 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			/* need to divide the call to _dnorm to avoid potential issue with common store */ \
 			lla += GMRFLib_gsl_ldnorm_x(zstar, zmean, QQ, NULL, 0, lstore->log_dnorm_store); \
 			gcpo[node]->value = lla - GMRFLib_gsl_ldnorm_x(NULL, NULL, Qstar, NULL, 0, lstore->log_dnorm_store); \
-			gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
+			if (corr_hyper) {				\
+				/* ->value is in log-scale at this point */ \
+				gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
+			}						\
 			gcpo[node]->value = exp(gcpo[node]->value);	\
 		} else {						\
 			gcpo[node]->value = NAN;			\
+		}							\
+									\
+		if (gcpodens_moments) {					\
+			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
+			gcpodens_moments[node * 3 + 1] = SQR(gcpo[node]->lpred_sd); \
+			gcpodens_moments[node * 3 + 2] = gcpo[node]->marg_theta_correction; \
 		}							\
 									\
 		if (gcpo_param->verbose || detailed_output) {		\
