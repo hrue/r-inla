@@ -3189,6 +3189,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl))
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define W(node_) (gcpo_param->weights[node_])
 #define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
 			     GMRFLib_iwhich_sorted(node_,		\
 						   gcpo_param->group_selection->idx, \
@@ -3213,7 +3214,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		gcpo_param->weights = w;
 		gcpo_param->len_weights = Npred;
 	}
-#define W(idx_) (gcpo_param->weights[idx_])
 
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose || detailed_output) {
@@ -3597,9 +3597,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 	}
 
-#undef LEGAL_TO_ADD
 #undef A_idx
 #undef W
+#undef LEGAL_TO_ADD
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
 }
