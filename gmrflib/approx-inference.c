@@ -3356,7 +3356,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		double *isd = Calloc(mnpred, double);
-		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS(gcpo_param->num_level_sets));
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -3544,7 +3544,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS(gcpo_param->num_level_sets));
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS((int) gcpo_param->num_level_sets));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -3554,7 +3554,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS(gcpo_param->num_level_sets));
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS((int)gcpo_param->num_level_sets));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
@@ -4072,10 +4072,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			gsl_matrix *Qstar = lstore->Qstar;		\
 									\
 			double lla = 0.0;				\
-			for (size_t i = 0; i < m; i++) {		\
-				/* this is half way between no-data and with data */ \
-				gsl_vector_set(zstar, i, 0.5 * gsl_vector_get(zmean, i)); \
-			}						\
+			gsl_vector_set_zero(zstar);			\
+									\
 			for (int iter = 0; iter < max_iter; iter++) {	\
 				lla = 0.0;				\
 				gsl_vector_memcpy(zstarp, zstar);	\
@@ -4112,10 +4110,17 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				}					\
 				GMRFLib_gsl_spd_solve_x(Qstar, vec, zstar, lstore->spd_solve_store); \
 				double rms = GMRFLib_gsl_rms(zstar, zstarp); \
-				if (gcpo_param->verbose || detailed_output) printf("%s[%1d]: iter %1d for node %d rms %.8g\n", __GMRFLib_FuncName, \
-										   omp_get_thread_num(), iter, node, GMRFLib_gsl_rms(zstar, zstarp)); \
-				if (detailed_output) GMRFLib_printf_gsl_vector(stdout, zstar, "\t%.6g"); \
-				if (rms < eps) break;			\
+									\
+				if (gcpo_param->verbose || detailed_output) { \
+					printf("%s[%1d]: iter %1d for node %d rms %.8g\n", __GMRFLib_FuncName, \
+					       omp_get_thread_num(), iter, node, GMRFLib_gsl_rms(zstar, zstarp)); \
+				}					\
+				if (detailed_output) {			\
+					GMRFLib_printf_gsl_vector(stdout, zstar, "\t%.6g"); \
+				}					\
+				if (rms < eps) {			\
+					break;				\
+				}					\
 			}						\
 			/* need to divide the call to _dnorm to avoid potential issue with common store */ \
 			lla += GMRFLib_gsl_ldnorm_x(zstar, zmean, QQ, NULL, 0, lstore->log_dnorm_store); \
