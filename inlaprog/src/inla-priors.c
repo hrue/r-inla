@@ -1382,13 +1382,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
 		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);
 		prior->parameters = NULL;
-
-#pragma omp critical (Name_efff84617ceb85320978c2deffcb5b8433bc888d)
-		{
-			inla_R_init_();
-			inla_R_load(tag[2]);
-		}
-
+		inla_R_load(tag[2]);
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->rprior);
 		}

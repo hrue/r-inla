@@ -31,7 +31,6 @@ knitr::opts_chunk$set(fig.path="figures/conditional-logit/")
 library(INLA)
 library(dplyr)
 library(ggplot2)
-library(ggtern)
 ```
 
 
@@ -161,16 +160,7 @@ data %>% head(.)
 
 ### Plotting the simulated data
 
-```{r, fig.cap = "Simulated data in the Simplex and also using alr-coordinates in terms of x"}
-### Ternary plot
-ggtern::ggtern(data = data,
-       aes(y1, y2, y3)) + 
-   #geom_mask() +
-   geom_point(aes(fill = x), shape=21, size=2) + 
-   theme_bw() +
-   theme_showarrows() +
-   theme_clockwise() -> p_y
-
+```{r, fig.cap = "Simulated data using alr-coordinates in terms of x"}
 ### Alr coordinates
 data %>% 
   tidyr::pivot_longer(., cols = ,starts_with("alr"), 
@@ -183,8 +173,7 @@ data %>%
   theme(legend.position = "bottom") -> p_alr
 
 #pdf("simulated_data.pdf", width = 8, height = 6)
-grid.arrange(arrangeGrob(p_y,
-                         p_alr + theme(legend.position = "none")))
+p_alr
 #dev.off()
 ```
 

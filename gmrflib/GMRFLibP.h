@@ -367,6 +367,11 @@ typedef enum {
 		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_, ddd_); \
 	}
 
+#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_, ddd_, dddd_); \
+	}
+
 #define GMRFLib_TRACE_i(msg_, i_)					\
 	if (trace_ && !((trace_count_ - 1) % trace_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_); \

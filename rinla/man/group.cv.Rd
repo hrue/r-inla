@@ -32,14 +32,16 @@ inla.group.cv(
 \code{inla.group.cv()}.}
 
 \item{num.level.sets}{Number of level.sets to use. The default value
-\code{-1} corresponds to leave-one-out cross-validation.}
+\code{-1} corresponds to leave-one-out cross-validation. If argument \code{weights} is
+used, then this is threshold for the sum of the weights defining a group.}
 
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
 vignette for details.}
 
-\item{size.max}{The maximum size (number of nodes) of a group. If the computed
-group-size is larger, it will be truncated to \code{size.max}. With \code{weights}, then
-this corresponds to the number of nodes in the group, and NOT the sum of the
+\item{size.max}{The maximum size (measure in the number of nodes) of a group. If the computed
+group-size is larger, it will be truncated to \code{size.max}. Note that: If
+\code{weights} are in use, then
+this still corresponds to the number of nodes in the group, and not the sum of the
 weights. This is ment as an emergency option to avoid the size of the
 group to go nuts.}
 

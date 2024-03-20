@@ -252,8 +252,10 @@ int main(int argc, char **argv)
 		GMRFLib_blockupdate(&lacc, xnew, x, NULL, NULL,	/* zero vectors */
 				    NULL, NULL,		       /* zero vectors */
 				    NULL, NULL,		       /* zero vectors */
-				    d, d, loglik, (void *) arguments_loglik, loglik, (void *) arguments_loglik, NULL,	/* none fixed values, update all */
-				    G.graph, Qfunc, (void *) arguments_new, Qfunc, (void *) arguments_old, NULL, NULL,	/* default values used here */
+				    d, d, loglik, (void *) arguments_loglik, loglik, (void *) arguments_loglik, NULL,	/* none fixed values,
+															 * update all */
+				    G.graph, Qfunc, (void *) arguments_new, Qfunc, (void *) arguments_old, NULL, NULL,	/* default values used here 
+															 */
 				    NULL, NULL,		       /* default values used here */
 				    constr, constr, optimize_param, blockupdate_param);
 
@@ -276,7 +278,8 @@ int main(int argc, char **argv)
 		 * that's it ! 
 		 */
 		eprob += exp(DMIN(0.0, lacc));
-		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter, 1. / ((GMRFLib_timer() - timeref) / counter), kappa);
+		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter,
+		       1. / ((GMRFLib_timer() - timeref) / counter), kappa);
 	}
 	return 0;
 }

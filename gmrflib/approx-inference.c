@@ -3189,6 +3189,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl))
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define W(node_) (gcpo_param->weights[node_])
 #define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
 			     GMRFLib_iwhich_sorted(node_,		\
 						   gcpo_param->group_selection->idx, \
@@ -3213,7 +3214,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		gcpo_param->weights = w;
 		gcpo_param->len_weights = Npred;
 	}
-#define W(idx_) (gcpo_param->weights[idx_])
 
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose || detailed_output) {
@@ -3356,7 +3356,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		double *isd = Calloc(mnpred, double);
-		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->num_level_sets));
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS(gcpo_param->num_level_sets));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -3385,7 +3385,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		if (gcpo_param->verbose || detailed_output) {
 			assert(selection);
-			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1d\n", __GMRFLib_FuncName,
+			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1g\n", __GMRFLib_FuncName,
 			       omp_get_thread_num(), selection->n, gcpo_param->num_level_sets);
 		}
 		assert(selection);
@@ -3398,7 +3398,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			CODE_BLOCK_ALL_WORK_ZERO();			\
 			int node = selection->idx[ii];			\
 									\
-			if (gcpo_param->num_level_sets == -1) {		\
+			if (gcpo_param->num_level_sets == -1.0) {	\
 				GMRFLib_idxval_add(&(groups[node]), node, 1.0); \
 				continue;				\
 			}						\
@@ -3442,13 +3442,14 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									\
 			cor[node] = cor_abs[node] = 1.0;		\
 			int levels_ok = 0;				\
-			int levels_magnify = 1;				\
+			double levels_magnify = 1.0;			\
 									\
 			while (!levels_ok) {				\
 				groups[node]->n = 0;			\
-				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)); \
-				levels_magnify *= 4;			\
-				GMRFLib_DEBUG_i_v("node siz_g Npred num_level_sets levels_magnify", node, siz_g, Npred, gcpo_param->num_level_sets, levels_magnify); \
+				int siz_g = IMIN(Npred, (int) (levels_magnify * (ABS(gcpo_param->num_level_sets) + 4L))); \
+				levels_magnify *= 4.0;			\
+				GMRFLib_DEBUG_idddd("node siz_g Npred num_level_sets levels_magnify", node, (double) siz_g, (double) Npred, \
+						    gcpo_param->num_level_sets, levels_magnify); \
 				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
 									\
 				double sumw = W(node);			\
@@ -3539,11 +3540,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 
-		// if the number of given groups are to short compared to Npred, then pad with empty groups. if its longer then that is an error.
+		// if the number of given groups are to short compared to Npred, then pad with empty groups. if its longer, then that is an error.
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), IABS(gcpo_param->num_level_sets));
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS(gcpo_param->num_level_sets));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -3553,7 +3554,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, IABS(gcpo_param->num_level_sets));
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS(gcpo_param->num_level_sets));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
@@ -3596,9 +3597,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 	}
 
-#undef LEGAL_TO_ADD
 #undef A_idx
 #undef W
+#undef LEGAL_TO_ADD
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
 }
@@ -4001,12 +4002,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
 									\
-		if (gcpodens_moments) {					\
-			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
-			gcpodens_moments[node * 3 + 1] = SQR(gcpo[node]->lpred_sd); \
-			gcpodens_moments[node * 3 + 2] = gcpo[node]->marg_theta_correction; \
-		}							\
-									\
 		if (d[node] && (!(gcpo_param->type) || gcpo_param->type[node] == 0)) { \
 			/* do the integral by approximating phi(x)*exp(ll(x)) with a normal, and */ \
 			/* then do the GHQ with respect to that normal as the kernel, with the */ \
@@ -4039,7 +4034,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					* weights[i];			\
 			}						\
 			gcpo[node]->value = val * sqrt(lp_prec/loc_prec); \
-			gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
+			if (corr_hyper) {				\
+				gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
+			}						\
 		} else if (d[node] && gcpo_param->type && gcpo_param->type[node] != 0) { \
 			/* x = B z + mean_old */			\
 			/* zmean */					\
@@ -4123,10 +4120,19 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			/* need to divide the call to _dnorm to avoid potential issue with common store */ \
 			lla += GMRFLib_gsl_ldnorm_x(zstar, zmean, QQ, NULL, 0, lstore->log_dnorm_store); \
 			gcpo[node]->value = lla - GMRFLib_gsl_ldnorm_x(NULL, NULL, Qstar, NULL, 0, lstore->log_dnorm_store); \
-			gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
+			if (corr_hyper) {				\
+				/* ->value is in log-scale at this point */ \
+				gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
+			}						\
 			gcpo[node]->value = exp(gcpo[node]->value);	\
 		} else {						\
 			gcpo[node]->value = NAN;			\
+		}							\
+									\
+		if (gcpodens_moments) {					\
+			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
+			gcpodens_moments[node * 3 + 1] = SQR(gcpo[node]->lpred_sd); \
+			gcpodens_moments[node * 3 + 2] = gcpo[node]->marg_theta_correction; \
 		}							\
 									\
 		if (gcpo_param->verbose || detailed_output) {		\

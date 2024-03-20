@@ -233,7 +233,8 @@ int main(int argc, char **argv, char **env)
 				log_kappa[i][0] = lkappa;
 			}
 			GMRFLib_ai_marginal_hyperparam(&logdens,
-						       NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL, ai_par, ai_store);
+						       NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL,
+						       ai_par, ai_store);
 			double theta[2];
 			theta[0] = nnu;
 			theta[1] = lkappa;

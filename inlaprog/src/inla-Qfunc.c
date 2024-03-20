@@ -403,9 +403,6 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 					}
 				}
 
-				if (debug) {
-					printf("\tCall rgeneric\n");
-				}
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, &(a->ntheta), a_tmp);
 				if (debug) {
 					printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
@@ -654,9 +651,6 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 				}
 			}
 
-			if (debug) {
-				printf("Call rgeneric\n");
-			}
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_MU, a->model, &(a->ntheta), a->mu_param[id]);
 			if (debug) {
 				printf("Return from rgeneric with n_out= %1d\n", n_out);

@@ -205,10 +205,10 @@ int main(int argc, char **argv)
 	/*
 	 * compute the hierarchical GMRF model 
 	 */
-	GMRFLib_init_hgmrfm(&hgmrfm, NDATA, &log_prec_unstruct, NULL, 2, c, NULL, f_graph, f_Qfunc, f_Qfunc_arg, f_constr, NULL, NULL, NULL, 1, covariates,
-			    prec, 0, NULL, NULL);
-	GMRFLib_init_hgmrfm(&hgmrfm_new, NDATA, &log_prec_unstruct_new, NULL, 2, c, NULL, f_graph, f_Qfunc, f_Qfunc_arg_new, f_constr, NULL, NULL, NULL, 1,
+	GMRFLib_init_hgmrfm(&hgmrfm, NDATA, &log_prec_unstruct, NULL, 2, c, NULL, f_graph, f_Qfunc, f_Qfunc_arg, f_constr, NULL, NULL, NULL, 1,
 			    covariates, prec, 0, NULL, NULL);
+	GMRFLib_init_hgmrfm(&hgmrfm_new, NDATA, &log_prec_unstruct_new, NULL, 2, c, NULL, f_graph, f_Qfunc, f_Qfunc_arg_new, f_constr, NULL, NULL,
+			    NULL, 1, covariates, prec, 0, NULL, NULL);
 
 	N = hgmrfm->graph->n;
 	assert(N == NDATA + NG0 + NG1 + 1);

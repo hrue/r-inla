@@ -1335,7 +1335,7 @@
     }
 
     ## do we have CPO and a friends-list?  convert this into groups
-    gsiz <- round(gcpo$num.level.sets)
+    gsiz <- gcpo$num.level.sets
     if (gsiz <= 0 && !is.null(gcpo$friends)) {
         friends <- gcpo$friends
         len <- length(friends)
@@ -1395,7 +1395,7 @@
         cat("gcpo.groups =", fnm, "\n", file = file, append = TRUE)
     } else {
         ## gsiz = -1 is CPO,  gsiz = 0 or gsiz < -1 means the default value 1
-        gsiz <- round(gcpo$num.level.sets)
+        gsiz <- gcpo$num.level.sets
         if (gsiz <= 0) gsiz <- -1
         cat("gcpo.num.level.sets", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
 

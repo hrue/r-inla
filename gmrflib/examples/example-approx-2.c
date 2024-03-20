@@ -265,8 +265,8 @@ int main(int argc, char **argv, char **env)
 
 	GMRFLib_ai_INLA(&density, &gdensity, NULL, NULL, NULL, marginal_likelihood, NULL,
 			compute,
-			hyper, n_hyper, extra, NULL, NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL, ai_par, ai_store,
-			NULL, NULL, 0, NULL, NULL);
+			hyper, n_hyper, extra, NULL, NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL, ai_par,
+			ai_store, NULL, NULL, 0, NULL, NULL);
 	/*
 	 * print the results 
 	 */

@@ -818,12 +818,12 @@ typedef enum {
 						  "UNKNOWN"))
 
 typedef struct {
-	int num_level_sets;
 	int size_max;
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;
 	int len_weights;				       /* need to check later for Npred... */
+	double num_level_sets;
 	double epsilon;
 	double prior_diagonal;
 	double *weights;
