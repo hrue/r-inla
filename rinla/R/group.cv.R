@@ -22,7 +22,7 @@
              
              #' @param num.level.sets Number of level.sets to use. The default value
              #' `-1` corresponds to leave-one-out cross-validation. If argument `weights` is
-             #' used, then this is the minimum weighted sum of a group. 
+             #' used, then this is threshold for the sum of the weights defining a group. 
              num.level.sets = -1, 
 
              #' @param strategy One of `"posterior"` or `"prior"`. See the

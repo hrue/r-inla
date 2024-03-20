@@ -33,7 +33,7 @@ inla.group.cv(
 
 \item{num.level.sets}{Number of level.sets to use. The default value
 \code{-1} corresponds to leave-one-out cross-validation. If argument \code{weights} is
-used, then this is the minimum weighted sum of a group.}
+used, then this is threshold for the sum of the weights defining a group.}
 
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
 vignette for details.}
