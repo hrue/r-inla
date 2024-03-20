@@ -1,3 +1,8 @@
+# INLA 24.03.20
+* Fixed issue in `rprior`
+* More development for `gcpo`
+* Update vignette about CODA
+
 # INLA 24.03.18
 * gcpo development (new features) and code improvement
 * likelihood `fl` changes
