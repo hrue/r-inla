@@ -3633,7 +3633,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		}
 	}
 
-	Calloc_init(mnpred + 2 * Npred, 3);
+	Calloc_init(mnpred + 3 * Npred, 4);
 	double *sd = Calloc_get(mnpred);
 	GMRFLib_gcpo_elm_tp **gcpo = Calloc(Npred, GMRFLib_gcpo_elm_tp *);
 	for (int i = 0; i < Npred; i++) {
@@ -3772,14 +3772,15 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	assert(num_error == 0);
 
 	// precompute all the logll terms to avoid to compute them to many times
+	double *local_aa = Calloc_get(Npred);
 	double *local_bb = Calloc_get(Npred);
 	double *local_cc = Calloc_get(Npred);
 
 #define CODE_BLOCK							\
 	for(int i = 0; i < d_idx->n; i++) {				\
 		int nnode = d_idx->idx[i];				\
-		double local_aa_tmp;					\
-		GMRFLib_2order_approx(thread_id, &local_aa_tmp, &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], lpred_mode[nnode], nnode, \
+		double xx = lpred_mode[nnode];				\
+		GMRFLib_2order_approx(thread_id, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
 				      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 	}
 
@@ -4070,26 +4071,36 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 									\
 			lstore->Qstar->size1 = lstore->Qstar->size2 = m; \
 			gsl_matrix *Qstar = lstore->Qstar;		\
-									\
 			double lla = 0.0;				\
-			gsl_vector_set_zero(zstar);			\
 									\
 			for (int iter = 0; iter < max_iter; iter++) {	\
 				lla = 0.0;				\
-				gsl_vector_memcpy(zstarp, zstar);	\
-				GMRFLib_gsl_mv(B, zstar, xstar);	\
-				for (int i = 0; i < ng; i++) {		\
-					gsl_vector_set(xstar, i, gsl_vector_get(xstar, i) + gsl_vector_get(mean_old, i)); \
-				}					\
-				for (int i = 0; i < ng; i++) {		\
-					int nnode = idxs[i];		\
-					double ll_a = 0.0, ll_b = 0.0, ll_c = 0.0; \
-					double xx = gsl_vector_get(xstar, i); \
-					GMRFLib_2order_approx(thread_id, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
-							      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
-					gsl_vector_set(b, i, ll_b);	\
-					gsl_matrix_set(C, i, i, ll_c);	\
-					lla += ll_a + xx * (ll_b - 0.5 * xx * ll_c); \
+				if (iter == 0) {			\
+					gsl_vector_set_zero(zstar);	\
+					gsl_vector_memcpy(xstar, mean_old); \
+					for (int i = 0; i < ng; i++) {	\
+						int nnode = idxs[i];	\
+						double xx = gsl_vector_get(xstar, i); \
+						gsl_vector_set(b, i, local_bb[nnode]); \
+						gsl_matrix_set(C, i, i, local_cc[nnode]); \
+						lla += local_aa[nnode] + xx * (local_bb[nnode] - 0.5 * xx * local_cc[nnode]); \
+					}				\
+				} else {				\
+					gsl_vector_memcpy(zstarp, zstar); \
+					GMRFLib_gsl_mv(B, zstar, xstar); \
+					for (int i = 0; i < ng; i++) {	\
+						gsl_vector_set(xstar, i, gsl_vector_get(xstar, i) + gsl_vector_get(mean_old, i)); \
+					}				\
+					for (int i = 0; i < ng; i++) {	\
+						int nnode = idxs[i];	\
+						double ll_a = 0.0, ll_b = 0.0, ll_c = 0.0; \
+						double xx = gsl_vector_get(xstar, i); \
+						GMRFLib_2order_approx(thread_id, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
+								      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
+						gsl_vector_set(b, i, ll_b); \
+						gsl_matrix_set(C, i, i, ll_c); \
+						lla += ll_a + xx * (ll_b - 0.5 * xx * ll_c); \
+					}				\
 				}					\
 				GMRFLib_gsl_mmm(Bt, C, B, Qstar);	\
 				for (size_t i = 0; i < m; i++) {	\
