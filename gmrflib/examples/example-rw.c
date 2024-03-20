@@ -142,7 +142,8 @@ int main(int argc, char **argv)
 	 */
 
 	GMRFLib_init_problem(&problem, x, b, c, NULL, graph,
-			     (order == 1 ? GMRFLib_rw : GMRFLib_crw), (order == 1 ? (void *) rwdef : (void *) crwdef), NULL, NULL, GMRFLib_NEW_PROBLEM);
+			     (order == 1 ? GMRFLib_rw : GMRFLib_crw), (order == 1 ? (void *) rwdef : (void *) crwdef), NULL, NULL,
+			     GMRFLib_NEW_PROBLEM);
 	for (k = 0; k < NSAMPLES; k++) {
 		GMRFLib_sample(problem);
 		memcpy(&samples[k * N], problem->sample, N * sizeof(double));

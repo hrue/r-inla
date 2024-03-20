@@ -11430,14 +11430,15 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * we need to know ntheta, therefore we need to initialise and load files etc, here...
 		 */
-#pragma omp critical (Name_4dc2f57513bfff130bbf6befdb6223652c8569da)
-		{
+
+		int zero = 0;
+		if (R_load_INLA) {
 			inla_R_library("INLA");
-			inla_R_load(rgeneric_filename);
-			int zero = 0;
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, &zero, NULL);
-			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, &zero, NULL);	/* need graph->n */
+			R_load_INLA = 0;
 		}
+		inla_R_load(rgeneric_filename);
+		inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, &zero, NULL);
+		inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, &zero, NULL);	/* need graph->n */
 
 		nn = (int) xx_out[0];
 		if (mb->f_n[mb->nf] != nn) {
@@ -15410,16 +15411,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			def_orig->theta = NULL;
 		}
 
-		int n_out;
+		int n_out, zero = 0;
 		double *x_out;
-#pragma omp critical (Name_0c216629b47f30b75846e1131aec8233bfdd80bb)
-		{
-			int zero = 0;
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, &zero, NULL);
-		}
+		inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, &zero, NULL);
 
 		int len, *ilist, *jlist;
-
 		k = 0;
 		assert(n_out >= 2);
 		n = (int) x_out[k++];
@@ -17651,7 +17647,10 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		mb->jp = Calloc(1, inla_jp_tp);
 		mb->jp->file = Strdup(file);
 		mb->jp->model = Strdup(model);
-		inla_R_library("INLA");			       /* initialize here */
+		if (R_load_INLA) {
+			inla_R_library("INLA");		       /* initialize here */
+			R_load_INLA = 0;
+		}
 	} else {
 		mb->jp = NULL;
 	}

@@ -137,6 +137,8 @@ double *G_norm_const = NULL;				       /* store static normalization constants f
 void **G_norm_const_v = NULL;
 char *G_norm_const_compute = NULL;			       /* to be computed */
 
+int R_load_INLA = 1;
+
 /* 
    default values for priors
  */
@@ -1517,23 +1519,26 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	static void *jp_vec_sexp = NULL;
 
 	if (mb->jp) {
-#pragma omp critical (Name_886e56613636db7114635f9aacba5e4fc01cca40)
 		{
 			if (jp_first_time) {
-				char **vec_str = NULL;
-				inla_R_load(mb->jp->file);
-				if (mb->ntheta > 0) {
-					vec_str = Calloc(mb->ntheta, char *);
-					for (i = 0; i < mb->ntheta; i++) {
-						vec_str[i] = Strdup(mb->theta_tag[i]);
+#pragma omp critical (Name_886e56613636db7114635f9aacba5e4fc01cca40)
+				if (jp_first_time) {
+					char **vec_str = NULL;
+
+					inla_R_load(mb->jp->file);
+					if (mb->ntheta > 0) {
+						vec_str = Calloc(mb->ntheta, char *);
+						for (i = 0; i < mb->ntheta; i++) {
+							vec_str[i] = Strdup(mb->theta_tag[i]);
+						}
 					}
-				}
-				jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
-				if (vec_str) {
-					for (i = 0; i < mb->ntheta; i++) {
-						Free(vec_str[i]);
+					jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
+					if (vec_str) {
+						for (i = 0; i < mb->ntheta; i++) {
+							Free(vec_str[i]);
+						}
+						Free(vec_str);
 					}
-					Free(vec_str);
 				}
 				jp_first_time = 0;
 			}
@@ -4043,11 +4048,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 			}
 
-#pragma omp critical (Name_58ab1229a36b0d20f9c714d7896ab4820282193b)
-			{
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, &nt, param);
-				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, &nt, param);
-			}
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, &nt, param);
+			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, &nt, param);
 
 			switch (nn_out) {
 			case 0:
@@ -4075,10 +4077,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-#pragma omp critical (Name_94438d8a0faa6fe9957180657829e121c750f1f2)
-				{
-					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &nt, param);
-				}
+
+				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &nt, param);
 				assert(nn_out >= 2);
 
 				if ((int) xx_out[0] == -1) {

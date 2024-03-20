@@ -211,7 +211,8 @@ int main(int argc, char **argv, char **env)
 	for (i = 0; i < G.graph->n; i++)
 		if (compute[i]) {
 			GMRFLib_ai_marginal_hidden(&density[i], NULL,
-						   i, NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL, ai_par, ai_store);
+						   i, NULL, NULL, NULL, NULL, G.d, loglik, NULL, NULL, G.graph, Qfunc, (void *) &Qarg, NULL, ai_par,
+						   ai_store);
 		}
 	/*
 	 * print the results 

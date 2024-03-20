@@ -149,15 +149,14 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
 		return (inla_eval_table(expression + strlen("TABLE:"), x, theta, ntheta));
 	} else if (strncasecmp(expression, "RPRIOR:", strlen("RPRIOR:")) == 0) {
-		int n_out = 0;
-		double *x_out = NULL, ret;
-#pragma omp critical (Name_4c5c16c31e48a263f6ddcd4bc0d6f4b7e792d0de)
-		{
-			inla_R_funcall1(&n_out, &x_out, expression + strlen("RPRIOR:"), &ntheta, theta);
-		}
+		int n_out = 0, one = 1;
+		double *x_out = NULL, ret = 0.0;
+
+		inla_R_funcall1(&n_out, &x_out, expression + strlen("RPRIOR:"), &one, x);
 		assert(n_out == 1);
 		ret = *x_out;
 		Free(x_out);
+
 		return (ret);
 	}
 
