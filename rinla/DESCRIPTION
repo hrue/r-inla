@@ -177,6 +177,7 @@ Collate:
     'sampler.R'
     'sandbox.R'
     'scale.model.R'
+    'scopy.define.R'
     'scopy.summary.R'
     'sections.R'
     'set.default.arguments.R'
