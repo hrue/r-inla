@@ -159,6 +159,8 @@ int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, const char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_sort(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2);
+int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2);
 int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);

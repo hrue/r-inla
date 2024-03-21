@@ -4076,6 +4076,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			for (int iter = 0; iter < max_iter; iter++) {	\
 				lla = 0.0;				\
 				if (iter == 0) {			\
+					/* This is the initial value corresponding to full-data */ \
 					gsl_vector_set_zero(zstar);	\
 					gsl_vector_memcpy(xstar, mean_old); \
 					for (int i = 0; i < ng; i++) {	\
