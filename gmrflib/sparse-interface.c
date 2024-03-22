@@ -234,6 +234,11 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	{
 		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->TAUCS_cache),
 							    &(sm_fact->finfo), &(sm_fact->TAUCS_L_inv_diag));
+		if (GMRFLib_taucs_use_crs) {
+			sm_fact->TAUCS_LL = GMRFLib_ccs2crs(sm_fact->TAUCS_L);
+		} else {
+			sm_fact->TAUCS_LL = NULL;
+		}
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}
@@ -275,7 +280,7 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 
 		case GMRFLib_SMTP_TAUCS:
 		{
-			GMRFLib_free_fact_sparse_matrix_TAUCS(sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact);
+			GMRFLib_free_fact_sparse_matrix_TAUCS(sm_fact->TAUCS_L, sm_fact->TAUCS_LL, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact);
 			GMRFLib_taucs_cache_free(sm_fact->TAUCS_cache);
 			sm_fact->TAUCS_L = NULL;
 			sm_fact->TAUCS_symb_fact = NULL;
@@ -429,10 +434,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				reset_num_threads = 1;
 #pragma omp parallel for
 				for (int i = 0; i < nrhs; i++) {
-					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
+					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap);
 				}
 			} else {
-				GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap);
+				GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap);
 			}
 		} else {
 			// much of the same code as in the smtp-pardiso.c and solve_core function

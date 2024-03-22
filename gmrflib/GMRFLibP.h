@@ -600,6 +600,37 @@ typedef enum {
 #define GMRFLib_INT_GHQ_POINTS_PAD (1)			       /* So the _ALLOC_LEN is aligned well */
 #define GMRFLib_INT_GHQ_ALLOC_LEN (GMRFLib_INT_GHQ_POINTS + GMRFLib_INT_GHQ_POINTS_PAD)
 
+#define TIMER_INIT(use_, n_)				\
+	static double timer_[2 + (n_)];			\
+	static int timer_first_ = 1;			\
+	const int timer_use_ = use_;			\
+	int timer_n_ = 2 + n_;				\
+	int timer_idx_ = -1;				\
+	if (timer_use_ && timer_first_)	{		\
+		timer_first_ = 0;			\
+		GMRFLib_fill(timer_n_, 0.0, timer_);	\
+	}
+
+#define TIMER_CHECK							\
+	if (timer_use_) {						\
+		assert(timer_idx_ < timer_n_);				\
+		double tim = GMRFLib_timer();				\
+		if (timer_idx_ >= 0)					\
+			timer_[timer_idx_] += tim;			\
+		timer_[++timer_idx_] -= tim;				\
+	}
+
+#define TIMER_SUMMARY							\
+	TIMER_CHECK;							\
+	if (timer_use_ && timer_idx_ > 0) {				\
+		double sum = GMRFLib_dsum(timer_idx_, timer_);		\
+		printf("\n%s:%d: (%s) relative ", __FILE__, __LINE__, __GMRFLib_FuncName); \
+		for(int i_ = 0; i_ < timer_idx_; i_++) {		\
+			printf(" [%1d] %.4f", i_, timer_[i_] / sum);	\
+		}							\
+		printf("\n\n");						\
+	}								\
+
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
    Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the
