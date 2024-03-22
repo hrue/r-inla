@@ -1,5 +1,5 @@
 
-/* GMRFLib-smtp-taucs.c
+/* smtp-taucs.c
  * 
  * Copyright (C) 2001-2024 Havard Rue
  * 
@@ -531,10 +531,10 @@ taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix *LL)
 
 	L = Calloc(1, taucs_crs_matrix);
 	L->flags = LL->flags;
-	L->rowptr = Calloc(n+1, int);
+	L->rowptr = Calloc(n + 1, int);
 	L->colind = Calloc(nnz, int);
 	L->values.d = Calloc(nnz, double);
-	
+
 	Memcpy(LL->rowptr, L->rowptr, (n + 1) * sizeof(int));
 	Memcpy(LL->colind, L->colind, nnz * sizeof(int));
 	Memcpy(LL->values.d, L->values.d, nnz * sizeof(double));
@@ -1013,6 +1013,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	if (!LL) {
 		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
 	} else {
+		assert(0 == 1);
 		GMRFLib_my_taucs_dccs_solve_llt3(L, LL, rhs);
 	}
 
@@ -1685,12 +1686,10 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		int *rowind = L->rowind;
 
 		for (int j = 0; j < n; j++) {
-			// .../Ajj
 			y[j] = x[j] / d[colptr[j]];
 			double yj = y[j];
-
 			for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
-				//int i = rowind[ip]; double Aij = d[ip]; x[i] -= yj * Aij;
+				// int i = rowind[ip]; double Aij = d[ip]; x[i] -= yj * Aij;
 				x[rowind[ip]] -= yj * d[ip];
 			}
 		}
@@ -1748,9 +1747,9 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x)
 		y[0] = x[0] / d[0];
 		for (int i = 1; i < n; i++) {
 			double s = 0.0;
-			int m = rowptr[i+1]-rowptr[i];
-			if (m < 8) {
-				for (int j = rowptr[i]; j < rowptr[i+1]; j++) {
+			int m = rowptr[i + 1] - rowptr[i];
+			if (m < 4) {
+				for (int j = rowptr[i]; j < rowptr[i + 1]; j++) {
 					s += d[j] * y[colind[j]];
 				}
 			} else {
@@ -2049,7 +2048,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int debug = 0;
 	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
 
@@ -2103,6 +2102,14 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 			rowidx[i]++;
 		}
 	}
+
+	// ??? 
+	if (0)
+		for (int i = 0; i < n; i++) {
+			int m = LL->rowptr[i + 1] - LL->rowptr[i];
+			int j = LL->rowptr[i];
+			my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m);
+		}
 
 	if (debug) {
 		printf("CCS\n");

@@ -631,6 +631,7 @@ typedef enum {
 		printf("\n\n");						\
 	}								\
 
+
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
    Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the

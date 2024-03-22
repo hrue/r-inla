@@ -323,7 +323,6 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
-		printf("\t\ttaucs & crs [%s]\n", (GMRFLib_taucs_use_crs ? "yes" : "no"));
 	}
 
 	openmp_strategy = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), Strdup("DEFAULT")));

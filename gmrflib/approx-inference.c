@@ -3218,7 +3218,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	}
 
 	TIMER_CHECK;
-	
+
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose || detailed_output) {
 			printf("%s[%1d]: Build groups, strategy[%s]\n", __GMRFLib_FuncName, omp_get_thread_num(),
@@ -3394,8 +3394,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(selection);
 
-		static double tref[] = { 0.0, 0.0, 0.0};
-
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
@@ -3547,7 +3545,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	TIMER_CHECK;
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS((int)gcpo_param->num_level_sets));
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
@@ -3591,7 +3589,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	}
 
 	TIMER_SUMMARY;
-	
+
 #undef A_idx
 #undef W
 #undef LEGAL_TO_ADD
@@ -3609,7 +3607,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	GMRFLib_ENTER_ROUTINE;
 
 	TIMER_INIT(0, 10);
-	
+
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
@@ -3660,7 +3658,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	assert(skip);
 
 	TIMER_CHECK;
-	
+
 	for (int node = 0; node < Npred; node++) {
 		// this case does not need to be computed
 		if (groups->missing[node]->n == 1 && groups->missing[node]->idx[0][0] == node && groups->missing[node]->idx[1][0] == node) {
@@ -3675,7 +3673,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	}
 
 	TIMER_CHECK;
-	
+
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		int node = node_idx->idx[inode];			\
@@ -3744,7 +3742,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	Free(skip);
 
 	TIMER_CHECK;
-	
+
 	if (detailed_output) {
 #pragma omp critical (Name_0139eb204165e8e82ee3aaaaff59eab1d5b3cc14)
 		{
@@ -3776,7 +3774,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	assert(num_error == 0);
 
 	TIMER_CHECK;
-	
+
 	// precompute all the logll terms to avoid to compute them to many times
 	double *local_aa = Calloc_get(Npred);
 	double *local_bb = Calloc_get(Npred);
@@ -6395,17 +6393,36 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 	}
 
 	if (!ai_store->problem->sub_inverse) {
-		int i, n;
+		int n = ai_store->problem->n;
+
+		taucs_ccs_matrix *L = ai_store->problem->sub_sm_fact.TAUCS_L;
+		if (GMRFLib_taucs_sort_L && L) {
+#define CODE_BLOCK							\
+			for (int i = 0; i < n; i++) {			\
+				int m = L->colptr[i + 1] - L->colptr[i]; \
+				int j = L->colptr[i];			\
+				my_sort2_id(L->rowind + j, (double *) L->values.d + j, m); \
+			}
+
+			RUN_CODE_BLOCK(IMIN(4, GMRFLib_MAX_THREADS()), 0, 0);
+#undef CODE_BLOCK
+			
+		}
 
 		GMRFLib_Qinv(ai_store->problem);
 		Free(ai_store->stdev);
-		n = ai_store->problem->n;
 		ai_store->stdev = Calloc(n, double);
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			double *var = GMRFLib_Qinv_get(ai_store->problem, i, i);
 			ai_store->stdev[i] = (var ? sqrt(*var) : 0.0);
 		}
 	}
+
+	/*
+	 * if (GMRFLib_taucs_use_crs && ai_store->problem->sub_sm_fact.TAUCS_L) { if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
+	 * ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L); } } 
+	 */
+
 	return GMRFLib_SUCCESS;
 }
 
