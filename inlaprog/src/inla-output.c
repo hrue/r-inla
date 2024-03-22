@@ -1879,10 +1879,6 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 
-		if (mb->gcpo_param->num_level_sets > 0) {
-			GMRFLib_taucs_sort_L = 1;
-		}
-
 		char *str = NULL;
 		char *str_ptr = NULL;
 		char *token = NULL;
@@ -2069,6 +2065,10 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	}
 
 	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.ENABLE"), (*out)->gcpo);
+	if ((*out)->gcpo && mb->gcpo_param->num_level_sets > 0) {
+		GMRFLib_taucs_sort_L = 1;
+	}
+
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
 	(*out)->po = iniparser_getboolean(ini, inla_string_join(secname, "PO"), (*out)->po);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
