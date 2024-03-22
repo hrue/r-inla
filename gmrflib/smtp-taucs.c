@@ -1007,8 +1007,8 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, taucs_crs_matrix *LL, GMRFLib_graph_tp *graph, int *remap)
 {
-	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	assert(graph->n == L->n);
+	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 
 	if (!LL) {
 		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
@@ -2048,6 +2048,8 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {
+	GMRFLib_ENTER_ROUTINE;
+	
 	int debug = 0;
 	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
 
@@ -2135,6 +2137,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	}
 
 	Free(rowidx);
+	GMRFLib_LEAVE_ROUTINE;
 	return (LL);
 }
 

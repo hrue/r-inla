@@ -6641,8 +6641,14 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:w")) != -1) {
 		switch (opt) {
+		case 'w': 
+		{
+			GMRFLib_taucs_use_crs = 1;
+		}
+		break;
+			
 		case 'P':
 		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
