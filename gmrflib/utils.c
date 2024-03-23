@@ -1769,10 +1769,7 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
-	if (n == 0)
-		return;
-
-	if (GMRFLib_is_sorted_iinc(n, ix))
+	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
 		return;
 
 	if (1) {
@@ -1809,7 +1806,7 @@ void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 
 void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED(work))
 {
-	if (GMRFLib_is_sorted_iinc(n, ix))
+	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
 		return;
 
 	if (n < GMRFLib_sort2_id_cut_off) {
@@ -1822,7 +1819,7 @@ void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED
 
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 {
-	if (GMRFLib_is_sorted_dinc(n, ix))
+	if (n <= 1 || GMRFLib_is_sorted_dinc(n, ix))
 		return;
 
 	if (n < GMRFLib_sort2_dd_cut_off) {
@@ -1834,7 +1831,7 @@ void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 
 int my_sort2_id_test_cutoff(int verbose)
 {
-	const int nmax = 384;
+	const int nmax = 512;
 	const int nmin = 64;
 	const int nstep = 64;
 	const int ntimes = 200;
@@ -2132,7 +2129,7 @@ size_t GMRFLib_align(size_t n, size_t size)
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
-#define SOURCE_INLUCDE(CMP)						\
+#define SOURCE_INCLUDE(CMP)						\
 	const int roll = 4;						\
 	div_t d = div(n, roll);						\
 	int m = d.quot * roll;						\
@@ -2150,55 +2147,77 @@ size_t GMRFLib_align(size_t n, size_t size)
 	}								\
 	return 1
 
-int GMRFLib_is_sorted_iinc(int n, int *a)
-{
-	// increasing ints
-	SOURCE_INLUCDE(<);
-}
-
-int GMRFLib_is_sorted_dinc(int n, double *a)
-{
-	// increasing doubles
-	SOURCE_INLUCDE(<);
-}
-
-int GMRFLib_is_sorted_idec(int n, int *a)
-{
-	// decreasing ints
-	SOURCE_INLUCDE(>);
-}
-
-int GMRFLib_is_sorted_ddec(int n, double *a)
-{
-	// decreasing doubles
-	SOURCE_INLUCDE(>);
-}
-
-// the plain versions, takes about 1.5 to 2 times the time
-#undef SOURCE_INLUCDE
-#define SOURCE_INLUCDE(CMP)			\
+#define SOURCE_INCLUDE_PLAIN(CMP)		\
 	for (int i = 0; i < n - 1; i++)		\
 		if (a[i + 1] CMP a[i])		\
 			return 0;		\
 	return 1
 
+#define SOURCE_INCLUDE_SHORT(CMP)					\
+	switch(n) {							\
+	case 2: if (a[1] CMP a[0]) return 0; else return 1;		\
+	case 3: if (a[1] CMP a[0] || a[2] CMP a[1]) return 0; else return 1; \
+	case 4: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2]) return 0; else return 1; \
+	case 5: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3]) return 0; else return 1; \
+	case 6: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4]) return 0; else return 1;	\
+	case 7: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4] || a[6] CMP a[5]) return 0; else return 1;	\
+	case 8: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4] || a[6] CMP a[5] || a[7] CMP a[6]) return 0; else return 1;	\
+	case 0: return 1;						\
+	case 1: return 1;						\
+	}
+
+#define SOURCE_INCLUDE_CMP(CMP)			\
+	if (n <= 8) {				\
+		SOURCE_INCLUDE_SHORT( CMP );	\
+	} else {				\
+		SOURCE_INCLUDE( CMP );		\
+	}					\
+	return 0
+
+int GMRFLib_is_sorted_iinc(int n, int *a)
+{
+	// increasing ints
+	SOURCE_INCLUDE_CMP( <= );
+}
+
+int GMRFLib_is_sorted_dinc(int n, double *a)
+{
+	// increasing doubles
+	SOURCE_INCLUDE_CMP( <= );
+}
+
+int GMRFLib_is_sorted_idec(int n, int *a)
+{
+	// decreasing ints
+	SOURCE_INCLUDE_CMP( >= );
+}
+
+int GMRFLib_is_sorted_ddec(int n, double *a)
+{
+	// decreasing doubles
+	SOURCE_INCLUDE_CMP( >= );
+}
+
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	SOURCE_INLUCDE(<);
+	SOURCE_INCLUDE_PLAIN( <= );
 }
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	SOURCE_INLUCDE(<);
+	SOURCE_INCLUDE_PLAIN( <= );
 }
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	SOURCE_INLUCDE(>);
+	SOURCE_INCLUDE_PLAIN( >= );
 }
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	SOURCE_INLUCDE(>);
+	SOURCE_INCLUDE_PLAIN( >= );
 }
-#undef SOURCE_INLUCDE
+#undef SOURCE_INCLUDE
+#undef SOURCE_INCLUDE_PLAIN
+#undef SOURCE_INCLUDE_SHORT
+#undef SOURCE_INCLUDE_CMP
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {

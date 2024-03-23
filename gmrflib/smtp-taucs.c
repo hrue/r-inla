@@ -1013,7 +1013,6 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	if (!LL) {
 		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
 	} else {
-		assert(0 == 1);
 		GMRFLib_my_taucs_dccs_solve_llt3(L, LL, rhs);
 	}
 
@@ -2049,7 +2048,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	int debug = 0;
+	const int debug = 0;
 	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
 
 	LL->n = L->n;
@@ -2103,14 +2102,16 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 		}
 	}
 
-	// ??? 
-	if (0)
-		for (int i = 0; i < n; i++) {
-			int m = LL->rowptr[i + 1] - LL->rowptr[i];
-			int j = LL->rowptr[i];
-			my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m);
-		}
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		int m = LL->rowptr[i + 1] - LL->rowptr[i];		\
+		int j = LL->rowptr[i];					\
+		my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \
+	}
 
+	RUN_CODE_BLOCK(IMIN(4, GMRFLib_MAX_THREADS()), 0, 0);
+#undef CODE_BLOCK
+	
 	if (debug) {
 		printf("CCS\n");
 		printf("colptr ");

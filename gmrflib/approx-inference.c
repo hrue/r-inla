@@ -6403,10 +6403,14 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 				int j = L->colptr[i];			\
 				my_sort2_id(L->rowind + j, (double *) L->values.d + j, m); \
 			}
-
-			RUN_CODE_BLOCK(IMIN(4, GMRFLib_MAX_THREADS()), 0, 0);
-#undef CODE_BLOCK
 			
+			RUN_CODE_BLOCK(4, 0, 0);
+#undef CODE_BLOCK
+			if (0) {
+				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
+					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
+				}
+			}
 		}
 
 		GMRFLib_Qinv(ai_store->problem);
