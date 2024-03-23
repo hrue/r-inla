@@ -1674,11 +1674,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-
-	// not needed
-	// Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
-
 	double *y = work;
+
 	if (n > 0) {
 		double *d = L->values.d;
 		int *colptr = L->colptr;
@@ -1687,12 +1684,55 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		for (int j = 0; j < n; j++) {
 			y[j] = x[j] / d[colptr[j]];
 			double yj = y[j];
+
+#if defined(INLA_WITH_MKL)			
+			if (0) {
+				//
+				// this does not run well, I do not know why
+				//
+				int m = colptr[j + 1] - (colptr[j] +1);
+				int ip = colptr[j] + 1;
+				double myj = -yj;
+				daxpyi_(&m, &myj, d + ip, rowind + ip, x+1);
+
+				/*
+				  This is the test to why 'x+1'.
+				  
+				  DAXPYI Compute y := alpha * x + y where alpha is a scalar, x
+				  is a sparse vector, and y is a vector in full storage form
+				  
+				  do i = 1, n
+				  y(indx(i)) = alpha * x(i) + y(indx(i))
+				  enddo
+
+				  double a = 1;
+				  double yy[] =  {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+				  double xx[] =  {10.2, 20.2, 30.2, 40.2, 50.2, 60.2, 70.2, 80.2, 90.2, 100.2};
+				  int index[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+				  int nn = 10;
+					  
+				  for(int i = 0; i < nn; i++)
+				  printf("yy[%d] %f\n", index[i], yy[index[i]] + a * xx[i]);
+					  
+				  daxpyi_(&nn, &a, xx, index, yy+1);
+				  for(int i = 0; i < 10; i++){
+				  printf("A1 yy[%1d] = %f\n", i, yy[i]);
+				  }
+				  exit(0);
+				*/
+			} else {
+				for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
+					x[rowind[ip]] -= yj * d[ip];
+				}
+			}
+#else
 			for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
 				// int i = rowind[ip]; double Aij = d[ip]; x[i] -= yj * Aij;
 				x[rowind[ip]] -= yj * d[ip];
 			}
+#endif
 		}
-
+		
 		for (int i = n - 1; i >= 0; i--) {
 			int jp = colptr[i];
 			int jp1 = jp + 1;
@@ -1701,6 +1741,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 			x[i] = y[i] * inv_Aii;
 		}
 	}
+
 
 	return 0;
 }

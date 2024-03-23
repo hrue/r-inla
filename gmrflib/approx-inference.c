@@ -3161,24 +3161,22 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_equal_cor(double c1, double c2, double eps)
+int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 {
-#define COR2INTERN(c_) log(DMAX(FLT_EPSILON, 1.0 + (c_)) / DMAX(FLT_EPSILON, 1.0 - (c_)))
-
-	static double eps_sqrt = 0.0;
-	if (!eps_sqrt) {
-#pragma omp critical (Name_4bb766a56722a3752af90c7828e0fd60e85365fe)
-		if (!eps_sqrt) {
-			eps_sqrt = sqrt(eps);
-		}
-	}
+#define COR2INTERN(c_) (log1p((c_)) - log1p(-(c_)))
 
 	// quick check
-	if (ABS(c1 - c2) > eps_sqrt) {
+	if (ABS(c1 - c2) > param->sqrt_epsilon) {
 		return 0;
 	}
 
-	if (ABS(COR2INTERN(c1) - COR2INTERN(c2)) < eps) {
+	double ac1 = ABS(c1);
+	double ac2 = ABS(c2);
+	if (ac1 == 1.0 || ac2 == 1.0) {
+		return (ac1 == ac2 ? 1 : 0);
+	}
+	
+	if (ABS(COR2INTERN(c1) - COR2INTERN(c2)) < param->epsilon) {
 		return 1;
 	}
 
@@ -3450,7 +3448,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					double cor_abs_new = cor_abs[i_new]; \
 					if (LEGAL_TO_ADD(i_new)) {	\
 						/* we have to go to one more before we stop as we need to add all equal ones first */ \
-						if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
+						if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param)) { \
 							if ((sumw >= gcpo_param->num_level_sets)) { \
 								/* then we will go over if adding, then skip */ \
 								levels_ok = 1; \
@@ -6406,6 +6404,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 			
 			RUN_CODE_BLOCK(4, 0, 0);
 #undef CODE_BLOCK
+
 			if (0) {
 				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
 					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
@@ -6421,11 +6420,6 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 			ai_store->stdev[i] = (var ? sqrt(*var) : 0.0);
 		}
 	}
-
-	/*
-	 * if (GMRFLib_taucs_use_crs && ai_store->problem->sub_sm_fact.TAUCS_L) { if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
-	 * ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L); } } 
-	 */
 
 	return GMRFLib_SUCCESS;
 }
