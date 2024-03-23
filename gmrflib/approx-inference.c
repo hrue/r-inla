@@ -3163,20 +3163,18 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 {
-#define COR2INTERN(c_) (log1p((c_)) - log1p(-(c_)))
+#define COR2INTERN(c_) log((1.0 + (c_))/(1.0 - (c_)))
 
 	// quick check
 	if (ABS(c1 - c2) > param->sqrt_epsilon) {
 		return 0;
 	}
 
-	double ac1 = ABS(c1);
-	double ac2 = ABS(c2);
-	if (ac1 == 1.0 || ac2 == 1.0) {
-		return (ac1 == ac2 ? 1 : 0);
-	}
-	
-	if (ABS(COR2INTERN(c1) - COR2INTERN(c2)) < param->epsilon) {
+	double clim = 1.0 - FLT_EPSILON;
+	double tc1 = TRUNCATE(c1, -clim, clim);
+	double tc2 = TRUNCATE(c2, -clim, clim);
+
+	if (ABS(COR2INTERN(tc1) - COR2INTERN(tc2)) < param->epsilon) {
 		return 1;
 	}
 
