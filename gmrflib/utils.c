@@ -2153,67 +2153,57 @@ size_t GMRFLib_align(size_t n, size_t size)
 			return 0;		\
 	return 1
 
-#define SOURCE_INCLUDE_SHORT(CMP)					\
-	switch(n) {							\
-	case 2: if (a[1] CMP a[0]) return 0; else return 1;		\
-	case 3: if (a[1] CMP a[0] || a[2] CMP a[1]) return 0; else return 1; \
-	case 4: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2]) return 0; else return 1; \
-	case 5: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3]) return 0; else return 1; \
-	case 6: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4]) return 0; else return 1;	\
-	case 7: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4] || a[6] CMP a[5]) return 0; else return 1;	\
-	case 8: if (a[1] CMP a[0] || a[2] CMP a[1] || a[3] CMP a[2] || a[4] CMP a[3] || a[5] CMP a[4] || a[6] CMP a[5] || a[7] CMP a[6]) return 0; else return 1;	\
-	case 0: return 1;						\
-	case 1: return 1;						\
-	}
-
 #define SOURCE_INCLUDE_CMP(CMP)			\
-	if (n <= 8) {				\
-		SOURCE_INCLUDE_SHORT( CMP );	\
-	} else {				\
+	if (n <= 192) {				\
 		SOURCE_INCLUDE( CMP );		\
-	}					\
-	return 0
+	} else {				\
+		SOURCE_INCLUDE_PLAIN( CMP );	\
+	}
 
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
 	// increasing ints
-	SOURCE_INCLUDE_CMP( <= );
+	SOURCE_INCLUDE_CMP( < );
 }
 
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
 	// increasing doubles
-	SOURCE_INCLUDE_CMP( <= );
+	SOURCE_INCLUDE_CMP( < );
 }
 
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing ints
-	SOURCE_INCLUDE_CMP( >= );
+	SOURCE_INCLUDE_CMP( > );
 }
 
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing doubles
-	SOURCE_INCLUDE_CMP( >= );
+	SOURCE_INCLUDE_CMP( > );
 }
 
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	SOURCE_INCLUDE_PLAIN( <= );
+	SOURCE_INCLUDE_PLAIN( < );
 }
+
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	SOURCE_INCLUDE_PLAIN( <= );
+	SOURCE_INCLUDE_PLAIN( < );
 }
+
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	SOURCE_INCLUDE_PLAIN( >= );
+	SOURCE_INCLUDE_PLAIN( > );
 }
+
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	SOURCE_INCLUDE_PLAIN( >= );
+	SOURCE_INCLUDE_PLAIN( > );
 }
+
 #undef SOURCE_INCLUDE
 #undef SOURCE_INCLUDE_PLAIN
 #undef SOURCE_INCLUDE_SHORT
