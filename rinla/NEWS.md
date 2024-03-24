@@ -1,3 +1,6 @@
+# INLA 24.03.24
+* Code optimization
+
 # INLA 24.03.20
 * Fixed issue in `rprior`
 * More development for `gcpo`
