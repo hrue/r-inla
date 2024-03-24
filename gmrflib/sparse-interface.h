@@ -156,6 +156,7 @@ typedef struct {
 	 *  \brief The Cholesky factorisation (smtp == TAUCS)
 	 */
 	taucs_ccs_matrix *TAUCS_L;
+	taucs_crs_matrix *TAUCS_LL;
 
 	/**
 	 *  \brief The symbolic factorisation (smtp == TAUCS)

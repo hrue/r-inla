@@ -238,7 +238,7 @@ double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict 
 	return darr[2];
 }
 
-double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+forceinline double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return cblas_ddoti(n, v, idx, a);
 }
@@ -250,7 +250,7 @@ double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict 
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
 
-double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+forceinline double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }

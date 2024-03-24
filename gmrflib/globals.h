@@ -143,6 +143,7 @@ extern int GMRFLib_gaussian_data;
 
 extern int GMRFLib_testit_mode;
 extern int GMRFLib_testit_debug;
+extern int GMRFLib_taucs_sort_L;
 
 #endif
 __END_DECLS

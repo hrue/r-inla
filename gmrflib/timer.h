@@ -71,7 +71,7 @@ typedef struct {
 	double ctime_acc2;				       /* accumulated ctime^2 */
 } GMRFLib_timer_hashval_tp;
 
-#define GMRFLib_ENTER_ROUTINE \
+#define GMRFLib_ENTER_ROUTINE						\
 	GMRFLib_DEBUG_INIT();						\
 	GMRFLib_TRACE_INIT();						\
 	static double trace_cpu_acc_ = 0.0;				\

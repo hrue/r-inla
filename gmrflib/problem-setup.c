@@ -375,9 +375,8 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx)
 }
 
 int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp **problem,
-			 double *x,
-			 double *b,
-			 double *c, double *mean, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args, GMRFLib_constr_tp *constr)
+			 double *x, double *b, double *c, double *mean, GMRFLib_graph_tp *graph,
+			 GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args, GMRFLib_constr_tp *constr)
 {
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_EWRAP1(GMRFLib_init_problem_store(thread_id, problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL));
@@ -1649,9 +1648,13 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	COPY(sub_sm_fact.smtp);
 
 	if (problem->sub_sm_fact.TAUCS_L && !skeleton) {
-		np->sub_sm_fact.TAUCS_L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, problem->sub_sm_fact.TAUCS_L->flags);
+		np->sub_sm_fact.TAUCS_L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L);
+		if (np->sub_sm_fact.TAUCS_LL) {
+			np->sub_sm_fact.TAUCS_LL = GMRFLib_LL_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_LL);
+		}
 	} else {
 		np->sub_sm_fact.TAUCS_L = NULL;
+		np->sub_sm_fact.TAUCS_LL = NULL;
 	}
 
 	if (problem->sub_sm_fact.TAUCS_L_inv_diag && !skeleton) {

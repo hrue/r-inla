@@ -68,13 +68,13 @@ if [ -n "${INLA_DEBUG}" ]; then
 fi
 
 ## set default levels for nested openmp
-nt="-t0:1"
+nt="-t$(nproc):1"
 for arg in "$@"; do 
     case "$arg" in
 	-t*) nt="$arg";;
     esac
 done
-eval $("$DIR/$prog" $nt -mopenmp | grep ^export)
+eval $(echo $nt | awk -F: '{gsub(/^-t/,""); nt=1*$2; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
 if [ -n "${INLA_DEBUG}" ]; then
     set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
     echo " *** $0 *** exec $DIR/$prog $@"

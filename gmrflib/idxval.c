@@ -1223,6 +1223,59 @@ GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 	return nnew;
 }
 
+int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
+{
+	// check if any indices are the same, if so return 1, else return 0.
+	// ASSUME IDX1 and IDX2 are SORTED!
+
+	if (idx1 == NULL || idx2 == NULL || idx1->n == 0 || idx2->n == 0) {
+		return 0;
+	}
+
+	const int debug = 1;
+	if (debug) {
+		FIXME("idx_overlap: check if sorted as debug = 1");
+		assert(GMRFLib_is_sorted_iinc(idx1->n, idx1->idx));
+		assert(GMRFLib_is_sorted_iinc(idx2->n, idx2->idx));
+	}
+
+	// this is fast check MAX(idx1) < MIN(idx2) or opposite
+	if ((idx1->idx[idx1->n - 1] < idx2->idx[0]) || (idx2->idx[idx2->n - 1] < idx1->idx[0])) {
+		return 0;
+	}
+
+	int i1 = 0, i2 = 0;
+	while (1) {
+		if (idx1->idx[i1] < idx2->idx[i2]) {
+			i1++;
+		} else if (idx1->idx[i1] > idx2->idx[i2]) {
+			i2++;
+		} else {
+			return 1;			       // then they must be equal
+		}
+
+		if (i1 == idx1->n || i2 == idx2->n) {
+			return 0;
+		}
+	}
+	return 0;
+}
+
+int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2)
+{
+	if (idx1 == NULL || idx2 == NULL) {
+		return 0;
+	}
+
+	GMRFLib_idx_tp v, vv;
+	v.n = idx1->n;
+	v.idx = idx1->idx;
+	vv.n = idx2->n;
+	vv.idx = idx2->idx;
+
+	return GMRFLib_idx_overlap(&v, &vv);
+}
+
 int GMRFLib_str_add(GMRFLib_str_tp **hold, char *s)
 {
 	if (*hold == NULL) {

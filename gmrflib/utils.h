@@ -155,6 +155,7 @@ void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n);
 void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n);
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
+void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *work);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 
 

@@ -1769,7 +1769,7 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
-	if (n == 0)
+	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
 		return;
 
 	if (1) {
@@ -1801,15 +1801,27 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 {
+	return my_sort2_id_x(ix, x, n, NULL);
+}
+
+void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED(work))
+{
+	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
+		return;
+
 	if (n < GMRFLib_sort2_id_cut_off) {
 		my_insertionSort_id(ix, x, n);
 	} else {
 		gsl_sort2_id(ix, x, n);
 	}
+	return;
 }
 
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 {
+	if (n <= 1 || GMRFLib_is_sorted_dinc(n, ix))
+		return;
+
 	if (n < GMRFLib_sort2_dd_cut_off) {
 		my_insertionSort_dd(ix, x, n);
 	} else {
@@ -1819,7 +1831,7 @@ void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 
 int my_sort2_id_test_cutoff(int verbose)
 {
-	const int nmax = 384;
+	const int nmax = 512;
 	const int nmin = 64;
 	const int nstep = 64;
 	const int ntimes = 200;
@@ -2117,7 +2129,7 @@ size_t GMRFLib_align(size_t n, size_t size)
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
-#define SOURCE_INLUCDE(CMP)						\
+#define SOURCE_INCLUDE(CMP)						\
 	const int roll = 4;						\
 	div_t d = div(n, roll);						\
 	int m = d.quot * roll;						\
@@ -2135,55 +2147,67 @@ size_t GMRFLib_align(size_t n, size_t size)
 	}								\
 	return 1
 
-int GMRFLib_is_sorted_iinc(int n, int *a)
-{
-	// increasing ints
-	SOURCE_INLUCDE(<);
-}
-
-int GMRFLib_is_sorted_dinc(int n, double *a)
-{
-	// increasing doubles
-	SOURCE_INLUCDE(<);
-}
-
-int GMRFLib_is_sorted_idec(int n, int *a)
-{
-	// decreasing ints
-	SOURCE_INLUCDE(>);
-}
-
-int GMRFLib_is_sorted_ddec(int n, double *a)
-{
-	// decreasing doubles
-	SOURCE_INLUCDE(>);
-}
-
-// the plain versions, takes about 1.5 to 2 times the time
-#undef SOURCE_INLUCDE
-#define SOURCE_INLUCDE(CMP)			\
+#define SOURCE_INCLUDE_PLAIN(CMP)		\
 	for (int i = 0; i < n - 1; i++)		\
 		if (a[i + 1] CMP a[i])		\
 			return 0;		\
 	return 1
 
+#define SOURCE_INCLUDE_COND(CMP)		\
+	if (n <= 128) {				\
+		SOURCE_INCLUDE( CMP );		\
+	} else {				\
+		SOURCE_INCLUDE_PLAIN( CMP );	\
+	}
+
+int GMRFLib_is_sorted_iinc(int n, int *a)
+{
+	// increasing int's
+	SOURCE_INCLUDE(<);
+}
+
+int GMRFLib_is_sorted_dinc(int n, double *a)
+{
+	// increasing double's
+	SOURCE_INCLUDE_COND(<);
+}
+
+int GMRFLib_is_sorted_idec(int n, int *a)
+{
+	// decreasing int's
+	SOURCE_INCLUDE(>);
+}
+
+int GMRFLib_is_sorted_ddec(int n, double *a)
+{
+	// decreasing double's
+	SOURCE_INCLUDE_COND(>);
+}
+
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	SOURCE_INLUCDE(<);
+	SOURCE_INCLUDE_PLAIN(<);
 }
+
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	SOURCE_INLUCDE(<);
+	SOURCE_INCLUDE_PLAIN(<);
 }
+
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	SOURCE_INLUCDE(>);
+	SOURCE_INCLUDE_PLAIN(>);
 }
+
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	SOURCE_INLUCDE(>);
+	SOURCE_INCLUDE_PLAIN(>);
 }
-#undef SOURCE_INLUCDE
+
+#undef SOURCE_INCLUDE
+#undef SOURCE_INCLUDE_PLAIN
+#undef SOURCE_INCLUDE_SHORT
+#undef SOURCE_INCLUDE_COND
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {

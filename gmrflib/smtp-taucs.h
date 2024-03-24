@@ -62,9 +62,9 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRF
 				      int *remap);
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_taucs_cache_tp ** cache,
 					  GMRFLib_fact_info_tp * finfo, double **L_inv_diag);
-int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact);
+int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, taucs_crs_matrix * LL, double *L_inv_diag, supernodal_factor_matrix * symb_fact);
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
-int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
+int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, taucs_crs_matrix * LL, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
 						 int remapped);
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap,
@@ -79,7 +79,7 @@ int GMRFLib_my_taucs_check_flags(int flags);
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x);
 int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int from_idx, int to_idx);
 int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x);
-int GMRFLib_my_taucs_dccs_solve_llt_test(void *vL, void *vLL, double *x);
+int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x);
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x);
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx);
@@ -93,7 +93,8 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 
-taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags);
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L);
+taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix * LL);
 int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L);
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp ** cache);
