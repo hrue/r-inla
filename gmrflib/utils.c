@@ -2153,8 +2153,8 @@ size_t GMRFLib_align(size_t n, size_t size)
 			return 0;		\
 	return 1
 
-#define SOURCE_INCLUDE_CMP(CMP)			\
-	if (n <= 192) {				\
+#define SOURCE_INCLUDE_COND(CMP)		\
+	if (n <= 128) {				\
 		SOURCE_INCLUDE( CMP );		\
 	} else {				\
 		SOURCE_INCLUDE_PLAIN( CMP );	\
@@ -2162,58 +2162,58 @@ size_t GMRFLib_align(size_t n, size_t size)
 
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
-	// increasing ints
-	SOURCE_INCLUDE_CMP( < );
+	// increasing int's
+	SOURCE_INCLUDE(<);
 }
 
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
-	// increasing doubles
-	SOURCE_INCLUDE_CMP( < );
+	// increasing double's
+	SOURCE_INCLUDE_COND(<);
 }
 
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
-	// decreasing ints
-	SOURCE_INCLUDE_CMP( > );
+	// decreasing int's
+	SOURCE_INCLUDE(>);
 }
 
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
-	// decreasing doubles
-	SOURCE_INCLUDE_CMP( > );
+	// decreasing double's
+	SOURCE_INCLUDE_COND(>);
 }
 
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
-	SOURCE_INCLUDE_PLAIN( < );
+	SOURCE_INCLUDE_PLAIN(<);
 }
 
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
-	SOURCE_INCLUDE_PLAIN( < );
+	SOURCE_INCLUDE_PLAIN(<);
 }
 
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
-	SOURCE_INCLUDE_PLAIN( > );
+	SOURCE_INCLUDE_PLAIN(>);
 }
 
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
-	SOURCE_INCLUDE_PLAIN( > );
+	SOURCE_INCLUDE_PLAIN(>);
 }
 
 #undef SOURCE_INCLUDE
 #undef SOURCE_INCLUDE_PLAIN
 #undef SOURCE_INCLUDE_SHORT
-#undef SOURCE_INCLUDE_CMP
+#undef SOURCE_INCLUDE_COND
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
+	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2233,15 +2233,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y)
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y)
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 

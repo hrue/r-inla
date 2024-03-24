@@ -98,7 +98,7 @@ int dchdc_(double *, int *, int *, double *, int *, int *, int *, double *);
 int dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *,
 	   fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
 int idamax_(int *, double *, int *);
-void daxpyi_(int *, double *, double *, int *,  double *);
+void daxpyi_(int *, double *, double *, int *, double *);
 
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode);
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);

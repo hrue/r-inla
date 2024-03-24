@@ -3931,8 +3931,8 @@ int testit(int argc, char **argv)
 		QSORT_FUN(iy, N, sizeof(int), GMRFLib_icmp);
 		QSORT_FUN(y, N, sizeof(double), GMRFLib_dcmp);
 
-		double tref[] = {0, 0, 0, 0};
-		for(int n = 4; n < N; n += 4) {
+		double tref[] = { 0, 0, 0, 0 };
+		for (int n = 4; n < N; n += 4) {
 			int res = 0;
 			tref[0] -= GMRFLib_timer();
 			for (int i = 0; i < M; i++) {
@@ -3965,8 +3965,8 @@ int testit(int argc, char **argv)
 			tref[3] += GMRFLib_timer();
 			assert(res == M);
 
-			double ispeedup = tref[0]/tref[1];
-			double dspeedup = tref[2]/tref[3];
+			double ispeedup = tref[0] / tref[1];
+			double dspeedup = tref[2] / tref[3];
 
 			printf("Ratio new/plain n = %1d  int %.3f double %.3f\n", n, ispeedup, dspeedup);
 		}
