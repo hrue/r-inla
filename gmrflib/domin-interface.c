@@ -345,9 +345,9 @@ int GMRFLib_opt_f_intern(int thread_id,
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				}
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "maxld= %.3f fn=%3d theta=", -fx_local, GMRFLib_opt_get_f_count());
+					fprintf(G.ai_par->fp_log, "maxld= %.4f fn=%3d theta=", -fx_local, GMRFLib_opt_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
-						fprintf(G.ai_par->fp_log, " %.3f", x[i]);
+						fprintf(G.ai_par->fp_log, " %.4f", x[i]);
 					}
 
 					double m_min = GMRFLib_min_value(ais->mode, G.graph->n, NULL);
