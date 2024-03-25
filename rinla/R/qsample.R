@@ -102,7 +102,7 @@
                            seed = 0L,
                            logdens = ifelse(missing(sample), FALSE, TRUE),
                            compute.mean = ifelse(missing(sample), FALSE, TRUE),
-                           num.threads = if (seed == 0L) "0:0" else NULL,
+                           num.threads = NULL, 
                            selection = NULL,
                            verbose = inla.getOption("verbose"),
                            .debug = FALSE) 

@@ -2623,7 +2623,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     ## be decided by the inla-program.
 
     if (is.null(num.threads)) {
-        num.threads <- "0:0"
+        num.threads <- inla.getOption("num.threads")
     }
     num.threads <- as.character(num.threads)
     num.threads <- gsub("L", "", num.threads)
@@ -2632,9 +2632,9 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     num.threads <- gsub("[ \t]+$", "", num.threads)
     num.threads <- gsub("[ \t:,]+", ":", num.threads)
 
-    ## if '' -> '0:0'
+    ## if '' -> default
     if (nchar(num.threads) == 0) {
-        num.threads <- "0:0"
+        num.threads <- inla.getOption("num.threads")
         return(num.threads)
     }
 
@@ -2646,27 +2646,27 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         return(num.threads)
     }
 
-    ## if ':' then '0:0'
+    ## if ':' then default
     if (length(grep("^:$", num.threads)) > 0) {
-        num.threads <- "0:0"
+        num.threads <- inla.getOption("num.threads")
         return(num.threads)
     }
 
-    ## if 'A:'  then  'A:0'
+    ## if 'A:'  then  'A:1'
     if (length(grep("^[0-9]+:$", num.threads)) > 0) {
-        num.threads <- paste0(num.threads, "0")
+        num.threads <- paste0(num.threads, "1")
         return(num.threads)
     }
 
-    ## if 'A' then 'A:0'
+    ## if 'A' then 'A:1'
     if (length(grep("^[0-9]+$", num.threads)) > 0) {
-        num.threads <- paste0(num.threads, ":0")
+        num.threads <- paste0(num.threads, ":1")
         return(num.threads)
     }
 
-    ## if :B then 0:B
+    ## if :B then NT:B
     if (length(grep("^:[0-9]+$", num.threads)) > 0) {
-        num.threads <- paste0("0", num.threads)
+        num.threads <- paste0(parallel::detectCores(), num.threads)
         return(num.threads)
     }
 
