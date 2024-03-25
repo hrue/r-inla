@@ -3,7 +3,7 @@
 \name{scopy.define}
 \alias{scopy.define}
 \alias{inla.scopy.define}
-\title{Extract the parameterisation of the \code{scopy} model}
+\title{Get the parameterisation of the \code{scopy} model}
 \usage{
 inla.scopy.define(n = 5L)
 }
