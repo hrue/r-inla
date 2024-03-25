@@ -1496,3 +1496,151 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 
 //#endif
 }
+
+int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
+		       double alpha, const gsl_matrix * A, const gsl_matrix * B,
+		       double beta, gsl_matrix * C)
+{
+	const size_t M = C->size1;
+	const size_t N = C->size2;
+	const size_t MA = (TransA == CblasNoTrans) ? A->size1 : A->size2;
+	const size_t NA = (TransA == CblasNoTrans) ? A->size2 : A->size1;
+	const size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
+	const size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
+
+	if (M == MA && N == NB && NA == MB)   /* [MxN] = [MAxNA][MBxNB] */
+	{
+		cblas_dgemm_omp(CblasRowMajor, TransA, TransB, (int) M, (int) N, (int) NA,
+				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta,
+				C->data, (int) C->tda);
+		return GSL_SUCCESS;
+	}
+	else
+	{
+		GSL_ERROR ("invalid length", GSL_EBADLEN);
+	}
+}
+
+void cblas_dgemm_omp (const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
+		      const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
+		      const int K, const double alpha, const double *A, const int lda,
+		      const double *B, const int ldb, const double beta, double *C,
+		      const int ldc)
+{
+	int n1, n2;
+	int ldf, ldg;
+	int TransF, TransG;
+	const double *F, *G;
+
+	if (alpha == 0.0 && beta == 1.0)
+		return;
+
+	if (Order == CblasRowMajor) {
+		n1 = M;
+		n2 = N;
+		F = A;
+		ldf = lda;
+		TransF = (TransA == CblasConjTrans) ? CblasTrans : TransA;
+		G = B;
+		ldg = ldb;
+		TransG = (TransB == CblasConjTrans) ? CblasTrans : TransB;
+	} else {
+		n1 = N;
+		n2 = M;
+		F = B;
+		ldf = ldb;
+		TransF = (TransB == CblasConjTrans) ? CblasTrans : TransB;
+		G = A;
+		ldg = lda;
+		TransG = (TransA == CblasConjTrans) ? CblasTrans : TransA;
+	}
+
+	/* form  y := beta*y */
+	if (beta == 0.0) {
+		for (int i = 0; i < n1; i++) {
+			for (int j = 0; j < n2; j++) {
+				C[ldc * i + j] = 0.0;
+			}
+		}
+	} else if (beta != 1.0) {
+		for (int i = 0; i < n1; i++) {
+			for (int j = 0; j < n2; j++) {
+				C[ldc * i + j] *= beta;
+			}
+		}
+	}
+
+	if (alpha == 0.0)
+		return;
+
+	if (TransF == CblasNoTrans && TransG == CblasNoTrans) {
+
+		/* form  C := alpha*A*B + C */
+
+		FIXME("OPTIMIZE CODE");
+		abort();
+		
+#pragma omp parallel for
+		for (int i = 0; i < n1; i++) {
+			for (int k = 0; k < K; k++) {
+				const double temp = alpha * F[ldf * i + k];
+				if (temp != 0.0) {
+					for (int j = 0; j < n2; j++) {
+						C[ldc * i + j] += temp * G[ldg * k + j];
+					}
+				}
+			}
+		}
+
+	} else if (TransF == CblasNoTrans && TransG == CblasTrans) {
+
+		/* form  C := alpha*A*B' + C */
+
+		FIXME("OPTIMIZE CODE");
+		abort();
+		
+#pragma omp parallel for
+		for (int i = 0; i < n1; i++) {
+			for (int j = 0; j < n2; j++) {
+				double temp = 0.0;
+				for (int k = 0; k < K; k++) {
+					temp += F[ldf * i + k] * G[ldg * j + k];
+				}
+				C[ldc * i + j] += alpha * temp;
+			}
+		}
+
+	} else if (TransF == CblasTrans && TransG == CblasNoTrans) {
+
+#pragma omp parallel for
+		for (int i = 0; i < n1; i++) {
+			for (int k = 0; k < K; k++) {
+				const double temp = alpha * F[ldf * k + i];
+				if (temp != 0.0) {
+					//C[ldc * i + j] += temp * G[ldg * k + j];
+					GMRFLib_daxpy(n2, temp, G + ldg * k, C + ldc * i);
+				}
+			}
+		}
+
+	} else if (TransF == CblasTrans && TransG == CblasTrans) {
+
+		FIXME("OPTIMIZE CODE");
+		abort();
+		
+#pragma omp parallel for
+		for (int i = 0; i < n1; i++) {
+			for (int j = 0; j < n2; j++) {
+				double temp = 0.0;
+				for (int k = 0; k < K; k++) {
+					temp += F[ldf * k + i] * G[ldg * j + k];
+				}
+				C[ldc * i + j] += alpha * temp;
+			}
+		}
+
+	} else {
+		assert(0 == 1);
+	}
+}
+

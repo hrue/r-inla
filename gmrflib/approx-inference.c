@@ -4645,7 +4645,26 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			if (measure_time) {
 				time_ref_hess = GMRFLib_timer();
 			}
-			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+
+#define CODE_BLOCK							\
+			{						\
+				if (nt__ > 1) {				\
+					int nt = omp_get_num_threads();	\
+					if (verbose) {			\
+						fprintf(fp, "[%1d] run M^T[%1zu,%1zu] x QM[%1zu,%1zu] = MM[%1zu,%1zu] using [%1d] threads\n", \
+							omp_get_thread_num(), M->size1, M->size2, QM->size1, QM->size2,  MM->size1, MM->size2, nt__);\
+					}				\
+					omp_set_num_threads(nt__);	\
+					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM); \
+					omp_set_num_threads(nt);	\
+				} else {				\
+					gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
+				}					\
+			}
+
+			RUN_CODE_BLOCK_PLAIN(GMRFLib_MAX_THREADS(), 0, 0);
+#undef CODE_BLOCK
+			
 			if (measure_time) {
 				time_hess += GMRFLib_timer() - time_ref_hess;
 			}
