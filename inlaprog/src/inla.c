@@ -5514,9 +5514,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				if (lim > 0) {
 					// yes, integer division here && we correct also for mb->nf
 					if (tp == 0) {
-						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_mean_max / (mb->nf * ngroup * nrep)));
+						lim = IMAX(0, IMIN(lim, mb->ai_par->vb_f_enable_limit_mean_max / (mb->nf * ngroup * nrep)));
 					} else {
-						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
+						lim = IMAX(0, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
 					}
 				}
 
