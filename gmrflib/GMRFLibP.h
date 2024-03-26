@@ -603,11 +603,7 @@ typedef enum {
 		int n_work__ = IMAX(1, n_work_);			\
 		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
 		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
-		if (nt__ > 1) {						\
-				CODE_BLOCK;				\
-		} else {						\
-			CODE_BLOCK;					\
-		}							\
+		CODE_BLOCK;						\
 		Free(work__);						\
         }
 

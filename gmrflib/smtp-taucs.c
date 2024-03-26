@@ -1453,12 +1453,13 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_cc
 
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
-	int n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *inv_remap = NULL;
+	int n = 0, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *inv_remap = NULL;
 	taucs_ccs_matrix *L = NULL;
 	map_id **Qinv_L = NULL;
 
 	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
 	n = L->n;
+	assert(n >= 0);
 
 	/*
 	 * construct a row-list of L_ij's including the diagonal 
@@ -1466,7 +1467,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 
 	iCalloc_init(2 * n, 2);
 	nnbs = iCalloc_get(n);
-	nnbsQ = iCalloc_get(n);
+	nnbsQ = iCalloc_get(n); 
 
 	for (int i = 0; i < n; i++) {
 		for (int jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {

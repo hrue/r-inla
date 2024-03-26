@@ -1498,21 +1498,21 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 }
 
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
-		       double alpha, const gsl_matrix * A, const gsl_matrix * B,
-		       double beta, gsl_matrix * C)
+		       double alpha, gsl_matrix * A, gsl_matrix * B,
+		       double beta, gsl_matrix * C, int num_threads)
 {
-	const size_t M = C->size1;
-	const size_t N = C->size2;
-	const size_t MA = (TransA == CblasNoTrans) ? A->size1 : A->size2;
-	const size_t NA = (TransA == CblasNoTrans) ? A->size2 : A->size1;
-	const size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
-	const size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
+	size_t M = C->size1;
+	size_t N = C->size2;
+	size_t MA = (TransA == CblasNoTrans) ? A->size1 : A->size2;
+	size_t NA = (TransA == CblasNoTrans) ? A->size2 : A->size1;
+	size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
+	size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
 
 	if (M == MA && N == NB && NA == MB)   /* [MxN] = [MAxNA][MBxNB] */
 	{
 		cblas_dgemm_omp(CblasRowMajor, TransA, TransB, (int) M, (int) N, (int) NA,
 				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta,
-				C->data, (int) C->tda);
+				C->data, (int) C->tda, num_threads);
 		return GSL_SUCCESS;
 	}
 	else
@@ -1521,16 +1521,16 @@ int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
 	}
 }
 
-void cblas_dgemm_omp (const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
-		      const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
-		      const int K, const double alpha, const double *A, const int lda,
-		      const double *B, const int ldb, const double beta, double *C,
-		      const int ldc)
+void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
+		     enum CBLAS_TRANSPOSE TransB, int M, int N,
+		     int K, double alpha, double *A, int lda,
+		     double *B, int ldb, double beta, double *C,
+		     int ldc, int num_threads)
 {
 	int n1, n2;
 	int ldf, ldg;
 	int TransF, TransG;
-	const double *F, *G;
+	double *F, *G;
 
 	if (alpha == 0.0 && beta == 1.0)
 		return;
@@ -1580,10 +1580,10 @@ void cblas_dgemm_omp (const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE T
 		FIXME("OPTIMIZE CODE");
 		abort();
 		
-#pragma omp parallel for
+#pragma omp parallel for 
 		for (int i = 0; i < n1; i++) {
 			for (int k = 0; k < K; k++) {
-				const double temp = alpha * F[ldf * i + k];
+				double temp = alpha * F[ldf * i + k];
 				if (temp != 0.0) {
 					for (int j = 0; j < n2; j++) {
 						C[ldc * i + j] += temp * G[ldg * k + j];
@@ -1612,12 +1612,12 @@ void cblas_dgemm_omp (const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE T
 
 	} else if (TransF == CblasTrans && TransG == CblasNoTrans) {
 
-#pragma omp parallel for
+#pragma omp parallel for num_threads(num_threads)
 		for (int i = 0; i < n1; i++) {
 			for (int k = 0; k < K; k++) {
-				const double temp = alpha * F[ldf * k + i];
+				double temp = alpha * F[ldf * k + i];
 				if (temp != 0.0) {
-					//C[ldc * i + j] += temp * G[ldg * k + j];
+					// C[ldc * i + j] += temp * G[ldg * k + j];
 					GMRFLib_daxpy(n2, temp, G + ldg * k, C + ldc * i);
 				}
 			}

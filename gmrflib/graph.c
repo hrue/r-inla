@@ -1441,7 +1441,114 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
+{
+	// return the row of Q in terms of (idx,valus) with length nelm
+	// idx and vals must pre-exists with enough storage
+
+	int ii = 0;
+	for (int j = 0; j < graph->snnbs[row]; j++) {
+		int col = graph->snbs[row][j];
+		vals[ii++] = Qfunc(thread_id, row, col, NULL, Qfunc_arg);
+	}
+
+	double res = Qfunc(thread_id, row, -1, vals + ii, Qfunc_arg);
+	if (ISNAN(res)) {
+		vals[ii++] = Qfunc(thread_id, row, row, NULL, Qfunc_arg);
+		for (int j = 0; j < graph->lnnbs[row]; j++) {
+			int col = graph->lnbs[row][j];
+			vals[ii++] = Qfunc(thread_id, row, col, NULL, Qfunc_arg);
+		}
+	}
+
+	Memcpy(idx, graph->snbs[row], graph->snnbs[row] * sizeof(int));
+	Memcpy(idx + graph->snnbs[row], &row, sizeof(int));
+	Memcpy(idx + graph->snnbs[row] + 1, graph->lnbs[row], graph->lnnbs[row] * sizeof(int));
+	*nelm = graph->nnbs[row] + 1;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
+{
+	GMRFLib_ENTER_ROUTINE;
+
+	// taken from GMRFLibP.h
+	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? 
+		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); 
+
+	int ncol = result->size2;
+	int len = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
+	double *values = Calloc(len * nt, double);
+	double *dot_values = Calloc(ncol * nt, double);
+	int *indx = Calloc(len * nt, int);
+
+	gsl_matrix_set_zero(result);
+	if (nt > 1) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < graph->n; i++) {
+			int tnum = omp_get_thread_num();
+			double *val = values + tnum * len;
+			double *dval = dot_values + tnum * ncol;
+			int *id = indx + tnum * len;
+
+			int nelm = 0;
+			GMRFLib_get_Qrow(thread_id, i, &nelm, id, val, graph, Qfunc, Qfunc_arg);
+#pragma omp simd
+			for (int kk = 0; kk < nelm; kk++) {
+				id[kk] *= x->tda;
+			}
+
+			GMRFLib_fill(ncol, 0.0, dval);
+			for (int kk = 0; kk < nelm; kk++) {
+				double v = val[kk];
+				double *pp = x->data + id[kk];
+				GMRFLib_daxpy(ncol, v, pp, dval);
+			}
+			for (int k = 0; k < ncol; k++) {
+				gsl_matrix_set(result, i, k, dval[k]);
+			}
+		}
+	} else {
+		double *p1, *p2, *p3, *p4;
+		for (int i = 0; i < graph->n; i++) {
+			double res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
+			if (ISNAN(res)) {
+				int ii = 0;
+				values[ii++]= Qfunc(thread_id, i, i, NULL, Qfunc_arg);
+				for(int jj = 0; jj < graph->lnnbs[i]; jj++){
+					int j = graph->lnbs[i][jj];
+					values[ii++]= Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+				}
+			}
+			p1 = gsl_matrix_ptr(result, i, 0);
+			p3 = gsl_matrix_ptr(x, i, 0);
+			// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * values[0];
+			GMRFLib_daxpy(ncol, values[0], p3, p1);
+			int *j_a = graph->lnbs[i];
+			for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+				int j = j_a[jj];
+				double qij = values[1 + jj];
+				p2 = gsl_matrix_ptr(result, j, 0);
+				p4 = gsl_matrix_ptr(x, j, 0);
+				// for (int k = 0; k < ncol; k++) {
+				// p1[k] += qij * p4[k];
+				// p2[k] += qij * p3[k];
+				GMRFLib_daxpy(ncol, qij, p4, p1);
+				GMRFLib_daxpy(ncol, qij, p3, p2);
+			}
+		}
+	}
+
+	Free(values);
+	Free(indx);
+	Free(dot_values);
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_QM_ORIG(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
 
