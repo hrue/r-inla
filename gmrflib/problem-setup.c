@@ -676,8 +676,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-					       ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				GMRFLib_solve_llt_sparse_matrix ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 			} else {
 				/*
 				 * reuse 
@@ -692,8 +691,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
-									       &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 			}
 			Free(qi_at_m_store);
 

@@ -6418,6 +6418,15 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 			if (0) {
 				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
 					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
+					taucs_crs_matrix * LL = ai_store->problem->sub_sm_fact.TAUCS_LL;
+#define CODE_BLOCK							\
+					for (int i = 0; i < n; i++) {	\
+						int m = LL->rowptr[i + 1] - LL->rowptr[i]; \
+						int j = LL->rowptr[i];	\
+						my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \
+					}
+					RUN_CODE_BLOCK(4, 0, 0);
+#undef CODE_BLOCK
 				}
 			}
 		}
