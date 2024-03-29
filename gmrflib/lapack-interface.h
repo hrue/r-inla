@@ -174,13 +174,10 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void GMRFLib_powx(int n, double *x, double a, double *y);
 
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
-			double alpha, gsl_matrix * A, gsl_matrix * B,
-			double beta, gsl_matrix * C, int nt);
-void cblas_dgemm_omp (enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
-		      enum CBLAS_TRANSPOSE TransB, int M, int N,
-		      int K, double alpha, double *A, int lda,
-		      double *B, int ldb, double beta, double *C,
-		      int ldc, int nt);
+		       double alpha, gsl_matrix * A, gsl_matrix * B, double beta, gsl_matrix * C, int nt);
+void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
+		     enum CBLAS_TRANSPOSE TransB, int M, int N,
+		     int K, double alpha, double *A, int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
 
 __END_DECLS
 #endif

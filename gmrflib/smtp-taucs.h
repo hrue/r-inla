@@ -64,7 +64,8 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 					  GMRFLib_fact_info_tp * finfo, double **L_inv_diag);
 int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, taucs_crs_matrix * LL, double *L_inv_diag, supernodal_factor_matrix * symb_fact);
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
-int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, taucs_crs_matrix * LL, GMRFLib_graph_tp * graph, int *remap, double *work);
+int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, taucs_crs_matrix * LL, GMRFLib_graph_tp * graph, int *remap,
+					  double *work);
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
 						 int remapped);
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap,

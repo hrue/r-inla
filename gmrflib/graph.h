@@ -244,7 +244,8 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg);
+int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc,
+		     void *Qfunc_arg);
 
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 void *GMRFLib_bsearch(int key, int n, int *array);
