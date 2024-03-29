@@ -1,7 +1,6 @@
 ---
 title: "Global oceanic barrier model on the sphere"
 author: Alba Fuster-Alonso^[afuster@icm.csic.es, Institut de Ciències del Mar (ICM) - CSIC, Barcelona, Spain.] $\;$  Elias T Krainski^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$  Haavard Rue^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$ Finn Lindgren^[University of Edinburgh (UoE), Edinburgh, Scotland.]
-
 format:
   html:
     page-layout: full
@@ -23,8 +22,8 @@ editor_options:
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Global oceanic barrier model on the sphere}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{=html}
@@ -121,6 +120,25 @@ crs_vis <- st_crs("+proj=moll +units=km +units=km")
 world_mll <- st_transform(st_geometry(world_ll), crs_vis)
 ```
 
+We now create a function to define a bounding box around the earth 
+in the latlong projection. This will be used later.
+```{r EarthPoly_fn}
+# function to create a Earth polygon
+Earth_poly <- function(resol = 100) {
+    st_sfc(st_multipolygon(
+        list(st_polygon(list(cbind(
+            long = c(
+                seq(-1, 1, length.out = resol * 2 + 1), rep(1, resol + 1),
+                seq(1, -1, length.out = resol * 2 + 1), rep(-1, resol + 1)
+            ) * (180 - 1e-5),
+            lat = c(
+                rep(1, resol * 2 + 1), seq(1, -1, length.out = resol + 1),
+                rep(-1, resol * 2 + 1), seq(-1, 1, length.out = resol + 1)
+            ) * (90 - 1e-5)
+        ))))), crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+}
+```
+
 We also need to prepare a grid for projecting the effects of the
 model, considering the Mollweide projection and the spherical shape of
 the Earth. To accomplish this, we have implemented a function called
@@ -131,41 +149,25 @@ Collection (sfc) object representing a geographic region, and the
 boundary can be specified by either providing a boundary object or
 numeric limits for x and y axes.
 
-```{r}
+```{r grid_fn}
 # Function to create the grid for projection while considering the barrier
-barrier_mgrid <- function(barrier, xlim , ylim, boundary) {
-   if (!inherits(barrier, c("sf", "sfc"))) {
-    stop("barrier and boundary must be sf or sfc objects.")
+grid_create <- function(barrier, resol = 50) {
+  if (!inherits(barrier, c("sf", "sfc"))) {
+    stop("barrier must be sf or sfc objects.")
   }
-  if (missing(xlim) | missing(ylim)) {
-    if (!inherits(boundary, c("sf", "sfc"))) {
-      stop("barrier and boundary must be sf or sfc objects.")
-    }
-    Ell <- boundary
-  } else {
-    if (!is.numeric(xlim) || !is.numeric(ylim)) {
-      stop("xlim and ylim must be numeric.")
-    }
-    Ell <- st_sfc(st_multipolygon(
-      list(st_polygon(list(cbind(
-        long = c(
-          seq(-1, 1, length.out = 201), rep(1, 101),
-          seq(1, -1, length.out = 201), rep(-1, 101)
-        ) * xlim,
-        lat = c(
-          rep(1, 201), seq(1, -1, length.out = 101),
-          rep(-1, 201), seq(-1, 1, length.out = 101)
-        ) * ylim
-      ))))), crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-  }
+  Ell <- Earth_poly(resol = 100)
   if (st_crs(Ell) != st_crs(barrier)) {
     Ell_transformed <- st_transform(Ell, st_crs(barrier))
   } else {
     Ell_transformed <- Ell
   }
   grid_0 <- st_as_sf(
-    expand.grid(x = seq(from = min(st_coordinates(Ell_transformed)[,1]), to = max(st_coordinates(Ell_transformed)[,1]), by = 50),
-                y = seq(from = min(st_coordinates(Ell_transformed)[,2]), to = max(st_coordinates(Ell_transformed)[,2]), by = 50)),
+    expand.grid(x = seq(from = min(st_coordinates(Ell_transformed)[,1]), 
+                        to = max(st_coordinates(Ell_transformed)[,1]), 
+                        by = resol),
+                y = seq(from = min(st_coordinates(Ell_transformed)[,2]), 
+                        to = max(st_coordinates(Ell_transformed)[,2]), 
+                        by = resol)),
     coords = 1:2, crs = st_crs(barrier))
   ig_0 <- which(sapply(st_intersects(grid_0, Ell_transformed), length) > 0)
   ig_sel <- setdiff(ig_0,
@@ -176,8 +178,7 @@ barrier_mgrid <- function(barrier, xlim , ylim, boundary) {
 }
 
 # Grid in Mollweide 
-mgrid <- barrier_mgrid(barrier = world_mll,
-                          xlim = 179.99999, ylim = 89.99999)
+mgrid <- barrier_mgrid(barrier = world_mll)
 
 # Grid in latlong 
 grid_ll <- st_transform(mgrid, crs = crs_ll)
@@ -453,7 +454,7 @@ inipts0 <- fm_transform(
 # Verify which of these points are inside an extended model domain
 in_ocean <- which(sapply(st_intersects(
     inipts0,
-    st_buffer(st_union(world_barrier_initial), dist = - bufferdist/2)
+    st_buffer(st_union(world_lnd), dist = - bufferdist/2)
 ), length)==0)
 ```
 
@@ -827,34 +828,34 @@ simulations.
 ```{r, results='hide'}
 # Generate random data locations in longlat
 # Create world-size sampling area without crs
-world_poly_planar <- sf::st_sfc(
-  sf::st_polygon(
-    list(matrix(c(-180, -90, -180, 90, 180, 90, 180, -90, -180, -90),
-                ncol = 2, byrow = TRUE))
-  )
-)
+world_poly_wgs84 <- Earth_poly(resol = 100)
 
 # Add WGS84 crs to a duplicated object
-world_poly_wgs84 <- world_poly_planar
 st_crs(world_poly_wgs84) <- 4326
+
+# convert to the Mollweid projection
+world_poly_planar <- st_transform(
+  x = world_poly_wgs84, 
+  crs = crs_vis
+)
 
 # Sample the locations for each time
 set.seed(34521)
 # Number of observations
 n <- 3500 
 sf::sf_use_s2(FALSE)
-locs <- list()
+locs_mll <- list()
 # Random sampling
 seed_2 <- c(34521, 323,43454,24213,2311,2344)
 for(i in 1:k) {
   set.seed(seed_2[[i]])
-  locs[[i]] <- sf::st_sample(world_poly_wgs84, n, type = "random", exact = TRUE)
+  locs_mll[[i]] <- sf::st_sample(world_poly_planar, n, type = "random", exact = TRUE)
 }
 
-# Transform data locations to the Mollweide projection
-locs_mll <- list()
+# Transform data locations to the longlat projection
+locs_ll <- list()
 for(i in 1:k) {
-  locs_mll[[i]] <- st_transform(locs[[i]], crs = crs_vis)
+  locs_ll[[i]] <- st_transform(locs_mll[[i]], crs = st_crs(world_poly_wgs84))
 }
 ```
 
@@ -864,13 +865,12 @@ barrier, as our response variable cannot be observed inside.
 ```{r}
 # Identify locations outside the world polygon in Mollweide projection
 ilocs_in <- list()
-locs_ll <- list()
+locs <- list()
 for(i in 1:k) {
   ilocs_in[[i]] <- which(sapply(st_intersects(
     locs_mll[[i]], world_barrier), length) == 0)
-  
-  # Locations dataset with points outside barriers
-  locs_ll[[i]] <- st_coordinates(locs[[i]][ilocs_in[[i]]])
+  ## extract the coordinates
+  locs[[i]] <- st_coordinates(locs_ll[[i]])[ilocs_in[[i]], ]
 }
 ```
 
@@ -883,7 +883,7 @@ Furthermore, we transform the points onto the sphere using the
 locs_sph <- list()
 for(i in 1:k) {
   locs_sph[[i]] <- fm_transform(
-    x = locs[[i]][ilocs_in[[i]]],
+    x = locs_mll[[i]][ilocs_in[[i]]],
     crs = fm_crs("sphere"))
 }
 ```
@@ -917,7 +917,7 @@ once.
 # Download of depth/bathymetry 
 depth_values <- list()
 for(i in 1:k) {
-  depth_values[[i]] <- ggOceanMaps::get_depth(data = as.data.frame(locs_ll[[i]]))
+  depth_values[[i]] <- ggOceanMaps::get_depth(data = as.data.frame(locs[[i]]))
 }
 ```
 
