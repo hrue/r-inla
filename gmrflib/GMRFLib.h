@@ -62,11 +62,12 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 /* 
  *  include files we need from GSL
  */
-#define GSL_RANGE_CHECK_OFF
+#define GSL_RANGE_CHECK 0
 #define HAVE_INLINE
 #include <gsl/gsl_inline.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_blas_types.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_errno.h>

@@ -91,5 +91,5 @@
     yy <- c(0, 0, d[1]+1, d[1]+1, 0)
     plot(xx, yy, type = "l", bty = "L",
          xlim = c(0, d[2]+1), ylim = c(0, d[1]+1), lwd = 2, asp = 1)
-    points(1L+M@j, d[1] - M@i, pch = 19)
+    points(1L+M@j, d[1] - M@i, pch = 19, ...)
 }

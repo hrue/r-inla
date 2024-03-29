@@ -5514,9 +5514,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				if (lim > 0) {
 					// yes, integer division here && we correct also for mb->nf
 					if (tp == 0) {
-						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_mean_max / (mb->nf * ngroup * nrep)));
+						lim = IMAX(0, IMIN(lim, mb->ai_par->vb_f_enable_limit_mean_max / (mb->nf * ngroup * nrep)));
 					} else {
-						lim = IMAX(1, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
+						lim = IMAX(0, IMIN(lim, mb->ai_par->vb_f_enable_limit_variance_max / (mb->nf * ngroup * nrep)));
 					}
 				}
 
@@ -5528,41 +5528,43 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 					P(lim);
 				}
 
-				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+				if (lim > 0) {
+					GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 
-				if (debug) {
-					P(vb->idx[0]);
-				}
-
-				if ((vb->idx[0] == -1L && n <= lim)) {
-					for (j = 0; j < ntot; j++) {
-						vb_nodes[count + j] = (char) 1;
-						local_count++;
+					if (debug) {
+						P(vb->idx[0]);
 					}
-				} else if (vb->idx[0] == -1L) {
-					int len = IMAX(1, n / lim);
-					int k = IMAX(1, len / 2);
-					for (int r = 0; r < nrep; r++) {
-						for (int g = 0; g < ngroup; g++) {
-							for (j = 0; j < lim; j++) {
-								int jj = (j * len + k) % n + g * n + r * nngroup;
-								if (debug)
-									printf("%d %d %d %d\n", g, r, j, jj);
-								vb_nodes[count + jj] = (char) 1;
-								local_count++;
-							}
+
+					if ((vb->idx[0] == -1L && n <= lim)) {
+						for (j = 0; j < ntot; j++) {
+							vb_nodes[count + j] = (char) 1;
+							local_count++;
 						}
-					}
-				} else if (vb->idx[0] >= 0) {
-					for (int r = 0; r < nrep; r++) {
-						for (int g = 0; g < ngroup; g++) {
-							for (j = 0; j < vb->n; j++) {
-								if (LEGAL(vb->idx[j], n)) {
-									int jj = vb->idx[j] + g * n + r * nngroup;
+					} else if (vb->idx[0] == -1L) {
+						int len = IMAX(1, n / lim);
+						int k = IMAX(1, len / 2);
+						for (int r = 0; r < nrep; r++) {
+							for (int g = 0; g < ngroup; g++) {
+								for (j = 0; j < lim; j++) {
+									int jj = (j * len + k) % n + g * n + r * nngroup;
 									if (debug)
 										printf("%d %d %d %d\n", g, r, j, jj);
 									vb_nodes[count + jj] = (char) 1;
 									local_count++;
+								}
+							}
+						}
+					} else if (vb->idx[0] >= 0) {
+						for (int r = 0; r < nrep; r++) {
+							for (int g = 0; g < ngroup; g++) {
+								for (j = 0; j < vb->n; j++) {
+									if (LEGAL(vb->idx[j], n)) {
+										int jj = vb->idx[j] + g * n + r * nngroup;
+										if (debug)
+											printf("%d %d %d %d\n", g, r, j, jj);
+										vb_nodes[count + jj] = (char) 1;
+										local_count++;
+									}
 								}
 							}
 						}

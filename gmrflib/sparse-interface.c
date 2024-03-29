@@ -407,102 +407,132 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	 */
 	GMRFLib_ENTER_ROUTINE;
 
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical (Name_c02cfe7c85f984ba167d3d158f5219787998c27f)
+		{
+			if (!wwork) {
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
+			}
+		}
+	}
+
+	int cache_idx = 0;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	int nw = graph->n * nrhs;
+	if (nw > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = nw;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
-			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
+			int offset = i * graph->n;
+			GMRFLib_solve_llt_sparse_matrix_BAND(rhs + offset, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, work + offset);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
-		int ntt = -1;
-		if (omp_get_level() == 0) {
-			ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+		if (nrhs == 1) {
+			// simple entry
+			GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
 		} else {
-			ntt = GMRFLib_openmp->max_threads_inner;
-		}
+			int ntt = -1;
+			if (omp_get_level() == 0) {
+				ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+			} else {
+				ntt = GMRFLib_openmp->max_threads_inner;
+			}
 
-		int numt_save = omp_get_max_threads();
-		int reset_num_threads = 0;
+			int numt_save = omp_get_max_threads();
+			int reset_num_threads = 0;
 
-		if (nrhs <= ntt * 4) {
-			if (nrhs > 1) {
-				omp_set_num_threads(IMIN(nrhs, ntt));
-				reset_num_threads = 1;
+			if (nrhs <= ntt * 4) {
+				if (nrhs > 1) {
+					omp_set_num_threads(IMIN(nrhs, ntt));
+					reset_num_threads = 1;
 #pragma omp parallel for
-				for (int i = 0; i < nrhs; i++) {
-					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph,
-									      sm_fact->remap);
+					for (int i = 0; i < nrhs; i++) {
+						int offset = i * graph->n;
+						GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs + offset, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work + offset);
+					}
+				} else {
+					GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
 				}
 			} else {
-				GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap);
-			}
-		} else {
-			// much of the same code as in the smtp-pardiso.c and solve_core function
-			int nt = 1;
-			int nsolve;
-			int nblock;
-			int block_nrhs;
-			div_t d;
-			int S_nrhs_max = GMRFLib_pardiso_get_nrhs();
+				// much of the same code as in the smtp-pardiso.c and solve_core function
+				int nt = 1;
+				int nsolve;
+				int nblock;
+				int block_nrhs;
+				div_t d;
+				int S_nrhs_max = GMRFLib_pardiso_get_nrhs();
 
-			if (nrhs > 1) {
-				if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-					// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
-					// level=0.
-					nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
-				} else {
-					nt = GMRFLib_openmp->max_threads_inner;
+				if (nrhs > 1) {
+					if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+						// this is the exception of the rule, as we want to run this in parallel if we are in adaptive
+						// model and
+						// level=0.
+						nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+					} else {
+						nt = GMRFLib_openmp->max_threads_inner;
+					}
 				}
-			}
-			if (nrhs == 1) {
-				// in this case we always set block_nrhs=1 and nt=1
-				block_nrhs = 1;
-				nt = 1;
-			} else if (S_nrhs_max < 0) {
-				// this is the adaptive choice
-				d = div(nrhs, nt);
-				if (nrhs >= nt) {
-					// if this is true, we need to divide the work between the nt cores
-					block_nrhs = d.quot + (d.rem != 0);
-				} else {
-					// else we use one core pr rhs
+				if (nrhs == 1) {
+					// in this case we always set block_nrhs=1 and nt=1
 					block_nrhs = 1;
-					nt = IMIN(nt, nrhs);
+					nt = 1;
+				} else if (S_nrhs_max < 0) {
+					// this is the adaptive choice
+					d = div(nrhs, nt);
+					if (nrhs >= nt) {
+						// if this is true, we need to divide the work between the nt cores
+						block_nrhs = d.quot + (d.rem != 0);
+					} else {
+						// else we use one core pr rhs
+						block_nrhs = 1;
+						nt = IMIN(nt, nrhs);
+					}
+				} else if (nrhs <= S_nrhs_max) {
+					// then we do all of them in one block
+					block_nrhs = nrhs;
+					nt = 1;
+				} else {
+					// S_nrhs_max define the max nrhs, so then we divide the work
+					block_nrhs = S_nrhs_max;
+					d = div(nrhs, block_nrhs);
+					nt = IMIN(nt, d.quot + (d.rem != 0));
 				}
-			} else if (nrhs <= S_nrhs_max) {
-				// then we do all of them in one block
-				block_nrhs = nrhs;
-				nt = 1;
-			} else {
-				// S_nrhs_max define the max nrhs, so then we divide the work
-				block_nrhs = S_nrhs_max;
+
+				if (nt > 1) {
+					omp_set_num_threads(nt);
+					reset_num_threads = 1;
+				}
+
 				d = div(nrhs, block_nrhs);
-				nt = IMIN(nt, d.quot + (d.rem != 0));
-			}
+				nblock = d.quot;
+				nsolve = nblock + (d.rem != 0);
 
-			if (nt > 1) {
-				omp_set_num_threads(nt);
-				reset_num_threads = 1;
-			}
-
-			d = div(nrhs, block_nrhs);
-			nblock = d.quot;
-			nsolve = nblock + (d.rem != 0);
-
-			if (0) {
-				printf("nblock %d nsolve %d nrhs %d S_nrhs_max %d block_nrhs %d nt %d\n",
-				       nblock, nsolve, nrhs, S_nrhs_max, block_nrhs, nt);
-			}
+				if (0) {
+					printf("nblock %d nsolve %d nrhs %d S_nrhs_max %d block_nrhs %d nt %d\n",
+					       nblock, nsolve, nrhs, S_nrhs_max, block_nrhs, nt);
+				}
 #pragma omp parallel for num_threads(nt) if (nt > 1)
-			for (int k = 0; k < nsolve; k++) {
-				int offset = k * graph->n * block_nrhs;
-				int local_nrhs = (k < nblock ? block_nrhs : (int) d.rem);
-				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset, sm_fact->TAUCS_L, graph, sm_fact->remap, local_nrhs);
+				for (int k = 0; k < nsolve; k++) {
+					int offset = k * graph->n * block_nrhs;
+					int local_nrhs = (k < nblock ? block_nrhs : (int) d.rem);
+					GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset, sm_fact->TAUCS_L, graph, sm_fact->remap, local_nrhs, work + offset);
+				}
 			}
-		}
 
-		if (reset_num_threads) {
-			omp_set_num_threads(numt_save);
+			if (reset_num_threads) {
+				omp_set_num_threads(numt_save);
+			}
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));

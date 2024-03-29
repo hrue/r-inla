@@ -1,27 +1,17 @@
-#' Integrated Nested Laplace Approximation
+#' INLA
 #'
-#' Package to perform full Bayesian analysis on generalised additive mixed
-#' models using Integrated Nested Laplace Approximations.
+#' @description Package to perform full Bayesian analysis on latent Gaussian models using
+#'     Integrated Nested Laplace Approximations.
 #'
-#' \describe{
-#' \item{Package}{INLA}
-#' \item{Version}{Currently, this package uses a YY.MM.DD versioning
-#' system, and is in heavy development.
-#' See <https://github.com/hrue/r-inla/> and
-#' <https://www.r-inla.org>}
-#' \item{License}{GPL2}
-#' }
-#'
-#' See the web-site <https://www.r-inla.org> for further details.
-#'
+#' See r-inla.org for further details.
+#' @name INLA
+#' @export
 
-#' @name INLA-package
-#' @aliases INLA-package
-#' @aliases INLA
-#' @aliases R-INLA
-#' @docType package
-#' @author Havard Rue, Sara Martino, Finn Lindgren, ...
-NULL
+INLA <- function() {
+  message("Welcome to the R-INLA package!")
+  utils::browseVignettes(package = "INLA")
+}
+
 
 # Need to import something from every Imports package...
 #' @importFrom withr defer

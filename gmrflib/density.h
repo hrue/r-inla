@@ -265,7 +265,7 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n, double 
 double GMRFLib_density_Pinv_df(double x, void *param);
 double GMRFLib_density_Pinv_f(double x, void *param);
 double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density);
-double GMRFLib_density_std2user_n(double *__restrict x_user, double *__restrict x, int n, GMRFLib_density_tp * __restrict density);
+double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_density_tp * density);
 double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density);
 double GMRFLib_evaluate_density__intern(double x, void *param);
 double GMRFLib_evaluate_density_kld2__intern(double x, void *param);
@@ -295,7 +295,7 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 int GMRFLib_density_new_user_mean(GMRFLib_density_tp * density, double new_user_mean);
 int GMRFLib_density_new_user_stdev(GMRFLib_density_tp * density, double new_user_stdev);
 int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density);
-int GMRFLib_density_user2std_n(double *__restrict x_std, double *__restrict x, GMRFLib_density_tp * __restrict density, int n);
+int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n);
 int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * density);
 int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);

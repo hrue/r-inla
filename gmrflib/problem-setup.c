@@ -329,46 +329,50 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx)
 
 	GMRFLib_ENTER_ROUTINE;
 
-	static double **wwork = NULL;
-	static int *wwork_len = NULL;
-	if (!wwork) {
-#pragma omp critical (Name_415e5dc8137b4c7fc43dd511591be71a0710d398)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
-		}
+	int n = problem->sub_graph->n;
+	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0); 
+
+	Memcpy(x, b, n * sizeof(double));
+	if (idx >= 0) {
+		GMRFLib_solve_llt_sparse_matrix_special(x, &(problem->sub_sm_fact), problem->sub_graph, idx);
+	} else {
+		GMRFLib_solve_llt_sparse_matrix(x, 1, &(problem->sub_sm_fact), problem->sub_graph);
 	}
+
+	if (nc > 0) {
+		int inc = 1;
+		double t_vector[nc];
+		double alpha = -1.0, beta = 1.0;
+		GMRFLib_eval_constr0(t_vector, NULL, x, problem->sub_constr, problem->sub_graph);
+		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x, &inc, F_ONE);
+	}
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_Qsolves(double *x, double *b, int nrhs, GMRFLib_problem_tp *problem)
+{
+	// solve Q x = b, for many 'nrhs' and correct for constraints
+
+	GMRFLib_ENTER_ROUTINE;
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
-	double *xx = NULL;
-	int cache_idx = 0;
+	int nn = n * nrhs;
 
-	GMRFLib_CACHE_SET_ID(cache_idx);
-	if (n + nc > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
-		wwork_len[cache_idx] = n + nc;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-	}
-	xx = wwork[cache_idx];
-
-	Memcpy(xx, b, n * sizeof(double));
-	if (idx >= 0) {
-		GMRFLib_solve_llt_sparse_matrix_special(xx, &(problem->sub_sm_fact), problem->sub_graph, idx);
-	} else {
-		GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
-	}
+	Memcpy(x, b, nn * sizeof(double));
+	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph);
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
-		int nnc = problem->sub_constr->nc, inc = 1;
-		double alpha = -1.0, beta = 1.0, *t_vector = wwork[cache_idx] + n;
-		GMRFLib_eval_constr0(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
-		dgemv_("N", &n, &nnc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
+		int inc = 1;
+		double alpha = -1.0, beta = 1.0, t_vector[nc];
+		for(int i = 0; i < nrhs; i++) {
+			int offset = i * n;
+			GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph);
+			dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE);
+		}
 	}
-
-	Memcpy(x, xx, n * sizeof(double));
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -676,8 +680,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-					       ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				GMRFLib_solve_llt_sparse_matrix ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 			} else {
 				/*
 				 * reuse 
@@ -692,8 +695,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
-									       &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 			}
 			Free(qi_at_m_store);
 
