@@ -2587,24 +2587,24 @@ int testit(int argc, char **argv)
 		}
 		for (int k = 0; k < m; k++) {
 			double sum = 0.0;
-			start += omp_get_wtime();
+			start += GMRFLib_timer();
 			int low = 0;
 			for (int i = 0; i < key + 1; i++) {
 				int p = GMRFLib_iwhich_sorted_g(i, idx, n, &low);
 				if (p >= 0)
 					sum += idx[p];
 			}
-			finish += omp_get_wtime();
+			finish += GMRFLib_timer();
 
 			double sum2 = 0.0;
-			start2 += omp_get_wtime();
+			start2 += GMRFLib_timer();
 			int guess[2] = { 0, 0 };
 			for (int i = 0; i < key + 1; i++) {
 				int p = GMRFLib_iwhich_sorted_g2(i, idx, n, guess);
 				if (p >= 0)
 					sum2 += idx[p];
 			}
-			finish2 += omp_get_wtime();
+			finish2 += GMRFLib_timer();
 			if (k == m - 1)
 				printf("n.lookups= %1d  Time for iwhich_g= %.4g iwhich_g2= %.4g ratio g/g2= %.4f\n",
 				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
@@ -2639,20 +2639,20 @@ int testit(int argc, char **argv)
 		double start = 0, start2 = 0, finish = 0, finish2 = 0;
 
 		for (int k = 0; k < m; k++) {
-			start += omp_get_wtime();
+			start += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
 				double aa = a[i];
 				for (int j = 0; j < i; j++) {
 					sum1 += log(aa + j);
 				}
 			}
-			finish += omp_get_wtime();
+			finish += GMRFLib_timer();
 
-			start2 += omp_get_wtime();
+			start2 += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
 				sum2 += my_betabinomial_helper(i, a[i]);
 			}
-			finish2 += omp_get_wtime();
+			finish2 += GMRFLib_timer();
 		}
 		printf("plain= %.4g helper= %.4g ratio plain/helper= %.4f\n",
 		       (finish - start) / m, (finish2 - start2) / m, (finish - start) / (finish2 - start2));
@@ -4071,8 +4071,7 @@ int testit(int argc, char **argv)
 			tref[1] += omp_get_wtime();
 		}
 		tref[2] += GMRFLib_timer();
-		tref[2] /= n;
-		printf("timer=%.4g wtime=%.4g\n", tref[0] / n, tref[1] / n);
+		printf("timer=%.4g wtime=%.4g\n", tref[0] / tref[2], tref[1] / tref[2]);
 	}
 		break;
 
