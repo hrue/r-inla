@@ -120,6 +120,10 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 //#define IMAX(a,b) GSL_MAX_INT(a, b)
 //#define IMIN(a,b) GSL_MIN_INT(a, b)
 
+#if 1
+#define DMAX(a_, b_) fmax(a_, b_)
+#define DMIN(a_, b_) fmin(a_, b_)
+#else // if 1
 #pragma omp declare simd
 static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
 	return ((a) > (b) ? (a) : (b));
@@ -129,6 +133,7 @@ static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
 static double POSSIBLY_UNUSED_FUNCTION(DMIN) (double a, double b) {
 	return ((a) < (b) ? (a) : (b));
 }
+#endif // if 1
 
 #pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
