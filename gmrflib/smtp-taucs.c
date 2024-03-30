@@ -1666,9 +1666,13 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 
 	for (int j = 0; j < n; j++) {
 		y[j] = x[j] / d[colptr[j]];
-		double yj = y[j];
+
+		//double yj = y[j];
+		//for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) x[rowind[ip]] -= yj * d[ip];
+
+		double yj = -y[j];
 		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
-			x[rowind[ip]] -= yj * d[ip];
+			x[rowind[ip]] = fma(yj, d[ip], x[rowind[ip]]);
 		}
 	}
 
