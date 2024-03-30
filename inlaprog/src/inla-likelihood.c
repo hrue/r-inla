@@ -37,7 +37,7 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *UN
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E3, prec_low = 1.0E-6, eps = 1.0E-6;
+	double prec_high = 1.0E3, prec_low = 1.0E-4, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
 	int niter, niter_min = 5, niter_max = 100, stencil = 5;
@@ -3109,7 +3109,6 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
@@ -3121,15 +3120,23 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 	 */
 
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if ((int) y == 0) {
+		if ((int) y == 0) {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
-			} else if (y >= interval[0] && y <= interval[1]) {
+			}
+		} else if (y >= interval[0] && y <= interval[1]) {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = log((1.0 - p) * (gsl_cdf_poisson_P((unsigned int) interval[1], mu)
 							    - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu)));
-			} else {
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = LOG_1mp(p) + y * log(mu) - mu - normc;
 			}
 		}
@@ -3137,16 +3144,19 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		int iy = (int) y;
 
-		for (i = 0; i < -m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if (iy < interval[0] || iy > interval[1]) {
+		if (iy < interval[0] || iy > interval[1]) {
+			for (int i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				// not censored
 				logll[i] = p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) iy, mu);
-			} else {
-				int ii;
+			}
+		} else {
+			for (int i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				double sum = 0.0, prob, one = 0.0;
-				for (ii = interval[0]; ii <= interval[1]; ii++) {
+				for (int ii = interval[0]; ii <= interval[1]; ii++) {
 					prob = gsl_ran_poisson_pdf((unsigned int) ii, mu);
 					sum += prob * (p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) ii, mu));
 					one += prob;
