@@ -63,7 +63,8 @@ sphere. We are using the new implementation of the INLA package.
 
 
 **Since the compiled vignette is large is size, we do not include it the
-R-INLA package, but you can download the vignette source at
-``[https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global/Tutorial_barrier_global.Rmd](https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global/Tutorial_barrier_global.Rmd)''
+R-INLA package, but you can download the vignette source and
+downloaded data, at
+``[https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global](https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global)''
 and compile it yourself.**
 
