@@ -942,9 +942,9 @@ for(i in 1:k) {
                            depth = depth_values[[i]]$depth) 
 }
 
-# Standardize the 'depth' values in the 'locs_latlong' data frame
+# Use 'depth' in kilometers for easier interpretation in the 'locs_latlong' data frame
 for(i in 1:k) {
- locs_latlong[[i]]$depth <- as.vector(scale(locs_latlong[[i]]$depth)) 
+ locs_latlong[[i]]$depth <- as.vector(locs_latlong[[i]]$depth / 1000) 
 }
 
 # Remove rows with missing values in the 'locs_latlong' data frame
@@ -1599,10 +1599,20 @@ the random field.
 
 ```{r}
 # Extracting latitude and longitude from the defined grid
-locs_latlong_pred <- ggOceanMaps::get_depth(data = as.data.frame(st_coordinates(grid_ll[[1]])))
+depth_pred_file <- "depth_pred_file.rds"
+if(file.exists(depth_pred_file)) {
+    locs_latlong_pred <- readRDS(depth_pred_file)
+} else {    
+    locs_latlong_pred <- ggOceanMaps::get_depth(data = as.data.frame(
+                                                    st_coordinates(grid_ll[[1]])))
+    saveRDS(
+        object = locs_latlong_pred,
+        file = depth_pred_file
+    )
+}
 
-# Scaling the depth values and storing them in the 'depth' column
-locs_latlong_pred$depth <- as.vector(scale(locs_latlong_pred$depth))
+# Scale the depth values (to km units) and storing them in the 'depth' column
+locs_latlong_pred$depth <- as.vector(locs_latlong_pred$depth / 1000)
 ```
 
 Next, we have to set up the stack for prediction. Here, the response
@@ -2037,8 +2047,8 @@ Now, we will predict the probability of presence according to the fitted model.
 # Extracting latitude and longitude from the defined grid
 locs_latlong_pred <- ggOceanMaps::get_depth(data = as.data.frame(st_coordinates(grid_ll[[1]])))
 
-# Scaling the depth values and storing them in the 'depth' column
-locs_latlong_pred$depth <- as.vector(scale(locs_latlong_pred$depth))
+# Scale the depth values (km units) and storing them in the 'depth' column
+locs_latlong_pred$depth <- as.vector(locs_latlong_pred$depth / 1000)
 ```
 
 Next, we have to set up the stack for prediction. Here, the response
