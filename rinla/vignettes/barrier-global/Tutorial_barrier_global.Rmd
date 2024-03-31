@@ -142,7 +142,7 @@ Earth_poly <- function(resol = 100) {
 We also need to prepare a grid for projecting the effects of the
 model, considering the Mollweide projection and the spherical shape of
 the Earth. To accomplish this, we have implemented a function called
-**barrier_mgrid**. This function creates a grid of points within a
+**grid_create**. This function creates a grid of points within a
 specified boundary that do not intersect with a given barrier. The
 barrier can be either a Simple Features (sf) or Simple Features
 Collection (sfc) object representing a geographic region, and the
@@ -178,7 +178,7 @@ grid_create <- function(barrier, resol = 50) {
 }
 
 # Grid in Mollweide 
-mgrid <- barrier_mgrid(barrier = world_mll)
+mgrid <- grid_create(barrier = world_mll)
 
 # Grid in latlong 
 grid_ll <- st_transform(mgrid, crs = crs_ll)
@@ -914,10 +914,19 @@ this in R outside of Quarto or Rmarkdown. You only need to do this
 once.
 
 ```{r, results='hide'}
-# Download of depth/bathymetry 
-depth_values <- list()
-for(i in 1:k) {
-  depth_values[[i]] <- ggOceanMaps::get_depth(data = as.data.frame(locs[[i]]))
+depth_values_file <- "depth_values.rds"
+if(file.exists(depth_values_file)) {
+  depth_values <- readRDS(depth_values_file)
+} else {
+  # Download of depth/bathymetry 
+  depth_values <- list()
+  for(i in 1:k) {
+      depth_values[[i]] <- ggOceanMaps::get_depth(as.data.frame(locs[[i]]))
+  }
+  saveRDS(
+    object = depth_values, 
+    file = depth_values_file
+  )
 }
 ```
 
