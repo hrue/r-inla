@@ -2045,7 +2045,17 @@ Now, we will predict the probability of presence according to the fitted model.
 
 ```{r}
 # Extracting latitude and longitude from the defined grid
-locs_latlong_pred <- ggOceanMaps::get_depth(data = as.data.frame(st_coordinates(grid_ll[[1]])))
+depth_pred_file <- "depth_pred_file.rds"
+if(file.exists(depth_pred_file)) {
+    locs_latlong_pred <- readRDS(depth_pred_file)
+} else {    
+    locs_latlong_pred <- ggOceanMaps::get_depth(data = as.data.frame(
+                                                    st_coordinates(grid_ll[[1]])))
+    saveRDS(
+        object = locs_latlong_pred,
+        file = depth_pred_file
+    )
+}
 
 # Scale the depth values (km units) and storing them in the 'depth' column
 locs_latlong_pred$depth <- as.vector(locs_latlong_pred$depth / 1000)
