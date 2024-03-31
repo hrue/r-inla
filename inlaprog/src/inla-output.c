@@ -86,7 +86,7 @@ int inla_output_graph(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order)
 {
-	char *fnm, *ndir;
+	char *fnm = NULL, *ndir = NULL;
 
 	if (sdir) {
 		GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
@@ -127,8 +127,8 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix)
 {
-	FILE *fp;
-	char *fnm, *ndir;
+	FILE *fp = NULL;
+	char *fnm = NULL, *ndir = NULL;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/NAMES", ndir);
@@ -148,7 +148,8 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep)
 {
-	char *fnm, *ndir;
+	char *fnm = NULL, *ndir = NULL;
+
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/size.dat", ndir);
 
@@ -171,8 +172,8 @@ char *inla_create_hyperid(int id, const char *secname)
 
 int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid)
 {
-	FILE *fp;
-	char *fnm, *ndir;
+	FILE *fp = NULL;
+	char *fnm = NULL, *ndir = NULL;
 
 	// fprintf(stderr, "output hyperid %s / %s [%s]\n", dir, sdir, hyperid);
 
@@ -198,7 +199,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 		return INLA_OK;
 	}
 
-	char *fnm, *ndir;
+	char *fnm = NULL, *ndir = NULL;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/id-names.dat", ndir);
@@ -261,7 +262,7 @@ int inla_output(inla_tp *mb)
 	}
 
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
-		char *sdir, *newtag;
+		char *sdir = NULL, *newtag = NULL;
 		int offset = offsets[0];
 		GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 		GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
@@ -288,7 +289,7 @@ int inla_output(inla_tp *mb)
 	for (int k = 3; k < 9; k++) {
 		int ii;
 		if (k == 3) {
-			char *fnm;
+			char *fnm = NULL;
 			GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
 			inla_mkdir(fnm);
 			Free(fnm);
@@ -324,7 +325,7 @@ int inla_output(inla_tp *mb)
 			}
 			if (mb->density_hyper) {
 				for (ii = 0; ii < mb->ntheta; ii++) {
-					char *sdir;
+					char *sdir = NULL;
 					GMRFLib_sprintf(&sdir, "hyperparameter-1-%.6d-%s", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, 1, 1, mb->output, sdir,
 							   mb->output->return_marginals, NULL, NULL, NULL, mb->theta_tag[ii], NULL, local_verbose);
@@ -344,7 +345,7 @@ int inla_output(inla_tp *mb)
 				/*
 				 * we need to create the corresponding normal as well 
 				 */
-				char *sdir;
+				char *sdir = NULL;
 				sdir = Strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, NULL,
 						   GMRFLib_ai_INLA_userfunc0_dim, 1, mb->output, sdir, mb->output->return_marginals,
@@ -356,7 +357,7 @@ int inla_output(inla_tp *mb)
 				/*
 				 * we need to create the corresponding normal as well 
 				 */
-				char *sdir;
+				char *sdir = NULL;
 				sdir = Strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL,
 						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, mb->output->return_marginals,
@@ -370,7 +371,7 @@ int inla_output(inla_tp *mb)
 					/*
 					 * we need to create the corresponding normal as well 
 					 */
-					char *sdir, *local_tag;
+					char *sdir = NULL, *local_tag = NULL;
 
 					int dim = GMRFLib_ai_INLA_userfunc2_len[ii];
 					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii + 1);
@@ -389,7 +390,7 @@ int inla_output(inla_tp *mb)
 					/*
 					 * we need to create the corresponding normal as well 
 					 */
-					char *sdir, *local_tag;
+					char *sdir = NULL, *local_tag = NULL;
 
 					int dim = GMRFLib_ai_INLA_userfunc3_len[ii];
 					GMRFLib_sprintf(&sdir, "spde3.blc.%6.6d", ii + 1);
@@ -949,7 +950,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	}
 
 	if (mo->configs) {
-		FILE *fp;
+		FILE *fp = NULL;
 
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "config");
 		if (inla_mkdir(nndir) != 0) {
@@ -1042,7 +1043,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 
 	if (mo->configs_preopt) {
 
-		FILE *fp;
+		FILE *fp = NULL;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "config_preopt");
 		if (inla_mkdir(nndir) != 0) {
 			GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", nndir, strerror(errno));
@@ -1122,7 +1123,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 					fwrite((void *) off, sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
 					Free(off);
 
-					char *A, *pA;
+					char *A = NULL, *pA = NULL;
 					GMRFLib_sprintf(&A, "%s/%s", nndir, "A.dat");
 					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int) 0, -1);
 					GMRFLib_sprintf(&pA, "%s/%s", nndir, "pA.dat");
@@ -1939,7 +1940,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				}
 				if (mb->gcpo_param->verbose) {
 					if (mb->gcpo_param->groups[i]->n > 0) {
-						char *msg;
+						char *msg = NULL;
 						GMRFLib_sprintf(&msg, "group %d", i);
 						GMRFLib_idxval_printf(stdout, mb->gcpo_param->groups[i], msg);
 					}

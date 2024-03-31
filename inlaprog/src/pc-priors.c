@@ -146,7 +146,7 @@ double inla_pcp_dof_d(double dof)
 	}
 
 	if (ISNAN(kld)) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "inla_pcp_dof_d: return NAN with dof = %.12f\n", dof);
 		inla_error_general(msg);
 	}

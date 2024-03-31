@@ -328,7 +328,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 	int i, j, id = 0;
 	const int debug = 0;
 	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = GMRFLib_SN_SKEWMAX;
-	double **par, intercept, intercept_intern, intercept_alpha;
+	double **par = NULL, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
 	assert(par);
@@ -377,7 +377,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 
 	if (!ISEQUAL(alpha, table[id]->alpha)) {
 		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
-		double *work, *x, *y, *yy, nc = 0.0, xx;
+		double *work = NULL, *x = NULL, *y = NULL, *yy = NULL, nc = 0.0, xx;
 
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
@@ -1331,7 +1331,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 	GMRFLib_CACHE_SET_ID(id);
 	if (a != table[id]->a) {
 		int len, llen;
-		double *work, *x_, *y, p_local;
+		double *work = NULL, *x_ = NULL, *y = NULL, p_local;
 		if (debug) {
 			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
 		}
@@ -1442,17 +1442,17 @@ double link_logoffset(int thread_id, double x, map_arg_tp typ, void *param, doub
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	double beta, off, sign;
 
 	if (!cov) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "You need to pass the covariates to the link.model[logoffset] in the inla()-argument 'link.covariates'");
 		inla_error_general(msg);
 		exit(1);
 	}
 	if (cov[0] < 0.0) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "The covariates to link.model[logoffset] must be all >= 0.0. Yours is [%g].", cov[0]);
 		inla_error_general(msg);
 		exit(1);
@@ -1483,7 +1483,7 @@ double link_logitoffset(int thread_id, double x, map_arg_tp typ, void *param, do
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	double prob;
 
 	p = (Link_param_tp *) param;
@@ -1506,7 +1506,7 @@ double link_logitoffset(int thread_id, double x, map_arg_tp typ, void *param, do
 
 double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	double sens, spec, a, b, xx;
 
 	p = (Link_param_tp *) param;
@@ -1542,17 +1542,17 @@ double link_special2(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	double beta, f;
 
 	if (!cov) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "You need to pass the covariate to the link.model[special2] in the inla()-argument 'link.covariates'");
 		inla_error_general(msg);
 		exit(1);
 	}
 	if (cov[0] <= 0.0 || cov[0] >= 1.0) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "The covariate to link.model[special2] must be between 0 and 1. Your is [%g].", cov[0]);
 		inla_error_general(msg);
 		exit(1);
@@ -1870,7 +1870,7 @@ double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	double beta;
 
 	p = (Link_param_tp *) param;
@@ -1881,7 +1881,7 @@ double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *
 
 double link_special1(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
-	Link_param_tp *p;
+	Link_param_tp *p = NULL;
 	int i;
 	double covariate_contribution, h = 1.0E-4, prec;
 

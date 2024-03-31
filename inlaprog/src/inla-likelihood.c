@@ -1634,8 +1634,8 @@ int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *_
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
-	inla_sn_arg_tp sn_arg = {.xi = 0.0, .omega = 0.0, .intercept = 0.0, .alpha = 0.0};
-		
+	inla_sn_arg_tp sn_arg = {.xi = 0.0,.omega = 0.0,.intercept = 0.0,.alpha = 0.0 };
+
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -2715,8 +2715,8 @@ double eval_log_contpoisson(double y, double lambda)
 #define _L 3
 #define _LEN (_R + _L + 2)
 	int i, istart, iy, low, high, len;
-	double work[2 * _LEN], *xx, *yy, lval;
-	GMRFLib_spline_tp *spline;
+	double work[2 * _LEN], *xx = NULL, *yy = NULL, lval;
+	GMRFLib_spline_tp *spline = NULL;
 
 	low = IMAX(0, (int) y - _L);
 	high = (int) y + _R;
@@ -4658,7 +4658,7 @@ int loglikelihood_nmix(int thread_id, double *__restrict logll, double *__restri
 	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
-	double *y, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
+	double *y = NULL, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
 
 	assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
@@ -4751,7 +4751,7 @@ int loglikelihood_nmixnb(int thread_id, double *__restrict logll, double *__rest
 	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
-	double *y, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
+	double *y = NULL, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
 
 	assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
@@ -5004,7 +5004,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 	if (lcache->n != *n || lcache->shape != shape) {
 		Free(lcache->x);
 		double *work = Calloc(2 * *n, double);
-		double *xx, *ww, weight[2] = { 4.0, 2.0 }, alpha = 0.001, low_limit, high_limit, dx, wmin;
+		double *xx = NULL, *ww = NULL, weight[2] = { 4.0, 2.0 }, alpha = 0.001, low_limit, high_limit, dx, wmin;
 		int i, j, np;
 
 		low_limit = log(MATHLIB_FUN(qgamma) (alpha / 2.0, shape, 1.0 / shape, 1, 0));

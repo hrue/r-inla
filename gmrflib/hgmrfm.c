@@ -165,7 +165,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 * need to read the Aext matrix, which is required. Allocate a new copy of precision, as we need to make it persistent. 
 	 */
 	if (Aext_fnm) {
-		double **lprec_omp;
+		double **lprec_omp = NULL;
 		HYPER_NEW(lprec_omp, log(Aext_precision));
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, lprec_omp);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */

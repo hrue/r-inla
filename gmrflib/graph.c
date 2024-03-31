@@ -98,7 +98,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 	if (1) {							\
 		_ix = (int) (_x);					\
 		if (!ISEQUAL((double) (_ix), (_x))) {			\
-			char *msg;					\
+			char *msg = NULL;				\
 			GMRFLib_sprintf(&msg, "Error reading graph. This is not an integer [%g]", _x); \
 			GMRFLib_ERROR_MSG(GMRFLib_EGRAPH, msg);		\
 		}							\
@@ -442,7 +442,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	}
 
 	if (graph_store_use && graph->sha) {
-		void *p;
+		void *p = NULL;
 		p = map_strvp_ptr(&graph_store, (char *) graph->sha);
 		if (graph_store_debug) {
 			if (p) {
@@ -520,7 +520,7 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 
 void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 {
-	int mid, top, val, *piv, *base = array;
+	int mid, top, val, *piv = NULL, *base = array;
 	int low = 0;
 
 	if (array[guess[0]] <= key) {
@@ -549,7 +549,7 @@ void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 
 void *GMRFLib_bsearch(int key, int n, int *array)
 {
-	int mid, top, val, *piv, *base = array;
+	int mid, top, val, *piv = NULL, *base = array;
 	mid = top = n;
 
 	while (mid) {
@@ -980,7 +980,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	}
 
 	if (graph_store_use && graph_old->sha) {
-		void **p;
+		void **p = NULL;
 		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
 		if (graph_store_debug) {
 			if (p) {
@@ -1376,7 +1376,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			char *used = Calloc(max_t, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				double *r, *local_values, xi = x[i], sum = 0.0;	\
+				double *r = NULL, *local_values = NULL, xi = x[i], sum = 0.0; \
 				int *j_a = graph->lnbs[i];		\
 				/* may run in serial */			\
 				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
@@ -1470,8 +1470,8 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 	GMRFLib_ENTER_ROUTINE;
 
 	// taken from GMRFLibP.h
-	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? 
-		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); 
+	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())?
+		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner);
 
 	int ncol = result->size2;
 	int len = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
@@ -1506,15 +1506,15 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			}
 		}
 	} else {
-		double *p1, *p2, *p3, *p4;
+		double *p1 = NULL, *p2 = NULL, *p3 = NULL, *p4 = NULL;
 		for (int i = 0; i < graph->n; i++) {
 			double res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
 			if (ISNAN(res)) {
 				int ii = 0;
-				values[ii++]= Qfunc(thread_id, i, i, NULL, Qfunc_arg);
-				for(int jj = 0; jj < graph->lnnbs[i]; jj++){
+				values[ii++] = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = graph->lnbs[i][jj];
-					values[ii++]= Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+					values[ii++] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 				}
 			}
 			p1 = gsl_matrix_ptr(result, i, 0);
@@ -1580,7 +1580,7 @@ int GMRFLib_QM_ORIG(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_gr
 				}
 			}
 		} else {
-			double *p1, *p2, *p3, *p4, qij;
+			double *p1 = NULL, *p2 = NULL, *p3 = NULL, *p4 = NULL, qij;
 			for (int i = 0; i < graph->n; i++) {
 				qij = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
@@ -1623,7 +1623,7 @@ int GMRFLib_QM_ORIG(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_gr
 			}
 		} else {
 			// better one, as the 'k' loop is sequential with inc=1
-			double *p1, *p2, *p3, *p4;
+			double *p1 = NULL, *p2 = NULL, *p3 = NULL, *p4 = NULL;
 			for (int i = 0; i < graph->n; i++) {
 				Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
@@ -2149,7 +2149,7 @@ int GMRFLib_offset(GMRFLib_offset_tp **off, int n_new, int offset, GMRFLib_graph
 	 */
 
 	GMRFLib_offset_tp *val = NULL;
-	GMRFLib_offset_arg_tp *offset_arg;
+	GMRFLib_offset_arg_tp *offset_arg = NULL;
 
 	offset_arg = Calloc(1, GMRFLib_offset_arg_tp);
 	offset_arg->Qfunc = Qfunc;
@@ -2179,7 +2179,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp *g)
 	}
 
 	int n, *cc = NULL, ccc;
-	char *visited;
+	char *visited = NULL;
 
 	n = g->n;
 	cc = Calloc(n, int);

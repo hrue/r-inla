@@ -83,7 +83,7 @@ double GMRFLib_Wishart_logdens(gsl_matrix *Q, double r, gsl_matrix *R)
 
 	double logdens, trace, log_c;
 	size_t p, i;
-	gsl_matrix *C;
+	gsl_matrix *C = NULL;
 
 	p = Q->size1;
 	C = gsl_matrix_calloc(R->size1, R->size2);

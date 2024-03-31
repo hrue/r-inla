@@ -167,7 +167,7 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 
 int inla_sread_str_int(char **tag, int *i, const char *str)
 {
-	char *strtok_ptr = NULL, *token;
+	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
 	int ok = 1;
 	char *p = Strdup(str);
@@ -187,7 +187,7 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 
 int inla_sread_str_str(char **tag, int nmax, char *str)
 {
-	char *strtok_ptr = NULL, *token;
+	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
 	char *p = Strdup(str);
 	int i = 0;
@@ -223,7 +223,7 @@ int inla_sread(void *x, int nx, const char *str, int code)
 	 * code = 0: int. code = 1: double 
 	 */
 
-	char *strtok_ptr = NULL, *token, *p;
+	char *strtok_ptr = NULL, *token = NULL, *p = NULL;
 	const char *delim = " \t";
 	double *dx = (double *) x;
 	int *ix = (int *) x;
@@ -276,7 +276,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 	 * this return the number of `ints' read in nx and in x 
 	 */
 
-	char *strtok_ptr = NULL, *token, *p;
+	char *strtok_ptr = NULL, *token = NULL, *p = NULL;
 	const char *delim = " \t";
 	double *dx = NULL;
 	double dx_try;
@@ -369,7 +369,7 @@ int inla_is_NAs(int nx, const char *string)
 	/*
 	 * return GMRFLib_SUCCESS is string consists of nx NA's + whitespace separation 
 	 */
-	char *scopy, *p;
+	char *scopy = NULL, *p = NULL;
 	const char *sep = " \t", *NA = "NA";
 	int k = 0, nna = 0;
 	const int debug = 0;
@@ -551,7 +551,7 @@ char *inla_make_tag(const char *string, int ds)
 
 char *inla_make_tag2(const char *string, int ds, const char *estr)
 {
-	char *res;
+	char *res = NULL;
 
 	if (ds > 0) {
 		GMRFLib_sprintf(&res, "%s%s[%1d]", string, (estr ? estr : ""), ds + 1);	/* yes, number these from 1...nds */
@@ -614,7 +614,7 @@ int inla_read_graph(const char *filename)
 	GMRFLib_graph_read(&graph, filename);
 	GMRFLib_graph_write2(stdout, graph);
 
-	int *cc, i;
+	int *cc = NULL, i;
 	cc = GMRFLib_graph_cc(graph);
 	for (i = 0; i < graph->n; i++)
 		printf("%d\n", cc[i]);
@@ -629,7 +629,7 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	 * just read the hole file into on long character vector 
 	 */
 
-	FILE *fp;
+	FILE *fp = NULL;
 	long len;
 
 	if (!filename) {
@@ -664,7 +664,7 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
 		return INLA_OK;
 	}
 
-	FILE *fp;
+	FILE *fp = NULL;
 	size_t len;
 
 	fp = fopen(filename, "wb");

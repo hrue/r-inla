@@ -40,7 +40,7 @@ int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar *image, int nx, int
 	 * Create a PNB file of image, x-based storage 
 	 */
 
-	FILE *fp;
+	FILE *fp = NULL;
 	int i, j, k, bit;
 	GMRFLib_uchar c = 0, *iptr = image;
 
@@ -106,8 +106,8 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp *graph, const char *filename, 
 
 int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp *graph)
 {
-	int i, *mapping;
-	char *filename;
+	int i, *mapping = NULL;
+	char *filename = NULL;
 
 	mapping = Calloc(graph->n, int);
 	for (i = 0; i < graph->n; i++) {

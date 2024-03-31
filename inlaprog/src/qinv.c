@@ -12,8 +12,8 @@ int main(int argc, char **argv)
 	}
 
 	double tref;
-	GMRFLib_tabulate_Qfunc_tp *tab;
-	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_graph_tp *graph = NULL;
 
 	tref = GMRFLib_timer();
 	fprintf(stderr, "Read Q-matrix and build graph... ");
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	tref = GMRFLib_timer();
 	fprintf(stderr, "Factorise Q... ");
 	fflush(stderr);
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	fprintf(stderr, "%gs\n", GMRFLib_timer() - tref);
 

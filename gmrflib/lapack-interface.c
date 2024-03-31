@@ -554,7 +554,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 	/*
 	 * compute the log determinant of a SPD matrix A 
 	 */
-	gsl_matrix *L;
+	gsl_matrix *L = NULL;
 	double logdet = 0.0;
 	size_t i;
 
@@ -577,8 +577,8 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	/*
 	 * replace SPD matrix A with its inverse 
 	 */
-	gsl_matrix *L;
-	gsl_vector *x;
+	gsl_matrix *L = NULL;
+	gsl_vector *x = NULL;
 	size_t i, n;
 
 	assert(A->size1 == A->size2);
@@ -1498,8 +1498,7 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 }
 
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
-		       double alpha, gsl_matrix * A, gsl_matrix * B,
-		       double beta, gsl_matrix * C, int num_threads)
+		       double alpha, gsl_matrix *A, gsl_matrix *B, double beta, gsl_matrix *C, int num_threads)
 {
 	size_t M = C->size1;
 	size_t N = C->size2;
@@ -1508,29 +1507,23 @@ int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
 	size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
 	size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
 
-	if (M == MA && N == NB && NA == MB)   /* [MxN] = [MAxNA][MBxNB] */
-	{
+	if (M == MA && N == NB && NA == MB) {		       /* [MxN] = [MAxNA][MBxNB] */
 		cblas_dgemm_omp(CblasRowMajor, TransA, TransB, (int) M, (int) N, (int) NA,
-				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta,
-				C->data, (int) C->tda, num_threads);
+				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta, C->data, (int) C->tda, num_threads);
 		return GSL_SUCCESS;
-	}
-	else
-	{
-		GSL_ERROR ("invalid length", GSL_EBADLEN);
+	} else {
+		GSL_ERROR("invalid length", GSL_EBADLEN);
 	}
 }
 
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		     enum CBLAS_TRANSPOSE TransB, int M, int N,
-		     int K, double alpha, double *A, int lda,
-		     double *B, int ldb, double beta, double *C,
-		     int ldc, int num_threads)
+		     int K, double alpha, double *A, int lda, double *B, int ldb, double beta, double *C, int ldc, int num_threads)
 {
 	int n1, n2;
 	int ldf, ldg;
 	int TransF, TransG;
-	double *F, *G;
+	double *F = NULL, *G = NULL;
 
 	if (alpha == 0.0 && beta == 1.0)
 		return;
@@ -1555,7 +1548,9 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		TransG = (TransA == CblasConjTrans) ? CblasTrans : TransA;
 	}
 
-	/* form  y := beta*y */
+	/*
+	 * form y := beta*y 
+	 */
 	if (beta == 0.0) {
 		for (int i = 0; i < n1; i++) {
 			for (int j = 0; j < n2; j++) {
@@ -1575,12 +1570,14 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 
 	if (TransF == CblasNoTrans && TransG == CblasNoTrans) {
 
-		/* form  C := alpha*A*B + C */
+		/*
+		 * form C := alpha*A*B + C 
+		 */
 
 		FIXME("OPTIMIZE CODE");
 		abort();
-		
-#pragma omp parallel for 
+
+#pragma omp parallel for
 		for (int i = 0; i < n1; i++) {
 			for (int k = 0; k < K; k++) {
 				double temp = alpha * F[ldf * i + k];
@@ -1594,11 +1591,13 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 
 	} else if (TransF == CblasNoTrans && TransG == CblasTrans) {
 
-		/* form  C := alpha*A*B' + C */
+		/*
+		 * form C := alpha*A*B' + C 
+		 */
 
 		FIXME("OPTIMIZE CODE");
 		abort();
-		
+
 #pragma omp parallel for
 		for (int i = 0; i < n1; i++) {
 			for (int j = 0; j < n2; j++) {
@@ -1627,7 +1626,7 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 
 		FIXME("OPTIMIZE CODE");
 		abort();
-		
+
 #pragma omp parallel for
 		for (int i = 0; i < n1; i++) {
 			for (int j = 0; j < n2; j++) {
@@ -1643,4 +1642,3 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		assert(0 == 1);
 	}
 }
-

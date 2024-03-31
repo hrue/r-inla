@@ -33,7 +33,7 @@ char *my_strlwc(const char *s)
 	 */
 	long int i, start;
 	const int debug = 0;
-	char *f, *str;
+	char *f = NULL, *str = NULL;
 
 	str = Strdup(s);
 	if (debug)

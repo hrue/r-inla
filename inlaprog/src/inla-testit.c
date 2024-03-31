@@ -268,7 +268,7 @@ int testit(int argc, char **argv)
 		arg->N = arg->n * (arg->k + 1);
 		arg->prec_eps = 100;
 
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		inla_make_fgn_graph(&g, arg);
 		GMRFLib_printf_graph(stdout, g);
 		exit(0);
@@ -290,7 +290,7 @@ int testit(int argc, char **argv)
 			int i;
 
 			int n_out;
-			double *x_out;
+			double *x_out = NULL;
 
 #define _PPP(cmd)							\
 			printf("\ncmd [%s] n_out [%1d]\n", cmd, n_out);	\
@@ -573,7 +573,7 @@ int testit(int argc, char **argv)
 
 	case 20:
 	{
-		inla_file_contents_tp *fc;
+		inla_file_contents_tp *fc = NULL;
 
 		fc = inla_read_file_contents("aa.dat");
 		inla_write_file_contents("bb.dat", fc);
@@ -653,7 +653,7 @@ int testit(int argc, char **argv)
 #define FUN3(x) (SQR(x)*(x))
 #define FUN4(x) SQR(SQR(x))
 
-		double *xp, *wp, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
+		double *xp = NULL, *wp = NULL, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
 		int np = GMRFLib_INT_GHQ_POINTS, i;
 		if (nargs) {
 			np = atoi(args[0]);
@@ -1066,7 +1066,7 @@ int testit(int argc, char **argv)
 
 	case 43:
 	{
-		gsl_matrix *A;
+		gsl_matrix *A = NULL;
 		A = gsl_matrix_alloc(3, 3);
 		gsl_matrix_set(A, 0, 0, 1.0);
 		gsl_matrix_set(A, 1, 0, 2.0);
@@ -1121,7 +1121,7 @@ int testit(int argc, char **argv)
 	case 46:
 	{
 		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		int n = 10, i, j;
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
@@ -1363,7 +1363,7 @@ int testit(int argc, char **argv)
 	case 55:
 	{
 		double skew3 = GMRFLib_skew_to_skew3(0.3);
-		GMRFLib_snq_tp *q;
+		GMRFLib_snq_tp *q = NULL;
 		int n = 31;
 
 		q = GMRFLib_snq(n, skew3);
@@ -1467,8 +1467,8 @@ int testit(int argc, char **argv)
 
 	case 61:
 	{
-		GMRFLib_problem_tp *problem;
-		GMRFLib_graph_tp *g;
+		GMRFLib_problem_tp *problem = NULL;
+		GMRFLib_graph_tp *g = NULL;
 		GMRFLib_graph_mk_linear(&g, 5, 5, 0);
 
 		int thread_id = 0;
@@ -1580,7 +1580,7 @@ int testit(int argc, char **argv)
 	{
 		double power, power_intern;
 		double intercept, intercept_intern;
-		double **param;
+		double **param = NULL;
 		param = Calloc(2, double *);
 
 		power = 1.5;
@@ -1628,7 +1628,7 @@ int testit(int argc, char **argv)
 		lt_dlhandle handle;
 		typedef double fun_tp(double);
 		fun_tp *fun = NULL;
-		const char *error;
+		const char *error = NULL;
 
 		lt_dlinit();
 		handle = lt_dlopen(args[1]);
@@ -1761,7 +1761,7 @@ int testit(int argc, char **argv)
 	case 74:
 	{
 		double x[100];
-		double *p, *pp;
+		double *p = NULL, *pp = NULL;
 
 		p = &x[0];
 		pp = &x[10];
@@ -1795,7 +1795,7 @@ int testit(int argc, char **argv)
 			// printf("%d %.20f %.20f\n", i, x[i], pp[i]); 
 		}
 
-		GMRFLib_spline_tp *P, *Pinv;
+		GMRFLib_spline_tp *P = NULL, *Pinv = NULL;
 
 		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P, GMRFLib_INTPOL_CACHE_LEVEL12);
 		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL12);
@@ -1833,7 +1833,7 @@ int testit(int argc, char **argv)
 			z += dx * exp(y[i]);
 		}
 		P(z);					       /* should be 1 */
-		GMRFLib_density_tp *density;
+		GMRFLib_density_tp *density = NULL;
 		GMRFLib_density_create(&density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, y, 0.0, 1.0, 1);
 		GMRFLib_density_printf(stdout, density);
 
@@ -2570,8 +2570,6 @@ int testit(int argc, char **argv)
 
 	case 91:
 	{
-		void *monobound_bsearch(const void *key, const void *array, size_t nmemb, size_t size);
-
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		P(n);
@@ -2675,7 +2673,7 @@ int testit(int argc, char **argv)
 		tref = -GMRFLib_timer();
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nt; i++) {
-			char *fnm;
+			char *fnm = NULL;
 			GMRFLib_sprintf(&fnm, "REMOVE_ME_%1d.dat", i);
 			FILE *fp = fopen(fnm, "wb");
 			fwrite((void *) x, sizeof(double), (size_t) n, fp);
@@ -2688,7 +2686,7 @@ int testit(int argc, char **argv)
 		double tref2;
 		tref2 = -GMRFLib_timer();
 		for (int i = 0; i < nt; i++) {
-			char *fnm;
+			char *fnm = NULL;
 			GMRFLib_sprintf(&fnm, "REMOVE_ME_ALSO_%1d.dat", i);
 			FILE *fp = fopen(fnm, "wb");
 			fwrite((void *) x, sizeof(double), (size_t) n, fp);

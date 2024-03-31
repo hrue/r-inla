@@ -1275,7 +1275,7 @@ double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *ar
 		return NAN;
 	}
 
-	inla_besag_Qfunc_arg_tp *a;
+	inla_besag_Qfunc_arg_tp *a = NULL;
 	double prec;
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
@@ -1307,7 +1307,7 @@ double Qfunc_besag2(int thread_id, int i, int j, double *UNUSED(values), void *a
 		return NAN;
 	}
 
-	inla_besag2_Qfunc_arg_tp *aa;
+	inla_besag2_Qfunc_arg_tp *aa = NULL;
 	double a;
 
 	aa = (inla_besag2_Qfunc_arg_tp *) arg;
@@ -1336,7 +1336,7 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), vo
 		return NAN;
 	}
 
-	inla_besag_proper_Qfunc_arg_tp *a;
+	inla_besag_proper_Qfunc_arg_tp *a = NULL;
 	double prec;
 
 	a = (inla_besag_proper_Qfunc_arg_tp *) arg;
@@ -1355,7 +1355,7 @@ double Qfunc_besagproper2(int thread_id, int i, int j, double *UNUSED(values), v
 		return NAN;
 	}
 
-	inla_besag_proper2_Qfunc_arg_tp *a;
+	inla_besag_proper2_Qfunc_arg_tp *a = NULL;
 	double prec;
 	double lambda;
 

@@ -1127,7 +1127,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
-	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
+	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer = NULL,
 	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, ***deviance_theta =
 	    NULL, **failure_theta = NULL;
 
@@ -1951,7 +1951,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
 
-		double *z_local, *theta_local, log_dens_orig;
+		double *z_local = NULL, *theta_local = NULL, log_dens_orig;
 		GMRFLib_ai_store_tp *ai_store_id = NULL;
 		GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 		double *bnew = NULL;
@@ -2383,7 +2383,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	if (dlin && nlin) {
-		GMRFLib_density_tp **dtmp, *dcombine;
+		GMRFLib_density_tp **dtmp = NULL, *dcombine = NULL;
 
 		assert(lin_dens);
 		dtmp = Calloc(dens_max, GMRFLib_density_tp *);
@@ -2400,7 +2400,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		Free(dtmp);
 
 		if (misc_output && misc_output->compute_corr_lin) {
-			double *ptmp;
+			double *ptmp = NULL;
 			misc_output->corr_lin = ptmp = Calloc(ISQR(nlin), double);
 			misc_output->cov_lin = Calloc(ISQR(nlin), double);
 
@@ -3571,7 +3571,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #pragma omp critical (Name_0c006e103a84c0a6e6169eed5e739b8065a95b95)
 		{
 			for (int node = 0; node < Npred; node++) {
-				char *msg;
+				char *msg = NULL;
 				GMRFLib_sprintf(&msg, "%s[%1d]: node %d", __GMRFLib_FuncName, omp_get_thread_num(), node);
 				if (groups[node]->n > 0) {
 					GMRFLib_idxval_printf(stdout, groups[node], msg);
@@ -4657,7 +4657,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 			RUN_CODE_BLOCK_PLAIN(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
-			
+
 			if (measure_time) {
 				time_hess += GMRFLib_timer() - time_ref_hess;
 			}
@@ -5442,7 +5442,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 
 	if (!(mo->configs_preopt[id])) {
 
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		mo->configs_preopt[id] = Calloc(1, GMRFLib_store_configs_preopt_tp);
 
 		mo->configs_preopt[id]->lite = lite;
@@ -5464,7 +5464,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 		mo->configs_preopt[id]->pA = preopt->pA;
 		GMRFLib_duplicate_constr(&(mo->configs_preopt[id]->constr), preopt->latent_constr, preopt->preopt_graph);
 
-		int *i, *j, ii, jj, k, kk;
+		int *i = NULL, *j = NULL, ii, jj, k, kk;
 
 		i = mo->configs_preopt[id]->i = Calloc(mo->configs_preopt[id]->nz, int);
 		j = mo->configs_preopt[id]->j = Calloc(mo->configs_preopt[id]->nz, int);
@@ -5520,7 +5520,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 
 	int ii, jj, k, kk;
 	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL;
-	GMRFLib_graph_tp *g;
+	GMRFLib_graph_tp *g = NULL;
 
 	// TODO This should be changed: The code below to store Q and Qprior, is a little sloppy, as we do not use the (i,j) arrays
 	// mo->configs_preopt[id]->iprior etc, but we just store the matrices in a vector, in the same order as the indices were stored.
@@ -5608,7 +5608,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
 	int n, nc = 0, one = 1;
-	GMRFLib_density_tp **d;
+	GMRFLib_density_tp **d = NULL;
 
 	// yes, disable this with PARDISO as PARDISO do not have this feaure
 	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
@@ -5746,7 +5746,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 				/*
 				 * w = AA^T CONSTR_M 
 				 */
-				double *p, *pp, w, ww;
+				double *p = NULL, *pp = NULL, w, ww;
 
 				w = ww = 0.0;
 				p = &(problem->constr_m[j * n]);
@@ -6418,7 +6418,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 			if (0) {
 				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
 					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
-					taucs_crs_matrix * LL = ai_store->problem->sub_sm_fact.TAUCS_LL;
+					taucs_crs_matrix *LL = ai_store->problem->sub_sm_fact.TAUCS_LL;
 #define CODE_BLOCK							\
 					for (int i = 0; i < n; i++) {	\
 						int m = LL->rowptr[i + 1] - LL->rowptr[i]; \
@@ -6500,7 +6500,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 #define COV(i, j)  covmat[ (i) + (j)*nhyper ]
 #define NEXTRA 19
 	int i, j;
-	double *points = NULL, *ldens_values, *theta_max, *theta_min, sd;
+	double *points = NULL, *ldens_values = NULL, *theta_max = NULL, *theta_min = NULL, sd;
 	double extra_points[] = { -15.0, -10.0, -7.0, -5.0, -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 15.0 };
 	int npoints;
 

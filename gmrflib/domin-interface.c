@@ -444,7 +444,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[thread_id]) {
 						ai_store[thread_id] =
-							GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -518,7 +518,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[thread_id]) {
 						ai_store[thread_id] =
-							GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -626,7 +626,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 #define F1(result, idx, step, x_store)					\
 	if (1) {							\
-		double *xx;					        \
+		double *xx = NULL;					\
 		int err;						\
 		xx = Calloc(G.nhyper, double);			        \
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
@@ -651,7 +651,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 #define F2(result, idx, step, iidx, sstep)				\
 	if (1) {							\
-		double *xx;						\
+		double *xx = NULL;					\
 		int err;						\
 		xx = Calloc(G.nhyper, double);				\
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
@@ -1072,7 +1072,7 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
 {
 	if (Opt_dir_params.A) {
 		size_t i, j, n;
-		GMRFLib_matrix_tp *D;
+		GMRFLib_matrix_tp *D = NULL;
 		n = Opt_dir_params.A->size1;
 		D = Calloc(1, GMRFLib_matrix_tp);
 		D->nrow = D->ncol = n;
@@ -1105,7 +1105,7 @@ int GMRFLib_opt_get_f_count(void)
 double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 {
 	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
-	double fx = NAN, *x;
+	double fx = NAN, *x = NULL;
 	int ierr, i;
 
 	x = Calloc(G.nhyper, double);
@@ -1122,7 +1122,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 {
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 
-	double *x, *gradx;
+	double *x = NULL, *gradx = NULL;
 	int ierr, i;
 
 	assert(G.nhyper > 0);
@@ -1150,7 +1150,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	 * routine and save one function evaluation.
 	 */
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
-	double *x, *gradx;
+	double *x = NULL, *gradx = NULL;
 	int ierr, i;
 
 	assert(G.nhyper > 0);
@@ -1249,10 +1249,10 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
-	const gsl_multimin_fdfminimizer_type *T;
-	gsl_multimin_fdfminimizer *s;
+	const gsl_multimin_fdfminimizer_type *T = NULL;
+	gsl_multimin_fdfminimizer *s = NULL;
 	gsl_multimin_function_fdf my_func;
-	gsl_vector *x = NULL, *xx;
+	gsl_vector *x = NULL, *xx = NULL;
 
 	static gsl_matrix *A = NULL;
 	static gsl_matrix *Adir = NULL;

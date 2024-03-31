@@ -610,11 +610,11 @@ int gsl_bfgs4_test1(size_t n)
 
 	size_t i;
 	const size_t p = 2;				       /* linear fit */
-	gsl_matrix *X, *cov;
-	gsl_vector *x, *y, *c;
+	gsl_matrix *X = NULL, *cov = NULL;
+	gsl_vector *x = NULL, *y = NULL, *c = NULL;
 	const double a = 1.45;				       /* slope */
 	const double b = 3.88;				       /* intercept */
-	gsl_rng *r;
+	gsl_rng *r = NULL;
 	X = gsl_matrix_alloc(n, p);
 	x = gsl_vector_alloc(n);
 	y = gsl_vector_alloc(n);
@@ -679,8 +679,8 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	size_t n = (size_t) nn, m = (size_t) mm, i, j, p = order + 1;
 	size_t nm = n + m, idx = 0;
-	gsl_matrix *X, *cov;
-	gsl_vector *yy, *c;
+	gsl_matrix *X = NULL, *cov = NULL;
+	gsl_vector *yy = NULL, *c = NULL;
 	double xtmp, xtmp2, ytmp, x_min = 0.0, y_min = 0.0;
 
 	X = gsl_matrix_alloc(nm, p);

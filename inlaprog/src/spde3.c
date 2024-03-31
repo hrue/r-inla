@@ -222,7 +222,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	/*
 	 * to hold the i'th and j'th and k'th row of the B-matrices. use one storage only
 	 */
-	double *row_i = Calloc(3 * model->B[0]->ncol, double), *row_j, *row_k;
+	double *row_i = Calloc(3 * model->B[0]->ncol, double), *row_j = NULL, *row_k = NULL;
 	row_j = &row_i[model->B[0]->ncol];
 	row_k = &row_i[2 * model->B[0]->ncol];
 

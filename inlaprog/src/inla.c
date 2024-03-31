@@ -1015,7 +1015,7 @@ int inla_add_copyof(inla_tp *mb)
 {
 	int i, k, kk, kkk, nf = mb->nf;
 	const int debug = 0;
-	char *msg;
+	char *msg = NULL;
 
 	if (debug) {
 		for (k = 0; k < nf; k++) {
@@ -1147,7 +1147,7 @@ int inla_add_scopyof(inla_tp *mb)
 {
 	int i, k, kk, nf = mb->nf;
 	const int debug = 0;
-	char *msg;
+	char *msg = NULL;
 
 	if (debug) {
 		for (k = 0; k < nf; k++) {
@@ -1396,7 +1396,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	grankdef = 0.0;							\
 	if (mb->f_ngroup[i] > 1) {					\
 		if (mb->f_group_model[i] == G_AR) {			\
-			double _log_precision, *_pacf, *_pacf_intern;	\
+			double _log_precision, *_pacf = NULL,  *_pacf_intern = NULL; \
 			int _p;						\
 									\
 			_p = mb->f_group_order[i];			\
@@ -1417,7 +1417,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}					\
 				_pacf[j] = ar_map_pacf(_pacf_intern[j], MAP_FORWARD, NULL); \
 			}						\
-			double _marginal_prec, _conditional_prec, *_marginal_Q, *_param, *_zero; \
+			double _marginal_prec, _conditional_prec, *_marginal_Q = NULL,  *_param = NULL,  *_zero = NULL;  \
 			_marginal_Q = Calloc(ISQR(_p), double);		\
 			ar_marginal_distribution(_p, _pacf, &_marginal_prec, _marginal_Q); \
 			_conditional_prec = exp(_log_precision) / _marginal_prec; \
@@ -2906,7 +2906,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		{
 			int k, nT, nK, nt, Toffset = 0, Koffset = 0;
 			double t;
-			inla_spde_tp *spde;
+			inla_spde_tp *spde = NULL;
 			double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
 
 			spde = (inla_spde_tp *) mb->f_model[i];
@@ -3149,7 +3149,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_SPDE2:
 		{
 			int k, kk;
-			inla_spde2_tp *spde2;
+			inla_spde2_tp *spde2 = NULL;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
 			assert(spde2->Qfunc_arg == spde2);
@@ -3261,7 +3261,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_SPDE3:
 		{
 			int k, spde3_ntheta;
-			inla_spde3_tp *spde3;
+			inla_spde3_tp *spde3 = NULL;
 
 			spde3 = (inla_spde3_tp *) mb->f_model[i];
 			assert(spde3->Qfunc_arg == spde3);
@@ -3371,7 +3371,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(AR_MAXTHETA + 1);
 
 			int n_ar;
-			double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
+			double marginal_prec, conditional_prec, *marginal_Q = NULL, *param = NULL, *zero = NULL, ldens;
 
 			marginal_Q = Calloc(ISQR(p), double);
 			ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
@@ -3750,7 +3750,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_GENERIC3:
 		{
 			int k, kk;
-			inla_generic3_tp *a;
+			inla_generic3_tp *a = NULL;
 
 			a = Calloc(1, inla_generic3_tp);
 			Memcpy((void *) a, (void *) mb->f_Qfunc_arg_orig[i], sizeof(inla_generic3_tp));
@@ -4906,7 +4906,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			int jj;
 			Hold_tp *h = NULL;
-			GMRFLib_matern2ddef_tp *q;
+			GMRFLib_matern2ddef_tp *q = NULL;
 
 			h = Calloc(1, Hold_tp);
 
@@ -5414,7 +5414,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, count, i, j;
-	GMRFLib_bfunc_tp **bfunc;
+	GMRFLib_bfunc_tp **bfunc = NULL;
 	GMRFLib_preopt_tp *preopt = NULL;
 
 	if (mb->verbose) {
@@ -6028,7 +6028,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		GMRFLib_density_tp *d;
+		GMRFLib_density_tp *d = NULL;
 		if (mb->density[i] && !ISZERO(OFFSET3(i))) {
 			d = mb->density[i];
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
@@ -6491,7 +6491,7 @@ double inla_update_density(double *theta, inla_update_tp *arg)
 	 */
 
 	int i, corr = (arg->stdev_corr_pos && arg->stdev_corr_neg);
-	double value = 0.0, sd, log_nc, update_dens, *z;
+	double value = 0.0, sd, log_nc, update_dens, *z = NULL;
 
 	z = Calloc(arg->ntheta, double);
 	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);

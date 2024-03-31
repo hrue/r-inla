@@ -58,7 +58,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	int i, j;
 	const int debug = 0;
-	double **par, intercept_intern, power, power_intern, sd;
+	double **par = NULL, intercept_intern, power, power_intern, sd;
 	double eps = GSL_SQRT_DBL_EPSILON;
 
 	par = (double **) param;
@@ -89,7 +89,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	GMRFLib_CACHE_SET_ID(id);
 	if (!ISEQUAL(power, table[id]->power)) {
-		double *x, *cdf, yy, p;
+		double *x = NULL, *cdf = NULL, yy, p;
 		int len;
 
 		if (debug) {

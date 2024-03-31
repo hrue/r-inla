@@ -187,7 +187,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	GMRFLib_io_tp *io = NULL;
-	GMRFLib_error_handler_tp *old_handler;
+	GMRFLib_error_handler_tp *old_handler = NULL;
 	GMRFLib_matrix_tp *M = NULL;
 
 	/*

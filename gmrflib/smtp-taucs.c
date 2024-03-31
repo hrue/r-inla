@@ -361,10 +361,10 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	// this for metis version 5
 
 	int n, nnz, i, j, ip;
-	int *xadj;
-	int *adj;
-	int *len;
-	int *ptr;
+	int *xadj = NULL;
+	int *adj = NULL;
+	int *len = NULL;
+	int *ptr = NULL;
 	int ret;
 
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
@@ -401,7 +401,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 		return;
 	}
 
-	ptr = len = *perm;
+	ptr = len = *perm = NULL;
 	for (i = 0; i < n; i++)
 		len[i] = 0;
 
@@ -1023,7 +1023,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
 	// same function but for many rnhs.
-	
+
 	int n = graph->n;
 	assert(work);
 
@@ -1036,7 +1036,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 		int offset = j * n;
 		GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1262,7 +1262,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_cc
 {
 	double *ptr = NULL, value = 0.0, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
-	    NULL, *Zj_set, nset;
+	    NULL, *Zj_set = NULL, nset;
 	taucs_ccs_matrix *L = NULL;
 	map_id **Qinv_L = NULL, *q = NULL;
 
@@ -1467,7 +1467,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 
 	iCalloc_init(2 * n, 2);
 	nnbs = iCalloc_get(n);
-	nnbsQ = iCalloc_get(n); 
+	nnbsQ = iCalloc_get(n);
 
 	for (int i = 0; i < n; i++) {
 		for (int jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {
@@ -1659,7 +1659,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 
 	assert(w);
 	double *y = w;
-	
+
 	double *d = L->values.d;
 	int *colptr = L->colptr;
 	int *rowind = L->rowind;
@@ -1667,8 +1667,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	for (int j = 0; j < n; j++) {
 		y[j] = x[j] / d[colptr[j]];
 
-		//double yj = y[j];
-		//for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) x[rowind[ip]] -= yj * d[ip];
+		// double yj = y[j];
+		// for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) x[rowind[ip]] -= yj * d[ip];
 
 		double yj = -y[j];
 		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
@@ -1698,7 +1698,7 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	if (n == 0) {
 		return 0;
 	}
-	
+
 	assert(w);
 	double *y = w;
 
@@ -1711,7 +1711,7 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		double s = 0.0;
 		int m = rowptr[i + 1] - rowptr[i];
 		int jj = rowptr[i];
-		//for (int j = rowptr[i]; j < rowptr[i + 1]; j++) s += d[j] * y[colind[j]];
+		// for (int j = rowptr[i]; j < rowptr[i + 1]; j++) s += d[j] * y[colind[j]];
 		s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
@@ -1905,7 +1905,7 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix *L, const char *
 
 	int i, j, jp, n = L->n, N, err;
 	double reduce_factor;
-	GMRFLib_uchar *bitmap;
+	GMRFLib_uchar *bitmap = NULL;
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
