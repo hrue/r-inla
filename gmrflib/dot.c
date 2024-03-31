@@ -153,7 +153,6 @@ int GMRFLib_isum(int n, int *ix)
 double GMRFLib_dsum(int n, double *x)
 {
 	double s = 0.0;
-
 #pragma omp simd reduction(+: s)
 	for (int i = 0; i < n; i++) {
 		s += x[i];

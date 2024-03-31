@@ -1634,7 +1634,8 @@ int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *_
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
-	inla_sn_arg_tp sn_arg;
+	inla_sn_arg_tp sn_arg = {.xi = 0.0, .omega = 0.0, .intercept = 0.0, .alpha = 0.0};
+		
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];

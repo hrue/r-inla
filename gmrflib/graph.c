@@ -1070,7 +1070,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 * return a subgraph of graph, by ruling out those nodes for which remove_flag[i] is true, keeping those which
 		 * remove_flag[i] false. 
 		 */
-		int i, j, nneig, nn, k, n_neig_tot, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
+		int nneig, nn = 0, n_neig_tot = 0, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
 
 		GMRFLib_ENTER_ROUTINE;
 		if (!graph) {
@@ -1097,15 +1097,13 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 */
 		if (!remove_flag) {
 			remove_flag = Calloc(graph->n, char);
-
 			free_remove_flag = 1;
 		}
 
 		GMRFLib_graph_mk_empty(subgraph);
 
-		nn = 0;
 #pragma omp simd reduction(+: nn)
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
 			nn += (!remove_flag[i]);
 		}
 		(*subgraph)->n = nn;
@@ -1129,7 +1127,8 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 */
 		sg_iidx = Calloc(graph->n, int);
 		nmap = Calloc(nn, int);
-		for (i = 0, k = 0; i < graph->n; i++) {
+		int k = 0;
+		for (int i = 0; i < graph->n; i++) {
 			if (!remove_flag[i]) {
 				sg_iidx[i] = k;
 				nmap[k] = i;
@@ -1146,11 +1145,13 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		/*
 		 * parse the graph and collect nodes not to be removed. 
 		 */
-		for (i = 0, k = 0, n_neig_tot = 0; i < graph->n; i++) {
+		k = 0;
+		n_neig_tot = 0;
+		for (int i = 0; i < graph->n; i++) {
 			if (!remove_flag[i]) {
 				nneig = 0;
 #pragma omp simd reduction(+: nneig)
-				for (j = 0; j < graph->nnbs[i]; j++) {
+				for (int j = 0; j < graph->nnbs[i]; j++) {
 					nneig += (!remove_flag[graph->nbs[i][j]]);
 				}
 				n_neig_tot += nneig;
@@ -1159,7 +1160,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 				if (nneig > 0) {
 					(*subgraph)->nbs[k] = Calloc(nneig, int);
 
-					for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
+					for (int j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
 						if (!remove_flag[graph->nbs[i][j]]) {
 							(*subgraph)->nbs[k][nneig] = sg_iidx[graph->nbs[i][j]];
 							nneig++;
@@ -1178,9 +1179,8 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 */
 		if (n_neig_tot) {
 			storage = Calloc(n_neig_tot, int);
-
 			storage_indx = 0;
-			for (i = 0; i < (*subgraph)->n; i++) {
+			for (int i = 0; i < (*subgraph)->n; i++) {
 				if ((*subgraph)->nnbs[i]) {
 					Memcpy(&storage[storage_indx], (*subgraph)->nbs[i], (size_t) (sizeof(int) * (*subgraph)->nnbs[i]));
 					Free((*subgraph)->nbs[i]);

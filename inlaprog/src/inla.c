@@ -6838,7 +6838,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in selected modes\n");
 				exit(EXIT_FAILURE);
 			} else {
-				int int_seed;
+				int int_seed = 0;
 				if (inla_sread_ints(&int_seed, 1, optarg) == INLA_OK) {
 					;
 				} else {
@@ -6878,7 +6878,7 @@ int main(int argc, char **argv)
 
 		case 'r':
 		{
-			int itmp;
+			int itmp = 0;
 			err = inla_sread_ints(&itmp, 1, optarg);
 			G.reorder = (GMRFLib_reorder_tp) itmp;
 			if (err) {

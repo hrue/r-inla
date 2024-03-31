@@ -101,7 +101,7 @@ void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int
 void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno)
 {
 #if defined(__linux__)
-	int crm, prm, cvm, pvm;
+	int crm = 0, prm = 0, cvm = 0, pvm = 0;
 	FILE *ffp = (fp ? fp : stdout);
 	GMRFLib_getMemory(&crm, &prm, &cvm, &pvm);
 	fprintf(ffp, "%s:%d: {cur,peak}-Mem used: Real[%.1f, %.1f]Mb, Virt[%.1f, %.1f]Mb\n",
