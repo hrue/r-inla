@@ -1,3 +1,8 @@
+# INLA 24.04.01
+* New likelihood `stochvolln`
+* Updated vignette `barrier_global`
+* More code-cleanup
+
 # INLA 24.03.29
 * Limit dimension of the low-rank VB correction when replications
   and/or group is very high
