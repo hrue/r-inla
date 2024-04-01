@@ -95,8 +95,8 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 
 	int n = 1024, verbose = 0;
 	double lq_min = -5.0, lq_max = 10.0, lq_delta = (lq_max - lq_min) / n;
-	double *lquantile, *eta;
-	GMRFLib_spline_tp **spline;
+	double *lquantile = NULL, *eta = NULL;
+	GMRFLib_spline_tp **spline = NULL;
 
 	eta = Calloc(n, double);
 	lquantile = Calloc(n, double);

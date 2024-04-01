@@ -32,7 +32,7 @@ int inla_INLA(inla_tp *mb)
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
-	GMRFLib_bfunc_tp **bfunc;
+	GMRFLib_bfunc_tp **bfunc = NULL;
 
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
@@ -382,7 +382,7 @@ int inla_INLA(inla_tp *mb)
 	x = Calloc(N, double);
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
-			char *msg;
+			char *msg = NULL;
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
@@ -488,7 +488,7 @@ int inla_INLA(inla_tp *mb)
 	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		GMRFLib_density_tp *d;
+		GMRFLib_density_tp *d = NULL;
 		if (mb->density[i]) {
 			d = mb->density[i];
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
@@ -520,7 +520,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, count;
 	char *compute = NULL;
-	GMRFLib_bfunc_tp **bfunc;
+	GMRFLib_bfunc_tp **bfunc = NULL;
 	GMRFLib_preopt_tp *preopt = NULL;
 
 	if (mb->verbose) {
@@ -762,7 +762,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
-	GMRFLib_bfunc_tp **bfunc;
+	GMRFLib_bfunc_tp **bfunc = NULL;
 
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
@@ -1070,7 +1070,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	x = Calloc(N, double);
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
-			char *msg;
+			char *msg = NULL;
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
@@ -1148,7 +1148,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (mb->ai_par->int_design) {
 		// make sure the dimensions are right
 		if (mb->ntheta != mb->ai_par->int_design->nfactors) {
-			char *msg;
+			char *msg = NULL;
 			GMRFLib_sprintf(&msg, "ntheta = %1d but int.design says %1d\n", mb->ntheta, mb->ai_par->int_design->nfactors);
 			inla_error_general(msg);
 		}
@@ -1185,7 +1185,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		GMRFLib_density_tp *d;
+		GMRFLib_density_tp *d = NULL;
 		if (mb->density[i]) {
 			d = mb->density[i];
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));

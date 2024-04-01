@@ -228,7 +228,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	}
 
 	if (ISINF(value) || ISNAN(value)) {
-		char *msg;
+		char *msg = NULL;
 
 		GMRFLib_sprintf(&msg, "Expression[%s] evaluate to INF or NAN [%g] for x=%g\n", expression, value, *x);
 		inla_error_general(msg);
@@ -239,7 +239,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), int UNUSED(ntheta))
 {
 	double value;
-	GMRFLib_spline_tp *s;
+	GMRFLib_spline_tp *s = NULL;
 	GMRFLib_matrix_tp *M = NULL;
 
 	while (*expression == ' ' || *expression == '\t') {
@@ -267,7 +267,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 	}
 
 	if (ISNAN(value)) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
 		inla_error_general(msg);
 		exit(1);

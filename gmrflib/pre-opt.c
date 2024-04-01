@@ -1258,7 +1258,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK							\
 			for (int i = 0; i < mpred; i++) {		\
-				double m = 0.0, var = 0.0, *cov;	\
+				double m = 0.0, var = 0.0, *cov = NULL;	\
 				int k, j, kk, jj;			\
 				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
 				for (k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\

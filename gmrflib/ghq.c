@@ -177,8 +177,8 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		map_ivp_init(weights[idx]);
 	}
 
-	double *x, *w;
-	void *ptr, *pptr;
+	double *x = NULL, *w = NULL;
+	void *ptr = NULL, *pptr = NULL;
 
 	GMRFLib_ASSERT(n > 0, GMRFLib_EINVARG);
 	if ((ptr = map_ivp_ptr(abscissas[idx], n))) {

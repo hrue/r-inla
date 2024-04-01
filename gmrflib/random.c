@@ -122,7 +122,7 @@ double GMRFLib_rng_uniform(void)
 void *GMRFLib_rng_getstate(size_t *siz)
 {
 	size_t n;
-	void *p, *pp;
+	void *p = NULL, *pp = NULL;
 
 	p = gsl_rng_state(GMRFLib_rng);
 	n = gsl_rng_size(GMRFLib_rng);
@@ -139,7 +139,7 @@ void *GMRFLib_rng_getstate(size_t *siz)
 int GMRFLib_rng_setstate(void *saved_state)
 {
 	if (saved_state) {
-		void *p;
+		void *p = NULL;
 		size_t n;
 
 		p = gsl_rng_state(GMRFLib_rng);

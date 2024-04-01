@@ -344,7 +344,7 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 
 	const int debug = 0;
 	int iter = 0, status, i, imax;
-	double eps = GSL_ROOT3_DBL_EPSILON, *log_density_scaled;
+	double eps = GSL_ROOT3_DBL_EPSILON, *log_density_scaled = NULL;
 
 	GMRFLib_EWRAP0_GSL_PTR(xx = gsl_vector_alloc(m));
 
@@ -1464,7 +1464,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp **new_density, GMRFLib_density_t
 #define N (60)
 #define M (4)
 	int i, n = N + 2 * M;
-	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
+	double *x = NULL, *ld = NULL, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
 	Calloc_init(2 * n, 2);
 	x = Calloc_get(n);
@@ -1498,7 +1498,7 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp **new_density, GMRFLib_density
 #define N (30)
 #define M (4)
 	int i, n = N + 2 * M;
-	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
+	double *x = NULL, *ld = NULL, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
 	Calloc_init(2 * n, 2);
 	x = Calloc_get(n);

@@ -37,7 +37,7 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *UN
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E3, prec_low = 1.0E-6, eps = 1.0E-6;
+	double prec_high = 1.0E3, prec_low = 1.0E-4, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
 	int niter, niter_min = 5, niter_max = 100, stencil = 5;
@@ -240,6 +240,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_QKUMAR:
 	case L_QLOGLOGISTIC:
 	case L_STOCHVOL:
+	case L_STOCHVOL_LN:
 	case L_STOCHVOL_SN:
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
@@ -1305,8 +1306,6 @@ int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__re
 	/*
 	 * y ~ N(0, var = exp(x) + 1/tau) 
 	 */
-	int i;
-
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
@@ -1318,15 +1317,49 @@ int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__re
 	LINK_INIT;
 	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0 / tau);
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
+		for (int i = 0; i < m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR(y) / var;
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
+		for (int i = 0; i < -m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi_fast(ABS(y) / sqrt(var)));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_stochvolln(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
+{
+	/*
+	 * y ~ N(c - 1/2 * var, var)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double c = ds->data_observations.stochvolln_c[thread_id][0]; // identity mapping
+
+	LINK_INIT;
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double mean = c - 0.5 * var;
+			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR((y - mean)) / var;
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double mean = c - 0.5 * var;
+			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi_fast(ABS((y - mean) / sqrt(var))));
 		}
 	}
 
@@ -1634,7 +1667,8 @@ int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *_
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
-	inla_sn_arg_tp sn_arg;
+	inla_sn_arg_tp sn_arg = {.xi = 0.0,.omega = 0.0,.intercept = 0.0,.alpha = 0.0 };
+
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -2714,8 +2748,8 @@ double eval_log_contpoisson(double y, double lambda)
 #define _L 3
 #define _LEN (_R + _L + 2)
 	int i, istart, iy, low, high, len;
-	double work[2 * _LEN], *xx, *yy, lval;
-	GMRFLib_spline_tp *spline;
+	double work[2 * _LEN], *xx = NULL, *yy = NULL, lval;
+	GMRFLib_spline_tp *spline = NULL;
 
 	low = IMAX(0, (int) y - _L);
 	high = (int) y + _R;
@@ -3109,7 +3143,6 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p = map_probability_forward(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
@@ -3121,15 +3154,23 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 	 */
 
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if ((int) y == 0) {
+		if ((int) y == 0) {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
-			} else if (y >= interval[0] && y <= interval[1]) {
+			}
+		} else if (y >= interval[0] && y <= interval[1]) {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = log((1.0 - p) * (gsl_cdf_poisson_P((unsigned int) interval[1], mu)
 							    - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu)));
-			} else {
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = LOG_1mp(p) + y * log(mu) - mu - normc;
 			}
 		}
@@ -3137,16 +3178,19 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *__restrict log
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		int iy = (int) y;
 
-		for (i = 0; i < -m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if (iy < interval[0] || iy > interval[1]) {
+		if (iy < interval[0] || iy > interval[1]) {
+			for (int i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				// not censored
 				logll[i] = p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) iy, mu);
-			} else {
-				int ii;
+			}
+		} else {
+			for (int i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				double sum = 0.0, prob, one = 0.0;
-				for (ii = interval[0]; ii <= interval[1]; ii++) {
+				for (int ii = interval[0]; ii <= interval[1]; ii++) {
 					prob = gsl_ran_poisson_pdf((unsigned int) ii, mu);
 					sum += prob * (p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) ii, mu));
 					one += prob;
@@ -4647,7 +4691,7 @@ int loglikelihood_nmix(int thread_id, double *__restrict logll, double *__restri
 	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
-	double *y, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
+	double *y = NULL, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
 
 	assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
@@ -4740,7 +4784,7 @@ int loglikelihood_nmixnb(int thread_id, double *__restrict logll, double *__rest
 	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
-	double *y, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
+	double *y = NULL, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
 
 	assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
@@ -4993,7 +5037,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 	if (lcache->n != *n || lcache->shape != shape) {
 		Free(lcache->x);
 		double *work = Calloc(2 * *n, double);
-		double *xx, *ww, weight[2] = { 4.0, 2.0 }, alpha = 0.001, low_limit, high_limit, dx, wmin;
+		double *xx = NULL, *ww = NULL, weight[2] = { 4.0, 2.0 }, alpha = 0.001, low_limit, high_limit, dx, wmin;
 		int i, j, np;
 
 		low_limit = log(MATHLIB_FUN(qgamma) (alpha / 2.0, shape, 1.0 / shape, 1, 0));

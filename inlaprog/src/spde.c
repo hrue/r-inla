@@ -92,7 +92,7 @@ double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(va
 		double oc;
 	} OC_tp;
 	static OC_tp *OC = NULL;
-	OC_tp *a;
+	OC_tp *a = NULL;
 
 	if (!OC) {
 #pragma omp critical (Name_2605e6f8037552855d97df46966e3c070414466a)
@@ -160,7 +160,7 @@ double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(va
 
 int inla_spde_KT_model_init(inla_spde_theta_tp *theta_model, GMRFLib_matrix_tp *basis)
 {
-	double ***theta, *hold;
+	double ***theta = NULL, *hold = NULL;
 	int i, j;
 
 	theta_model->ntheta = basis->ncol;
@@ -213,7 +213,7 @@ int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla
 	 */
 
 	int i;
-	double t, *b0, *b1;
+	double t, *b0 = NULL, *b1 = NULL;
 
 	*value0 = 0.0;
 	*value1 = 0.0;
@@ -247,9 +247,9 @@ int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla
 int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *prefix)
 {
 	int n, i, j;
-	inla_spde_tp *model;
-	char *fnm;
-	GMRFLib_matrix_tp *M;
+	inla_spde_tp *model = NULL;
+	char *fnm = NULL;
+	GMRFLib_matrix_tp *M = NULL;
 
 	model = Calloc(1, inla_spde_tp);
 
@@ -346,7 +346,7 @@ int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *pref
 	func_smodel = model;				       /* store it also here */
 
 	if (0) {
-		FILE *fp;
+		FILE *fp = NULL;
 
 		FIXME("write graph to file spde-graph.dat");
 		fp = fopen("spde-graph.dat", "w");
@@ -357,11 +357,11 @@ int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *pref
 	if (0) {
 		int k;
 		for (k = 1; k < 8; k++) {
-			GMRFLib_problem_tp *problem;
+			GMRFLib_problem_tp *problem = NULL;
 			GMRFLib_reorder = (GMRFLib_reorder_tp) k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL);
-			char *nm;
+			char *nm = NULL;
 			GMRFLib_sprintf(&nm, "Qspde%1d", k);
 			GMRFLib_bitmap_problem(nm, problem);
 			GMRFLib_free_problem(problem);
@@ -382,7 +382,7 @@ double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp *UNUSED(problem), 
 
 	int i, n = func_smodel->n;
 	const int debug = 0;
-	double *deformations;
+	double *deformations = NULL;
 
 	GMRFLib_ai_INLA_userfunc0_dim = 2 * n;		       /* set this variable, yes */
 	deformations = Calloc(GMRFLib_ai_INLA_userfunc0_dim, double);
@@ -432,7 +432,7 @@ double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, do
 	GMRFLib_ai_INLA_userfunc1_density = Calloc(GMRFLib_ai_INLA_userfunc1_dim, GMRFLib_density_tp *);
 
 	for (idx = 0; idx < n; idx++) {
-		inla_spde_theta_tp *t;
+		inla_spde_theta_tp *t = NULL;
 		int offset, offset_theta;
 
 		t = func_smodel->Tmodel;

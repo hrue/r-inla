@@ -34,12 +34,12 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	 */
 	int i, j, jj, k;
 
-	GMRFLib_tabulate_Qfunc_tp *tab;
-	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_matrix_tp *constr_x = NULL;
-	FILE *fp;
+	FILE *fp = NULL;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL);
 	fp = fopen(constrfile, "r");
@@ -114,8 +114,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	 * Solve Q X = B, L^T X = B, or L X = B
 	 */
 
-	GMRFLib_tabulate_Qfunc_tp *tab;
-	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_problem_tp *problem = NULL;
 
 	/*
@@ -169,8 +169,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	int output_every = 100;
 	double t_ref = GMRFLib_timer(), t_reff = GMRFLib_timer();
 	size_t siz, ret;
-	char *state;
-	FILE *fp;
+	char *state = NULL;
+	FILE *fp = NULL;
 
 	if (verbose) {
 		fprintf(stderr, "inla_qsample: start pre...\n");
@@ -190,8 +190,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	int i, ns = 0;
-	GMRFLib_tabulate_Qfunc_tp *tab;
-	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_problem_tp *problem = NULL;
 
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL, *selection = NULL;
@@ -376,7 +376,7 @@ int inla_qreordering(const char *filename)
 	 * return the rordering either given or computed
 	 */
 	int i;
-	GMRFLib_graph_tp *graph;
+	GMRFLib_graph_tp *graph = NULL;
 
 	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
 		GMRFLib_tabulate_Qfunc_tp *qtab = NULL;
@@ -405,7 +405,7 @@ int inla_qreordering(const char *filename)
 
 int inla_fgn(char *infile, char *outfile)
 {
-	double H, H_intern, *res;
+	double H, H_intern, *res = NULL;
 	int i, k, len, K, nH;
 
 	GMRFLib_matrix_tp *Hm = GMRFLib_read_fmesher_file(infile, 0, -1);
@@ -420,7 +420,7 @@ int inla_fgn(char *infile, char *outfile)
 		H_intern = map_H(H, MAP_BACKWARD, NULL);
 		inla_fgn_get(&res[k + 1], &res[k + 1 + K], H_intern, K);
 	}
-	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *M_t;
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *M_t = NULL;
 	M->ncol = nH;
 	M->nrow = len;
 	M->elems = M->nrow * M->ncol;

@@ -114,7 +114,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
-	double H_intern, prec, val = 0.0, *phi, *w, kappa;
+	double H_intern, prec, val = 0.0, *phi = NULL, *w = NULL, kappa;
 	int id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
@@ -215,7 +215,7 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	}
 
 	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;
-	double H_intern, prec, val = 0.0, *phi, *w;
+	double H_intern, prec, val = 0.0, *phi = NULL, *w = NULL;
 	int id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);

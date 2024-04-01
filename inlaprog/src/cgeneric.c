@@ -51,7 +51,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		nread = fread((void *) nm_, sizeof(char), (size_t) (j_ + 1L), fp); assert(nread == (size_t) (j_ + 1L)); \
 	}
 
-	FILE *fp;
+	FILE *fp = NULL;
 	size_t nread;
 	inla_cgeneric_data_tp *data = Calloc(1, inla_cgeneric_data_tp);
 	int i, j, k, len;

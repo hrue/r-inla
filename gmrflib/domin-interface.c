@@ -395,7 +395,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, tmax;
+	int tmax;
 	int debug = GMRFLib_DEBUG_IF();
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	double *mode_reference = NULL;
@@ -429,15 +429,13 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double *f = Calloc(G.nhyper + 1, double);
 
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (i = 0; i < G.nhyper + 1; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
 
-			double *xx = NULL;
 			int j, err;
 			GMRFLib_ai_store_tp *ais = NULL;
-
-			xx = Calloc(G.nhyper, double);
+			double *xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
@@ -474,7 +472,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
 		 */
-		for (i = 0; i < G.nhyper; i++) {
+		for (int i = 0; i < G.nhyper; i++) {
 			gradx[i] = (f[i] - f[G.nhyper]) / h;
 		}
 		GMRFLib_opt_dir_transform_gradient(gradx);
@@ -501,8 +499,8 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (i = 0; i < 2 * G.nhyper; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		for (int i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
 
 			int j, err;
@@ -557,11 +555,11 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 
 		if (use_five_point) {
-			for (i = 0; i < G.nhyper; i++) {
+			for (int i = 0; i < G.nhyper; i++) {
 				gradx[i] = (-ff[i] + 8.0 * f[i] - 8.0 * fm[i] + ffm[i]) / (12.0 * h);
 			}
 		} else {
-			for (i = 0; i < G.nhyper; i++) {
+			for (int i = 0; i < G.nhyper; i++) {
 				gradx[i] = (f[i] - fm[i]) / (2.0 * h);
 			}
 		}
@@ -572,11 +570,11 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double sum = 0.0;
 		if (use_five_point) {
-			for (i = 0; i < G.nhyper; i++) {
+			for (int i = 0; i < G.nhyper; i++) {
 				sum += (ff[i] + f[i] + fm[i] + ffm[i]) / 4.0;
 			}
 		} else {
-			for (i = 0; i < G.nhyper; i++) {
+			for (int i = 0; i < G.nhyper; i++) {
 				sum += (f[i] + fm[i]) / 2.0;
 			}
 		}
@@ -592,7 +590,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	Free(mode_reference);
 	GMRFLib_free_ai_store(ai_store_reference);
-	for (i = 0; i < tmax; i++) {
+	for (int i = 0; i < tmax; i++) {
 		if (ai_store[i]) {
 			GMRFLib_free_ai_store(ai_store[i]);
 		}
@@ -602,7 +600,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	if (debug) {
 		printf("\n\tf0       = %20.12f \n", f_zero);
-		for (i = 0; i < G.nhyper; i++) {
+		for (int i = 0; i < G.nhyper; i++) {
 			printf("\tgradx[%1d] = %20.12f \t x[%1d] = %20.12f\n", i, gradx[i], i, x[i]);
 		}
 		printf("\n");
@@ -628,7 +626,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 #define F1(result, idx, step, x_store)					\
 	if (1) {							\
-		double *xx;					        \
+		double *xx = NULL;					\
 		int err;						\
 		xx = Calloc(G.nhyper, double);			        \
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
@@ -653,7 +651,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 #define F2(result, idx, step, iidx, sstep)				\
 	if (1) {							\
-		double *xx;						\
+		double *xx = NULL;					\
 		int err;						\
 		xx = Calloc(G.nhyper, double);				\
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
@@ -1074,7 +1072,7 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
 {
 	if (Opt_dir_params.A) {
 		size_t i, j, n;
-		GMRFLib_matrix_tp *D;
+		GMRFLib_matrix_tp *D = NULL;
 		n = Opt_dir_params.A->size1;
 		D = Calloc(1, GMRFLib_matrix_tp);
 		D->nrow = D->ncol = n;
@@ -1107,7 +1105,7 @@ int GMRFLib_opt_get_f_count(void)
 double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 {
 	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
-	double fx = NAN, *x;
+	double fx = NAN, *x = NULL;
 	int ierr, i;
 
 	x = Calloc(G.nhyper, double);
@@ -1124,7 +1122,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 {
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 
-	double *x, *gradx;
+	double *x = NULL, *gradx = NULL;
 	int ierr, i;
 
 	assert(G.nhyper > 0);
@@ -1152,7 +1150,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	 * routine and save one function evaluation.
 	 */
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
-	double *x, *gradx;
+	double *x = NULL, *gradx = NULL;
 	int ierr, i;
 
 	assert(G.nhyper > 0);
@@ -1184,8 +1182,8 @@ int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 int GMRFLib_opt_dir_step(double *x, int idx, double h)
 {
 	if (Opt_dir_params.A) {
-		size_t n = Opt_dir_params.A->size1, i;
-		for (i = 0; i < n; i++) {
+		size_t n = Opt_dir_params.A->size1;
+		for (int i = 0; i < (int) n; i++) {
 			x[i] += h * gsl_matrix_get(Opt_dir_params.A, i, idx);
 		}
 	} else {
@@ -1251,10 +1249,10 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
-	const gsl_multimin_fdfminimizer_type *T;
-	gsl_multimin_fdfminimizer *s;
+	const gsl_multimin_fdfminimizer_type *T = NULL;
+	gsl_multimin_fdfminimizer *s = NULL;
 	gsl_multimin_function_fdf my_func;
-	gsl_vector *x = NULL, *xx;
+	gsl_vector *x = NULL, *xx = NULL;
 
 	static gsl_matrix *A = NULL;
 	static gsl_matrix *Adir = NULL;

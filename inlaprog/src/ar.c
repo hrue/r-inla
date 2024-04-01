@@ -57,7 +57,7 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	 * From arima.c 
 	 */
 	int j, k;
-	double a, *work;
+	double a, *work = NULL;
 
 	assert(p > 0);
 	work = Calloc(p, double);
@@ -90,7 +90,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	 */
 
 	int j, k;
-	double a, *work;
+	double a, *work = NULL;
 
 	assert(p > 0);
 	work = Calloc(p, double);
@@ -125,7 +125,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	size_t i, j, lag, lag_idx, pdim;
 	const int debug = 0;
-	double *phi;
+	double *phi = NULL;
 
 	assert(p > 0);
 	pdim = (size_t) p;
@@ -304,7 +304,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		/*
 		 * Build the Qmatrix 
 		 */
-		double *phi, *pacf, *L, *Q = NULL, *Qmarg = NULL, prec;
+		double *phi = NULL, *pacf = NULL, *L = NULL, *Q = NULL, *Qmarg = NULL, prec;
 
 		Calloc_init(2 * def->p + ISQR(dimQ), 3);
 		phi = Calloc_get(def->p);
@@ -373,7 +373,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 int ar_test1()
 {
 	if (1) {
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		ar_def_tp def;
 		double pacf[2] = { 0.5, 0.25 };
 
@@ -429,7 +429,7 @@ int ar_test1()
 	if (0) {
 #define PMAX 10
 		int p, i, j;
-		double *pacf, *pacf2, *phi;
+		double *pacf = NULL, *pacf2 = NULL, *phi = NULL;
 
 		pacf = Calloc(PMAX, double);
 		pacf2 = Calloc(PMAX, double);

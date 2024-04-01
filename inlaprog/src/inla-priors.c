@@ -231,7 +231,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		/*
 		 * remove trailing -[a-zA-Z]*$ 
 		 */
-		char *p, *new_name;
+		char *p = NULL, *new_name = NULL;
 		new_name = Strdup(prior->name);
 		p = GMRFLib_rindex((const char *) new_name, '-');
 		if (p) {
@@ -421,7 +421,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 	} else if (!strcasecmp(prior->name, "MVNORM") || !strcasecmp(prior->name, "MVGAUSSIAN")) {
 		int nparam = 0, i, dim;
-		double *tmp;
+		double *tmp = NULL;
 
 		prior->id = P_MVNORM;
 		prior->priorfunc = priorfunc_mvnorm;
@@ -1376,7 +1376,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 	} else if (!strncasecmp(prior->name, "RPRIOR:", strlen("RPRIOR:"))) {
 		prior->id = P_RPRIOR;
-		char *tag[3] = { NULL, NULL, NULL };
+		char *tag[3] = { NULL, NULL, NULL, };
 		inla_sread_str_str(tag, 3, prior->name);       // rprior:RPRIOR_FUNCTION:FILENAME
 		prior->rprior = Strdup(tag[1]);
 		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
@@ -1691,7 +1691,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 	double lambda_initial = -1.0, lambda_step = 1.1, h = GSL_ROOT3_DBL_EPSILON, eps_lambda = GSL_SQRT_DBL_EPSILON, df;
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
-		char *msg;
+		char *msg = NULL;
 		GMRFLib_sprintf(&msg, "Wrong cor1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
 		inla_error_general(msg);
 		exit(1);
@@ -1860,7 +1860,7 @@ double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters)
 double priorfunc_pc_ar(double *x, double *parameters)
 {
 	int i, p;
-	double lambda, *b, *gamma, *pacf, ldens, logjac;
+	double lambda, *b = NULL, *gamma = NULL, *pacf = NULL, ldens, logjac;
 
 	p = (int) parameters[1];
 	lambda = parameters[0];
@@ -2097,7 +2097,7 @@ double priorfunc_mvnorm(double *x, double *parameters)
 		return 0.0;
 	}
 
-	double *mean, *Q, *chol, *xx, q = 0.0, logdet = 0.0;
+	double *mean = NULL, *Q = NULL, *chol = NULL, *xx = NULL, q = 0.0, logdet = 0.0;
 
 	mean = &(parameters[1]);
 	Q = &(parameters[1 + n]);
@@ -2359,7 +2359,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	}
 	assert(k == n_x);
 
-	gsl_permutation *p;
+	gsl_permutation *p = NULL;
 	int signum;
 	double logdet;
 
@@ -2477,7 +2477,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	 * 
 	 * output is the logdensity for x!!!! 
 	 */
-	gsl_matrix *R = NULL, *Q = NULL, *QQ, *L = NULL;
+	gsl_matrix *R = NULL, *Q = NULL, *QQ = NULL, *L = NULL;
 	double r, val;
 	const int debug = 0;
 	size_t i, ii, j, k, dim = (size_t) idim;

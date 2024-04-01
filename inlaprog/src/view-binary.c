@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 	 * We cannot read from STDIN in binary format, so therefore we use the first argument 
 	 */
 	if (argc > 1) {
-		FILE *fp;
+		FILE *fp = NULL;
 		int i;
 
 		for (i = 1; i < argc; i++) {

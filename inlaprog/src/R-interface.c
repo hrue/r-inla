@@ -43,6 +43,8 @@
 #include <Rdefines.h>
 #include <Rinterface.h>
 
+#include "GMRFLib/timer.h"
+
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
@@ -87,7 +89,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 	int ret = 0;
 #pragma omp critical (Name_95227b3fc78ae25be9b977b6385cae68f179f781)
 	{
-		R_rgeneric_cputime -= omp_get_wtime();
+		R_rgeneric_cputime -= GMRFLib_timer();
 
 		switch (cmd) {
 		case INLA_R_INIT:
@@ -163,7 +165,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 			assert(0 == 1);
 		}
 
-		R_rgeneric_cputime += omp_get_wtime();
+		R_rgeneric_cputime += GMRFLib_timer();
 	}
 
 	return ret;

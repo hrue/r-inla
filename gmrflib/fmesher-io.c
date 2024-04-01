@@ -40,7 +40,7 @@
 
 int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	fp = fopen(filename, "rb");
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
@@ -85,7 +85,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		position = ftell(fp);					\
 		nread = fread((void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nread != (size_t) n) {				\
-			char *m;					\
+			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
 			ERROR(m);					\
@@ -394,7 +394,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 									\
 		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nwrite != (size_t) n) {				\
-			char *m;					\
+			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
 			ERROR(m);					\
@@ -620,7 +620,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 		assert(LEGAL(j, M->ncol));
 	}
 	if (M->i) {
-		double *d;
+		double *d = NULL;
 		if (M->htable_column_order) {
 			d = map_id_ptr(M->htable[j], i);
 		} else {
@@ -646,7 +646,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 		/*
 		 * sparse-matrix 
 		 */
-		double *d;
+		double *d = NULL;
 
 		if (M->htable_column_order) {
 
@@ -666,7 +666,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 				}
 			} else {
 				// much better
-				map_id_storage *ptr;
+				map_id_storage *ptr = NULL;
 				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 					j = ptr->key;
 					values[j] = ptr->value;
@@ -703,7 +703,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 			FIXME("column order should not be used");
 			assert(0 == 1);
 		} else {
-			map_id_storage *ptr;
+			map_id_storage *ptr = NULL;
 			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
@@ -889,7 +889,7 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 int main(int argc, char **argv)
 {
 	int i;
-	GMRFLib_matrix_tp *M;
+	GMRFLib_matrix_tp *M = NULL;
 
 	for (i = 1; i < argc; i++) {
 		printf("\n\n\n\n *** Check file %s\n\n\n", argv[i]);

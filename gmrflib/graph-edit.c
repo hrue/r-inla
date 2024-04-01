@@ -140,7 +140,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
 		int j;							\
-		map_ii_storage *p;					\
+		map_ii_storage *p = NULL;				\
 		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	\
 			j++;						\
 		}							\

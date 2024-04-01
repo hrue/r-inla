@@ -101,7 +101,7 @@ void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int
 void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno)
 {
 #if defined(__linux__)
-	int crm, prm, cvm, pvm;
+	int crm = 0, prm = 0, cvm = 0, pvm = 0;
 	FILE *ffp = (fp ? fp : stdout);
 	GMRFLib_getMemory(&crm, &prm, &cvm, &pvm);
 	fprintf(ffp, "%s:%d: {cur,peak}-Mem used: Real[%.1f, %.1f]Mb, Virt[%.1f, %.1f]Mb\n",
@@ -166,7 +166,7 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 	 */
 
 	int n, size = 128 + 1;
-	char *p;
+	char *p = NULL;
 	va_list ap;
 
 	GMRFLib_ASSERT(ptr, GMRFLib_EINVARG);
@@ -314,7 +314,7 @@ char *GMRFLib_rindex(const char *p, int ch)
 	/*
 	 * as Windows does not have it... 
 	 */
-	char *save, *pp = (char *) p;
+	char *save = NULL, *pp = (char *) p;
 	for (save = NULL;; ++pp) {
 		if (*pp == ch) {
 			save = pp;
@@ -466,16 +466,14 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 	/*
 	 * return the first/last index in array such that array[idx] != 0, and -1 if not there. direction > 0 : look for first. direction < 0 : look for last
 	 */
-	int i;
-
 	if (direction >= 0) {
-		for (i = 0; i < len; i++) {
+		for (int i = 0; i < len; i++) {
 			if (array[i] != 0.0)
 				return i;
 		}
 		return -1;
 	} else {
-		for (i = len - 1; i >= 0; i--) {
+		for (int i = len - 1; i >= 0; i--) {
 			if (array[i] != 0.0)
 				return i;
 		}
@@ -490,16 +488,14 @@ int GMRFLib_find_value(double *array, int len, int direction, double value)
 	/*
 	 * return the first/last index in array such that array[idx] == value , and -1 if not there. direction > 0 : look for first. direction < 0 : look for last
 	 */
-	int i;
-
 	if (direction >= 0) {
-		for (i = 0; i < len; i++) {
+		for (int i = 0; i < len; i++) {
 			if (array[i] == value)
 				return i;
 		}
 		return -1;
 	} else {
-		for (i = len - 1; i >= 0; i--) {
+		for (int i = len - 1; i >= 0; i--) {
 			if (array[i] == value)
 				return i;
 		}
@@ -541,10 +537,8 @@ int GMRFLib_print_iarray(FILE *fp, int *x, int n, const char *desc)
 
 int GMRFLib_icmp(const void *a, const void *b)
 {
-	const int *ia, *ib;
-
-	ia = (const int *) a;
-	ib = (const int *) b;
+	const int *ia = (const int *) a;
+	const int *ib = (const int *) b;
 
 	return (*ia - *ib);
 }
@@ -556,10 +550,8 @@ int GMRFLib_icmp_r(const void *a, const void *b)
 
 int GMRFLib_dcmp(const void *a, const void *b)
 {
-	const double *da = NULL, *db = NULL;
-
-	da = (const double *) a;
-	db = (const double *) b;
+	const double *da = (const double *) a;
+	const double *db = (const double *) b;
 
 	if (*da > *db) {
 		return 1;
@@ -959,7 +951,7 @@ int GMRFLib_is_int(char *str, int *value)
 
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 {
-	char *ret;
+	char *ret = NULL;
 
 	if (*lasts == NULL && s1 == NULL) {		       /* added this: hrue */
 		return NULL;
@@ -1009,7 +1001,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	 * return in number of unique entries in ix != 0 and list them in `uniques' 
 	 */
 
-	int nu, *un = NULL, i, j, *ixx;
+	int nu, *un = NULL, i, j, *ixx = NULL;
 
 	if (nx <= 0 || !ix) {
 		*nuniques = 0;
@@ -1334,7 +1326,7 @@ int GMRFLib_debug_functions(const char *name)
 			ddefs[idx] = Calloc(1, map_stri);
 			map_stri_init_hint(ddefs[idx], 128);
 			char *str = def;
-			char *s;
+			char *s = NULL;
 
 			first[idx] = -1;
 			while ((s = strtok(str, sep1))) {
@@ -1342,7 +1334,7 @@ int GMRFLib_debug_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss;
+				char *ss = NULL;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1430,7 +1422,7 @@ int GMRFLib_trace_functions(const char *name)
 			ddefs[idx] = Calloc(1, map_stri);
 			map_stri_init_hint(ddefs[idx], 128);
 			char *str = def;
-			char *s;
+			char *s = NULL;
 
 			first[idx] = -1;
 			while ((s = strtok(str, sep1))) {
@@ -1438,7 +1430,7 @@ int GMRFLib_trace_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss;
+				char *ss = NULL;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -2211,9 +2203,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
+	if(cmp == (void *) GMRFLib_icmp && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2233,15 +2225,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y)
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y)
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	if (nmemb == 0)
 		return;
 

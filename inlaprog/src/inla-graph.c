@@ -143,7 +143,7 @@ int inla_make_rw2diid_graph(GMRFLib_graph_tp **graph, GMRFLib_rw2ddef_tp *def)
 {
 	int i, n;
 	GMRFLib_ged_tp *ged = NULL;
-	GMRFLib_graph_tp *g;
+	GMRFLib_graph_tp *g = NULL;
 
 	n = def->nrow * def->ncol;
 	GMRFLib_make_rw2d_graph(&g, def);
@@ -312,7 +312,7 @@ int inla_replicate_graph(GMRFLib_graph_tp **g, int replicate)
 	 * replace the graph G, with on that is replicated REPLICATE times 
 	 */
 	int i;
-	GMRFLib_ged_tp *ged;
+	GMRFLib_ged_tp *ged = NULL;
 
 	if (!g || !*g || replicate <= 1) {
 		return GMRFLib_SUCCESS;

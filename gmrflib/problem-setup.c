@@ -330,7 +330,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx)
 	GMRFLib_ENTER_ROUTINE;
 
 	int n = problem->sub_graph->n;
-	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0); 
+	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
 	Memcpy(x, b, n * sizeof(double));
 	if (idx >= 0) {
@@ -367,7 +367,7 @@ int GMRFLib_Qsolves(double *x, double *b, int nrhs, GMRFLib_problem_tp *problem)
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;
 		double alpha = -1.0, beta = 1.0, t_vector[nc];
-		for(int i = 0; i < nrhs; i++) {
+		for (int i = 0; i < nrhs; i++) {
 			int offset = i * n;
 			GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph);
 			dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE);
@@ -405,8 +405,8 @@ int GMRFLib_init_problem_store(int thread_id,
 	int store_store_remap = 0, store_use_remap = 0;
 	int store_store_symb_fact = 0, store_use_symb_fact = 0;
 
-	GMRFLib_Qfunc_tp *sub_Qfunc;
-	GMRFLib_Qfunc_arg_tp *sub_Qfunc_arg;
+	GMRFLib_Qfunc_tp *sub_Qfunc = NULL;
+	GMRFLib_Qfunc_arg_tp *sub_Qfunc_arg = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -635,7 +635,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	 */
 	if (constr && constr->nc > 0) {
 		int nc;
-		double *aat_m, alpha, beta, *b_add = NULL, *aqat_m;
+		double *aat_m = NULL, alpha, beta, *b_add = NULL, *aqat_m = NULL;
 
 		/*
 		 * first make new constraints on the subgraph. ok to call this function if fixed_values is NULL, then
@@ -680,7 +680,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_solve_llt_sparse_matrix ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
+				GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 			} else {
 				/*
 				 * reuse 
@@ -695,7 +695,8 @@ int GMRFLib_init_problem_store(int thread_id,
 						yy[i] = xx[i * nc];
 					}
 				}
-				GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
+				GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1, &((*problem)->sub_sm_fact),
+								(*problem)->sub_graph);
 			}
 			Free(qi_at_m_store);
 
@@ -830,7 +831,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		 * sub_mean! i have copied parts of code from GMRFLib_sample into here...
 		 */
 		int nc = constr->nc, inc = 1;
-		double alpha, beta, *t_vector;
+		double alpha, beta, *t_vector = NULL;
 
 		Free((*problem)->sub_constr_value);
 		(*problem)->sub_constr_value = t_vector = Calloc(nc, double);
@@ -904,7 +905,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 		 * bits... 
 		 */
 
-		double alpha, beta, *t_vector;
+		double alpha, beta, *t_vector = NULL;
 		int inc = 1, nc = problem->sub_constr->nc;
 
 		Free(problem->sub_constr_value);
@@ -1164,7 +1165,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp *constr)
 	}
 
 	if (constr_store_use && constr->sha) {
-		void *p;
+		void *p = NULL;
 		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
 		if (constr_store_debug) {
 			if (p) {
@@ -1384,7 +1385,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *
 	}
 
 	if (constr_store_use && constr->sha) {
-		void **p;
+		void **p = NULL;
 		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
 		if (constr_store_debug) {
 			if (p) {

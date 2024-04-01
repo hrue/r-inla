@@ -107,7 +107,7 @@ double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, dou
 	return value_;
 }
 
-double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+forceinline double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -116,7 +116,7 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__
 	return GMRFLib_ddot_idx(ELM_->n, vv_, aa_, idx_);
 }
 
-double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+forceinline double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -125,13 +125,19 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double
 	return GMRFLib_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_);
 }
 
-double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+forceinline double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
 
 	return GMRFLib_ddot_idx_mkl_alt(ELM_->n, vv_, aa_, idx_);
+}
+
+forceinline double GMRFLib_ddot(int n, double *x, double *y)
+{
+	int one = 1;
+	return ddot_(&n, x, &one, y, &one);
 }
 
 int GMRFLib_isum(int n, int *ix)
@@ -147,18 +153,11 @@ int GMRFLib_isum(int n, int *ix)
 double GMRFLib_dsum(int n, double *x)
 {
 	double s = 0.0;
-
 #pragma omp simd reduction(+: s)
 	for (int i = 0; i < n; i++) {
 		s += x[i];
 	}
 	return s;
-}
-
-double GMRFLib_ddot(int n, double *x, double *y)
-{
-	int one = 1;
-	return ddot_(&n, x, &one, y, &one);
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
@@ -190,7 +189,6 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 
 	return s0 + s1 + s2 + s3;
 }
-
 
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
@@ -245,7 +243,7 @@ forceinline double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__r
 
 #else							       /* defined(INLA_WITH_MKL) */
 
-double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+forceinline double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }

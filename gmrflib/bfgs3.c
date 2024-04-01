@@ -61,8 +61,8 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	// and return the x* and optional y* that minimize the fitted model.
 
 	size_t n = (size_t) nn, i, j, p = order + 1;
-	gsl_matrix *X, *cov;
-	gsl_vector *yy, *c;
+	gsl_matrix *X = NULL, *cov = NULL;
+	gsl_vector *yy = NULL, *c = NULL;
 
 	X = gsl_matrix_alloc(n, p);
 	yy = gsl_vector_alloc(n);

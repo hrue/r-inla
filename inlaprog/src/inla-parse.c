@@ -196,9 +196,9 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = MODE
 	 */
 	int nt = 0, i;
-	char *tmp, *secname;
+	char *tmp = NULL, *secname = NULL;
 	double *t = NULL;
-	FILE *fp;
+	FILE *fp = NULL;
 	size_t nread;
 
 	if (mb->verbose) {
@@ -449,7 +449,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = PREDICTOR 
 	 */
-	char *secname = NULL, *msg = NULL, *filename;
+	char *secname = NULL, *msg = NULL, *filename = NULL;
 	int i, noffsets, nlinks_fitted_values;
 	double tmp;
 
@@ -643,7 +643,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), discrete_data = 0;
 	int beta_delayed_error = 0;
 	double tmp;
-	Data_section_tp *ds;
+	Data_section_tp *ds = NULL;
 
 	mb->nds++;
 	mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
@@ -908,6 +908,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol;
 		ds->data_id = L_STOCHVOL;
+	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLLN")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvolln;
+		ds->data_id = L_STOCHVOL_LN;
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLSN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_sn;
 		ds->data_id = L_STOCHVOL_SN;
@@ -5938,6 +5941,55 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case L_STOCHVOL_LN:
+	{
+		/*
+		 * get options related to the stochvol; the log-offset in the variance
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1);	/* yes, default fixed */
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.stochvolln_c, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise mean.offset[%g]\n", ds->data_observations.stochvolln_c[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "NORMAL", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Mean offset for stochvolln", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Mean offset for stochvolln", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.stochvolln_c;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+		break;
+
 	case L_STOCHVOL_SN:
 	{
 		/*
@@ -7452,7 +7504,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * read possible link_covariates 
 	 */
-	char *link_cov_filename;
+	char *link_cov_filename = NULL;
 	link_cov_filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.COVARIATES"), NULL));
 
 	if (link_cov_filename) {
@@ -7472,7 +7524,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		int len = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n);
 		if (len != ds->link_covariates->nrow) {
-			char *emsg;
+			char *emsg = NULL;
 			GMRFLib_sprintf(&emsg,
 					"link.covariates has not the same number of rows as the linear predictor %1d != %1d",
 					ds->link_covariates->nrow, len);
@@ -8307,7 +8359,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "MVNORM", NULL);	// the beta's
 
 		if (ds->link_order > 0 && (int) ds->link_prior[1].parameters[0] != ds->link_order) {
-			char *ptmp;
+			char *ptmp = NULL;
 			GMRFLib_sprintf(&ptmp,
 					"Dimension of the MVNORM prior is not equal to the order of the link-model: %1d != %1d\n",
 					(int) ds->link_prior[1].parameters[0], ds->link_order);
@@ -8315,7 +8367,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(EXIT_FAILURE);
 		}
 		if (ds->link_order > ds->link_covariates->ncol) {
-			char *ptmp;
+			char *ptmp = NULL;
 			GMRFLib_sprintf(&ptmp, "The link-model %s require more covariates : %1d > %1d\n",
 					ds->link_model, ds->link_order, ds->link_covariates->ncol);
 			inla_error_general(ptmp);
@@ -8671,14 +8723,14 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	int i, j, k, jj, nlocations = 0, nc = 0, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
 	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0, nbeta = 0, ncov = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
-	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
+	    NULL, default_tag[100], *file_loc = NULL, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
 	    *cgeneric_shlib = NULL, *cgeneric_model = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
-	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd, **mean_x = NULL, **log_prec_x =
+	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag = NULL, rd, **mean_x = NULL, **log_prec_x =
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
-	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL, *cov = NULL,
+	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern = NULL, ***intslope_gamma = NULL, *cov = NULL,
 	    *loc = NULL, ***betas = NULL;
 	GMRFLib_matrix_tp *W = NULL;
 
@@ -9203,7 +9255,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		int dim = WISHART_DIM(mb->nf);
 		assert(dim > 0);
-		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
+		char *pri = NULL, *par = NULL, *to_theta = NULL, *from_theta = NULL, *prifunc = NULL, *hyperid = NULL;
 		int nt = inla_iid_wishart_nparam(dim);
 
 		GMRFLib_sprintf(&prifunc, "WISHART%1dD", dim);
@@ -9245,7 +9297,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		int dim = mb->f_order[mb->nf];
 		assert(dim >= INLA_WISHARTK_KMIN);
 		assert(dim <= INLA_WISHARTK_KMAX);
-		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
+		char *pri = NULL, *par = NULL, *to_theta = NULL, *from_theta = NULL, *prifunc = NULL, *hyperid = NULL;
 		int nt_max = INLA_WISHARTK_NTHETA(INLA_WISHARTK_KMAX);
 		int nt = INLA_WISHARTK_NTHETA(dim);
 
@@ -9280,7 +9332,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_INTSLOPE:
 	{
-		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
+		char *pri = NULL, *par = NULL, *to_theta = NULL, *from_theta = NULL, *prifunc = NULL, *hyperid = NULL;
 		int dim = 2;
 		GMRFLib_sprintf(&prifunc, "WISHART%1dD", dim);
 		for (int kk = 0; kk < mb->f_ntheta[mb->nf]; kk++) {
@@ -9474,7 +9526,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * reads FIXED0, FIXED1, FIXED2, etc.... 
 		 */
 		for (i = 0; i < mb->f_ntheta[mb->nf]; i++) {
-			char *fixname;
+			char *fixname = NULL;
 
 			GMRFLib_sprintf(&fixname, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, fixname), 0);
@@ -9667,9 +9719,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * we need to compute the eigenvalues 
 			 */
-			gsl_matrix *C;
-			gsl_vector *evalues;
-			gsl_eigen_symm_workspace *w;
+			gsl_matrix *C = NULL;
+			gsl_vector *evalues = NULL;
+			gsl_eigen_symm_workspace *w = NULL;
 
 			g = mb->f_graph[mb->nf];
 			C = gsl_matrix_calloc(nn, nn);
@@ -9738,7 +9790,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			arg->n = nn = g->n;
 			arg->N = 2 * arg->n;
 
-			GMRFLib_ged_tp *ged;
+			GMRFLib_ged_tp *ged = NULL;
 			GMRFLib_ged_init(&ged, NULL);
 			for (ii = 0; ii < nn; ii++) {
 				GMRFLib_ged_add(ged, ii, ii + nn);
@@ -10221,7 +10273,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		{
 			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
 			if (n <= 0) {
-				char *val;
+				char *val = NULL;
 				GMRFLib_sprintf(&val, "%1d", n);
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", val);
 			}
@@ -10450,7 +10502,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_SPDE:
 	{
-		char *spde_prefix;
+		char *spde_prefix = NULL;
 		int nT, nK;
 
 		spde_prefix = Strdup(".");
@@ -10655,7 +10707,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_SPDE2:
 	{
-		char *spde2_prefix, *transform;
+		char *spde2_prefix, *transform = NULL;
 
 		spde2_prefix = Strdup(".");
 		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.PREFIX"), spde2_prefix);
@@ -10688,7 +10740,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp *);
 		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
 
-		char *ltag;
+		char *ltag = NULL;
 		GMRFLib_sprintf(&ltag, "%s", secname);
 		GMRFLib_ai_INLA_userfunc2_tag = Realloc(GMRFLib_ai_INLA_userfunc2_tag, GMRFLib_ai_INLA_userfunc2_n, char *);
 		GMRFLib_ai_INLA_userfunc2_tag[GMRFLib_ai_INLA_userfunc2_n - 1] = ltag;
@@ -10841,7 +10893,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_SPDE3:
 	{
-		char *spde3_prefix, *transform;
+		char *spde3_prefix, *transform = NULL;
 
 		spde3_prefix = Strdup(".");
 		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3_PREFIX"), spde3_prefix);
@@ -10878,7 +10930,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ai_INLA_userfunc3 = Realloc(GMRFLib_ai_INLA_userfunc3, GMRFLib_ai_INLA_userfunc3_n, GMRFLib_ai_INLA_userfunc3_tp *);
 		GMRFLib_ai_INLA_userfunc3[GMRFLib_ai_INLA_userfunc3_n - 1] = (GMRFLib_ai_INLA_userfunc3_tp *) inla_spde3_userfunc3;
 
-		char *ltag;
+		char *ltag = NULL;
 		GMRFLib_sprintf(&ltag, "%s", secname);
 		GMRFLib_ai_INLA_userfunc3_tag = Realloc(GMRFLib_ai_INLA_userfunc3_tag, GMRFLib_ai_INLA_userfunc3_n, char *);
 		GMRFLib_ai_INLA_userfunc3_tag[GMRFLib_ai_INLA_userfunc3_n - 1] = ltag;
@@ -13839,7 +13891,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * first get all the precisions 
 			 */
-			char *init;
+			char *init = NULL;
 
 			if (dim == 1) {
 				GMRFLib_sprintf(&init, "INITIAL");
@@ -13895,7 +13947,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				/*
 				 * all the correlations 
 				 */
-				char *init;
+				char *init = NULL;
 				GMRFLib_sprintf(&init, "INITIAL%1d", k);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
 
@@ -14033,7 +14085,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * first get all the precisions 
 			 */
-			char *init;
+			char *init = NULL;
 
 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
@@ -14083,7 +14135,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				/*
 				 * all the correlations 
 				 */
-				char *init;
+				char *init = NULL;
 				GMRFLib_sprintf(&init, "INITIAL%1d", k);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
 
@@ -14136,7 +14188,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		int kk;
 		for (i = 0; i < INTSLOPE_MAXTHETA; i++) {
-			char *init;
+			char *init = NULL;
 
 			kk = k - n_theta;
 			if (i >= nstrata) {
@@ -14928,7 +14980,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_AR:
 	{
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		ar_def_tp *def = Calloc(1, ar_def_tp);
 
 		def->n = mb->f_n[mb->nf];
@@ -15268,7 +15320,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * MEC
 		 */
-		char *filename_s;
+		char *filename_s = NULL;
 		filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 		if (filename_s) {
 			if (mb->verbose) {
@@ -15322,7 +15374,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * MEB
 		 */
-		char *filename_s;
+		char *filename_s = NULL;
 		filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 		if (filename_s) {
 			if (mb->verbose) {
@@ -15375,7 +15427,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * R_GENERIC
 		 */
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp), *def_orig = Calloc(1, inla_rgeneric_tp);
-		double ***tptr;
+		double ***tptr = NULL;
 
 		def->filename = Strdup(rgeneric_filename);
 		def->model = Strdup(rgeneric_model);
@@ -15412,10 +15464,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		int n_out, zero = 0;
-		double *x_out;
+		double *x_out = NULL;
 		inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, &zero, NULL);
 
-		int len, *ilist, *jlist;
+		int len, *ilist = NULL, *jlist = NULL;
 		k = 0;
 		assert(n_out >= 2);
 		n = (int) x_out[k++];
@@ -15437,8 +15489,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			Qijlist[i] = 1.0;
 		}
 
-		GMRFLib_tabulate_Qfunc_tp *tab;
-		GMRFLib_graph_tp *graph, *ggraph;
+		GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+		GMRFLib_graph_tp *graph = NULL, *ggraph = NULL;
 
 		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL);
 		GMRFLib_free_tabulate_Qfunc(tab);
@@ -15519,7 +15571,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * C_GENERIC
 		 */
 		inla_cgeneric_tp *def = Calloc(1, inla_cgeneric_tp), *def_orig = Calloc(1, inla_cgeneric_tp);
-		double ***tptr;
+		double ***tptr = NULL;
 
 		def->shlib = Strdup(cgeneric_shlib);
 		def->model = Strdup(cgeneric_model);
@@ -15572,7 +15624,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
 		}
 
-		int len, *ilist, *jlist;
+		int len, *ilist = NULL, *jlist = NULL;
 		k = 0;
 		n = (int) x_out[k++];
 		len = (int) x_out[k++];
@@ -15590,8 +15642,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			Qijlist[i] = 1.0;
 		}
 
-		GMRFLib_tabulate_Qfunc_tp *tab;
-		GMRFLib_graph_tp *graph, *ggraph;
+		GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+		GMRFLib_graph_tp *graph = NULL, *ggraph = NULL;
 
 		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL);
 		GMRFLib_free_tabulate_Qfunc(tab);
@@ -16027,7 +16079,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				/*
 				 * this case has an extra option: scale
 				 */
-				char *filename_s;
+				char *filename_s = NULL;
 				filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 				if (filename_s) {
 					if (mb->verbose) {
@@ -16080,7 +16132,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				/*
 				 * this case has an extra option: scale
 				 */
-				char *filename_s;
+				char *filename_s = NULL;
 				filename_s = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
 				if (filename_s) {
 					if (mb->verbose) {
@@ -16590,7 +16642,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 */
 			int ng = mb->f_ngroup[mb->nf];
 			int Norig = mb->f_N[mb->nf];
-			GMRFLib_graph_tp *g;
+			GMRFLib_graph_tp *g = NULL;
 
 			inla_make_group_graph(&g, mb->f_graph[mb->nf], ng, mb->f_group_model[mb->nf], mb->f_group_cyclic[mb->nf],
 					      mb->f_group_order[mb->nf], mb->f_group_graph[mb->nf]);
@@ -16600,7 +16652,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			/*
 			 * make the constraints 
 			 */
-			GMRFLib_constr_tp *c;
+			GMRFLib_constr_tp *c = NULL;
 			c = inla_make_constraint2(mb->f_N[mb->nf], mb->f_ngroup[mb->nf], mb->f_sumzero[mb->nf], mb->f_constr[mb->nf]);
 			if (c) {
 				mb->f_sumzero[mb->nf] = 0;
@@ -16645,7 +16697,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
 					def->rwdef->log_prec_omp = NULL;
 					if (std) {
-						char *err;
+						char *err = NULL;
 						GMRFLib_sprintf(&err, "Group: cannot scale.model with option cylic=TRUE. Contact developers.");
 						inla_error_general(err);
 						exit(1);
@@ -16732,7 +16784,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->f_Qfunc[mb->nf] = Qfunc_replicate;
 			mb->f_Qfunc_arg[mb->nf] = (void *) rep_arg;
 
-			GMRFLib_constr_tp *c;
+			GMRFLib_constr_tp *c = NULL;
 			c = inla_make_constraint2(mb->f_N[mb->nf], mb->f_nrep[mb->nf], mb->f_sumzero[mb->nf], mb->f_constr[mb->nf]);
 			if (c) {
 				mb->f_sumzero[mb->nf] = 0;
@@ -16839,7 +16891,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	/*
 	 * parse section = INLA 
 	 */
-	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL, *default_int_strategy = NULL, *defname = NULL, *r, *ctmp;
+	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL, *default_int_strategy = NULL, *defname = NULL, *r = NULL, *ctmp = NULL;
 	double tmp, tmp_ref;
 
 	if (mb->verbose) {
@@ -17130,7 +17182,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	/*
 	 * ...which is overrided by the original names 
 	 */
-	char *ans;
+	char *ans = NULL;
 
 	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.GRADIENT"), Strdup("central"));
 	if (!strcasecmp(ans, "central")) {

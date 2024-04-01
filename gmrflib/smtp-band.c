@@ -245,7 +245,7 @@ int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_gra
 		dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -414,7 +414,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 #define Cov_maxmin(i,j)  cov[LIDX(i, j)]		       /* save the MAX and the MIN */
 
 	int i, j, k, kk, iii, jjj, bw, ldim, n, *inv_remap = NULL, *rremove = NULL, nrremove;
-	double tmp, Lii_inv, value, *Lmatrix, *cov;
+	double tmp, Lii_inv, value, *Lmatrix = NULL, *cov = NULL;
 	map_id **Qinv_L = NULL;
 
 	bw = problem->sub_sm_fact.bandwidth;
@@ -467,7 +467,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 		 * so.... 
 		 */
 		for (i = n - 1; i >= 0; i--) {
-			double *cov_offset, *Lmatrix_offset, *cov_set_offset;
+			double *cov_offset = NULL, *Lmatrix_offset = NULL, *cov_set_offset = NULL;
 
 			Lmatrix_offset = &Lmatrix[i * ldim - i];
 			Lii_inv = 1.0 / L(i, i);
@@ -606,8 +606,8 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 
 	int i, j, n = graph->n, N, m;
 	double reduce_factor;
-	unsigned char *bitmap;
-	FILE *fp;
+	unsigned char *bitmap = NULL;
+	FILE *fp = NULL;
 
 	int nband = bandwidth;
 	int ldim = bandwidth + 1;
@@ -658,7 +658,7 @@ int GMRFLib_bitmap_factorisation_BAND(const char *filename_body, double *band, G
 	/*
 	 * create a bitmap-file of the factorization 
 	 */
-	char *filename;
+	char *filename = NULL;
 
 	GMRFLib_EWRAP0(GMRFLib_sprintf(&filename, "%s_L.pbm", (filename_body ? filename_body : "band_L")));
 	GMRFLib_EWRAP0(GMRFLib_bitmap_factorisation_BAND__intern(filename, band, graph, remap, bandwidth));

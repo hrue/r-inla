@@ -1050,7 +1050,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	}
 
 	double *c = Calloc(graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
