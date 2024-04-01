@@ -82,7 +82,6 @@ typedef double *GMRFLib_ai_INLA_userfunc3_tp(int number, double *theta, int nhyp
 
 extern char GMRFLib_path[];
 
-extern int GMRFLib_blas_level;
 extern GMRFLib_smtp_tp GMRFLib_smtp;
 extern GMRFLib_reorder_tp GMRFLib_reorder;
 

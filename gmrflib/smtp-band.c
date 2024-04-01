@@ -158,19 +158,8 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *fin
 	nband = bandwidth;
 	ldim = bandwidth + 1;
 
-	switch (GMRFLib_blas_level) {
-	case BLAS_LEVEL2:
-	{
-		dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
-	}
-		break;
-
-	case BLAS_LEVEL3:
-	{
-		dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
-	}
-		break;
-	}
+	//dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
+	dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
 	if (error) {
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
