@@ -254,6 +254,7 @@ typedef enum {
 	L_FL,
 	L_RCPOISSON,
 	L_TPOISSON,
+	L_STOCHVOL_LN,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -542,6 +543,11 @@ typedef struct {
 	 * stocvol
 	 */
 	double **log_offset_prec;
+
+	/*
+	 * stocvol ln
+	 */
+	double **stochvolln_c;
 
 	/*
 	 * stochvol_t: y ~ Student-t_dof (x) with Variance=1. dof_intern_svt = log(dof - 2).

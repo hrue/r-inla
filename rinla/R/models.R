@@ -11313,6 +11313,29 @@
                     pdf = "stochvolgaussian"
                 ),
 
+                stochvolln = list(
+                    doc = "The Log-Normal stochvol likelihood",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 82011,
+                            name = "offset",
+                            short.name = "c",
+                            output.name = "Mean offset for stochvolln",
+                            output.name.intern = "Mean offset for stochvolln", 
+                            initial = 0, 
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "stochvolln"
+                ),
+
                 stochvolsn = list(
                     doc = "The SkewNormal stochvol likelihood",
                     hyper = list(

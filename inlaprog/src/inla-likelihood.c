@@ -240,6 +240,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_QKUMAR:
 	case L_QLOGLOGISTIC:
 	case L_STOCHVOL:
+	case L_STOCHVOL_LN:
 	case L_STOCHVOL_SN:
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
@@ -1305,8 +1306,6 @@ int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__re
 	/*
 	 * y ~ N(0, var = exp(x) + 1/tau) 
 	 */
-	int i;
-
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
@@ -1318,15 +1317,49 @@ int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__re
 	LINK_INIT;
 	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0 / tau);
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
+		for (int i = 0; i < m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR(y) / var;
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
+		for (int i = 0; i < -m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi_fast(ABS(y) / sqrt(var)));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_stochvolln(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
+{
+	/*
+	 * y ~ N(c - 1/2 * var, var)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double c = ds->data_observations.stochvolln_c[thread_id][0]; // identity mapping
+
+	LINK_INIT;
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double mean = c - 0.5 * var;
+			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR((y - mean)) / var;
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double mean = c - 0.5 * var;
+			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi_fast(ABS((y - mean) / sqrt(var))));
 		}
 	}
 

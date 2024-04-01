@@ -13754,6 +13754,37 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'stochvolln'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Log-Normal stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolln}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{82011}}
+#'             \item{name = }{\verb{offset}}
+#'             \item{short.name = }{\verb{c}}
+#'             \item{output.name = }{\verb{Mean offset for stochvolln}}
+#'             \item{output.name.intern = }{\verb{Mean offset for stochvolln}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'stochvolsn'.}{
 #'          \describe{
 #'           \item{Properties:}{

@@ -401,7 +401,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 		return;
 	}
 
-	ptr = len = *perm = NULL;
+	ptr = len = *perm;
 	for (i = 0; i < n; i++)
 		len[i] = 0;
 

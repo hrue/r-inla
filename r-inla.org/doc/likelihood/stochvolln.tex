@@ -1,0 +1,52 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Log-normal model for Stochastic volatility}
+
+\subsection*{Parametrization}
+
+The likelihood is
+\[
+y_i |\ldots \;\sim\; N(c - \frac{1}{2} \sigma^{2}_i, \sigma^{2}_i)
+\]
+where the mean depends on the variance, and $c$ is an optional
+hyperparameter.
+
+\subsection*{Link-function}
+
+The variance is linked to the linear predictor as
+$\eta_i$ as:
+\[
+\log (\sigma^{2}_i) = \eta_i
+\]
+
+\subsection*{Hyperparameters}
+
+This likelihood has one hyperparmeter
+\begin{displaymath}
+    \theta = c
+\end{displaymath}
+and the prior is defined on $\theta$. By default, $c$ is fixed to $c=0$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="stochvolln"}
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/stochvolln.tex}
+
+\subsection*{Example}
+\verbatiminput{example-stochvolln.R}
+
+\end{document}
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

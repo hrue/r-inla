@@ -2371,6 +2371,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_STOCHVOL_LN:
+			{
+				if (!ds->data_fixed) {
+					double off = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &off);
+					count++;
+				}
+			}
+				break;
+
 			case L_STOCHVOL_SN:
 			{
 				if (!ds->data_fixed0) {
