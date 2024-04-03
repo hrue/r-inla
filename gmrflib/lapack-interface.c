@@ -291,9 +291,9 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 	/*
 	 * overwrite a symmetric MATRIX with its inverse 
 	 */
-	int info = 0; 
+	int info = 0;
 
-	//dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
+	// dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
 	dpotrf_("L", &dim, matrix, &dim, &info, F_ONE);
 
 	if (info)
@@ -378,7 +378,7 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	a = Calloc(ISQR(dim), double);
 	Memcpy(a, matrix, ISQR(dim) * sizeof(double));
 
-	//dpotf2_("L", &dim, a, &dim, &info, F_ONE);
+	// dpotf2_("L", &dim, a, &dim, &info, F_ONE);
 	dpotrf_("L", &dim, a, &dim, &info, F_ONE);
 
 	if (info) {

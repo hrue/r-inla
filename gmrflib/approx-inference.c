@@ -4549,10 +4549,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
+		CODE_BLOCK_WORK_ZERO(0);				\
 		int j = vb_idx->idx[jj];				\
 		double *b = CODE_BLOCK_WORK_PTR(0);			\
 		double *cov = CODE_BLOCK_WORK_PTR(1);			\
-		CODE_BLOCK_WORK_ZERO(0);				\
 		b[j] = 1.0;						\
 		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
 		for (int i = 0; i < graph->n; i++) {			\
@@ -4560,7 +4560,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
+	RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
 #undef CODE_BLOCK
 
 	for (int iter = 0; iter < niter; iter++) {
@@ -4612,7 +4612,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
+		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);

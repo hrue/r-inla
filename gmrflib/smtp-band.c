@@ -158,7 +158,7 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *fin
 	nband = bandwidth;
 	ldim = bandwidth + 1;
 
-	//dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
+	// dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
 	dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
 	if (error) {
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
