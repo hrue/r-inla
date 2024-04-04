@@ -1494,7 +1494,6 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			for (int kk = 0; kk < nelm; kk++) {
 				id[kk] *= x->tda;
 			}
-
 			GMRFLib_fill(ncol, 0.0, dval);
 			for (int kk = 0; kk < nelm; kk++) {
 				double v = val[kk];
