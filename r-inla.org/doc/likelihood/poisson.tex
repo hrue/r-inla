@@ -49,8 +49,17 @@ None.
 which allows the Poisson likelihood to be evaluated for a
 real-numbered response $y\ge0$, in cases where this is known to make
 sense. Note that $y!$ is computed using the integer part of $y$.
+Please be aware of its impact on the marginal likelihood, information
+criterias and cross-validation scores.
 
-
+\noindent There is limiting version,
+\begin{itemize}
+\item \texttt{family="npoisson"}
+\item Required arguments: $y$ and $E$
+\end{itemize}
+which approximate the discrete Poisson with a continous Normal
+approximation. Please be aware of its impact on the marginal
+likelihood, information criterias and cross-validation scores.
 
 \subsection*{Example}
 

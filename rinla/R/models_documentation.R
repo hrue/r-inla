@@ -9674,6 +9674,20 @@
 #'          }
 #'         Number of hyperparmeters is 0.
 #'        }
+#'       \item{Model 'npoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Normal approximation to the Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset}}
+#'               \item{pdf = }{\verb{poisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
 #'       \item{Model 'nzpoisson'.}{
 #'          \describe{
 #'           \item{Properties:}{
