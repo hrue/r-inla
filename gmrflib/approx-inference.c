@@ -4566,10 +4566,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
 #undef CODE_BLOCK
 
+	double dxs[niter];
+	GMRFLib_fill(niter, 0.0, dxs);
+	
 	for (int iter = 0; iter < niter; iter++) {
-		int update_MM = (iter + 1 <= hessian_update || !keep_MM);
+		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] >  dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
 
+		dxs[iter] = 0.0;
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
@@ -4663,7 +4667,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		int delta_is_NAN = 0;
 		for (int i = 0; i < (int) delta->size; i++) {
 			if (ISNAN(gsl_vector_get(delta, i))) {
-				delta_is_NAN = i+1;
+				delta_is_NAN = i + 1;
 				gsl_vector_set_zero(delta);
 				break;
 			}
@@ -4681,37 +4685,60 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
+		dxs[iter] = err_dx;
+
+		int diverge = 0;
+		if (iter >= 3) {
+			// 'diverge' is defined as increasing three times in a row
+			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2]) && (dxs[iter - 2] > dxs[iter - 3]));
+		}
+
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
 #pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
-		if (max_correction >= ai_par->vb_emergency || delta_is_NAN) {
+
+		int max_corr_flag = (max_correction >= ai_par->vb_emergency);
+
+		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
 				if (delta_is_NAN) {
-					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, so 'vb.correction' is aborted\n", delta_is_NAN-1);
-				} else {
-					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", delta_is_NAN - 1);
+				}
+				if (diverge) {
+					fprintf(stderr, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
+						delta_is_NAN - 1);
+				}
+				if (max_corr_flag) {
+					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
-					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
+					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
+						ai_par->vb_emergency);
 					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				}
 				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 
 				if (fp != stderr) {
 					if (delta_is_NAN) {
-						fprintf(fp, "\n\n\t*** warning *** delta[%1d] is NAN, so 'vb.correction' is aborted\n", delta_is_NAN-1);
-					} else {
-						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+						fprintf(fp, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+							delta_is_NAN - 1);
+					}
+					if (diverge) {
+						fprintf(fp,
+							"\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
+							delta_is_NAN - 1);
+					}
+					if (max_corr_flag) {
+						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 							max_correction, ai_par->vb_emergency);
-						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
+						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
+							ai_par->vb_emergency);
 						fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 					}
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
-					fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				}
 			}
 			emergency = 1;
@@ -4729,7 +4756,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec/iter]\n",
-					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref)/(iter + 1.0));
+					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
