@@ -2262,53 +2262,40 @@ int loglikelihood_npoisson(int thread_id, double *__restrict logll, double *__re
 	/*
 	 * y ~ Poisson(E*exp(x)) using the Normal approximation
 	 */
+
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
+	double off = OFFSET(idx);
 
 	LINK_INIT;
 
-	double off = OFFSET(idx);
 	if (m > 0) {
-		if (PREDICTOR_LINK_EQ(link_log) && PREDICTOR_SCALE == 1.0 && off == 0.0) {
-#pragma omp simd
-			for (int i = 0; i < m; i++) {
-				double mean = E * exp(x[i]);
-				double prec = 1.0 / mean;
-				double lprec = log(prec);
-				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y - mean) * prec));
-			}
-		} else {
-			for (int i = 0; i < m; i++) {
-				double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
-				double prec = 1.0 / mean;
-				double lprec = log(prec);
-				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y - mean) * prec));
-			}
+		const double l6 = 1.791759469228054957313;     /* log(6.0) */
+		for (int i = 0; i < m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+			double prec = 1.0 / mean;
+			double lprec = log(prec);
+			double res = y - mean;
+			double right = -0.5 * prec * SQR(res + 0.5);
+			double mid = -0.5 * prec * SQR(res);
+			double left = -0.5 * prec * SQR(res - 0.5);
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * lprec - l6  + mid + log(4.0 + exp(left-mid) + exp(right-mid));
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		if (PREDICTOR_LINK_EQ(link_log) && PREDICTOR_SCALE == 1.0 && off == 0.0) {
-			for (int i = 0; i < -m; i++) {
-				double mean = E * exp(x[i]);
-				double sd = sqrt(mean);
-				logll[i] = GMRFLib_cdfnorm((y + 0.5 - mean) / sd);
-			}
-		} else {
-			for (int i = 0; i < -m; i++) {
-				double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
-				double sd = sqrt(mean);
-				logll[i] = GMRFLib_cdfnorm((y + 0.5 - mean) / sd);
-			}
+		for (int i = 0; i < -m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+			double sd = sqrt(mean);
+			logll[i] = GMRFLib_cdfnorm((y + 0.5 - mean) / sd);
 		}
 	}
 
 	LINK_END;
-#undef _logE
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -5538,6 +5525,7 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll
 	return GMRFLib_SUCCESS;
 }
 
+#pragma omp declare simd
 double eval_logsum_safe(double lA, double lB)
 {
 	// evaluate log( exp(lA) + exp(lB) ) in a safer way 
