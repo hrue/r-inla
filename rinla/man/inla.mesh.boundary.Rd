@@ -25,7 +25,7 @@ interior constraint information in an \code{\link[=inla.mesh]{inla.mesh()}} obje
 \examples{
 
 loc <- matrix(runif(100 * 2) * 1000, 100, 2)
-mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(50, 500))
+mesh <- fmesher::fm_mesh_2d_inla(loc.domain = loc, max.edge = c(50, 500))
 boundary <- inla.mesh.boundary(mesh)
 interior <- inla.mesh.interior(mesh)
 }

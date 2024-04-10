@@ -524,7 +524,7 @@ inla.spde.precision <- function(...) {
 #' @examples
 #'
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- fmesher::fm_mesh_2d_inla(loc.domain = loc, max.edge = c(0.1, 0.5))
 #' spde <- inla.spde2.matern(mesh)
 #' index <- inla.spde.make.index("spatial", mesh$n, n.repl = 2)
 #' spatial.A <- inla.spde.make.A(mesh, loc,
@@ -583,7 +583,7 @@ inla.spde.result <- function(...) {
 #' @examples
 #'
 #' loc <- matrix(runif(100 * 2), 100, 2)
-#' mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(0.1, 0.5))
+#' mesh <- fmesher::fm_mesh_2d_inla(loc.domain = loc, max.edge = c(0.1, 0.5))
 #' spde <- inla.spde2.matern(mesh)
 #' index <- inla.spde.make.index("spatial", spde$n.spde, n.repl = 2)
 #' spatial.A <- inla.spde.make.A(mesh, loc,
