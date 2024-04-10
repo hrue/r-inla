@@ -600,8 +600,7 @@ control.vb <- function(
         #'         Third element is overall maximum dimension of the correction for `strategy="mean"`.
         #'         Forth element is overall maximum dimension of the correction for `strategy="variance"`.
         f.enable.limit = c(30, 25, 1024, 768),
-        #' @param hessian.update How many times the Hessian is updated for each
-        #'         correction (`strategy="variance"` only).
+        #' @param hessian.update How many times the Hessian is updated for each correction.
         hessian.update = 2,
         #' @param hessian.strategy Select strategy for computing the Hessian
         #'         matrix for `strategy="variance"`, one of `"full"`,

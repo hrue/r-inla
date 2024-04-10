@@ -4547,6 +4547,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
+	int hessian_update = ai_par->vb_hessian_update;
+	assert(hessian_update > 0);
+
 #define CODE_BLOCK						\
 	for (int jj = 0; jj < vb_idx->n; jj++) {		\
 		CODE_BLOCK_WORK_ZERO(0);			\
@@ -4564,7 +4567,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 
 	for (int iter = 0; iter < niter; iter++) {
-		int update_MM = ((iter == 0) || !keep_MM);
+		int update_MM = (iter + 1 <= hessian_update || !keep_MM);
 		double err_dx = 0.0;
 
 		gsl_vector_set_zero(B);
@@ -4592,7 +4595,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
-			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
+			CC[i] = vb_coof.coofs[2];			\
+			if (CC[i] <= 0.0 || ISNAN(CC[i]) || ISNAN(BB[i])) { \
+				if (0) printf("idx %d CC <= 0, or BB or CC is NAN\n", i); \
+				BB[i] = CC[i] = 0.0;			\
+			}						\
 		}
 
 		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
@@ -4653,8 +4660,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GSL_ROOT3_DBL_EPSILON);
 		}
 
+		int delta_is_NAN = 0;
 		for (int i = 0; i < (int) delta->size; i++) {
 			if (ISNAN(gsl_vector_get(delta, i))) {
+				delta_is_NAN = i+1;
 				gsl_vector_set_zero(delta);
 				break;
 			}
@@ -4678,17 +4687,28 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
-		if (max_correction >= ai_par->vb_emergency) {
+		if (max_correction >= ai_par->vb_emergency || delta_is_NAN) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
-					max_correction, ai_par->vb_emergency);
-				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
-				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
-				if (fp != stderr) {
-					fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+				if (delta_is_NAN) {
+					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, so 'vb.correction' is aborted\n", delta_is_NAN-1);
+				} else {
+					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
+					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
+					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+				}
+				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+
+				if (fp != stderr) {
+					if (delta_is_NAN) {
+						fprintf(fp, "\n\n\t*** warning *** delta[%1d] is NAN, so 'vb.correction' is aborted\n", delta_is_NAN-1);
+					} else {
+						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+							max_correction, ai_par->vb_emergency);
+						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
+						fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+					}
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
 					fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
