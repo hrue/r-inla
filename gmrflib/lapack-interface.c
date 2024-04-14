@@ -1428,7 +1428,7 @@ void GMRFLib_fill(int n, double a, double *x)
 	}
 }
 
-forceinline void GMRFLib_pack(int n, double *a, int *ia, double *y)
+void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
@@ -1441,7 +1441,7 @@ forceinline void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #endif
 }
 
-forceinline void GMRFLib_unpack(int n, double *a, double *y, int *iy)
+void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
 #if defined(INLA_WITH_MKL)

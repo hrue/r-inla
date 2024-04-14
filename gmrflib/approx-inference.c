@@ -4709,8 +4709,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", delta_is_NAN - 1);
 				}
 				if (diverge) {
-					fprintf(stderr, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
-						delta_is_NAN - 1);
+					fprintf(stderr, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
 				}
 				if (max_corr_flag) {
 					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
@@ -4727,9 +4726,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 							delta_is_NAN - 1);
 					}
 					if (diverge) {
-						fprintf(fp,
-							"\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
-							delta_is_NAN - 1);
+						fprintf(fp, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
 					}
 					if (max_corr_flag) {
 						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",

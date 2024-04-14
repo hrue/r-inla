@@ -107,7 +107,7 @@ double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, dou
 	return value_;
 }
 
-forceinline double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -116,7 +116,7 @@ forceinline double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_
 	return GMRFLib_ddot_idx(ELM_->n, vv_, aa_, idx_);
 }
 
-forceinline double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -125,7 +125,7 @@ forceinline double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict 
 	return GMRFLib_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_);
 }
 
-forceinline double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -134,7 +134,7 @@ forceinline double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restr
 	return GMRFLib_ddot_idx_mkl_alt(ELM_->n, vv_, aa_, idx_);
 }
 
-forceinline double GMRFLib_ddot(int n, double *x, double *y)
+double GMRFLib_ddot(int n, double *x, double *y)
 {
 	int one = 1;
 	return ddot_(&n, x, &one, y, &one);
@@ -236,19 +236,19 @@ double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict 
 	return darr[2];
 }
 
-forceinline double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return cblas_ddoti(n, v, idx, a);
 }
 
 #else							       /* defined(INLA_WITH_MKL) */
 
-forceinline double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl_alt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
 
-forceinline double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
