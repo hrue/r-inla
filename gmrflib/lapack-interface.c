@@ -291,25 +291,11 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 	/*
 	 * overwrite a symmetric MATRIX with its inverse 
 	 */
-	int info = 0, i, j;
+	int info = 0;
 
-	switch (GMRFLib_blas_level) {
-	case BLAS_LEVEL2:
-	{
-		dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
-	}
-		break;
+	// dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
+	dpotrf_("L", &dim, matrix, &dim, &info, F_ONE);
 
-	case BLAS_LEVEL3:
-	{
-		dpotrf_("L", &dim, matrix, &dim, &info, F_ONE);
-	}
-		break;
-
-	default:
-		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
-		break;
-	}
 	if (info)
 		GMRFLib_ERROR(GMRFLib_ESINGMAT);
 
@@ -317,8 +303,8 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 	if (info)
 		GMRFLib_ERROR(GMRFLib_ESINGMAT);
 
-	for (i = 0; i < dim; i++)			       /* fill the U-part */
-		for (j = i + 1; j < dim; j++)
+	for (int i = 0; i < dim; i++)			       /* fill the U-part */
+		for (int j = i + 1; j < dim; j++)
 			matrix[i + j * dim] = matrix[j + i * dim];
 
 	return GMRFLib_SUCCESS;
@@ -335,28 +321,27 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 	 * eps is the smalles L[i,i] 
 	 */
 
-	double *work = NULL, det, *cchol = NULL;
-	int job = 1, info, i;
+	double *work = NULL, *cchol = NULL;
+	int job = 1, info;
 
 	cchol = Calloc(ISQR(dim), double);
 	*map = Calloc(dim, int);
 	work = Calloc(dim, double);
-
 	Memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
 
 	dchdc_(cchol, &dim, &dim, work, *map, &job, &info, &eps);
 	*rank = info;
 
-	for (i = 0; i < dim; i++) {
+	for (int i = 0; i < dim; i++) {
 		(*map)[i]--;				       /* convert to C index-ing */
 	}
 	if (logdet) {
-		for (det = 0.0, i = 0; i < *rank; i++) {
-			det += log(cchol[i + i * dim]);
+		double ldet = 0.0;
+		for (int i = 0; i < *rank; i++) {
+			ldet += log(cchol[i + i * dim]);
 		}
-		*logdet = 2.0 * det;
+		*logdet = 2.0 * ldet;
 	}
-
 	Free(work);
 
 	if (chol) {
@@ -375,13 +360,13 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	 * `ecode'
 	 * 
 	 */
-	int info = 0, i, j;
-	double *a = NULL, det;
+	int info = 0;
+	double *a = NULL;
 
 	if (0) {
 		P(dim);
-		for (i = 0; i < dim; i++)
-			for (j = 0; j < dim; j++)
+		for (int i = 0; i < dim; i++)
+			for (int j = 0; j < dim; j++)
 				printf("i %d j %d matrix %.12g\n", i, j, matrix[i + dim * j]);
 	}
 
@@ -393,23 +378,8 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	a = Calloc(ISQR(dim), double);
 	Memcpy(a, matrix, ISQR(dim) * sizeof(double));
 
-	switch (GMRFLib_blas_level) {
-	case BLAS_LEVEL2:
-	{
-		dpotf2_("L", &dim, a, &dim, &info, F_ONE);
-	}
-		break;
-
-	case BLAS_LEVEL3:
-	{
-		dpotrf_("L", &dim, a, &dim, &info, F_ONE);
-	}
-		break;
-
-	default:
-		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
-		break;
-	}
+	// dpotf2_("L", &dim, a, &dim, &info, F_ONE);
+	dpotrf_("L", &dim, a, &dim, &info, F_ONE);
 
 	if (info) {
 		Free(a);
@@ -419,14 +389,15 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	}
 
 	if (logdet) {
-		for (det = 0.0, i = 0; i < dim; i++) {
-			det += log(a[i + i * dim]);
+		double ldet = 0.0;
+		for (int i = 0; i < dim; i++) {
+			ldet += log(a[i + i * dim]);
 		}
-		*logdet = 2.0 * det;
+		*logdet = 2.0 * ldet;
 	}
 
-	for (i = 0; i < dim; i++) {			       /* set to zero the upper part */
-		for (j = i + 1; j < dim; j++) {
+	for (int i = 0; i < dim; i++) {			       /* set to zero the upper part */
+		for (int j = i + 1; j < dim; j++) {
 			a[i + j * dim] = 0.0;
 		}
 	}
@@ -615,7 +586,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 	gsl_linalg_SV_decomp(U, V, S, work);
 
 	size_t i;
-	double one = 1.0, zero = 0.0;
+	const double one = 1.0, zero = 0.0;
 	double s_max = gsl_vector_get(S, 0);
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
@@ -794,9 +765,8 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
-	double one = 1.0, zero = 0.0, s;
-
-	double s_min, s_max = gsl_vector_max(S);
+	const double one = 1.0, zero = 0.0;
+	double s, s_min, s_max = gsl_vector_max(S);
 	if (s_max <= 0.0) {
 		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
 	}
@@ -936,7 +906,8 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
-	double one = 1.0, zero = 0.0, s;
+	const double one = 1.0, zero = 0.0;
+	double s;
 	double s_max = ABS(gsl_vector_max(S));
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
@@ -999,7 +970,8 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
-	double one = 1.0, zero = 0.0, s;
+	const double one = 1.0, zero = 0.0;
+	double s;
 	double s_max = ABS(gsl_vector_max(S));
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
@@ -1212,7 +1184,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
 	double tolerance_base = tol;
 	double tolerance = tol;
-	double one = 1.0, zero = 0.0;
+	const double one = 1.0, zero = 0.0;
 
 	gsl_vector_set_zero(S_base);
 	gsl_vector_set_zero(S);
@@ -1456,7 +1428,7 @@ void GMRFLib_fill(int n, double a, double *x)
 	}
 }
 
-forceinline void GMRFLib_pack(int n, double *a, int *ia, double *y)
+void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
@@ -1469,7 +1441,7 @@ forceinline void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #endif
 }
 
-forceinline void GMRFLib_unpack(int n, double *a, double *y, int *iy)
+void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
 #if defined(INLA_WITH_MKL)

@@ -1580,13 +1580,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 						D1W_r(i, off, i);	\
 					}				\
 					off++;				\
-									\
 					GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 					GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 					GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]); \
 					D1W_r(i, off, nn);		\
 					off++;				\
-									\
 					if (plain) {			\
 						for (int ii = 0; ii < nn; ii++) { \
 							double dens_user = dens[ii] / density[i]->std_stdev; \
@@ -1607,10 +1605,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 						D1W_r(i, off, i);	\
 					}				\
 					off++;				\
-									\
 					D1W_r(i, off, nn);		\
 					off++;				\
-									\
 					for (int ii = 0; ii < nn; ii++) { \
 						D2W_r(i, off, NAN, NAN); \
 						off += 2;		\

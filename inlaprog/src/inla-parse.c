@@ -741,6 +741,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "NPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_npoisson;
+		ds->data_id = L_NPOISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "NZPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nzpoisson;
 		ds->data_id = L_NZPOISSON;
@@ -1377,6 +1381,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_POISSON:
+	case L_NPOISSON:
 	case L_XPOISSON:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -2504,6 +2509,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_STDGAUSSIAN:
 	case L_POISSON:
+	case L_NPOISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
 		break;

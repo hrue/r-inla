@@ -527,76 +527,111 @@ typedef enum {
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
 
-#define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
+#define CODE_BLOCK_WORK_PTR(i_work_) (work__[(nt__ == 1 ? 0 : omp_get_thread_num())] + (size_t) (i_work_) * len_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
 // this avoids a potential second call to omp_get_thread_num() as if this is known, it can be passed as the 'thread_num_' argument
-#define CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : thread_num_) * len_work__ * n_work__)
+#define CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_) (work__[thread_num_] + (size_t) (i_work_) * len_work__)
 #define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
-#define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) if (work__) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+#define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+
 
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = GMRFLib_align(IMAX(1, len_work_), sizeof(double)); \
+		int len_work__ = IMAX(1, len_work_);			\
 		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
-		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
+		}							\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
 		}							\
 		Free(work__);						\
         }
 
 #define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
-		int l1_cacheline = 8;					\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
+		int len_work__ = IMAX(1, len_work_);			\
 		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
-		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) { \
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
 		}							\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
+		}							\
 		Free(work__);						\
         }
 
-#define CODE_BLOCK_WORK_TP_PTR() work_t__[omp_get_thread_num()]
+#define CODE_BLOCK_WORK_TP_PTR() work_t__[(nt__ == 1 ? 0 : omp_get_thread_num())]
 // CODE_BLOCK_WORK_TP_FREE(ptr_) needs to be defined
+
 #define RUN_CODE_BLOCK_X(thread_max_, n_work_, len_work_, work_tp_)	\
 	if (1) {							\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = GMRFLib_align(IMAX(1, len_work_), sizeof(double)); \
+		int len_work__ = IMAX(1, len_work_);			\
 		int n_work__ = IMAX(1, n_work_);			\
-		work_tp_ ** work_t__ = Calloc(tmax__, work_tp_ *);	\
-		for (int i_ = 0; i_ < tmax__; i_++) work_t__[i_] = Calloc(1, work_tp_); \
-		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
-		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		work_tp_ ** work_t__ = Calloc(nt__, work_tp_ *);	\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			work_t__[i_] = Calloc(1, work_tp_);		\
+		}							\
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
 		}							\
-		Free(work__);						\
-		for (int i_ = 0; i_ < tmax__; i_++) {			\
-			CODE_BLOCK_WORK_TP_FREE(work_t__[i_]);	\
+									\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			CODE_BLOCK_WORK_TP_FREE(work_t__[i_]);		\
 		}							\
 		Free(work_t__);						\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
+		}							\
+		Free(work__);						\
         }
 
 #define RUN_CODE_BLOCK_PLAIN(thread_max_, n_work_, len_work_)		\
@@ -604,13 +639,25 @@ typedef enum {
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = GMRFLib_align(IMAX(1, len_work_), sizeof(double)); \
+		int len_work__ = IMAX(1, len_work_);			\
 		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
-		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) { \
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
 		CODE_BLOCK;						\
+									\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
+		}							\
 		Free(work__);						\
         }
+
 
 #define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
@@ -643,7 +690,7 @@ typedef enum {
 	if (timer_use_ && timer_idx_ > 0) {				\
 		double sum = GMRFLib_dsum(timer_idx_, timer_);		\
 		printf("\n%s:%d: (%s) relative ", __FILE__, __LINE__, __GMRFLib_FuncName); \
-		for(int i_ = 0; i_ < timer_idx_; i_++) {		\
+		for (int i_ = 0; i_ < timer_idx_; i_++) {		\
 			printf(" [%1d] %.4f", i_, timer_[i_] / sum);	\
 		}							\
 		printf("\n\n");						\

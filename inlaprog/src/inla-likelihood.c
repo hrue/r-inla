@@ -152,6 +152,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_GAMMACOUNT:
 	case L_GPOISSON:
 	case L_POISSON:
+	case L_NPOISSON:
 	case L_NZPOISSON:
 	case L_QCONTPOISSON:
 	case L_XPOISSON:
@@ -1334,7 +1335,7 @@ int loglikelihood_stochvol(int thread_id, double *__restrict logll, double *__re
 }
 
 int loglikelihood_stochvolln(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+			     void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ N(c - 1/2 * var, var)
@@ -1345,19 +1346,19 @@ int loglikelihood_stochvolln(int thread_id, double *__restrict logll, double *__
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double c = ds->data_observations.stochvolln_c[thread_id][0]; // identity mapping
+	double c = ds->data_observations.stochvolln_c[thread_id][0];	// identity mapping
 
 	LINK_INIT;
 	if (m > 0) {
 		for (int i = 0; i < m; i++) {
-			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			double mean = c - 0.5 * var;
 			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR((y - mean)) / var;
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (int i = 0; i < -m; i++) {
-			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			double var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			double mean = c - 0.5 * var;
 			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi_fast(ABS((y - mean) / sqrt(var))));
 		}
@@ -2252,6 +2253,49 @@ int loglikelihood_poisson(int thread_id, double *__restrict logll, double *__res
 	LINK_END;
 #undef _logE
 
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_npoisson(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
+{
+	/*
+	 * y ~ Poisson(E*exp(x)) using the Normal approximation
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
+	double off = OFFSET(idx);
+
+	LINK_INIT;
+
+	if (m > 0) {
+		const double l6 = 1.791759469228054957313;     /* log(6.0) */
+		for (int i = 0; i < m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+			double prec = 1.0 / mean;
+			double lprec = log(prec);
+			double res = y - mean;
+			double right = -0.5 * prec * SQR(res + 0.5);
+			double mid = -0.5 * prec * SQR(res);
+			double left = -0.5 * prec * SQR(res - 0.5);
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * lprec - l6  + mid + log(4.0 + exp(left-mid) + exp(right-mid));
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+			double sd = sqrt(mean);
+			logll[i] = GMRFLib_cdfnorm((y + 0.5 - mean) / sd);
+		}
+	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
@@ -5481,6 +5525,7 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll
 	return GMRFLib_SUCCESS;
 }
 
+#pragma omp declare simd
 double eval_logsum_safe(double lA, double lB)
 {
 	// evaluate log( exp(lA) + exp(lB) ) in a safer way 

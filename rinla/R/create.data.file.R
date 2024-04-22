@@ -147,6 +147,7 @@
 
     } else if (inla.one.of(family, c(
                                        "poisson",
+                                       "npoisson",
                                        "nzpoisson",
                                        "cenpoisson",
                                        "gammacount",

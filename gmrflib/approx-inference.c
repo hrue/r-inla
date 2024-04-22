@@ -4453,14 +4453,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
 		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_timer()-_tref); \
-		_tref = GMRFLib_timer();					\
+		_tref = GMRFLib_timer();				\
 	}
 
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
-	int keep_MM = 1, ratio_ok = 0;
+	int keep_MM = 1;
 
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
@@ -4547,35 +4547,33 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
-#define CODE_BLOCK							\
-	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		int j = vb_idx->idx[jj];				\
-		double *b = CODE_BLOCK_WORK_PTR(0);			\
-		double *cov = CODE_BLOCK_WORK_PTR(1);			\
-		CODE_BLOCK_WORK_ZERO(0);				\
-		b[j] = 1.0;						\
-		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
-		for (int i = 0; i < graph->n; i++) {			\
-			gsl_matrix_set(M, i, jj, cov[i]);		\
-		}							\
+	int hessian_update = ai_par->vb_hessian_update;
+	assert(hessian_update > 0);
+
+#define CODE_BLOCK						\
+	for (int jj = 0; jj < vb_idx->n; jj++) {		\
+		CODE_BLOCK_WORK_ZERO(0);			\
+		int j = vb_idx->idx[jj];			\
+		double *b = CODE_BLOCK_WORK_PTR(0);		\
+		double *cov = CODE_BLOCK_WORK_PTR(1);		\
+		b[j] = 1.0;					\
+		GMRFLib_Qsolve(cov, b, ai_store->problem, j);	\
+		for (int i = 0; i < graph->n; i++) {		\
+			gsl_matrix_set(M, i, jj, cov[i]);	\
+		}						\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
+	RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
 #undef CODE_BLOCK
 
+	double dxs[niter];
+	GMRFLib_fill(niter, 0.0, dxs);
+	
 	for (int iter = 0; iter < niter; iter++) {
-		int update_MM = ((iter == 0) || !keep_MM);
-		int measure_time = (iter == 0);
+		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] >  dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
-		double ratio = NAN;
-		double time_grad = 0.0, time_hess = 0.0, time_ref_grad = 0.0, time_ref_hess = 0.0;
 
-		if (ratio_ok) {
-			// this override options, as the decision is that it is most efficient to update MM all the time
-			update_MM = 1;
-			keep_MM = 0;
-		}
-
+		dxs[iter] = 0.0;
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
@@ -4589,15 +4587,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
 		}
 		// I know I compute the mean twice for iter=0, but then the timing gets right
-		time_grad = 0.0;
-		if (measure_time) {
-			time_ref_grad = GMRFLib_timer();
-		}
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
-		if (measure_time) {
-			time_grad += GMRFLib_timer() - time_ref_grad;
-			time_ref_grad = GMRFLib_timer();
-		}
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
@@ -4606,13 +4596,17 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			if (debug) {					\
 				fprintf(fp, "[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
-				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
+					pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
-			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
+			CC[i] = vb_coof.coofs[2];			\
+			if (CC[i] <= 0.0 || ISNAN(CC[i]) || ISNAN(BB[i])) { \
+				if (0) printf("idx %d CC <= 0, or BB or CC is NAN\n", i); \
+				BB[i] = CC[i] = 0.0;			\
+			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
+		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
@@ -4626,28 +4620,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			tmp[i] += preopt->total_b[thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
-		if (measure_time) {
-			time_grad += GMRFLib_timer() - time_ref_grad;
-			time_ref_grad = GMRFLib_timer();
-		}
 
 		if (update_MM) {
-			if (measure_time) {
-				time_ref_hess = GMRFLib_timer();
-			}
-			GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
-			if (measure_time) {
-				time_hess += GMRFLib_timer() - time_ref_hess;
-			}
-		}
-
-		if (update_MM) {
-			if (measure_time) {
-				time_ref_hess = GMRFLib_timer();
-			}
-
 #define CODE_BLOCK							\
 			{						\
+				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
 				if (nt__ > 1) {				\
 					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, nt__); \
 				} else {				\
@@ -4657,15 +4634,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 			RUN_CODE_BLOCK_PLAIN(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
-
-			if (measure_time) {
-				time_hess += GMRFLib_timer() - time_ref_hess;
-			}
 		}
 
-		// no timing; this one is common
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
-
 		if (debug) {
 			FIXME("M");
 			GMRFLib_printf_gsl_matrix(stdout, M, "%.6f ");
@@ -4677,13 +4648,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				if (measure_time) {
-					time_ref_hess = GMRFLib_timer();
-				}
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
-				if (measure_time) {
-					time_hess += GMRFLib_timer() - time_ref_hess;
-				}
 			}
 			if (debug) {
 				printf("MM\n");
@@ -4699,16 +4664,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GSL_ROOT3_DBL_EPSILON);
 		}
 
-		if (iter == 0) {
-			// assume we need twice the number of iterations, then this is the decision value
-			ratio = time_hess / time_grad;
-			ratio_ok = (ratio < 1.0);
-		} else {
-			ratio = NAN;
-		}
-
+		int delta_is_NAN = 0;
 		for (int i = 0; i < (int) delta->size; i++) {
 			if (ISNAN(gsl_vector_get(delta, i))) {
+				delta_is_NAN = i + 1;
 				gsl_vector_set_zero(delta);
 				break;
 			}
@@ -4726,26 +4685,57 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
+		dxs[iter] = err_dx;
+
+		int diverge = 0;
+		if (iter >= 3) {
+			// 'diverge' is defined as increasing three times in a row
+			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2]) && (dxs[iter - 2] > dxs[iter - 3]));
+		}
+
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
 #pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
-		if (max_correction >= ai_par->vb_emergency) {
+
+		int max_corr_flag = (max_correction >= ai_par->vb_emergency);
+
+		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
-					max_correction, ai_par->vb_emergency);
-				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
-				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
-				if (fp != stderr) {
-					fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+				if (delta_is_NAN) {
+					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", delta_is_NAN - 1);
+				}
+				if (diverge) {
+					fprintf(stderr, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
+				}
+				if (max_corr_flag) {
+					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
+					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
+						ai_par->vb_emergency);
+					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+				}
+				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+
+				if (fp != stderr) {
+					if (delta_is_NAN) {
+						fprintf(fp, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+							delta_is_NAN - 1);
+					}
+					if (diverge) {
+						fprintf(fp, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
+					}
+					if (max_corr_flag) {
+						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+							max_correction, ai_par->vb_emergency);
+						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
+							ai_par->vb_emergency);
+						fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+					}
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
-					fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				}
 			}
 			emergency = 1;
@@ -4762,8 +4752,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
-				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
-					omp_get_thread_num(), iter, niter, GMRFLib_timer() - tref, ratio);
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec/iter]\n",
+					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {

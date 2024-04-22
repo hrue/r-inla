@@ -4151,6 +4151,56 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 141:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		assert(n > 0);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
+		for (int i = 0; i < n + 1; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0, 0, 0 };
+		double ssum = 0.0;
+		for (int k = 0; k < m; k++) {
+			double sum = 0.0;
+
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd reduction(+: sum)
+			for (int i = 0; i < n; i++) {
+				sum += x[i] * y[i];
+			}
+			tref[0] += GMRFLib_timer();
+			ssum += sum / n;
+
+			sum = 0.0;
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd reduction(+: sum)
+			for (int i = 0; i < n; i++) {
+				sum = fma(x[i], y[i], sum);
+			}
+			tref[1] += GMRFLib_timer();
+			ssum -= sum / n;
+
+			tref[2] -= GMRFLib_timer();
+			sum = GMRFLib_ddot(n, x, y);
+			tref[2] += GMRFLib_timer();
+			ssum += sum / n;
+
+			tref[3] -= GMRFLib_timer();
+			sum = GMRFLib_ddot(n, x + 1, y);
+			tref[3] += GMRFLib_timer();
+			ssum -= sum / n;
+		}
+		P(ssum);
+		double dd = 1.0 / GMRFLib_dsum(4, tref);
+		printf("A %.4g B %.4g C %.4g D %.4g\n", tref[0] * dd, tref[1] * dd, tref[2] * dd, tref[3] * dd);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

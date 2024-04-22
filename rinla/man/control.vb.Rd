@@ -36,8 +36,7 @@ Second element is for \code{strategy="variance"}.
 Third element is overall maximum dimension of the correction for \code{strategy="mean"}.
 Forth element is overall maximum dimension of the correction for \code{strategy="variance"}.}
 
-\item{hessian.update}{How many times the Hessian is updated for each
-correction (\code{strategy="variance"} only).}
+\item{hessian.update}{How many times the Hessian is updated for each correction.}
 
 \item{hessian.strategy}{Select strategy for computing the Hessian
 matrix for \code{strategy="variance"}, one of \code{"full"},

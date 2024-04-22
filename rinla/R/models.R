@@ -7964,6 +7964,15 @@
                     pdf = "poisson"
                 ),
 
+                npoisson = list(
+                    doc = "The Normal approximation to the Poisson likelihood",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset"), 
+                    pdf = "poisson"
+                ),
+
                 nzpoisson = list(
                     doc = "The nzPoisson likelihood",
                     hyper = list(),
