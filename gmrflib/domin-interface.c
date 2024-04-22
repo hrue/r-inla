@@ -759,6 +759,10 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			Memcpy(ais->mode, mode_reference, G.graph->n * sizeof(double));
 		}
 
+		if (EARLY_STOP_ENABLED) {
+			continue;
+		}
+
 		double ff;
 		if (i < n) {
 			j = i;
@@ -775,16 +779,14 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 		// we need to have f0 computed to check
 		if (CHECK_FOR_EARLY_STOP) {
-			if (!ISNAN(f0) && (ff0 > ff)) {
+			if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
 #pragma omp critical (Name_e0ed3c765687be9d1ec160f8bcb4d241de5c3a06)
-				if (CHECK_FOR_EARLY_STOP) {
-					if (!ISNAN(f0) && (ff0 > ff)) {
-						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff - ff0);
-						ff0 = ff;
-						early_stop = 1;
-					}
+				if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
+					if (G.ai_par->fp_log || debug)
+						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+							"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff - ff0);
+					ff0 = ff;
+					early_stop = 1;
 				}
 			}
 		}
