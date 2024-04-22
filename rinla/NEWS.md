@@ -1,3 +1,8 @@
+# INLA 24.04.22
+* New likelihood 'npoisson'
+* Robustify VB mean correction
+* Various updates
+
 # INLA 24.04.01
 * New likelihood `stochvolln`
 * Updated vignette `barrier_global`
