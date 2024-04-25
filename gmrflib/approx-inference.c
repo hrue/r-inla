@@ -4551,7 +4551,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double dxs[niter];
 	GMRFLib_fill(niter, 0.0, dxs);
 	
-	for (int iter = 0; iter < niter; iter++) {
+	for (int iter = 0; iter < niter + 1; iter++) {
 		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] >  dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
 
@@ -4582,7 +4582,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = vb_coof.coofs[2];			\
-			if (CC[i] <= 0.0 || ISNAN(CC[i]) || ISNAN(BB[i])) { \
+			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
 				if (0) printf("idx %d CC <= 0, or BB or CC is NAN\n", i); \
 				BB[i] = CC[i] = 0.0;			\
 			}						\
@@ -4747,6 +4747,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
 			}
+		}
+
+		if (iter == niter) {
+			// no covergence after 'niter' iterations, then we skip it
+			emergency = 1;
 		}
 
 		if (do_break) {
