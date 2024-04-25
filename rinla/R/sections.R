@@ -976,7 +976,7 @@
     cat("tolerance.x = ", inla.spec$tolerance.x, "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step)) {
-        inla.spec$tolerance.step <- inla.spec$tolerance / 5.0
+        inla.spec$tolerance.step <- inla.spec$tolerance / 10.0
     }
     cat("tolerance.step = ", inla.spec$tolerance.step, "\n", sep = " ", file = file, append = TRUE)
 

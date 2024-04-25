@@ -24,7 +24,7 @@ control.inla(
   tolerance.f = NULL,
   tolerance.g = NULL,
   tolerance.x = NULL,
-  tolerance.step = 0.001,
+  tolerance.step = NULL,
   restart = 0L,
   optimiser = "default",
   verbose = NULL,
@@ -116,7 +116,7 @@ weights. (Default TRUE.)}
 
 \item{tolerance}{Numerical The tolerance for the optimisation of the
 hyperparameters. If set, this is the default value for for '2.5\emph{tolerance.f',
-'tolerance.g' and  '5}tolerance.x'; see below.}
+'tolerance.g',  '5}tolerance.x' and '10*tolerance.step'; see below.}
 
 \item{tolerance.f}{Numerical The tolerance for the absolute change in the
 log posterior in the optimisation of the hyperparameters.}
