@@ -1,3 +1,8 @@
+# INLA 24.04.25
+* Fixed a regression in VB correction for the mean
+* Updated vignette (barrier global)
+* Minor code changes
+
 # INLA 24.04.22
 * New likelihood 'npoisson'
 * Robustify VB mean correction
