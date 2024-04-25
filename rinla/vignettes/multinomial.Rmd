@@ -269,7 +269,7 @@ mult.model = inla(y ~ -1 + intercept + x,
          data = data.frame(y, x, Ntrials, intercept = rep(1, n)),
          family = "binomial", Ntrials = Ntrials,
          control.predictor = list(hyper = list(prec = list(initial = lprec))),
-         control.inla = list(tolerance = 1E-12))
+         control.inla = list(int.strategy="eb"))
 
 ```
 
@@ -309,7 +309,7 @@ pois.model = inla(Y ~ -1
           family="poisson",
           data = data.frame(Y, xx, phi , intercept), 
           control.predictor = list(hyper = list(prec = list(initial = lprec))), 
-          control.inla = list(tolerance = 1E-12))
+          control.inla = list(int.strategy="eb"))
 
 ```
 
@@ -558,7 +558,8 @@ the parameters. We consider $N = 1$
 
 ```{r}
 Data = Data.structure(df)
-model = inla(formula, data = Data, family = 'Poisson')
+model = inla(formula, data = Data, family = 'Poisson',
+	control.inla=list(int.strategy="eb"))
 ```
 \ \newline
 Take a look of what we get
@@ -706,7 +707,8 @@ formula.rand1 = Y ~ -1 + X + W.A + W.B + W.C +
 Then, just run the $\texttt{inla()}$ function and check the result.
 
 ```{r}
-model.rand1 = inla(formula.rand1, data = Data.rand1, family = 'Poisson')
+model.rand1 = inla(formula.rand1, data = Data.rand1, family ='Poisson',
+	control.inla=list(int.strategy="eb"))
 result.rand1 = rbind(model.rand1$summary.fixed[1:5])
 result.rand1 = cbind(result.rand1, true = param[1:4])
 row.names(result.rand1) = c("beta","delta.A","delta.B","delta.C")
@@ -817,7 +819,8 @@ formula.rw1 = Y ~ -1 + X + W.A + W.B + W.C +
   f(alt.idx, Z, fixed = T, constr = T) + 
   f(rw1.idx, model = "rw1")  #random walk of order 1
 
-model.rw1 = inla(formula.rw1, family = 'poisson', data = Data.rw1)
+model.rw1 = inla(formula.rw1, family = 'poisson', data = Data.rw1,
+	control.inla=list(int.strategy="eb"))
 ```
 
 To check the goodness of our estimate we show the trace plots of the
@@ -1019,7 +1022,8 @@ formula.spatial = Y ~ -1 + X + W.A + W.B + W.C +
   f(rand.eff.idx, model = 'besag', graph = ADJ) #spatial random effect
 
 # Fit the model
-model.spatial = inla(formula.spatial, family = "poisson", data = Data.spatial)
+model.spatial = inla(formula.spatial, family = "poisson", data = Data.spatial,
+	control.inla=list(int.strategy="eb"))
 
 # Check the results
 result.spatial = cbind(model.spatial$summary.fixed[3:5], true = param[1:4])
@@ -1416,7 +1420,8 @@ The formula in this situation is straightforward
 formula = Y ~ -1 + price + feat + alpha.idx +
   f(phi, initial = -10, fixed = T) 
 
-model = inla(formula, data = Data, family = 'Poisson') 
+model = inla(formula, data = Data, family = 'Poisson',
+	control.inla=list(int.strategy="eb"))
 ```
 
 These are the results and you can check the literature and see that
@@ -1452,7 +1457,8 @@ formula.price = Y ~ -1 + feat + alpha.idx +
   f(price.class, model = "rw1") + 
   f(phi, initial = -10, fixed = T) 
 
-model.price = inla(formula.price, data = Data, family = 'Poisson') 
+model.price = inla(formula.price, data = Data, family = 'Poisson',
+	control.inla=list(int.strategy="eb"))
 
 res = model.price$summary.fixed[,1:5]
 rownames(res) = c('feat', 'dannon','hiland','weight','yoplait')
@@ -1523,7 +1529,8 @@ formula.feat = Y ~ -1 + price + feat.yoplait + feat.dannon +
   f(phi, initial = -10, fixed = T)  
   
 
-model.feat = inla(formula.feat, data = Data, family = 'Poisson') 
+model.feat = inla(formula.feat, data = Data, family = 'Poisson',
+	control.inla=list(int.strategy="eb"))
 ```
 
 The results about the price and $\alpha_j$'s are almost the same that
