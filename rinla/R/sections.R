@@ -975,9 +975,10 @@
     }
     cat("tolerance.x = ", inla.spec$tolerance.x, "\n", sep = " ", file = file, append = TRUE)
 
-    if (!(is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step))) {
-        cat("tolerance.step = ", inla.spec$tolerance.step, "\n", sep = " ", file = file, append = TRUE)
+    if (is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step)) {
+        inla.spec$tolerance.step <- inla.spec$tolerance / 10.0
     }
+    cat("tolerance.step = ", inla.spec$tolerance.step, "\n", sep = " ", file = file, append = TRUE)
 
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)

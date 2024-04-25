@@ -716,8 +716,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	double *mode_reference = Calloc(G.graph->n, double);
 	GMRFLib_opt_get_latent(mode_reference);
 
-	mode_reference = NULL;
-
 	int *order = Calloc(2 * n + 1, int);
 	order[0] = 2 * n;
 	for (int i = 0; i < n; i++) {
@@ -755,8 +753,16 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			i2thread[i] = -1;
 		}
 
+		if (EARLY_STOP_ENABLED) {
+			continue;
+		}
+
 		if (mode_reference) {
 			Memcpy(ais->mode, mode_reference, G.graph->n * sizeof(double));
+		}
+
+		if (EARLY_STOP_ENABLED) {
+			continue;
 		}
 
 		double ff;
@@ -773,16 +779,20 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			ff = ff0 = f0;
 		}
 
+		if (EARLY_STOP_ENABLED) {
+			continue;
+		}
+
 		// we need to have f0 computed to check
 		if (CHECK_FOR_EARLY_STOP) {
-			if (!ISNAN(f0) && (ff0 > ff)) {
+			if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
 #pragma omp critical (Name_e0ed3c765687be9d1ec160f8bcb4d241de5c3a06)
-				if (!ISNAN(f0) && (ff0 > ff)) {
+				if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
 					if (G.ai_par->fp_log || debug)
 						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
 							"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff - ff0);
-					early_stop = 1;
 					ff0 = ff;
+					early_stop = 1;
 				}
 			}
 		}
@@ -790,23 +800,15 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	Free(order);
 
-	if (early_stop && (G.ai_par->fp_log || debug))
-		fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "exit diagonal hessian due to early_stop\n");
-
 	/*
 	 * If the mode is ok, then all neigbouring points are larger; just check. otherwise, set f0 as the minimum value. 
 	 */
-	if (debug) {
-		P(f0);
-	}
-
 	int thread_min;
 	xx_min = xx_hold[len_xx_hold - 1];		       /* Yes, this is stored as the last element */
 	thread_min = i2thread[len_xx_hold - 1];
 	f0min = f0;
 	for (int i = 0; i < len_xx_hold - 1; i++) {
 		int j;
-
 		if (i < n) {
 			j = i;
 			if (!ISNAN(f1[j]) && f1[j] < f0min) {
@@ -1049,7 +1051,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 	}
 	Free(ai_store);
-
+	Free(mode_reference);
+	
 #undef EARLY_STOP_ENABLED
 #undef CHECK_FOR_EARLY_STOP
 #undef F1

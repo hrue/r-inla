@@ -680,7 +680,7 @@ control.vb <- function(
 
         #' @param tolerance Numerical The tolerance for the optimisation of the
         #' hyperparameters. If set, this is the default value for for '2.5*tolerance.f',
-        #' 'tolerance.g' and  '5*tolerance.x'; see below.
+        #' 'tolerance.g',  '5*tolerance.x' and '10*tolerance.step'; see below.
         tolerance = 0.005,
 
         #' @param tolerance.f Numerical The tolerance for the absolute change in the
@@ -697,7 +697,7 @@ control.vb <- function(
 
         #' @param tolerance.step Numerical The tolerance for the change in
         #' root-mean_squre in the inner Newton-like optimisation of the latent field.
-        tolerance.step = 0.001,
+        tolerance.step = NULL,
 
         #' @param restart Numerical To improve the optimisation, the optimiser is
         #' restarted at the found optimum 'restart' number of times.

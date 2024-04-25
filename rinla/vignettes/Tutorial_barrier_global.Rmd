@@ -1,7 +1,6 @@
 ---
 title: "Global oceanic barrier model on the sphere"
 author: Alba Fuster-Alonso^[afuster@icm.csic.es, Institut de Ciències del Mar (ICM) - CSIC, Barcelona, Spain.] $\;$  Elias T Krainski^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$  Haavard Rue^[King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.] $\;$ Finn Lindgren^[University of Edinburgh (UoE), Edinburgh, Scotland.]
-
 format:
   html:
     page-layout: full
@@ -23,8 +22,8 @@ editor_options:
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Global oceanic barrier model on the sphere}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{=html}
@@ -65,6 +64,6 @@ sphere. We are using the new implementation of the INLA package.
 **Since the compiled vignette is large is size, we do not include it the
 R-INLA package, but you can download the vignette source and
 downloaded data, at
-``[https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global](https://raw.githubusercontent.com/hrue/r-inla/devel/rinla/vignettes/barrier-global)''
+``[https://github.com/hrue/r-inla/tree/devel/rinla/vignettes/barrier-global](https://github.com/hrue/r-inla/tree/devel/rinla/vignettes/barrier-global)''
 and compile it yourself.**
 

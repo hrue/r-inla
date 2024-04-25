@@ -460,7 +460,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	optpar->step_len = ai_par->step_len;
 	optpar->stencil = ai_par->stencil;
 	optpar->abserr_func = ai_par->optpar_abserr_func;
-	optpar->abserr_step = ai_par->optpar_abserr_func;
+	optpar->abserr_step = ai_par->optpar_abserr_step;
 	optpar->fp = ai_par->optpar_fp;
 
 	if (ai_par->optpar_nr_step_factor < 0) {
@@ -933,32 +933,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 		}
-		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
-		// this assumes err_i = m * (err_{i-1})^2
-		double m = err / SQR(err_previous);
-		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
-				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
-		if (GMRFLib_gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
-			/*
-			 * we're done!  unless we have negative elements on the diagonal...
-			 */
+		if (ISNAN(err)) {
 			break;
-
-			// NOT IN USE
-			if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
-				/*
-				 * do nothing 
-				 */
-			} else if (cc_is_negative && cc_positive) {
-				cc_positive = 0;
-			} else {
-				break;
-			}
 		}
 
-		if (gsl_isnan(err))
+		if (GMRFLib_gaussian_data || err < optpar->abserr_step || flag_cycle_behaviour) {
 			break;
+		}
 
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
@@ -4569,7 +4551,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double dxs[niter];
 	GMRFLib_fill(niter, 0.0, dxs);
 	
-	for (int iter = 0; iter < niter; iter++) {
+	for (int iter = 0; iter < niter + 1; iter++) {
 		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] >  dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
 
@@ -4600,7 +4582,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = vb_coof.coofs[2];			\
-			if (CC[i] <= 0.0 || ISNAN(CC[i]) || ISNAN(BB[i])) { \
+			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
 				if (0) printf("idx %d CC <= 0, or BB or CC is NAN\n", i); \
 				BB[i] = CC[i] = 0.0;			\
 			}						\
@@ -4765,6 +4747,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
 			}
+		}
+
+		if (iter == niter) {
+			// no covergence after 'niter' iterations, then we skip it
+			emergency = 1;
 		}
 
 		if (do_break) {
