@@ -217,6 +217,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		break;
 
 	case L_GAMMA:
+	case L_MGAMMA:
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
@@ -304,6 +305,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_MGAMMASURV:
 	case L_GAMMAJWSURV:
 	case L_LOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
@@ -2284,7 +2286,7 @@ int loglikelihood_npoisson(int thread_id, double *__restrict logll, double *__re
 			double right = -0.5 * prec * SQR(res + 0.5);
 			double mid = -0.5 * prec * SQR(res);
 			double left = -0.5 * prec * SQR(res - 0.5);
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * lprec - l6  + mid + log(4.0 + exp(left-mid) + exp(right-mid));
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * lprec - l6 + mid + log(4.0 + exp(left - mid) + exp(right - mid));
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
@@ -5170,9 +5172,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -5719,11 +5721,59 @@ int loglikelihood_gamma(int thread_id, double *__restrict logll, double *__restr
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_mgamma(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			 void *arg, char **UNUSED(arg_str))
+{
+	/*
+	 * mGamma
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double s = (ds->data_observations.gamma_scale ? ds->data_observations.gamma_scale[idx] : 1.0);
+	double phi_param = map_exp_forward(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double phi = phi_param * s;
+	double delta = 0.5 * (sqrt(phi * (phi + 4.0)) + phi);
+	double c = delta * log(y) - gsl_sf_lngamma(delta + 1.0);
+
+	LINK_INIT;
+
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double mode = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double dmode = delta / mode;
+			logll[i] = c + (1.0 + delta) * log(dmode) - y * dmode;
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (int i = 0; i < -m; i++) {
+			double mode = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double dmode = delta / mode;
+			logll[i] = gsl_cdf_gamma_P(yy, 1.0 + delta, 1.0 / dmode);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_gammasurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			    char **arg_str)
 {
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv_NEW(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma, arg_str));
+}
+
+int loglikelihood_mgammasurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			     char **arg_str)
+{
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv_NEW(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_mgamma,
+								     arg_str));
 }
 
 int loglikelihood_gammajw(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,

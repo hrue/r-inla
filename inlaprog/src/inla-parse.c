@@ -827,6 +827,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
+	} else if (!strcasecmp(ds->data_likelihood, "MGAMMA")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_mgamma;
+		ds->data_id = L_MGAMMA;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJW")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajw;
 		ds->data_id = L_GAMMAJW;
@@ -936,6 +939,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMASURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammasurv;
 		ds->data_id = L_GAMMASURV;
+	} else if (!strcasecmp(ds->data_likelihood, "MGAMMASURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_mgammasurv;
+		ds->data_id = L_MGAMMASURV;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJWSURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajwsurv;
 		ds->data_id = L_GAMMAJWSURV;
@@ -1666,11 +1672,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_GAMMA:
+	case L_MGAMMA:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.gamma_scale[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Gamma data[%1d] (y) = %g or weight %g is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: (m)Gamma data[%1d] (y) = %g or weight %g is void\n", secname, i,
 							ds->data_observations.y[i], ds->data_observations.gamma_scale[i]);
 					inla_error_general(msg);
 				}
@@ -1898,6 +1905,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_MGAMMASURV:
 	case L_GAMMAJWSURV:
 	case L_WEIBULLSURV:
 	case L_LOGLOGISTICSURV:
@@ -1909,6 +1917,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		switch (ds->data_id) {
 		case L_WEIBULLSURV:
 		case L_GAMMASURV:
+		case L_MGAMMASURV:
 		case L_LOGNORMAL:
 		{
 			// those who cannot take y=0
@@ -4328,10 +4337,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_GAMMA:
+	case L_MGAMMA:
 	{
 		/*
 		 * get options related to the gamma
 		 */
+		char *nm = (ds->data_id == L_GAMMA ? strdup("Gamma") : strdup("mGamma"));
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -4354,8 +4365,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern precision-parameter for the Gamma observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision parameter for the Gamma observations", mb->ds);
+			char *nnm = NULL;
+			GMRFLib_sprintf(&nnm, "Intern precision-parameter for the %s observations", nm);
+			mb->theta_tag[mb->ntheta] = inla_make_tag(nnm, mb->ds);
+			Free(nnm);
+			GMRFLib_sprintf(&nnm, "Precision-parameter for the %s observations", nm);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(nnm, mb->ds);
+			Free(nnm);
+
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4372,14 +4389,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+		Free(nm);
 	}
 		break;
 
 	case L_GAMMASURV:
+	case L_MGAMMASURV:
 	{
 		/*
 		 * get options related to the gamma
 		 */
+		char *nm = (ds->data_id == L_GAMMASURV ? strdup("Gamma") : strdup("mGamma"));
 
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
@@ -4427,8 +4447,16 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern precision-parameter for the Gamma surv", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision parameter for the Gamma surv", mb->ds);
+
+			char *nnm = NULL;
+			GMRFLib_sprintf(&nnm, "Intern precision-parameter for the %s surv", nm);
+			mb->theta_tag[mb->ntheta] = inla_make_tag(nnm, mb->ds);
+			Free(nnm);
+
+			GMRFLib_sprintf(&nnm, "Precision-parameter for the %s surv", nm);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(nnm, mb->ds);
+			Free(nnm);
+
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4470,8 +4498,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&ctmp, "beta%1d for Gamma-Cure", i);
 
+				if (ds->data_id == L_GAMMASURV) {
+					GMRFLib_sprintf(&ctmp, "beta%1d for Gamma-Cure", i);
+				} else {
+					GMRFLib_sprintf(&ctmp, "beta%1d for mGamma-Cure", i);
+				}
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
@@ -4497,6 +4529,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		for (i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
+		Free(nm);
 	}
 		break;
 

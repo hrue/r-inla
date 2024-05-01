@@ -8996,6 +8996,29 @@
                     pdf = "gamma"
                 ),
 
+                mgamma = list(
+                    doc = "The modal Gamma likelihood",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 58002,
+                            name = "precision parameter",
+                            short.name = "prec",
+                            output.name = "Precision-parameter for the modal Gamma observations",
+                            output.name.intern = "Intern precision-parameter for the modal Gamma observations",
+                            initial = log(100),
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "mgamma"
+                ),
+
                 gammasurv = list(
                     doc = "The Gamma likelihood (survival)",
                     hyper = list(
@@ -9147,6 +9170,159 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog", "quantile"),
                     pdf = "gammasurv"
+                ),
+                
+                mgammasurv = list(
+                    doc = "The modal Gamma likelihood (survival)",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 58121,
+                            name = "precision parameter",
+                            short.name = "prec",
+                            output.name = "Precision-parameter for the modal Gamma surv observations",
+                            output.name.intern = "Intern precision-parameter for the modal Gamma surv observations",
+                            initial = log(1),
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 58122,
+                            name = "beta1",
+                            short.name = "beta1",
+                            output.name = "beta1 for modal Gamma-Cure",
+                            output.name.intern = "beta1 for modal Gamma-Cure",
+                            initial = -7,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 58123,
+                            name = "beta2",
+                            short.name = "beta2",
+                            output.name = "beta2 for modal Gamma-Cure",
+                            output.name.intern = "beta2 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 58124,
+                            name = "beta3",
+                            short.name = "beta3",
+                            output.name = "beta3 for modal Gamma-Cure",
+                            output.name.intern = "beta3 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 58125,
+                            name = "beta4",
+                            short.name = "beta4",
+                            output.name = "beta4 for Ga mma-Cure",
+                            output.name.intern = "beta4 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 58126,
+                            name = "beta5",
+                            short.name = "beta5",
+                            output.name = "beta5 for modal Gamma-Cure",
+                            output.name.intern = "beta5 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 58127,
+                            name = "beta6",
+                            short.name = "beta6",
+                            output.name = "beta6 for modal Gamma-Cure",
+                            output.name.intern = "beta6 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 58128,
+                            name = "beta7",
+                            short.name = "beta7",
+                            output.name = "beta7 for modal Gamma-Cure",
+                            output.name.intern = "beta7 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 58129,
+                            name = "beta8",
+                            short.name = "beta8",
+                            output.name = "beta8 for modal Gamma-Cure",
+                            output.name.intern = "beta8 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 58130,
+                            name = "beta9",
+                            short.name = "beta9",
+                            output.name = "beta9 for modal Gamma-Cure",
+                            output.name.intern = "beta9 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 58131,
+                            name = "beta10",
+                            short.name = "beta10",
+                            output.name = "beta10 for modal Gamma-Cure",
+                            output.name.intern = "beta10 for modal Gamma-Cure",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ), 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log", "neglog"),
+                    pdf = "agamma"
                 ),
                 
                 gammajw = list(

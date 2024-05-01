@@ -10924,6 +10924,37 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'mgamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The modal Gamma likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{mgamma}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58002}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the modal Gamma observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the modal Gamma observations}}
+#'             \item{initial = }{\verb{4.60517018598809}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'gammasurv'.}{
 #'          \describe{
 #'           \item{Properties:}{
@@ -11095,6 +11126,187 @@
 #'             \item{short.name = }{\verb{beta10}}
 #'             \item{output.name = }{\verb{beta10 for Gamma-Cure}}
 #'             \item{output.name.intern = }{\verb{beta10 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'mgammasurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The modal Gamma likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{agamma}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58121}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the modal Gamma surv observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the modal Gamma surv observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58122}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58123}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58124}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58125}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Ga mma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58126}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58127}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58128}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58129}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58130}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58131}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for modal Gamma-Cure}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{normal}}

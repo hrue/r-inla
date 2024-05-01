@@ -204,7 +204,7 @@
   ##          print(r.size)
             r.size.r <- sapply(etemp$random.spec, function(x)
             (!is.null(x$rankdef)) |
-            (x$model %in% c("rw1", "rw2", "besag"))) * r.size
+            (x$model %in% c("rw1", "rw2", "besag", 'bym', 'bym2'))) * r.size
     ##          print(r.size.r)
             j.s <- which(r.size.r == .no.of.s)
             j.t <- which(r.size.r == .no.of.t)
@@ -217,6 +217,9 @@
         }
         lc2.on <- any(rterms == sname)
         lc3.on <- any(rterms == tname)
+	if(progress) {
+		cat('r.size.r =', r.size.r, '\n')
+	}
     }
     ## cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')
     M2 <- kronecker(matrix(1 / .no.of.t, 1, .no.of.t), diag(.no.of.s))
@@ -248,9 +251,12 @@
     if (any(type %in% "2")) {
         add2 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, Diagonal(.no.of.s)), ",
-            "extraconstr=list(A=M2, e=rep(0,.no.of.s))", add0, ")"
+            "Cmatrix=kronecker(R.t, Diagonal(.no.of.s))",
+            ifelse(lc2.on, ", extraconstr=list(A=M2, e=rep(0,.no.of.s))", ""), 
+	    add0, ")"
         )
+	if(progress) 
+	  cat("Added model term:\n", gsub(".no.of.s", .no.of.s, add2, fixed = TRUE), "\n")
         res$"2" <- inla(update(formula, paste(".~.+", add2)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "2") {
@@ -259,20 +265,52 @@
     if (any(type %in% "3")) {
         add3 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(Diagonal(.no.of.t), R.s), ",
-            "extraconstr=list(A=M3, e=rep(0,.no.of.t))", add0, ")"
+            "Cmatrix=kronecker(Diagonal(.no.of.t), R.s)",
+            ifelse(lc3.on, ", extraconstr=list(A=M3, e=rep(0,.no.of.t))", ""), 
+	    add0, ")"
         )
+        if(progress)
+          cat("Added model term:\n", gsub(".no.of.t", .no.of.t, add3, fixed = TRUE), "\n")
         res$"3" <- inla(update(formula, paste(".~.+", add3)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "3") {
         cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "4")) {
-        add4 <- paste0(
-            "f(", stname, ', model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,.no.of.s+.no.of.t-1))", add0, ")"
-        )
+	if(lc2.on) {
+	  if(lc3.on) {
+            add4 <- paste0(
+             "f(", stname, ', model="generic0", constr=FALSE, ',
+             "Cmatrix=kronecker(R.t, R.s), ",
+             "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,.no.of.s+.no.of.t-1))", add0, ")"
+	     )
+	  } else {
+            add4 <- paste0(
+             "f(", stname, ', model="generic0", constr=FALSE, ',
+             "Cmatrix=kronecker(R.t, R.s), ",
+             "extraconstr=list(A=M2, e=rep(0,.no.of.s))", add0, ")"
+           )
+	  }
+        } else {
+	  if(lc3.on) {
+           add4 <- paste0(
+             "f(", stname, ', model="generic0", constr=FALSE, ',
+             "Cmatrix=kronecker(R.t, R.s), ",
+             "extraconstr=list(A=M3, e=rep(0,.no.of.t))", add0, ")"
+             )
+          } else {
+            add4 <- paste0(
+             "f(", stname, ', model="generic0", constr=FALSE, ',
+             "Cmatrix=kronecker(R.t, R.s)", add0, ")"
+           )
+          }
+	}
+        if(progress) {
+          cat("Added model term:\n", 
+	      gsub(".no.of.s", .no.of.s, 
+		   gsub(".no.of.t", .no.of.t, add4, fixed = TRUE), 
+		   fixed = TRUE), "\n")
+	}
         res$"4" <- inla(update(formula, paste(".~.+", add4)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "4") {
