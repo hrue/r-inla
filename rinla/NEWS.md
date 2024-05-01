@@ -1,3 +1,7 @@
+# INLA 24.05.01
+* New likelihood `mgamma`
+* Fixes in `inla.knmodels`
+
 # INLA 24.04.25
 * Fixed a regression in VB correction for the mean
 * Updated vignette (barrier global)
