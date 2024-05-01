@@ -2012,6 +2012,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case L_GAMMA:
+			case L_MGAMMA:
 			{
 				if (!ds->data_fixed) {
 					/*
@@ -2027,6 +2028,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case L_GAMMASURV:
+			case L_MGAMMASURV:
 			{
 				if (!ds->data_nfixed[0]) {
 					/*

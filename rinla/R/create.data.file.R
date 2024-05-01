@@ -89,6 +89,7 @@
                                 "iidgamma",
                                 "simplex",
                                 "gamma",
+                                "mgamma",
                                 "beta",
                                 "tweedie",
                                 "fmri"))) {
@@ -340,7 +341,7 @@
 
     } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", 
                                      "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
-                                     "gammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
+                                     "gammasurv", "mgammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
             my.stop("This should not happen.")
         }
