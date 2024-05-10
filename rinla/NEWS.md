@@ -1,3 +1,6 @@
+# INLA 24.05.10
+* First build with R-4.4
+
 # INLA 24.05.01
 * New likelihood `mgamma`
 * Fixes in `inla.knmodels`
