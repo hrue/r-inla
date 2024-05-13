@@ -177,7 +177,7 @@ typedef struct {
 // tools useful for creating a cache
 #include <omp.h>
 #define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
-#define MAX_THREADS(data_) ((data_)->max_threads)
+#define MAX_THREADS(data_) ((data_)->threads.max)
 #define CGENERIC_CACHE_LEN(data_) (IMAX_(1, MAX_THREADS(data_)) * (IMAX_(1, MAX_THREADS(data_)) + 1))
 #define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
         if (1) {                                                        \
