@@ -90,7 +90,6 @@ NULL
         return(NULL)
     }
 
-    ## need this test to avoid infinite recursion, as inla.read.graph also call inla.add.graph.cc!
     if (inherits(args[[1L]], "inla.graph")) {
         graph <- args[[1L]]
     } else {
@@ -100,58 +99,45 @@ NULL
     cc <- list(id = NA, n = NA, nodes = NA)
     n <- graph$n
 
-    if (TRUE) {
-        ## need these {...} as we want to define 's' globally inside
-        ## these, to prevent copying the object all the time duing the
-        ## recursions.
-
-        s <- integer(n)
-        s[] <- 0L
-        k <- 1L
-
-        do.visit <- function(x) x ## just to avoid warning for missing
-        ## function 'do.visit' during compile
-        do.visit <- inla.cmpfun(function(idxs) {
-            if (any(s[idxs] == 0L)) {
-                which.idxs <- idxs[which(s[idxs] == 0L)]
-                s[which.idxs] <<- k
-                ## its ok to refer to 'graph' here:
-                visit.nodes <- unique(unlist(lapply(which.idxs, function(x) graph$nbs[[x]])))
-
-                ## check which of the visit.nodes that needs to be
-                ## visited. although this is done already in the
-                ## beginning of this routine, but we do that also here
-                ## to reduce the depth of the recursive call
-                visit.nodes <- visit.nodes[which(s[visit.nodes] == 0L)]
-                if (length(visit.nodes) > 0L) {
-                    do.visit(visit.nodes)
+    do.visit <- function(idxs, k) {
+        while(TRUE) {
+            idxs.visit <- c()
+            if (length(idxs) > 0) {
+                for (idx in idxs) {
+                    if (s[idx] == 0L) {
+                        s[idx] <<- k
+                        visit.next <- graph$nbs[[idx]]
+                        idxs.visit <- c(idxs.visit, visit.next[which(s[visit.next] == 0L)])
+                    }
                 }
-            }
-            return(invisible())
-        })
-
-        ## need to allow for larger recursion depth,  temporary
-        ex.save <- getOption("expressions")
-        options(expressions = 500000L)
-        for (i in 1L:n) {
-            if (s[i] == 0L) {
-                do.visit(i)
-                k <- k + 1L
+                idxs <- unique(sort(idxs.visit))
+            } else {
+                break
             }
         }
-        options(paste("expressions=", ex.save, sep = ""))
-
-        cc$id <- s
-        cc$n <- max(s)
-        cc$nodes <- lapply(1L:cc$n, function(cc.id, cs) sort(which(cc.id == cs)), cs = s)
-
-        ## build a factor for the means, with one level for each connected component with size
-        ## larger than one
-        for (ii in which(sapply(cc$nodes, length) == 1)) {
-            s[cc$nodes[[ii]]] <- NA
-        }
-        cc$mean <- factor(s, exclude = NA)
+        return(invisible())
     }
+
+    s <- integer(n)
+    s[] <- 0L
+    k <- 1L
+    for (i in 1L:n) {
+        if (s[i] == 0L) {
+            do.visit(i, k)
+            k <- k + 1L
+        }
+    }
+
+    cc$id <- s
+    cc$n <- max(s)
+    cc$nodes <- lapply(1L:cc$n, function(cc.id, cs) sort(which(cc.id == cs)), cs = s)
+
+    ## build a factor for the means, with one level for each connected component with size
+    ## larger than one
+    for (ii in which(sapply(cc$nodes, length) == 1)) {
+        s[cc$nodes[[ii]]] <- NA
+    }
+    cc$mean <- factor(s, exclude = NA)
 
     graph$cc <- cc
     return(graph)

@@ -1,3 +1,6 @@
+# INLA_24.05.13
+* Rewrote 'read.graph' to avoid recursion
+
 # INLA 24.05.10
 * First build with R-4.4
 
