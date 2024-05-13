@@ -45,8 +45,7 @@ Afun () {
 	grep -v /usr/lib/libicucore.A.dylib | \
 	grep -v /usr/lib/libbz2.1.0.dylib | \
 	grep -v /usr/lib/libiconv.2.dylib | \
-	grep -v /usr/lib/libz.1.dylib | \
-	awk '/libgcc_s/{print; gsub("gcc_s", "gcc_s_x86_64"); print; next};{print}'
+	grep -v /usr/lib/libz.1.dylib
 }
 
 Xfun () {
