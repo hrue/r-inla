@@ -759,7 +759,24 @@
             matplot(x$misc$opt.trace$nfunc, x$misc$opt.trace$theta, type = "l", lwd = 3)
             if (ncol(x$misc$opt.trace$theta) > 1) {
                 close.and.new.plot(...)
-                pairs(x$misc$opt.trace$theta, pch = 19)
+                if (FALSE) {
+                    m <- nrow(x$misc$opt.trace$theta)
+                    pairs(x$misc$opt.trace$theta, pch = 19,
+                          col = grey(seq(0.5, 0.0, len = m)),
+                          cex = 2*seq(sqrt(1/2), sqrt(2), len = m))
+                    close.and.new.plot(...)
+                } else {
+                    m <- nrow(x$misc$opt.trace$theta)
+                    panel.trace <- function(x, y, ...) {
+                        lines(x, y, lwd = 3, lty = 1)
+                        points(x, y, pch = 19, cex = seq(1, 2, len = m),
+                               col = grey(seq(0.5, 0.0, len = m)))
+                    }
+                    pairs(x$misc$opt.trace$theta, pch = 19,
+                          upper.panel = panel.trace, 
+                          lower.panel = panel.trace, 
+                          col = grey(seq(0.5, 0.0, len = m)))
+                }
             }
         }
 
