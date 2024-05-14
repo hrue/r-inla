@@ -680,7 +680,7 @@ control.vb <- function(
 
         #' @param tolerance Numerical The tolerance for the optimisation of the
         #' hyperparameters. If set, this is the default value for for '2.5*tolerance.f',
-        #' 'tolerance.g',  '5*tolerance.x' and '10*tolerance.step'; see below.
+        #' 'tolerance.g',  '5*tolerance.x' and '1000*tolerance.step'; see below.
         tolerance = 0.005,
 
         #' @param tolerance.f Numerical The tolerance for the absolute change in the

@@ -913,7 +913,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		if (optpar && optpar->fp)
-			fprintf(optpar->fp, "[%1d] iteration %d error %.4f\n", thread_id, iter, err);
+			fprintf(optpar->fp, "[%1d] iteration %d error %.4g\n", thread_id, iter, err);
 
 		if (GMRFLib_gaussian_data) {
 			/*
