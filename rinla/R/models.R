@@ -10284,6 +10284,7 @@
                             from.theta = function(x) x
                         )
                     ),
+                    status = "disabled", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"), 

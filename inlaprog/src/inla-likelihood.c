@@ -1127,6 +1127,9 @@ int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double yo, y, lprec, prec, w, lambda, mean;
 	
+	FIXME("BCGAUSSIAN: THIS IS NOT YET DONE AND I DO NOT KNOW IF THIS WAY OF DOING IS CORRECT, EVEN THOUGH ITS WHAT HAS BEEN DONE EARLIER....");
+	exit(1);
+
 	lambda = ds->data_observations.bc_lambda[thread_id][0];
 	mean = ds->data_observations.bc_mean[idx];
 	yo = ds->data_observations.y[idx];

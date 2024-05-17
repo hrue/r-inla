@@ -12476,6 +12476,7 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The Box-Cox Gaussian likelihoood}}
+#'               \item{status = }{\verb{disabled}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity}}
@@ -12503,14 +12504,14 @@
 #'           \item{Hyperparameter 'theta2'}{
 #'              \describe{
 #'             \item{hyperid = }{\verb{65011}}
-#'             \item{name = }{\verb{Box-Cox parameter}}
+#'             \item{name = }{\verb{Box-Cox transformation parameter}}
 #'             \item{short.name = }{\verb{lambda}}
 #'             \item{output.name = }{\verb{NOT IN USE}}
 #'             \item{output.name.intern = }{\verb{NOT IN USE}}
 #'             \item{initial = }{\verb{1}}
-#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{gaussian}}
-#'             \item{param = }{\verb{1 100}}
+#'             \item{param = }{\verb{1 8}}
 #'             \item{to.theta = }{\verb{function(x) x}}
 #'             \item{from.theta = }{\verb{function(x) x}}
 #'             }
