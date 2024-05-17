@@ -111,7 +111,15 @@
         if (any(is.na(response))) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale', are not allowed"))
         }
-
+    } else if (inla.one.of(family, c("bcgaussian"))) {
+        ## (y, mean, scale)
+        stopifnot(ncol(y.orig) == 3)
+        response <- cbind(ind, y.orig[, 2], y.orig[, 3], y.orig[, 1])
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'mean' are not allowed"))
+        }
     } else if (inla.one.of(family, c("tstrata"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)

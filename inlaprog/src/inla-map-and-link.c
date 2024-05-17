@@ -1926,3 +1926,32 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	abort();
 	return 0.0;
 }
+
+double inla_boxcox_core(double y, double lambda) 
+{
+	// simplify(subs(O=0,series((x^lam-1)/lam, lam=0, 10)));
+	const double eps = 1.0E-4;
+	double val = 0.0;
+	
+	if (ABS(lambda) < eps) {
+		double ly = log(y);
+		double a = ly * lambda;
+		val = ly *
+			(1.0 + (a / 2.0) *
+			 (1.0 + (a / 3.0) *
+			  (1.0 + (a / 4.0) *
+			   (1.0 + (a / 5.0) *
+			    (1.0 + (a / 6.0) *
+			     (1.0 + (a / 7.0) *
+			      (1.0 + (a / 8.0) *
+			       (1.0 + (a / 9.0) *
+				(1.0 + (a / 10.0))))))))));
+	} else {
+		val = (pow(y, lambda) - 1.0) / lambda;
+	}
+	return val;
+}
+double inla_boxcox(double y, double mean, double lambda) 
+{
+	return inla_boxcox_core(y, lambda) - (mean > 0.0 ? inla_boxcox_core(mean, lambda) : 0.0);
+}

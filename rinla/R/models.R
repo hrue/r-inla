@@ -10254,6 +10254,42 @@
                     pdf = "ggaussian"
                 ), 
 
+                bcgaussian = list(
+                    doc = "The Box-Cox Gaussian likelihoood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 65010,
+                            name = "log precision",
+                            short.name = "prec",
+                            output.name = "Precision for the Box-Cox Gaussian observations", 
+                            output.name.intern = "Log precision for the Box-Cox Gaussian observations", 
+                            initial = 4,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.00005),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 65011,
+                            name = "Box-Cox transformation parameter",
+                            short.name = "lambda",
+                            output.name = "NOT IN USE", 
+                            output.name.intern = "NOT IN USE", 
+                            initial = 1, 
+                            fixed = FALSE,
+                            prior = "gaussian",
+                            param = c(1, 8),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity"), 
+                    pdf = "bcgaussian"
+                ),
+
                 rcpoisson = list(
                     doc = "Randomly censored Poisson",
                     hyper = list(
