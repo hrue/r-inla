@@ -2379,10 +2379,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			}
 			Free(ai_store_id);
 
-			if (ai_par->vb_enable) {
-				// no longer supported due likely issues with the prior mean? and the code is inefficient...
-				assert(0 == 1);
-				abort();
+			if (0 && ai_par->vb_enable) {
 				GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}
@@ -2578,7 +2575,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 					COMPUTE;
 					GMRFLib_free_density(cpodens);
 				}
-				if (ai_par->vb_enable) {
+				if (0 && ai_par->vb_enable) {
 					GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 								   c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 								   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
@@ -2738,7 +2735,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 							COMPUTE_LOCAL;
 							GMRFLib_free_density(cpodens);
 						}
-						if (ai_par->vb_enable) {
+						if (0 && ai_par->vb_enable) {
 							GMRFLib_ai_vb_correct_mean(thread_id, NULL, -1, dens_local, c, d,
 										   ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
@@ -2882,13 +2879,24 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		double tmp_logdens;
 		double *bnew = NULL, con = 0.0;
 		GMRFLib_bnew(thread_id, &bnew, &con, graph->n, b, bfunc);
+
+		GMRFLib_idx_tp *d_idx = NULL;
+		GMRFLib_idx_create(&d_idx);
+		for (int i = 0; i < graph->n; i++) {
+			if (d[i]) {
+				GMRFLib_idx_add(&d_idx, i);
+			}
+		}
+
 		GMRFLib_ai_marginal_hyperparam(thread_id, &tmp_logdens, x, bnew, c, mean, d, NULL,
-					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, NULL);
+					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
 		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg);
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-		Free(bnew);
 
+		Free(bnew);
+		GMRFLib_idx_free(d_idx);
+		
 		GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_ai_store_tp *);
 		GMRFLib_bnew(thread_id, &bnew, &con, graph->n, b, bfunc);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -2932,7 +2940,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		Free(ai_store_id);
 		Free(bnew);
 
-		if (ai_par->vb_enable) {
+		if (0 && ai_par->vb_enable) {
 			GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg,
 						   loglFunc, loglFunc_arg, preopt);
 		}
