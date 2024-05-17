@@ -1,3 +1,10 @@
+# INLA_24.05.18
+* Remove PARDISO support from Mac (Intel and M...) due to OpenMP
+  issues
+* New and smaller default value for `tolerance.step`
+* Fixed a regression in `cgeneric.h` in cache-macros
+* Revise `plot(..., plot.opt.trace=TRUE)` plot
+
 # INLA_24.05.13
 * Rewrote 'read.graph' to avoid recursion
 
