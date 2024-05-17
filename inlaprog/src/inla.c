@@ -1635,12 +1635,23 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_AGAUSSIAN:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			}
+				break;
+
+			case L_BC_GAUSSIAN:
+			{
+				if (!ds->data_fixed0) {
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double lambda = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &lambda);
 					count++;
 				}
 			}
@@ -1649,10 +1660,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_LOGNORMAL:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1680,10 +1687,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_SIMPLEX:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1694,19 +1697,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_GPOISSON:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_overdispersion = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_overdispersion);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double p = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &p);
 					count++;
@@ -1717,10 +1712,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_CIRCULAR_NORMAL:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1731,10 +1722,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_WRAPPED_CAUCHY:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1745,19 +1732,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_TWEEDIE:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double p_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &p_intern);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_phi = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &log_phi);
 					count++;
@@ -1785,10 +1764,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_DGP:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_tail = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_tail);
 					count++;
@@ -1799,19 +1774,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_IID_GAMMA:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_shape = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_shape);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_rate = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &log_rate);
 					count++;
@@ -1822,19 +1789,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_IID_LOGITBETA:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_a = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_a);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_b = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &log_b);
 					count++;
@@ -1845,10 +1804,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_LOGGAMMA_FRAILTY:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1859,10 +1814,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_LOGISTIC:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -1890,12 +1841,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_GEV:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
@@ -1905,7 +1851,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * 'scale_xi' is there to help the numerics only
 					 */
 					double xi = theta[count] * ds->data_observations.gev_scale_xi;
-
 					val += PRIOR_EVAL(ds->data_prior1, &xi) + log(ds->data_observations.gev_scale_xi);
 					count++;
 				}
@@ -2015,10 +1960,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_MGAMMA:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double precision_intern = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
@@ -2031,12 +1972,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_MGAMMASURV:
 			{
 				if (!ds->data_nfixed[0]) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double precision_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_nprior[0], &precision_intern);
 					count++;
 				}
@@ -2056,12 +1992,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_GAMMACOUNT:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_alpha = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &log_alpha);
 					count++;
 				}
@@ -2071,12 +2002,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_QKUMAR:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double precision_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
@@ -2115,12 +2041,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_BETA:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double precision_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
@@ -2131,12 +2052,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_BETABINOMIALNA:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double intern_overdispersion = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &intern_overdispersion);
 					count++;
 				}
@@ -2147,12 +2063,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_CENNBINOMIAL2:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_size = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &log_size);
 					count++;
 				}
@@ -2163,12 +2074,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDNBINOMIAL1:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_size = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
 				}
@@ -2177,7 +2083,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the probability-parameter in the zero-inflated nbinomial_0/1
 					 */
 					double prob_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
@@ -2187,12 +2092,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDNBINOMIAL2:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_size = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
 				}
@@ -2201,7 +2101,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the alpha-parameter in the zero-inflated nbinomial_0/1
 					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &alpha_intern);
 					count++;
 				}
@@ -2212,12 +2111,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDBETABINOMIAL1:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					rho_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &rho_intern);
 					count++;
 				}
@@ -2226,7 +2120,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the probability-parameter in the zero-inflated betabinomial_0/1
 					 */
 					double prob_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
@@ -2236,10 +2129,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_size = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
@@ -2260,10 +2149,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDNBINOMIAL1STRATA3:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double prob_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &prob_intern);
 					count++;
@@ -2284,18 +2169,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZERO_N_INFLATEDBINOMIAL2:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_alpha1 = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_alpha1);
 					count++;
 				}
 				if (!ds->data_fixed1) {
 					double log_alpha2 = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &log_alpha2);
 					count++;
 				}
@@ -2305,18 +2184,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZERO_N_INFLATEDBINOMIAL3:
 			{
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					double log_alpha0 = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_alpha0);
 					count++;
 				}
 				if (!ds->data_fixed1) {
 					double log_alphaN = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &log_alphaN);
 					count++;
 				}
@@ -2325,10 +2198,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_T:
 			{
-				/*
-				 * we only need to add the prior, since the normalisation constant due to the likelihood, is
-				 * included in the likelihood function. 
-				 */
 				if (!ds->data_fixed0) {
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
@@ -2344,10 +2213,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_TSTRATA:
 			{
-				/*
-				 * we only need to add the prior, since the normalisation constant due to the likelihood, is
-				 * included in the likelihood function. 
-				 */
 				int k;
 				for (k = 0; k < TSTRATA_MAXTHETA; k++) {
 					if (!ds->data_nfixed[k]) {
@@ -2362,10 +2227,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_STOCHVOL:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is
-					 * included in the likelihood function. this is the offset precision
-					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
@@ -2401,10 +2262,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_STOCHVOL_T:
 			{
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is
-					 * included in the likelihood function. 
-					 */
 					dof_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &dof_intern);
 					count++;
@@ -2419,7 +2276,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the skewness 
 					 */
 					double skew = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &skew);
 					count++;
 				}
@@ -2428,7 +2284,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the shape 
 					 */
 					double shape_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &shape_intern);
 					count++;
 				}
@@ -2525,7 +2380,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the probability-parameter in the zero-inflated Binomial_2
 					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
@@ -2539,7 +2393,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the probability-parameter in the zero-inflated Binomial_0/1
 					 */
 					double prob_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &prob_intern);
 					count++;
 				}
@@ -2553,7 +2406,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the probability-related-parameter 
 					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
 					count++;
 				}
@@ -2562,7 +2414,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * this is the delta-parameter 
 					 */
 					double delta_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &delta_intern);
 					count++;
 				}
@@ -2628,7 +2479,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			{
 				double *v = Calloc(POM_MAXTHETA, double);
 				int v_count = 0;
-
 				for (int k = 0; k < POM_MAXTHETA; k++) {
 					if (!ds->data_nfixed[k]) {
 						v[v_count] = theta[count];

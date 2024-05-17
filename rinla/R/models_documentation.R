@@ -12471,6 +12471,53 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'bcgaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Box-Cox Gaussian likelihoood}}
+#'               \item{status = }{\verb{disabled}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{bcgaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65010}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the Box-Cox Gaussian observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the Box-Cox Gaussian observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65011}}
+#'             \item{name = }{\verb{Box-Cox transformation parameter}}
+#'             \item{short.name = }{\verb{lambda}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{1 8}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'rcpoisson'.}{
 #'          \describe{
 #'           \item{Properties:}{

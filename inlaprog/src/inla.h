@@ -258,6 +258,7 @@ typedef enum {
 	L_NPOISSON,
 	L_MGAMMA,
 	L_MGAMMASURV,
+	L_BC_GAUSSIAN,	
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -508,6 +509,10 @@ typedef struct {
 	double **log_prec_gaussian;
 	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
+
+	double **bc_lambda;
+	double *bc_scale;
+	double *bc_mean;
 
 	/*
 	 *  Beta
@@ -1886,6 +1891,8 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 #define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
 #define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
 
+double inla_boxcox(double y, double mean, double lambda);
+double inla_boxcox_core(double y, double lambda);
 double inla_ipow(double x, int k);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
@@ -2199,6 +2206,7 @@ int loglikelihood_gammajw(int thread_id, double *logll, double *x, int m, int id
 int loglikelihood_gammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gammasurvjw(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_bcgaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			     void *arg, char **arg_str);

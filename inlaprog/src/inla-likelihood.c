@@ -97,6 +97,14 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_BC_GAUSSIAN:
+	{
+		idiv = 4;
+		a[0] = ds->data_observations.bc_mean = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.bc_scale = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	case L_SIMPLEX:
 	{
 		idiv = 3;
@@ -1108,6 +1116,48 @@ int loglikelihood_lognormalsurv(int thread_id, double *__restrict logll, double 
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv_NEW(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal,
 								     arg_str));
+}
+
+int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			     void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double yo, y, lprec, prec, w, lambda, mean;
+	
+	FIXME("BCGAUSSIAN: THIS IS NOT YET DONE AND I DO NOT KNOW IF THIS WAY OF DOING IS CORRECT, EVEN THOUGH ITS WHAT HAS BEEN DONE EARLIER....");
+	exit(1);
+
+	lambda = ds->data_observations.bc_lambda[thread_id][0];
+	mean = ds->data_observations.bc_mean[idx];
+	yo = ds->data_observations.y[idx];
+	y = inla_boxcox(yo, mean, lambda);
+	w = ds->data_observations.bc_scale[idx];
+	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w) - 2.0 * (lambda - 1.0) * log(mean);
+	prec = exp(lprec);
+
+	LINK_INIT;
+	double off = OFFSET(idx);
+
+	if (m > 0) {
+		double lcorr = LOG_NORMC_GAUSSIAN + (lambda - 1.0) * log(yo);
+#pragma omp simd 
+		for (int i = 0; i < m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = lcorr + 0.5 * (lprec - (SQR(ypred - y) * prec)); 
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = inla_Phi_fast((y - ypred) * sqrt(prec));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
 }
 
 int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),

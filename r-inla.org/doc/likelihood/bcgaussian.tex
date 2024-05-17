@@ -1,0 +1,77 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Box-Cox Gaussian}
+
+\subsection*{Parametrisation}
+
+The Gaussian distribution is
+\begin{displaymath}
+    f(y) = \frac{\sqrt{s\tau}}{\sqrt{2\pi}} y^{\lambda-1} \exp\left( -\frac{1}{2}
+      s\left(f_{\lambda,\mu}(y)-\mu\right)^{2}\right) 
+\end{displaymath}
+for continuously responses $y>0$ where
+\begin{description}
+\item[$\mu$:] is the the mean
+\item[$\tau$:] is the precision
+\item[$s$:] is a fixed scaling, $s>0$.
+\end{description}
+and the Box-Cox transformation is
+\begin{displaymath}
+    f_{\lambda,\mu}(y) = \frac{y^{\lambda}-1}{\lambda} - \frac{\mu^{\lambda} -1}{\lambda}
+\end{displaymath}
+
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu \quad\text{and}\qquad \sigma^{2} = \frac{1}{s\tau}
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The precision is $\tau$ and 
+\begin{displaymath}
+    \theta_1 = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta_1$.
+
+The Box-Cox transformation-parameter $\lambda$ is 
+$\theta_2 = \lambda$
+and the prior is defined on $\theta_2$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="bcgaussian"}
+\item Required arguments: $y$ and $s$ (argument \texttt{scale})
+\end{itemize}
+The scalings have default value 1.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/bcgaussian.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-gaussian.R}
+
+\subsection*{Notes}
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
