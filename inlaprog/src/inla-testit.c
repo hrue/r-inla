@@ -2633,28 +2633,29 @@ int testit(int argc, char **argv)
 
 		P(n);
 		P(m);
-		double sum1 = 0.0, sum2 = 0.0;
+		double sum = 0.0, sum1 = 0.0, sum2 = 0.0;
 		double start = 0, start2 = 0, finish = 0, finish2 = 0;
-
+		double work[n];
+		
 		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
+				sum += my_betabinomial_helper4(n, a[i]);
+			}
 			start += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
-				double aa = a[i];
-				for (int j = 0; j < i; j++) {
-					sum1 += log(aa + j);
-				}
+				sum1 += my_betabinomial_helper8(n, a[i], work);
 			}
 			finish += GMRFLib_timer();
-
 			start2 += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
-				sum2 += my_betabinomial_helper(i, a[i]);
+				sum2 += my_betabinomial_helper16(n, a[i], work);
 			}
 			finish2 += GMRFLib_timer();
 		}
-		printf("plain= %.4g helper= %.4g ratio plain/helper= %.4f\n",
+		printf("h8 = %.4g h16= %.4g ratio h8/h16= %.4f\n",
 		       (finish - start) / m, (finish2 - start2) / m, (finish - start) / (finish2 - start2));
 		P((sum1 - sum2) / (sum1 + sum2));
+		P((sum - sum2) / (sum + sum2));
 	}
 		break;
 

@@ -47,8 +47,10 @@ __BEGIN_DECLS
 double *my_compute_lbell(int nmax);
 double my_betabinomial(int y, int n, double a, double b);
 double my_betabinomial2(int y, int n, double a, double b);
-double my_betabinomial_helper(int n, double a);
-double my_betabinomial_helper2(int n, double a);
+double my_betabinomial_helper(int n, double a, double *work);
+double my_betabinomial_helper4(int n, double a);
+double my_betabinomial_helper8(int n, double a, double *work);
+double my_betabinomial_helper16(int n, double a, double *work);
 double my_gsl_sf_lnbeta(double a, double b);
 double my_gsl_sf_lnchoose(unsigned int n, unsigned int m);
 double my_gsl_sf_lnfact(int x);
