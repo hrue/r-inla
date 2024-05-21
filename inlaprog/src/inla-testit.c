@@ -2652,8 +2652,8 @@ int testit(int argc, char **argv)
 			}
 			finish2 += GMRFLib_timer();
 		}
-		printf("h8 = %.4g h16= %.4g ratio h8/h16= %.4f\n",
-		       (finish - start) / m, (finish2 - start2) / m, (finish - start) / (finish2 - start2));
+		printf("h8 = %.4g h16= %.4g ratio h16/h8= %.4f\n",
+		       (finish - start) / m, (finish2 - start2) / m, 1.0 / ((finish - start) / (finish2 - start2)));
 		P((sum1 - sum2) / (sum1 + sum2));
 		P((sum - sum2) / (sum + sum2));
 	}
