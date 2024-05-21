@@ -244,7 +244,7 @@ double my_betabinomial_helper4(int n, double a)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
-		for(int i = 1; i < d.rem; i++) {
+		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
 		s0 += log(s);
@@ -260,20 +260,20 @@ double my_betabinomial_helper8(int n, double a, double *work)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 	int nn = d.quot;
-	
-#pragma omp simd 
-	for (int i = 0; i < nn; i++){
+
+#pragma omp simd
+	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
 		work[i] = aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0) * (aa + 4.0) * (aa + 5.0) * (aa + 6.0) * (aa + 7.0);
 	}
 
 	GMRFLib_log(nn, work, work);
-	s0 = GMRFLib_dsum(nn, work); 
+	s0 = GMRFLib_dsum(nn, work);
 
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
-		for(int i = 1; i < d.rem; i++) {
+		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
 		s0 += log(s);
@@ -289,21 +289,21 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 	int nn = d.quot;
-	
+
 #pragma omp simd
-	for (int i = 0; i < nn; i++){
+	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
 		work[i] = aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0) * (aa + 4.0) * (aa + 5.0) * (aa + 6.0) * (aa + 7.0)
-			* (aa + 8.0) * (aa + 9.0) * (aa + 10.0) * (aa + 11.0) * (aa + 12.0) * (aa + 13.0) * (aa + 14.0) * (aa + 15.0);
+		    * (aa + 8.0) * (aa + 9.0) * (aa + 10.0) * (aa + 11.0) * (aa + 12.0) * (aa + 13.0) * (aa + 14.0) * (aa + 15.0);
 	}
 
 	GMRFLib_log(nn, work, work);
-	s0 = GMRFLib_dsum(nn, work); 
+	s0 = GMRFLib_dsum(nn, work);
 
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
-		for(int i = 1; i < d.rem; i++) {
+		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
 		s0 += log(s);
@@ -330,7 +330,7 @@ double my_betabinomial(int y, int n, double a, double b)
 double my_betabinomial2(int y, int n, double a, double b)
 {
 	double work[n];
-	
+
 	// using Gamma(1+z)=z*Gamma(z), we can get this
 	double ladd = 0.0;
 	while (a > 1.0) {

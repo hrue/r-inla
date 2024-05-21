@@ -1050,9 +1050,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.bc_scale[i] <= 0.0 || ds->data_observations.y[i] <= 0.0 || ds->data_observations.bc_mean[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Box-Cox Gaussian scale[%1d] = %g or y[%1d] = %g or mean[%1d] = %g is void\n", secname, 
-							i, ds->data_observations.bc_scale[i], i, ds->data_observations.y[i], i, ds->data_observations.bc_mean[i]);
+				if (ds->data_observations.bc_scale[i] <= 0.0 || ds->data_observations.y[i] <= 0.0
+				    || ds->data_observations.bc_mean[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Box-Cox Gaussian scale[%1d] = %g or y[%1d] = %g or mean[%1d] = %g is void\n",
+							secname, i, ds->data_observations.bc_scale[i], i, ds->data_observations.y[i], i,
+							ds->data_observations.bc_mean[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -8794,8 +8796,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id != L_STDGAUSSIAN && ds->data_id != L_GGAUSSIAN && ds->data_id !=  L_BC_GAUSSIAN) ||
-	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
+	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id != L_STDGAUSSIAN && ds->data_id != L_GGAUSSIAN
+	     && ds->data_id != L_BC_GAUSSIAN) || ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		GMRFLib_gaussian_data = GMRFLib_FALSE;
 	}
 

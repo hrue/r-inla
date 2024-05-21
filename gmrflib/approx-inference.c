@@ -4554,9 +4554,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	double dxs[niter];
 	GMRFLib_fill(niter, 0.0, dxs);
-	
+
 	for (int iter = 0; iter < niter + 1; iter++) {
-		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] >  dxs[iter - 2])) || !keep_MM);
+		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] > dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
 
 		dxs[iter] = 0.0;
@@ -4712,7 +4712,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 							delta_is_NAN - 1);
 					}
 					if (diverge) {
-						fprintf(fp, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
+						fprintf(fp,
+							"\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
 					}
 					if (max_corr_flag) {
 						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",

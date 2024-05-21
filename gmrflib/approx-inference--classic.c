@@ -2886,7 +2886,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);
-		
+
 		GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_ai_store_tp *);
 		GMRFLib_bnew(thread_id, &bnew, &con, graph->n, b, bfunc);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)

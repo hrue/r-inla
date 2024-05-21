@@ -1132,7 +1132,7 @@ int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double yo, y, lprec, prec, w, lambda, mean;
-	
+
 	FIXME("BCGAUSSIAN: THIS IS NOT YET DONE AND I DO NOT KNOW IF THIS WAY OF DOING IS CORRECT, EVEN THOUGH ITS WHAT HAS BEEN DONE EARLIER....");
 	exit(1);
 
@@ -1149,10 +1149,10 @@ int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__
 
 	if (m > 0) {
 		double lcorr = LOG_NORMC_GAUSSIAN + (lambda - 1.0) * log(yo);
-#pragma omp simd 
+#pragma omp simd
 		for (int i = 0; i < m; i++) {
 			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
-			logll[i] = lcorr + 0.5 * (lprec - (SQR(ypred - y) * prec)); 
+			logll[i] = lcorr + 0.5 * (lprec - (SQR(ypred - y) * prec));
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
@@ -5228,9 +5228,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

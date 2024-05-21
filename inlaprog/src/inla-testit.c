@@ -2636,7 +2636,7 @@ int testit(int argc, char **argv)
 		double sum = 0.0, sum1 = 0.0, sum2 = 0.0;
 		double start = 0, start2 = 0, finish = 0, finish2 = 0;
 		double work[n];
-		
+
 		for (int k = 0; k < m; k++) {
 			for (int i = 0; i < n; i++) {
 				sum += my_betabinomial_helper4(n, a[i]);
@@ -4202,37 +4202,37 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 142: 
+	case 142:
 	{
 		lt_dlhandle handle;
 		double (*fun)(double);
 		const char *error;
-	
+
 		lt_dlinit();
-		handle = lt_dlopen ("./libfun.so");
+		handle = lt_dlopen("./libfun.so");
 		if (!handle) {
-			fprintf (stderr, "%s [try to open ./libfun.so]\n", lt_dlerror());
+			fprintf(stderr, "%s [try to open ./libfun.so]\n", lt_dlerror());
 			exit(1);
 		}
-		lt_dlerror();    /* Clear any existing error */
+		lt_dlerror();				       /* Clear any existing error */
 
 		fun = lt_dlsym(handle, "fun");
-		if ((error = lt_dlerror()) != NULL)  {
-			fprintf (stderr, "%s\n", error);
+		if ((error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
 			exit(1);
 		}
 
 		double sum = 0.0;
 #pragma omp parallel for reduction(+: sum)
-		for(int i = 0; i < 100; i++) {
+		for (int i = 0; i < 100; i++) {
 			printf("call fun(0) in thread.num %d\n", omp_get_thread_num());
 			sum += fun(0.0);
 		}
 		P(sum);
 		lt_dlclose(handle);
 	}
-	break;
-	
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

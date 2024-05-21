@@ -289,5 +289,4 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	return value;
 }
 
-#endif // define(INLA_WITH_MUPARSER)
-
+#endif							       // define(INLA_WITH_MUPARSER)
