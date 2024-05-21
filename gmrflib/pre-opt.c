@@ -1039,7 +1039,6 @@ int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp *preopt)
 {
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[thread_id], preopt);
-
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -1076,12 +1075,18 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
-	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
+	GMRFLib_ENTER_ROUTINE;
+	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
+	GMRFLib_LEAVE_ROUTINE;
+	return val;
 }
 
 int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
-	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
+	GMRFLib_ENTER_ROUTINE;
+	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
+	GMRFLib_LEAVE_ROUTINE;
+	return val;
 }
 
 int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int likelihood_only)
@@ -1089,8 +1094,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
 	// if !likelihood_only, compute the whole predictor
-
-	GMRFLib_ENTER_ROUTINE;
 
 	double *pred = Calloc(preopt->mnpred, double);
 	int data_rich_case = GMRFLib_preopt_predictor_strategy;
@@ -1199,7 +1202,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	}
 	Free(pred);
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1368,6 +1370,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like_b, double *like_c)
 {
+	GMRFLib_ENTER_ROUTINE;
 	int np = preopt->Npred;
 
 	if (!(preopt->like_b[thread_id])) {
@@ -1383,6 +1386,7 @@ int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like
 	Memset(preopt->total_b[thread_id], 0, preopt->n * sizeof(double));
 	GMRFLib_preopt_bnew(thread_id, preopt->total_b[thread_id], preopt);
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
