@@ -244,6 +244,7 @@ double my_betabinomial_helper4(int n, double a)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+#pragma omp simd reduction(*: s)
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
@@ -273,6 +274,7 @@ double my_betabinomial_helper8(int n, double a, double *work)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+#pragma omp simd reduction(*: s)
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
@@ -294,7 +296,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
 		work[i] = aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0) * (aa + 4.0) * (aa + 5.0) * (aa + 6.0) * (aa + 7.0)
-		    * (aa + 8.0) * (aa + 9.0) * (aa + 10.0) * (aa + 11.0) * (aa + 12.0) * (aa + 13.0) * (aa + 14.0) * (aa + 15.0);
+			* (aa + 8.0) * (aa + 9.0) * (aa + 10.0) * (aa + 11.0) * (aa + 12.0) * (aa + 13.0) * (aa + 14.0) * (aa + 15.0);
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -303,6 +305,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+#pragma omp simd reduction(*: s)
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
