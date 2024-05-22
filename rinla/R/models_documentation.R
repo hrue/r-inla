@@ -4856,7 +4856,7 @@
 #'               \item{nrow.ncol = }{\verb{FALSE}}
 #'               \item{augmented = }{\verb{TRUE}}
 #'               \item{aug.factor = }{\verb{1}}
-#'               \item{aug.constr = }{\verb{1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}}
+#'               \item{aug.constr = }{\verb{1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24}}
 #'               \item{n.div.by = }{\verb{-1}}
 #'               \item{n.required = }{\verb{TRUE}}
 #'               \item{set.default.values = }{\verb{TRUE}}
@@ -4864,7 +4864,7 @@
 #'              }
 #'            }
 #'          }
-#'         Number of hyperparmeters is 210.
+#'         Number of hyperparmeters is 300.
 #'          \describe{
 #'           \item{Hyperparameter 'theta1'}{
 #'              \describe{
@@ -4874,7 +4874,7 @@
 #'             \item{initial = }{\verb{1048576}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{wishartkd}}
-#'             \item{param = }{\verb{21 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576}}
+#'             \item{param = }{\verb{24 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576}}
 #'             \item{to.theta = }{\verb{function(x) x}}
 #'             \item{from.theta = }{\verb{function(x) x}}
 #'             }
@@ -7588,6 +7588,1176 @@
 #'             \item{hyperid = }{\verb{29310}}
 #'             \item{name = }{\verb{theta210}}
 #'             \item{short.name = }{\verb{theta210}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta211'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29311}}
+#'             \item{name = }{\verb{theta211}}
+#'             \item{short.name = }{\verb{theta211}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta212'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29312}}
+#'             \item{name = }{\verb{theta212}}
+#'             \item{short.name = }{\verb{theta212}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta213'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29313}}
+#'             \item{name = }{\verb{theta213}}
+#'             \item{short.name = }{\verb{theta213}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta214'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29314}}
+#'             \item{name = }{\verb{theta214}}
+#'             \item{short.name = }{\verb{theta214}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta215'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29315}}
+#'             \item{name = }{\verb{theta215}}
+#'             \item{short.name = }{\verb{theta215}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta216'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29316}}
+#'             \item{name = }{\verb{theta216}}
+#'             \item{short.name = }{\verb{theta216}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta217'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29317}}
+#'             \item{name = }{\verb{theta217}}
+#'             \item{short.name = }{\verb{theta217}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta218'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29318}}
+#'             \item{name = }{\verb{theta218}}
+#'             \item{short.name = }{\verb{theta218}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta219'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29319}}
+#'             \item{name = }{\verb{theta219}}
+#'             \item{short.name = }{\verb{theta219}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta220'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29320}}
+#'             \item{name = }{\verb{theta220}}
+#'             \item{short.name = }{\verb{theta220}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta221'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29321}}
+#'             \item{name = }{\verb{theta221}}
+#'             \item{short.name = }{\verb{theta221}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta222'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29322}}
+#'             \item{name = }{\verb{theta222}}
+#'             \item{short.name = }{\verb{theta222}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta223'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29323}}
+#'             \item{name = }{\verb{theta223}}
+#'             \item{short.name = }{\verb{theta223}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta224'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29324}}
+#'             \item{name = }{\verb{theta224}}
+#'             \item{short.name = }{\verb{theta224}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta225'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29325}}
+#'             \item{name = }{\verb{theta225}}
+#'             \item{short.name = }{\verb{theta225}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta226'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29326}}
+#'             \item{name = }{\verb{theta226}}
+#'             \item{short.name = }{\verb{theta226}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta227'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29327}}
+#'             \item{name = }{\verb{theta227}}
+#'             \item{short.name = }{\verb{theta227}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta228'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29328}}
+#'             \item{name = }{\verb{theta228}}
+#'             \item{short.name = }{\verb{theta228}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta229'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29329}}
+#'             \item{name = }{\verb{theta229}}
+#'             \item{short.name = }{\verb{theta229}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta230'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29330}}
+#'             \item{name = }{\verb{theta230}}
+#'             \item{short.name = }{\verb{theta230}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta231'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29331}}
+#'             \item{name = }{\verb{theta231}}
+#'             \item{short.name = }{\verb{theta231}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta232'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29332}}
+#'             \item{name = }{\verb{theta232}}
+#'             \item{short.name = }{\verb{theta232}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta233'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29333}}
+#'             \item{name = }{\verb{theta233}}
+#'             \item{short.name = }{\verb{theta233}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta234'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29334}}
+#'             \item{name = }{\verb{theta234}}
+#'             \item{short.name = }{\verb{theta234}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta235'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29335}}
+#'             \item{name = }{\verb{theta235}}
+#'             \item{short.name = }{\verb{theta235}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta236'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29336}}
+#'             \item{name = }{\verb{theta236}}
+#'             \item{short.name = }{\verb{theta236}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta237'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29337}}
+#'             \item{name = }{\verb{theta237}}
+#'             \item{short.name = }{\verb{theta237}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta238'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29338}}
+#'             \item{name = }{\verb{theta238}}
+#'             \item{short.name = }{\verb{theta238}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta239'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29339}}
+#'             \item{name = }{\verb{theta239}}
+#'             \item{short.name = }{\verb{theta239}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta240'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29340}}
+#'             \item{name = }{\verb{theta240}}
+#'             \item{short.name = }{\verb{theta240}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta241'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29341}}
+#'             \item{name = }{\verb{theta241}}
+#'             \item{short.name = }{\verb{theta241}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta242'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29342}}
+#'             \item{name = }{\verb{theta242}}
+#'             \item{short.name = }{\verb{theta242}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta243'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29343}}
+#'             \item{name = }{\verb{theta243}}
+#'             \item{short.name = }{\verb{theta243}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta244'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29344}}
+#'             \item{name = }{\verb{theta244}}
+#'             \item{short.name = }{\verb{theta244}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta245'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29345}}
+#'             \item{name = }{\verb{theta245}}
+#'             \item{short.name = }{\verb{theta245}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta246'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29346}}
+#'             \item{name = }{\verb{theta246}}
+#'             \item{short.name = }{\verb{theta246}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta247'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29347}}
+#'             \item{name = }{\verb{theta247}}
+#'             \item{short.name = }{\verb{theta247}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta248'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29348}}
+#'             \item{name = }{\verb{theta248}}
+#'             \item{short.name = }{\verb{theta248}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta249'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29349}}
+#'             \item{name = }{\verb{theta249}}
+#'             \item{short.name = }{\verb{theta249}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta250'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29350}}
+#'             \item{name = }{\verb{theta250}}
+#'             \item{short.name = }{\verb{theta250}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta251'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29351}}
+#'             \item{name = }{\verb{theta251}}
+#'             \item{short.name = }{\verb{theta251}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta252'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29352}}
+#'             \item{name = }{\verb{theta252}}
+#'             \item{short.name = }{\verb{theta252}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta253'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29353}}
+#'             \item{name = }{\verb{theta253}}
+#'             \item{short.name = }{\verb{theta253}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta254'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29354}}
+#'             \item{name = }{\verb{theta254}}
+#'             \item{short.name = }{\verb{theta254}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta255'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29355}}
+#'             \item{name = }{\verb{theta255}}
+#'             \item{short.name = }{\verb{theta255}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta256'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29356}}
+#'             \item{name = }{\verb{theta256}}
+#'             \item{short.name = }{\verb{theta256}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta257'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29357}}
+#'             \item{name = }{\verb{theta257}}
+#'             \item{short.name = }{\verb{theta257}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta258'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29358}}
+#'             \item{name = }{\verb{theta258}}
+#'             \item{short.name = }{\verb{theta258}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta259'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29359}}
+#'             \item{name = }{\verb{theta259}}
+#'             \item{short.name = }{\verb{theta259}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta260'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29360}}
+#'             \item{name = }{\verb{theta260}}
+#'             \item{short.name = }{\verb{theta260}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta261'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29361}}
+#'             \item{name = }{\verb{theta261}}
+#'             \item{short.name = }{\verb{theta261}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta262'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29362}}
+#'             \item{name = }{\verb{theta262}}
+#'             \item{short.name = }{\verb{theta262}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta263'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29363}}
+#'             \item{name = }{\verb{theta263}}
+#'             \item{short.name = }{\verb{theta263}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta264'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29364}}
+#'             \item{name = }{\verb{theta264}}
+#'             \item{short.name = }{\verb{theta264}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta265'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29365}}
+#'             \item{name = }{\verb{theta265}}
+#'             \item{short.name = }{\verb{theta265}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta266'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29366}}
+#'             \item{name = }{\verb{theta266}}
+#'             \item{short.name = }{\verb{theta266}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta267'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29367}}
+#'             \item{name = }{\verb{theta267}}
+#'             \item{short.name = }{\verb{theta267}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta268'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29368}}
+#'             \item{name = }{\verb{theta268}}
+#'             \item{short.name = }{\verb{theta268}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta269'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29369}}
+#'             \item{name = }{\verb{theta269}}
+#'             \item{short.name = }{\verb{theta269}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta270'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29370}}
+#'             \item{name = }{\verb{theta270}}
+#'             \item{short.name = }{\verb{theta270}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta271'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29371}}
+#'             \item{name = }{\verb{theta271}}
+#'             \item{short.name = }{\verb{theta271}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta272'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29372}}
+#'             \item{name = }{\verb{theta272}}
+#'             \item{short.name = }{\verb{theta272}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta273'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29373}}
+#'             \item{name = }{\verb{theta273}}
+#'             \item{short.name = }{\verb{theta273}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta274'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29374}}
+#'             \item{name = }{\verb{theta274}}
+#'             \item{short.name = }{\verb{theta274}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta275'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29375}}
+#'             \item{name = }{\verb{theta275}}
+#'             \item{short.name = }{\verb{theta275}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta276'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29376}}
+#'             \item{name = }{\verb{theta276}}
+#'             \item{short.name = }{\verb{theta276}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta277'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29377}}
+#'             \item{name = }{\verb{theta277}}
+#'             \item{short.name = }{\verb{theta277}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta278'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29378}}
+#'             \item{name = }{\verb{theta278}}
+#'             \item{short.name = }{\verb{theta278}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta279'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29379}}
+#'             \item{name = }{\verb{theta279}}
+#'             \item{short.name = }{\verb{theta279}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta280'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29380}}
+#'             \item{name = }{\verb{theta280}}
+#'             \item{short.name = }{\verb{theta280}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta281'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29381}}
+#'             \item{name = }{\verb{theta281}}
+#'             \item{short.name = }{\verb{theta281}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta282'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29382}}
+#'             \item{name = }{\verb{theta282}}
+#'             \item{short.name = }{\verb{theta282}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta283'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29383}}
+#'             \item{name = }{\verb{theta283}}
+#'             \item{short.name = }{\verb{theta283}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta284'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29384}}
+#'             \item{name = }{\verb{theta284}}
+#'             \item{short.name = }{\verb{theta284}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta285'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29385}}
+#'             \item{name = }{\verb{theta285}}
+#'             \item{short.name = }{\verb{theta285}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta286'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29386}}
+#'             \item{name = }{\verb{theta286}}
+#'             \item{short.name = }{\verb{theta286}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta287'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29387}}
+#'             \item{name = }{\verb{theta287}}
+#'             \item{short.name = }{\verb{theta287}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta288'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29388}}
+#'             \item{name = }{\verb{theta288}}
+#'             \item{short.name = }{\verb{theta288}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta289'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29389}}
+#'             \item{name = }{\verb{theta289}}
+#'             \item{short.name = }{\verb{theta289}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta290'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29390}}
+#'             \item{name = }{\verb{theta290}}
+#'             \item{short.name = }{\verb{theta290}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta291'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29391}}
+#'             \item{name = }{\verb{theta291}}
+#'             \item{short.name = }{\verb{theta291}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta292'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29392}}
+#'             \item{name = }{\verb{theta292}}
+#'             \item{short.name = }{\verb{theta292}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta293'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29393}}
+#'             \item{name = }{\verb{theta293}}
+#'             \item{short.name = }{\verb{theta293}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta294'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29394}}
+#'             \item{name = }{\verb{theta294}}
+#'             \item{short.name = }{\verb{theta294}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta295'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29395}}
+#'             \item{name = }{\verb{theta295}}
+#'             \item{short.name = }{\verb{theta295}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta296'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29396}}
+#'             \item{name = }{\verb{theta296}}
+#'             \item{short.name = }{\verb{theta296}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta297'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29397}}
+#'             \item{name = }{\verb{theta297}}
+#'             \item{short.name = }{\verb{theta297}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta298'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29398}}
+#'             \item{name = }{\verb{theta298}}
+#'             \item{short.name = }{\verb{theta298}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta299'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29399}}
+#'             \item{name = }{\verb{theta299}}
+#'             \item{short.name = }{\verb{theta299}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta300'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29400}}
+#'             \item{name = }{\verb{theta300}}
+#'             \item{short.name = }{\verb{theta300}}
 #'             \item{initial = }{\verb{1048576}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{none}}
@@ -16441,7 +17611,7 @@
 #'          Number of parameters in the prior = 0
 #'        }
 #'       \item{Model 'wishartkd'.}{
-#'          Number of parameters in the prior = 211
+#'          Number of parameters in the prior = 324
 #'        }
 #'       \item{Model 'expression:'.}{
 #'          Number of parameters in the prior = -1

@@ -1,3 +1,7 @@
+# INLA_24.05.22
+* Increased max.dim for model `iidkd` from 20 to 24
+* Optimizing family `betabinomial`
+
 # INLA_24.05.18
 * Fixed (I hope) PARDISO issue for Mac (Intel and M...) due to OpenMP
   issues

@@ -52,7 +52,6 @@
 #endif
 
 __BEGIN_DECLS
-
 #include "GMRFLib/GMRFLibP.h"
 double GMRFLib_dsum(int n, double *x);
 int GMRFLib_isum(int n, int *ix);
@@ -122,4 +121,3 @@ void GMRFLib_chose_threshold_ddot(void);
 
 __END_DECLS
 #endif
-

@@ -782,7 +782,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		if (EARLY_STOP_ENABLED) {
 			continue;
 		}
-
 		// we need to have f0 computed to check
 		if (CHECK_FOR_EARLY_STOP) {
 			if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
@@ -1052,7 +1051,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 	Free(ai_store);
 	Free(mode_reference);
-	
+
 #undef EARLY_STOP_ENABLED
 #undef CHECK_FOR_EARLY_STOP
 #undef F1

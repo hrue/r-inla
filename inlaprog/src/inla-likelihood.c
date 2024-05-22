@@ -37,9 +37,9 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *UN
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E3, prec_low = 1.0E-4, eps = 1.0E-6;
+	double prec_high = 1.0E4, prec_low = 1.0 / prec_high, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
-	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], arr_old[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
 	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
@@ -49,7 +49,13 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		w = DMIN(1.0, (double) niter / (double) niter_min);
 		prec = exp(log_prec_high * (1.0 - w) + log_prec_low * w);
 
+		Memcpy(arr_old, arr, sizeof(arr));
 		GMRFLib_2order_taylor(thread_id, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		if (ISNAN(arr[0]) || ISINF(arr[0])) {
+			Memcpy(arr, arr_old, sizeof(arr));
+			break;
+		}
+
 		f = arr[0] - 0.5 * prec * SQR(x);
 		deriv = arr[1] - prec * x;
 		dderiv = DMIN(0.0, arr[2]) - prec;
@@ -1126,7 +1132,7 @@ int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double yo, y, lprec, prec, w, lambda, mean;
-	
+
 	FIXME("BCGAUSSIAN: THIS IS NOT YET DONE AND I DO NOT KNOW IF THIS WAY OF DOING IS CORRECT, EVEN THOUGH ITS WHAT HAS BEEN DONE EARLIER....");
 	exit(1);
 
@@ -1143,10 +1149,10 @@ int loglikelihood_bcgaussian(int thread_id, double *__restrict logll, double *__
 
 	if (m > 0) {
 		double lcorr = LOG_NORMC_GAUSSIAN + (lambda - 1.0) * log(yo);
-#pragma omp simd 
+#pragma omp simd
 		for (int i = 0; i < m; i++) {
 			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
-			logll[i] = lcorr + 0.5 * (lprec - (SQR(ypred - y) * prec)); 
+			logll[i] = lcorr + 0.5 * (lprec - (SQR(ypred - y) * prec));
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);

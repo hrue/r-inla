@@ -25,7 +25,7 @@
     stopifnot(n > 0)
 
     ## as defined in inla.h and models.R
-    k.max <- 20
+    k.max <- 24
     theta.max <- (k.max * (k.max + 1L)) / 2L
 
     names <- paste0("Theta", 1:theta.max, " for ", name)
