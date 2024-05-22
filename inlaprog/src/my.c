@@ -296,7 +296,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
 		work[i] = aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7)
-			* (aa + 8) * (aa + 9) * (aa + 10) * (aa + 11) * (aa + 12) * (aa + 13) * (aa + 14) * (aa + 15);
+		    * (aa + 8) * (aa + 9) * (aa + 10) * (aa + 11) * (aa + 12) * (aa + 13) * (aa + 14) * (aa + 15);
 	}
 
 	GMRFLib_log(nn, work, work);

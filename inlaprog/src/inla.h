@@ -77,7 +77,7 @@ __BEGIN_DECLS
  * YES, CHANGE IT MANUALLY!
  */
 #define INLA_QKUMAR_PREC_SCALE 0.10
-#define INLA_WISHARTK_KMAX (20)
+#define INLA_WISHARTK_KMAX (24)
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
@@ -368,6 +368,10 @@ typedef enum {
 	P_WISHARTK_18D,
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
+	P_WISHARTK_21D,
+	P_WISHARTK_22D,
+	P_WISHARTK_23D,
+	P_WISHARTK_24D,
 	P_LAPLACE,
 	P_RPRIOR,
 	G_EXCHANGEABLE = 3000,				       /* group models */
@@ -1990,6 +1994,10 @@ double priorfunc_wishartk_17d(double *x, double *parameters);
 double priorfunc_wishartk_18d(double *x, double *parameters);
 double priorfunc_wishartk_19d(double *x, double *parameters);
 double priorfunc_wishartk_20d(double *x, double *parameters);
+double priorfunc_wishartk_21d(double *x, double *parameters);
+double priorfunc_wishartk_22d(double *x, double *parameters);
+double priorfunc_wishartk_23d(double *x, double *parameters);
+double priorfunc_wishartk_24d(double *x, double *parameters);
 double priorfunc_wishartk_2d(double *x, double *parameters);
 double priorfunc_wishartk_3d(double *x, double *parameters);
 double priorfunc_wishartk_4d(double *x, double *parameters);
@@ -2233,7 +2241,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
