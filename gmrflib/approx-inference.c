@@ -925,13 +925,16 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			} else {
 				linear_predictor = mode;
 			}
-			for (int i = 0; i < d_idx->n; i++) {
-				int idx = d_idx->idx[i];
-				double local_bb, local_cc;
-				GMRFLib_2order_approx(thread_id,
-						      &(aa[idx]), &local_bb, &local_cc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
-						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL);
+#define CODE_BLOCK							\
+			for (int i = 0; i < d_idx->n; i++) {		\
+				int idx = d_idx->idx[i];		\
+				double local_bb, local_cc;		\
+				GMRFLib_2order_approx(thread_id,	\
+						      &(aa[idx]), &local_bb, &local_cc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc, \
+						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL); \
 			}
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+#undef CODE_BLOCK			
 		}
 
 		if (ISNAN(err)) {
@@ -2177,6 +2180,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *ll_info = NULL;
 		if (misc_output->configs_preopt) {
 			ll_info = Calloc(3 * preopt->Npred, double);
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j;
 				double local_aa;
@@ -2242,6 +2246,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
+
 	// save (x, theta) adding the predictors
 	preopt->mode_theta = Calloc(nhyper, double);
 	Memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
@@ -2429,6 +2434,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*gcpo)->groups = gcpo_groups->groups;
 
 		// if theta_correction is turned off, then all correction terms are 0
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
 			for (int jjj = 1; jjj < dens_max; jjj++) {
@@ -2476,24 +2482,18 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	if (cpo) {
 		double *Z = Calloc(preopt->Npred, double);
 
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < preopt->Npred; j++) {
+			double evalue, evalue2, evalue_one = 1.0;
 			int ii = j;
+
 			if (cpo_theta[ii]) {
 				for (int jjj = 0; jjj < probs->n; jjj++) {
 					int jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
 						Z[ii] += probs->val[jjj] / cpo_theta[ii][jj];
 				}
-			}
-		}
-
-		for (int j = 0; j < preopt->Npred; j++) {
-			double evalue, evalue2, evalue_one = 1.0;
-			int ii = j;
-
-			if (cpo_theta[ii]) {
 				(*cpo)->value[ii] = Calloc(1, double);
-
 				if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 					evalue = 0.0;
 					for (int jjj = 0; jjj < probs->n; jjj++) {
@@ -2591,13 +2591,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	if (po) {
 		SET_MODE;
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double evalue, evalue2, evalue3, evalue_one;
 			int ii = j;
-
 			if (po_theta[ii]) {
 				(*po)->value[ii] = Calloc(2, double);
-
 				evalue_one = 1.0;
 				evalue = evalue2 = evalue3 = 0.0;
 				for (int jjj = 0; jjj < probs->n; jjj++) {
@@ -2650,10 +2649,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *deviance_e_sat = Calloc(ndev, double);
 		double *sign = Calloc(ndev, double);
 
-		for (int j = 0; j < ndev; j++) {
-			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
-		}
-
+		GMRFLib_fill(ndev, NAN, e_deviance);
+		GMRFLib_fill(ndev, NAN, e_deviance_sat);
+		GMRFLib_fill(ndev, NAN, deviance_e);
+		GMRFLib_fill(ndev, NAN, deviance_e_sat);
+		GMRFLib_fill(ndev, NAN, sign);
+		
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat)
 		for (int j = 0; j < d_idx->n; j++) {
 			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = d_idx->idx[j];
@@ -2670,11 +2672,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			md = evalue;
 			md_sat = evalue_sat;
-
-			if (!(density && (*density)[ii])) {
-				fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
-				abort();
-			}
 
 			double x_tmp = (double) ((*density)[ii]->user_mean);
 			double logl = 0.0;
