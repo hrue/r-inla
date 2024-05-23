@@ -45,7 +45,7 @@ __BEGIN_DECLS
  *
  */
 double *my_compute_lbell(int nmax);
-double my_betabinomial(int y, int n, double a, double b);
+double my_betabinomial(int y, int n, double a, double b, double *work);
 double my_betabinomial2(int y, int n, double a, double b);
 double my_betabinomial_helper(int n, double a, double *work);
 double my_betabinomial_helper4(int n, double a);
