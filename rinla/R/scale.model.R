@@ -61,16 +61,17 @@ inla.scale.model.internal <- function(Q, constr = NULL, eps = sqrt(.Machine$doub
         } else {
             cconstr <- constr
             if (!is.null(constr)) {
-                ## the GMRFLib will automatically drop duplicated constraints; how convenient...
+                ## GMRFLib will not automatically drop duplicated constraints anymore... Let's
+                ## see if this issue comes up
                 cconstr$A <- constr$A[, i, drop = FALSE]
                 eeps <- eps
+                idx.zero <- which(rowSums(abs(cconstr$A)) == 0)
+                if (length(idx.zero) > 0) {
+                    cconstr$A <- cconstr$A[-idx.zero,, drop = FALSE]
+                    cconstr$e <- cconstr$e[-idx.zero]
+                }
             } else {
                 eeps <- 0
-            }
-            idx.zero <- which(rowSums(abs(cconstr$A)) == 0)
-            if (length(idx.zero) > 0) {
-                cconstr$A <- cconstr$A[-idx.zero,, drop = FALSE]
-                cconstr$e <- cconstr$e[-idx.zero]
             }
             res <- inla.qinv(QQ + Diagonal(n) * max(diag(QQ)) * eeps, constr = cconstr)
             fac <- exp(mean(log(diag(res))))
