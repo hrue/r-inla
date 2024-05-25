@@ -1002,7 +1002,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmixnb;
 		ds->data_id = L_NMIXNB;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "OCCUPANCY")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_occupancy;
+		ds->data_id = L_OCCUPANCY;
+		discrete_data = 1;
 	} else {
+		FIXME("FOUND");
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
 	}
 	if (mb->verbose) {
@@ -1221,6 +1226,23 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case L_OCCUPANCY: 
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				for(int kk = 0; kk < ds->data_observations.occ_ny[i]; kk++) {
+					int k = i * ds->data_observations.occ_ny_max + kk;
+					if (((int) ds->data_observations.occ_y[k] != ds->data_observations.occ_y[k]) || ds->data_observations.occ_y[k] < 0) {
+						GMRFLib_sprintf(&msg, "%s: occupancy observation y[%1d,%1d] = %g is void\n", secname, i, kk, 
+								ds->data_observations.occ_y[k]);
+						inla_error_general(msg);
+					}
+				}
+			}
+		}
+	}
+	break;
+						
 	case L_IID_GAMMA:
 	case L_IID_LOGITBETA:
 	case L_LOGGAMMA_FRAILTY:
@@ -7423,6 +7445,101 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->ntheta++;
 				ds->data_ntheta++;
 			}
+		}
+	}
+		break;
+
+	case L_OCCUPANCY: 
+	{
+		if (mb->verbose) {
+			printf("\t\tny_max=[%1d]\n", ds->data_observations.occ_ny_max);
+			printf("\t\tnbeta=[%1d]\n", ds->data_observations.occ_nbeta);
+		}
+		int nb = ds->data_observations.occ_nbeta;
+		ds->data_observations.occ_beta = Calloc(nb, double **);
+		ds->data_nprior = Calloc(OCCUPANCY_MAXTHETA, Prior_tp);
+		ds->data_nfixed = Calloc(OCCUPANCY_MAXTHETA, int);
+
+		for (int k = 0; k < OCCUPANCY_MAXTHETA; k++) {
+			ds->data_nfixed[k] = 1;	
+		}
+
+		// mark all as read
+		for (i = 0; i < OCCUPANCY_MAXTHETA; i++) {
+			for (j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+			}
+		}
+
+		for (int k = 0; k < nb; k++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
+			Free(ctmp);
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
+			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+
+			if (!(ds->data_nfixed[k]) && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.occ_beta[k], tmp);
+			if (mb->verbose) {
+				printf("\t\tinitialise occ_beta[%1d] = %g\n", k, ds->data_observations.occ_beta[k][0][0]);
+				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "GAUSSIAN", k, NULL);
+
+			if (!ds->data_nfixed[k]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[k].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				Free(ctmp);
+				GMRFLib_sprintf(&ctmp, "beta[%1d] for occupancy observations", k);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter", secname);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[k].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.occ_beta[k];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+
+		char *link_simple = iniparser_getstring(ini, inla_string_join(secname, "LINK.SIMPLE"), NULL);
+		ds->data_observations.link_simple_name = link_simple;
+		if (!strcasecmp(link_simple, "IDENTITY")) {
+			ds->data_observations.link_simple_invlinkfunc = link_identity;
+		} else if (!strcasecmp(link_simple, "LOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_log;
+		} else if (!strcasecmp(link_simple, "PROBIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_probit;
+		} else if (!strcasecmp(link_simple, "CLOGLOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_cloglog;
+		} else if (!strcasecmp(link_simple, "LOGIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_logit;
+		} else {
+			GMRFLib_sprintf(&msg, "%s: 0poisson(S) likelihood: no valid link.simple[%s]", secname, link_simple);
+			inla_error_general(msg);
+			exit(1);
+		}
+		if (mb->verbose) {
+			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
 		}
 	}
 		break;

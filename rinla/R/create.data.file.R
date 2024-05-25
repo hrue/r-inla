@@ -643,6 +643,27 @@
             my.stop(paste0("family:", family, ". NA's in arguments 'E/Ntrials', are not allowed"))
         }
 
+    } else if (inla.one.of(family, c("occupancy"))) {
+        stopifnot(y.attr[1] == 2)
+        ny <- y.attr[2]
+        m <- y.attr[3]
+        stopifnot(ny > 0)
+        stopifnot(m > 0)
+        stopifnot(m == nc * ny)
+        stopifnot(ny + m == ncol(y.orig))
+
+        response <- cbind(IDX = ind, y.orig)
+        idx.all.na <- which(apply(y.orig[,  1:ny, drop = FALSE], 1, function(x) all(is.na(x))) == TRUE)
+        if (length(idx.all.na) > 0) {
+            response <- response[-idx.all.na,, drop = FALSE]
+        }
+        response <- cbind(IDX = response[, 1],
+                          Y = response[, 1 + 1:ny, drop = FALSE], 
+                          X = response[, 1 + ny + 1:m, drop = FALSE], 
+                          ##  this one is just fake
+                          y = matrix(0, ncol = 1, nrow = length(response$IDX))) 
+        colnames(response) <- c("IDX", paste0("Y", 1:ny), paste0("X", 1:m), "y")
+
     } else if (inla.one.of(family, c("bgev"))) {
 
         if (is.null(scale)) {

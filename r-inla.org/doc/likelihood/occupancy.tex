@@ -1,0 +1,110 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Occupancy likelihood}
+
+\subsection*{Parametrisation}
+
+This is a specialized likelihood to for occupancy models.
+
+\subsubsection*{Details}
+
+An observation is an vector $y=(y_1, \ldots, y_m)$ of binary
+observations, each depending on spesific covariates, with additional
+zero-inflation. If there fewer than $m$ observations, like $m' < m$,
+say, then the last $m-m'$ observations must be set to \texttt{NA}.
+The likelihood for one observation(-vector) is
+\begin{displaymath}
+    f(y) = \phi \prod_{i=1}^{m} p_i^{y_i} (1-p_i)^{1-y_i} + (1-\phi)
+    1_{\text{[$y_i=0, \forall i$]}}
+\end{displaymath}
+where 
+\begin{displaymath}
+    \text{logit}(p_i) = x_i^{T} \beta
+\end{displaymath}
+and $x_i= (x_{i1}, \ldots, x_{ik})$ are the $k>0$ covariate associated
+to $y_i$, and $\beta=(\beta_1, \ldots, \beta_k)$ are the regression
+coefficients. The linear predictor from the formula $\eta$, goes into
+$\phi$, as
+\begin{displaymath}
+    \text{logit}(\phi) = \eta
+\end{displaymath}
+
+\subsection*{Link-function}
+
+The link-function for the $p_i$-model is given by argument
+\texttt{link.simple} in the \texttt{control.family}-argument. The
+link-function for the $\phi$-model is given as normal. Both defaults
+to the logit-link.
+
+\subsection*{Hyperparameters}
+
+The regression coefficients $\beta$ are treated as hyperparameters,
+and $k$ is maximum 10. An intercept must be defined manually by adding
+a constant covariate vector.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="occupancy"}
+\item Required arguments: A matrix $Y$ with the observations and a matrix
+    $X$ with the covariates.
+\end{itemize}
+The matrix $Y$ is $n\times m$, where $m$ is then the \emph{maximum}
+number of observations over all locations. If there fewer than $m$
+observations, like $m' < m$, at the $i$th location (ie $i$th row of
+$Y$), then last $m-m'$ columns of the $i$th row must be \texttt{NA}.
+
+The matrix $X$ stored the covariates. Since there are $k$
+covariate for each observation, then the dimension of $X$ is
+$n \times m k$. For the $i$th observation(-vector), then the
+$i$th row of $X$ is $(x_{i1}, x_{i2}, \ldots, x_{im})$, where $x_{ij}$
+is the covariate vector for $j$th observation at location $i$. In the
+case of $m'<m$, then the last $m-m'$ covariate(-vectors) are not used.
+
+\clearpage
+Here is a simple example with $n=5$ locations, maximum $m=3$
+observations, and $k=2$ covariates.
+\begin{verbatim}
+> Y
+     [,1] [,2] [,3]
+[1,]    1    1   NA
+[2,]    0    1    0
+[3,]    0    0    0
+[4,]    0    1    0
+[5,]    0    0   NA
+> round(dig=3,X)
+     [,1]   [,2] [,3]   [,4] [,5]   [,6]
+[1,]    1 -0.129    1 -0.248   NA     NA
+[2,]    1 -0.030    1  0.151    1  0.100
+[3,]    1 -0.148    1 -0.061    1  0.023
+[4,]    1 -0.055    1  0.081    1 -0.112
+[5,]    1  0.164    1  0.027   NA     NA
+\end{verbatim}
+For $Y[1,1]$ the covariates are $(1, -0.129)$, for $Y[1,2]$ the
+covariates are $(1, -0.248)$, for $Y[1,3]$ is \texttt{NA} hence not
+used, for $Y[2,1]$ the covariates are $(1, -0.030)$, etc. We pass both
+$Y$ and $X$ in the \texttt{inla.mdata()} in the formula, as
+\begin{quote}
+    \texttt{inla.mdata(Y,X) $\sim$ ...}
+\end{quote}
+
+\subsubsection*{Hyperparameter spesification and default values}
+{\small \input{../hyper/likelihood/occupancy.tex}}
+
+\clearpage
+\subsection*{Example}
+{\small \verbatiminput{example-occupancy.R}}
+
+
+\end{document}
+
+% LocalWords:  np Hyperparameters Ntrials gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

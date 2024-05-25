@@ -86,10 +86,32 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	int n = 0, na, i, j, ii, idiv = 0, k, ncol_data_all = -1;
 	Data_section_tp *ds = &(mb->data_sections[mb->nds - 1]);
 
+	double *attr = NULL;
+	int n_attr = 0;
+	inla_read_data_all(&attr, &n_attr, ds->attr_file.name, NULL);
+	assert(n_attr >= 1);
+	if (n_attr > 0) {
+		n_attr--;
+		attr++;
+	} else {
+		n_attr = 0;
+		attr = NULL;
+	}
+	ds->data_observations.attr = attr;
+	ds->data_observations.n_attr = n_attr;
+	if (n_attr > 0 && mb->verbose) {
+		printf("\t\tmdata.nattributes = %d\n", n_attr);
+		for (i = 0; i < n_attr; i++) {
+			printf("\t\tmdata.attribute[%1d] = %g\n", i, attr[i]);
+		}
+	}
+
 	/*
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &n, ds->data_file.name, &ncol_data_all);
+	assert(ncol_data_all <= _DIM_A);
+
 	if (mb->verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", n, ds->data_file.name);
 	}
@@ -420,6 +442,29 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_OCCUPANCY:
+	{
+		int ny = (int) attr[0];
+		int nx = (int) attr[1];
+		int m = nx / ny;
+		P(ny);
+		P(nx);
+		P(m);
+		P(ncol_data_all);
+		assert(ny + nx + 2 == ncol_data_all);
+		idiv = ncol_data_all;
+
+		ds->data_observations.occ_nbeta = m;
+		ds->data_observations.occ_ny_max = ny;
+		for (i = 0; i < ny; i++) {
+			a[i] = Calloc(mb->predictor_ndata, double);
+		}
+		for (i = 0; i < nx; i++) {
+			a[i + ny] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	case L_BGEV:
 	{
 		assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
@@ -559,26 +604,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	ds->data_observations.y = Calloc(mb->predictor_ndata, double);
 	ds->data_observations.d = Calloc(mb->predictor_ndata, double);
 
-	double *attr = NULL;
-	int n_attr = 0;
-	inla_read_data_all(&attr, &n_attr, ds->attr_file.name, NULL);
-	assert(n_attr >= 1);
-	n_attr--;					       /* do not need the first entry */
-	if (n_attr > 0) {
-		attr++;
-	} else {
-		attr = NULL;
-	}
-	ds->data_observations.attr = attr;
-	ds->data_observations.n_attr = n_attr;
-
-	if (mb->verbose) {
-		printf("\t\tmdata.nattributes = %d\n", n_attr);
-		for (i = 0; i < n_attr; i++) {
-			printf("\t\tmdata.attribute[%1d] = %g\n", i, attr[i]);
-		}
-	}
-
 	double *w = NULL;
 	int nw = 0;
 	inla_read_data_all(&w, &nw, ds->weight_file.name, NULL);
@@ -683,6 +708,50 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		}
 		Free(ds->data_observations.cure_cov);
 		ds->data_observations.cure_cov = xx;
+	}
+	// wrap it around so we have easy access
+	if (ds->data_id == L_OCCUPANCY) {
+		int nb = ds->data_observations.occ_nbeta;
+		int ny_max = ds->data_observations.occ_ny_max;
+		int nd = mb->predictor_ndata;
+		double *Y = ds->data_observations.occ_y = Calloc(nd * ny_max, double);
+		double *X = ds->data_observations.occ_x = Calloc(nd * nb * ny_max, double);
+
+		for (i = 0; i < nd; i++) {
+			for (j = 0; j < ny_max; j++) {
+				Y[i * ny_max + j] = a[j][i];
+				for (k = 0; k < nb; k++) {
+					int kk = i * nb * ny_max + j * nb + k;
+					X[kk] = a[ny_max + j * nb + k][i];
+					if (ISNAN(X[kk])) {
+						X[kk] = 0.0;
+					}
+				}
+			}
+		}
+		for (j = 0; j < (1 + nb) * ny_max; j++) {
+			Free(a[j]);
+		}
+
+		int *nny = ds->data_observations.occ_ny = Calloc(nd, int);
+		for (i = 0; i < nd; i++) {
+			k = 0;
+			for (j = 0; j < ny_max; j++) {
+				if (ISNAN(Y[i * ny_max + j])) {
+					break;
+				}
+				k++;
+			}
+			nny[i] = k;
+		}
+		int *yzero = ds->data_observations.occ_yzero = Calloc(nd, int);
+		for (i = 0; i < nd; i++) {
+			k = 1;
+			for (j = 0; j < nny[i] && k; j++) {
+				k = (k && (Y[i * ny_max + j] == 0));
+			}
+			yzero[i] = k;
+		}
 	}
 
 	Free(w);
@@ -2690,6 +2759,68 @@ int loglikelihood_0poissonS(int thread_id, double *__restrict logll, double *__r
 			double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = prob + (1.0 - prob) * pois;
 		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+			    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	LINK_INIT;
+
+	int ny_max = ds->data_observations.occ_ny_max;
+	int ny = ds->data_observations.occ_ny[idx];
+	int nb = ds->data_observations.occ_nbeta;
+	int yzero = ds->data_observations.occ_yzero[idx];
+
+	double *X = &(ds->data_observations.occ_x[idx * nb * ny_max]);
+	double *Y = &(ds->data_observations.occ_y[idx * ny_max]);
+
+	double beta[nb]; 
+	for (int i = 0; i < nb; i++) {
+		beta[i] = ds->data_observations.occ_beta[i][thread_id][0];
+	}
+
+	if (m > 0) {
+		double logll0 = 0.0;
+
+		// double Xbeta[ny];
+		// const double one = 1.0, zero = 0.0;
+		// const int ione = 1;
+		// (trans, m, n, alpha, a, lda, x, incx, beta, y, incy) 
+		//dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
+
+		// to low dimension for simd or ddot to help in the j-loop below
+		for (int ii = 0; ii < ny; ii++) {
+			double *xx = X + ii * nb, Xbeta = 0.0;
+			for(int j = 0; j < nb; j++) {
+				Xbeta += beta[j] * xx[j];
+			}
+			double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
+			logll0 += (Y[ii] ? LOG_p(prob) : LOG_1mp(prob));
+		}
+
+		double off = OFFSET(idx);
+		if (yzero) {
+			for (int i = 0; i < m; i++) {
+				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = eval_logsum_safe(logll0 + LOG_p(phi), LOG_1mp(phi));
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = logll0 + LOG_p(phi);
+			}
+		}
+	} else {
+		GMRFLib_fill(IABS(m), 0.0, logll);
 	}
 
 	LINK_END;
@@ -5228,9 +5359,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
