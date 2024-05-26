@@ -47,7 +47,7 @@ NULL
     envir <- parent.env(environment())
 
     for (pkg in c("Matrix")) {
-        if (!isNamespaceLoaded(pkg)) {
+        if (!(pkg %in% (.packages()))) {
             library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
@@ -181,7 +181,7 @@ NULL
     envir <- parent.env(environment())
 
     for (pkg in c("Matrix")) {
-        if (!isNamespaceLoaded(pkg)) {
+        if (!(pkg %in% (.packages()))) {
             library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
@@ -275,7 +275,7 @@ NULL
     envir <- parent.env(environment())
 
     for (pkg in c("Matrix")) {
-        if (!isNamespaceLoaded(pkg)) {
+        if (!(pkg %in% (.packages()))) {
             library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
