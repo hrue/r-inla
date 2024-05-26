@@ -46,6 +46,12 @@ NULL
     ## (which is in the path)
     envir <- parent.env(environment())
 
+    for (pkg in c("Matrix")) {
+        if (!isNamespaceLoaded(pkg)) {
+            library(pkg, quietly = TRUE)
+        }
+    }
+
     interpret.theta <- function() {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -82,7 +88,7 @@ NULL
                     2L:n
                 )
                 x <- 1 ## meaning that all are 1
-                G <- Matrix::sparseMatrix(i = i, j = j, x = x, repr = "T")
+                G <- sparseMatrix(i = i, j = j, x = x, repr = "T")
             }
         }
         return(G)
@@ -116,7 +122,7 @@ NULL
                     ## off-diagonal
                     rep(-param$rho, n - 1L)
                 )
-            Q <- Matrix::sparseMatrix(i = i, j = j, x = x, repr = "T")
+            Q <- sparseMatrix(i = i, j = j, x = x, repr = "T")
         }
         return(Q)
     }
@@ -174,6 +180,12 @@ NULL
     ## (which is in the path)
     envir <- parent.env(environment())
 
+    for (pkg in c("Matrix")) {
+        if (!isNamespaceLoaded(pkg)) {
+            library(pkg, quietly = TRUE)
+        }
+    }
+
     interpret.theta <- function() {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -196,7 +208,7 @@ NULL
             ## off-diagonal
             2L:n
         )
-        G <- INLA::inla.as.sparse(Matrix::sparseMatrix(i = i, j = j, x = 1, repr = "T"))
+        G <- INLA::inla.as.sparse(sparseMatrix(i = i, j = j, x = 1, repr = "T"))
         return(G)
     }
 
@@ -262,18 +274,24 @@ NULL
     ## (which is in the path)
     envir <- parent.env(environment())
 
+    for (pkg in c("Matrix")) {
+        if (!isNamespaceLoaded(pkg)) {
+            library(pkg, quietly = TRUE)
+        }
+    }
+
     interpret.theta <- function() {
         return(list(prec = exp(theta[1L])))
     }
 
     graph <- function() {
-        G <- Matrix::Diagonal(n, x = rep(1, n))
+        G <- Diagonal(n, x = rep(1, n))
         return(G)
     }
 
     Q <- function() {
         prec <- interpret.theta()$prec
-        Q <- Matrix::Diagonal(n, x = rep(prec, n))
+        Q <- Diagonal(n, x = rep(prec, n))
         return(Q)
     }
 
@@ -492,7 +510,7 @@ NULL
         n <- dim(Q)[1]
         idx.eq <- which(Q@i == Q@j)
         idx.gt <- which(Q@i < Q@j)
-        Q <- Matrix::sparseMatrix(
+        Q <- sparseMatrix(
             i = c(Q@i[idx.eq], Q@i[idx.gt], Q@j[idx.gt]),
             j = c(Q@j[idx.eq], Q@j[idx.gt], Q@i[idx.gt]),
             x = c(Q@x[idx.eq], Q@x[idx.gt], Q@x[idx.gt]),
