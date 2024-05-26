@@ -440,6 +440,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 			inla_error_general("Fail to create directory. I give up.");
 		}
 	}
+	GMRFLib_tmpdir = mb->dir;			       /* so we can easily use it elsewhere */
+	
 	inla_parse_output(mb, ini, sec, &(mb->output));
 	return INLA_OK;
 }
