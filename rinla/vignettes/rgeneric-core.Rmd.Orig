@@ -1,7 +1,7 @@
 ---
 title: "Defining a latent model in R or C"
 author: "Haavard Rue `(hrue@r-inla.org)`"
-date: "Dec 9th 2021"
+date: \today
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Defining a latent model in R or C}
@@ -630,11 +630,12 @@ rgeneric.test.opt.1 = function(
     envir = parent.env(environment())
 
     if (!exists("cache.done", envir = envir)) {
+	
         R <- matrix(sin(1:n^2), n, n)
         R <- R %*% t(R)
         diag(R) <- diag(R)+1
         R.logdet <- log(det(R))
-        R <- inla.as.sparse(R)
+        R <- INLA::inla.as.sparse(R)
         idx <- which(R@i <= R@j)
         R@i <- R@i[idx]
         R@j <- R@j[idx]
@@ -699,7 +700,7 @@ rgeneric.test.opt.2 = function(
         R <- R %*% t(R)
         diag(R) <- diag(R)+1
         R.logdet <- log(det(R))
-        R <- inla.as.sparse(R)
+        R <- INLA::inla.as.sparse(R)
         idx <- which(R@i <= R@j)
         R@i <- R@i[idx]
         R@j <- R@j[idx]
