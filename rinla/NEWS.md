@@ -1,3 +1,7 @@
+# INLA_24.05.26
+* Do not longer load INLA-package by default using `rgeneric` or `rprior`
+* New (experimental) likelihood: occupancy
+
 # INLA_24.05.22
 * Increased max.dim for model `iidkd` from 20 to 24
 * Optimizing family `betabinomial`
