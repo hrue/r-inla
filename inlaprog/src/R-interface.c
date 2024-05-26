@@ -46,7 +46,7 @@
 #include "GMRFLib/timer.h"
 
 // two copies...
-#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper.workaround"
+#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
 
 #undef __BEGIN_DECLS
