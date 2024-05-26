@@ -46,7 +46,7 @@
 #include "GMRFLib/timer.h"
 
 // two copies...
-#define R_GENERIC_WRAPPER "INLA::inla.rgeneric.wrapper"
+#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper.workaround"
 #define INLA_OK (0)
 
 #undef __BEGIN_DECLS
@@ -236,6 +236,7 @@ int inla_R_init_(void)
 				}
 				// Disable C stack limit check
 				R_CStackLimit = (uintptr_t) (-1);
+				inla_R_source_("/home/hrue/wrap.R");
 				R_init = 0;
 			}
 		}
