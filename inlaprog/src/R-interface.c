@@ -46,7 +46,7 @@
 #include "GMRFLib/timer.h"
 
 // two copies...
-#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
+#define R_GENERIC_WRAPPER "INLA::inla.rgeneric.wrapper"
 #define INLA_OK (0)
 
 #undef __BEGIN_DECLS
@@ -222,10 +222,11 @@ int inla_R_init_(void)
 					my_setenv(rhome, 0);
 					Free(rhome);
 				}
-				char *Rargv[3];
+				char *Rargv[4];
 				Rargv[0] = Strdup("REmbeddedPostgres");
 				Rargv[1] = Strdup("--gui=none");
 				Rargv[2] = Strdup("--vanilla");
+				Rargv[3] = Strdup("--quiet");
 				int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 				Rf_initEmbeddedR(Rargc, Rargv);
 

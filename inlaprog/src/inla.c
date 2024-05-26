@@ -138,7 +138,7 @@ double *G_norm_const = NULL;				       /* store static normalization constants f
 void **G_norm_const_v = NULL;
 char *G_norm_const_compute = NULL;			       /* to be computed */
 
-int R_load_INLA = 1;
+int R_load_INLA = 0;
 
 /* 
    default values for priors

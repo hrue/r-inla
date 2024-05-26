@@ -374,7 +374,7 @@ NULL
             debug.cat("length(Q@x)", len)
             result <- c(-1, len, res) ## yes, this is the code that we have optimized Q-output
         } else {
-            Q <- inla.as.sparse(res)
+            Q <- INLA::inla.as.sparse(res)
             debug.cat("dim(Q)", dim(Q))
             n <- dim(Q)[1L]
             stopifnot(dim(Q)[1L] == dim(Q)[2L])
@@ -385,7 +385,7 @@ NULL
         }
     } else if (cmd %in% "graph") {
         diag(res) <- 1
-        G <- inla.as.sparse(res)
+        G <- INLA::inla.as.sparse(res)
         stopifnot(dim(G)[1L] == dim(G)[2L])
         n <- dim(G)[1L]
         idx <- which(G@i <= G@j)
