@@ -66,7 +66,7 @@ NULL
             if (FALSE) {
                 ## slow and easy: dense-matrices
                 G <- toeplitz(c(1, 1, rep(0, n - 2L)))
-                G <- inla.as.sparse(G)
+                G <- INLA::inla.as.sparse(G)
             } else {
                 ## faster. we only need to define the upper-triangular of G
                 i <- c(
@@ -82,7 +82,7 @@ NULL
                     2L:n
                 )
                 x <- 1 ## meaning that all are 1
-                G <- sparseMatrix(i = i, j = j, x = x, repr = "T")
+                G <- Matrix::sparseMatrix(i = i, j = j, x = x, repr = "T")
             }
         }
         return(G)
@@ -116,7 +116,7 @@ NULL
                     ## off-diagonal
                     rep(-param$rho, n - 1L)
                 )
-            Q <- sparseMatrix(i = i, j = j, x = x, repr = "T")
+            Q <- Matrix::sparseMatrix(i = i, j = j, x = x, repr = "T")
         }
         return(Q)
     }
@@ -196,7 +196,7 @@ NULL
             ## off-diagonal
             2L:n
         )
-        G <- inla.as.sparse(sparseMatrix(i = i, j = j, x = 1, repr = "T"))
+        G <- INLA::inla.as.sparse(Matrix::sparseMatrix(i = i, j = j, x = 1, repr = "T"))
         return(G)
     }
 
@@ -267,13 +267,13 @@ NULL
     }
 
     graph <- function() {
-        G <- Diagonal(n, x = rep(1, n))
+        G <- Matrix::Diagonal(n, x = rep(1, n))
         return(G)
     }
 
     Q <- function() {
         prec <- interpret.theta()$prec
-        Q <- Diagonal(n, x = rep(prec, n))
+        Q <- Matrix::Diagonal(n, x = rep(prec, n))
         return(Q)
     }
 
@@ -368,7 +368,7 @@ NULL
 
     if (cmd %in% "Q") {
         if (model$optimize) {
-            ## pass only Q@x, using the ordering after applying 'inla.sparse.matrix()' to 'Q'
+            ## pass only Q@x, using the ordering after applying 'inla.as.sparse()' to 'Q'
             ## and (of course) only the lower triangular part of Q
             len <- length(res)
             debug.cat("length(Q@x)", len)
@@ -468,31 +468,31 @@ NULL
             ## need the graph to interpret the output
             graph <- do.call(what = func, args = list(cmd = "graph"))
             diag(graph) <- 1
-            graph <- inla.as.sparse(graph)
+            graph <- INLA::inla.as.sparse(graph)
             idx <- which(graph@i <= graph@j)
             graph@i <- graph@i[idx]
             graph@j <- graph@j[idx]
             graph@x <- graph@x[idx]
             graph@x[] <- 1
             stopifnot(length(graph@x) == len.x)
-            Q <- inla.as.sparse(graph)
+            Q <- INLA::inla.as.sparse(graph)
             graph <- NULL
             Q@x <- res
         } else {
             ## since only the upper triangular matrix (diagonal included) is required return from
             ## 'do.call', then make sure its symmetric and that diag(Graph) = 1
             if (cmd %in% "Q") {
-                Q <- inla.as.sparse(res)
+                Q <- INLA::inla.as.sparse(res)
             } else {
                 diag(res) <- 1
-                Q <- inla.as.sparse(res, na.rm = TRUE, zeros.rm = TRUE)
+                Q <- INLA::inla.as.sparse(res, na.rm = TRUE, zeros.rm = TRUE)
                 Q[Q != 0] <- 1
             }
         }
         n <- dim(Q)[1]
         idx.eq <- which(Q@i == Q@j)
         idx.gt <- which(Q@i < Q@j)
-        Q <- sparseMatrix(
+        Q <- Matrix::sparseMatrix(
             i = c(Q@i[idx.eq], Q@i[idx.gt], Q@j[idx.gt]),
             j = c(Q@j[idx.eq], Q@j[idx.gt], Q@i[idx.gt]),
             x = c(Q@x[idx.eq], Q@x[idx.gt], Q@x[idx.gt]),
@@ -500,7 +500,7 @@ NULL
             dims = c(n, n),
             repr = "T"
         )
-        Q <- inla.as.sparse(Q)
+        Q <- INLA::inla.as.sparse(Q)
         return(Q)
     } else if (cmd %in% c("mu", "initial", "log.norm.const", "log.prior")) {
         return(c(as.numeric(res)))
