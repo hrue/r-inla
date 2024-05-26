@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+#include <unistd.h>
 
 #define CSTACK_DEFNS 1
 #include <R.h>
@@ -44,6 +45,8 @@
 #include <Rinterface.h>
 
 #include "GMRFLib/timer.h"
+extern char * GMRFLib_tmpdir;
+
 
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
@@ -236,7 +239,16 @@ int inla_R_init_(void)
 				}
 				// Disable C stack limit check
 				R_CStackLimit = (uintptr_t) (-1);
-				inla_R_source_("/home/hrue/wrap.R");
+
+				char *filename = NULL;
+				GMRFLib_sprintf(&filename, "%s/Rgeneric_wrapper_code_XXXXXX", GMRFLib_tmpdir);
+				int fd = mkstemp(filename);
+				close(fd);
+				FILE *fp = fopen(filename, "w");
+				fprintf(fp, "%s <- function (cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
+					R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
+				fclose(fp);
+				inla_R_source_(filename);
 				R_init = 0;
 			}
 		}
