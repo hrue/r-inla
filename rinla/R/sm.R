@@ -24,13 +24,7 @@
 #' 
 #' @rdname sm
 #' @export inla.as.sparse
-`inla.as.sparse` <- function(...) {
-    return(inla.as.dgTMatrix(...))
-}
-
-#' @rdname sm
-#' @export
-`inla.as.dgTMatrix` <- function(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE) {
+`inla.as.sparse` <- function(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE) {
     ## convert into dgTMatrix format of Matrix. Argument A is any
     ## matrix.  make sure the representation is unique if the UNIQUE
     ## flag it TRUE. (ie no double triplets etc).
@@ -82,6 +76,11 @@
     return(A)
 }
 
+#' @rdname sm
+#' @export
+`inla.as.dgTMatrix` <- function(...) {
+    return(inla.as.sparse(...))
+}
 
 ### Some utilities for sparse matrices using the `Matrix' library
 
