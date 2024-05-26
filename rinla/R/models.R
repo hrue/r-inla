@@ -9657,6 +9657,147 @@
                     pdf = "binomial"
                 ),
 
+                occupancy = list(
+                    doc = "Occupancy likelihood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 56601,
+                            name = "beta1",
+                            short.name = "beta1",
+                            output.name = "beta1 for occupancy observations", 
+                            output.name.intern = "beta1 for occupancy observations", 
+                            initial = -2,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-2, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 56602,
+                            name = "beta2",
+                            short.name = "beta2",
+                            output.name = "beta2 for occupancy observations", 
+                            output.name.intern = "beta2 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 56603,
+                            name = "beta3",
+                            short.name = "beta3",
+                            output.name = "beta3 for occupancy observations", 
+                            output.name.intern = "beta3 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 56604,
+                            name = "beta4",
+                            short.name = "beta4",
+                            output.name = "beta4 for occupancy observations", 
+                            output.name.intern = "beta4 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 56605,
+                            name = "beta5",
+                            short.name = "beta5",
+                            output.name = "beta5 for occupancy observations", 
+                            output.name.intern = "beta5 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 56606,
+                            name = "beta6",
+                            short.name = "beta6",
+                            output.name = "beta6 for occupancy observations", 
+                            output.name.intern = "beta6 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 56607,
+                            name = "beta7",
+                            short.name = "beta7",
+                            output.name = "beta7 for occupancy observations", 
+                            output.name.intern = "beta7 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 56608,
+                            name = "beta8",
+                            short.name = "beta8",
+                            output.name = "beta8 for occupancy observations", 
+                            output.name.intern = "beta8 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 56609,
+                            name = "beta9",
+                            short.name = "beta9",
+                            output.name = "beta9 for occupancy observations", 
+                            output.name.intern = "beta9 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 56610,
+                            name = "beta10",
+                            short.name = "beta10",
+                            output.name = "beta10 for occupancy observations", 
+                            output.name.intern = "beta10 for occupancy observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog", "log"), 
+                    link.simple = c("default", "logit", "cauchit", "probit", "cloglog", "ccloglog"), 
+                    pdf = "occupancy"
+                ), 
+
                 pom = list(
                     doc = "Likelihood for the proportional odds model",
                     hyper = list(

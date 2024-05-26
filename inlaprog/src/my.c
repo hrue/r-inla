@@ -320,9 +320,9 @@ double my_betabinomial_helper(int n, double a, double *work)
 	return (n < 208L ? my_betabinomial_helper8(n, a, work) : my_betabinomial_helper16(n, a, work));
 }
 
-double my_betabinomial(int y, int n, double a, double b)
+double my_betabinomial(int y, int n, double a, double b, double *work)
 {
-	double work[n];
+	// WORK needs to be >= n
 	double s1 = my_betabinomial_helper(y, a, work);
 	double s2 = my_betabinomial_helper(n - y, b, work);
 	double s3 = my_betabinomial_helper(n, a + b, work);

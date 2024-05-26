@@ -100,16 +100,18 @@
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-#define TSTRATA_MAXTHETA (11L)				       /* as given in models.R */
-#define SPDE2_MAXTHETA (100L)				       /* as given in models.R */
-#define SPDE3_MAXTHETA (100L)				       /* as given in models.R */
-#define GENERIC3_MAXTHETA (11L)				       /* as given in models.R */
-#define AR_MAXTHETA (10L)				       /* as given in models.R */
-#define LINK_MAXTHETA (10L)				       /* as given in models.R */
-#define STRATA_MAXTHETA (10L)				       /* as given in models.R */
-#define NMIX_MMAX (15L)					       /* as given in models.R */
-#define POM_MAXTHETA (10L)				       /* as given in models.R */
-#define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
+
+// as given in models.R 
+#define TSTRATA_MAXTHETA (11L)
+#define SPDE2_MAXTHETA (100L)	
+#define SPDE3_MAXTHETA (100L)
+#define GENERIC3_MAXTHETA (11L)	
+#define AR_MAXTHETA (10L)	
+#define LINK_MAXTHETA (10L)	
+#define STRATA_MAXTHETA (10L)	
+#define NMIX_MMAX (15L)		
+#define POM_MAXTHETA (10L)	
+#define INTSLOPE_MAXTHETA (10L)	
 #define BGEV_MAXTHETA (10L)
 #define POISSON0_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
@@ -118,9 +120,8 @@
 #define SCOPY_MAXTHETA (15L)
 #define RCPOISSON_MAXTHETA (10L)
 #define TPOISSON_MAXTHETA (10L)
-
+#define OCCUPANCY_MAXTHETA (10L)
 #define L_FL_NC (9L)
-
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -137,7 +138,7 @@ double *G_norm_const = NULL;				       /* store static normalization constants f
 void **G_norm_const_v = NULL;
 char *G_norm_const_compute = NULL;			       /* to be computed */
 
-int R_load_INLA = 1;
+int R_load_INLA = 0;
 
 /* 
    default values for priors
@@ -2416,6 +2417,18 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					double delta_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &delta_intern);
 					count++;
+				}
+			}
+				break;
+
+			case L_OCCUPANCY:
+			{
+				for (int k = 0; k < OCCUPANCY_MAXTHETA; k++) {
+					if (!ds->data_nfixed[k]) {
+						beta = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
+						count++;
+					}
 				}
 			}
 				break;

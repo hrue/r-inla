@@ -11701,6 +11701,173 @@
 #'          }
 #'         Number of hyperparmeters is 0.
 #'        }
+#'       \item{Model 'occupancy'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Occupancy likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
+#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{pdf = }{\verb{occupancy}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56601}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for occupancy observations}}
+#'             \item{initial = }{\verb{-2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-2 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56602}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56603}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56604}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56605}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56606}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56607}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56608}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56609}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56610}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'pom'.}{
 #'          \describe{
 #'           \item{Properties:}{
