@@ -733,22 +733,14 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 			Free(a[j]);
 		}
 
-		int *nny = ds->data_observations.occ_ny = Calloc(nd, int);
-		for (i = 0; i < nd; i++) {
-			k = 0;
-			for (j = 0; j < ny_max; j++) {
-				if (ISNAN(Y[i * ny_max + j])) {
-					break;
-				}
-				k++;
-			}
-			nny[i] = k;
-		}
 		int *yzero = ds->data_observations.occ_yzero = Calloc(nd, int);
 		for (i = 0; i < nd; i++) {
 			k = 1;
-			for (j = 0; j < nny[i] && k; j++) {
-				k = (k && (Y[i * ny_max + j] == 0));
+			for (j = 0; j < ny_max && k; j++) {
+				double yy = Y[i * ny_max + j];
+				if (!ISNAN(yy)) {
+					k = (k && ISZERO(yy));
+				}
 			}
 			yzero[i] = k;
 		}
@@ -2776,7 +2768,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	LINK_INIT;
 
 	int ny_max = ds->data_observations.occ_ny_max;
-	int ny = ds->data_observations.occ_ny[idx];
 	int nb = ds->data_observations.occ_nbeta;
 	int yzero = ds->data_observations.occ_yzero[idx];
 
@@ -2791,20 +2782,22 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	if (m > 0) {
 		double logll0 = 0.0;
 
-		// double Xbeta[ny];
+		// double Xbeta[ny_max];
 		// const double one = 1.0, zero = 0.0;
 		// const int ione = 1;
 		// (trans, m, n, alpha, a, lda, x, incx, beta, y, incy) 
 		//dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
 
 		// to low dimension for simd or ddot to help in the j-loop below
-		for (int ii = 0; ii < ny; ii++) {
-			double *xx = X + ii * nb, Xbeta = 0.0;
-			for(int j = 0; j < nb; j++) {
-				Xbeta += beta[j] * xx[j];
+		for (int ii = 0; ii < ny_max; ii++) {
+			if (!ISNAN(Y[ii])) {
+				double *xx = X + ii * nb, Xbeta = 0.0;
+				for(int j = 0; j < nb; j++) {
+					Xbeta += beta[j] * xx[j];
+				}
+				double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
+				logll0 += (Y[ii] ? LOG_p(prob) : LOG_1mp(prob));
 			}
-			double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
-			logll0 += (Y[ii] ? LOG_p(prob) : LOG_1mp(prob));
 		}
 
 		double off = OFFSET(idx);

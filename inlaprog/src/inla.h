@@ -750,7 +750,6 @@ typedef struct {
 
 	int occ_nbeta;
 	int occ_ny_max;
-	int *occ_ny;
 	int *occ_yzero;
 	double *occ_y;
 	double *occ_x;

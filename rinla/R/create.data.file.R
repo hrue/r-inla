@@ -647,6 +647,7 @@
         stopifnot(y.attr[1] == 2)
         ny <- y.attr[2]
         m <- y.attr[3]
+        nc <- m %/% ny
         stopifnot(ny > 0)
         stopifnot(m > 0)
         stopifnot(m == nc * ny)
