@@ -48,7 +48,7 @@ NULL
 
     for (pkg in c("Matrix")) {
         if (!isNamespaceLoaded(pkg)) {
-            library(pkg, quietly = TRUE)
+            library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
 
@@ -182,7 +182,7 @@ NULL
 
     for (pkg in c("Matrix")) {
         if (!isNamespaceLoaded(pkg)) {
-            library(pkg, quietly = TRUE)
+            library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
 
@@ -276,7 +276,7 @@ NULL
 
     for (pkg in c("Matrix")) {
         if (!isNamespaceLoaded(pkg)) {
-            library(pkg, quietly = TRUE)
+            library(pkg, quietly = TRUE, character.only = TRUE)
         }
     }
 
