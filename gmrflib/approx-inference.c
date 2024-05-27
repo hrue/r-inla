@@ -934,7 +934,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL); \
 			}
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
-#undef CODE_BLOCK			
+#undef CODE_BLOCK
 		}
 
 		if (ISNAN(err)) {
@@ -2246,7 +2246,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
-
 	// save (x, theta) adding the predictors
 	preopt->mode_theta = Calloc(nhyper, double);
 	Memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
@@ -2654,7 +2653,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_fill(ndev, NAN, deviance_e);
 		GMRFLib_fill(ndev, NAN, deviance_e_sat);
 		GMRFLib_fill(ndev, NAN, sign);
-		
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat)
 		for (int j = 0; j < d_idx->n; j++) {
 			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;

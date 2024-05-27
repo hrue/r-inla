@@ -441,7 +441,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		}
 	}
 	GMRFLib_tmpdir = mb->dir;			       /* so we can easily use it elsewhere */
-	
+
 	inla_parse_output(mb, ini, sec, &(mb->output));
 	return INLA_OK;
 }
@@ -1228,25 +1228,25 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_OCCUPANCY: 
+	case L_OCCUPANCY:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				for(int kk = 0; kk < ds->data_observations.occ_ny_max; kk++) {
+				for (int kk = 0; kk < ds->data_observations.occ_ny_max; kk++) {
 					int k = i * ds->data_observations.occ_ny_max + kk;
 					if (!ISNAN(ds->data_observations.occ_y[k]) &&
 					    (((int) ds->data_observations.occ_y[k] != ds->data_observations.occ_y[k]) ||
 					     ds->data_observations.occ_y[k] < 0)) {
-						    GMRFLib_sprintf(&msg, "%s: occupancy observation y[%1d,%1d] = %g is void\n", secname, i, kk, 
-								    ds->data_observations.occ_y[k]);
-						    inla_error_general(msg);
+						GMRFLib_sprintf(&msg, "%s: occupancy observation y[%1d,%1d] = %g is void\n", secname, i, kk,
+								ds->data_observations.occ_y[k]);
+						inla_error_general(msg);
 					}
 				}
 			}
 		}
 	}
-	break;
-						
+		break;
+
 	case L_IID_GAMMA:
 	case L_IID_LOGITBETA:
 	case L_LOGGAMMA_FRAILTY:
@@ -7453,7 +7453,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_OCCUPANCY: 
+	case L_OCCUPANCY:
 	{
 		if (mb->verbose) {
 			printf("\t\tny_max=[%1d]\n", ds->data_observations.occ_ny_max);
@@ -7465,7 +7465,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->data_nfixed = Calloc(OCCUPANCY_MAXTHETA, int);
 
 		for (int k = 0; k < OCCUPANCY_MAXTHETA; k++) {
-			ds->data_nfixed[k] = 1;	
+			ds->data_nfixed[k] = 1;
 		}
 
 		// mark all as read
