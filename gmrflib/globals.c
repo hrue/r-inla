@@ -172,4 +172,4 @@ int GMRFLib_gaussian_data = 0;
 int GMRFLib_testit_mode = 0;
 int GMRFLib_testit_debug = 0;
 int GMRFLib_taucs_sort_L = 0;
-char * GMRFLib_tmpdir = NULL;
+char *GMRFLib_tmpdir = NULL;

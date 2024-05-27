@@ -45,7 +45,7 @@
 #include <Rinterface.h>
 
 #include "GMRFLib/timer.h"
-extern char * GMRFLib_tmpdir;
+extern char *GMRFLib_tmpdir;
 
 
 // two copies...
@@ -250,8 +250,7 @@ int inla_R_init_(void)
 					R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
 				fclose(fp);
 				inla_R_source_quiet_(filename);
-				Free(filename);
-				
+
 				R_init = 0;
 			}
 		}

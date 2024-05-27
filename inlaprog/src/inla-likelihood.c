@@ -2774,7 +2774,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	double *X = &(ds->data_observations.occ_x[idx * nb * ny_max]);
 	double *Y = &(ds->data_observations.occ_y[idx * ny_max]);
 
-	double beta[nb]; 
+	double beta[nb];
 	for (int i = 0; i < nb; i++) {
 		beta[i] = ds->data_observations.occ_beta[i][thread_id][0];
 	}
@@ -2786,13 +2786,13 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		// const double one = 1.0, zero = 0.0;
 		// const int ione = 1;
 		// (trans, m, n, alpha, a, lda, x, incx, beta, y, incy) 
-		//dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
+		// dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
 
 		// to low dimension for simd or ddot to help in the j-loop below
 		for (int ii = 0; ii < ny_max; ii++) {
 			if (!ISNAN(Y[ii])) {
 				double *xx = X + ii * nb, Xbeta = 0.0;
-				for(int j = 0; j < nb; j++) {
+				for (int j = 0; j < nb; j++) {
 					Xbeta += beta[j] * xx[j];
 				}
 				double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
@@ -5352,9 +5352,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
