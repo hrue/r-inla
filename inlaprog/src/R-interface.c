@@ -343,7 +343,7 @@ int inla_R_source_quiet_(const char *filename)
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
 		exit(1);
 	}
-	UNPROTECT(5);
+	UNPROTECT(4);
 
 	if (R_debug) {
 		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
