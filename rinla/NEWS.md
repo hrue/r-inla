@@ -1,10 +1,12 @@
-# INLA_24.05.26
-* Do not longer load INLA-package by default using `rgeneric` or `rprior`
-* New (experimental) likelihood: occupancy
+# INLA_24.05.27
+* Change: do not load INLA-package by default using `rgeneric` or `rprior`
+* New (experimental) likelihood: `occupancy`
+* Optimized family `betabinomial`
+* Minor code work
 
 # INLA_24.05.22
 * Increased max.dim for model `iidkd` from 20 to 24
-* Optimizing family `betabinomial`
+* Optimized family `betabinomial`
 
 # INLA_24.05.18
 * Fixed (I hope) PARDISO issue for Mac (Intel and M...) due to OpenMP
