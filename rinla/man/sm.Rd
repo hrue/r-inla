@@ -5,14 +5,11 @@
 \alias{inla.as.dgTMatrix}
 \title{Convert a matrix or sparse matrix into the sparse formate used by INLA}
 \usage{
-inla.as.sparse(...)
+inla.as.sparse(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
 
-inla.as.dgTMatrix(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
+inla.as.dgTMatrix(...)
 }
 \arguments{
-\item{...}{The arguments. The matrix or sparse matrix, and the additonal
-arguments}
-
 \item{A}{The matrix}
 
 \item{unique}{Logical. If \code{TRUE}, then ensure that the internal
@@ -22,6 +19,9 @@ change this unless you know what you are doing.)}
 \item{na.rm}{Replace \code{NA}'s in the matrix with zeros.}
 
 \item{zeros.rm}{Remove zeros in the matrix.}
+
+\item{...}{The arguments. The matrix or sparse matrix, and the additonal
+arguments}
 }
 \value{
 \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same
