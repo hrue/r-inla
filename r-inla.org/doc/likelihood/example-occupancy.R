@@ -1,4 +1,4 @@
-n <- 500
+n <- 1000
 m <- 3
 nc <- 2
 beta <- c(-1, rnorm(nc-1, sd = 0.2))
@@ -31,8 +31,6 @@ for (i in 1:n) {
 r <- inla(inla.mdata(Y, X) ~ 1 + z,
           family = "occupancy",
           data = list(Y = Y, X = X, z = z),
-          safe = FALSE,
-          verbose = TRUE,
           control.fixed = list(prec.intercept = 1), 
           control.inla = list(cmin = 0.0))
 summary(r)
