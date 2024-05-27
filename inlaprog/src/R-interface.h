@@ -93,6 +93,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 
 #define inla_R_source(a1) inla_R_do_(INLA_R_SOURCE, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_source_(const char *filename);
+int inla_R_source_quiet_(const char *filename);
 
 #define inla_R_exit() inla_R_do_(INLA_R_EXIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_exit_(void);

@@ -237,18 +237,21 @@ int inla_R_init_(void)
 					fprintf(stderr, "R-interface: init\n");
 					fflush(stderr);
 				}
+
 				// Disable C stack limit check
 				R_CStackLimit = (uintptr_t) (-1);
 
 				char *filename = NULL;
-				GMRFLib_sprintf(&filename, "%s/Rgeneric_wrapper_code_XXXXXX", GMRFLib_tmpdir);
+				GMRFLib_sprintf(&filename, "%s/inla_rgeneric_wrapper_XXXXXX", GMRFLib_tmpdir);
 				int fd = mkstemp(filename);
 				close(fd);
 				FILE *fp = fopen(filename, "w");
-				fprintf(fp, "%s <- function (cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
+				fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
 					R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
 				fclose(fp);
-				inla_R_source_(filename);
+				inla_R_source_quiet_(filename);
+				Free(filename);
+				
 				R_init = 0;
 			}
 		}
@@ -305,6 +308,37 @@ int inla_R_source_(const char *filename)
 	ttrue = PROTECT(ScalarLogical(TRUE));
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang4(install("source"), yy, ffalse, ttrue));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
+	if (result == NULL || error) {
+		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
+		exit(1);
+	}
+	UNPROTECT(5);
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
+		fflush(stderr);
+	}
+
+	return (INLA_OK);
+}
+
+int inla_R_source_quiet_(const char *filename)
+{
+	if (!filename)
+		return (INLA_OK);
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: enter: source file [%s]\n", filename);
+		fflush(stderr);
+	}
+
+	SEXP e, result, yy, ffalse;
+	int error;
+
+	ffalse = PROTECT(ScalarLogical(FALSE));
+	yy = PROTECT(mkString(filename));
+	e = PROTECT(lang4(install("source"), yy, ffalse, ffalse));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
