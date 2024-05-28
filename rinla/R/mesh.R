@@ -3394,7 +3394,7 @@ inla.mesh.basis <- function(mesh,
             boundary[2], free.clamped
           )
         basis <-
-          inla.row.kron(
+          fmesher::fm_row_kron(
             inla.mesh.1d.A(mesh1y, mesh$loc[, 2]),
             inla.mesh.1d.A(mesh1x, mesh$loc[, 1])
           )
