@@ -17,18 +17,24 @@ inla.stack.remove.unused(stack)
 
 inla.stack.compress(stack, remove.unused = TRUE)
 
-inla.stack(..., compress = TRUE, remove.unused = TRUE)
+inla.stack(..., compress = TRUE, remove.unused = TRUE, multi.family = FALSE)
 
 inla.stack.sum(
   data,
   A,
   effects,
+  response = NULL,
   tag = "",
   compress = TRUE,
   remove.unused = TRUE
 )
 
-inla.stack.join(..., compress = TRUE, remove.unused = TRUE)
+inla.stack.join(
+  ...,
+  compress = TRUE,
+  remove.unused = TRUE,
+  multi.family = FALSE
+)
 
 inla.stack.index(stack, tag)
 
@@ -56,6 +62,12 @@ removing those columns).}
 \item{compress}{If \code{TRUE}, compress the model by removing duplicated
 rows of effects, replacing the corresponding A-matrix columns with a single
 column containing the sum.}
+
+\item{multi.family}{logical or character; in \code{inla.data.join}, if \code{TRUE},
+the \code{response} part of the stack is joined as a \code{list}. If \code{character},
+denotes the name of a \code{data} element that should be joined as a multi-column
+matrix. Default is \code{FALSE}, which joins both the \code{data} and \code{response}
+with regular row binding with \code{dplyr::bind_rows}.}
 
 \item{data}{A list or codedata.frame of named data vectors. Scalars are
 expanded to match the number of rows in the A matrices, or any non-scalar

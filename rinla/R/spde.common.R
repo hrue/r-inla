@@ -1063,63 +1063,107 @@ inla.spde.make.A <-
 
 #' @noRd
 rbind.inla.data.stack.info <- function(...) {
-    l <- list(...)
-    names(l) <- NULL
-    names.tmp <- do.call(c, lapply(l, function(x) x$names))
-    ncol.tmp <- do.call(c, lapply(l, function(x) x$ncol))
-
-    ncol <- c()
-    names <- list()
-    for (k in 1:length(names.tmp)) {
-        name <- names(names.tmp)[k]
-        if (!is.null(names[[name]])) {
-            if (!identical(
-                names[[name]],
-                names.tmp[[k]]
-            )) {
-                stop("Name mismatch.")
-            }
-        }
-        names[[name]] <- names.tmp[[k]]
-
-        if (!is.null(as.list(ncol)[[name]])) {
-            if (ncol[name] != ncol.tmp[[k]]) {
-                stop("ncol mismatch.")
-            }
-        }
-        ncol[name] <- ncol.tmp[[k]]
+  l <- list(...)
+  names(l) <- NULL
+  names.tmp <- do.call(c, lapply(l, function(x) x$names))
+  ncol.tmp <- do.call(c, lapply(l, function(x) x$ncol))
+  
+  ncol <- c()
+  names <- list()
+  for (k in 1:length(names.tmp)) {
+    name <- names(names.tmp)[k]
+    if (!is.null(names[[name]])) {
+      if (!identical(
+        names[[name]],
+        names.tmp[[k]]
+      )) {
+        stop("Name mismatch.")
+      }
     }
-
-    data <- dplyr::bind_rows(lapply(l, function(x) x[["data"]]))
-
-    offset <- 0
-    index <- list()
-    for (k in 1:length(l)) {
-        for (j in 1:length(l[[k]]$index)) {
-            if (is.null(index[[names(l[[k]]$index)[j]]])) {
-                index[[names(l[[k]]$index)[j]]] <- l[[k]]$index[[j]] + offset
-            } else {
-                index[[names(l[[k]]$index)[j]]] <-
-                    c(
-                        index[[names(l[[k]]$index)[j]]],
-                        l[[k]]$index[[j]] + offset
-                    )
-            }
-        }
-        offset <- offset + l[[k]]$nrow
+    names[[name]] <- names.tmp[[k]]
+    
+    if (!is.null(as.list(ncol)[[name]])) {
+      if (ncol[name] != ncol.tmp[[k]]) {
+        stop("ncol mismatch.")
+      }
     }
+    ncol[name] <- ncol.tmp[[k]]
+  }
+  
+  data <- dplyr::bind_rows(lapply(l, function(x) x[["data"]]))
+  
+  offset <- 0
+  index <- list()
+  for (k in 1:length(l)) {
+    for (j in 1:length(l[[k]]$index)) {
+      if (is.null(index[[names(l[[k]]$index)[j]]])) {
+        index[[names(l[[k]]$index)[j]]] <- l[[k]]$index[[j]] + offset
+      } else {
+        index[[names(l[[k]]$index)[j]]] <-
+          c(
+            index[[names(l[[k]]$index)[j]]],
+            l[[k]]$index[[j]] + offset
+          )
+      }
+    }
+    offset <- offset + l[[k]]$nrow
+  }
+  
+  info <-
+    list(
+      data = data,
+      nrow = nrow(data),
+      ncol = ncol,
+      names = names,
+      index = index
+    )
+  class(info) <- "inla.data.stack.info"
+  
+  return(info)
+}
 
-    info <-
-        list(
-            data = data,
-            nrow = nrow(data),
-            ncol = ncol,
-            names = names,
-            index = index
-        )
-    class(info) <- "inla.data.stack.info"
+#' @noRd
+rbind.inla.stack.responses <- function(...) {
+  l <- list(...)
+  null.l <- vapply(l, is.null, logical(1))
+  l <- l[!null.l]
+  if (length(l) == 0) {
+    return(list(NULL))
+  }
 
-    return(info)
+  l <- lapply(l, function(x) {
+    if (inherits(x, "inla.mdata") && !is.data.frame(x)) {
+      # Convert mdata list to data.frame
+      attribs <- attributes(x)
+      as.data.frame(x)
+      attributes(x) <- list(inla.ncols = attribs$inla.ncols,
+                            names.ori = attribs$names.ori)
+      class(x) <- c("inla.mdata", "data.frame", "list")
+      x
+    } else {
+      x
+    }
+  })
+
+  classes <- lapply(l, class)
+  if (length(unique(classes)) > 1) {
+    stop("Cannot rbind responses with different classes.")
+  }
+  
+  attribs <- lapply(l, attributes)
+
+  if (all(vapply(l, is.data.frame, logical(1)))) {
+    responses <- dplyr::bind_rows(l)
+    class(responses) <- classes[[1]]
+    if (inherits(responses, "inla.mdata")) {
+      attributes(responses) <- list(inla.ncols = attribs[[1]]$inla.ncols,
+                                    names.ori = attribs[[1]]$names.ori)
+    }
+  } else {
+    responses <- do.call(c, l)
+  }
+  
+  return(list(responses))
 }
 
 #' @describeIn inla.stack Remove unused entries from an existing stack
@@ -1142,7 +1186,7 @@ inla.stack.remove.unused <- function(stack) {
 
     ncol.A <- sum(!remove)
     if (ncol.A > 0) {
-          index.new[!remove] <- 1:ncol.A
+          index.new[!remove] <- seq_len(ncol.A)
       }
     index.new[remove] <- index.new[index.new[remove]]
 
@@ -1209,7 +1253,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 
     ncol.A <- sum(!remove)
     if (ncol.A > 0) {
-          index.new[!remove] <- 1:ncol.A
+          index.new[!remove] <- seq_len(ncol.A)
       }
     index.new[remove] <- index.new[index.new[remove]]
 
@@ -1292,6 +1336,11 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #' @param remove.unused If `TRUE`, compress the model by removing rows of
 #' effects corresponding to all-zero columns in the `A` matrix (and
 #' removing those columns).
+#' @param multi.family logical or character; in `inla.data.join`, if `TRUE`,
+#' the `response` part of the stack is joined as a `list`. If `character`,
+#' denotes the name of a `data` element that should be joined as a multi-column
+#' matrix. Default is `FALSE`, which joins both the `data` and `response`
+#' with regular row binding with `dplyr::bind_rows`.
 #' @param ... For `inla.stack.join`, two or more data stacks of class
 #' `inla.data.stack`, created by a call to `inla.stack`,
 #' `inla.stack.sum`, or `inla.stack.join`. For
@@ -1454,13 +1503,14 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #'     main = "True field vs standardised prediction residuals"
 #' )
 #' @export inla.stack
-inla.stack <- function(..., compress = TRUE, remove.unused = TRUE) {
+inla.stack <- function(..., compress = TRUE, remove.unused = TRUE, multi.family = FALSE) {
     if (all(sapply(list(...), function(x) inherits(x, "inla.data.stack")))) {
         return(do.call(
             inla.stack.join,
             c(list(...),
                 compress = compress,
-                remove.unused = remove.unused
+                remove.unused = remove.unused,
+                multi.family = multi.family
             )
         ))
     } else {
@@ -1478,7 +1528,7 @@ inla.stack <- function(..., compress = TRUE, remove.unused = TRUE) {
 #' @describeIn inla.stack Create data stack as a sum of predictors
 #'
 #' @export
-inla.stack.sum <- function(data, A, effects,
+inla.stack.sum <- function(data, A, effects, response = NULL,
                            tag = "",
                            compress = TRUE,
                            remove.unused = TRUE) {
@@ -1488,7 +1538,7 @@ inla.stack.sum <- function(data, A, effects,
           nrow(x),
           inla.ifelse(
             inherits(x, "inla.mdata"),
-            NROW(x[[1]]),
+            stop("inla.mdata objects must be given as 'response' input"),
             inla.ifelse(
               is.data.frame(x),
               rep(nrow(x), ncol(x)),
@@ -1529,7 +1579,7 @@ inla.stack.sum <- function(data, A, effects,
         if (is.data.frame(l)) {
               return(colnames(l))
           }
-        is.df <- sapply(l, is.data.frame)
+        is.df <- vapply(l, is.data.frame, logical(1))
         name <- vector("list", length(l))
         if (!is.null(names(l))) {
               name[!is.df] <-
@@ -1578,13 +1628,13 @@ inla.stack.sum <- function(data, A, effects,
             ))
         }
 
-        for (k in 1:length(names)) {
+        for (k in seq_len(length(names))) {
             if (ncol[k] == 1) {
                 names(names)[k] <- names[[k]][[1]]
                 names[[k]] <- c(names[[k]][[1]])
             } else {
                 names(names)[k] <- names[[k]][[1]]
-                names[[k]] <- paste(names[[k]][[1]], ".", 1:ncol[k], sep = "")
+                names[[k]] <- paste(names[[k]][[1]], ".", seq_len(ncol[k]), sep = "")
             }
         }
 
@@ -1593,7 +1643,9 @@ inla.stack.sum <- function(data, A, effects,
 
         ## data = as.data.frame(do.call(cbind, l))
         data <- as.data.frame(l)
-        names(data) <- do.call(c, names)
+        if (!is.null(names)) {
+          names(data) <- do.call(c, names)
+        }
         nrow <- nrow(data)
         if ((n.A > 1 || n.A.strict) && (nrow != n.A)) {
             stop(paste(error.tag,
@@ -1604,7 +1656,7 @@ inla.stack.sum <- function(data, A, effects,
             ))
         }
 
-        index <- list(1:nrow)
+        index <- list(seq_len(nrow))
         if (!is.null(tag)) {
             names(index) <- tag
         }
@@ -1724,7 +1776,12 @@ inla.stack.sum <- function(data, A, effects,
         ))
     }
 
-    stack <- list(A = A.matrix, data = data, effects = effects)
+    stack <- list(
+      A = A.matrix,
+      data = data,
+      effects = effects,
+      response = list(response)
+    )
     class(stack) <- "inla.data.stack"
 
     if (compress) {
@@ -1736,11 +1793,103 @@ inla.stack.sum <- function(data, A, effects,
     }
 }
 
+# Expand observation vectors/matrices in stacks into to a multicolumn matrix for multiple likelihoods
+#
+# @aliases inla.stack.mexpand
+# @name inla.stack.mexpand
+# @export
+# @param ... List of stacks that contain vector observations
+#            (existing multilikelihood observation matrices are also permitted)
+# @param old.names A vector of strings with the names of the observation vector/matrix for each stack.
+#        If a single string, this is assumed for all the stacks. (default "BRU.response")
+# @param new.name The name to be used for the expanded observation matrix,
+#        possibly the same as an old name. (default "BRU.response")
+# @return a list of modified stacks with multicolumn observations
+# @author Fabian E. Bachl \email{f.e.bachl@@bath.ac.uk} and Finn Lindgren \email{finn.lindgren@@gmail.com}
+#
+
+inla.stack.mexpand <- function(...,
+                               old.names = "response",
+                               new.name = "response") {
+  stacks <- list(...)
+  if (length(old.names) == 1) {
+    old.names <- rep(old.names, length(stacks))
+  }
+  y.cols <- unlist(lapply(seq_along(stacks),
+                          function(x, stacks, old.names) {
+                            LHS <- INLA::inla.stack.LHS(stacks[[x]])[[old.names[x]]]
+                            ifelse(is.vector(LHS), 1, ncol(LHS))
+                          },
+                          stacks = stacks, old.names = old.names
+  ))
+  y.offset <- c(0, cumsum(y.cols))
+  y.cols.total <- sum(y.cols)
+  for (j in seq_along(stacks)) {
+    LHS <- INLA::inla.stack.LHS(stacks[[j]])
+    RHS <- INLA::inla.stack.RHS(stacks[[j]])
+    A <- INLA::inla.stack.A(stacks[[j]])
+    response <- stacks[[j]][["response"]]
+    # Access the raw tag indexing information
+    tags <- list(
+      data = stacks[[j]]$data$index,
+      effects = stacks[[j]]$effects$index
+    )
+    
+    # Expand the observation vector/matrix into a multilikelihood observation matrix:
+    y.rows <- ifelse(is.vector(LHS[[old.names[j]]]),
+                     length(LHS[[old.names[j]]]),
+                     nrow(LHS[[old.names[j]]])
+    )
+    LHS[[new.name]] <-
+      cbind(
+        matrix(NA, nrow = y.rows, ncol = y.offset[j]),
+        LHS[[old.names[j]]],
+        matrix(NA, nrow = y.rows, ncol = y.cols.total - y.offset[j + 1])
+      )
+    
+    # Create the modified stack, with model compression disabled to prevent modifications:
+    stacks[[j]] <-
+      INLA::inla.stack.sum(data = LHS, A = A, effects = RHS, compress = FALSE, remove.unused = FALSE,
+                           response = response)
+    # Since the row indexing is unchanged, copy the tag index information:
+    stacks[[j]]$data$index <- tags$data
+    stacks[[j]]$effects$index <- tags$effects
+  }
+  stacks
+}
+
 #' @describeIn inla.stack Join two or more data stacks
 #'
 #' @export
-inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE) {
-    S.input <- list(...)
+inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.family = FALSE) {
+    if (is.character(multi.family)) {
+        # NA expand response variable as matrix
+        S.input <- inla.stack.mexpand(...,
+                                      old.names = multi.family,
+                                      new.name = multi.family)
+        # Nothing more to do for multi-likelihoods
+        # For non-multi, need to join the matrices (see below)
+        multi.family <- FALSE
+    } else {
+      S.input <- list(...)
+    }
+  
+    # Join responses as a list
+    response <- do.call(c,
+                        lapply(S.input,
+                               function(x) {
+                                 if (is.null(x[["response"]])) {
+                                   list(NULL)
+                                 } else {
+                                   x[["response"]]
+                                 }
+                               }))
+    if (isFALSE(multi.family)) {
+        response <- do.call(
+          rbind.inla.stack.responses,
+          response
+        )
+    }
 
     data <- do.call(
         rbind.inla.data.stack.info,
@@ -1753,7 +1902,7 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE) {
     ## The .bdiag form of bdiag takes a list as input.
     A <- .bdiag(lapply(S.input, function(x) x$A))
 
-    S.output <- list(A = A, data = data, effects = effects)
+    S.output <- list(A = A, data = data, effects = effects, response = response)
     class(S.output) <- "inla.data.stack"
 
     if (length(unique(c(names(data$names), names(effects$names)))) <
