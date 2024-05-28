@@ -1132,13 +1132,13 @@ rbind.inla.stack.responses <- function(...) {
   }
 
   l <- lapply(l, function(x) {
-    if (inherits(x, "inla.mdata") && !is.data.frame(x)) {
-      # Convert mdata list to data.frame
+    if (inherits(x, "inla.mdata")) {
+      # Make sure mdata is a data.frame
       attribs <- attributes(x)
-      as.data.frame(x)
-      attributes(x) <- list(inla.ncols = attribs$inla.ncols,
-                            names.ori = attribs$names.ori)
-      class(x) <- c("inla.mdata", "data.frame", "list")
+      x <- as.data.frame(x)
+      attr(x, "inla.ncols") <- attribs$inla.ncols
+      attr(x, "names.ori") <- attribs$names.ori
+      class(x) <- c("inla.mdata", "data.frame")
       x
     } else {
       x
@@ -1156,8 +1156,8 @@ rbind.inla.stack.responses <- function(...) {
     responses <- dplyr::bind_rows(l)
     class(responses) <- classes[[1]]
     if (inherits(responses, "inla.mdata")) {
-      attributes(responses) <- list(inla.ncols = attribs[[1]]$inla.ncols,
-                                    names.ori = attribs[[1]]$names.ori)
+        attr(responses, "inla.ncols") <- attribs[[1]]$inla.ncols
+        attr(responses, "names.ori") <- attribs[[1]]$names.ori
     }
   } else {
     responses <- do.call(c, l)

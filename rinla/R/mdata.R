@@ -45,7 +45,7 @@
     }
     obj <- as.data.frame(obj)
     attr(obj, "inla.ncols") <- c(length(ncols), ncols)
-    class(obj) <- c("inla.mdata", "data.frame", "list")
+    class(obj) <- c("inla.mdata", "data.frame")
     attr(obj, "names.ori") <- names.ori
     return(obj)
 }
@@ -75,7 +75,7 @@
     object <- as.data.frame(object)
     warning("Guess that ncol(response) == 1. Otherwise,  please modify 'names(object)'.")
     attr(object, "inla.ncols") <- ncols
-    class(object) <- c("inla.mdata", "data.frame", "list")
+    class(object) <- c("inla.mdata", "data.frame")
     return(object)
 }
 
