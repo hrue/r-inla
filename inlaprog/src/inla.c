@@ -231,6 +231,7 @@ int R_load_INLA = 0;
 #include "inla-classic.c"
 #include "inla-read.c"
 #include "inla-parse.c"
+#include "param-constr.c"
 
 double inla_interpolate_mode(double *x, double *y)
 {
@@ -522,6 +523,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		Free(secname);
 		Free(sectype);
 	}
+
+
+	inla_parse_param_constraints(mb);
 
 	/*
 	 * build the index table and the hash; need this before reading the lincomb sections
@@ -1244,8 +1248,7 @@ inla_iarray_tp *find_all_f(inla_tp *mb, inla_component_tp id)
 
 int find_f(inla_tp *mb, inla_component_tp id)
 {
-	int i;
-	for (i = 0; i < mb->nf; i++) {
+	for (int i = 0; i < mb->nf; i++) {
 		if (mb->f_id[i] == id) {
 			return i;
 		}
@@ -1255,8 +1258,7 @@ int find_f(inla_tp *mb, inla_component_tp id)
 
 int find_tag(inla_tp *mb, const char *name)
 {
-	int i;
-	for (i = 0; i < mb->nf; i++) {
+	for (int i = 0; i < mb->nf; i++) {
 		if (!strcasecmp((const char *) mb->f_tag[i], name))
 			return i;
 	}
@@ -1265,8 +1267,8 @@ int find_tag(inla_tp *mb, const char *name)
 
 int count_f(inla_tp *mb, inla_component_tp id)
 {
-	int i, n = 0;
-	for (i = 0; i < mb->nf; i++) {
+	int n = 0;
+	for (int i = 0; i < mb->nf; i++) {
 		if (mb->f_id[i] == id) {
 			n++;
 		}

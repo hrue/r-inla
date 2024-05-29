@@ -50,6 +50,7 @@ __BEGIN_DECLS
 #include "stochvol.h"
 #include "quantile-regression.h"
 #include "cgeneric.h"
+
 #define ONE_mexp(_x) (-expm1(_x))			       /* 1-exp(_x) */
 #define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #define LOG_p(_x) log1p((_x) - 1.0)
@@ -2407,6 +2408,10 @@ typedef struct {
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
+
+
+// needs inla_tp definition
+#include "param-constr.h"
 
 __END_DECLS
 #endif

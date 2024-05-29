@@ -8950,7 +8950,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		Free(c);
 	}
 
-
 	return INLA_OK;
 }
 
