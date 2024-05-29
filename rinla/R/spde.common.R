@@ -1123,14 +1123,13 @@ rbind.inla.data.stack.info <- function(...) {
 }
 
 #' @noRd
-rbind.inla.stack.responses <- function(...) {
-  l <- list(...)
+rbind.inla.stack.responses <- function(l) {
   null.l <- vapply(l, is.null, logical(1))
   l <- l[!null.l]
   if (length(l) == 0) {
     return(list(NULL))
   }
-
+  
   l <- lapply(l, function(x) {
     if (inherits(x, "inla.mdata")) {
       # Make sure mdata is a data.frame
@@ -1144,26 +1143,91 @@ rbind.inla.stack.responses <- function(...) {
       x
     }
   })
-
+  
   classes <- lapply(l, class)
   if (length(unique(classes)) > 1) {
     stop("Cannot rbind responses with different classes.")
   }
   
   attribs <- lapply(l, attributes)
-
+  
   if (all(vapply(l, is.data.frame, logical(1)))) {
-    responses <- dplyr::bind_rows(l)
-    class(responses) <- classes[[1]]
-    if (inherits(responses, "inla.mdata")) {
-        attr(responses, "inla.ncols") <- attribs[[1]]$inla.ncols
-        attr(responses, "names.ori") <- attribs[[1]]$names.ori
+    response <- dplyr::bind_rows(l)
+    class(response) <- classes[[1]]
+    if (inherits(response, "inla.mdata")) {
+      attr(response, "inla.ncols") <- attribs[[1]]$inla.ncols
+      attr(response, "names.ori") <- attribs[[1]]$names.ori
     }
   } else {
-    responses <- do.call(c, l)
+    response <- do.call(c, l)
   }
   
-  return(list(responses))
+  return(list(response))
+}
+
+#' @noRd
+expand.inla.stack.responses <- function(l) {
+  nrows <- vapply(l, NROW, integer(1))
+  
+  responses <- lapply(
+    seq_along(l),
+    function(k) {
+      x <- l[[k]]
+      if (is.data.frame(x)) {
+        y <- dplyr::bind_rows(
+          as.data.frame(
+            matrix(
+              NA,
+              nrow = sum(nrows[seq_len(k - 1)]),
+              ncol = 0
+            )
+          ),
+          x,
+          as.data.frame(
+            matrix(
+              NA,
+              nrow = sum(nrows[-seq_len(k)]),
+              ncol = 0
+            )
+          )
+        )
+        if (inherits(x, "inla.mdata")) {
+          attr(y, "inla.ncols") <- attr(x, "inla.ncols")
+          attr(y, "names.ori") <- attr(x, "names.ori")
+          class(y) <- c("inla.mdata", "data.frame")
+        }
+      } else if (is.matrix(x)) {
+        NA_ <- x[1, 1]
+        is.na(NA_) <- TRUE
+        y <- rbind(
+          matrix(
+            NA_,
+            nrow = sum(nrows[seq_len(k - 1)]),
+            ncol = ncol(x)
+          ),
+          x,
+          matrix(
+            NA_,
+            nrow = sum(nrows[-seq_len(k)]),
+            ncol = ncol(x)
+          )
+        )
+      } else if (is.vector(x)) {
+        NA_ <- x[1]
+        is.na(NA_) <- TRUE
+        y <- c(
+          rep(NA_, sum(nrows[seq_len(k - 1)])),
+          x,
+          rep(NA_, sum(nrows[-seq_len(k)])))
+      } else {
+        stop("Don't know how to expand responses of class '",
+             paste0(class(x), collapse = ", "), "'.")
+      }
+      y
+    })
+  
+
+  return(responses)
 }
 
 #' @describeIn inla.stack Remove unused entries from an existing stack
@@ -1863,7 +1927,7 @@ inla.stack.mexpand <- function(...,
 #' @export
 inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.family = FALSE) {
     if (is.character(multi.family)) {
-        # NA expand response variable as matrix
+        # NA expand response variable in the data part as matrix
         S.input <- inla.stack.mexpand(...,
                                       old.names = multi.family,
                                       new.name = multi.family)
@@ -1875,7 +1939,7 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
     }
   
     # Join responses as a list
-    response <- do.call(c,
+    responses <- do.call(c,
                         lapply(S.input,
                                function(x) {
                                  if (is.null(x[["response"]])) {
@@ -1885,10 +1949,10 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
                                  }
                                }))
     if (isFALSE(multi.family)) {
-        response <- do.call(
-          rbind.inla.stack.responses,
-          response
-        )
+        responses <- rbind.inla.stack.responses(responses)
+    }
+    if (isTRUE(multi.family)) {
+      responses <- expand.inla.stack.responses(responses)
     }
 
     data <- do.call(
@@ -1902,7 +1966,7 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
     ## The .bdiag form of bdiag takes a list as input.
     A <- .bdiag(lapply(S.input, function(x) x$A))
 
-    S.output <- list(A = A, data = data, effects = effects, response = response)
+    S.output <- list(A = A, data = data, effects = effects, responses = responses)
     class(S.output) <- "inla.data.stack"
 
     if (length(unique(c(names(data$names), names(effects$names)))) <
