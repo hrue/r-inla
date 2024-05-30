@@ -1590,6 +1590,9 @@ inla.stack <- function(..., compress = TRUE, remove.unused = TRUE, multi.family 
 
 
 #' @describeIn inla.stack Create data stack as a sum of predictors
+#' @param response A list of response vectors, matrices, data.frame, or other special
+#' response objects, such as `inla.mdata`. In ordinary user-side code,
+#' the list has length 1.
 #'
 #' @export
 inla.stack.sum <- function(data, A, effects, response = NULL,
@@ -1844,7 +1847,7 @@ inla.stack.sum <- function(data, A, effects, response = NULL,
       A = A.matrix,
       data = data,
       effects = effects,
-      response = list(response)
+      response = response
     )
     class(stack) <- "inla.data.stack"
 
@@ -2079,6 +2082,55 @@ inla.stack.data <- function(stack, ...) {
 #'
 #' @export
 inla.stack.A <- function(stack) {
-    inla.require.inherits(stack, "inla.data.stack", "'stack'")
-    return(stack$A)
+  inla.require.inherits(stack, "inla.data.stack", "'stack'")
+  return(stack$A)
 }
+
+#' @describeIn inla.stack Extract the response variable or list of response objects
+#'
+#' @export
+inla.stack.response <- function(stack) {
+  inla.require.inherits(stack, "inla.data.stack", "'stack'")
+  return(stack$response)
+}
+
+#' @describeIn inla.stack Print information about an `inla.data.stack`
+#'
+#' @method print inla.data.stack
+#' @export
+print.inla.data.stack <- function(x, ...) {
+  inla.require.inherits(x, "inla.data.stack", "'stack'")
+  LHS <- inla.stack.LHS(x)
+  RHS <- inla.stack.RHS(x)
+  A <- inla.stack.A(x)
+  response <- inla.stack.response(x)
+  LHS_n <- if (is.data.frame(LHS)) {
+    NROW(LHS)
+  } else if (length(LHS) > 0) {
+    unique(vapply(LHS, NROW, 1L))
+  } else {
+    0
+  }
+  RHS_n <- if (is.data.frame(RHS)) {
+    NROW(RHS)
+  } else if (length(RHS) > 0) {
+    unique(vapply(RHS, NROW, 1L))
+  } else {
+    0
+  }
+  cat("Data stack with\n  ",
+      "data:    ", paste0(names(LHS), collapse = ", "),
+      ", size: ", paste0(LHS_n, collapse = ", "), "\n  ",
+      "effects: ", paste0(names(RHS), collapse = ", "),
+      ", size: ", paste0(RHS_n, collapse = ", "), "\n  ",
+      "A:       ", nrow(A), " times ", ncol(A), "\n",
+      sep = "")
+  if (isTRUE(x[["multi_family"]])) {
+    cat("  response: ", length(response), "response objects\n",
+        sep = "")
+  }
+  return(invisible(x))
+}
+
+
+

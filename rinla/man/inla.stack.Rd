@@ -11,6 +11,8 @@
 \alias{inla.stack.RHS}
 \alias{inla.stack.data}
 \alias{inla.stack.A}
+\alias{inla.stack.response}
+\alias{print.inla.data.stack}
 \title{Data stacking for advanced INLA models}
 \usage{
 inla.stack.remove.unused(stack)
@@ -45,6 +47,10 @@ inla.stack.RHS(stack)
 inla.stack.data(stack, ...)
 
 inla.stack.A(stack)
+
+inla.stack.response(stack)
+
+\method{print}{inla.data.stack}(x, ...)
 }
 \arguments{
 \item{stack}{A \code{inla.data.stack} object, created by a call to
@@ -82,6 +88,10 @@ corresponds to an observation matrix, and must either be a single vector, a
 list of vectors, or a \code{data.frame}. Single-element effect vectors are
 expanded to vectors matching the number of columns in the corresponding A
 matrix.  An error is given if the input is inconsistent or ombiguous.}
+
+\item{response}{A list of response vectors, matrices, data.frame, or other special
+response objects, such as \code{inla.mdata}. In ordinary user-side code,
+the list has length 1.}
 
 \item{tag}{A string specifying a tag for later identification.}
 }
@@ -165,6 +175,10 @@ and for each block \eqn{l}{l}, any missing
 \item \code{inla.stack.data()}: Extract data for an inla call, and optionally join with other variables
 
 \item \code{inla.stack.A()}: Extract the "A matrix" for control.predictor
+
+\item \code{inla.stack.response()}: Extract the response variable or list of response objects
+
+\item \code{print(inla.data.stack)}: Print information about an \code{inla.data.stack}
 
 }}
 \section{Functions}{
