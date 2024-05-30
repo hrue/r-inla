@@ -25,7 +25,7 @@ inla.stack.sum(
   data,
   A,
   effects,
-  response = NULL,
+  responses = NULL,
   tag = "",
   compress = TRUE,
   remove.unused = TRUE
@@ -69,11 +69,11 @@ removing those columns).}
 rows of effects, replacing the corresponding A-matrix columns with a single
 column containing the sum.}
 
-\item{multi.family}{logical or character; in \code{inla.data.join}, if \code{TRUE},
+\item{multi.family}{logical or character. For \code{inla.data.join}, if \code{TRUE},
 the \code{response} part of the stack is joined as a \code{list}. If \code{character},
 denotes the name of a \code{data} element that should be joined as a multi-column
-matrix. Default is \code{FALSE}, which joins both the \code{data} and \code{response}
-with regular row binding with \code{dplyr::bind_rows}.}
+matrix. Default is \code{FALSE}, which joins both the \code{data} and \code{responses}
+elements with regular row binding with \code{dplyr::bind_rows}.}
 
 \item{data}{A list or codedata.frame of named data vectors. Scalars are
 expanded to match the number of rows in the A matrices, or any non-scalar
@@ -89,9 +89,11 @@ list of vectors, or a \code{data.frame}. Single-element effect vectors are
 expanded to vectors matching the number of columns in the corresponding A
 matrix.  An error is given if the input is inconsistent or ombiguous.}
 
-\item{response}{A list of response vectors, matrices, data.frame, or other special
-response objects, such as \code{inla.mdata}. In ordinary user-side code,
-the list has length 1.}
+\item{responses}{A list of response vectors, matrices, data.frame, or other special
+response objects, such as \code{inla.mdata}. Each list element corresponds to
+one response family. In ordinary user-side code, the list has length 1, and longer
+lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.
+If non-NULL and non-list, the input is placed as the single entry in a new list.}
 
 \item{tag}{A string specifying a tag for later identification.}
 }

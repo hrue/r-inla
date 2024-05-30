@@ -1400,11 +1400,11 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #' @param remove.unused If `TRUE`, compress the model by removing rows of
 #' effects corresponding to all-zero columns in the `A` matrix (and
 #' removing those columns).
-#' @param multi.family logical or character; in `inla.data.join`, if `TRUE`,
+#' @param multi.family logical or character. For `inla.data.join`, if `TRUE`,
 #' the `response` part of the stack is joined as a `list`. If `character`,
 #' denotes the name of a `data` element that should be joined as a multi-column
-#' matrix. Default is `FALSE`, which joins both the `data` and `response`
-#' with regular row binding with `dplyr::bind_rows`.
+#' matrix. Default is `FALSE`, which joins both the `data` and `responses`
+#' elements with regular row binding with `dplyr::bind_rows`.
 #' @param ... For `inla.stack.join`, two or more data stacks of class
 #' `inla.data.stack`, created by a call to `inla.stack`,
 #' `inla.stack.sum`, or `inla.stack.join`. For
@@ -1590,12 +1590,13 @@ inla.stack <- function(..., compress = TRUE, remove.unused = TRUE, multi.family 
 
 
 #' @describeIn inla.stack Create data stack as a sum of predictors
-#' @param response A list of response vectors, matrices, data.frame, or other special
-#' response objects, such as `inla.mdata`. In ordinary user-side code,
-#' the list has length 1.
+#' @param responses A list of response vectors, matrices, data.frame, or other special
+#' response objects, such as `inla.mdata`. Each list element corresponds to 
+#' one response family. In ordinary user-side code, the list has length 1, and longer
+#' lists are created by joining stacks with `inla.stack(..., multi.family = TRUE)`.
 #'
 #' @export
-inla.stack.sum <- function(data, A, effects, response = NULL,
+inla.stack.sum <- function(data, A, effects, responses = NULL,
                            tag = "",
                            compress = TRUE,
                            remove.unused = TRUE) {
@@ -1847,7 +1848,7 @@ inla.stack.sum <- function(data, A, effects, response = NULL,
       A = A.matrix,
       data = data,
       effects = effects,
-      response = response
+      responses = responses
     )
     class(stack) <- "inla.data.stack"
 
@@ -1882,12 +1883,13 @@ inla.stack.mexpand <- function(...,
   if (length(old.names) == 1) {
     old.names <- rep(old.names, length(stacks))
   }
-  y.cols <- unlist(lapply(seq_along(stacks),
-                          function(x, stacks, old.names) {
-                            LHS <- INLA::inla.stack.LHS(stacks[[x]])[[old.names[x]]]
-                            ifelse(is.vector(LHS), 1, ncol(LHS))
-                          },
-                          stacks = stacks, old.names = old.names
+  y.cols <- unlist(lapply(
+    seq_along(stacks),
+    function(x, stacks, old.names) {
+      LHS <- INLA::inla.stack.LHS(stacks[[x]])[[old.names[x]]]
+      ifelse(is.vector(LHS), 1, NCOL(LHS))
+    },
+    stacks = stacks, old.names = old.names
   ))
   y.offset <- c(0, cumsum(y.cols))
   y.cols.total <- sum(y.cols)
@@ -1895,29 +1897,34 @@ inla.stack.mexpand <- function(...,
     LHS <- INLA::inla.stack.LHS(stacks[[j]])
     RHS <- INLA::inla.stack.RHS(stacks[[j]])
     A <- INLA::inla.stack.A(stacks[[j]])
-    response <- stacks[[j]][["response"]]
+    responses <- stacks[[j]][["responses"]]
     # Access the raw tag indexing information
     tags <- list(
       data = stacks[[j]]$data$index,
       effects = stacks[[j]]$effects$index
     )
     
-    # Expand the observation vector/matrix into a multilikelihood observation matrix:
-    y.rows <- ifelse(is.vector(LHS[[old.names[j]]]),
-                     length(LHS[[old.names[j]]]),
-                     nrow(LHS[[old.names[j]]])
-    )
-    LHS[[new.name]] <-
-      cbind(
-        matrix(NA, nrow = y.rows, ncol = y.offset[j]),
-        LHS[[old.names[j]]],
-        matrix(NA, nrow = y.rows, ncol = y.cols.total - y.offset[j + 1])
-      )
+    if (!is.null(LHS[[old.names[j]]])) {
+      # Expand the observation vector/matrix into a multilikelihood observation matrix:
+      y.rows <- NROW(LHS[[old.names[j]]])
+      LHS[[new.name]] <-
+        cbind(
+          matrix(NA, nrow = y.rows, ncol = y.offset[j]),
+          LHS[[old.names[j]]],
+          matrix(NA, nrow = y.rows, ncol = y.cols.total - y.offset[j + 1])
+        )
+    }
     
     # Create the modified stack, with model compression disabled to prevent modifications:
     stacks[[j]] <-
-      INLA::inla.stack.sum(data = LHS, A = A, effects = RHS, compress = FALSE, remove.unused = FALSE,
-                           response = response)
+      INLA::inla.stack.sum(
+        data = LHS,
+        A = A,
+        effects = RHS,
+        compress = FALSE,
+        remove.unused = FALSE,
+        responses = responses
+      )
     # Since the row indexing is unchanged, copy the tag index information:
     stacks[[j]]$data$index <- tags$data
     stacks[[j]]$effects$index <- tags$effects
@@ -1941,14 +1948,14 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
       S.input <- list(...)
     }
   
-    # Join responses as a list
+    # Join response lists as a single list
     responses <- do.call(c,
                         lapply(S.input,
                                function(x) {
-                                 if (is.null(x[["response"]])) {
+                                 if (is.null(x[["responses"]])) {
                                    list(NULL)
                                  } else {
-                                   x[["response"]]
+                                   x[["responses"]]
                                  }
                                }))
     if (isFALSE(multi.family)) {
@@ -2091,7 +2098,7 @@ inla.stack.A <- function(stack) {
 #' @export
 inla.stack.response <- function(stack) {
   inla.require.inherits(stack, "inla.data.stack", "'stack'")
-  return(stack$response)
+  return(stack[["responses"]])
 }
 
 #' @describeIn inla.stack Print information about an `inla.data.stack`
@@ -2119,14 +2126,14 @@ print.inla.data.stack <- function(x, ...) {
     0
   }
   cat("Data stack with\n  ",
-      "data:    ", paste0(names(LHS), collapse = ", "),
+      "data:    ", "(", paste0(names(LHS), collapse = ", "), ")",
       ", size: ", paste0(LHS_n, collapse = ", "), "\n  ",
-      "effects: ", paste0(names(RHS), collapse = ", "),
+      "effects: ", "(", paste0(names(RHS), collapse = ", "), ")",
       ", size: ", paste0(RHS_n, collapse = ", "), "\n  ",
       "A:       ", nrow(A), " times ", ncol(A), "\n",
       sep = "")
-  if (isTRUE(x[["multi_family"]])) {
-    cat("  response: ", length(response), "response objects\n",
+  if (!is.null(response)) {
+    cat("  response: ", length(response), " response objects\n",
         sep = "")
   }
   return(invisible(x))
