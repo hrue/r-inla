@@ -168,13 +168,13 @@ plot(preddensity[[11]]$y_eval,preddensity[[11]]$density,
 
 To evaluate the accuracy of the first prediction, we can use LOOCV
 with a logarithmic utility. The LOOCV logarithmic utility can be
-expressed as: $$ U_{\text{LOOCV}} = \frac{1}{n}\sum_{i = 1}^n \pi(Y_i
+expressed as: $$ U_{\text{LOOCV}} = \frac{1}{n}\sum_{i = 1}^n \log \pi(Y_i
 = y_i| \boldsymbol{y}_{-i}). $$
 
 To assess the quality of the second prediction, we can use
 leave-group-out cross-validation (LGOCV), where the group includes all
 measurements from a particular rat. The LGOCV logarithmic utility can
-be expressed as: $$ U_{LGOCV} = \frac{1}{n}\sum_{i = 1}^n \pi(Y_i =
+be expressed as: $$ U_{LGOCV} = \frac{1}{n}\sum_{i = 1}^n \log \pi(Y_i =
 y_i|\boldsymbol{y}_{-I_i}). $$ Here, $I_i$ represents the indices of
 data points from the same rat. We can compute $U_{\text{LOOCV}}$ and
 $U_{\text{LGOCV}}$ using the inla.group.cv function.
@@ -379,7 +379,7 @@ $$\pi(Y_i|\boldsymbol{\theta}^*,\boldsymbol{y}_{-I_i}) = \int
 where the likelihood $\pi(Y_i|\eta_i,\boldsymbol{\theta}^*)$ is given
 by the model and the posterior is contained in the outputs.
 
-If we want to also integrate out the uncertainty of the hyperparameters, we need to compute  
+If we want to also integrate out the uncertainty of the hyperparameters, we need to compute
 $$\pi(Y_i|\boldsymbol{\theta},\boldsymbol{y}_{-I_i}) = \int
 \pi(\boldsymbol{\theta}|\boldsymbol{y}_{-I_i})\int
 \pi(Y_i|\eta_i,\boldsymbol{\theta})
