@@ -524,7 +524,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		Free(sectype);
 	}
 
-
 	inla_parse_param_constraints(mb);
 
 	/*
@@ -1602,6 +1601,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
+
+			case L_SEM:
+				break;
+
 			case L_GAUSSIAN:
 			{
 				if (!ds->data_fixed0) {

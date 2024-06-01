@@ -111,6 +111,10 @@
         if (any(is.na(response))) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale', are not allowed"))
         }
+    } else if (inla.one.of(family, c("sem"))) {
+        response <- cbind(ind, y.orig)
+        null.dat <- is.na(response[, 2L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("bcgaussian"))) {
         ## (y, mean, scale)
         stopifnot(ncol(y.orig) == 3)

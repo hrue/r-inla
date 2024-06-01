@@ -13855,6 +13855,20 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'sem'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The SEM likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{sem}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
 #'       \item{Model 'rcpoisson'.}{
 #'          \describe{
 #'           \item{Properties:}{

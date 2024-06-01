@@ -133,6 +133,12 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_SEM:
+	{
+		idiv = 2;
+	}
+		break;
+
 	case L_SIMPLEX:
 	{
 		idiv = 3;
@@ -917,6 +923,49 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 					double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 					logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
 				}
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = inla_Phi_fast((y - ypred) * sqrt(prec));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_sem(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+		      void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+
+	LINK_INIT;
+	double off = OFFSET(idx);
+	double prec = inla_eval_param_constraint(thread_id, ds);
+	double lprec = log(prec);
+
+	if (m > 0) {
+		if (PREDICTOR_LINK_EQ(link_identity) && ISZERO(off)) {
+			double a = -0.5 * prec;
+			double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double res = y - x[i];
+				logll[i] = b + a * SQR(res);
 			}
 		} else {
 #pragma omp simd

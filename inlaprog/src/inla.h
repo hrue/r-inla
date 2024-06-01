@@ -50,7 +50,6 @@ __BEGIN_DECLS
 #include "stochvol.h"
 #include "quantile-regression.h"
 #include "cgeneric.h"
-
 #define ONE_mexp(_x) (-expm1(_x))			       /* 1-exp(_x) */
 #define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #define LOG_p(_x) log1p((_x) - 1.0)
@@ -261,6 +260,7 @@ typedef enum {
 	L_MGAMMASURV,
 	L_BC_GAUSSIAN,
 	L_OCCUPANCY,
+	L_SEM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -825,6 +825,16 @@ typedef struct {
 	double **tp_x;
 	double ***tp_beta;
 	int tp_nbeta;
+
+	// sem
+	int sem_dim;
+	int sem_idx;
+	double *sem_A;
+	char **sem_B;
+	double ***sem_B_ptr;
+	map_func_tp **sem_B_map;
+	void **sem_B_map_arg;
+	void *sem_cache;
 } Data_tp;
 
 typedef struct {
@@ -1792,6 +1802,9 @@ typedef struct {
 		Free(_d_store);						\
 	}
 
+// same as defined in sections.R function 'no_var'
+#define SEM_NO_VAR "<NO:VAR>"
+
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
@@ -1916,6 +1929,7 @@ double map_dof(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
+double map_one(double arg, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
@@ -2278,6 +2292,7 @@ int loglikelihood_simplex(int thread_id, double *logll, double *x, int m, int id
 int loglikelihood_skew_normal(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_stdgaussian(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
 			      char **arg_str);
+int loglikelihood_sem(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_stochvol(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_stochvol_nig(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_stochvol_sn(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

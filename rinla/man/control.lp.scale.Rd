@@ -39,6 +39,7 @@ Other control:
 \code{\link{control.pom}()},
 \code{\link{control.predictor}()},
 \code{\link{control.scopy}()},
+\code{\link{control.sem}()},
 \code{\link{control.update}()},
 \code{\link{control.vb}()}
 }

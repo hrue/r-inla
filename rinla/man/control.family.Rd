@@ -19,10 +19,11 @@ control.family(
   cenpoisson.I = c(-1L, -1L),
   beta.censor.value = 0,
   variant = 0L,
+  link.simple = "default",
   control.mix = NULL,
   control.pom = NULL,
   control.link = INLA::control.link(),
-  link.simple = "default"
+  control.sem = NULL
 )
 
 inla.set.control.family.default(...)
@@ -64,13 +65,15 @@ the likelihood,  like chosing different parameterisations for example. See the
 relevant likelihood documentations for options (does only apply to some
 likelihoods).}
 
+\item{link.simple}{See \code{inla.doc("0inflated")}}
+
 \item{control.mix}{See \code{?control.mix}}
 
 \item{control.pom}{See \code{?control.pom}}
 
 \item{control.link}{See \code{?control.link}}
 
-\item{link.simple}{See \code{inla.doc("0inflated")}}
+\item{control.sem}{Parameters for likelihood \code{sem}}
 
 \item{...}{Named arguments passed on to the main function}
 }
@@ -99,6 +102,7 @@ Other control:
 \code{\link{control.pom}()},
 \code{\link{control.predictor}()},
 \code{\link{control.scopy}()},
+\code{\link{control.sem}()},
 \code{\link{control.update}()},
 \code{\link{control.vb}()}
 }

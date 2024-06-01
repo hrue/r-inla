@@ -276,6 +276,13 @@ int GMRFLib_gsl_mm(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_gsl_mmt(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
+{
+	// C = A t(B)
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, (const gsl_matrix *) A, (const gsl_matrix *) B, 0.0, (gsl_matrix *) C);
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_gsl_mmm(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, gsl_matrix *D)
 {
 	// D = A B C

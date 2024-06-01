@@ -11422,6 +11422,15 @@
                     pdf = "bcgaussian"
                 ),
 
+                sem = list(
+                    doc = "The SEM likelihoood",
+                    hyper = list(), 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity"), 
+                    pdf = "sem"
+                ),
+
                 rcpoisson = list(
                     doc = "Randomly censored Poisson",
                     hyper = list(
