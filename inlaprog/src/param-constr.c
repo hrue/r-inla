@@ -28,6 +28,16 @@
  *
  */
 
+#define debug_(msg_)							\
+	if (debug) {							\
+		printf("\t[%1d] %s (%s:%1d): %s\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_); \
+	}
+
+#define debug2_(msg_, val_)						\
+	if (debug) {							\
+		printf("\t[%1d] %s (%s:%1d): %s %g\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, val_); \
+	}
+	
 int inla_parse_param_constraints(inla_tp *mb)
 {
 	const int debug = 1;
@@ -56,17 +66,16 @@ int inla_parse_param_constraints(inla_tp *mb)
 				int j = find_tag(mb, B[i]);
 				if (j < 0) {
 					char *err = NULL;
-					GMRFLib_sprintf(&err, "Search for name B[%1d] = [%s]: not found\n", i, B[i]);
+					GMRFLib_sprintf(&err, "SEM: search for model component B[%1d] = [%s]: not found\n", i, B[i]);
 					inla_error_general(err);
 					exit(1);
 				}
 				if (mb->f_id[j] != F_COPY) {
 					char *err = NULL;
-					GMRFLib_sprintf(&err, "Model component [%s]: not COPY\n", mb->f_tag[j]);
+					GMRFLib_sprintf(&err, "SEM: model component [%s] not COPY\n", mb->f_tag[j]);
 					inla_error_general(err);
 					exit(1);
 				}
-
 				ds->data_observations.sem_B_ptr[i] = mb->f_theta[j][0];
 				ds->data_observations.sem_B_map[i] = mb->f_theta_map[j][0];
 				ds->data_observations.sem_B_map_arg[i] = mb->f_theta_map_arg[j][0];
@@ -79,7 +88,8 @@ int inla_parse_param_constraints(inla_tp *mb)
 			}
 
 			if (debug) {
-				double bvalue = ds->data_observations.sem_B_map[i] (ds->data_observations.sem_B_ptr[i][0][0], MAP_FORWARD,
+				double bvalue = ds->data_observations.sem_B_map[i] (ds->data_observations.sem_B_ptr[i][0][0],
+										    MAP_FORWARD,
 										    ds->data_observations.sem_B_map_arg[i]);
 				printf("B[%1d] :  A = %g  B = %g\n", i, ds->data_observations.sem_A[i], bvalue);
 			}
@@ -91,8 +101,6 @@ int inla_parse_param_constraints(inla_tp *mb)
 
 double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 {
-	const int debug = 0;
-
 	typedef struct {
 		double *theta;
 		double value;
@@ -100,8 +108,10 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 		int idx;
 	} cache_tp;
 
+	const int debug = 0;
 	int idx = ds->data_observations.sem_idx;
 	size_t dim = ds->data_observations.sem_dim;
+	int in_cache = 1;
 
 	if (!(ds->data_observations.sem_cache)) {
 #pragma omp critical  (Name_63a8d38d09184295d229c3a47bcbba98187ddc96)
@@ -118,12 +128,11 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 	if (!c) {
 #pragma omp critical (Name_518e2a01a0639bcfa1a50ef2e26dd6d69506dacf)
 		if (!c) {
-			if (debug)
-				printf("INIT CACHE\n");
+			debug_("INIT CACHE");
 			cache_tp *cc = Calloc(1, cache_tp);
 			cc->dim = dim;
 			cc->theta = Calloc(ISQR(dim), double);
-			cc->theta[0] = GMRFLib_uniform();
+			in_cache = 0;
 			c = ((cache_tp **) ds->data_observations.sem_cache)[cache_idx] = cc;
 		}
 	}
@@ -131,12 +140,11 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 	if (c->dim != dim) {
 #pragma omp critical (Name_3f524981b6edda449347e31549f5e8b399411d79)
 		if (c->dim != dim) {
-			if (debug)
-				printf("DIM CHANGE IN CACHE\n");
+			debug_("DIM CHANGE IN CACHE");
 			if (dim > c->dim) {
 				c->theta = Realloc(c->theta, IMAX(ISQR(dim), ISQR(c->dim)), double);
 			}
-			c->theta[0] = GMRFLib_uniform();
+			in_cache = 0;
 			c->dim = dim;
 		}
 	}
@@ -144,24 +152,24 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 	if (c->idx != idx) {
 #pragma omp critical (Name_bd076b6eeef2e2fce722490f1be7ba6118874702)
 		if (c->idx != idx) {
-			if (debug)
-				printf("IDX CHANGE IN CACHE\n");
-			c->theta[0] = GMRFLib_uniform();
+			debug_("IDX CHANGE IN CACHE");
+			in_cache = 0;
 			c->idx = idx;
 		}
 	}
 
-	int in_cache = 1;
-	for (int k = 0; k < ISQR(dim); k++) {
-		if (c->theta[k] != ds->data_observations.sem_B_ptr[k][thread_id][0]) {
-			in_cache = 0;
-			break;
+	if (in_cache) {
+		for (int k = 0; k < ISQR(dim); k++) {
+			if (c->theta[k] != ds->data_observations.sem_B_ptr[k][thread_id][0]) {
+				in_cache = 0;
+				break;
+			}
+		}
+		if (in_cache) {
+			return (c->value);
 		}
 	}
-	if (in_cache) {
-		return (c->value);
-	}
-
+	
 	gsl_matrix *B = gsl_matrix_calloc(dim, dim);
 	gsl_matrix *S = gsl_matrix_calloc(dim, dim);
 	for (size_t j = 0, k = 0; j < dim; j++) {
@@ -176,8 +184,8 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 		}
 	}
 
-	if (debug) {
-		printf("I-B\n");
+	if (0 && debug) {
+		debug_("I-B\n");
 		GMRFLib_printf_gsl_matrix(stdout, B, " %g");
 	}
 
@@ -186,15 +194,12 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 	GMRFLib_gsl_spd_inverse(S);			       /* S <- solve(B %*% t(B)) */
 	c->value = 1.0 / gsl_matrix_get(S, idx, idx);	       /* return the marginal precision */
 
-	if (debug) {
-		printf("Sigma\n");
-		GMRFLib_printf_gsl_matrix(stdout, S, " %g");
-		printf("COMPUTE NEW VALUE FOR PRECISION IN CACHE\n");
-		P(c->value);
-	}
+	debug2_("COMPUTE NEW VALUE FOR PRECISION IN CACHE", c->value);
 
 	gsl_matrix_free(B);
 	gsl_matrix_free(S);
 
 	return c->value;
 }
+#undef debug_
+#undef debug2_
