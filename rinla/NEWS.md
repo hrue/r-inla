@@ -1,3 +1,9 @@
+# INLA_24.06.02
+* Fixed a regressin in model `iidkd`
+* Fixed missprints in `group cv` vignette
+* Updated `plot`
+* Added new experimental likelihood
+
 # INLA_24.05.27
 * Change: do not load INLA-package by default using `rgeneric` or `rprior`
 * New (experimental) likelihood: `occupancy`
