@@ -23,6 +23,24 @@
         ctrl_object(as.list(environment()), "update", check = FALSE)
     }
 
+#' @title control.sem
+#' @inherit control.sem params description seealso
+#' @family control
+#' @export
+#' @details Parameters to family `sem`
+`control.sem` <-
+    function(
+             #' @param B The symbolic B-matrix,  where each element is a string giving the
+             #' expression for that particular element, in terms of beta-parameters for copy
+             B = NULL,
+
+             #' @param idx Which diagonal element to use for the variance.
+             idx = 0
+             ) {
+            ctrl_object(as.list(environment()), "sem", check = FALSE)
+        }
+
+
 #' @title control.lincomb
 #' @inherit control.update params description seealso
 #' @family control
@@ -500,6 +518,9 @@ control.gcpo <-
             #' likelihoods).
             variant = 0L,
 
+            #' @param link.simple See `inla.doc("0inflated")`
+            link.simple = "default", 
+
             #' @param control.mix See `?control.mix`
             control.mix = NULL,
 
@@ -509,8 +530,8 @@ control.gcpo <-
             #' @param control.link See `?control.link`
             control.link = INLA::control.link(),
 
-            #' @param link.simple See `inla.doc("0inflated")`
-            link.simple = "default"
+            #' @param control.sem Parameters for likelihood `sem`
+            control.sem = NULL
         ) {
             ctrl_object(as.list(environment()), "family", check = FALSE)
         }
@@ -1140,3 +1161,7 @@ control.vb <- function(
 #' @rdname control.hazard
 #' @export
 `inla.set.control.hazard.default` <- function(...) { control.hazard(...) }
+
+#' @rdname control.sem
+#' @export
+`inla.set.control.sem.default` <- function(...) { control.sem(...) }

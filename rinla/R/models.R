@@ -4018,7 +4018,7 @@
                             initial = inla.special.number(),
                             fixed = FALSE,
                             prior = "wishartkd",
-                            param = c(24, rep(inla.special.number(), (24*25)/2)), 
+                            param = c(30, rep(inla.special.number(), (24*25)/2)), 
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ),
@@ -11422,6 +11422,15 @@
                     pdf = "bcgaussian"
                 ),
 
+                sem = list(
+                    doc = "The SEM likelihoood",
+                    hyper = list(), 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity"), 
+                    pdf = "sem"
+                ),
+
                 rcpoisson = list(
                     doc = "Randomly censored Poisson",
                     hyper = list(
@@ -14766,7 +14775,7 @@
 
                 wishartkd =  list(
                     doc = "Wishart prior",
-                    nparameters = 324L,
+                    nparameters = 301L,
                     pdf = NULL
                 ), 
 

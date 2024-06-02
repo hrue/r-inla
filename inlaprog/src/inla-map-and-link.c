@@ -27,6 +27,23 @@
  *
  */
 
+double map_one(double UNUSED(arg), map_arg_tp typ, void *UNUSED(param))
+{
+	switch (typ) {
+	case MAP_FORWARD:
+		return 1.0;
+	case MAP_BACKWARD:
+		return 1.0;
+	case MAP_DFORWARD:
+		return 0.0;
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		abort();
+	}
+	return 0.0;
+}
+
 double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*

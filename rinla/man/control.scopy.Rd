@@ -41,6 +41,7 @@ Other control:
 \code{\link{control.pardiso}()},
 \code{\link{control.pom}()},
 \code{\link{control.predictor}()},
+\code{\link{control.sem}()},
 \code{\link{control.update}()},
 \code{\link{control.vb}()}
 }

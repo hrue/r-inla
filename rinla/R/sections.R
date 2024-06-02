@@ -2,6 +2,80 @@
 
 ### Functions to write the different sections in the .ini-file
 
+inla.parse.Bmatrix <- function(mat)
+{
+    no_var <- function() {
+        ## same as defined in file 'inla.h'
+        return ("<NO:VAR>")
+    }
+    no_value <- function() {
+        return (1.0)
+    }
+    remove_space <- function(expr) {
+        gsub("[ \t]+", "", expr)
+    }
+    extract_coef <- function(expr) {
+        a <- remove_space(expr)
+        if (nchar(a) == 0) {
+            return (0.0)
+        }
+        a <- strsplit(remove_space(expr), "\\*")[[1]]
+        if (length(a) == 0) {
+            return (no_value())
+        } else if (length(a) == 1) {
+            val <- as.numeric(a[1])
+            if (is.na(val)) {
+                return (1.0)
+            } else {
+                return (val)
+            }
+        } else {
+            for(i in 1:2) {
+                val <- as.numeric(a[i])
+                if (!is.na(val))
+                    return (val)
+            }
+            return (no_value())
+        }
+    }
+    extract_var <- function(expr) {
+        a <- strsplit(remove_space(expr), "\\*")[[1]]
+        if (length(a) == 0) {
+            return (no_var())
+        } else if (length(a) == 1) {
+            val <- as.numeric(a[1])
+            if (is.na(val)) {
+                return (a[1])
+            } else {
+                return (no_var())
+            }
+        } else {
+            for(i in 1:2) {
+                val <- as.numeric(a[i])
+                if (is.na(val))
+                    return (a[i])
+            }
+            return (no_var())
+        }
+    }
+    
+    w = options('warn')$warn
+    options(warn = -1)
+    A = matrix(sapply(mat, extract_coef), nrow = nrow(mat))
+    B = matrix(sapply(mat, extract_var), nrow = nrow(mat))
+    options(warn = w)
+    return (list(A = A, B = B))
+}
+
+inla.parse.Bmatrix.test <- function() {
+    mat <- matrix(c("a*2", "-3*b", ".2*x", "0.213 * d",
+                    "e * -2.34",  "   2.2 ",  "x", ""),
+                  nrow = 2, ncol = 4)
+    print(inla.parse.Bmatrix(mat))
+    print(inla.parse.Bmatrix(matrix(mat, 4, 2)))
+    return (inla.parse.Bmatrix(mat))
+}
+
 `inla.text2vector` <- function(text) {
     ## > as.numeric(unlist(strsplit("1,2,3 5", "[ ,\t]")))
     ## [1] 1 2 3 5
@@ -159,7 +233,8 @@
 
 `inla.data.section` <- function(file, family, file.data, file.weights, file.attr, file.lp.scale,
                                 control, i.family = "",
-                                link.covariates = link.covariates, data.dir) {
+                                link.covariates = link.covariates, data.dir)
+{
     ## this function is called from 'inla.family.section' only.
     cat(inla.secsep(), "INLA.Data", i.family, inla.secsep(), "\n", sep = "", file = file, append = TRUE)
     cat("type = data\n", sep = " ", file = file, append = TRUE)
@@ -323,6 +398,27 @@
         if (!is.null(control$control.pom$fast)) {
             inla.write.boolean.field("pom.fast.probit", control$control.pom$fast, file)
         }
+    }
+
+    if (inla.one.of(family, "sem")) {
+        stopifnot(!is.null(control$control.sem) && !is.null(control$control.sem$B))
+        AB <- inla.parse.Bmatrix(control$control.sem$B)
+        idim <- nrow(AB$A)
+        stopifnot((nrow(AB$A) == ncol(AB$A)) && (nrow(AB$B) == ncol(AB$B)) && (nrow(AB$A) == nrow(AB$B)))
+        
+        file.B <- inla.tempfile(tmpdir = data.dir)
+        write(nrow(AB$A), file = file.B, append = TRUE, sep = "\n")
+        AB$A <- as.vector(AB$A)
+        AB$B <- as.vector(AB$B)
+        ## for(i in 1:idim^2) write(c(AB$A[i], AB$B[i]), file = file.B, append = TRUE, sep = "\n")
+        write(rbind(AB$A, AB$B), file = file.B,  append = TRUE, sep = "\n")
+        fnm <- gsub(data.dir, "$inladatadir", file.B, fixed = TRUE)
+        cat("control.sem.b =", fnm, "\n", file = file, append = TRUE)
+
+        stopifnot(control$control.sem$idx > 0)
+        stopifnot(control$control.sem$idx <= idim)
+        ## convert to C-indexing
+        cat("control.sem.idx =", as.integer(control$control.sem$idx)-1, "\n", file = file, append = TRUE)
     }
 
     cat("\n", sep = " ", file = file, append = TRUE)

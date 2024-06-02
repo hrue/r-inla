@@ -768,9 +768,18 @@
                 } else {
                     m <- nrow(x$misc$opt.trace$theta)
                     panel.trace <- function(x, y, ...) {
-                        lines(x, y, lwd = 3, lty = 1)
-                        points(x, y, pch = 19, cex = seq(1, 2, len = m),
-                               col = grey(seq(0.5, 0.0, len = m)))
+                        if (TRUE) {
+                            w = options('warn')$warn
+                            options(warn = -1)
+                            arrows(x[-length(x)], y[-length(y)], x[-1], y[-1],
+                                   lwd = 2, length = 0.10,
+                                   col = grey(seq(0.5, 0.0, len = m)))
+                            options(warn = w)
+                        } else {
+                            lines(x, y, lwd = 3, lty = 1)
+                            points(x, y, pch = 19, cex = seq(1, 2, len = m),
+                                   col = grey(seq(0.5, 0.0, len = m)))
+                        }
                     }
                     pairs(x$misc$opt.trace$theta, pch = 19,
                           upper.panel = panel.trace, 

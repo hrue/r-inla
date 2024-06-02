@@ -678,6 +678,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "BCGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_bcgaussian;
 		ds->data_id = L_BC_GAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "SEM")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sem;
+		ds->data_id = L_SEM;
 	} else if (!strcasecmp(ds->data_likelihood, "SIMPLEX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_simplex;
 		ds->data_id = L_SIMPLEX;
@@ -1038,6 +1041,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	switch (ds->data_id) {
+	case L_SEM:
+		break;
+
 	case L_GAUSSIAN:
 	case L_STDGAUSSIAN:
 	{
@@ -2623,9 +2629,55 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_BELL:
+	case L_SEM:
+	{
+		char *Bfile = iniparser_getstring(ini, inla_string_join(secname, "CONTROL.SEM.B"), NULL);
+		assert(Bfile);
+
+		FILE *fp = fopen(Bfile, "r");
+		assert(fp);
+
+		int idx = iniparser_getint(ini, inla_string_join(secname, "CONTROL.SEM.IDX"), -1);
+		int dim = 0;
+		assert(fscanf(fp, "%d", &dim) == 1);
+		assert(idx >= 0 && idx < dim);
+
+		double *A = Calloc(ISQR(dim), double);
+		char **B = Calloc(ISQR(dim), char *);
+		size_t len = 4096L;
+		char *cache = Calloc(len + 1, char);
+		for (int ii = 0; ii < ISQR(dim); ii++) {
+			int ret = fscanf(fp, "%lf", &(A[ii]));
+			assert(ret == 1);
+			ret = fscanf(fp, "%s\n", cache);
+			assert(ret == 1);
+			size_t len0 = strlen(cache);
+			size_t len1 = len0 + 1L;
+			assert(len0 <= len);
+			B[ii] = Calloc(len1, char);
+			Memcpy(B[ii], cache, len1);
+		}
+		Free(cache);
+		fclose(fp);
+
+		if (mb->verbose) {
+			printf("\t\tsem.B[%1d x %1d] =\n", dim, dim);
+			for (int ii = 0; ii < dim; ii++) {
+				for (int jj = 0; jj < dim; jj++) {
+					int kk = ii + jj * dim;
+					printf("\t\t\tB[%1d, %1d] = [%8.4f] x [%s]\n", ii, jj, A[kk], B[kk]);
+				}
+			}
+		}
+		ds->data_observations.sem_dim = dim;
+		ds->data_observations.sem_A = A;
+		ds->data_observations.sem_B = B;
+		ds->data_observations.sem_idx = idx;
+		ds->data_observations.sem_cache = NULL;
+	}
 		break;
 
+	case L_BELL:
 	case L_STDGAUSSIAN:
 	case L_POISSON:
 	case L_NPOISSON:
@@ -8918,7 +8970,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id != L_STDGAUSSIAN && ds->data_id != L_GGAUSSIAN
-	     && ds->data_id != L_BC_GAUSSIAN) || ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
+	     && ds->data_id != L_SEM && ds->data_id != L_BC_GAUSSIAN) || ds->predictor_invlinkfunc != link_identity || ds->mix_use
+	    || mb->expert_disable_gaussian_check) {
 		GMRFLib_gaussian_data = GMRFLib_FALSE;
 	}
 
@@ -8949,7 +9002,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 		Free(c);
 	}
-
 
 	return INLA_OK;
 }
@@ -17961,44 +18013,4 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	return INLA_OK;
-}
-
-int inla_theta_map_find_f(char *tag, inla_tp *mb)
-{
-	// return the index in f[]'s if found, and -1 if not
-	int found = -1;
-	for (int i = 0; i < mb->nf; i++) {
-		if (strcmp(mb->f_tag[i], tag) == 0) {
-			found = i;
-			break;
-		}
-	}
-	return found;
-}
-
-int inla_theta_map(inla_tp *mb)
-{
-	// work in progress
-
-	// map theta[1] from "A" (in R format) to theta[1] in "B"
-
-	assert(mb);
-	char *tag_f = Strdup("idx.v:1");
-	char *tag_t = Strdup("idx.u:1");
-
-	char *tag_from = NULL, *tag_to = NULL;
-	int ifrom = 0, ito = 0;
-
-	inla_sread_str_int(&tag_from, &ifrom, tag_f);
-	assert(tag_from);
-	printf("From %s %d\n", tag_from, ifrom);
-
-	inla_sread_str_int(&tag_to, &ito, tag_t);
-	assert(tag_to);
-	printf("To %s %d\n", tag_to, ito);
-
-	// int f_from = inla_theta_map_find_f(tag_from, mb);
-	// int f_to = inla_theta_map_find_f(tag_to, mb);
-
-	return GMRFLib_SUCCESS;
 }
