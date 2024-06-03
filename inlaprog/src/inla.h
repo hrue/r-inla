@@ -414,7 +414,8 @@ typedef enum {
 	LINK_POWER_LOGIT,
 	LINK_CCLOGLOG,
 	LINK_GEV,
-	LINK_CGEV
+	LINK_CGEV,
+	LINK_QGEN_GAUSSIAN
 } inla_component_tp;
 
 typedef enum {
@@ -863,6 +864,7 @@ typedef struct {
 	double **bgev_tail;
 	double **bgev_intercept;
 	double *bgev_tail_interval;
+	double **log_power;
 } Link_param_tp;
 
 typedef struct {

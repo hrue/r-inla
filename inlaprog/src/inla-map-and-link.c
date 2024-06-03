@@ -1785,6 +1785,126 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 	return (ret);
 }
 
+double link_qgengaussian(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	// do caching on two levels
+
+	typedef struct {
+		// level 1: if all these match
+		double p;
+		double w;
+		double lprec;
+		double lpower;
+		double qval1;
+
+		// level 2: if beta match only
+		double beta;
+		double lg_expr;
+		double qval2;
+	} lcache_t;
+
+	static lcache_t **llcache = NULL;
+	if (!llcache) {
+#pragma omp critical (Name_2396789afcc20ddee4600d09ab8d0fe4a104e9f3)
+		if (!llcache) {
+			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+		}
+	}
+
+	int cidx = 0;
+	GMRFLib_CACHE_SET_ID(cidx);
+	if (!llcache[cidx]) {
+#pragma omp critical (Name_c393bf22256042fb97a79700a66d05c333658625)
+		if (!llcache[cidx]) {
+			lcache_t *ptr = Calloc(1, lcache_t);
+			ptr->qval1 = NAN;
+			ptr->qval2 = NAN;
+			llcache[cidx] = ptr;
+		}
+	}
+	lcache_t *lc = llcache[cidx];
+
+	Link_param_tp *lparam = (Link_param_tp *) param;
+	int idx = lparam->idx;
+	double ret = NAN;
+	double p = lparam->quantile;
+	double w = lparam->scale[idx];
+	double lprec = lparam->log_prec[thread_id][0] + log(w);
+	double lpower = lparam->log_power[thread_id][0];
+
+	// level 1 caching
+	if (lc->p == p && lc->w == w && lc->lprec == lprec && lc->lpower == lpower) {
+		switch (typ) {
+		case INVLINK:
+			ret = x - lc->qval1;
+			break;
+
+		case LINK:
+			CODE_NEEDED;
+			break;
+
+		case DINVLINK:
+			ret = 1.0;
+			break;
+
+		case LINKINCREASING:
+			ret = 1;
+			break;
+
+		default:
+			assert(0 == 1);
+			break;
+		}
+		return ret;
+	}
+	// level 2 caching
+	lc->p = p;
+	lc->w = w;
+	lc->lprec = lprec;
+	lc->lpower = lpower;
+
+	double beta = 1.0 + exp(lpower);		       // map_one_plus_exp
+	double shape = 1.0 / beta;
+	double p2 = ABS(p - 0.5) * 2.0;
+
+	if (lc->beta != beta) {
+		lc->beta = beta;
+		lc->lg_expr = exp(0.5 * (my_gsl_sf_lngamma(1.0 / beta) -  my_gsl_sf_lngamma(3.0 / beta)));
+		lc->qval2 = pow(MATHLIB_FUN(qgamma) (p2, shape, 1.0, 1, 0), 1.0 / beta);
+	}
+
+	double sign = SIGN(p - 0.5);
+	double sigma = exp(-0.5 * lprec);
+	double alpha = sigma * lc->lg_expr;
+	lc->qval1 = sign * alpha * lc->qval2;
+
+	switch (typ) {
+	case INVLINK:
+		// double ialpha = 1.0 / alpha, lambda = pow(ialpha, beta), scale = 1.0/lambda;
+		// ret = x - (sign * pow(scale * inla_qgamma_cache(shape, p2), 1.0/beta));
+		ret = x - lc->qval1;
+		break;
+
+	case LINK:
+		CODE_NEEDED;
+		break;
+
+	case DINVLINK:
+		ret = 1.0;
+		break;
+
+	case LINKINCREASING:
+		ret = 1;
+		break;
+
+	default:
+		assert(0 == 1);
+		break;
+	}
+
+	return (ret);
+}
+
 double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link

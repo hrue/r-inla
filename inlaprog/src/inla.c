@@ -2560,6 +2560,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
+			case LINK_QGEN_GAUSSIAN: 
 				break;
 
 			case LINK_LOGOFFSET:

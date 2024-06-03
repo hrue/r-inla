@@ -7866,6 +7866,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 			break;
 
+		case L_GEN_GAUSSIAN: 
+		{
+			ds->link_id = LINK_QGEN_GAUSSIAN;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_qgengaussian;
+		}
+			break;
+
 		default:
 			assert(0 == 1);
 		}
@@ -8010,6 +8018,20 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			link_param->quantile = ds->data_observations.quantile;
 			link_param->scale = ds->data_observations.gamma_scale;
 			link_param->log_prec = ds->data_observations.gamma_log_prec;
+			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
+		}
+	}
+		break;
+
+	case LINK_QGEN_GAUSSIAN:
+	{
+		for (i = 0; i < n_data; i++) {
+			Link_param_tp *link_param = Calloc(1, Link_param_tp);
+			link_param->idx = i;
+			link_param->quantile = ds->data_observations.quantile;
+			link_param->scale = ds->data_observations.weight_gaussian;
+			link_param->log_prec = ds->data_observations.log_prec_gaussian;
+			link_param->log_power = ds->data_observations.log_power;
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
