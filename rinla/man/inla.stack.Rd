@@ -44,11 +44,11 @@ inla.stack.LHS(stack)
 
 inla.stack.RHS(stack)
 
-inla.stack.data(stack, ...)
+inla.stack.data(stack, ..., .response.name = NULL)
 
 inla.stack.A(stack)
 
-inla.stack.response(stack)
+inla.stack.response(stack, drop = TRUE)
 
 \method{print}{inla.data.stack}(x, ...)
 }
@@ -95,6 +95,16 @@ one response family. In ordinary user-side code, the list has length 1, and long
 lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.}
 
 \item{tag}{A string specifying a tag for later identification.}
+
+\item{.response.name}{The name to assign to the response variable when
+extracting data from the stack. Default is \code{NULL}, which skips the
+response object list.}
+
+\item{drop}{logical indicating whether to return the contained object
+instead of the full list, when the stack responses list has length 1.
+Default is \code{TRUE}, as needed for \code{inla()} single family models.
+Use \code{drop = FALSE} to extract the internal response storage, regardless of
+length.}
 }
 \value{
 A data stack of class \code{inla.data.stack}.
@@ -177,7 +187,8 @@ and for each block \eqn{l}{l}, any missing
 
 \item \code{inla.stack.A()}: Extract the "A matrix" for control.predictor
 
-\item \code{inla.stack.response()}: Extract the response variable or list of response objects
+\item \code{inla.stack.response()}: Extract the response variable or list of
+response objects
 
 \item \code{print(inla.data.stack)}: Print information about an \code{inla.data.stack}
 

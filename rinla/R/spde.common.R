@@ -1861,20 +1861,23 @@ inla.stack.sum <- function(data, A, effects, responses = NULL,
     }
 }
 
-# Expand observation vectors/matrices in stacks into to a multicolumn matrix for multiple likelihoods
-#
-# @aliases inla.stack.mexpand
-# @name inla.stack.mexpand
-# @export
-# @param ... List of stacks that contain vector observations
-#            (existing multilikelihood observation matrices are also permitted)
-# @param old.names A vector of strings with the names of the observation vector/matrix for each stack.
-#        If a single string, this is assumed for all the stacks. (default "BRU.response")
-# @param new.name The name to be used for the expanded observation matrix,
-#        possibly the same as an old name. (default "BRU.response")
-# @return a list of modified stacks with multicolumn observations
-# @author Fabian E. Bachl \email{f.e.bachl@@bath.ac.uk} and Finn Lindgren \email{finn.lindgren@@gmail.com}
-#
+#' Expand observation vectors/matrices in stacks into to a multicolumn matrix for multiple likelihoods
+#' 
+#'  Internal helper method for `inla.stack.join`.
+#'
+#' @aliases inla.stack.mexpand
+#' @name inla.stack.mexpand
+#' @export
+#' @param ... List of stacks that contain vector observations
+#'            (existing multilikelihood observation matrices are also permitted)
+#' @param old.names A vector of strings with the names of the observation vector/matrix for each stack.
+#'        If a single string, this is assumed for all the stacks. (default "BRU.response")
+#' @param new.name The name to be used for the expanded observation matrix,
+#'        possibly the same as an old name. (default "BRU.response")
+#' @return a list of modified stacks with multicolumn observations
+#' @author Fabian E. Bachl \email{f.e.bachl@@bath.ac.uk} and Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export
+#' @keywords internal
 
 inla.stack.mexpand <- function(...,
                                old.names = "response",
@@ -1897,7 +1900,7 @@ inla.stack.mexpand <- function(...,
     LHS <- INLA::inla.stack.LHS(stacks[[j]])
     RHS <- INLA::inla.stack.RHS(stacks[[j]])
     A <- INLA::inla.stack.A(stacks[[j]])
-    responses <- stacks[[j]][["responses"]]
+    responses <- INLA::inla.stack.response(stacks[[j]], drop = FALSE)
     # Access the raw tag indexing information
     tags <- list(
       data = stacks[[j]]$data$index,
@@ -2073,16 +2076,30 @@ inla.stack.RHS <- function(stack) {
 }
 
 #' @describeIn inla.stack Extract data for an inla call, and optionally join with other variables
+#' @param .response.name The name to assign to the response variable when
+#' extracting data from the stack. Default is `NULL`, which skips the
+#' response object list.
 #'
 #' @export
-inla.stack.data <- function(stack, ...) {
+inla.stack.data <- function(stack, ..., .response.name = NULL) {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
+  if (is.null(.response.name) || is.null(stack[["responses"]])) {
     return(c(
         inla.stack.do.extract(stack$data),
         inla.stack.do.extract(stack$effects),
         list(...)
     ))
+  } else {
+    resp <- list()
+    resp[[.response.name]] <- inla.stack.response(stack, drop = TRUE)
+    return(c(
+      inla.stack.do.extract(stack$data),
+      inla.stack.do.extract(stack$effects),
+      list(...),
+      resp
+    ))
+  }
 }
 
 #' @describeIn inla.stack Extract the "A matrix" for control.predictor
@@ -2093,11 +2110,25 @@ inla.stack.A <- function(stack) {
   return(stack$A)
 }
 
-#' @describeIn inla.stack Extract the response variable or list of response objects
+#' @describeIn inla.stack Extract the response variable or list of
+#' response objects
+#' @param drop logical indicating whether to return the contained object
+#' instead of the full list, when the stack responses list has length 1.
+#' Default is `TRUE`, as needed for `inla()` single family models.
+#' Use `drop = FALSE` to extract the internal response storage, regardless of
+#' length.
 #'
 #' @export
-inla.stack.response <- function(stack) {
+inla.stack.response <- function(stack, drop = TRUE) {
   inla.require.inherits(stack, "inla.data.stack", "'stack'")
+  if (drop) {
+    if (length(stack[["responses"]]) == 0) {
+      return(NULL)
+    }
+    if (length(stack[["responses"]]) == 1) {
+      return(stack[["responses"]][[1]])
+    }
+  }
   return(stack[["responses"]])
 }
 
@@ -2110,7 +2141,7 @@ print.inla.data.stack <- function(x, ...) {
   LHS <- inla.stack.LHS(x)
   RHS <- inla.stack.RHS(x)
   A <- inla.stack.A(x)
-  response <- inla.stack.response(x)
+  response <- inla.stack.response(x, drop = FALSE)
   LHS_n <- if (is.data.frame(LHS)) {
     NROW(LHS)
   } else if (length(LHS) > 0) {
