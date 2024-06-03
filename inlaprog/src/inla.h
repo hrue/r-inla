@@ -261,6 +261,7 @@ typedef enum {
 	L_BC_GAUSSIAN,
 	L_OCCUPANCY,
 	L_SEM,
+	L_EXPPOWER,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -413,7 +414,8 @@ typedef enum {
 	LINK_POWER_LOGIT,
 	LINK_CCLOGLOG,
 	LINK_GEV,
-	LINK_CGEV
+	LINK_CGEV,
+	LINK_QEXPPOWER
 } inla_component_tp;
 
 typedef enum {
@@ -515,6 +517,7 @@ typedef struct {
 	double **log_prec_gaussian;
 	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
+	double **log_power;				       /* for the generalized gaussian */
 
 	double **bc_lambda;
 	double *bc_scale;
@@ -861,6 +864,7 @@ typedef struct {
 	double **bgev_tail;
 	double **bgev_intercept;
 	double *bgev_tail_interval;
+	double **log_power;
 } Link_param_tp;
 
 typedef struct {
@@ -1895,6 +1899,7 @@ double link_power_logit(int thread_id, double x, map_arg_tp typ, void *param, do
 double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_robit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -1926,6 +1931,7 @@ double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
+double map_one_plus_exp(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
@@ -2228,6 +2234,7 @@ int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m
 int loglikelihood_contpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_dgp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_exp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_exppower(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_expsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_fmri(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_fmrisurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2264,7 +2271,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

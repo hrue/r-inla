@@ -9647,7 +9647,7 @@
                 ),
 
                 xbinomial = list(
-                    doc = "The Binomial likelihood (expert version)",
+                    doc = "The Binomial likelihood (experimental version)",
                     hyper = list(),
                     survival = FALSE,
                     discrete = TRUE,
@@ -11420,6 +11420,43 @@
                     discrete = FALSE,
                     link = c("default", "identity"), 
                     pdf = "bcgaussian"
+                ),
+
+                exppower = list(
+                    doc = "The exponential power likelihoood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 65021,
+                            name = "log precision",
+                            short.name = "prec",
+                            output.name = "NOT IN USE", 
+                            output.name.intern = "NOT IN USE", 
+                            initial = 4,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.00005),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 65022,
+                            name = "power",
+                            short.name = "beta",
+                            output.name = "NOT IN USE", 
+                            output.name.intern = "NOT IN USE", 
+                            initial = 0, 
+                            fixed = FALSE,
+                            prior = "gaussian", 
+                            param = c(0, 100),
+                            to.theta = function(x) log(x-1),
+                            from.theta = function(x) 1+exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity", "quantile"), 
+                    pdf = "exppower"
                 ),
 
                 sem = list(

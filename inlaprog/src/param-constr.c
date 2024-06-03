@@ -37,7 +37,7 @@
 	if (debug) {							\
 		printf("\t[%1d] %s (%s:%1d): %s %g\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, val_); \
 	}
-	
+
 int inla_parse_param_constraints(inla_tp *mb)
 {
 	const int debug = 1;
@@ -169,7 +169,7 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 			return (c->value);
 		}
 	}
-	
+
 	gsl_matrix *B = gsl_matrix_calloc(dim, dim);
 	gsl_matrix *S = gsl_matrix_calloc(dim, dim);
 	for (size_t j = 0, k = 0; j < dim; j++) {

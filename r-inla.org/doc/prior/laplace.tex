@@ -18,7 +18,12 @@ for continuous $\theta\in\Re$ where
 \end{description}
 
 \subsection*{Specification}
-The Laplace prior for the hyperparameters is specified as
+The Laplace prior for the hyperparameter is specified as
+\begin{center}
+    \texttt{f( <whatever> , hyper = list(<theta> = list(prior="laplace", param=c(<mean>, <precision>))))}
+\end{center}
+
+The Laplace prior for the hyperparameter is specified as
 \begin{center}
     \texttt{f( <whatever> , hyper = list(<theta> = list(prior="laplace", param=c(<mean>, <precision>))))}
 \end{center}

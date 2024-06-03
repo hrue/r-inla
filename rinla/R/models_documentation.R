@@ -11691,7 +11691,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{The Binomial likelihood (expert version)}}
+#'               \item{doc = }{\verb{The Binomial likelihood (experimental version)}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
@@ -13851,6 +13851,53 @@
 #'             \item{param = }{\verb{1 8}}
 #'             \item{to.theta = }{\verb{function(x) x}}
 #'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'exppower'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The exponential power likelihoood}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity quantile}}
+#'               \item{pdf = }{\verb{exppower}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65021}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65022}}
+#'             \item{name = }{\verb{power}}
+#'             \item{short.name = }{\verb{beta}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x-1)}}
+#'             \item{from.theta = }{\verb{function(x) 1+exp(x)}}
 #'             }
 #'           }
 #'          }

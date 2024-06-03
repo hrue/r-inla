@@ -3,13 +3,20 @@
 #' @description Package to perform full Bayesian analysis on latent Gaussian models using
 #'     Integrated Nested Laplace Approximations.
 #'
-#' See r-inla.org for further details.
-#' @name INLA
-#' @export
+#' See [https://www.r-inla.org/](https://www.r-inla.org/) for further details.
+#' @aliases INLA
+#' @seealso [inla()]
+"_PACKAGE"
+# This creates the appropriate INLA-package.Rd file in the way R and pkgdown likes it.
+# Note: Cannot use rdname INLA, as that would clash with inla.Rd on case-insensitive platforms.
+# Documentation not always available as development documentation, but is accessible
+# after installing.
 
+#' @rdname INLA-package
+#' @export
 INLA <- function() {
-  message("Welcome to the R-INLA package!")
-  utils::browseVignettes(package = "INLA")
+    message("Welcome to the R-INLA package!")
+    utils::browseVignettes(package = "INLA")
 }
 
 

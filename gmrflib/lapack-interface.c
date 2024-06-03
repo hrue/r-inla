@@ -1462,18 +1462,24 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 }
 
 void GMRFLib_powx(int n, double *x, double a, double *y)
-{							       // y = x^a
+{
+	// y = x^a
 
-//#if defined(INLA_WITH_MKL)
-//      vdPowx(n, x, a, y);
-//#else
-
+#if defined(INLA_WITH_MKL)
+	if (n > 4L) {
+		vdPowx(n, x, a, y);
+	} else {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = pow(x[i], a);
+		}
+	}
+#else
 #pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = pow(x[i], a);
 	}
-
-//#endif
+#endif
 }
 
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,

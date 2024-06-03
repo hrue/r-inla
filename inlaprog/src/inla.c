@@ -1690,6 +1690,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_EXPPOWER:
+			{
+				if (!ds->data_fixed0) {
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double log_power = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_power);
+					count++;
+				}
+			}
+				break;
+
 			case L_SIMPLEX:
 			{
 				if (!ds->data_fixed) {
@@ -2545,6 +2560,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
+			case LINK_QEXPPOWER:
 				break;
 
 			case LINK_LOGOFFSET:

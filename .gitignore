@@ -104,3 +104,7 @@ r-inla.org/*/*/*.fls
 r-inla.org/*/*/*.synctex.gz
 r-inla.org/*/*/*.log
 r-inla.org/*/*/*.blg
+
+r-inla.org/doc/likelihood/example-gengaussian.R
+
+r-inla.org/doc/likelihood/gengaussian.tex

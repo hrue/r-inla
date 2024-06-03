@@ -25,6 +25,11 @@ resulting matrix.}
 A \code{sparseMatrix} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{fmesher::fm_row_kron()}, which
+is typically an order of magnitude faster than the old \code{inla.row.kron()} implementation.
+\code{inla.row.kron()} now calls \code{fm_row_kron()} internally instead.
+}
+\details{
 Takes two Matrices and computes the row-wise Kronecker product.  Optionally
 applies row-wise weights and/or applies an additional 0/1 row-wise Kronecker
 matrix product, as needed by \code{\link[=inla.spde.make.A]{inla.spde.make.A()}}.
@@ -35,3 +40,4 @@ matrix product, as needed by \code{\link[=inla.spde.make.A]{inla.spde.make.A()}}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
+\keyword{internal}

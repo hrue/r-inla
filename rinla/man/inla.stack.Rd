@@ -11,24 +11,32 @@
 \alias{inla.stack.RHS}
 \alias{inla.stack.data}
 \alias{inla.stack.A}
+\alias{inla.stack.response}
+\alias{print.inla.data.stack}
 \title{Data stacking for advanced INLA models}
 \usage{
 inla.stack.remove.unused(stack)
 
 inla.stack.compress(stack, remove.unused = TRUE)
 
-inla.stack(..., compress = TRUE, remove.unused = TRUE)
+inla.stack(..., compress = TRUE, remove.unused = TRUE, multi.family = FALSE)
 
 inla.stack.sum(
   data,
   A,
   effects,
+  responses = NULL,
   tag = "",
   compress = TRUE,
   remove.unused = TRUE
 )
 
-inla.stack.join(..., compress = TRUE, remove.unused = TRUE)
+inla.stack.join(
+  ...,
+  compress = TRUE,
+  remove.unused = TRUE,
+  multi.family = FALSE
+)
 
 inla.stack.index(stack, tag)
 
@@ -36,9 +44,13 @@ inla.stack.LHS(stack)
 
 inla.stack.RHS(stack)
 
-inla.stack.data(stack, ...)
+inla.stack.data(stack, ..., .response.name = NULL)
 
 inla.stack.A(stack)
+
+inla.stack.response(stack, drop = TRUE)
+
+\method{print}{inla.data.stack}(x, ...)
 }
 \arguments{
 \item{stack}{A \code{inla.data.stack} object, created by a call to
@@ -57,6 +69,12 @@ removing those columns).}
 rows of effects, replacing the corresponding A-matrix columns with a single
 column containing the sum.}
 
+\item{multi.family}{logical or character. For \code{inla.data.join}, if \code{TRUE},
+the \code{response} part of the stack is joined as a \code{list}. If \code{character},
+denotes the name of a \code{data} element that should be joined as a multi-column
+matrix. Default is \code{FALSE}, which joins both the \code{data} and \code{responses}
+elements with regular row binding with \code{dplyr::bind_rows}.}
+
 \item{data}{A list or codedata.frame of named data vectors. Scalars are
 expanded to match the number of rows in the A matrices, or any non-scalar
 data vectors. An error is given if the input is inconsistent.}
@@ -71,7 +89,22 @@ list of vectors, or a \code{data.frame}. Single-element effect vectors are
 expanded to vectors matching the number of columns in the corresponding A
 matrix.  An error is given if the input is inconsistent or ombiguous.}
 
+\item{responses}{A list of response vectors, matrices, data.frame, or other special
+response objects, such as \code{inla.mdata}. Each list element corresponds to
+one response family. In ordinary user-side code, the list has length 1, and longer
+lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.}
+
 \item{tag}{A string specifying a tag for later identification.}
+
+\item{.response.name}{The name to assign to the response variable when
+extracting data from the stack. Default is \code{NULL}, which skips the
+response object list.}
+
+\item{drop}{logical indicating whether to return the contained object
+instead of the full list, when the stack responses list has length 1.
+Default is \code{TRUE}, as needed for \code{inla()} single family models.
+Use \code{drop = FALSE} to extract the internal response storage, regardless of
+length.}
 }
 \value{
 A data stack of class \code{inla.data.stack}.
@@ -153,6 +186,11 @@ and for each block \eqn{l}{l}, any missing
 \item \code{inla.stack.data()}: Extract data for an inla call, and optionally join with other variables
 
 \item \code{inla.stack.A()}: Extract the "A matrix" for control.predictor
+
+\item \code{inla.stack.response()}: Extract the response variable or list of
+response objects
+
+\item \code{print(inla.data.stack)}: Print information about an \code{inla.data.stack}
 
 }}
 \section{Functions}{
