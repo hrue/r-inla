@@ -119,6 +119,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_GAUSSIAN:
 	case L_STDGAUSSIAN:
 	case L_LOGNORMAL:
+	case L_GEN_GAUSSIAN:
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
@@ -936,6 +937,84 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 		for (int i = 0; i < -m; i++) {
 			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
 			logll[i] = inla_Phi_fast((y - ypred) * sqrt(prec));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gengaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			      void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+
+	typedef struct {
+		double beta;
+		double lgamma1;
+		double lgamma3;
+	} lcache_t;
+
+	static lcache_t **llcache = NULL;
+	if (!llcache) {
+#pragma omp critical (Name_21bf489d4a1518aff583c47b3b79b92dc0329b87)
+		if (!llcache) {
+			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+		}
+	}
+
+	int cidx = 0;
+	GMRFLib_CACHE_SET_ID(cidx);
+	if (!llcache[cidx]) {
+#pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
+		if (!llcache[cidx]) {
+			llcache[cidx] = Calloc(1, lcache_t);
+		}
+	}
+
+	double y = ds->data_observations.y[idx];
+	double w = ds->data_observations.weight_gaussian[idx];
+	double beta = map_one_plus_exp(ds->data_observations.log_power[thread_id][0], MAP_FORWARD, NULL);
+	double lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
+	double sigma = exp(-0.5 * lprec);
+	double off = OFFSET(idx);
+
+	lcache_t *lc = llcache[cidx];
+	if (lc->beta != beta) {
+		lc->beta = beta;
+		lc->lgamma1 = my_gsl_sf_lngamma(1.0 / beta);
+		lc->lgamma3 = my_gsl_sf_lngamma(3.0 / beta);
+	}
+	double alpha = sigma * exp(0.5 * (lc->lgamma1 - lc->lgamma3));
+	double ialpha = 1.0 / alpha;
+
+	LINK_INIT;
+	if (m > 0) {
+		double logZ = log(beta / (2.0 * alpha)) - lc->lgamma1;
+		if (PREDICTOR_LINK_EQ(link_identity)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+				double z = ABS(y - ypred) * ialpha;
+				logll[i] = logZ - pow(z, beta);
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+				double z = ABS(y - ypred) * ialpha;
+				logll[i] = logZ - pow(z, beta);
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double shape = 1.0 / beta;
+		double scale = 1.0 / pow(ialpha, beta);
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = 0.5 * (1.0 + SIGN(y - mu) * MATHLIB_FUN(pgamma) (pow(ABS(y - mu), beta), shape, scale, 1, 0));
 		}
 	}
 
@@ -5401,9 +5480,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

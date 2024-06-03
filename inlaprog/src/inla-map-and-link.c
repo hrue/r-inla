@@ -1072,7 +1072,12 @@ double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_shape_svnig(double arg, map_arg_tp typ, void *param)
+{
+	return (map_one_plus_exp(arg, typ, param));
+}
+
+double map_one_plus_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)

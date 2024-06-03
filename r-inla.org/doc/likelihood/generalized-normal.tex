@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Generalized Gaussian likelihood}
+
+\subsection*{Parameterisation}
+
+The generalized Gaussian distribution is
+\begin{displaymath}
+    f(y) = \exp\left( - \left( \frac{|y-\mu|}{\sigma\alpha(\beta)}\right)^{\beta}\right)
+    \frac{\beta}{2\sigma\alpha(\beta) \Gamma(1/\beta)}
+\end{displaymath}
+for continuously responses $y$ where
+\begin{description}
+\item[$\mu$:] is the the mean
+\item[$\sigma$:] is the standard deviation
+\end{description}
+and
+\begin{displaymath}
+    \alpha(\beta) = \sqrt{\Gamma(1/\beta)/\Gamma(3/\beta)}
+\end{displaymath}
+
+\subsection*{Family \emph{ggaussian}}
+\subsubsection*{Link-function}
+
+The mean is given by the linear predictor $\eta$ from the formula
+\begin{displaymath}
+    \text{link}(\mu) = \eta
+\end{displaymath}
+where the default is the \emph{identity}-link. The precision $\tau$ is given
+as $\tau = 1/\sigma^{2}$.
+
+\subsubsection*{Hyperparameters}
+The two hyperparameters in the model are
+\begin{displaymath}
+    \theta_1=\log(\tau)
+\end{displaymath}
+and
+\begin{displaymath}
+    \beta = 1 + \exp(\theta_2)
+\end{displaymath}
+and the priors are given on $(\theta_1, \theta_2)$.
+
+
+\subsubsection*{Specification}
+\begin{itemize}
+\item \texttt{family="gengaussian"}
+\item Required arguments:
+\item Required arguments: $y$ and $s$ (argument \texttt{scale})
+\end{itemize}
+The scalings have default value 1.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\textbf{\texttt{family="gengaussian"}}
+\input{../hyper/likelihood/gengaussian.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-gengaussian.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

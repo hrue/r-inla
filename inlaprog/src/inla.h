@@ -261,6 +261,7 @@ typedef enum {
 	L_BC_GAUSSIAN,
 	L_OCCUPANCY,
 	L_SEM,
+	L_GEN_GAUSSIAN, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -515,7 +516,8 @@ typedef struct {
 	double **log_prec_gaussian;
 	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
-
+	double **log_power;				       /* for the generalized gaussian */
+	
 	double **bc_lambda;
 	double *bc_scale;
 	double *bc_mean;
@@ -1926,6 +1928,7 @@ double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
+double map_one_plus_exp(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
@@ -2244,6 +2247,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   GMRFLib_logl_tp * loglfun, char **arg_str);
 int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_gengaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_ggaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_ggaussianS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gompertz(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

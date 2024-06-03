@@ -80,6 +80,8 @@
                                 "normal",
                                 "stdnormal",
                                 "lognormal",
+                                "gengaussian", 
+                                "gennormal", 
                                 "t",
                                 "sn",
                                 "gev",
