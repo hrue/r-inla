@@ -119,7 +119,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_GAUSSIAN:
 	case L_STDGAUSSIAN:
 	case L_LOGNORMAL:
-	case L_GEN_GAUSSIAN:
+	case L_EXPPOWER:
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
@@ -944,8 +944,8 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gengaussian(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **UNUSED(arg_str))
+int loglikelihood_exppower(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -5480,9 +5480,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

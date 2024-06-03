@@ -11422,15 +11422,15 @@
                     pdf = "bcgaussian"
                 ),
 
-                gengaussian = list(
-                    doc = "The Generalized Gaussian likelihoood",
+                exppower = list(
+                    doc = "The exponential power likelihoood",
                     hyper = list(
                         theta1 = list(
                             hyperid = 65021,
                             name = "log precision",
                             short.name = "prec",
-                            output.name = "Precision for the Generalized Gaussian observations", 
-                            output.name.intern = "Log precision for the Generalized Gaussian observations", 
+                            output.name = "NOT IN USE", 
+                            output.name.intern = "NOT IN USE", 
                             initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
@@ -11455,7 +11455,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity", "quantile"), 
-                    pdf = "generalized-normal"
+                    pdf = "exppower"
                 ),
 
                 sem = list(

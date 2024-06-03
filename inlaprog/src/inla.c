@@ -1690,7 +1690,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
-			case L_GEN_GAUSSIAN:
+			case L_EXPPOWER:
 			{
 				if (!ds->data_fixed0) {
 					log_precision = theta[count];
@@ -2560,7 +2560,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
-			case LINK_QGEN_GAUSSIAN: 
+			case LINK_QEXPPOWER:
 				break;
 
 			case LINK_LOGOFFSET:

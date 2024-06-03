@@ -81,7 +81,7 @@
                                 "stdnormal",
                                 "lognormal",
                                 "gengaussian", 
-                                "gennormal", 
+                                "exppower", 
                                 "t",
                                 "sn",
                                 "gev",

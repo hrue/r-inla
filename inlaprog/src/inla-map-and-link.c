@@ -1785,7 +1785,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 	return (ret);
 }
 
-double link_qgengaussian(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	// do caching on two levels
 
@@ -1869,7 +1869,7 @@ double link_qgengaussian(int thread_id, double x, map_arg_tp typ, void *param, d
 
 	if (lc->beta != beta) {
 		lc->beta = beta;
-		lc->lg_expr = exp(0.5 * (my_gsl_sf_lngamma(1.0 / beta) -  my_gsl_sf_lngamma(3.0 / beta)));
+		lc->lg_expr = exp(0.5 * (my_gsl_sf_lngamma(1.0 / beta) - my_gsl_sf_lngamma(3.0 / beta)));
 		lc->qval2 = pow(MATHLIB_FUN(qgamma) (p2, shape, 1.0, 1, 0), 1.0 / beta);
 	}
 

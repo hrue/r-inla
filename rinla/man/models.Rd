@@ -13874,15 +13874,15 @@ Number of hyperparmeters is 2.
 }
 }
 }
-\item{Model 'gengaussian'.}{
+\item{Model 'exppower'.}{
 \describe{
 \item{Properties:}{
 \describe{
-\item{doc = }{\verb{The Generalized Gaussian likelihoood}}
+\item{doc = }{\verb{The exponential power likelihoood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity quantile}}
-\item{pdf = }{\verb{generalized-normal}}
+\item{pdf = }{\verb{exppower}}
 }
 }
 }
@@ -13893,8 +13893,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{\verb{65021}}
 \item{name = }{\verb{log precision}}
 \item{short.name = }{\verb{prec}}
-\item{output.name = }{\verb{Precision for the Generalized Gaussian observations}}
-\item{output.name.intern = }{\verb{Log precision for the Generalized Gaussian observations}}
+\item{output.name = }{\verb{NOT IN USE}}
+\item{output.name.intern = }{\verb{NOT IN USE}}
 \item{initial = }{\verb{4}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{loggamma}}

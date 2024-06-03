@@ -681,9 +681,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "SEM")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sem;
 		ds->data_id = L_SEM;
-	} else if (!strcasecmp(ds->data_likelihood, "GENGAUSSIAN")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gengaussian;
-		ds->data_id = L_GEN_GAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "exppower")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_exppower;
+		ds->data_id = L_EXPPOWER;
 	} else if (!strcasecmp(ds->data_likelihood, "SIMPLEX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_simplex;
 		ds->data_id = L_SIMPLEX;
@@ -1062,7 +1062,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_GEN_GAUSSIAN: 
+	case L_EXPPOWER:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -2514,7 +2514,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_GEN_GAUSSIAN:
+	case L_EXPPOWER:
 	{
 		/*
 		 * get options related to the generalized gaussian 
@@ -2594,7 +2594,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_power;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_one_plus_exp; // this is power = 1 + exp(theta)
+			mb->theta_map[mb->ntheta] = map_one_plus_exp;	// this is power = 1 + exp(theta)
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -7866,11 +7866,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 			break;
 
-		case L_GEN_GAUSSIAN: 
+		case L_EXPPOWER:
 		{
-			ds->link_id = LINK_QGEN_GAUSSIAN;
+			ds->link_id = LINK_QEXPPOWER;
 			ds->link_ntheta = 0;
-			ds->predictor_invlinkfunc = link_qgengaussian;
+			ds->predictor_invlinkfunc = link_qexppower;
 		}
 			break;
 
@@ -8023,7 +8023,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case LINK_QGEN_GAUSSIAN:
+	case LINK_QEXPPOWER:
 	{
 		for (i = 0; i < n_data; i++) {
 			Link_param_tp *link_param = Calloc(1, Link_param_tp);
