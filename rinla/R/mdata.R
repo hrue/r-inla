@@ -43,8 +43,9 @@
     } else {
         obj <- y.obj
     }
+    obj <- as.data.frame(obj)
     attr(obj, "inla.ncols") <- c(length(ncols), ncols)
-    class(obj) <- c("inla.mdata", "list")
+    class(obj) <- c("inla.mdata", "data.frame")
     attr(obj, "names.ori") <- names.ori
     return(obj)
 }
@@ -71,9 +72,10 @@
         names(object) <- c("Y1", paste("X", 1:(length(object) - 1), sep = ""))
         ncols <- c(2, 1, length(object) - 1)
     }
+    object <- as.data.frame(object)
     warning("Guess that ncol(response) == 1. Otherwise,  please modify 'names(object)'.")
     attr(object, "inla.ncols") <- ncols
-    class(object) <- "inla.mdata"
+    class(object) <- c("inla.mdata", "data.frame")
     return(object)
 }
 
