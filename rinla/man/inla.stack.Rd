@@ -92,8 +92,7 @@ matrix.  An error is given if the input is inconsistent or ombiguous.}
 \item{responses}{A list of response vectors, matrices, data.frame, or other special
 response objects, such as \code{inla.mdata}. Each list element corresponds to
 one response family. In ordinary user-side code, the list has length 1, and longer
-lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.
-If non-NULL and non-list, the input is placed as the single entry in a new list.}
+lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.}
 
 \item{tag}{A string specifying a tag for later identification.}
 }
