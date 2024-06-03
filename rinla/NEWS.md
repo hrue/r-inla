@@ -1,3 +1,7 @@
+# INLA_24.06.04
+* Support for `inla.mdata`-objects in `inla.stack` (experimental)
+* New likelihood `exppower` (experimental)
+
 # INLA_24.06.02
 * Fixed a regressin in model `iidkd`
 * Fixed missprints in `group cv` vignette
