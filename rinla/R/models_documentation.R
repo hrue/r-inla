@@ -11691,7 +11691,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{The Binomial likelihood (expert version)}}
+#'               \item{doc = }{\verb{The Binomial likelihood (experimental version)}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
 #'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
@@ -13860,6 +13860,7 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{\verb{The exponential power likelihoood}}
+#'               \item{status = }{\verb{experimental}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default identity quantile}}

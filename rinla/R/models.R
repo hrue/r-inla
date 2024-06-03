@@ -9647,7 +9647,7 @@
                 ),
 
                 xbinomial = list(
-                    doc = "The Binomial likelihood (expert version)",
+                    doc = "The Binomial likelihood (experimental version)",
                     hyper = list(),
                     survival = FALSE,
                     discrete = TRUE,
@@ -11452,6 +11452,7 @@
                             from.theta = function(x) 1+exp(x)
                         )
                     ),
+                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity", "quantile"), 

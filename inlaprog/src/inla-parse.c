@@ -1067,7 +1067,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Generalized Gaussian weight[%1d] = %g is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: Exponential Power weight[%1d] = %g is void\n", secname, i,
 							ds->data_observations.weight_gaussian[i]);
 					inla_error_general(msg);
 				}
@@ -2541,8 +2541,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the GenGaussian observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the GenGaussian observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for exponential power observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for exponential power observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -2582,8 +2582,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log power for the GenGaussian observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Power for the GenGaussian observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log power for exponential power observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Power for exponential power observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
