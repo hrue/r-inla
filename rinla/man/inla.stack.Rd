@@ -105,6 +105,8 @@ instead of the full list, when the stack responses list has length 1.
 Default is \code{TRUE}, as needed for \code{inla()} single family models.
 Use \code{drop = FALSE} to extract the internal response storage, regardless of
 length.}
+
+\item{x}{An \code{inla.data.stack} object for printing}
 }
 \value{
 A data stack of class \code{inla.data.stack}.

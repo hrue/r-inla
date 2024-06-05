@@ -72,7 +72,7 @@ ctrl_update(x, ...)
 If \code{NULL}, uses \code{ctrl_default(x)} instead.}
 
 \item{data}{An optional data object (\code{data.frame}, \code{list}, or \code{environment},
-see the \code{what} argument of \code{\link[=base:attach]{base:attach()}}).}
+see the \code{what} argument of \code{\link[base:attach]{base::attach()}}).}
 
 \item{check}{logical; If \code{TRUE} (default), calls \code{ctrl_check()} to verify
 compliance with the default object of the target control type. Must be set
@@ -83,8 +83,6 @@ to \code{FALSE} by code calling \code{ctrl_object()} to construct default object
 \item{control.compute}{A \code{ctrl_compute} object.}
 
 \item{control.inla}{A \code{ctrl_inla} object.}
-
-\item{.envir}{The enclosing parent frame for resolving variables in \code{x}}
 }
 \description{
 Methods for controlling \code{\link[=inla]{inla()}} and \code{\link[=f]{f()}} \code{control} arguments

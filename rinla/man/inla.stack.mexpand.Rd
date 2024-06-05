@@ -11,10 +11,10 @@ inla.stack.mexpand(..., old.names = "response", new.name = "response")
 (existing multilikelihood observation matrices are also permitted)}
 
 \item{old.names}{A vector of strings with the names of the observation vector/matrix for each stack.
-If a single string, this is assumed for all the stacks. (default "BRU.response")}
+If a single string, this is assumed for all the stacks. (default "response")}
 
 \item{new.name}{The name to be used for the expanded observation matrix,
-possibly the same as an old name. (default "BRU.response")}
+possibly the same as an old name. (default "response")}
 }
 \value{
 a list of modified stacks with multicolumn observations

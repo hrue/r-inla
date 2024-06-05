@@ -14,9 +14,14 @@ inla.set.control.sem.default(...)
 expression for that particular element, in terms of beta-parameters for copy}
 
 \item{idx}{Which diagonal element to use for the variance.}
+
+\item{...}{Named arguments passed on to the main function}
 }
 \description{
-control.sem
+Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.
+The functions can be used to TAB-complete arguments, and
+returns a list of the default control arguments, unless overridden by
+specific input arguments.
 }
 \details{
 Parameters to family \code{sem}
