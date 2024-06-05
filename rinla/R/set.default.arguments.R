@@ -24,7 +24,7 @@
     }
 
 #' @title control.sem
-#' @inherit control.sem params description seealso
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 #' @details Parameters to family `sem`

@@ -37,8 +37,8 @@ ctrl_type.character <- function(x) {
 #' @describeIn inla-control Checks that the elements are named and match
 #' the available ones in the corresponding default control object.
 #' @param data An optional data object (`data.frame`, `list`, or `environment`,
-#' see the `what` argument of [base:attach()]).
-#' @param .envir The enclosing parent frame for resolving variables in `x`
+#' see the `what` argument of [base::attach()]).
+# @param .envir The enclosing parent frame for resolving variables in `x`
 #' @export
 ctrl_check <- function(x, the_type, default = NULL) {
     x_type <- ctrl_type(x)

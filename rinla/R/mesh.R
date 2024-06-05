@@ -2145,7 +2145,7 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
 #' mesh <- inla.mesh.2d(loc, boundary = boundary, offset = offset, max.edge = c(0.05, 0.1))
 #'
 #' plot(mesh)
-#' @importFrom fmesher fm_identical_CRS fm_crs_is_geocent
+#' @importFrom fmesher fm_crs_is_geocent fm_crs_is_identical
 #' @export inla.mesh.2d
 inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
                          loc.domain = NULL, ## Points that determine the automatic domain
