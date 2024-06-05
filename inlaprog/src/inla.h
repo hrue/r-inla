@@ -2248,8 +2248,6 @@ int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int
 			     char **arg_str);
 int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       GMRFLib_logl_tp * loglfun, char **arg_str);
-int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   GMRFLib_logl_tp * loglfun, char **arg_str);
 int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_ggaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_ggaussianS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
