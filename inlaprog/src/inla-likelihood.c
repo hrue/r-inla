@@ -6835,29 +6835,18 @@ int loglikelihood_expsurv(int thread_id, double *__restrict logll, double *__res
 int loglikelihood_generic_surv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
 				   void *arg, GMRFLib_logl_tp *loglfun, char **arg_str)
 {
-	// this safeguard computed CDF's that should not be exactly 1, zero seems ok
-#define SAFEGUARD(value_) for(int i_ = 0; i_ < (m); i_++) value_[i_] = TRUNCATE(value_[i_], 0.0, 1.0 - p_min)
-
+#define SAFEGUARD1(value_) value_ = TRUNCATE(value_, eps, 1.0 - eps)
+#define SAFEGUARD(value_)						\
+	for(int i_ = 0; i_ < (m); i_++) {				\
+		SAFEGUARD1(value_[i_]);					\
+	}	
+	
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int ievent;
-	double event, truncation, lower, upper;
-
-	assert(y_cdf == NULL);				       // I do not think this should be used.
-	double p_min = 100.0 * GSL_DBL_EPSILON;
-
-	if (0)
-		if (ds->data_observations.cure_ncov && (idx == 0)) {
-			P(ds->data_observations.cure_ncov);
-			P(idx);
-			for (int i = 0; i < ds->data_observations.cure_ncov; i++) {
-				int j = idx * ds->data_observations.cure_ncov;
-				P(ds->data_observations.cure_cov[j + i]);
-			}
-		}
-
 	int ncov = ds->data_observations.cure_ncov;
 	double pcure = 0.0, l_1mpcure = NAN;
+	double eps = 0.001 * FLT_EPSILON;
 
+	assert(y_cdf == NULL);				       // I do not think this should be used.
 	if (ncov) {
 		double *cov = ds->data_observations.cure_cov + idx * ncov;
 		double sum = 0.0;
@@ -6865,30 +6854,25 @@ int loglikelihood_generic_surv(int thread_id, double *__restrict logll, double *
 			sum += cov[i] * ds->data_observations.cure_beta[i][thread_id][0];
 		}
 		pcure = map_probability_forward(sum, MAP_FORWARD, NULL);
-		l_1mpcure = log(1.0 - pcure);
+		SAFEGUARD1(pcure);
+		l_1mpcure = LOG_p(1.0 - pcure);
 	}
 
-	event = ds->data_observations.event[idx];
-	ievent = (int) event;
-	truncation = ds->data_observations.truncation[idx];
-	lower = ds->data_observations.lower[idx];
-	upper = ds->data_observations.upper[idx];
+	double event = ds->data_observations.event[idx];
+	double truncation = ds->data_observations.truncation[idx];
+	double lower = ds->data_observations.lower[idx];
+	double upper = ds->data_observations.upper[idx];
+	int ievent = (int) event;
 	int have_truncation = (truncation > 0.0);
 
 	if (arg_str) {
-		char *a = NULL;
-		char *b = NULL;
-
+		char *a = NULL, *b = NULL;
 		double dummy;
 		loglfun(thread_id, &dummy, x, 1, idx, x_vec, NULL, arg, &b);
-
-		char *str_cov = Strdup("");
-		char *str_beta = Strdup("");
-
+		char *str_cov = Strdup(""), *str_beta = Strdup("");
 		if (ncov) {
 			double *cov = ds->data_observations.cure_cov + idx * ncov;
 			str_cov = GMRFLib_vec2char(cov, ncov);
-
 			double *beta = Calloc(ncov, double);
 			for (int i = 0; i < ncov; i++) {
 				beta[i] = ds->data_observations.cure_beta[i][thread_id][0];
@@ -6900,7 +6884,6 @@ int loglikelihood_generic_surv(int thread_id, double *__restrict logll, double *
 		GMRFLib_sprintf(&a, "list(y.surv = list(time = %.8g, lower = %.8g, upper = %.8g, truncation = %.8g, event = %1d), \
 family = \"inla.surv\", cure.prob = %.8g, cure.beta = c(%s), cure.covariates = c(%s), \
 family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, ievent, pcure, str_beta, str_cov, (b ? b : ""));
-
 		*arg_str = a;
 		return GMRFLib_SUCCESS;
 	}
@@ -6930,7 +6913,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (have_truncation) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					lf[i] += log(FF_trunc[i]);
+					lf[i] += LOG_p(FF_trunc[i]);
 				}
 			}
 
@@ -6963,12 +6946,16 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log(pcure + (1.0 - pcure) * (1.0 - F_lower[i]));
+					//logll[i] = log(pcure + (1.0 - pcure) * (1.0 - F_lower[i]));
+					double A = LOG_p(pcure);
+					double B = LOG_p((1.0 - pcure) * (1.0 - F_lower[i])); 
+					logll[i] = eval_logsum_safe(A, B);
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log(1.0 - F_lower[i]);
+					//logll[i] = log(1.0 - F_lower[i]);
+					logll[i] = LOG_p(1.0 - F_lower[i]);
 				}
 			}
 		}
@@ -6992,12 +6979,12 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log((1.0 - pcure) * F_upper[i]);
+					logll[i] = LOG_p((1.0 - pcure) * F_upper[i]);
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log(F_upper[i]);
+					logll[i] = LOG_p(F_upper[i]);
 				}
 			}
 		}
@@ -7027,12 +7014,12 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log((1.0 - pcure) * (F_upper[i] - F_lower[i]));
+					logll[i] = LOG_p((1.0 - pcure) * (F_upper[i] - F_lower[i]));
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = log(F_upper[i] - F_lower[i]);
+					logll[i] = LOG_p(F_upper[i] - F_lower[i]);
 				}
 			}
 		}
@@ -7061,19 +7048,19 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 				}
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					lf[i] += log(FF_trunc[i]);
+					lf[i] += LOG_p(FF_trunc[i]);
 				}
 			}
 
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = l_1mpcure + lf[i] - log((F_upper[i] - F_lower[i]));
+					logll[i] = l_1mpcure + lf[i] - LOG_p((F_upper[i] - F_lower[i]));
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = lf[i] - log((F_upper[i] - F_lower[i]));
+					logll[i] = lf[i] - LOG_p((F_upper[i] - F_lower[i]));
 				}
 			}
 		}
@@ -7088,7 +7075,9 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+
 #undef SAFEGUARD
+#undef SAFEGUARD1
 	return GMRFLib_SUCCESS;
 }
 
@@ -7105,7 +7094,7 @@ int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__res
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double alpha = map_alpha_weibull(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
-
+	
 	LINK_INIT;
 	if (arg_str) {
 		char *a = NULL;
