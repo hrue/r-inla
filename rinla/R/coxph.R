@@ -97,9 +97,6 @@
         }
     }
 
-    ## this one is not used in this function
-    y.surv$.special <- NULL
-
     len.y.surv <- max(sapply(y.surv, length))
     data.f <- inla.fix.data(data, len.y.surv, revert = FALSE)
     data.l <- inla.fix.data(data, len.y.surv, revert = TRUE)

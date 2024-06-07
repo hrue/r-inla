@@ -634,8 +634,6 @@
                 y...orig$cure <- NULL
             }
             class(y...orig) <- NULL
-            ## this one is not passed along
-            y...orig$.special <- NULL
             ## we have to skip a possible matrix in ...$cure
             ny <- max(vapply(y...orig, NROW, 1L))
         } else if (inherits(y...orig, "inla.mdata")) {

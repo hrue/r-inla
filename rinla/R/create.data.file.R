@@ -31,7 +31,6 @@
     if (is.null(y.orig)) {
         y.orig <- c(mf[, 1L])
     } else if (is.inla.surv(y.orig)) {
-        y.orig$.special <- NULL
         ## this only applies if we have no cure-model. make sure to remove it
         idx <- which(names(y.orig) == "cure")
         if (length(idx) == 1) {
