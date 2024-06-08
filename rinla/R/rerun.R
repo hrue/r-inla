@@ -31,9 +31,15 @@
 
     if (!plain) {
         object$.args$control.mode$result <- NULL
+
         object$.args$control.mode$restart <- TRUE
-        object$.args$control.mode$theta <- object$mode$theta
+        if (length(object$mode$theta) > 0) {
+            object$.args$control.mode$theta <- object$mode$theta
+        } else {
+            object$.args$control.mode$theta <- NULL
+        }
         object$.args$control.mode$x <- object$mode$x
+
         object$.args$control.inla$use.directions <- object$misc$opt.directions
         object$.args$control.inla$optimise.strategy <- "plain"
         object$.args$control.inla$step.factor <- 1

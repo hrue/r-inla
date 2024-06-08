@@ -220,25 +220,24 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 			nread = fread(mb->theta_file, sizeof(double), mb->ntheta_file, fp);
 			assert(nread == (size_t) mb->ntheta_file);
 			fclose(fp);
-
-			mb->reuse_mode = 1;
+			mb->mode_reuse = 1;
 		} else {
 			inla_sread_doubles_q(&t, &nt, tmp);
 			if (nt) {
 				mb->ntheta_file = nt;
 				mb->theta_file = t;
-				mb->reuse_mode = 1;
+				mb->mode_reuse = 1;
 			} else {
 				mb->ntheta_file = 0;
 				mb->theta_file = NULL;
-				mb->reuse_mode = 0;
+				mb->mode_reuse = 0;
 				Free(t);
 			}
 		}
 	} else {
 		mb->ntheta_file = 0;
 		mb->theta_file = NULL;
-		mb->reuse_mode = 0;
+		mb->mode_reuse = 0;
 	}
 
 	if (mb->verbose) {
@@ -277,14 +276,9 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	mb->reuse_mode_but_restart = iniparser_getboolean(ini, inla_string_join(secname, "RESTART"), 0);
+	mb->mode_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 	if (mb->verbose) {
-		printf("\t\tRestart = %1d\n", mb->reuse_mode_but_restart);
-	}
-
-	mb->fixed_mode = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-	if (mb->verbose) {
-		printf("\t\tFixed mode= %1d\n", mb->fixed_mode);
+		printf("\t\tFixed mode= %1d\n", mb->mode_fixed);
 	}
 
 	return INLA_OK;
@@ -474,8 +468,10 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 	mb->predictor_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-	if (!mb->predictor_fixed && mb->reuse_mode) {
+	if (!mb->predictor_fixed && mb->mode_reuse) {
 		tmp = mb->theta_file[mb->theta_counter_file++];
+		if (mb->mode_fixed)
+			mb->predictor_fixed = 1;
 	}
 	HYPER_NEW(mb->predictor_log_prec, tmp);
 	if (mb->verbose) {
@@ -2076,8 +2072,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2136,8 +2134,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2184,8 +2184,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2262,8 +2264,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2304,8 +2308,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i - 1], tmp);
@@ -2387,8 +2393,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.gjw_beta[i], tmp);
@@ -2435,8 +2443,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2476,8 +2486,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.bc_lambda, tmp);
 		if (mb->verbose) {
@@ -2521,8 +2533,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
@@ -2562,8 +2576,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_power, tmp);
 		if (mb->verbose) {
@@ -2638,8 +2654,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i], tmp);
@@ -2694,8 +2712,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_simplex, tmp);
 		if (mb->verbose) {
@@ -2831,8 +2851,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), -5.0);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.gpoisson_overdispersion, tmp);
 		if (mb->verbose) {
@@ -2875,8 +2897,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.gpoisson_p, tmp);
 		if (mb->verbose) {
@@ -2925,8 +2949,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), -4.0);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.fmri_lprec, tmp);
 		if (mb->verbose) {
@@ -2969,8 +2995,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.fmri_ldof, tmp);
 		if (mb->verbose) {
@@ -3068,8 +3096,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (count + 1 >= ds->data_observations.pom_nclasses) {
 				ds->data_nfixed[count] = 1;
 			}
-			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+			if (!ds->data_nfixed[count] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[count] = 1;
 			}
 			HYPER_NEW(ds->data_observations.pom_theta[count], tmp);
 
@@ -3142,8 +3172,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_circular_normal, tmp);
 		if (mb->verbose) {
@@ -3190,8 +3222,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_wrapped_cauchy, tmp);
 		if (mb->verbose) {
@@ -3239,8 +3273,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		dtweedie_init_cache();			       // will only initialize once
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.tweedie_p_intern, tmp);
 		if (mb->verbose) {
@@ -3286,8 +3322,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.tweedie_phi_intern, tmp);
 		if (mb->verbose) {
@@ -3336,8 +3374,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), -3.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.gp_intern_tail, tmp);
 		if (mb->verbose) {
@@ -3410,8 +3450,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.iid_gamma_log_shape, tmp);
 		if (mb->verbose) {
@@ -3454,8 +3496,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.iid_gamma_log_rate, tmp);
 		if (mb->verbose) {
@@ -3502,8 +3546,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.iid_logitbeta_log_a, tmp);
 		if (mb->verbose) {
@@ -3546,8 +3592,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.iid_logitbeta_log_b, tmp);
 		if (mb->verbose) {
@@ -3595,8 +3643,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_loggamma_frailty, tmp);
 		if (mb->verbose) {
@@ -3643,8 +3693,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_logistic, tmp);
 		if (mb->verbose) {
@@ -3691,8 +3743,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.sn_lprec, tmp);
 		if (mb->verbose) {
@@ -3732,8 +3786,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.sn_skew, tmp);
 		if (mb->verbose) {
@@ -3790,8 +3846,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* YES! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gev, tmp);
 		if (mb->verbose) {
@@ -3835,8 +3893,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0) / ds->data_observations.gev_scale_xi;	/* scale
 																	 * here */
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			// tmp = mb->theta_file[mb->theta_counter_file++]/ds->data_observations.gev_scale_xi; /* scale here */
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 			tmp = mb->theta_file[mb->theta_counter_file++];	/* DO NOT scale here */
 		}
 		HYPER_NEW(ds->data_observations.xi_gev, tmp);
@@ -3955,8 +4015,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.bgev_log_spread, tmp);
 		if (mb->verbose) {
@@ -3996,8 +4058,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_nfixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_nfixed[1] && mb->reuse_mode) {
+		if (!ds->data_nfixed[1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[1] = 1;
 		}
 		HYPER_NEW(ds->data_observations.bgev_intern_tail, tmp);
 		if (mb->verbose) {
@@ -4062,8 +4126,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", idx);
 			ds->data_nfixed[idx] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[idx] && mb->reuse_mode) {
+			if (!ds->data_nfixed[idx] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[idx] = 1;
 			}
 
 			if (i < ds->data_observations.bgev_nbetas[0]) {
@@ -4190,8 +4256,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.ggaussian_beta[i], tmp);
@@ -4273,8 +4341,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.rcp_beta[i], tmp);
@@ -4356,8 +4426,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.tp_beta[i], tmp);
@@ -4458,8 +4530,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.poisson0_beta[i], tmp);
@@ -4560,8 +4634,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.binomial0_beta[i], tmp);
@@ -4613,8 +4689,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		char *nm = (ds->data_id == L_GAMMA ? strdup("Gamma") : strdup("mGamma"));
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.gamma_log_prec, tmp);
 		if (mb->verbose) {
@@ -4698,8 +4776,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.gamma_log_prec, tmp);
 		if (mb->verbose) {
@@ -4748,8 +4828,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i - 1], tmp);
@@ -4845,8 +4927,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i], tmp);
@@ -4900,8 +4984,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.gammacount_log_alpha, tmp);
 		if (mb->verbose) {
@@ -4950,8 +5036,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.qkumar_log_prec, tmp);
 		if (mb->verbose) {
@@ -5001,8 +5089,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		assert(ds->variant == 0 || ds->variant == 1);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -5082,8 +5172,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		assert(ds->variant == 0 || ds->variant == 1);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -5131,8 +5223,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i - 1], tmp);
@@ -5197,8 +5291,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.beta_precision_intern, tmp);
 		if (mb->verbose) {
@@ -5245,8 +5341,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.betabinomial_overdispersion_intern, tmp);
 		if (mb->verbose) {
@@ -5293,8 +5391,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.betabinomial_overdispersion_intern, tmp);
 		if (mb->verbose) {
@@ -5341,8 +5441,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), log(10.0));
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
 		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
@@ -5396,8 +5498,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), log(10.0));
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
 		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
@@ -5452,8 +5556,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
 		if (mb->verbose) {
@@ -5501,8 +5607,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), -1.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -5559,8 +5667,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_rho_intern, tmp);
 		if (mb->verbose) {
@@ -5609,8 +5719,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), -1.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -5666,8 +5778,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
 		if (mb->verbose) {
@@ -5721,8 +5835,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
 			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+			if (!ds->data_nfixed[count] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[count] = 1;
 			}
 			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
 
@@ -5774,8 +5890,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -5829,8 +5947,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
 			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+			if (!ds->data_nfixed[count] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[count] = 1;
 			}
 			HYPER_NEW(ds->data_observations.log_sizes[count], tmp);
 
@@ -5882,8 +6002,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
 		if (mb->verbose) {
@@ -5926,8 +6048,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), log(2.0));
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
@@ -5975,8 +6099,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_prec_t, tmp);
 		if (mb->verbose) {
@@ -6020,8 +6146,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(1);
 		}
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.dof_intern_t, tmp);
 		if (mb->verbose) {
@@ -6090,8 +6218,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(1);
 		}
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.dof_intern_tstrata, tmp);
 		if (mb->verbose) {
@@ -6150,8 +6280,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			double initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), G.log_prec_initial);
 
-			if (!ds->data_nfixed[k] && mb->reuse_mode) {
+			if (!ds->data_nfixed[k] && mb->mode_reuse) {
 				initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[k] = 1;
 			}
 			HYPER_NEW(ds->data_observations.log_prec_tstrata[k - 1], initial);	/* yes, its a -1, prec0, prec1, etc... */
 			if (mb->verbose) {
@@ -6207,8 +6339,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1);	/* yes, default fixed */
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
 		if (mb->verbose) {
@@ -6255,8 +6389,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1);	/* yes, default fixed */
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.stochvolln_c, tmp);
 		if (mb->verbose) {
@@ -6304,8 +6440,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.00123456789);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.sn_skew, tmp);
 		if (mb->verbose) {
@@ -6349,8 +6487,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		double initial_value = 500.0;
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);	/* yes, default fixed */
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
 		if (mb->verbose) {
@@ -6399,8 +6539,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.dof_intern_svt, tmp);
 		if (mb->verbose) {
@@ -6451,8 +6593,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial0);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.skew_intern_svnig, tmp);
 		if (mb->verbose) {
@@ -6463,8 +6607,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial1);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.shape_intern_svnig, tmp);
 		if (mb->verbose) {
@@ -6540,8 +6686,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -6615,8 +6763,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -6657,8 +6807,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i - 1], tmp);
@@ -6716,8 +6868,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -6795,8 +6949,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+		if (!ds->data_nfixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
@@ -6840,8 +6996,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			if (!ds->data_nfixed[i] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
 			}
 
 			HYPER_NEW(ds->data_observations.cure_beta[i - 1], tmp);
@@ -6895,8 +7053,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -6948,8 +7108,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -7040,8 +7202,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
@@ -7089,8 +7253,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
@@ -7139,8 +7305,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha1_intern, tmp);
 		if (mb->verbose) {
@@ -7180,8 +7348,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha2_intern, tmp);
 		if (mb->verbose) {
@@ -7228,8 +7398,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha0_intern, tmp);
 		if (mb->verbose) {
@@ -7269,8 +7441,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zero_n_inflated_alphaN_intern, tmp);
 		if (mb->verbose) {
@@ -7317,8 +7491,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
+		if (!ds->data_fixed0 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
@@ -7359,8 +7535,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		initial_value = log(1.0);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
 		}
 		HYPER_NEW(ds->data_observations.zeroinflated_delta_intern, tmp);
 		if (mb->verbose) {
@@ -7410,8 +7588,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
@@ -7511,8 +7691,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 
-			if (!(ds->data_nfixed[k]) && mb->reuse_mode) {
+			if (!ds->data_nfixed[k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[k] = 1;
 			}
 			HYPER_NEW(ds->data_observations.nmix_beta[k], tmp);
 			if (mb->verbose) {
@@ -7566,8 +7748,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 
-			if (!(ds->data_nfixed[k]) && mb->reuse_mode) {
+			if (!ds->data_nfixed[k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[k] = 1;
 			}
 
 			if (mb->verbose) {
@@ -7643,8 +7827,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 
-			if (!(ds->data_nfixed[k]) && mb->reuse_mode) {
+			if (!ds->data_nfixed[k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[k] = 1;
 			}
 			HYPER_NEW(ds->data_observations.occ_beta[k], tmp);
 			if (mb->verbose) {
@@ -8045,8 +8231,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
 		ds->link_fixed = Calloc(2, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 0);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8094,8 +8282,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL1"), 0.0);
 		ds->link_fixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED1"), 0);
-		if (!ds->link_fixed[1] && mb->reuse_mode) {
+		if (!ds->link_fixed[1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[1] = 1;
 		}
 		HYPER_NEW(ds->link_parameters->specificity_intern, tmp);
 		if (mb->verbose) {
@@ -8138,8 +8328,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(2, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 1);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8203,8 +8395,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_fixed = Calloc(2, int);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 
 		HYPER_NEW(ds->link_parameters->sn_skew, tmp);
@@ -8258,8 +8452,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_fixed[1] = 1;
 		}
 
-		if (!ds->link_fixed[1] && mb->reuse_mode) {
+		if (!ds->link_fixed[1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[1] = 1;
 		}
 		HYPER_NEW(ds->link_parameters->sn_intercept, tmp);
 		if (mb->verbose) {
@@ -8316,8 +8512,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_fixed = Calloc(2, int);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 
 		HYPER_NEW(ds->link_parameters->bgev_tail, tmp);
@@ -8389,8 +8587,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_fixed[1] = 1;
 		}
 
-		if (!ds->link_fixed[1] && mb->reuse_mode) {
+		if (!ds->link_fixed[1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[1] = 1;
 		}
 		HYPER_NEW(ds->link_parameters->bgev_intercept, tmp);
 		if (mb->verbose) {
@@ -8456,8 +8656,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_fixed = Calloc(2, int);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 
 		HYPER_NEW(ds->link_parameters->power_intern, tmp);
@@ -8506,8 +8708,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_fixed[1] = 1;
 		}
 
-		if (!ds->link_fixed[1] && mb->reuse_mode) {
+		if (!ds->link_fixed[1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[1] = 1;
 		}
 		HYPER_NEW(ds->link_parameters->intercept_intern, tmp);
 		if (mb->verbose) {
@@ -8558,8 +8762,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(1, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8615,8 +8821,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(1, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8672,8 +8880,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(1, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8728,8 +8938,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(1, int);
 		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
+		if (!ds->link_fixed[0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->link_fixed[0] = 1;
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
@@ -8840,8 +9052,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&ctmp, "LINK.INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
 
-			if (!ds->link_fixed[i] && mb->reuse_mode) {
+			if (!ds->link_fixed[i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->link_fixed[i] = 1;
 			}
 
 			if (mb->verbose) {
@@ -8988,8 +9202,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			 */
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, "MIX.INITIAL"), G.log_prec_initial);
 			ds->mix_fixed = iniparser_getboolean(ini, inla_string_join(secname, "MIX.FIXED"), 0);
-			if (!ds->mix_fixed && mb->reuse_mode) {
+			if (!ds->mix_fixed && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					ds->mix_fixed = 1;
+				}
 			}
 			HYPER_NEW(ds->data_observations.mix_log_prec_gaussian, tmp);
 			if (mb->verbose) {
@@ -9040,8 +9257,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			 */
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, "MIX.INITIAL"), 1.0);
 			ds->mix_fixed = iniparser_getboolean(ini, inla_string_join(secname, "MIX.FIXED"), 0);
-			if (!ds->mix_fixed && mb->reuse_mode) {
+			if (!ds->mix_fixed && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					ds->mix_fixed = 1;
+				}
 			}
 			HYPER_NEW(ds->data_observations.mix_log_prec_loggamma, tmp);
 			if (mb->verbose) {
@@ -10880,8 +11100,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_Z:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -10992,14 +11215,20 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		for (k = 0; k < nT; k++) {
 			if (k == 0) {
-				if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][0] = 1;
+					}
 				} else {
 					tmp = initial_t;
 				}
 			} else {
-				if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][2] = 1;
+					}
 				} else {
 					tmp = initial_rest;
 				}
@@ -11008,22 +11237,31 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 		for (k = 0; k < nK; k++) {
 			if (k == 0) {
-				if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][1] = 1;
+					}
 				} else {
 					tmp = initial_k;
 				}
 			} else {
-				if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][2] = 1;
+					}
 				} else {
 					tmp = initial_rest;
 				}
 			}
 			HYPER_INIT(spde_model->Kmodel->theta[k], tmp);
 		}
-		if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][3] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][3] = 1;
+			}
 		} else {
 			tmp = initial_oc;
 		}
@@ -11211,8 +11449,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][i] = 1;
+				}
 			}
 
 			HYPER_INIT(spde2_model->theta[i], theta_initial);
@@ -11414,8 +11655,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][i] = 1;
+				}
 			}
 
 			HYPER_INIT(spde3_model->theta[i], theta_initial);
@@ -11520,8 +11764,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][i] = 1;
+				}
 			}
 
 			if (i == 0) {
@@ -11612,8 +11859,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_MEC:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -11666,8 +11916,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -11707,8 +11960,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(mean_x, tmp);
@@ -11749,8 +12005,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL3"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][3] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][3] = 1;
+			}
 		}
 		_SetInitial(3, tmp);
 		HYPER_INIT(log_prec_x, tmp);
@@ -11794,8 +12053,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_MEB:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -11848,8 +12110,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -11981,8 +12246,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->f_fixed[mb->nf][i] = 0;
 			theta_initial = initial[i];
 
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][i] = 1;
+				}
 			}
 			HYPER_NEW(mb->f_theta[mb->nf][i], theta_initial);
 			if (mb->verbose) {
@@ -12201,8 +12469,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->f_fixed[mb->nf][i] = 0;
 			theta_initial = initial[i];
 
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][i] = 1;
+				}
 			}
 			HYPER_NEW(mb->f_theta[mb->nf][i], theta_initial);
 			if (mb->verbose) {
@@ -12246,8 +12517,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_FGN2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12289,8 +12563,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(H_intern, tmp);
@@ -12334,8 +12611,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_AR1:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12377,8 +12657,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -12418,8 +12701,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(mean_x, tmp);
@@ -12464,8 +12750,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_AR1C:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12507,8 +12796,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -12552,8 +12844,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_SLM:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12595,8 +12890,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(rho_intern, tmp);
@@ -12640,8 +12938,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_OU:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12683,8 +12984,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -12728,8 +13032,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_BESAG2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12770,8 +13077,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(a_intern, tmp);
@@ -12815,8 +13125,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_BESAGPROPER:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12857,8 +13170,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_diag, tmp);
@@ -12902,8 +13218,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_BESAGPROPER2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -12944,8 +13263,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -12989,8 +13311,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_GENERIC1:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -13031,8 +13356,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(beta_intern, tmp);
@@ -13076,8 +13404,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_GENERIC2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -13118,8 +13449,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(h2_intern, tmp);
@@ -13172,8 +13506,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		for (k = 0; k < GENERIC3_MAXTHETA; k++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), G.log_prec_initial);
-			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][k] = 1;
+				}
 			}
 			_SetInitial(k, tmp);
 			HYPER_NEW(a->log_prec[k], tmp);
@@ -13265,8 +13602,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			tmp = (fixed_default ? 1.0 : 0.1);
 			aauto = 1;
 		}
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -13408,8 +13748,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			double init = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 1.0);
 
 			if (i < nbeta) {
-				if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][i] && mb->mode_reuse) {
 					init = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][i] = 1;
+					}
 				}
 				_SetInitial(i, init);
 				HYPER_INIT(betas[i], init);
@@ -13476,8 +13819,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -13533,8 +13879,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -13575,8 +13924,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), log(20.0));
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_halflife, tmp);
@@ -13617,8 +13969,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(1.0));
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(log_shape, tmp);
@@ -13667,8 +14022,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -13709,8 +14067,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(alpha, tmp);
@@ -13751,8 +14112,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(gama, tmp);
@@ -13801,8 +14165,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
@@ -13843,8 +14210,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(alpha1, tmp);
@@ -13885,8 +14255,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(alpha2, tmp);
@@ -13932,8 +14305,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_BYM:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec0, tmp);
@@ -13942,8 +14318,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_prec1, tmp);
@@ -14012,8 +14391,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_BYM2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec0, tmp);
@@ -14023,8 +14405,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -14095,8 +14480,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_RW2DIID:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -14106,8 +14494,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(phi_intern, tmp);
@@ -14178,8 +14569,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_2DIID:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec0, tmp);
@@ -14188,8 +14582,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(log_prec1, tmp);
@@ -14254,8 +14651,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->ntheta++;
 		}
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(rho_intern, tmp);
@@ -14325,8 +14725,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
 
-			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][k] = 1;
+				}
 			}
 			_SetInitial(k, tmp);
 			HYPER_INIT(theta_iidwishart[k], tmp);
@@ -14375,8 +14778,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				GMRFLib_sprintf(&init, "INITIAL%1d", k);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
 
-				if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][k] = 1;
+					}
 				}
 				_SetInitial(k, tmp);
 				HYPER_INIT(theta_iidwishart[k], tmp);
@@ -14453,8 +14859,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					tmp = 0.0;
 				}
 			}
-			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][k] = 1;
+				}
 			}
 			_SetInitial(k, tmp);
 			HYPER_INIT(theta_iidwishart[k], tmp);
@@ -14513,8 +14922,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
-			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][k] = 1;
+				}
 			}
 			_SetInitial(k, tmp);
 			HYPER_INIT(theta_iidwishart[k], tmp);
@@ -14563,8 +14975,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				GMRFLib_sprintf(&init, "INITIAL%1d", k);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
 
-				if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+				if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						mb->f_fixed[mb->nf][k] = 1;
+					}
 				}
 				_SetInitial(k, tmp);
 				HYPER_INIT(theta_iidwishart[k], tmp);
@@ -14623,8 +15038,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 1.0);
 
-			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+			if (!mb->f_fixed[mb->nf][k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					mb->f_fixed[mb->nf][k] = 1;
+				}
 			}
 			_SetInitial(k, tmp);
 			HYPER_INIT(intslope_gamma[kk], tmp);
@@ -14674,8 +15092,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tnu = [%1d]\n", itmp);
 		}
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -14717,8 +15138,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 2.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(range_intern, tmp);
@@ -14763,8 +15187,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_DMATERN:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
 		}
 		_SetInitial(0, tmp);
 		HYPER_INIT(log_prec, tmp);
@@ -14806,8 +15233,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 2.0);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
 		}
 		_SetInitial(1, tmp);
 		HYPER_INIT(range_intern, tmp);
@@ -14848,8 +15278,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(0.5));
-		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->mode_reuse) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][2] = 1;
+			}
 		}
 		_SetInitial(2, tmp);
 		HYPER_INIT(nu_intern, tmp);
@@ -16753,8 +17186,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			case G_IID:
 				fixed = iniparser_getboolean(ini, inla_string_join(secname, "GROUP.FIXED"), 0);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, "GROUP.INITIAL"), 0.0);
-				if (!fixed && mb->reuse_mode) {
+				if (!fixed && mb->mode_reuse) {
 					tmp = mb->theta_file[mb->theta_counter_file++];
+					if (mb->mode_fixed) {
+						fixed = 1;
+					}
 				}
 				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], mb->f_ntheta[mb->nf] + 1, double);
 				_SetInitial(mb->f_ntheta[mb->nf], tmp);
@@ -16968,8 +17404,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					GMRFLib_sprintf(&ctmp, "GROUP.INITIAL%1d", i);
 					theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
 
-					if (!mb->f_fixed[mb->nf][ntheta_orig + i] && mb->reuse_mode) {
+					if (!mb->f_fixed[mb->nf][ntheta_orig + i] && mb->mode_reuse) {
 						theta_initial = mb->theta_file[mb->theta_counter_file++];
+						if (mb->mode_fixed) {
+							mb->f_fixed[mb->nf][ntheta_orig + i] = 1;
+						}
 					}
 
 					if (i == 0) {
@@ -17999,8 +18438,11 @@ int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_d
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->lp_scale_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 
-			if (!(ds->lp_scale_nfixed[k]) && mb->reuse_mode) {
+			if (!ds->lp_scale_nfixed[k] && mb->mode_reuse) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					ds->lp_scale_nfixed[k] = 1;
+				}
 			}
 			HYPER_NEW(ds->lp_scale_beta[k], tmp);
 			if (mb->verbose) {

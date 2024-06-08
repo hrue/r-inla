@@ -599,7 +599,7 @@ typedef struct {
 	int improved_simplified_laplace;
 
 	int parallel_linesearch;
-	int fixed_mode;
+	int mode_fixed;
 	int hessian_correct_skewness_only;
 } GMRFLib_ai_param_tp;
 

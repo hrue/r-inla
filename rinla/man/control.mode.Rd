@@ -9,8 +9,8 @@ control.mode(
   result = NULL,
   theta = NULL,
   x = NULL,
-  restart = FALSE,
-  fixed = FALSE
+  restart = NULL,
+  fixed = NULL
 )
 
 inla.set.control.mode.default(...)
@@ -26,10 +26,13 @@ preference over result$mode$theta.}
 result$mode$x.}
 
 \item{restart}{A boolean variable; should we restart the optimisation from
-this configuration or fix the mode at this configuration? (Default FALSE.)}
+this configuration or fix the mode at this configuration?
+If set, this option OVERRIDE the option 'fixed' and 'fixed' is set to '!restart'
+(This option is kept alive not to break old code.)}
 
 \item{fixed}{A boolean variable. If TRUE then treat all thetas as known and
-fixed, and if FALSE then treat all thetas as unknown and random (default).}
+fixed, and if FALSE (default) then treat all thetas as unknown and random.
+Please note that if option 'restart' is set,  then 'restart' overrides 'fixed'}
 
 \item{...}{Named arguments passed on to the main function}
 }

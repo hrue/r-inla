@@ -667,7 +667,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	 */
 
 	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n;
-	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
+	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -765,7 +765,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		Memset(bb, 0, Npred * sizeof(double));
 		Memset(cc, 0, Npred * sizeof(double));
 
-		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+		if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 			if (!free_linear_predictor) {
 				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
@@ -920,7 +920,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
 
-			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 			} else {
 				linear_predictor = mode;
@@ -1189,7 +1189,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
 
-	if (ai_par->fixed_mode) {
+	if (ai_par->mode_fixed) {
 		// easier to override the design here
 		GMRFLib_design_eb(&tdesign, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
@@ -1447,7 +1447,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		hessian = Calloc(ISQR(nhyper), double);
 
-		if (ai_par->fixed_mode) {
+		if (ai_par->mode_fixed) {
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "fixed_mode=1 so, artificially, Hessian=diag(1)\n");
 			}
@@ -1710,9 +1710,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		stdev_corr_pos = Calloc(nhyper, double);
 		stdev_corr_neg = Calloc(nhyper, double);
 
-		if (ai_par->fixed_mode) {
+		if (ai_par->mode_fixed) {
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "fixed_mode=1, so artificially, scaling of sd is set to 1.0\n");
+				fprintf(ai_par->fp_log, "mode_fixed=1, so artificially, scaling of sd is set to 1.0\n");
 			}
 			for (int i = 0; i < nhyper; i++) {
 				stdev_corr_neg[i] = 1.0;
@@ -1870,11 +1870,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
 
 	// if fixed_mode=1, then we need to use EB
-	if (ai_par->fixed_mode) {
+	if (ai_par->mode_fixed) {
 		if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
 			ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "int.strategy is set to EB, since fixed_mode=1\n");
+				fprintf(ai_par->fp_log, "int.strategy is set to EB, since mode_fixed=1\n");
 			}
 		}
 	}
@@ -1978,7 +1978,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			// nothing
 		}
 
-		if ((nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) && !ai_par->fixed_mode) {
+		if ((nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) && !ai_par->mode_fixed) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
@@ -4406,7 +4406,7 @@ int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp ***density,	// 
 			       GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 			       GMRFLib_preopt_tp *UNUSED(preopt))
 {
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		// nothing to do here
 		return GMRFLib_SUCCESS;
 	} else {

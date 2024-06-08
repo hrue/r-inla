@@ -9,9 +9,6 @@
     if (!inherits(response, "inla.surv")) {
         stop("Response has to be an object of class `inla.surv'")
     }
-    ## not used
-    response$.special <- NULL
-
     class(response) <- NULL
     event <- response$event
     nn <- length(event)
@@ -174,9 +171,6 @@
     if (!inherits(response, "inla.surv")) {
         stop("Response has to be an object of class `inla.surv'")
     }
-    ## not used
-    response$.special <- NULL
-
     class(response) <- NULL
     event <- response$event
     nn <- length(event)

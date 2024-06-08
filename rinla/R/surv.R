@@ -18,7 +18,6 @@
 #' lower limit for event=4.
 #' @param subject Patient number in multiple event data, not needed otherwise.
 #' @param cure A matrix of covariates that can be used with a cure-model.
-#' @param .special An internal object, not for public use
 #' @param object Any `R`-object
 #' @param x Object to plot or print
 #' @param y Object to plot (not in use)
@@ -59,12 +58,12 @@
 #' 
 #' @rdname surv
 #' @export inla.surv
-`inla.surv` <- function(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL) 
+`inla.surv` <- function(time, event, time2, truncation, subject = NULL, cure = NULL) 
 {
     names.ori <- as.list(match.call())[-1]
     ret <- NULL
     if (is.null(subject)) {
-        ret <- inla.surv.1(time, event, time2, truncation, cure, .special = .special)
+        ret <- inla.surv.1(time, event, time2, truncation, cure)
     } else {
         if (!missing(time2)) {
             stop("Argument 'time2' is not allowed when 'subject' is used")
@@ -72,7 +71,7 @@
         if (!missing(truncation)) {
             stop("Argument 'truncation' is not allowed when 'subject' is used")
         }
-        ret <- inla.surv.2(time, event, subject, .special = .special)
+        ret <- inla.surv.2(time, event, subject)
     }
     attr(ret, "names.ori") <- names.ori
     return(ret)
@@ -115,7 +114,7 @@
     }
 }
 
-`inla.surv.1` <- function(time, event, time2, truncation, cure, .special = NULL)
+`inla.surv.1` <- function(time, event, time2, truncation, cure)
 {
     ## check that time is present
     if (missing(time)) {
@@ -222,7 +221,7 @@
     truncation[ininterval] <- 0
     ss <- list(
         time = surv.time, lower = surv.lower, upper = surv.upper,
-        event = event, truncation = truncation, cure = cure, .special = .special
+        event = event, truncation = truncation, cure = cure
     )
     class(ss) <- "inla.surv"
 
@@ -322,7 +321,7 @@
 {
     if (is.list(object)) {
         for (nm in names(object)) {
-            if (!is.element(nm, c("event", "time", "lower", "upper", "truncation", "cure", ".special"))) {
+            if (!is.element(nm, c("event", "time", "lower", "upper", "truncation", "cure"))) {
                 stop(paste("Wrong name:", nm))
             }
         }
@@ -335,7 +334,7 @@
     stop("Argument must be a list or a data.frame")
 }
 
-`inla.surv.2` <- function(time, event, subject, .special = NULL) 
+`inla.surv.2` <- function(time, event, subject) 
 {
     ## check that time is present
     if (missing(time)) {
@@ -391,7 +390,7 @@
     surv.time[detect] <- time[detect]
     surv.time[notdetect] <- time[notdetect]
 
-    ss <- list(time = surv.time, event = event, subject = subject, .special = .special)
+    ss <- list(time = surv.time, event = event, subject = subject)
     class(ss) <- "inla.surv"
 
     return(ss)
@@ -461,7 +460,7 @@
 {
     if (is.list(object)) {
         for (nm in names(object)) {
-            if (!is.element(nm, c("event", "time", "subject", ".special"))) {
+            if (!is.element(nm, c("event", "time", "subject"))) {
                 stop(paste("Wrong name:", nm))
             }
         }

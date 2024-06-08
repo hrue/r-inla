@@ -1704,7 +1704,17 @@ inla.parse.Bmatrix.test <- function() {
             fnm <- gsub(data.dir, "$inladatadir", file.x, fixed = TRUE)
             cat("x =", fnm, "\n", file = file, append = TRUE)
         }
-        inla.write.boolean.field("restart", args$restart, file)
+
+        if (!is.null(args$restart)) {
+            args$restart <- as.logical(args$restart)
+            if (!is.null(args$fixed) && (as.logical(args$fixed) != !(args$restart))) {
+                warning("control.mode: option 'restart' overrides option 'fixed'")
+            }
+            args$fixed <- !(args$restart)
+        }
+        if (is.null(args$fixed)) {
+            args$fixed <- FALSE
+        }
         inla.write.boolean.field("fixed", args$fixed, file)
         cat("\n", sep = " ", file = file, append = TRUE)
     }

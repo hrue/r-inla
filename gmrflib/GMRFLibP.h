@@ -162,17 +162,11 @@ static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE) (double x, double low, double h
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
-	GMRFLib_MODE_TWOSTAGE,
-	GMRFLib_MODE_TWOSTAGE_PART1,
-	GMRFLib_MODE_TWOSTAGE_PART2,
 	GMRFLib_MODE_COMPACT
 } GRMFLib_preopt_mode_tp;
 
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
-			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
-			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
-			       (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "TwoStage Part2" : \
-				(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? "Compact" : "(UNKNOWN MODE)")))))
+			     (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? "Compact" : "(UNKNOWN MODE)"))
 
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {

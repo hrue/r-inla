@@ -1871,9 +1871,9 @@ inla.stack.sum <- function(data, A, effects, responses = NULL,
 #' @param ... List of stacks that contain vector observations
 #'            (existing multilikelihood observation matrices are also permitted)
 #' @param old.names A vector of strings with the names of the observation vector/matrix for each stack.
-#'        If a single string, this is assumed for all the stacks. (default "BRU.response")
+#'        If a single string, this is assumed for all the stacks. (default "response")
 #' @param new.name The name to be used for the expanded observation matrix,
-#'        possibly the same as an old name. (default "BRU.response")
+#'        possibly the same as an old name. (default "response")
 #' @return a list of modified stacks with multicolumn observations
 #' @author Fabian E. Bachl \email{f.e.bachl@@bath.ac.uk} and Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @export
@@ -2134,6 +2134,7 @@ inla.stack.response <- function(stack, drop = TRUE) {
 
 #' @describeIn inla.stack Print information about an `inla.data.stack`
 #'
+#' @param x An `inla.data.stack` object for printing
 #' @method print inla.data.stack
 #' @export
 print.inla.data.stack <- function(x, ...) {

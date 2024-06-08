@@ -140,9 +140,9 @@
 
     r$.args$control.mode$result <- NULL
     r$.args$control.mode$restart <- FALSE
+    r$.args$control.mode$fixed <- TRUE
     r$.args$control.mode$theta <- r$mode$theta
     r$.args$control.mode$x <- r$mode$x
-    r$.args$control.mode$fixed <- TRUE
 
     r$.args$inla.mode <- "compact"
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose

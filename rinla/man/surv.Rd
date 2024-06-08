@@ -8,15 +8,7 @@
 \alias{print.inla.surv}
 \title{Create a Survival Object for INLA}
 \usage{
-inla.surv(
-  time,
-  event,
-  time2,
-  truncation,
-  subject = NULL,
-  cure = NULL,
-  .special = NULL
-)
+inla.surv(time, event, time2, truncation, subject = NULL, cure = NULL)
 
 \method{plot}{inla.surv}(x, y, ...)
 
@@ -45,8 +37,6 @@ lower limit for event=4.}
 \item{subject}{Patient number in multiple event data, not needed otherwise.}
 
 \item{cure}{A matrix of covariates that can be used with a cure-model.}
-
-\item{.special}{An internal object, not for public use}
 
 \item{x}{Object to plot or print}
 

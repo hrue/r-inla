@@ -24,7 +24,7 @@
     }
 
 #' @title control.sem
-#' @inherit control.sem params description seealso
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 #' @details Parameters to family `sem`
@@ -974,12 +974,15 @@ control.vb <- function(
              x = NULL,
              
              #' @param restart A boolean variable; should we restart the optimisation from
-             #' this configuration or fix the mode at this configuration? (Default FALSE.)
-             restart = FALSE,
+             #' this configuration or fix the mode at this configuration? 
+             #' If set, this option OVERRIDE the option 'fixed' and 'fixed' is set to '!restart'
+             #' (This option is kept alive not to break old code.)
+             restart = NULL,
              
              #' @param fixed A boolean variable. If TRUE then treat all thetas as known and
-             #' fixed, and if FALSE then treat all thetas as unknown and random (default).
-             fixed = FALSE
+             #' fixed, and if FALSE (default) then treat all thetas as unknown and random. 
+             #' Please note that if option 'restart' is set,  then 'restart' overrides 'fixed'
+             fixed = NULL
              ) {
             ctrl_object(as.list(environment()), "mode", check = FALSE)
         }
