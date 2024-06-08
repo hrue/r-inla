@@ -1,3 +1,9 @@
+# INLA_24.06.08
+* Documentation fixes
+* More robust code for ``survival` models
+* Remove model="twostage"
+* Fixed regression in `control.mode`
+
 # INLA_24.06.04
 * Support for `inla.mdata`-objects in `inla.stack` (experimental)
 * New likelihood `exppower` (experimental)
