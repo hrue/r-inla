@@ -263,8 +263,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb = Calloc(1, inla_tp);
 	mb->verbose = verbose;
-	mb->reuse_mode = 0;				       /* disable this feature. creates more trouble than it solves. */
-	if (mb->verbose && mb->reuse_mode) {
+	mb->mode_reuse = 0;				       /* disable this feature. creates more trouble than it solves. */
+	if (mb->verbose && mb->mode_reuse) {
 		printf("Reuse stored mode in [%s]\n", MODEFILENAME);
 	}
 
@@ -474,7 +474,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = UPDATE
 	 */
 	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
-	mb->ai_par->fixed_mode = mb->fixed_mode;	       /* need to pass this one as well */
+	mb->ai_par->mode_fixed = mb->mode_fixed;	       /* need to pass this one as well */
 
 	for (sec = 0; sec < nsec; sec++) {
 		secname = Strdup(iniparser_getsecname(ini, sec));
@@ -706,7 +706,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		exit(0);
 	}
 
-	if (mb->reuse_mode) {
+	if (mb->mode_reuse) {
 		/*
 		 * if the test fail, its a good idea to provide some debug information which might be helpful to help what is wrong in the spesification. 
 		 */
@@ -1350,9 +1350,6 @@ int inla_setup_ai_par_default(inla_tp *mb)
 			mb->ai_par->compute_nparam_eff = GMRFLib_FALSE;
 		}
 	}
-	if (mb->reuse_mode && !mb->reuse_mode_but_restart) {
-		mb->ai_par->mode_known = GMRFLib_TRUE;
-	}
 
 	return INLA_OK;
 }
@@ -1382,7 +1379,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	gsl_matrix *Q = NULL;
 	gsl_matrix *L = NULL;
 
-#define _NOT_FIXED(_fx) (!mb->fixed_mode && !mb->_fx)
+#define _NOT_FIXED(_fx) (!mb->mode_fixed && !mb->_fx)
 #define _SET_GROUP_RHO(_nt_)						\
 	if (mb->f_group_model[i] != G_AR) {				\
 		if (mb->f_ngroup[i] == 1) {				\
@@ -1572,7 +1569,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	 * this is for the linear predictor
 	 */
 
-	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 		if (!mb->predictor_fixed) {
 			log_precision = theta[count];
 			count++;
@@ -3062,7 +3059,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			spde2->debug = 0;
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				for (k = kk = 0; k < spde2->ntheta_used; k++, kk++) {
 					while (mb->f_fixed[i][kk])
 						kk++;
@@ -3071,7 +3068,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 			int count_ref = count;
 
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				count += spde2->ntheta_used;   /* as _SET_GROUP_RHO need 'count' */
 			}
 			_SET_GROUP_RHO(spde2->ntheta);
@@ -3133,7 +3130,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			/*
 			 * this is a multivariate prior...  'count_ref' is the 'first theta'
 			 */
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				if (mb->f_prior[i][0].id == P_PC_MATERN) {
 					/*
 					 *  This is a special case: the pc_matern prior. pass NAN for fixed values and the prior will do the correct thing.
@@ -3165,14 +3162,14 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			spde3->debug = 0;
 			spde3_ntheta = spde3->ntheta;
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				for (k = 0; k < spde3_ntheta; k++) {
 					spde3->theta[k][thread_id][0] = theta[count + k];
 				}
 			}
 			int count_ref = count;
 
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				count += spde3_ntheta;	       /* as _SET_GROUP_RHO need 'count' */
 			}
 			_SET_GROUP_RHO(spde3_ntheta);
@@ -3234,7 +3231,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			/*
 			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
 			 */
-			if (!mb->fixed_mode) {
+			if (!mb->mode_fixed) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 			}
 
@@ -5260,7 +5257,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		P(ntheta);
 	}
 
-	if (!(mb->fixed_mode)) {
+	if (!(mb->mode_fixed)) {
 		assert((count == mb->ntheta) && (count == ntheta));	/* check... */
 	}
 #undef _SET_GROUP_RHO
@@ -5715,7 +5712,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	x = Calloc_get(N);
-	if (mb->reuse_mode && mb->x_file) {
+	if (mb->mode_reuse && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
@@ -5811,7 +5808,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		G_norm_const_compute[i] = 1;
 	}
 
-	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values) {
+	if (!(mb->mode_reuse && mb->x_file) && mb->compute_initial_values) {
 		tref = -GMRFLib_timer();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
@@ -6549,8 +6546,6 @@ int main(int argc, char **argv)
 		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
-			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
-				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE;
 			} else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 			} else {
@@ -7055,44 +7050,9 @@ int main(int argc, char **argv)
 
 				mb->ntheta_file = mb->ntheta;
 				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-				mb->reuse_mode = GMRFLib_TRUE;
-				mb->reuse_mode_but_restart = GMRFLib_FALSE;
+				mb->mode_reuse = GMRFLib_TRUE;
 				mb->ai_par->mode_known = GMRFLib_TRUE;
 				inla_reset();
-			} else if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE) {
-
-				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
-
-				time_used[3] = GMRFLib_timer();
-				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
-				inla_INLA_preopt_stage1(mb, rpreopt);
-				time_used[3] = GMRFLib_timer() - time_used[1];
-				atime_used[3] = clock() - atime_used[1];
-				nfunc[0] = mb->misc_output->nfunc;
-				rgeneric_cpu[0] = R_rgeneric_cputime;
-
-				Free(mb->theta_file);
-				Free(mb->x_file);
-				if (mb->preopt->mode_theta) {
-					mb->theta_file = Calloc(mb->ntheta, double);
-					Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-				} else {
-					mb->theta_file = NULL;
-				}
-				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
-				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
-				mb->ntheta_file = mb->ntheta;
-				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-				mb->reuse_mode = GMRFLib_TRUE;
-				mb->reuse_mode_but_restart = GMRFLib_FALSE;
-				mb->ai_par->mode_known = GMRFLib_TRUE;
-				GMRFLib_preopt_free(mb->preopt);
-				inla_reset();
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART2;
-				inla_INLA_preopt_stage2(mb, rpreopt);
-				nfunc[1] = mb->misc_output->nfunc;
-				rgeneric_cpu[1] = R_rgeneric_cputime;
 			} else if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 				inla_INLA(mb);

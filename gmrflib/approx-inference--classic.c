@@ -1459,14 +1459,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		assert(!preopt);
 		assert(!rpreopt);
 	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
-		assert(preopt);
-		assert(rpreopt);
-	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2) {
-		assert(!preopt);
-		assert(rpreopt);
-	}
 
 	if (!(mean == NULL)) {
 		FIXME("\n\n\n\nGMRFLib_INLA() I think the vb assumes mean=NULL, please check.\n");
@@ -1538,7 +1530,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	map_strd_init_hint(&hash_table, dens_max);
 	hash_table.alwaysdefault = 0;
 
-	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 		dens = Calloc(graph->n, GMRFLib_density_tp **);
 		dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
 		weights = Calloc(dens_max, double);
@@ -1576,8 +1568,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			}
 		}
 
-		need_Qinv = (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2)
-		    && (compute_n || ai_par->compute_nparam_eff);
+		need_Qinv = (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) && (compute_n || ai_par->compute_nparam_eff);
 
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -1723,7 +1714,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				fprintf(ai_par->fp_log, " ]\n");
 			}
 			// this is not needed as we do that below. I am not quite sure if we need this in general, but...
-			if (GMRFLib_inla_mode != GMRFLib_MODE_TWOSTAGE_PART2) {
+			if (1) {
 				int thread_id = 0;
 				assert(omp_get_thread_num() == 0);
 				GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
@@ -1737,7 +1728,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		SET_THETA_MODE;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
-		if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+		if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
 					(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
@@ -2095,35 +2086,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 					fprintf(ai_par->fp_log, "\n");
 				}
 			}
-
-			// we need to save what we need from this section....
-			// 
-			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
-				assert(rpreopt);
-				rpreopt->hessian = hessian;
-				rpreopt->inverse_hessian = inverse_hessian;
-				rpreopt->H = H;
-				rpreopt->eigen_vectors = eigen_vectors;
-				rpreopt->eigen_values = eigen_values;
-				rpreopt->sqrt_eigen_values = sqrt_eigen_values;
-				rpreopt->cov_m = misc_output->cov_m;
-			}
 		} else {
-			// ... and pick it up here
-			// 
-			assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2);
-			assert(rpreopt);
-			hessian = rpreopt->hessian;
-			inverse_hessian = rpreopt->inverse_hessian;
-			H = rpreopt->H;
-			assert(misc_output);
-			misc_output->nhyper = nhyper;
-			eigen_vectors = rpreopt->eigen_vectors;
-			eigen_values = rpreopt->eigen_values;
-			GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
-			GMRFLib_gsl_vec2plain(&(misc_output->eigenvalues), eigen_values);
-			sqrt_eigen_values = rpreopt->sqrt_eigen_values;
-			misc_output->cov_m = rpreopt->cov_m;
+			assert(0 == 1);
 		}
 
 		/*
@@ -2155,7 +2119,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			nlin = 0;
 		}
 
-		if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+		if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 			/*
 			 * compute the corrected scalings/stdevs, if required. 
 			 */
@@ -2287,29 +2251,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				}
 			}
 		} else {
-			assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2);
-		}
-
-		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
-			rpreopt->stdev_corr_neg = stdev_corr_neg;
-			rpreopt->stdev_corr_pos = stdev_corr_pos;
-		} else if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2) {
-			stdev_corr_neg = rpreopt->stdev_corr_neg;
-			stdev_corr_pos = rpreopt->stdev_corr_pos;
-			if (misc_output && !(misc_output->stdev_corr_pos)) {
-				misc_output->stdev_corr_pos = Calloc(nhyper, double);
-				misc_output->stdev_corr_neg = Calloc(nhyper, double);
-				Memcpy(misc_output->stdev_corr_pos, stdev_corr_pos, nhyper * sizeof(double));
-				Memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
-			}
+			assert(0 == 1);
 		}
 
 		for (k = 0; k < nhyper; k++) {
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log,
 					"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n",
-					(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "Retrive" : "Compute"),
-					k, stdev_corr_neg[k], stdev_corr_pos[k]);
+					"Compute", k, stdev_corr_neg[k], stdev_corr_pos[k]);
 			}
 		}
 
@@ -3609,14 +3558,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			theta_tmp = Calloc((int) IMAX(0, nhyper), double);
 
 #define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * (rpreopt->int_design->nrow)])
-			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 && nhyper > 0) {
-				rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
-				rpreopt->int_design->nrow = IMAX(1, hyper_count);
-				rpreopt->int_design->ncol = nhyper + 1;
-				rpreopt->int_design->A = Calloc(rpreopt->int_design->nrow * rpreopt->int_design->ncol, double);
-				rpreopt->adj_weights = Calloc(dens_count, double);
-				Memcpy(rpreopt->adj_weights, adj_weights, dens_count * sizeof(double));
-			}
 
 			if (eigen_values) {
 				for (k = 0; k < nhyper; k++) {

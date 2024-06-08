@@ -234,7 +234,7 @@ int inla_output(inla_tp *mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
@@ -453,7 +453,7 @@ int inla_output(inla_tp *mb)
 	}
 
 	int N = -1;
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		N = mb->preopt->n + mb->preopt->mnpred;
 	} else {
 		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
