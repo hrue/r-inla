@@ -263,11 +263,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb = Calloc(1, inla_tp);
 	mb->verbose = verbose;
-	mb->mode_reuse = 0;				       /* disable this feature. creates more trouble than it solves. */
-	if (mb->verbose && mb->mode_reuse) {
-		printf("Reuse stored mode in [%s]\n", MODEFILENAME);
-	}
-
+	mb->mode_restart = 1;
+	mb->mode_fixed = mb->mode_use_mode = 0;
+	
 	ini = iniparser_load(dict_filename);
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
@@ -474,7 +472,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = UPDATE
 	 */
 	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
-	mb->ai_par->mode_fixed = mb->mode_fixed;	       /* need to pass this one as well */
+	mb->ai_par->mode_fixed = mb->mode_fixed;
+	mb->ai_par->mode_restart = mb->mode_restart;
+	mb->ai_par->mode_use_mode = mb->mode_use_mode;
 
 	for (sec = 0; sec < nsec; sec++) {
 		secname = Strdup(iniparser_getsecname(ini, sec));
@@ -706,7 +706,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		exit(0);
 	}
 
-	if (mb->mode_reuse) {
+	if (mb->mode_use_mode) {
 		/*
 		 * if the test fail, its a good idea to provide some debug information which might be helpful to help what is wrong in the spesification. 
 		 */
@@ -5712,7 +5712,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	x = Calloc_get(N);
-	if (mb->mode_reuse && mb->x_file) {
+	if (mb->mode_use_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
@@ -5808,7 +5808,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		G_norm_const_compute[i] = 1;
 	}
 
-	if (!(mb->mode_reuse && mb->x_file) && mb->compute_initial_values) {
+	if (!mb->x_file && mb->compute_initial_values) {
 		tref = -GMRFLib_timer();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
@@ -7050,8 +7050,7 @@ int main(int argc, char **argv)
 
 				mb->ntheta_file = mb->ntheta;
 				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-				mb->mode_reuse = GMRFLib_TRUE;
-				mb->ai_par->mode_known = GMRFLib_TRUE;
+				mb->mode_restart = mb->ai_par->mode_restart = GMRFLib_TRUE;
 				inla_reset();
 			} else if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;

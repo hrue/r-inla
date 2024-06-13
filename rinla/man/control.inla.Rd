@@ -18,7 +18,6 @@ control.inla(
   print.joint.hyper = TRUE,
   force.diagonal = FALSE,
   skip.configurations = TRUE,
-  mode.known = FALSE,
   adjust.weights = TRUE,
   tolerance = 0.005,
   tolerance.f = NULL,
@@ -107,9 +106,6 @@ diagonal. (Default \code{FALSE})}
 
 \item{skip.configurations}{Logical Skip configurations if the values at the
 main axis are to small. (Default \code{TRUE})}
-
-\item{mode.known}{Logical If TRUE then no optimisation is done. (Default
-FALSE.)}
 
 \item{adjust.weights}{Logical If TRUE then just more accurate integration
 weights. (Default TRUE.)}

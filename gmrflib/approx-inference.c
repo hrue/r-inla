@@ -139,7 +139,9 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 	(*ai_par)->gsl_epsf = pow(0.005, 1.5);		       /* this is the default relationship used in R-INLA */
 	(*ai_par)->gsl_epsx = 0.005;
 	(*ai_par)->gsl_step_size = 1.0;
-	(*ai_par)->mode_known = 0;
+	(*ai_par)->mode_restart = 1;
+	(*ai_par)->mode_fixed = 0;
+	(*ai_par)->mode_use_mode = 0;
 	(*ai_par)->parallel_linesearch = 0;
 
 	/*
@@ -244,7 +246,9 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 	fprintf(fp, "\t\tRestart: %1d\n", ai_par->restart);
 	fprintf(fp, "\t\tOptimise: try to be smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tOptimise: use directions: %s\n", (ai_par->optimise_use_directions ? "Yes" : "No"));
-	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
+	fprintf(fp, "\t\tMode restart: %s\n", (ai_par->mode_restart ? "Yes" : "No"));
+	fprintf(fp, "\t\tMode fixed: %s\n", (ai_par->mode_fixed ? "Yes" : "No"));
+	fprintf(fp, "\t\tMode use_mode: %s\n", (ai_par->mode_use_mode ? "Yes" : "No"));
 	fprintf(fp, "\t\tparallel linesearch [%1d]\n", ai_par->parallel_linesearch);
 
 	gsl_matrix *m = ai_par->optimise_use_directions_m;
@@ -1317,10 +1321,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		theta_mode = Calloc(nhyper, double);
 		z = Calloc(nhyper, double);
 
-		/*
-		 * if not set to be known, then optimise 
-		 */
-		if (!(ai_par->mode_known)) {
+		if (ai_par->mode_restart) {
 
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Optimise using %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
@@ -1833,7 +1834,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	misc_output->opt_trace = (nhyper ? GMRFLib_opt_trace_get() : NULL);
-
 	if (nlin > 0) {
 		lin_dens = Calloc(dens_max, GMRFLib_density_tp **);
 		if (misc_output && misc_output->compute_corr_lin) {

@@ -9,15 +9,15 @@ control.mode(
   result = NULL,
   theta = NULL,
   x = NULL,
-  restart = NULL,
-  fixed = NULL
+  restart = TRUE,
+  fixed = FALSE
 )
 
 inla.set.control.mode.default(...)
 }
 \arguments{
 \item{result}{Previous result-object from inla(), a inla-state object or the name of a
-state-file. Use the theta- and x-mode from this object}
+state-file. Use the \code{theta}- and \code{x}-mode from this object}
 
 \item{theta}{The theta-mode/initial values for theta. This option has
 preference over result$mode$theta.}
@@ -26,13 +26,18 @@ preference over result$mode$theta.}
 result$mode$x.}
 
 \item{restart}{A boolean variable; should we restart the optimisation from
-this configuration or fix the mode at this configuration?
-If set, this option OVERRIDE the option 'fixed' and 'fixed' is set to '!restart'
-(This option is kept alive not to break old code.)}
+the given configuration? If \code{TRUE} (default),  then
+use this configuration as the initial
+values (both \code{theta} and \code{x}) and optimize. If \code{FALSE}, then use \code{theta} as
+as the mode and \code{x} as the initial value. If \code{x != NULL},  \code{theta=NULL}
+and \code{restart=TRUE}, then this will give an error unless number of
+hyperparameters are zero.}
 
-\item{fixed}{A boolean variable. If TRUE then treat all thetas as known and
-fixed, and if FALSE (default) then treat all thetas as unknown and random.
-Please note that if option 'restart' is set,  then 'restart' overrides 'fixed'}
+\item{fixed}{A boolean variable. If \code{TRUE} then treat all theta's as known and
+fixed, and if FALSE (default) then treat all theta's as unknown and random.
+If \code{fixed=TRUE} and \code{restart=TRUE},  then \code{restart} is assigned to \code{FALSE} and a
+warning is issued.  Note that \code{fixed=TRUE} will change the model as the
+corresponding hyperparmaeters will be defined as fixed.}
 
 \item{...}{Named arguments passed on to the main function}
 }
@@ -43,7 +48,7 @@ returns a list of the default control arguments, unless overridden by
 specific input arguments.
 }
 \details{
-For internal use and for algorithms built on to of INLA.
+For internal use only and for algorithms built on to of INLA.
 }
 \seealso{
 Other control: 

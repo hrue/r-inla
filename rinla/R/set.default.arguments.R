@@ -691,10 +691,6 @@ control.vb <- function(
         #' main axis are to small. (Default `TRUE`)
         skip.configurations = TRUE,
 
-        #' @param mode.known Logical If TRUE then no optimisation is done. (Default
-        #' FALSE.)
-        mode.known = FALSE,
-
         #' @param adjust.weights Logical If TRUE then just more accurate integration
         #' weights. (Default TRUE.)
         adjust.weights = TRUE,
@@ -958,11 +954,11 @@ control.vb <- function(
 #' @inherit control.update params description seealso
 #' @family control
 #' @export
-#' @details For internal use and for algorithms built on to of INLA.
+#' @details For internal use only and for algorithms built on to of INLA. 
 `control.mode` <-
     function(
              #' @param result Previous result-object from inla(), a inla-state object or the name of a
-             #' state-file. Use the theta- and x-mode from this object
+             #' state-file. Use the `theta`- and `x`-mode from this object
              result = NULL,
              
              #' @param theta The theta-mode/initial values for theta. This option has
@@ -974,15 +970,20 @@ control.vb <- function(
              x = NULL,
              
              #' @param restart A boolean variable; should we restart the optimisation from
-             #' this configuration or fix the mode at this configuration? 
-             #' If set, this option OVERRIDE the option 'fixed' and 'fixed' is set to '!restart'
-             #' (This option is kept alive not to break old code.)
-             restart = NULL,
+             #' the given configuration? If `TRUE` (default),  then
+             #' use this configuration as the initial
+             #' values (both `theta` and `x`) and optimize. If `FALSE`, then use `theta` as
+             #' as the mode and `x` as the initial value. If `x != NULL`,  `theta=NULL`
+             #' and `restart=TRUE`, then an error will occour unless there are no
+             #' hyperparameters.
+             restart = TRUE,
              
-             #' @param fixed A boolean variable. If TRUE then treat all thetas as known and
-             #' fixed, and if FALSE (default) then treat all thetas as unknown and random. 
-             #' Please note that if option 'restart' is set,  then 'restart' overrides 'fixed'
-             fixed = NULL
+             #' @param fixed A boolean variable. If `TRUE` then treat all theta's as known and
+             #' fixed, and if FALSE (default) then treat all theta's as unknown and random. 
+             #' If `fixed=TRUE` and `restart=TRUE`,  then `restart` is assigned to `FALSE` and a
+             #' warning is issued.  Note that `fixed=TRUE` will change the model as the
+             #' corresponding hyperparmaeters will be defined as fixed. 
+             fixed = FALSE
              ) {
             ctrl_object(as.list(environment()), "mode", check = FALSE)
         }

@@ -1108,8 +1108,10 @@ struct inla_tp_struct {
 	/*
 	 * reuse the mode-stuff 
 	 */
-	int mode_reuse;
+	int mode_restart;
 	int mode_fixed;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
+	int mode_use_mode;
+	
 	int ntheta_file;
 	int theta_counter_file;
 	double *theta_file;

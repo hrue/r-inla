@@ -1640,10 +1640,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		theta_mode = Calloc(nhyper, double);
 		z = Calloc(nhyper, double);
 
-		/*
-		 * if not set to be known, then optimise 
-		 */
-		if (!(ai_par->mode_known)) {
+		if (ai_par->mode_restart) {
 
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Optimise using %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
