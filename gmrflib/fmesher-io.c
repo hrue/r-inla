@@ -697,7 +697,9 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 	 * store values in 'row', must be NULL on entry. 
 	 */
 
-	assert(*row == NULL);
+	if (*row) {
+		(*row)->n = 0;
+	}
 	if (M->i) {
 		if (M->htable_column_order) {
 			FIXME("column order should not be used");
