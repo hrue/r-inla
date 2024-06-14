@@ -127,6 +127,7 @@ double dnrm2_(int *n, double *x, int *inc);
 double dasum_(int *n, double *x, int *inc);
 
 int GMRFLib_dscale(int n, double a, double *x);
+double GMRFLib_dssqr(int n, double *x);
 
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp * store);

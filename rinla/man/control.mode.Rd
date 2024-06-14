@@ -23,15 +23,16 @@ state-file. Use the \code{theta}- and \code{x}-mode from this object}
 preference over result$mode$theta.}
 
 \item{x}{The x-mode/initial values for x. This option has preference over
-result$mode$x.}
+result$mode$x. (This option is less important than \code{theta} can often be
+left out, unless \code{result} is used for which it is automatically set.)}
 
 \item{restart}{A boolean variable; should we restart the optimisation from
 the given configuration? If \code{TRUE} (default),  then
 use this configuration as the initial
 values (both \code{theta} and \code{x}) and optimize. If \code{FALSE}, then use \code{theta} as
-as the mode and \code{x} as the initial value. If \code{x != NULL},  \code{theta=NULL}
-and \code{restart=TRUE}, then this will give an error unless number of
-hyperparameters are zero.}
+as the mode and \code{x} as the initial value.
+If \code{x != NULL},  \code{theta=NULL} and \code{restart=TRUE}, then an error will occour
+unless there are no hyperparameters.}
 
 \item{fixed}{A boolean variable. If \code{TRUE} then treat all theta's as known and
 fixed, and if FALSE (default) then treat all theta's as unknown and random.

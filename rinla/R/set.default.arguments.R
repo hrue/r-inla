@@ -966,16 +966,17 @@ control.vb <- function(
              theta = NULL,
              
              #' @param x The x-mode/initial values for x. This option has preference over
-             #' result$mode$x.
+             #' result$mode$x. (This option is less important than `theta` can often be
+             #' left out, unless `result` is used for which it is automatically set.)
              x = NULL,
              
              #' @param restart A boolean variable; should we restart the optimisation from
              #' the given configuration? If `TRUE` (default),  then
              #' use this configuration as the initial
              #' values (both `theta` and `x`) and optimize. If `FALSE`, then use `theta` as
-             #' as the mode and `x` as the initial value. If `x != NULL`,  `theta=NULL`
-             #' and `restart=TRUE`, then an error will occour unless there are no
-             #' hyperparameters.
+             #' as the mode and `x` as the initial value.
+             #' If `x != NULL`,  `theta=NULL` and `restart=TRUE`, then an error will occour
+             #' unless there are no hyperparameters.
              restart = TRUE,
              
              #' @param fixed A boolean variable. If `TRUE` then treat all theta's as known and

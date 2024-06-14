@@ -5831,19 +5831,13 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (preopt->pAAt_idxval) {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < preopt->n; i++) {
-				double s = 0.0;
-				for (int k = 0; k < preopt->pAAt_idxval[i]->n; k++) {
-					s += SQR(preopt->pAAt_idxval[i]->val[k]);
-				}
+				double s = GMRFLib_dssqr(preopt->pAAt_idxval[i]->n, preopt->pAAt_idxval[i]->val); 
 				scale[i] = 1.0 / (s0 + DMAX(0.0, s));
 			}
 		} else {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < preopt->n; i++) {
-				double s = 0.0;
-				for (int k = 0; k < preopt->AtA_idxval[i][0]->n; k++) {
-					s += preopt->AtA_idxval[i][0]->val[k];
-				}
+				double s = GMRFLib_dsum(preopt->AtA_idxval[i][0]->n, preopt->AtA_idxval[i][0]->val); 
 				scale[i] = 1.0 / (s0 + DMAX(0.0, s));
 			}
 		}
