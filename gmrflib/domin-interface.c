@@ -613,13 +613,13 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count)
 {
 	/*
-	 * Estimate the Hessian using finite differences with fixed step_size. chose either central or forward differences. The central-option is somewhat more
-	 * expensive than the forward-option and require 3n(n-1) additional function evaluations.
+	 * Estimate the Hessian using finite differences with fixed step_size. chose either central or forward differences. The central-option
+	 * is somewhat more expensive than the forward-option and require 3n(n-1) additional function evaluations.
 	 *
 	 * This version is better suited for OpenMP
 	 *
-	 * If !mode_known, then revise 'x' and 'log_dens_mode' according to the best mode-configuration found. If a better is found, then return !GMRFLib_SUCCESS
-	 * and this routine will be called once more.
+	 * If mode_restart, then revise 'x' and 'log_dens_mode' according to the best mode-configuration found. If a better is found, then
+	 * return !GMRFLib_SUCCESS and this routine will be called once more.
 	 */
 
 	GMRFLib_ENTER_ROUTINE;
@@ -687,8 +687,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		Free(xx_hold);			\
 	}
 
-#define EARLY_STOP_ENABLED (early_stop && G.ai_par->stupid_search_mode && !G.ai_par->mode_known)
-#define CHECK_FOR_EARLY_STOP (G.ai_par->stupid_search_mode && !G.ai_par->mode_known)
+#define EARLY_STOP_ENABLED (early_stop && G.ai_par->stupid_search_mode && G.ai_par->mode_restart)
+#define CHECK_FOR_EARLY_STOP (G.ai_par->stupid_search_mode && G.ai_par->mode_restart)
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, ff0 = NAN, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
@@ -831,7 +831,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		P(thread_min);
 	}
 
-	if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
+	if (G.ai_par->stupid_search_mode && G.ai_par->mode_restart && !ISEQUAL(f0, f0min)) {
 		if (debug)
 			fprintf(stderr, "(I) Mode not found sufficiently accurate %.8g %.8g\n\n", f0, f0min);
 
@@ -1009,7 +1009,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			fprintf(G.ai_par->fp_log, "\n");
 		}
 
-		if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f_best_save, B.f_best)) {
+		if (G.ai_par->stupid_search_mode && G.ai_par->mode_restart && !ISEQUAL(f_best_save, B.f_best)) {
 			/*
 			 * There is a change 
 			 */

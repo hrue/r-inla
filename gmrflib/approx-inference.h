@@ -479,11 +479,6 @@ typedef struct {
 	double optpar_nr_step_factor;
 
 	/**
-	 * \brief A flag to say that the initial values of the hyperparameters, are the known mode
-	 */
-	int mode_known;
-
-	/**
 	 * \brief Accepted limit for computing the CPO-density
 	 *
 	 * How large difference in log-scale of the CPO-density, between the mode and the value at the border for bing classified as ok.
@@ -599,7 +594,9 @@ typedef struct {
 	int improved_simplified_laplace;
 
 	int parallel_linesearch;
+	int mode_restart;
 	int mode_fixed;
+	int mode_use_mode;
 	int hessian_correct_skewness_only;
 } GMRFLib_ai_param_tp;
 

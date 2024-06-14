@@ -380,7 +380,7 @@ int inla_INLA(inla_tp *mb)
 	}
 
 	x = Calloc(N, double);
-	if (mb->mode_reuse && mb->x_file) {
+	if (mb->mode_use_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg = NULL;
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
@@ -685,7 +685,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	mb->dic = NULL;
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	x = Calloc(N, double);
-	if (mb->mode_reuse && mb->x_file) {
+	if (mb->mode_use_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
@@ -1068,7 +1068,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	}
 
 	x = Calloc(N, double);
-	if (mb->mode_reuse && mb->x_file) {
+	if (mb->mode_use_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg = NULL;
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);

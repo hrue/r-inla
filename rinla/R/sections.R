@@ -1078,7 +1078,6 @@ inla.parse.Bmatrix.test <- function() {
 
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
-    inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
     inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
@@ -1687,6 +1686,7 @@ inla.parse.Bmatrix.test <- function() {
             fnm <- gsub(data.dir, "$inladatadir", file.theta, fixed = TRUE)
             cat("theta =", fnm, "\n", file = file, append = TRUE)
         }
+
         ## use default the mode in result if given
         if (is.null(args$x) && !is.null(args$result)) {
             args$x <- args$result$mode$x
@@ -1705,16 +1705,17 @@ inla.parse.Bmatrix.test <- function() {
             cat("x =", fnm, "\n", file = file, append = TRUE)
         }
 
-        if (!is.null(args$restart)) {
-            args$restart <- as.logical(args$restart)
-            if (!is.null(args$fixed) && (as.logical(args$fixed) != !(args$restart))) {
-                warning("control.mode: option 'restart' overrides option 'fixed'")
-            }
-            args$fixed <- !(args$restart)
+        args$restart <- if (!is.null(args$restart)) as.logical(args$restart) else TRUE
+        args$fixed <- if (!is.null(args$fixed)) as.logical(args$fixed) else FALSE
+        if (args$fixed && args$restart) {
+            args$restart <- FALSE
+            warning(" *** control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'")
         }
-        if (is.null(args$fixed)) {
-            args$fixed <- FALSE
+        if (args$restart && is.null(args$theta)) {
+            args$restart <- TRUE
+            warning(" *** control.mode *** option 'restart=TRUE' is set to 'FALSE' since 'fixed=TRUE'")
         }
+        inla.write.boolean.field("restart", args$restart, file)
         inla.write.boolean.field("fixed", args$fixed, file)
         cat("\n", sep = " ", file = file, append = TRUE)
     }

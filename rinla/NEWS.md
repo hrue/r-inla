@@ -1,3 +1,7 @@
+# INLA_24.06.14
+* More work on `control.mode`
+* Fixed an issue with `A.local`
+
 # INLA_24.06.08
 * Documentation fixes
 * More robust code for ``survival` models

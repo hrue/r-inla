@@ -1326,6 +1326,14 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	return kld;
 }
 
+double GMRFLib_dssqr(int n, double *x)
+{
+	// sum_i x_i^2
+	int one = 1;
+	double ret = dnrm2_(&n, x, &one);
+	return SQR(ret);
+}
+
 int GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
