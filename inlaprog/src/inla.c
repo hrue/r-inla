@@ -265,7 +265,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->verbose = verbose;
 	mb->mode_restart = 1;
 	mb->mode_fixed = mb->mode_use_mode = 0;
-	
+
 	ini = iniparser_load(dict_filename);
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
@@ -5831,13 +5831,13 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (preopt->pAAt_idxval) {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < preopt->n; i++) {
-				double s = GMRFLib_dssqr(preopt->pAAt_idxval[i]->n, preopt->pAAt_idxval[i]->val); 
+				double s = GMRFLib_dssqr(preopt->pAAt_idxval[i]->n, preopt->pAAt_idxval[i]->val);
 				scale[i] = 1.0 / (s0 + DMAX(0.0, s));
 			}
 		} else {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < preopt->n; i++) {
-				double s = GMRFLib_dsum(preopt->AtA_idxval[i][0]->n, preopt->AtA_idxval[i][0]->val); 
+				double s = GMRFLib_dsum(preopt->AtA_idxval[i][0]->n, preopt->AtA_idxval[i][0]->val);
 				scale[i] = 1.0 / (s0 + DMAX(0.0, s));
 			}
 		}

@@ -1111,7 +1111,7 @@ struct inla_tp_struct {
 	int mode_restart;
 	int mode_fixed;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
 	int mode_use_mode;
-	
+
 	int ntheta_file;
 	int theta_counter_file;
 	double *theta_file;
@@ -2270,7 +2270,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
