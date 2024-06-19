@@ -4552,11 +4552,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double dxs[niter];
 	GMRFLib_fill(niter, 0.0, dxs);
 
-	int n = preopt->n;
-	double dx_BB[n];
-	double dx_CC[n];
-	double dx_BBCC[n];
-
 	for (int iter = 0; iter < niter + 1; iter++) {
 		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] > dxs[iter - 2])) || !keep_MM);
 		double err_dx = 0.0;
@@ -4596,34 +4591,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
-
-
-
-		if (iter == 0) {
-			GMRFLib_fill(n, 0.0, dx_BB);
-			GMRFLib_fill(n, 0.0, dx_CC);
-			GMRFLib_fill(n, 0.0, dx_BBCC);
-
-			for (int i = 0; i < preopt->npred; i++) {
-				if (!ISZERO(CC[i])) {
-					GMRFLib_idxval_tp *A = preopt->A_idxval[i];
-					for (int jj = 0; jj < A->n; jj++) {
-						int j = A->idx[jj];
-						double w = A->val[jj];
-						dx_BB[j] += BB[i] * w;
-						dx_CC[j] += CC[i] * SQR(w);
-					}
-				}
-			}
-
-			for (int i = 0; i < n; i++) {
-				if (!ISZERO(dx_CC[i])) {
-					dx_BBCC[i] = dx_BB[i] / dx_CC[i] / sd[i];
-				}
-			}
-		}
-
-
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
 #pragma omp simd
@@ -4775,9 +4742,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
-						fprintf(fp, "\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] (x-mode)/sd[%.3f] dx[%.3f]\n", j,
+						fprintf(fp, "\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] (x-mode)/sd[%.3f]\n", j,
 							gsl_vector_get(delta_mu, j), dx[j] / sd[j],
-							(x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j], dx_BBCC[j]);
+							(x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
 					}
 					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
