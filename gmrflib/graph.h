@@ -159,7 +159,6 @@ typedef struct {
 	int **snbs;
 
 	int *row2col;
-
 	int n_ptr;
 	int n_idx;
 	int *rowptr;

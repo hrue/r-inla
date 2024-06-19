@@ -1,41 +1,46 @@
-# INLA_24.06.14
+# INLA 24.06.19
+* Code improvement 
+* Fixed regression using `inla.group.cv`
+* Better warning for utf8 characters in home-directory
+
+# INLA 24.06.14
 * More work on `control.mode`
 * Fixed an issue with `A.local`
 
-# INLA_24.06.08
+# INLA 24.06.08
 * Documentation fixes
 * More robust code for ``survival` models
-* Remove model="twostage"
+* Remove inla.mode="twostage"
 * Fixed regression in `control.mode`
 
-# INLA_24.06.04
+# INLA 24.06.04
 * Support for `inla.mdata`-objects in `inla.stack` (experimental)
 * New likelihood `exppower` (experimental)
 
-# INLA_24.06.02
+# INLA 24.06.02
 * Fixed a regressin in model `iidkd`
 * Fixed missprints in `group cv` vignette
 * Updated `plot`
 * Added new experimental likelihood
 
-# INLA_24.05.27
+# INLA 24.05.27
 * Change: do not load INLA-package by default using `rgeneric` or `rprior`
 * New (experimental) likelihood: `occupancy`
 * Optimized family `betabinomial`
 * Minor code work
 
-# INLA_24.05.22
+# INLA 24.05.22
 * Increased max.dim for model `iidkd` from 20 to 24
 * Optimized family `betabinomial`
 
-# INLA_24.05.18
+# INLA 24.05.18
 * Fixed (I hope) PARDISO issue for Mac (Intel and M...) due to OpenMP
   issues
 * New and smaller default value for `tolerance.step`
 * Fixed a regression in `cgeneric.h` in cache-macros
 * Revise `plot(..., plot.opt.trace=TRUE)` plot
 
-# INLA_24.05.13
+# INLA 24.05.13
 * Rewrote 'read.graph' to avoid recursion
 
 # INLA 24.05.10

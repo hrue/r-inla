@@ -977,40 +977,62 @@
 
         ## if this directory already exists, try the numbered versions
         kk <- 1
+        kk.max <- 10^4
         ans <- file.exists(working.directory)
         while (ans) {
+            if (kk > kk.max) break
             working.directory <- paste(working.directory.start, "-", kk, sep = "")
             kk <- kk + 1
             ans <- file.exists(working.directory)
         }
         inla.dir <- working.directory
         tmp <- inla.dir.create(inla.dir, StopOnError = FALSE) ## return NULL if fail
-        if (is.null(tmp)) {
+        if (kk > kk.max || is.null(tmp)) {
             ## this is the failsafe-option
             inla.dir <- paste(inla.dir, "-", substring(as.character(runif(1)), 3), sep = "")
             tmp <- inla.dir.create(inla.dir, StopOnError = FALSE)
             if (is.null(tmp)) {
-                stop(paste("Cannot create directory [", inla.dir,
-                           "] even after trying a random dirname. I give up.",
-                           sep = ""
-                           ))
+                if (inla.anyMultibyteUTF8Characters(inla.dir)) {
+                    stop(paste0("*** Fail to create directory [", inla.dir, "]\n", 
+                                "  *** This might be due to a mutibyte characters issue with [", inla.dir, "]\n", 
+                                "  *** Try to set argument 'working.directory' to a\n",
+                                "  *** read/write accessible directory without multibyte characters.\n",
+                                "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
+                                "  *** Check also the permissions on directory [", dirname(inla.dir), "]"))
+                } else {
+                    stop(paste0("Fail to create directory [", inla.dir, "]. I give up."))
+                }
             }
         }
         if (verbose) {
             cat("Model and results are stored in working directory [", inla.dir, "]\n", sep = "")
         }
     } else {
-        ## create a temporary directory
+        ## temporary directory
         inla.dir <- inla.tempfile()
         inla.dir <- gsub("\\\\", "/", inla.dir)
-        inla.dir.create(inla.dir)
     }
+
     ## Create a directory where to store data and results
     inla.dir <- normalizePath(inla.dir)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
-    inla.dir.create(data.dir)
 
+    if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
+        if (inla.anyMultibyteUTF8Characters(inla.dir)) {
+            stop(paste0("*** Fail to create directory [", inla.dir, "]\n", 
+                        "  *** This might be due to a mutibyte characters issue with [", inla.dir, "]\n", 
+                        "  *** Try to set argument 'working.directory' to a\n",
+                        "  *** read/write accessible directory without multibyte characters.\n",
+                        "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
+                        "  *** Check also the permissions on directory [", dirname(inla.dir), "]"))
+        } else {
+            stop(paste0("*** Fail to create directory [", inla.dir, "]"))
+        }
+    }
+
+    inla.dir.create(inla.dir)
+    inla.dir.create(data.dir)
     ## create the .file.ini and make the problem.section
     file.ini <- paste(inla.dir, "/Model.ini", sep = "")
     file.log <- paste(inla.dir, "/Logfile.txt", sep = "")

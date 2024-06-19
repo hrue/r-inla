@@ -9051,6 +9051,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * then read those we need 
 		 */
+		int ignore_prior_error = 0;
 		for (i = 0; i < ds->link_ntheta; i++) {
 			double theta_initial = 0;
 			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
@@ -9060,8 +9061,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			if (!ds->link_fixed[i] && mb->mode_use_mode) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
-				if (mb->mode_fixed)
+				if (mb->mode_fixed) {
 					ds->link_fixed[i] = 1;
+					ignore_prior_error = 1;
+				}
 			}
 
 			if (mb->verbose) {
@@ -9146,6 +9149,15 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 					mb->ntheta++;
 				}
 			}
+		}
+
+		if (ds->link_order > 0 && (int) ds->link_prior[1].parameters[0] != ds->link_order && !ignore_prior_error) {
+			char *ptmp = NULL;
+			GMRFLib_sprintf(&ptmp,
+					"Dimension of the MVNORM prior is not equal to the order of the link-model: %1d != %1d\n",
+					(int) ds->link_prior[1].parameters[0], ds->link_order);
+			inla_error_general(ptmp);
+			exit(EXIT_FAILURE);
 		}
 	}
 		break;
@@ -11447,6 +11459,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 * then read those we need 
 		 */
 		int ntheta_used = 0;			       /* then we count */
+		int ignore_prior_error = 0;
+		
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
@@ -11459,6 +11473,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
 				if (mb->mode_fixed) {
 					mb->f_fixed[mb->nf][i] = 1;
+					ignore_prior_error = 1;
 				}
 			}
 
@@ -11544,7 +11559,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		Memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
 
 		if (mb->f_prior[mb->nf][0].id == P_MVNORM) {
-			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta_used) {
+			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta_used && !ignore_prior_error) {
 				GMRFLib_sprintf(&ptmp,
 						"Dimension of the MVNORM prior is not equal to number of used hyperparameters: %1d != %1d\n",
 						(int) mb->f_prior[mb->nf][0].parameters[0], ntheta_used);
@@ -11558,7 +11573,6 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
-
 	}
 		break;
 
@@ -11617,14 +11631,6 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
 
-		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
-			GMRFLib_sprintf(&ptmp,
-					"Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
-					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
-			inla_error_general(ptmp);
-			exit(EXIT_FAILURE);
-		}
-
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 
@@ -11649,6 +11655,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * then read those we need 
 		 */
+		int ignore_prior_error = 0;
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
@@ -11665,6 +11672,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
 				if (mb->mode_fixed) {
 					mb->f_fixed[mb->nf][i] = 1;
+					ignore_prior_error = 1;
 				}
 			}
 
@@ -11703,6 +11711,14 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
+		}
+
+		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta && !ignore_prior_error) {
+			GMRFLib_sprintf(&ptmp,
+					"Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
+					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
+			inla_error_general(ptmp);
+			exit(EXIT_FAILURE);
 		}
 	}
 		break;

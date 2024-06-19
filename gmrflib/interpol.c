@@ -46,12 +46,16 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	 *
 	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none. 
 	 */
+
+	if (n < 3) {
+		return NULL;
+	}
+
 	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
 	double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
-	assert(n > 0);
 	Calloc_init(2 * n, 2);
 	xx = Calloc_get(n);
 	yy = Calloc_get(n);

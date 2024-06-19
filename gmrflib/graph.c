@@ -124,7 +124,8 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 	GMRFLib_graph_mk_empty(graph);
-
+	assert(graph);
+	
 	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
 	TO_INT((*graph)->n, tmp);
 	GMRFLib_ASSERT((*graph)->n >= 0, GMRFLib_EPARAMETER);
@@ -668,6 +669,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 	int *row2col = Calloc(N, int);
+	assert(N > 0);
 
 	if (0) {
 		int *row = Calloc(graph->n + 1, int);
@@ -1054,6 +1056,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 {
 	if (!remove_flag) {
 		if (node_map) {
+			assert(graph->n > 0);
 			*node_map = Calloc(graph->n, int);
 #pragma omp simd
 			for (int i = 0; i < graph->n; i++) {
@@ -1816,15 +1819,16 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp **graph, int n, int bw, int cyclic_
 {
 	int *hold = NULL;
 
+	assert(n > 0);
 	bw = IMIN(n - 1, IMAX(0, bw));
+	bw = IMAX(0, bw);
 	GMRFLib_graph_mk_empty(graph);
 	(*graph)->n = n;
 	(*graph)->nnbs = Calloc(n, int);
 	(*graph)->nbs = Calloc(n, int *);
 
-	if (bw) {
+	if (bw > 0) {
 		hold = Calloc(n * 2 * bw, int);		       /* use a linear storage */
-
 		for (int i = 0; i < n; i++) {
 			(*graph)->nbs[i] = &hold[i * 2 * bw];  /* set pointers to it */
 		}

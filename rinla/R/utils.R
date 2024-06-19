@@ -1116,3 +1116,18 @@
     ## the change is here
     matrix(x[(((col(A) - row(A)) + n) %% n) + 1L], n, n)
 }
+
+inla.anyMultibyteUTF8Characters <- function(string)
+{
+    ## this function is copied from package 'tikzDevice'
+    mb <- FALSE
+    string <- enc2utf8(string)
+    explode <- strsplit(string, "")[[1]]
+    for (i in seq_along(explode)) {
+        if (length(charToRaw(explode[i])) > 1) {
+            mb <- TRUE
+            break
+        }
+    }
+    return(mb)
+}
