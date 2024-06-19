@@ -5479,9 +5479,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6184,26 +6184,30 @@ int loglikelihood_qkumar(int thread_id, double *__restrict logll, double *__rest
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double phi = map_prec_qkumar(ds->data_observations.qkumar_log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double q = ds->data_observations.quantile;
-	double alpha, beta, kappa, mu;
+	double beta = LOG_1mp(q) / LOG_1mp(exp(-phi));
+	double ibeta = 1.0 / beta;
+	double tt1 = LOG_1mp(pow(1.0 - q, ibeta));
+	double off = OFFSET(idx);
 
-	beta = LOG_1mp(q) / LOG_1mp(exp(-phi));
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			alpha = LOG_1mp(pow(1.0 - q, 1.0 / beta)) / log(kappa);
-			logll[i] = log(alpha) + log(beta) + (alpha - 1.0) * log(y) + (beta - 1.0) * LOG_1mp(pow(y, alpha));
+		double beta1 = beta - 1.0;
+		double lbeta = log(beta);
+		double ly = log(y);
+		for (int i = 0; i < m; i++) {
+			double kappa = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double alpha = tt1 / log(kappa);
+			logll[i] = log(alpha) + lbeta + (alpha - 1.0) * ly + beta1 * LOG_1mp(pow(y, alpha));
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			alpha = LOG_1mp(pow(1.0 - q, 1.0 / beta)) / log(kappa);
+		for (int i = 0; i < -m; i++) {
+			double kappa = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double alpha = tt1 / log(kappa);
 			logll[i] = 1.0 - pow(1.0 - pow(y, alpha), beta);
 		}
 	}

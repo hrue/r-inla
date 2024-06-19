@@ -601,6 +601,7 @@ int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z,
 	double tmp, v_ij, *u = NULL;
 
 	assert(z);
+	assert(nhyper > 0);
 	u = Calloc(nhyper, double);
 	for (i = 0; i < (size_t) nhyper; i++) {
 		u[i] = z[i] / gsl_vector_get(sqrt_eigen_values, i);
@@ -629,8 +630,8 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 	size_t i, j;
 	double tmp, *u = NULL;
 
+	assert(nhyper > 0);
 	u = Calloc(nhyper, double);
-
 	for (i = 0; i < (size_t) nhyper; i++) {
 		u[i] = theta[i] - theta_mode[i];
 	}
@@ -4874,6 +4875,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
+	assert(graph->n > 0);
 	Calloc_init(7 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred + 1 * vb_idx->n, 13);
 	double *x_mean = Calloc_get(graph->n);
 	double *mean_constr = Calloc_get(graph->n);
@@ -6091,7 +6093,6 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double dmin = GMRFLib_min_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
-#pragma omp simd
 			for (int i = 0; i < np; i++) {
 				if (ll[i] - dmax < limit) {
 					mask[i] = 0.0;

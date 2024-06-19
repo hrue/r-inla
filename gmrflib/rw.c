@@ -918,13 +918,11 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 	// GMRFLib_printf_constr(stdout, constr, graph);
 
-	double *c = Calloc(graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
+	assert(graph->n > 0);
+	double *c = Calloc(graph->n, double);
+	double eps = GSL_SQRT_DBL_EPSILON;
+	GMRFLib_fill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
-
-	for (i = 0; i < graph->n; i++) {
-		c[i] = eps;
-	}
-
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
@@ -1049,13 +1047,11 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		constr = NULL;
 	}
 
-	double *c = Calloc(graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
+	assert(graph->n > 0);
+	double *c = Calloc(graph->n, double);
+	double eps = GSL_SQRT_DBL_EPSILON;
+	GMRFLib_fill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
-
-	for (i = 0; i < graph->n; i++) {
-		c[i] = eps;
-	}
-
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
