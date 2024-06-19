@@ -1,3 +1,8 @@
+# INLA 24.06.19
+* Code improvement 
+* Fixed regression using `inla.group.cv`
+* Better warning for utf8 characters in home-directory
+
 # INLA 24.06.14
 * More work on `control.mode`
 * Fixed an issue with `A.local`
