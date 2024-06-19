@@ -75,7 +75,7 @@ int GMRFLib_rng_set_default_seed(void)
 #else							       /* !defined(WINDOWS) */
 		{
 			int fd = open("/dev/urandom", O_RDONLY);
-			if (fd > 0) {
+			if (fd >= 0) {
 				ssize_t nb = read(fd, (void *) &seed, len);
 				if (nb != (ssize_t) len) {
 					seed = seed_default;
