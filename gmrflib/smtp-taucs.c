@@ -1515,13 +1515,11 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 
 		for (int ii = nnbs[j] - 1; ii >= 0; ii--) {
 			int i = nbs[j][ii];
-			double diag = L->values.d[L->colptr[i]];
-			double value = (i == j ? 1.0 / diag : 0.0);
-
 			int nn = L->colptr[i + 1] - (L->colptr[i] + 1);
 			int kk = L->colptr[i] + 1;
+			double diag = L->values.d[L->colptr[i]];
 			double dot = GMRFLib_ddot_idx_mkl(nn, d + kk, Zj, L->rowind + kk);
-
+			double value = (i == j ? 1.0 / diag : 0.0);
 			value = (value - dot) / diag;
 			Zj[i] = value;
 			map_id_set(Qinv_L[i], j, value);

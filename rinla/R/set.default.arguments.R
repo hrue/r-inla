@@ -240,7 +240,7 @@
             #' runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)
             cpo.manual = FALSE,
 
-            #' @param cpo.idx  The index/indices of the data point(s) to remove. (EXPERT
+            #' @param cpo.idx  The index/indices of the data point(s) to remove. (EXPERIMENTAL
             #' OPTION: DO NOT USE)
             cpo.idx = -1,
 
@@ -258,7 +258,11 @@
             #' @param globalconstr Add a global constraint (see `?f` and argument
             #' `extraconstr`). Note that a global constraint does NOT
             #' correct the normalisation constant.
-            globalconstr = list(A = NULL, e = NULL)
+            globalconstr = list(A = NULL, e = NULL),
+
+            #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).
+            #' (EXPERIMENTAL OPTION: DO NOT USE)
+            opt.solve = FALSE
         ) {
             ctrl_object(as.list(environment()), "expert", check = FALSE)
         }

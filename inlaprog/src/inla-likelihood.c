@@ -5997,29 +5997,28 @@ int loglikelihood_gamma(int thread_id, double *__restrict logll, double *__restr
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	// 'scale' is not used for the survival version
 	double s = (ds->data_observations.gamma_scale ? ds->data_observations.gamma_scale[idx] : 1.0);
 	double phi_param = map_exp_forward(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
-	double phi, mu, a, b, c;
-
-	phi = phi_param * s;
-	c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
+	double phi = phi_param * s;
+	double c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
+	double off = OFFSET(idx);
+	
 	LINK_INIT;
 
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i] + off);
 			logll[i] = c - phi * (log(mu) + y / mu);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
-		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			a = phi;
-			b = mu / phi;
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double a = phi;
+			double b = mu / phi;
 			logll[i] = gsl_cdf_gamma_P(yy, a, b);
 		}
 	}
@@ -7093,7 +7092,10 @@ int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__res
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
+	double ly = log(y);
 	double alpha = map_alpha_weibull(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	double lalpha = log(alpha);
+	double off = OFFSET(idx);
 
 	LINK_INIT;
 	if (arg_str) {
@@ -7109,17 +7111,16 @@ int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__res
 	case 0:
 	{
 		if (m > 0) {
-			double lalpha = log(alpha);
 			double ypow = pow(y, alpha);
-			double ly = log(y);
+			double t1 = lalpha + (alpha - 1.0) * ly;
 			for (int i = 0; i < m; i++) {
-				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(lambda) + lalpha + (alpha - 1.0) * ly - lambda * ypow;
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = log(lambda) + t1 - lambda * ypow;
 			}
 		} else {
 			double ypow = pow((y_cdf ? *y_cdf : y), alpha);
 			for (int i = 0; i < -m; i++) {
-				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				// logll[i] = 1.0 - exp(-lambda * ypow);
 				logll[i] = ONE_mexp(-lambda * ypow);
 			}
@@ -7129,17 +7130,17 @@ int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__res
 	case 1:
 	{
 		if (m > 0) {
-			double lalpha = log(alpha);
-			double ly = log(y);
+			double t1 = lalpha - ly;
 			for (int i = 0; i < m; i++) {
-				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				double ypow = pow(lambda * y, alpha);
-				logll[i] = log(ypow) + lalpha - ly - ypow;
+				logll[i] = log(ypow) + t1 - ypow;
 			}
 		} else {
+			double yy = (y_cdf ? *y_cdf : y); 
 			for (int i = 0; i < -m; i++) {
-				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				double ypow = pow(lambda * (y_cdf ? *y_cdf : y), alpha);
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+				double ypow = pow(lambda * yy, alpha);
 				// logll[i] = 1.0 - exp(-ypow);
 				logll[i] = ONE_mexp(-ypow);
 			}

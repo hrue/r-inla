@@ -1754,6 +1754,7 @@ inla.parse.Bmatrix.test <- function() {
     }
     inla.write.boolean.field("disable.gaussian.check", args$disable.gaussian.check, file)
     inla.write.boolean.field("dot.product.gain", args$dot.product.gain, file)
+    inla.write.boolean.field("opt.solve", args$opt.solve, file)
 
     gconstr <- args$globalconstr
     if (!is.null(gconstr) && !is.null(gconstr$A)) {

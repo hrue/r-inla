@@ -11,7 +11,8 @@ control.expert(
   disable.gaussian.check = FALSE,
   jp = NULL,
   dot.product.gain = FALSE,
-  globalconstr = list(A = NULL, e = NULL)
+  globalconstr = list(A = NULL, e = NULL),
+  opt.solve = FALSE
 )
 
 inla.set.control.expert.default(...)
@@ -20,7 +21,7 @@ inla.set.control.expert.default(...)
 \item{cpo.manual}{A boolean variable to decide if the inla-program is to be
 runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
 
-\item{cpo.idx}{The index/indices of the data point(s) to remove. (EXPERT
+\item{cpo.idx}{The index/indices of the data point(s) to remove. (EXPERIMENTAL
 OPTION: DO NOT USE)}
 
 \item{disable.gaussian.check}{Disable the check for fast computations with a
@@ -34,6 +35,9 @@ optimizing dot-products? (Default \code{FALSE})}
 \item{globalconstr}{Add a global constraint (see \code{?f} and argument
 \code{extraconstr}). Note that a global constraint does NOT
 correct the normalisation constant.}
+
+\item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
+(EXPERIMENTAL OPTION: DO NOT USE)}
 
 \item{...}{Named arguments passed on to the main function}
 }
