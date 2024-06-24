@@ -993,14 +993,14 @@
             tmp <- inla.dir.create(inla.dir, StopOnError = FALSE)
             if (is.null(tmp)) {
                 if (inla.anyMultibyteUTF8Characters(inla.dir)) {
-                    stop(paste0("*** Fail to create directory [", inla.dir, "]\n", 
+                    stop(paste0("*** Failed to create directory [", inla.dir, "]\n", 
                                 "  *** This might be due to a mutibyte characters issue with [", inla.dir, "]\n", 
                                 "  *** Try to set argument 'working.directory' to a\n",
                                 "  *** read/write accessible directory without multibyte characters.\n",
                                 "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
-                                "  *** Check also the permissions on directory [", dirname(inla.dir), "]"))
+                                "  *** Also check the permissions on the directory [", dirname(inla.dir), "]"))
                 } else {
-                    stop(paste0("Fail to create directory [", inla.dir, "]. I give up."))
+                    stop(paste0("Failed to create directory [", inla.dir, "]. I give up."))
                 }
             }
         }
