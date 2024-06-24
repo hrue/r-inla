@@ -8,11 +8,12 @@
 #' model="iid")` + f(ind2, weights, model="ar1") This is much like the formula
 #' for a `glm` except that smooth or spatial terms can be added to the
 #' right hand side of the formula.  See [f()] for full details and
-#' the web site <www.r-inla.org> for several worked out examples. Each
+#' the web site [www.r-inla.org](https://www.r-inla.org) for several worked out
+#' examples. Each
 #' smooth or spatial term specified through `f` should correspond to
 #' separate column of the data frame `data`.  The response variable,
 #' `y` can be a univariate response variable, a list or the output of the
-#' function `inla.surf` for survival analysis models.
+#' function [inla.surv()] for survival analysis models.
 #' @param family A string indicating the likelihood family. The default is
 #' `gaussian` with identity link. See
 #' `names(inla.models()$likelihood)` for a list of possible alternatives
@@ -1014,7 +1015,7 @@
     }
 
     ## Create a directory where to store data and results
-    inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
+    inla.dir <- normalizePath(inla.dir, mustWork = NA)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
 
