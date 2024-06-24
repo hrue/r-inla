@@ -1027,7 +1027,7 @@
                         "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
                         "  *** Also check the permissions on the directory [", dirname(inla.dir), "]"))
         } else {
-            stop(paste0("*** Fail to create directory [", inla.dir, "]"))
+            stop(paste0("*** Failed to create directory [", inla.dir, "]"))
         }
     }
 
