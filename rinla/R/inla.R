@@ -1212,7 +1212,7 @@
                     warning(paste0(
                         "*** WARNING *** Input family is '", family[i.family],
                         "' but input data is of 'inla.surv(...)' type\n",
-                        "  *** WARNING *** Do you ment to use family '", new.fam,
+                        "  *** WARNING *** Did you mean to use family '", new.fam,
                         "' ?"
                     ))
                 }
@@ -1228,7 +1228,7 @@
                 warning(paste0(
                     "*** WARNING *** Input family is '", family[i.family],
                     "' and require input of type 'inla.surv(...)'\n",
-                    "  *** WARNING *** Do you ment to use family '", new.fam,
+                    "  *** WARNING *** Did you mean to use family '", new.fam,
                     "' ?"
                 ))
             }
