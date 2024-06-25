@@ -125,7 +125,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 	GMRFLib_graph_mk_empty(graph);
 	assert(graph);
-	
+
 	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
 	TO_INT((*graph)->n, tmp);
 	GMRFLib_ASSERT((*graph)->n >= 0, GMRFLib_EPARAMETER);

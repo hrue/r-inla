@@ -5479,9 +5479,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6005,7 +6005,7 @@ int loglikelihood_gamma(int thread_id, double *__restrict logll, double *__restr
 	double phi = phi_param * s;
 	double c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
 	double off = OFFSET(idx);
-	
+
 	LINK_INIT;
 
 	if (m > 0) {
@@ -7137,7 +7137,7 @@ int loglikelihood_weibull(int thread_id, double *__restrict logll, double *__res
 				logll[i] = log(ypow) + t1 - ypow;
 			}
 		} else {
-			double yy = (y_cdf ? *y_cdf : y); 
+			double yy = (y_cdf ? *y_cdf : y);
 			for (int i = 0; i < -m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				double ypow = pow(lambda * yy, alpha);

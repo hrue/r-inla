@@ -11460,7 +11460,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		int ntheta_used = 0;			       /* then we count */
 		int ignore_prior_error = 0;
-		
+
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 

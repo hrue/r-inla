@@ -123,7 +123,7 @@ double inla_qgamma_cache(double shape, double quantile)
 	 * this function cache spline-tables of qgamma()'s, with a unit scale and varying shape, for fixed quantiles. 
 	 */
 
-	//return (MATHLIB_FUN(qgamma) (quantile, shape, 1.0, 1, 0));
+	// return (MATHLIB_FUN(qgamma) (quantile, shape, 1.0, 1, 0));
 
 	static struct inla_qgamma_cache_tp **cache = NULL;
 	static int cache_len = 0;
