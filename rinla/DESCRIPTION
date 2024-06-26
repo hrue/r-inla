@@ -187,6 +187,7 @@ Collate:
     'spde2.R'
     'spde3.R'
     'spmesh.R'
+    'stack.R'
     'startup.R'
     'summary.R'
     'surv.R'
