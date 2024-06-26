@@ -1015,7 +1015,7 @@
     }
 
     ## Create a directory where to store data and results
-    inla.dir <- normalizePath(inla.dir, mustWork = NA)
+    inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
 
