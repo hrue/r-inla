@@ -90,7 +90,7 @@ expanded to vectors matching the number of columns in the corresponding A
 matrix.  An error is given if the input is inconsistent or ombiguous.}
 
 \item{responses}{A list of response vectors, matrices, data.frame, or other special
-response objects, such as \code{inla.mdata}. Each list element corresponds to
+response objects, such as \code{\link[=inla.mdata]{inla.mdata()}} and \code{\link[=inla.surv]{inla.surv()}}. Each list element corresponds to
 one response family. In ordinary user-side code, the list has length 1, and longer
 lists are created by joining stacks with \code{inla.stack(..., multi.family = TRUE)}.}
 

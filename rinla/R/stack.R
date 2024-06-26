@@ -547,7 +547,7 @@ inla.stack <- function(..., compress = TRUE, remove.unused = TRUE, multi.family 
 
 #' @describeIn inla.stack Create data stack as a sum of predictors
 #' @param responses A list of response vectors, matrices, data.frame, or other special
-#' response objects, such as [inla.mdata] and [inla.surv]. Each list element corresponds to 
+#' response objects, such as [inla.mdata()] and [inla.surv()]. Each list element corresponds to 
 #' one response family. In ordinary user-side code, the list has length 1, and longer
 #' lists are created by joining stacks with `inla.stack(..., multi.family = TRUE)`.
 #'
