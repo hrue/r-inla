@@ -33,6 +33,7 @@
                                          "CentOS Stream-8", 
                                          "Rocky Linux-8", 
                                          "Rocky Linux-9", 
+                                         "Manjaro Linux-", 
                                          "Fedora-33", 
                                          "Fedora-34", 
                                          "Fedora Linux-35", 

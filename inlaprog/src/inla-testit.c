@@ -4263,6 +4263,38 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 144:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		assert(n > 0);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
+		for (int i = 0; i < n + 1; i++) {
+			x[i] = 10.0 * GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int k = 0; k < m; k++) {
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				y[i] = lgamma(x[i]);
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				y[i] = log(x[i]);
+			}
+			tref[1] += GMRFLib_timer();
+		}
+		double dd = 1.0 / GMRFLib_dsum(2, tref);
+		printf("lgamma %.4g log %.4g\n", tref[0] * dd, tref[1] * dd);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

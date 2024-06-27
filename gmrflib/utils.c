@@ -2175,9 +2175,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if (cmp ==(void *) GMRFLib_icmp && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2204,11 +2204,13 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y)
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
-	if (nmemb == 0)
-		return;
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	}
 
+	if (nmemb == 0) {
+		return;
+	}
 	// there could be a test for GMRFLib_icmp_r but since I do not use it, I do not include it here
 	if (compar == GMRFLib_icmp && size_x == size_y && size_x == sizeof(int)) {
 		my_sort2_ii((int *) x, (int *) y, (int) nmemb);

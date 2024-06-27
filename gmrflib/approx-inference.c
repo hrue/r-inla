@@ -6394,7 +6394,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 			RUN_CODE_BLOCK(4, 0, 0);
 #undef CODE_BLOCK
 
-			if (0) {
+			if (GMRFLib_opt_solve) {
 				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
 					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
 					taucs_crs_matrix *LL = ai_store->problem->sub_sm_fact.TAUCS_LL;

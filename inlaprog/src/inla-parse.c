@@ -11460,7 +11460,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		 */
 		int ntheta_used = 0;			       /* then we count */
 		int ignore_prior_error = 0;
-		
+
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
@@ -18539,6 +18539,11 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_dot_product_gain = (dot_product_gain ? 0.0 : -1.0);
 	if (mb->verbose) {
 		printf("\t\t\tMeasure dot.product.gain=[%s]\n", (dot_product_gain ? "Yes" : "No"));
+	}
+
+	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
+	if (mb->verbose) {
+		printf("\t\t\tOptimise linear solve=[%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 	}
 
 	/*

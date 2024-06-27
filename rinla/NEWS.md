@@ -1,3 +1,7 @@
+# INLA 24.06.29
+* Fixed a regression from Version 24.06.09
+* Code optimization and development
+
 # INLA 24.06.19
 * Code improvement 
 * Fixed regression using `inla.group.cv`

@@ -50,11 +50,12 @@ inla(
 \item{formula}{A \code{inla} formula like \code{y ~1 + z + f(ind, model="iid")} + f(ind2, weights, model="ar1") This is much like the formula
 for a \code{glm} except that smooth or spatial terms can be added to the
 right hand side of the formula.  See \code{\link[=f]{f()}} for full details and
-the web site <www.r-inla.org> for several worked out examples. Each
+the web site \href{https://www.r-inla.org}{www.r-inla.org} for several worked out
+examples. Each
 smooth or spatial term specified through \code{f} should correspond to
 separate column of the data frame \code{data}.  The response variable,
 \code{y} can be a univariate response variable, a list or the output of the
-function \code{inla.surf} for survival analysis models.}
+function \code{\link[=inla.surv]{inla.surv()}} for survival analysis models.}
 
 \item{family}{A string indicating the likelihood family. The default is
 \code{gaussian} with identity link. See

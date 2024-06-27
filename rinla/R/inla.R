@@ -8,11 +8,12 @@
 #' model="iid")` + f(ind2, weights, model="ar1") This is much like the formula
 #' for a `glm` except that smooth or spatial terms can be added to the
 #' right hand side of the formula.  See [f()] for full details and
-#' the web site <www.r-inla.org> for several worked out examples. Each
+#' the web site [www.r-inla.org](https://www.r-inla.org) for several worked out
+#' examples. Each
 #' smooth or spatial term specified through `f` should correspond to
 #' separate column of the data frame `data`.  The response variable,
 #' `y` can be a univariate response variable, a list or the output of the
-#' function `inla.surf` for survival analysis models.
+#' function [inla.surv()] for survival analysis models.
 #' @param family A string indicating the likelihood family. The default is
 #' `gaussian` with identity link. See
 #' `names(inla.models()$likelihood)` for a list of possible alternatives
@@ -993,14 +994,14 @@
             tmp <- inla.dir.create(inla.dir, StopOnError = FALSE)
             if (is.null(tmp)) {
                 if (inla.anyMultibyteUTF8Characters(inla.dir)) {
-                    stop(paste0("*** Fail to create directory [", inla.dir, "]\n", 
+                    stop(paste0("*** Failed to create directory [", inla.dir, "]\n", 
                                 "  *** This might be due to a mutibyte characters issue with [", inla.dir, "]\n", 
                                 "  *** Try to set argument 'working.directory' to a\n",
                                 "  *** read/write accessible directory without multibyte characters.\n",
                                 "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
-                                "  *** Check also the permissions on directory [", dirname(inla.dir), "]"))
+                                "  *** Also check the permissions on the directory [", dirname(inla.dir), "]"))
                 } else {
-                    stop(paste0("Fail to create directory [", inla.dir, "]. I give up."))
+                    stop(paste0("Failed to create directory [", inla.dir, "]. I give up."))
                 }
             }
         }
@@ -1014,20 +1015,20 @@
     }
 
     ## Create a directory where to store data and results
-    inla.dir <- normalizePath(inla.dir)
+    inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
 
     if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
         if (inla.anyMultibyteUTF8Characters(inla.dir)) {
-            stop(paste0("*** Fail to create directory [", inla.dir, "]\n", 
+            stop(paste0("*** Failed to create directory [", inla.dir, "]\n", 
                         "  *** This might be due to a mutibyte characters issue with [", inla.dir, "]\n", 
                         "  *** Try to set argument 'working.directory' to a\n",
                         "  *** read/write accessible directory without multibyte characters.\n",
                         "  *** This is easiest done using 'inla.setOption(working.directory = ...)'\n",
-                        "  *** Check also the permissions on directory [", dirname(inla.dir), "]"))
+                        "  *** Also check the permissions on the directory [", dirname(inla.dir), "]"))
         } else {
-            stop(paste0("*** Fail to create directory [", inla.dir, "]"))
+            stop(paste0("*** Failed to create directory [", inla.dir, "]"))
         }
     }
 
@@ -1212,7 +1213,7 @@
                     warning(paste0(
                         "*** WARNING *** Input family is '", family[i.family],
                         "' but input data is of 'inla.surv(...)' type\n",
-                        "  *** WARNING *** Do you ment to use family '", new.fam,
+                        "  *** WARNING *** Did you mean to use family '", new.fam,
                         "' ?"
                     ))
                 }
@@ -1228,7 +1229,7 @@
                 warning(paste0(
                     "*** WARNING *** Input family is '", family[i.family],
                     "' and require input of type 'inla.surv(...)'\n",
-                    "  *** WARNING *** Do you ment to use family '", new.fam,
+                    "  *** WARNING *** Did you mean to use family '", new.fam,
                     "' ?"
                 ))
             }
