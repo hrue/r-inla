@@ -459,13 +459,10 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	options[METIS_OPTION_COMPRESS] = 1;
 	options[METIS_OPTION_PFACTOR] = 200;
 
-#if defined(NO_PARDISO_LIB)
-	// this the metis5 lib
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-#else
 	// this is defined in the pardiso libs
-	ret = METIS51PARDISO_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-#endif
+	// ret = METIS51PARDISO_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+
 	if (ret != METIS_OK) {
 		assert(0 == 1);
 		return;
