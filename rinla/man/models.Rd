@@ -243,7 +243,7 @@ Number of hyperparmeters is 0.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{min.diff = }{\verb{1e-05}}
+\item{min.diff = }{\verb{1e-06}}
 \item{pdf = }{\verb{rw1}}
 }
 }
@@ -278,7 +278,7 @@ Number of hyperparmeters is 1.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{min.diff = }{\verb{0.001}}
+\item{min.diff = }{\verb{1e-04}}
 \item{pdf = }{\verb{rw2}}
 }
 }
@@ -313,7 +313,7 @@ Number of hyperparmeters is 1.
 \item{n.div.by = }{\verb{NULL}}
 \item{n.required = }{\verb{FALSE}}
 \item{set.default.values = }{\verb{FALSE}}
-\item{min.diff = }{\verb{0.001}}
+\item{min.diff = }{\verb{1e-04}}
 \item{pdf = }{\verb{crw2}}
 }
 }
