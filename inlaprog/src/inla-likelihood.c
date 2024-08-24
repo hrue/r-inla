@@ -454,10 +454,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int ny = (int) attr[0];
 		int nx = (int) attr[1];
 		int m = nx / ny;
-		P(ny);
-		P(nx);
-		P(m);
-		P(ncol_data_all);
 		assert(ny + nx + 2 == ncol_data_all);
 		idiv = ncol_data_all;
 
