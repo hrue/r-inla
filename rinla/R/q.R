@@ -163,7 +163,7 @@ NULL
     } else if (length(grep("^LOG", output)) > 0) {
         output <- gsub("^LOG *", "", output)
         if (file.exists(output)) {
-            logfile <- list(logfile = gsub("\t", "        ", readLines(output)))
+            logfile <- list(logfile = gsub("\t", "        ", readLines(output), useBytes = TRUE))
             try(unlink(output, recursive = TRUE), silent = TRUE)
         } else {
             logfile <- NULL

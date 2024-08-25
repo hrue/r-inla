@@ -757,7 +757,7 @@
     }
     if (file.exists(file.log)) {
         ## replace tab with spaces
-        logfile = gsub("\t", "        ", readLines(file.log))
+        logfile = gsub("\t", "        ", readLines(file.log), useBytes = TRUE)
         logfile <- logfile[-which(nchar(logfile) == 0)]
         return(list(logfile = logfile))
     } else {
