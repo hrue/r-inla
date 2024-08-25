@@ -12,7 +12,7 @@
 #' @export inla.pardiso
 
 `inla.pardiso` <- function() {
-    browseURL("https://www.panua.ch")
+    browseURL("https://panua.ch")
 }
 
 #' @rdname pardiso
