@@ -1418,30 +1418,33 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 
 void GMRFLib_fill(int n, double a, double *x)
 {
-	if (ISZERO(a)) {
-		memset((void *) x, 0, (size_t) (n * sizeof(double)));
-	} else {
-		int len0 = BUFSIZ / sizeof(double);
-		if (n < 2 * len0) {
-#pragma omp simd
-			for (int i = 0; i < n; i++) {
-				x[i] = a;
-			}
+	if (n > 0) {
+		if (ISZERO(a)) {
+			memset((void *) x, 0, (size_t) (n * sizeof(double)));
 		} else {
+			int len0 = BUFSIZ / sizeof(double);
+			if (n < 2 * len0) {
 #pragma omp simd
-			for (int i = 0; i < len0; i++) {
-				x[i] = a;
-			}
+				for (int i = 0; i < n; i++) {
+					x[i] = a;
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < len0; i++) {
+					x[i] = a;
+				}
 
-			int offset = len0;
-			while (offset < n) {
-				int len = IMIN(len0, n - offset);
-				memcpy((void *) (x + offset), (void *) x, (size_t) (len * sizeof(double)));
-				offset += len;
+				int offset = len0;
+				while (offset < n) {
+					int len = IMIN(len0, n - offset);
+					memcpy((void *) (x + offset), (void *) x, (size_t) (len * sizeof(double)));
+					offset += len;
+				}
 			}
 		}
 	}
 }
+
 
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {

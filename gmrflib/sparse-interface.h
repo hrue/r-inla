@@ -163,11 +163,6 @@ typedef struct {
 	 */
 	supernodal_factor_matrix *TAUCS_symb_fact;
 
-	/**
-	 *  \brief The inverse of the diagonal of L (smtp = TAUCS)
-	 */
-	double *TAUCS_L_inv_diag;
-
 	GMRFLib_taucs_cache_tp *TAUCS_cache;
 
 	 /**
