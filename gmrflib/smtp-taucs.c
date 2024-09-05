@@ -462,9 +462,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	options[METIS_OPTION_PFACTOR] = 200;
 
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-	// this is defined in the pardiso libs
-	// ret = METIS51PARDISO_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-
 	if (ret != METIS_OK) {
 		assert(0 == 1);
 		return;
@@ -473,13 +470,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	Free(xadj);
 	Free(adj);
 }
-
-#if defined(INLA_WITH_PARDISO)
-int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o)
-{
-	return METIS_NodeND(i, j, k, l, m, n, o);
-}
-#endif
 
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
@@ -1140,7 +1130,6 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 
 	int cache_idx = 0;
 	GMRFLib_CACHE_SET_ID(cache_idx);
-
 	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
 
 	int idx_new = remap[idx];
@@ -1165,7 +1154,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 		y[j] = x[j] / d[colptr[j]];
 		double yj = -y[j];
 		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
-			x[rowind[ip]] = fma(yj, d[ip], x[rowind[ip]]);
+			int i = rowind[ip];
+			x[i] = fma(yj, d[ip], x[i]);
 		}
 	}
 	for (int i = n - 1; i >= 0; i--) {
@@ -1597,6 +1587,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 
+	GMRFLib_fill(from_idx, 0.0, x);
 	for (int i = from_idx; i >= to_idx; i--) {
 		int jp1 = L->colptr[i] + 1;
 		b[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);

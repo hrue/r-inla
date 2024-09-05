@@ -111,8 +111,6 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
-int METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
-
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
 void taucs_crs_free(taucs_crs_matrix * L);
 
