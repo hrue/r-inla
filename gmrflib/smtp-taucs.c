@@ -1650,13 +1650,10 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 
 	for (int j = jfirst; j < n; j++) {
 		y[j] = x[j] / d[colptr[j]];
-
-		// double yj = y[j];
-		// for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) x[rowind[ip]] -= yj * d[ip];
-
 		double yj = -y[j];
 		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
-			x[rowind[ip]] = fma(yj, d[ip], x[rowind[ip]]);
+			int i = rowind[ip];
+			x[i] = fma(yj, d[ip], x[i]);
 		}
 	}
 
@@ -1724,19 +1721,11 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	for (int j = 0; j < nrhs; j++) {
 		double *xx = x + j;
 		double *ww = work + j * n;
-		// for(int i = 0; i < n; i++) xx[i * nrhs] = ww[i];
 		dcopy_(&n, ww, &ione, xx, &nrhs);
 	}
 
 	double *y = work;
-	double sum[nrhs];
-
-	for (int j = 0; j < jfirst; j++) {
-		int offset_j = j * nrhs;
-		double *yy = y + offset_j;
-		GMRFLib_fill(nrhs, 0.0, yy);
-	}
-
+	GMRFLib_fill(nrhs * jfirst, 0.0, y);
 	for (int j = jfirst; j < n; j++) {
 		int ip = L->colptr[j];
 		int offset_j = j * nrhs;
@@ -1744,7 +1733,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double *yy = y + offset_j;
 		double *xx = x + offset_j;
 
-		// for(int k = 0; k < nrhs; k++) yy[k] = xx[k] * iAjj;
 #pragma omp simd
 		for (int k = 0; k < nrhs; k++) {
 			yy[k] = xx[k] * iAjj;
@@ -1754,8 +1742,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 			double Aij = -L->values.d[ip];	       // OOOPS! add minus here for daxpy
 			int offset_i = L->rowind[ip] * nrhs;
 			xx = x + offset_i;
-			// for(int k = 0; k < nrhs; k++) xx[k] -= yy[k] * Aij;
-			// daxpy_(&nrhs, &Aij, yy, &ione, xx, &ione);
 			GMRFLib_daxpy(nrhs, Aij, yy, xx);
 		}
 	}
@@ -1765,29 +1751,24 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	tref[1] -= GMRFLib_timer();
 #endif
 
-	double dmone = -1.0;
 	for (int i = n - 1; i >= 0; i--) {
-		Memset(sum, 0, nrhs * sizeof(double));
+		double sum[nrhs];
+		GMRFLib_fill(nrhs, 0.0, sum);
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			int offset_j = L->rowind[jp] * nrhs;
 			double Aij = L->values.d[jp];
 			double *xx = x + offset_j;
-			// for(int k = 0; k < nrhs; k++) sum[k] += xx[k] * Aij;
-			// daxpy_(&nrhs, &Aij, xx, &ione, sum, &ione);
 			GMRFLib_daxpy(nrhs, Aij, xx, sum);
 		}
 
 		int offset_i = i * nrhs;
 		double *yy = y + offset_i;
-		// for(int k = 0; k < nrhs; k++) yy[k] -= sum[k];
-		// daxpy_(&nrhs, &dmone, sum, &ione, yy, &ione);
-		GMRFLib_daxpy(nrhs, dmone, sum, yy);
+		GMRFLib_daxpy(nrhs, -1.0, sum, yy);
 
 		int jp = L->colptr[i];
 		double iAii = 1.0 / L->values.d[jp];
 		double *xx = x + offset_i;
 		yy = y + offset_i;
-		// for(int k = 0; k < nrhs; k++) xx[k] = yy[k] * iAii;
 #pragma omp simd
 		for (int k = 0; k < nrhs; k++) {
 			xx[k] = yy[k] * iAii;
@@ -1798,7 +1779,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	for (int j = 0; j < nrhs; j++) {
 		double *xx = x + j * n;
 		double *ww = work + j;
-		// for(int i = 0; i < n; i++) xx[i] = ww[i * nrhs];
 		dcopy_(&n, ww, &nrhs, xx, &ione);
 	}
 
@@ -1843,7 +1823,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	for (int i = 1; i < n; i++) {
 		int m = rowptr[i + 1] - rowptr[i];
 		int jj = rowptr[i];
-		// for (int j = rowptr[i]; j < rowptr[i + 1]; j++) s += d[j] * y[colind[j]];
 		double s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
@@ -1909,10 +1888,11 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 			int ip = L->colptr[j];
 			double Ajj = L->values.d[ip];
 			y[j] = x[j] / Ajj;
+			double yj = -y[j];
 			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-				int i = L->rowind[ip];
 				double Aij = L->values.d[ip];
-				x[i] -= y[j] * Aij;
+				int i = L->rowind[ip];
+				x[i] = fma(yj, Aij, x[i]);
 			}
 		}
 		Memcpy(x, y, n * sizeof(double));
@@ -2061,11 +2041,9 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 
 	for (int j = 0; j < n; j++) {
 		int ip = L->colptr[j];
-		// double Ajj = L->values.d[ip];
 		clen[j]++;
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			int i = L->rowind[ip];
-			// double Aij = L->values.d[ip];
 			clen[i]++;
 		}
 	}
