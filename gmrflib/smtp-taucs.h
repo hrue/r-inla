@@ -53,6 +53,12 @@
 __BEGIN_DECLS
 //
 //
+
+#if defined(INLA_WITH_PARDISO_WORKAROUND)
+int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o);
+#endif
+
+
     GMRFLib_taucs_cache_tp * GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp * cache);
 void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp * cache);
 
