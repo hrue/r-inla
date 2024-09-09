@@ -2025,7 +2025,7 @@ double GMRFLib_erfc_inv(double x)
 // 
 /////////////////////////////////////////////////////////////////////////
 
-void GMRFLib_exp(int n, double *__restrict x, double *__restrict y)
+void GMRFLib_exp(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
 	vdExp(n, x, y);
@@ -2037,7 +2037,7 @@ void GMRFLib_exp(int n, double *__restrict x, double *__restrict y)
 #endif
 }
 
-void GMRFLib_exp_inc(int n, double *__restrict x, int inc, double *__restrict y)
+void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
 #if defined(INLA_WITH_MKL)
 	vdExpI(n, x, inc, y, inc);
@@ -2049,7 +2049,7 @@ void GMRFLib_exp_inc(int n, double *__restrict x, int inc, double *__restrict y)
 #endif
 }
 
-void GMRFLib_log(int n, double *__restrict x, double *__restrict y)
+void GMRFLib_log(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
 	vdLn(n, x, y);
@@ -2061,7 +2061,7 @@ void GMRFLib_log(int n, double *__restrict x, double *__restrict y)
 #endif
 }
 
-void GMRFLib_log1p(int n, double *__restrict x, double *__restrict y)
+void GMRFLib_log1p(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
 	vdLog1p(n, x, y);
@@ -2073,7 +2073,7 @@ void GMRFLib_log1p(int n, double *__restrict x, double *__restrict y)
 #endif
 }
 
-void GMRFLib_sqr(int n, double *__restrict x, double *__restrict y)
+void GMRFLib_sqr(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
 	vdSqr(n, x, y);
@@ -2085,7 +2085,7 @@ void GMRFLib_sqr(int n, double *__restrict x, double *__restrict y)
 #endif
 }
 
-void GMRFLib_add(int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
@@ -2097,7 +2097,7 @@ void GMRFLib_add(int n, double *__restrict x, double *__restrict y, double *__re
 #endif
 }
 
-void GMRFLib_mul(int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 #if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);

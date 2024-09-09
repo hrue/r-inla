@@ -2924,15 +2924,39 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		}
 
 		double off = OFFSET(idx);
-		if (yzero) {
+		if (PREDICTOR_SCALE == 1.0 && off == 0.0 && PREDICTOR_LINK_EQ(link_logit)) {
+			double exx[3 * m], *logg = exx + m, *loggm = exx + m + m;
+
+			GMRFLib_exp(m, x, exx);
+			GMRFLib_log1p(m, exx, logg);
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
-				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
-				logll[i] = eval_logsum_safe(logll0 + LOG_p(phi), LOG_1mp(phi));
+				exx[i] = 1.0 / exx[i];
+			}
+			GMRFLib_log1p(m, exx, loggm);
+
+			if (yzero) {
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					logll[i] = eval_logsum_safe(logll0 - loggm[i], -logg[i]);
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					logll[i] = logll0 - loggm[i];
+				}
 			}
 		} else {
-			for (int i = 0; i < m; i++) {
-				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
-				logll[i] = logll0 + LOG_p(phi);
+			if (yzero) {
+				for (int i = 0; i < m; i++) {
+					double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+					logll[i] = eval_logsum_safe(logll0 + LOG_p(phi), LOG_1mp(phi));
+				}
+			} else {
+				for (int i = 0; i < m; i++) {
+					double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+					logll[i] = logll0 + LOG_p(phi);
+				}
 			}
 		}
 	} else {
@@ -5475,9 +5499,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -5834,7 +5858,8 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll
 double eval_logsum_safe(double lA, double lB)
 {
 	// evaluate log( exp(lA) + exp(lB) ) in a safer way 
-	return (lA > lB ? lA + log1p(exp(lB - lA)) : lB + log1p(exp(lA - lB)));
+	return (fmax(lA, lB) + log1p(exp(-fabs(lB - lA))));
+	// return (lA > lB ? lA + log1p(exp(lB - lA)) : lB + log1p(exp(lA - lB)));
 }
 
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
