@@ -1,0 +1,1 @@
+../rSPDE/src/cgeneric_gpgraph_alpha2.c
