@@ -1857,7 +1857,7 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
-double eval_logsum_safe(double lA, double lB);
+double GMRFLib_logsum(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
@@ -2270,7 +2270,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
