@@ -1,0 +1,1 @@
+../rSPDE/src/inla_cgeneric_rspde_intrinsic_int_model.c
