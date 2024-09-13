@@ -713,6 +713,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		ds->data_observations.cure_cov = xx;
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/devel
 =======
 
 >>>>>>> origin/devel
@@ -2972,9 +2976,15 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		// tref[0] += GMRFLib_timer();
 		// tref[1] -= GMRFLib_timer();
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 		double off = OFFSET(idx);
 		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
+=======
+		
+		double off = OFFSET(idx);
+		if (PREDICTOR_SCALE == 1.0 && ISZERO(off) && PREDICTOR_LINK_EQ(link_logit)) {
+>>>>>>> origin/devel
 =======
 		
 		double off = OFFSET(idx);
@@ -2985,10 +2995,16 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 					double ex = exp(x[i] + off);
 					double exd = 1.0 / ex;
 					//logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
 					logll[i] = logll0 + log(1.0 / (1.0 + exd) + 1.0 / ((1.0 + ex) * elogll0));
+=======
+					double ex = exp(x[i]);
+					double exd = 1.0 / ex;
+					logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
+>>>>>>> origin/devel
 =======
 					double ex = exp(x[i]);
 					double exd = 1.0 / ex;
@@ -2999,7 +3015,11 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 					double exd = exp(-(x[i] + off));
+=======
+					double exd = exp(-x[i]);
+>>>>>>> origin/devel
 =======
 					double exd = exp(-x[i]);
 >>>>>>> origin/devel
