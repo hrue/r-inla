@@ -1948,7 +1948,6 @@ int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *_
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
 	inla_sn_arg_tp sn_arg = {.xi = 0.0,.omega = 0.0,.intercept = 0.0,.alpha = 0.0 };
 
-
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	var_offset = 1.0 / map_precision_forward(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
@@ -2946,7 +2945,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 	if (m > 0) {
 		double logll0 = 0.0;
-
 		// static double tref[] = {0, 0};
 		// static double count = 0;
 		// tref[0] -= GMRFLib_timer();
@@ -2973,10 +2971,10 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
 			if (yzero) {
 				double elogll0 = exp(logll0);
+#pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double ex = exp(x[i] + off);
 					double exd = 1.0 / ex;
-					//logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
 					logll[i] = logll0 + log(1.0 / (1.0 + exd) + 1.0 / ((1.0 + ex) * elogll0));
 				}
 			} else {
