@@ -712,22 +712,46 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		Free(ds->data_observations.cure_cov);
 		ds->data_observations.cure_cov = xx;
 	}
-	// wrap it around so we have easy access
+	// rearrange the data and covariates
 	if (ds->data_id == L_OCCUPANCY) {
 		int nb = ds->data_observations.occ_nbeta;
 		int ny_max = ds->data_observations.occ_ny_max;
 		int nd = mb->predictor_ndata;
-		double *Y = ds->data_observations.occ_y = Calloc(nd * ny_max, double);
-		double *X = ds->data_observations.occ_x = Calloc(nd * nb * ny_max, double);
+
+		double **X = ds->data_observations.occ_x = Calloc(nd, double *);
+		int **Y = ds->data_observations.occ_y = Calloc(nd, int *);
+		int *ny = ds->data_observations.occ_ny = Calloc(nd, int);
 
 		for (i = 0; i < nd; i++) {
+
+			// count the number of observations
+			int nyy = 0;
 			for (j = 0; j < ny_max; j++) {
-				Y[i * ny_max + j] = a[j][i];
-				for (k = 0; k < nb; k++) {
-					int kk = i * nb * ny_max + j * nb + k;
-					X[kk] = a[ny_max + j * nb + k][i];
-					if (ISNAN(X[kk])) {
-						X[kk] = 0.0;
+				double yy = a[j][i];
+				if (!ISNAN(yy)) {
+					nyy++;
+				}
+			}
+			if (nyy == 0) {
+				ny[i] = 0;
+			} else {
+				ny[i] = nyy;
+				X[i] = Calloc(nb * nyy, double);
+				Y[i] = Calloc(nyy, int);
+
+				int jj = 0;
+				for (j = 0; j < ny_max; j++) {
+					double yy = a[j][i];
+					if (!ISNAN(yy)) {
+						Y[i][jj] = (int) yy;
+						for (k = 0; k < nb; k++) {
+							double xx = a[ny_max + j * nb + k][i];
+							if (ISNAN(xx)) {
+								xx = 0.0;
+							}
+							X[i][jj * nb + k] = xx;
+						}
+						jj++;
 					}
 				}
 			}
@@ -739,13 +763,24 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int *yzero = ds->data_observations.occ_yzero = Calloc(nd, int);
 		for (i = 0; i < nd; i++) {
 			k = 1;
-			for (j = 0; j < ny_max && k; j++) {
-				double yy = Y[i * ny_max + j];
-				if (!ISNAN(yy)) {
-					k = (k && ISZERO(yy));
-				}
+			for (j = 0; j < ny[i]; j++) {
+				k = (k && ISZERO(Y[i][j]));
 			}
 			yzero[i] = k;
+		}
+
+		// check
+		for (i = 0; i < nd; i++) {
+			if (ds->data_observations.d[i]) {
+				for (int kk = 0; kk < ds->data_observations.occ_ny[i]; kk++) {
+					if ((ds->data_observations.occ_y[i][kk] < 0) || (ds->data_observations.occ_y[i][kk] > 1)) {
+						char *msg = NULL;
+						GMRFLib_sprintf(&msg, "occupancy observation y[%1d,%1d] = %d is void\n", i, kk,
+								ds->data_observations.occ_y[i][kk]);
+						inla_error_general(msg);
+					}
+				}
+			}
 		}
 	}
 
@@ -2888,14 +2923,20 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
+	int ny = ds->data_observations.occ_ny[idx];
+
+	if (ny == 0) {
+		GMRFLib_fill(IABS(m), 0.0, logll);
+		return GMRFLib_SUCCESS;
+	}
+
 	LINK_INIT;
 
-	int ny_max = ds->data_observations.occ_ny_max;
 	int nb = ds->data_observations.occ_nbeta;
 	int yzero = ds->data_observations.occ_yzero[idx];
 
-	double *X = &(ds->data_observations.occ_x[idx * nb * ny_max]);
-	double *Y = &(ds->data_observations.occ_y[idx * ny_max]);
+	double *X = ds->data_observations.occ_x[idx];
+	int *Y = ds->data_observations.occ_y[idx];
 
 	double beta[nb];
 	for (int i = 0; i < nb; i++) {
@@ -2905,45 +2946,44 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	if (m > 0) {
 		double logll0 = 0.0;
 
-		// double Xbeta[ny_max];
-		// const double one = 1.0, zero = 0.0;
-		// const int ione = 1;
-		// (trans, m, n, alpha, a, lda, x, incx, beta, y, incy) 
-		// dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
+		// static double tref[] = {0, 0};
+		// static double count = 0;
+		// tref[0] -= GMRFLib_timer();
 
-		// to low dimension for simd or ddot to help in the j-loop below
-		for (int ii = 0; ii < ny_max; ii++) {
-			if (!ISNAN(Y[ii])) {
-				double *xx = X + ii * nb, Xbeta = 0.0;
-				for (int j = 0; j < nb; j++) {
-					Xbeta += beta[j] * xx[j];
-				}
+		if (ds->data_observations.link_simple_invlinkfunc == link_logit) {
+			for (int i = 0; i < ny; i++) {
+				double *xx = X + i * nb;
+				double Xbeta = GMRFLib_ddot(nb, beta, xx);
+				logll0 += (Y[i] ? -log1p(exp(-Xbeta)) : -log1p(exp(Xbeta)));
+			}
+		} else {
+			for (int i = 0; i < ny; i++) {
+				double *xx = X + i * nb;
+				double Xbeta = GMRFLib_ddot(nb, beta, xx);
 				double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
-				logll0 += (Y[ii] ? LOG_p(prob) : LOG_1mp(prob));
+				logll0 += (Y[i] ? LOG_p(prob) : LOG_1mp(prob));
 			}
 		}
 
+		// tref[0] += GMRFLib_timer();
+		// tref[1] -= GMRFLib_timer();
+
 		double off = OFFSET(idx);
-		if (PREDICTOR_SCALE == 1.0 && off == 0.0 && PREDICTOR_LINK_EQ(link_logit)) {
-			double exx[3 * m], *logg = exx + m, *loggm = exx + m + m;
-
-			GMRFLib_exp(m, x, exx);
-			GMRFLib_log1p(m, exx, logg);
-#pragma omp simd
-			for (int i = 0; i < m; i++) {
-				exx[i] = 1.0 / exx[i];
-			}
-			GMRFLib_log1p(m, exx, loggm);
-
+		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
 			if (yzero) {
+				double elogll0 = exp(logll0);
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = GMRFLib_logsum(logll0 - loggm[i], -logg[i]);
+					double ex = exp(x[i] + off);
+					double exd = 1.0 / ex;
+					//logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
+					logll[i] = logll0 + log(1.0 / (1.0 + exd) + 1.0 / ((1.0 + ex) * elogll0));
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = logll0 - loggm[i];
+					double exd = exp(-(x[i] + off));
+					logll[i] = logll0 - log1p(exd);
 				}
 			}
 		} else {
@@ -2959,6 +2999,10 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				}
 			}
 		}
+
+		// tref[1] += GMRFLib_timer();
+		// count++;
+		// if (0 == (((int) count) % 10000)) P(tref[0] / (tref[0] + tref[1]));
 	} else {
 		GMRFLib_fill(IABS(m), 0.0, logll);
 	}
@@ -5499,9 +5543,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
