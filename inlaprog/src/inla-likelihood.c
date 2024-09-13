@@ -2973,7 +2973,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
 			if (yzero) {
 				double elogll0 = exp(logll0);
-#pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double ex = exp(x[i] + off);
 					double exd = 1.0 / ex;
