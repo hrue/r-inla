@@ -3000,7 +3000,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 		// tref[1] += GMRFLib_timer();
 		// count++;
-		// if (0 == (((int) count) % 10000)) P(tref[0] / (tref[0] + tref[1]));
+		// if (0 == (((int) count) % 100000)) P(tref[0] / (tref[0] + tref[1]));
 	} else {
 		GMRFLib_fill(IABS(m), 0.0, logll);
 	}
