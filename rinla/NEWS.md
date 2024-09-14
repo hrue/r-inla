@@ -1,3 +1,7 @@
+# INLA 24.09.14
+* Increased number of parameters for model 'intslope'
+* Various code improvements
+
 # INLA 24.06.29
 * Fixed a regression from Version 24.06.09
 * Code optimization and development
