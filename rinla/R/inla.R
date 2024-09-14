@@ -2095,89 +2095,76 @@
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
-        try_catch_result <- tryCatch(
-        {
-          if (ownfun) {
-            ## undocumented feature for PB
-            echoc <- inla.call(
-              file.ini = file.ini,
-              file.log = if (verbose) NULL else file.log,
-              results.dir = results.dir,
-              inla.call.args = all.args
-            )
-        } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
-            if (verbose) {
-                echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)), timeout = timeout)
-            } else {
-                echoc <- system(paste(
-                    shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
-                    inla.ifelse(silent == 2L, " 2>/dev/null", "")
-                ), timeout = timeout)
-            }
-            timeout.used <- Sys.time() - timeout.used
-            inla.inlaprogram.timeout(timeout.used, timeout)
-        } else if (inla.os("windows")) {
-            if (!remote && !submit) {
+        try_catch_result <- tryCatch({
+            if (ownfun) {
+                ## undocumented feature for PB
+                echoc <- inla.call(
+                    file.ini = file.ini,
+                    file.log = if (verbose) NULL else file.log,
+                    results.dir = results.dir,
+                    inla.call.args = all.args
+                )
+            } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
                 if (verbose) {
-                    echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = "", stderr = "", wait = TRUE, timeout = timeout))
+                    echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)), timeout = timeout)
                 } else {
-                    if (FALSE) {
-                        ## old .bat-solution
-                        bat.file <- paste(tempfile(), ".BAT", sep = "")
-                        cat("@echo off\n", file = bat.file, append = FALSE)
-                        cat(paste(
-                            shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
-                            inla.ifelse(silent == 2L, "2>NUL", "")
-                        ), file = bat.file, append = TRUE)
-                        echoc <- try(system2(bat.file, wait = TRUE, timeout = timeout), silent = FALSE)
-                        unlink(bat.file)
+                    echoc <- system(paste(
+                        shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
+                        inla.ifelse(silent == 2L, " 2>/dev/null", "")
+                    ), timeout = timeout)
+                }
+                timeout.used <- Sys.time() - timeout.used
+                inla.inlaprogram.timeout(timeout.used, timeout)
+            } else if (inla.os("windows")) {
+                if (!remote && !submit) {
+                    if (verbose) {
+                        echoc <- try(system2(inla.call,
+                                             args = paste(all.args, shQuote(file.ini)),
+                                             stdout = "", stderr = "", wait = TRUE, timeout = timeout))
                     } else {
-                        ## new try
                         echoc <- try(system2(inla.call,
                                              args = paste(all.args, shQuote(file.ini)),
                                              stdout = file.log, stderr = file.log2,
                                              wait = TRUE, timeout = timeout))
                     }
-                }
-                timeout.used <- Sys.time() - timeout.used
-                inla.inlaprogram.timeout(timeout.used, timeout)
-                if (echoc != 0L) {
-                    if (!verbose && (silent != 2L)) {
-                        inla.inlaprogram.has.crashed()
+                    timeout.used <- Sys.time() - timeout.used
+                    inla.inlaprogram.timeout(timeout.used, timeout)
+                    if (echoc != 0L) {
+                        if (!verbose && (silent != 2L)) {
+                            inla.inlaprogram.has.crashed()
+                        }
                     }
+                } else {
+                    stop("'remote/submit' is not supported for Windows")
                 }
             } else {
-                stop("'remote/submit' is not supported for Windows")
+                stop("\n\tNot supported architecture.")
             }
-        } else {
-            stop("\n\tNot supported architecture.")
-        }
 
-        if (debug) {
-            cat("..done\n")
-        }
-          
-        NULL  
+            if (debug) {
+                cat("..done\n")
+            }
+            
+            NULL  
         },
         error = function(e) {
-          errorCondition("The inla program call crashed.",
-                         class = "inlaCrashError")
+            errorCondition("The inla program call crashed.",
+                           class = "inlaCrashError")
+        })
+        if (inherits(try_catch_result, "error")) {
+            stop(try_catch_result)
         }
-      )
-      if (inherits(try_catch_result, "error")) {
-        stop(try_catch_result)
-      }
-      
+        
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
             if (!submit) {
                 ret <- tryCatch(inla.collect.results(results.dir,
-                                                only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
-                                                silent = silent),
+                                                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
+                                                     silent = silent),
                                 error = function(e) {
-                                  errorCondition("The inla result collection failed.",
-                                                 class = "inlaCollectError")
-                                })
+                    errorCondition("The inla result collection failed.",
+                                   class = "inlaCollectError")
+                })
                 if (inherits(ret, "error")) {
                     stop(ret)
                 }

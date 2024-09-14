@@ -4472,6 +4472,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if required */
+
 	double *sd = Calloc_get(graph->n);
 	for (int i = 0; i < graph->n; i++) {
 		double *var = GMRFLib_Qinv_get(ai_store->problem, i, i);
@@ -4499,8 +4500,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	double *tmp = Calloc_get(graph->n);
+	// matrix with Cov(), alloc later as we can 'save one' large alloc
+	gsl_matrix *M = NULL;				       // gsl_matrix_alloc(graph->n, vb_idx->n); 
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
-	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n); // matrix with Cov()
 	gsl_vector *B = gsl_vector_alloc(graph->n);
 	gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
 	gsl_permutation *perm = gsl_permutation_alloc(vb_idx->n);
@@ -4527,27 +4529,49 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	GMRFLib_tabulate_Qfunc_core(thread_id, &tabQ, graph, Qfunc, Qfunc_arg, NULL, 1);
 	GMRFLib_tabulate_Qfunc_core(thread_id, &prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, 1);
-	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
 	int hessian_update = ai_par->vb_hessian_update;
 	assert(hessian_update > 0);
 
-#define CODE_BLOCK						\
-	for (int jj = 0; jj < vb_idx->n; jj++) {		\
-		CODE_BLOCK_WORK_ZERO(0);			\
-		int j = vb_idx->idx[jj];			\
-		double *b = CODE_BLOCK_WORK_PTR(0);		\
-		double *cov = CODE_BLOCK_WORK_PTR(1);		\
-		b[j] = 1.0;					\
-		GMRFLib_Qsolve(cov, b, ai_store->problem, j);	\
-		for (int i = 0; i < graph->n; i++) {		\
-			gsl_matrix_set(M, i, jj, cov[i]);	\
-		}						\
+	M = gsl_matrix_alloc(graph->n, vb_idx->n);
+#define CODE_BLOCK							\
+	for (int jj = 0; jj < vb_idx->n; jj++) {			\
+		CODE_BLOCK_WORK_ZERO(0);				\
+		int j = vb_idx->idx[jj];				\
+		double *b = CODE_BLOCK_WORK_PTR(0);			\
+		double *cov = CODE_BLOCK_WORK_PTR(1);			\
+		b[j] = 1.0;						\
+		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
+		for (int i = 0; i < graph->n; i++) {			\
+			gsl_matrix_set(M, i, jj, cov[i]);		\
+		}							\
 	}
-
 	RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
 #undef CODE_BLOCK
+
+	if (0) {
+		// runs slower...
+		double *b = Calloc(vb_idx->n * graph->n, double);
+		double *cov = Calloc(vb_idx->n * graph->n, double);
+
+		for (int jj = 0; jj < vb_idx->n; jj++) {
+			int j = vb_idx->idx[jj];
+			double *b_ = b + jj * graph->n;
+			b_[j] = 1.0;
+		}
+		GMRFLib_Qsolves(cov, b, vb_idx->n, ai_store->problem);
+		Free(b);
+
+		M = gsl_matrix_alloc(graph->n, vb_idx->n);
+		for (int jj = 0; jj < vb_idx->n; jj++) {
+			double *cov_ = cov + jj * graph->n;
+			for (int i = 0; i < graph->n; i++) {
+				gsl_matrix_set(M, i, jj, cov_[i]);
+			}
+		}
+		Free(cov);
+	}
 
 	double dxs[niter];
 	GMRFLib_fill(niter, 0.0, dxs);
@@ -4605,8 +4629,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (update_MM) {
-#define CODE_BLOCK							\
-			{						\
+#define CODE_BLOCK	{						\
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
 				if (nt__ > 1) {				\
 					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, nt__); \
@@ -4614,16 +4637,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
 				}					\
 			}
-
 			RUN_CODE_BLOCK_PLAIN(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 		if (debug) {
-			FIXME("M");
 			GMRFLib_printf_gsl_matrix(stdout, M, "%.6f ");
-			FIXME("B");
 			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
 		}
 
@@ -4657,7 +4677,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
-
 		err_dx = 0.0;
 		for (int i = 0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
@@ -4736,7 +4755,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
-				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec/iter]\n",
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.2f sec/iter]\n",
 					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {

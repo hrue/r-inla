@@ -1,0 +1,1 @@
+../rSPDE/src/cgeneric_aux_gpgraph_alpha2.cpp

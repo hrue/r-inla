@@ -1026,6 +1026,7 @@
             " < ", format(lim, scientific = TRUE, digits = 4L), "\n",
             "  You can fix this by some kind of binning, see ?inla.group", "\n",
             "  If you want/need to bypass this check at your own risk, do", "\n",
+            "\t> invisible(inla.models())\n", 
             "\t> m = get(\"inla.models\", inla.get.inlaEnv())\n",
             "\t> m$", section, "$", model, "$min.diff = NULL\n",
             "\t> assign(\"inla.models\", m, inla.get.inlaEnv())"

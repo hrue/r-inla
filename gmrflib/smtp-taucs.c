@@ -46,6 +46,8 @@
 #include "amd.h"
 #include "metis.h"
 
+#define TIME_FUNCTIONS 0
+
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
@@ -459,13 +461,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	options[METIS_OPTION_COMPRESS] = 1;
 	options[METIS_OPTION_PFACTOR] = 200;
 
-#if defined(NO_PARDISO_LIB)
-	// this the metis5 lib
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-#else
-	// this is defined in the pardiso libs
-	ret = METIS51PARDISO_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-#endif
 	if (ret != METIS_OK) {
 		assert(0 == 1);
 		return;
@@ -475,12 +471,15 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	Free(adj);
 }
 
-#if defined(INLA_WITH_PARDISO)
+
+
+#if defined(INLA_WITH_PARDISO_WORKAROUND)
 int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o)
 {
 	return METIS_NodeND(i, j, k, l, m, n, o);
 }
 #endif
+
 
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
@@ -896,7 +895,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 }
 
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
-					  GMRFLib_fact_info_tp *finfo, double **L_inv_diag)
+					  GMRFLib_fact_info_tp *finfo)
 {
 	int flags, k, retval;
 
@@ -936,19 +935,10 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	k = (*L)->colptr[(*L)->n] - (*L)->n;
 	finfo->nfillin = k - (finfo->nnzero - finfo->n) / 2;
 
-	/*
-	 * compute also the inverse of diag(L) 
-	 */
-	if (L_inv_diag) {
-		*L_inv_diag = Calloc((*L)->n, double);
-		for (int i = 0; i < (*L)->n; i++) {
-			(*L_inv_diag)[i] = 1.0 / (*L)->values.d[((*L)->colptr)[i]];
-		}
-	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix *LL, double *L_inv_diag, supernodal_factor_matrix *symb_fact)
+int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix *LL, supernodal_factor_matrix *symb_fact)
 {
 	if (L) {
 		taucs_ccs_free(L);
@@ -956,7 +946,6 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix 
 	if (LL) {
 		taucs_crs_free(LL);
 	}
-	Free(L_inv_diag);
 	if (symb_fact) {
 		taucs_supernodal_factor_free(symb_fact);
 	}
@@ -1022,7 +1011,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
-	// same function but for many rnhs.
+	// same function but for many rhs.
 
 	int n = graph->n;
 	assert(work);
@@ -1130,25 +1119,12 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L, double *L_inv_diag, GMRFLib_graph_tp *UNUSED(graph),
-						  int *remap, int idx)
+int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L, GMRFLib_graph_tp *UNUSED(graph), int *remap, int idx)
 {
 	/*
 	 * this is special version of the GMRFLib_solve_llt_sparse_matrix_TAUCS()-routine, where we KNOW that x is 0 exect for a 1 at index
-	 * `idx'. return the solution in x. this is requried as this the main task for _ai for large problems. it is easy to switch this
-	 * feature off, just modify the GMRFLib_solve_llt_sparse_matrix_special() routine in sparse-interface.c 
+	 * `idx'. return the solution in x. this is requried as this the main task for _ai for large problems.
 	 */
-
-	int n, idxnew;
-	double Aij, *y = NULL, sum;
-
-	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
-
-	idxnew = remap[idx];
-	x[idx] = 0.0;
-	x[idxnew] = 1.0;
-
-	n = L->n;
 
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
@@ -1164,6 +1140,12 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 
 	int cache_idx = 0;
 	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
+
+	int idx_new = remap[idx];
+	int n = L->n;
+	x[idx] = 0.0;
+	x[idx_new] = 1.0;
 
 	if (n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
@@ -1171,31 +1153,29 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
-	y = work;
+	double *y = work;
+	GMRFLib_fill(idx_new, 0.0, y);
 
-	GMRFLib_ASSERT(L_inv_diag, GMRFLib_ESNH);
+	double *d = L->values.d;
+	int *colptr = L->colptr;
+	int *rowind = L->rowind;
 
-	/*
-	 * need only to start at 'idxnew' not 0!; this is the main speedup!!! 
-	 */
-	for (int j = idxnew; j < n; j++) {
-		y[j] = x[j] * L_inv_diag[j];
-		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-			int i = L->rowind[ip];
-			Aij = L->values.d[ip];
-			x[i] -= y[j] * Aij;
+	for (int j = idx_new; j < n; j++) {
+		y[j] = x[j] / d[colptr[j]];
+		double yj = -y[j];
+		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
+			int i = rowind[ip];
+			x[i] = fma(yj, d[ip], x[i]);
 		}
 	}
 	for (int i = n - 1; i >= 0; i--) {
-		int jp1 = L->colptr[i] + 1;
-		sum = GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
-		x[i] = (y[i] - sum) * L_inv_diag[i];
+		int jp = colptr[i];
+		int jp1 = colptr[i] + 1;
+		double inv_Aii = 1.0 / d[jp];
+		double s = GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+		x[i] = (y[i] - s) * inv_Aii;
 	}
 
-	/*
-	 * but also reusing y as here, helps 
-	 */
 	Memcpy(y, x, n * sizeof(double));
 	GMRFLib_pack(n, y, remap, x);
 
@@ -1571,10 +1551,8 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 				int jjj = inv_remap[j];
 				double value = 0.0;
 				double *yy = &(problem->qi_at_m[jjj]);
-				double sum = 0.0;
-
+				double sum = ddot_(&(problem->sub_constr->nc), xx, &inc, yy, &inc);
 				map_id_get(Qinv_L[i], j, &value);
-				sum = ddot_(&(problem->sub_constr->nc), xx, &inc, yy, &inc);
 				map_id_set(Qinv_L[i], j, value - sum);
 			}
 		}
@@ -1619,6 +1597,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 
+	GMRFLib_fill(from_idx, 0.0, x);
 	for (int i = from_idx; i >= to_idx; i--) {
 		int jp1 = L->colptr[i] + 1;
 		b[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
@@ -1654,6 +1633,10 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	if (n == 0) {
 		return 0;
 	}
+#if TIME_FUNCTIONS
+	static double tref[] = { 0, 0 };
+	static double count = 0;
+#endif
 
 	assert(w);
 	double *y = w;
@@ -1662,17 +1645,32 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	int *colptr = L->colptr;
 	int *rowind = L->rowind;
 
-	for (int j = 0; j < n; j++) {
+#if TIME_FUNCTIONS
+	tref[0] -= GMRFLib_timer();
+#endif
+
+	int jfirst = GMRFLib_find_nonzero(x, n, 1);
+	if (jfirst < 0) {
+		// only zero's
+		GMRFLib_fill(n, 0.0, x);
+		return 0;
+	} else {
+		GMRFLib_fill(jfirst, 0.0, y);
+	}
+
+	for (int j = jfirst; j < n; j++) {
 		y[j] = x[j] / d[colptr[j]];
-
-		// double yj = y[j];
-		// for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) x[rowind[ip]] -= yj * d[ip];
-
 		double yj = -y[j];
 		for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
-			x[rowind[ip]] = fma(yj, d[ip], x[rowind[ip]]);
+			int i = rowind[ip];
+			x[i] = fma(yj, d[ip], x[i]);
 		}
 	}
+
+#if TIME_FUNCTIONS
+	tref[0] += GMRFLib_timer();
+	tref[1] -= GMRFLib_timer();
+#endif
 
 	for (int i = n - 1; i >= 0; i--) {
 		int jp = colptr[i];
@@ -1681,6 +1679,125 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
+
+#if TIME_FUNCTIONS
+	tref[1] += GMRFLib_timer();
+	count++;
+	printf("solve_llt:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
+	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
+#endif
+
+	return 0;
+}
+
+int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w)
+{
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	int n = L->n;
+
+	if (n <= 0 || nrhs <= 0) {
+		return 0;
+	}
+#if TIME_FUNCTIONS
+	static double tref[] = { 0, 0 };
+	static double count = 0;
+#endif
+
+	double *work = w;
+	int ione = 1;
+
+#if TIME_FUNCTIONS
+	tref[0] -= GMRFLib_timer();
+#endif
+
+	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
+	int jfirst = n;					       /* do not change, see below */
+	for (int k = 0; k < nrhs; k++) {
+		int jj = GMRFLib_find_nonzero(x + k * n, n, 1);
+		if (jj >= 0) {
+			jfirst = IMIN(jfirst, jj);
+		}
+		if (ISZERO(jfirst)) {
+			break;
+		}
+	}
+
+	if (jfirst == n) {
+		GMRFLib_fill(n * nrhs, 0.0, x);
+		return 0;
+	}
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for (int j = 0; j < nrhs; j++) {
+		double *xx = x + j;
+		double *ww = work + j * n;
+		dcopy_(&n, ww, &ione, xx, &nrhs);
+	}
+
+	double *y = work;
+	GMRFLib_fill(nrhs * jfirst, 0.0, y);
+	for (int j = jfirst; j < n; j++) {
+		int ip = L->colptr[j];
+		int offset_j = j * nrhs;
+		double iAjj = 1.0 / L->values.d[ip];
+		double *yy = y + offset_j;
+		double *xx = x + offset_j;
+
+#pragma omp simd
+		for (int k = 0; k < nrhs; k++) {
+			yy[k] = xx[k] * iAjj;
+		}
+
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			double Aij = -L->values.d[ip];	       // OOOPS! add minus here for daxpy
+			int offset_i = L->rowind[ip] * nrhs;
+			xx = x + offset_i;
+			GMRFLib_daxpy(nrhs, Aij, yy, xx);
+		}
+	}
+
+#if TIME_FUNCTIONS
+	tref[0] += GMRFLib_timer();
+	tref[1] -= GMRFLib_timer();
+#endif
+
+	for (int i = n - 1; i >= 0; i--) {
+		double sum[nrhs];
+		GMRFLib_fill(nrhs, 0.0, sum);
+		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
+			int offset_j = L->rowind[jp] * nrhs;
+			double Aij = L->values.d[jp];
+			double *xx = x + offset_j;
+			GMRFLib_daxpy(nrhs, Aij, xx, sum);
+		}
+
+		int offset_i = i * nrhs;
+		double *yy = y + offset_i;
+		GMRFLib_daxpy(nrhs, -1.0, sum, yy);
+
+		int jp = L->colptr[i];
+		double iAii = 1.0 / L->values.d[jp];
+		double *xx = x + offset_i;
+		yy = y + offset_i;
+#pragma omp simd
+		for (int k = 0; k < nrhs; k++) {
+			xx[k] = yy[k] * iAii;
+		}
+	}
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for (int j = 0; j < nrhs; j++) {
+		double *xx = x + j * n;
+		double *ww = work + j;
+		dcopy_(&n, ww, &nrhs, xx, &ione);
+	}
+
+#if TIME_FUNCTIONS
+	tref[1] += GMRFLib_timer();
+	count += nrhs;
+	printf("solve_llt2:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
+	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
+#endif
 
 	return 0;
 }
@@ -1693,26 +1810,37 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	taucs_crs_matrix *LL = (taucs_crs_matrix *) vLL;
 	int n = L->n;
 
+#if TIME_FUNCTIONS
+	static double tref[] = { 0, 0 };
+	static double count = 0;
+#endif
+
 	if (n == 0) {
 		return 0;
 	}
 
 	assert(w);
 	double *y = w;
-
 	double *d = LL->values.d;
 	int *rowptr = LL->rowptr;
 	int *colind = LL->colind;
 
+#if TIME_FUNCTIONS
+	tref[0] -= GMRFLib_timer();
+#endif
+
 	y[0] = x[0] / d[0];
 	for (int i = 1; i < n; i++) {
-		double s = 0.0;
 		int m = rowptr[i + 1] - rowptr[i];
 		int jj = rowptr[i];
-		// for (int j = rowptr[i]; j < rowptr[i + 1]; j++) s += d[j] * y[colind[j]];
-		s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
+		double s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
+
+#if TIME_FUNCTIONS
+	tref[0] += GMRFLib_timer();
+	tref[1] -= GMRFLib_timer();
+#endif
 
 	d = L->values.d;
 	int *colptr = L->colptr;
@@ -1726,92 +1854,12 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		x[i] = y[i] * inv_Aii;
 	}
 
-	return 0;
-}
-
-int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w)
-{
-	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
-	int n = L->n;
-	double Aij, iAii, iAjj;
-	double *xx = NULL, *ww = NULL, *yy = NULL;
-
-	if (n <= 0 || nrhs <= 0) {
-		return 0;
-	}
-
-	double *work = w;
-	int ione = 1;
-
-	Memcpy(work, x, n * nrhs * sizeof(double));
-	for (int j = 0; j < nrhs; j++) {
-		xx = x + j;
-		ww = work + j * n;
-		// for(int i = 0; i < n; i++) xx[i * nrhs] = ww[i];
-		dcopy_(&n, ww, &ione, xx, &nrhs);
-	}
-
-	double *y = work;
-	double sum[nrhs];
-
-	int offset_j;
-	int offset_i;
-	for (int j = 0; j < n; j++) {
-		int ip = L->colptr[j];
-		iAjj = 1.0 / L->values.d[ip];
-		offset_j = j * nrhs;
-		yy = y + offset_j;
-		xx = x + offset_j;
-		// for(int k = 0; k < nrhs; k++) yy[k] = xx[k] * iAjj;
-#pragma omp simd
-		for (int k = 0; k < nrhs; k++) {
-			yy[k] = xx[k] * iAjj;
-		}
-
-		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-			Aij = -L->values.d[ip];		       // OOOPS! add minus here for daxpy_
-			offset_i = L->rowind[ip] * nrhs;
-			xx = x + offset_i;
-			yy = y + offset_j;
-			// for(int k = 0; k < nrhs; k++) xx[k] -= yy[k] * Aij;
-			daxpy_(&nrhs, &Aij, yy, &ione, xx, &ione);
-		}
-	}
-
-	double dmone = -1.0;
-	for (int i = n - 1; i >= 0; i--) {
-		Memset(sum, 0, nrhs * sizeof(double));
-		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			Aij = L->values.d[jp];
-			offset_j = L->rowind[jp] * nrhs;
-			xx = x + offset_j;
-			// for(int k = 0; k < nrhs; k++) sum[k] += xx[k] * Aij;
-			daxpy_(&nrhs, &Aij, xx, &ione, sum, &ione);
-		}
-
-		offset_i = i * nrhs;
-		yy = y + offset_i;
-		// for(int k = 0; k < nrhs; k++) yy[k] -= sum[k];
-		daxpy_(&nrhs, &dmone, sum, &ione, yy, &ione);
-
-		int jp = L->colptr[i];
-		iAii = 1.0 / L->values.d[jp];
-		xx = x + offset_i;
-		yy = y + offset_i;
-		// for(int k = 0; k < nrhs; k++) xx[k] = yy[k] * iAii;
-#pragma omp simd
-		for (int k = 0; k < nrhs; k++) {
-			xx[k] = yy[k] * iAii;
-		}
-	}
-
-	Memcpy(work, x, n * nrhs * sizeof(double));
-	for (int j = 0; j < nrhs; j++) {
-		xx = x + j * n;
-		ww = work + j;
-		// for(int i = 0; i < n; i++) xx[i] = ww[i * nrhs];
-		dcopy_(&n, ww, &nrhs, xx, &ione);
-	}
+#if TIME_FUNCTIONS
+	tref[1] += GMRFLib_timer();
+	count++;
+	printf("solve_llt3:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
+	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
+#endif
 
 	return 0;
 }
@@ -1850,10 +1898,11 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 			int ip = L->colptr[j];
 			double Ajj = L->values.d[ip];
 			y[j] = x[j] / Ajj;
+			double yj = -y[j];
 			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-				int i = L->rowind[ip];
 				double Aij = L->values.d[ip];
-				x[i] -= y[j] * Aij;
+				int i = L->rowind[ip];
+				x[i] = fma(yj, Aij, x[i]);
 			}
 		}
 		Memcpy(x, y, n * sizeof(double));
@@ -2002,11 +2051,9 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 
 	for (int j = 0; j < n; j++) {
 		int ip = L->colptr[j];
-		// double Ajj = L->values.d[ip];
 		clen[j]++;
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			int i = L->rowind[ip];
-			// double Aij = L->values.d[ip];
 			clen[i]++;
 		}
 	}

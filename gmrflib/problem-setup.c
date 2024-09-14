@@ -366,12 +366,18 @@ int GMRFLib_Qsolves(double *x, double *b, int nrhs, GMRFLib_problem_tp *problem)
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;
-		double alpha = -1.0, beta = 1.0, t_vector[nc];
-		for (int i = 0; i < nrhs; i++) {
-			int offset = i * n;
-			GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph);
-			dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE);
+		double alpha = -1.0, beta = 1.0;
+
+#define CODE_BLOCK							\
+		for (int i = 0; i < nrhs; i++) {			\
+			int offset = i * n;				\
+			double t_vector[nc];				\
+			GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph); \
+			dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE); \
 		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS() / 2L, 0, 0);
+#undef CODE_BLOCK
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -1660,11 +1666,6 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 		np->sub_sm_fact.TAUCS_LL = NULL;
 	}
 
-	if (problem->sub_sm_fact.TAUCS_L_inv_diag && !skeleton) {
-		DUPLICATE(sub_sm_fact.TAUCS_L_inv_diag, ns, double, skeleton);
-	} else {
-		np->sub_sm_fact.TAUCS_L_inv_diag = NULL;
-	}
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	np->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(problem->sub_sm_fact.TAUCS_cache);
 	COPY(sub_sm_fact.finfo);

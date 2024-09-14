@@ -70,7 +70,7 @@ BuildVignettes: true
 LazyData: true
 License: GPL (>= 2) + file LICENSE
 Version: 99.99.9999
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Encoding: UTF-8
 StagedInstall: no
 Collate: 

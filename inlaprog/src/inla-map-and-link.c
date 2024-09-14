@@ -1029,17 +1029,16 @@ double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
 	 */
-	double xx;
-
 	switch (typ) {
 	case MAP_FORWARD:
-		xx = exp(x);
-		return xx / (1.0 + xx);
+		return 1.0 / (1.0 + exp(-x));
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		xx = exp(x);
+	{
+		double xx = exp(x);
 		return xx / SQR(1.0 + xx);
+	}
 	case MAP_INCREASING:
 		return 1.0;
 	default:

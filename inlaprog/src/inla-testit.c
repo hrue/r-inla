@@ -4216,7 +4216,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();				       /* Clear any existing error */
 
-		fun = lt_dlsym(handle, "fun");
+		fun = (double (*)(double)) lt_dlsym(handle, "fun");
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);

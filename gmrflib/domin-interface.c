@@ -358,6 +358,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
 					fflush(stderr);	       /* helps for remote inla */
+					// if (GMRFLib_opt_get_f_count() > 100) exit(0);
 				}
 
 				GMRFLib_opt_trace_append(&opt_trace, B.f_best, B.f_best_x, fncall_timing.num_fncall);

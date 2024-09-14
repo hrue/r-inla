@@ -1254,22 +1254,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_OCCUPANCY:
-	{
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				for (int kk = 0; kk < ds->data_observations.occ_ny_max; kk++) {
-					int k = i * ds->data_observations.occ_ny_max + kk;
-					if (!ISNAN(ds->data_observations.occ_y[k]) &&
-					    (((int) ds->data_observations.occ_y[k] != ds->data_observations.occ_y[k]) ||
-					     ds->data_observations.occ_y[k] < 0)) {
-						GMRFLib_sprintf(&msg, "%s: occupancy observation y[%1d,%1d] = %g is void\n", secname, i, kk,
-								ds->data_observations.occ_y[k]);
-						inla_error_general(msg);
-					}
-				}
-			}
-		}
-	}
+		// need to do this later on
 		break;
 
 	case L_IID_GAMMA:

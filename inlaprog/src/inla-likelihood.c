@@ -454,10 +454,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int ny = (int) attr[0];
 		int nx = (int) attr[1];
 		int m = nx / ny;
-		P(ny);
-		P(nx);
-		P(m);
-		P(ncol_data_all);
 		assert(ny + nx + 2 == ncol_data_all);
 		idiv = ncol_data_all;
 
@@ -716,22 +712,46 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		Free(ds->data_observations.cure_cov);
 		ds->data_observations.cure_cov = xx;
 	}
-	// wrap it around so we have easy access
+	// rearrange the data and covariates
 	if (ds->data_id == L_OCCUPANCY) {
 		int nb = ds->data_observations.occ_nbeta;
 		int ny_max = ds->data_observations.occ_ny_max;
 		int nd = mb->predictor_ndata;
-		double *Y = ds->data_observations.occ_y = Calloc(nd * ny_max, double);
-		double *X = ds->data_observations.occ_x = Calloc(nd * nb * ny_max, double);
+
+		double **X = ds->data_observations.occ_x = Calloc(nd, double *);
+		int **Y = ds->data_observations.occ_y = Calloc(nd, int *);
+		int *ny = ds->data_observations.occ_ny = Calloc(nd, int);
 
 		for (i = 0; i < nd; i++) {
+
+			// count the number of observations
+			int nyy = 0;
 			for (j = 0; j < ny_max; j++) {
-				Y[i * ny_max + j] = a[j][i];
-				for (k = 0; k < nb; k++) {
-					int kk = i * nb * ny_max + j * nb + k;
-					X[kk] = a[ny_max + j * nb + k][i];
-					if (ISNAN(X[kk])) {
-						X[kk] = 0.0;
+				double yy = a[j][i];
+				if (!ISNAN(yy)) {
+					nyy++;
+				}
+			}
+			if (nyy == 0) {
+				ny[i] = 0;
+			} else {
+				ny[i] = nyy;
+				X[i] = Calloc(nb * nyy, double);
+				Y[i] = Calloc(nyy, int);
+
+				int jj = 0;
+				for (j = 0; j < ny_max; j++) {
+					double yy = a[j][i];
+					if (!ISNAN(yy)) {
+						Y[i][jj] = (int) yy;
+						for (k = 0; k < nb; k++) {
+							double xx = a[ny_max + j * nb + k][i];
+							if (ISNAN(xx)) {
+								xx = 0.0;
+							}
+							X[i][jj * nb + k] = xx;
+						}
+						jj++;
 					}
 				}
 			}
@@ -743,13 +763,24 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int *yzero = ds->data_observations.occ_yzero = Calloc(nd, int);
 		for (i = 0; i < nd; i++) {
 			k = 1;
-			for (j = 0; j < ny_max && k; j++) {
-				double yy = Y[i * ny_max + j];
-				if (!ISNAN(yy)) {
-					k = (k && ISZERO(yy));
-				}
+			for (j = 0; j < ny[i]; j++) {
+				k = (k && ISZERO(Y[i][j]));
 			}
 			yzero[i] = k;
+		}
+
+		// check
+		for (i = 0; i < nd; i++) {
+			if (ds->data_observations.d[i]) {
+				for (int kk = 0; kk < ds->data_observations.occ_ny[i]; kk++) {
+					if ((ds->data_observations.occ_y[i][kk] < 0) || (ds->data_observations.occ_y[i][kk] > 1)) {
+						char *msg = NULL;
+						GMRFLib_sprintf(&msg, "occupancy observation y[%1d,%1d] = %d is void\n", i, kk,
+								ds->data_observations.occ_y[i][kk]);
+						inla_error_general(msg);
+					}
+				}
+			}
 		}
 	}
 
@@ -1916,7 +1947,6 @@ int loglikelihood_stochvol_sn(int thread_id, double *__restrict logll, double *_
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
 	inla_sn_arg_tp sn_arg = {.xi = 0.0,.omega = 0.0,.intercept = 0.0,.alpha = 0.0 };
 
-
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	var_offset = 1.0 / map_precision_forward(ds->data_observations.log_offset_prec[thread_id][0], MAP_FORWARD, NULL);
@@ -2652,7 +2682,7 @@ int loglikelihood_rcpoisson(int thread_id, double *__restrict logll, double *__r
 				double logA = log_prob - normc + y * log(lambda) - lambda;
 				double logB = log_1mprob + (ISZERO(y) ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
 
-				logll[i] = eval_logsum_safe(logA, logB);
+				logll[i] = GMRFLib_logsum(logA, logB);
 			}
 		}
 	}
@@ -2892,14 +2922,20 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
+	int ny = ds->data_observations.occ_ny[idx];
+
+	if (ny == 0) {
+		GMRFLib_fill(IABS(m), 0.0, logll);
+		return GMRFLib_SUCCESS;
+	}
+
 	LINK_INIT;
 
-	int ny_max = ds->data_observations.occ_ny_max;
 	int nb = ds->data_observations.occ_nbeta;
 	int yzero = ds->data_observations.occ_yzero[idx];
 
-	double *X = &(ds->data_observations.occ_x[idx * nb * ny_max]);
-	double *Y = &(ds->data_observations.occ_y[idx * ny_max]);
+	double *X = ds->data_observations.occ_x[idx];
+	int *Y = ds->data_observations.occ_y[idx];
 
 	double beta[nb];
 	for (int i = 0; i < nb; i++) {
@@ -2908,37 +2944,62 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 	if (m > 0) {
 		double logll0 = 0.0;
+		// static double tref[] = {0, 0};
+		// static double count = 0;
+		// tref[0] -= GMRFLib_timer();
 
-		// double Xbeta[ny_max];
-		// const double one = 1.0, zero = 0.0;
-		// const int ione = 1;
-		// (trans, m, n, alpha, a, lda, x, incx, beta, y, incy) 
-		// dgemv_("T", &nb, &ny, &one, X, &nb, beta, &ione, &zero, Xbeta, &ione, F_ONE);
-
-		// to low dimension for simd or ddot to help in the j-loop below
-		for (int ii = 0; ii < ny_max; ii++) {
-			if (!ISNAN(Y[ii])) {
-				double *xx = X + ii * nb, Xbeta = 0.0;
-				for (int j = 0; j < nb; j++) {
-					Xbeta += beta[j] * xx[j];
-				}
-				double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
-				logll0 += (Y[ii] ? LOG_p(prob) : LOG_1mp(prob));
-			}
-		}
-
-		double off = OFFSET(idx);
-		if (yzero) {
-			for (int i = 0; i < m; i++) {
-				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
-				logll[i] = eval_logsum_safe(logll0 + LOG_p(phi), LOG_1mp(phi));
+		if (ds->data_observations.link_simple_invlinkfunc == link_logit) {
+			for (int i = 0; i < ny; i++) {
+				double *xx = X + i * nb;
+				double Xbeta = GMRFLib_ddot(nb, beta, xx);
+				logll0 += (Y[i] ? -log1p(exp(-Xbeta)) : -log1p(exp(Xbeta)));
 			}
 		} else {
-			for (int i = 0; i < m; i++) {
-				double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
-				logll[i] = logll0 + LOG_p(phi);
+			for (int i = 0; i < ny; i++) {
+				double *xx = X + i * nb;
+				double Xbeta = GMRFLib_ddot(nb, beta, xx);
+				double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, Xbeta, MAP_FORWARD, NULL, NULL);
+				logll0 += (Y[i] ? LOG_p(prob) : LOG_1mp(prob));
 			}
 		}
+
+		// tref[0] += GMRFLib_timer();
+		// tref[1] -= GMRFLib_timer();
+
+		double off = OFFSET(idx);
+		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
+			if (yzero) {
+				double elogll0 = exp(logll0);
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					double ex = exp(x[i] + off);
+					double exd = 1.0 / ex;
+					logll[i] = logll0 + log(1.0 / (1.0 + exd) + 1.0 / ((1.0 + ex) * elogll0));
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					double exd = exp(-(x[i] + off));
+					logll[i] = logll0 - log1p(exd);
+				}
+			}
+		} else {
+			if (yzero) {
+				for (int i = 0; i < m; i++) {
+					double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+					logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
+				}
+			} else {
+				for (int i = 0; i < m; i++) {
+					double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+					logll[i] = logll0 + LOG_p(phi);
+				}
+			}
+		}
+
+		// tref[1] += GMRFLib_timer();
+		// count++;
+		// if (0 == (((int) count) % 100000)) P(tref[0] / (tref[0] + tref[1]));
 	} else {
 		GMRFLib_fill(IABS(m), 0.0, logll);
 	}
@@ -3735,7 +3796,7 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, double *__restrict logll,
 				logA = LOG_p(p);
 				logB = LOG_1mp(p) + y * log(mu) - mu - normc;
 				// logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
-				logll[i] = eval_logsum_safe(logA, logB);
+				logll[i] = GMRFLib_logsum(logA, logB);
 			}
 		} else {
 			GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
@@ -5479,9 +5540,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -5718,7 +5779,7 @@ int loglikelihood_zeroinflated_binomial1(int thread_id, double *__restrict logll
 				logA = LOG_p(p);
 				logB = LOG_1mp(p) + res.val + y * LOG_p(prob) + (n - y) * LOG_1mp(prob);
 				// logll[i] = log(p + (1.0 - p) * gsl_ran_binomial_pdf((unsigned int) y, prob, (unsigned int) n));
-				logll[i] = eval_logsum_safe(logA, logB);
+				logll[i] = GMRFLib_logsum(logA, logB);
 			}
 		} else {
 			GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
@@ -5787,7 +5848,7 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll
 						// 
 						// 
 						// (unsigned int) n));
-						logll[i] = eval_logsum_safe(logA, logB);
+						logll[i] = GMRFLib_logsum(logA, logB);
 					}
 				}
 			}
@@ -5835,10 +5896,12 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *__restrict logll
 }
 
 #pragma omp declare simd
-double eval_logsum_safe(double lA, double lB)
+double GMRFLib_logsum(double lA, double lB)
 {
-	// evaluate log( exp(lA) + exp(lB) ) in a safer way 
-	return (lA > lB ? lA + log1p(exp(lB - lA)) : lB + log1p(exp(lA - lB)));
+	// evaluate log( exp(lA) + exp(lB) ) in a safe way 
+	// return (lA > lB ? lA + log1p(exp(lB - lA)) : lB + log1p(exp(lA - lB)));
+
+	return (fmax(lA, lB) + log1p(exp(-fabs(lB - lA))));
 }
 
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
@@ -5880,7 +5943,7 @@ int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *__restrict lo
 						logB = LOG_p(p1) + LOG_p(p2) + res.val + y * LOG_p(p) + (n - y) * LOG_1mp(p);
 						// logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int)
 						// y, p, (unsigned int) n));
-						logll[i] = eval_logsum_safe(logA, logB);
+						logll[i] = GMRFLib_logsum(logA, logB);
 					}
 				}
 			}
@@ -5903,7 +5966,7 @@ int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *__restrict lo
 						logB = LOG_p(p1) + LOG_p(p2) + res.val + y * LOG_p(p) + (n - y) * LOG_1mp(p);
 						// logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int)
 						// y, p, (unsigned int) n));
-						logll[i] = eval_logsum_safe(logA, logB);
+						logll[i] = GMRFLib_logsum(logA, logB);
 					}
 				}
 			}
@@ -5967,10 +6030,10 @@ int loglikelihood_zero_n_inflated_binomial3(int thread_id, double *__restrict lo
 				logB = LOG_1mp((p0 + pN)) + res.val + y * LOG_p(p) + (n - y) * LOG_1mp(p);
 				if ((int) y == 0) {
 					logA = LOG_p(p0);
-					logll[i] = eval_logsum_safe(logA, logB);
+					logll[i] = GMRFLib_logsum(logA, logB);
 				} else if ((int) y == (int) n) {
 					logA = LOG_p(pN);
-					logll[i] = eval_logsum_safe(logA, logB);
+					logll[i] = GMRFLib_logsum(logA, logB);
 				} else {
 					logll[i] = logB;
 				}
@@ -6755,7 +6818,7 @@ int loglikelihood_zeroinflated_betabinomial2(int thread_id, double *__restrict l
 				logB = LOG_1mp(pzero) + (_LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1)
 							 + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta + n)
 							 + _LOGGAMMA(delta) - _LOGGAMMA(delta * p) - _LOGGAMMA(delta * (1.0 - p)));
-				logll[i] = eval_logsum_safe(logA, logB);
+				logll[i] = GMRFLib_logsum(logA, logB);
 			}
 		}
 	} else {
@@ -6948,7 +7011,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 					// logll[i] = log(pcure + (1.0 - pcure) * (1.0 - F_lower[i]));
 					double A = LOG_p(pcure);
 					double B = LOG_p((1.0 - pcure) * (1.0 - F_lower[i]));
-					logll[i] = eval_logsum_safe(A, B);
+					logll[i] = GMRFLib_logsum(A, B);
 				}
 			} else {
 #pragma omp simd

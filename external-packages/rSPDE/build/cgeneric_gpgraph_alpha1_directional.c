@@ -1,0 +1,1 @@
+../rSPDE/src/cgeneric_gpgraph_alpha1_directional.c
