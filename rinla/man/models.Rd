@@ -1071,7 +1071,7 @@ Number of hyperparmeters is 2.
 }
 }
 }
-Number of hyperparmeters is 13.
+Number of hyperparmeters is 53.
 \describe{
 \item{Hyperparameter 'theta1'}{
 \describe{
@@ -1234,6 +1234,526 @@ Number of hyperparmeters is 13.
 \item{hyperid = }{\verb{16113}}
 \item{name = }{\verb{gamma10}}
 \item{short.name = }{\verb{g10}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta14'}{
+\describe{
+\item{hyperid = }{\verb{16114}}
+\item{name = }{\verb{gamma11}}
+\item{short.name = }{\verb{g11}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta15'}{
+\describe{
+\item{hyperid = }{\verb{16115}}
+\item{name = }{\verb{gamma12}}
+\item{short.name = }{\verb{g12}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta16'}{
+\describe{
+\item{hyperid = }{\verb{16116}}
+\item{name = }{\verb{gamma13}}
+\item{short.name = }{\verb{g13}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta17'}{
+\describe{
+\item{hyperid = }{\verb{16117}}
+\item{name = }{\verb{gamma14}}
+\item{short.name = }{\verb{g14}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta18'}{
+\describe{
+\item{hyperid = }{\verb{16118}}
+\item{name = }{\verb{gamma15}}
+\item{short.name = }{\verb{g15}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta19'}{
+\describe{
+\item{hyperid = }{\verb{16119}}
+\item{name = }{\verb{gamma16}}
+\item{short.name = }{\verb{g16}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta20'}{
+\describe{
+\item{hyperid = }{\verb{16120}}
+\item{name = }{\verb{gamma17}}
+\item{short.name = }{\verb{g17}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta21'}{
+\describe{
+\item{hyperid = }{\verb{16121}}
+\item{name = }{\verb{gamma18}}
+\item{short.name = }{\verb{g18}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta22'}{
+\describe{
+\item{hyperid = }{\verb{16122}}
+\item{name = }{\verb{gamma19}}
+\item{short.name = }{\verb{g19}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta23'}{
+\describe{
+\item{hyperid = }{\verb{16123}}
+\item{name = }{\verb{gamma20}}
+\item{short.name = }{\verb{g20}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta24'}{
+\describe{
+\item{hyperid = }{\verb{16124}}
+\item{name = }{\verb{gamma21}}
+\item{short.name = }{\verb{g21}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta25'}{
+\describe{
+\item{hyperid = }{\verb{16125}}
+\item{name = }{\verb{gamma22}}
+\item{short.name = }{\verb{g22}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta26'}{
+\describe{
+\item{hyperid = }{\verb{16126}}
+\item{name = }{\verb{gamma23}}
+\item{short.name = }{\verb{g23}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta27'}{
+\describe{
+\item{hyperid = }{\verb{16127}}
+\item{name = }{\verb{gamma24}}
+\item{short.name = }{\verb{g24}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta28'}{
+\describe{
+\item{hyperid = }{\verb{16128}}
+\item{name = }{\verb{gamma25}}
+\item{short.name = }{\verb{g25}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta29'}{
+\describe{
+\item{hyperid = }{\verb{16129}}
+\item{name = }{\verb{gamma26}}
+\item{short.name = }{\verb{g26}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta30'}{
+\describe{
+\item{hyperid = }{\verb{16130}}
+\item{name = }{\verb{gamma27}}
+\item{short.name = }{\verb{g27}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta31'}{
+\describe{
+\item{hyperid = }{\verb{16131}}
+\item{name = }{\verb{gamma28}}
+\item{short.name = }{\verb{g28}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta32'}{
+\describe{
+\item{hyperid = }{\verb{16132}}
+\item{name = }{\verb{gamma29}}
+\item{short.name = }{\verb{g29}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta33'}{
+\describe{
+\item{hyperid = }{\verb{16133}}
+\item{name = }{\verb{gamma30}}
+\item{short.name = }{\verb{g30}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta34'}{
+\describe{
+\item{hyperid = }{\verb{16134}}
+\item{name = }{\verb{gamma31}}
+\item{short.name = }{\verb{g31}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta35'}{
+\describe{
+\item{hyperid = }{\verb{16135}}
+\item{name = }{\verb{gamma32}}
+\item{short.name = }{\verb{g32}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta36'}{
+\describe{
+\item{hyperid = }{\verb{16136}}
+\item{name = }{\verb{gamma33}}
+\item{short.name = }{\verb{g33}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta37'}{
+\describe{
+\item{hyperid = }{\verb{16137}}
+\item{name = }{\verb{gamma34}}
+\item{short.name = }{\verb{g34}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta38'}{
+\describe{
+\item{hyperid = }{\verb{16138}}
+\item{name = }{\verb{gamma35}}
+\item{short.name = }{\verb{g35}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta39'}{
+\describe{
+\item{hyperid = }{\verb{16139}}
+\item{name = }{\verb{gamma36}}
+\item{short.name = }{\verb{g36}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta40'}{
+\describe{
+\item{hyperid = }{\verb{16140}}
+\item{name = }{\verb{gamma37}}
+\item{short.name = }{\verb{g37}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta41'}{
+\describe{
+\item{hyperid = }{\verb{16141}}
+\item{name = }{\verb{gamma38}}
+\item{short.name = }{\verb{g38}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta42'}{
+\describe{
+\item{hyperid = }{\verb{16142}}
+\item{name = }{\verb{gamma39}}
+\item{short.name = }{\verb{g39}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta43'}{
+\describe{
+\item{hyperid = }{\verb{16143}}
+\item{name = }{\verb{gamma40}}
+\item{short.name = }{\verb{g40}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta44'}{
+\describe{
+\item{hyperid = }{\verb{16144}}
+\item{name = }{\verb{gamma41}}
+\item{short.name = }{\verb{g41}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta45'}{
+\describe{
+\item{hyperid = }{\verb{16145}}
+\item{name = }{\verb{gamma42}}
+\item{short.name = }{\verb{g42}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta46'}{
+\describe{
+\item{hyperid = }{\verb{16146}}
+\item{name = }{\verb{gamma43}}
+\item{short.name = }{\verb{g43}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta47'}{
+\describe{
+\item{hyperid = }{\verb{16147}}
+\item{name = }{\verb{gamma44}}
+\item{short.name = }{\verb{g44}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta48'}{
+\describe{
+\item{hyperid = }{\verb{16148}}
+\item{name = }{\verb{gamma45}}
+\item{short.name = }{\verb{g45}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta49'}{
+\describe{
+\item{hyperid = }{\verb{16149}}
+\item{name = }{\verb{gamma46}}
+\item{short.name = }{\verb{g46}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta50'}{
+\describe{
+\item{hyperid = }{\verb{16150}}
+\item{name = }{\verb{gamma47}}
+\item{short.name = }{\verb{g47}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta51'}{
+\describe{
+\item{hyperid = }{\verb{16151}}
+\item{name = }{\verb{gamma48}}
+\item{short.name = }{\verb{g48}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta52'}{
+\describe{
+\item{hyperid = }{\verb{16152}}
+\item{name = }{\verb{gamma49}}
+\item{short.name = }{\verb{g49}}
+\item{initial = }{\verb{1}}
+\item{fixed = }{\verb{TRUE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 36}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta53'}{
+\describe{
+\item{hyperid = }{\verb{16153}}
+\item{name = }{\verb{gamma50}}
+\item{short.name = }{\verb{g50}}
 \item{initial = }{\verb{1}}
 \item{fixed = }{\verb{TRUE}}
 \item{prior = }{\verb{normal}}
