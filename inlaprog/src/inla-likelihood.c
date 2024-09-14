@@ -712,7 +712,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		Free(ds->data_observations.cure_cov);
 		ds->data_observations.cure_cov = xx;
 	}
-
 	// rearrange the data and covariates
 	if (ds->data_id == L_OCCUPANCY) {
 		int nb = ds->data_observations.occ_nbeta;
@@ -2976,7 +2975,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				for (int i = 0; i < m; i++) {
 					double ex = exp(x[i] + off);
 					double exd = 1.0 / ex;
-					//logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
+					// logll[i] = GMRFLib_logsum(logll0 - log1p(exd), - log1p(ex));
 					logll[i] = logll0 + log(1.0 / (1.0 + exd) + 1.0 / ((1.0 + ex) * elogll0));
 				}
 			} else {
@@ -5543,9 +5542,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
