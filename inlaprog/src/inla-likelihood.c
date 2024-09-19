@@ -2651,13 +2651,19 @@ int loglikelihood_rcpoisson(int thread_id, double *__restrict logll, double *__r
 	double y = dtp->y[idx];
 	double E = dtp->rcp_E[idx];
 	int event = (int) round(dtp->rcp_event[idx]);
+	const int iszero = ISZERO(y);
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
 
 	LINK_INIT;
 
 	double off = OFFSET(idx);
 	if (m > 0) {
 		if (event == 1) {
-			double normc = my_gsl_sf_lnfact((int) y);
 			for (int i = 0; i < m; i++) {
 				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
 				logll[i] = -normc + y * log(lambda) - lambda;
@@ -2665,24 +2671,58 @@ int loglikelihood_rcpoisson(int thread_id, double *__restrict logll, double *__r
 		} else if (event == 0) {
 			for (int i = 0; i < m; i++) {
 				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
-				logll[i] = (ISZERO(y) ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
+				logll[i] = (iszero ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
 			}
 		} else {
-			double normc = my_gsl_sf_lnfact((int) y);
 			double lprob = dtp->rcp_offset[idx];
 			for (int i = 0; i < dtp->rcp_nbeta; i++) {
 				lprob += dtp->rcp_beta[i][thread_id][0] * dtp->rcp_x[i][idx];
 			}
-
 			double log_prob = -log1p(exp(-lprob));
 			double log_1mprob = -lprob + log_prob;
 
-			for (int i = 0; i < m; i++) {
-				double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
-				double logA = log_prob - normc + y * log(lambda) - lambda;
-				double logB = log_1mprob + (ISZERO(y) ? 0.0 : log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda)));
-
-				logll[i] = GMRFLib_logsum(logA, logB);
+			// truncate if we are in the extreme limits
+			double lim = -7.0;
+			if (log_prob < lim) {
+				// event = 0
+				if (iszero) {
+					GMRFLib_fill(m, 0.0, logll);
+				} else {
+					for (int i = 0; i < m; i++) {
+						double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+						logll[i] = log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda));
+					}
+				}
+			} else if (log_1mprob < lim) {
+				// event = 1
+				if (iszero) {
+					for (int i = 0; i < m; i++) {
+						double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+						logll[i] = -normc - lambda;
+					}
+				} else {
+					for (int i = 0; i < m; i++) {
+						double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+						logll[i] = -normc + y * log(lambda) - lambda;
+					}
+				}
+			} else {
+				// mixture
+				if (iszero) {
+					for (int i = 0; i < m; i++) {
+						double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+						double logA = log_prob - normc - lambda;
+						double logB = log_1mprob;
+						logll[i] = GMRFLib_logsum(logA, logB);
+					}
+				} else {
+					for (int i = 0; i < m; i++) {
+						double lambda = E * PREDICTOR_INVERSE_LINK(x[i] + off);
+						double logA = log_prob - normc + y * log(lambda) - lambda;
+						double logB = log_1mprob + log(gsl_cdf_poisson_Q((unsigned int) (y - 1.0), lambda));
+						logll[i] = GMRFLib_logsum(logA, logB);
+					}
+				}
 			}
 		}
 	}
