@@ -84,6 +84,7 @@ double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_signed_pow(double x, double power);
 size_t GMRFLib_align(size_t n, size_t size);
+size_t GMRFLib_align_simple(size_t n, size_t size);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);

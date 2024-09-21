@@ -2133,3 +2133,26 @@ size_t GMRFLib_align(size_t n, size_t size)
 
 	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
 }
+
+size_t GMRFLib_align_simple(size_t n, size_t size) 
+{
+	// return the length so we are a 16 bytes boundary at the end, ie x[n] is at a 16 byte boundary.
+	// that means steps of 2 for double and 4 for ints
+
+	if (size == 8L) {
+		div_t d = div(n, 2L);
+		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
+	} else if (size == 4L) {
+		div_t d = div(n, 4L);
+		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
+	} else if (size == 2L) {
+		div_t d = div(n, 8L);
+		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
+	} else if (size == 16L) {
+		return n;
+	} else {
+		fprintf(stderr, "\nADD CODE HERE\n");
+		assert(0 == 1);
+	}
+}
+	

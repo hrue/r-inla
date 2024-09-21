@@ -938,7 +938,8 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 				if (0 && m >= 8L) {
-					double tmp[m];
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double tmp[mm];
 					GMRFLib_daxpb(m, -1.0, x, y, tmp);
 					GMRFLib_sqr(m, tmp, tmp);
 					GMRFLib_daxpb(m, a, tmp, b, logll);
@@ -1408,7 +1409,8 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 			}
 		}
 
-		double eta[m];
+		size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+		double eta[mm];
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = c[0] + c[1] * eta[i];
@@ -2457,8 +2459,9 @@ int loglikelihood_poisson(int thread_id, double *__restrict logll, double *__res
 			if ((PREDICTOR_SCALE == 1.0)) {
 				const int mkl_lim = 4L;
 				if (m >= mkl_lim) {
-					double xx[m];
-					double exp_x[m];
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double xx[mm];
+					double exp_x[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
@@ -2815,9 +2818,9 @@ int loglikelihood_bell(int thread_id, double *__restrict logll, double *__restri
 	LINK_INIT;
 
 	if (m > 0) {
-		double work[2 * m];
-		double *mean = work;
-		double *lambda = work + m;
+		size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+		double mean[mm]; 
+		double lambda[mm]; 
 #pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -2999,7 +3002,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 		if (ds->data_observations.link_simple_invlinkfunc == link_logit) {
 			if (ny >= mkl_lim) {
-				double w[ny], ww[ny];
+				size_t mm = GMRFLib_align_simple((size_t)ny, sizeof(double));
+				double w[mm], ww[mm];
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
 					double Xbeta = GMRFLib_ddot(nb, beta, xx);
@@ -3033,7 +3037,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				double elogll0 = exp(logll0);
 
 				if (m >= mkl_lim) {
-					double xx[m], exx[m];
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double xx[mm], exx[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
@@ -3061,7 +3066,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			} else {
 
 				if (m >= mkl_lim) {
-					double w[m], ww[m];
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double w[mm], ww[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						w[i] = -(x[i] + off);
@@ -4253,9 +4259,8 @@ int loglikelihood_negative_binomial(int thread_id, double *__restrict logll, dou
 						}
 					}
 				} else {
-					double work[2 * m];
-					double *ex = work;
-					double *lx = work + m;
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double ex[mm], lx[mm]; 
 
 					GMRFLib_exp(m, x, ex);
 					GMRFLib_dscale(m, E / size, ex);
@@ -4897,11 +4902,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			if (ISZERO(y)) {
 				if (m >= mkl_lim) {
-					double work[3 * m];
-					double *v_eta = work;
-					double *v_ee = work + m;
-					double *v_lee = work + 2 * m;
-
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double v_eta[mm], v_ee[mm], v_lee[mm]; 
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -4931,10 +4933,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 				}
 			} else if (ISZERO(ny)) {
 				if (m >= mkl_lim) {
-					double work[3 * m];
-					double *v_eta = work;
-					double *v_ee = work + m;
-					double *v_lee = work + 2 * m;
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double v_eta[mm], v_ee[mm], v_lee[mm]; 
 
 					if (fast) {
 #pragma omp simd
@@ -4965,13 +4965,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 				}
 			} else {
 				if (m >= mkl_lim) {
-					double work[6 * m];
-					double *v_eta = work;
-					double *v_meta = work + m;
-					double *v_ee = work + 2 * m;
-					double *v_iee = work + 3 * m;
-					double *v_lee = work + 4 * m;
-					double *v_liee = work + 5 * m;
+					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					double v_eta[mm], v_meta[mm], v_ee[mm], v_iee[mm], v_lee[mm], v_liee[mm]; 
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);

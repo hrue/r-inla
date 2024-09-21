@@ -31,16 +31,13 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-// https://philippegroarke.com/blog/2017/02/19/quicktip-understanding-16-byte-memory-alignment-detection/
-#define ALIGNED(ptr_) (((intptr_t)(ptr_) & 0xF) == 0)
-
 void GMRFLib_exp(int n, double *x, double *y)
 {
 	if (!n)
 		return;
 #if defined(INLA_WITH_SIMD)
 	// y = exp(x)
-	if (ALIGNED(x) && ALIGNED(y)) {
+	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
 		const int len = 4L;
 		div_t d = div(n, len);
 		int m = d.quot * len;
@@ -85,7 +82,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
+		if (SIMD_ALIGNED(x + 1) && SIMD_ALIGNED(y + 1)) {
 			y[0] = exp(x[0]);
 			return (GMRFLib_exp(n - 1, x + 1, y + 1));
 		} else {
@@ -132,7 +129,7 @@ void GMRFLib_log(int n, double *x, double *y)
 	if (!n)
 		return;
 #if defined(INLA_WITH_SIMD)
-	if (ALIGNED(x) && ALIGNED(y)) {
+	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
 		const int len = 4L;
 		div_t d = div(n, len);
 		int m = d.quot * len;
@@ -175,7 +172,7 @@ void GMRFLib_log(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
+		if (SIMD_ALIGNED(x + 1) && SIMD_ALIGNED(y + 1)) {
 			y[0] = log(x[0]);
 			return (GMRFLib_log(n - 1, x + 1, y + 1));
 		} else {
@@ -209,7 +206,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 	if (!n)
 		return;
 #if defined(INLA_WITH_SIMD)
-	if (ALIGNED(x) && ALIGNED(y)) {
+	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
 		const int len = 4L;
 		div_t d = div(n, len);
 		int m = d.quot * len;
@@ -255,7 +252,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
+		if (SIMD_ALIGNED(x + 1) && SIMD_ALIGNED(y + 1)) {
 			y[0] = log1p(x[0]);
 			return (GMRFLib_log1p(n - 1, x + 1, y + 1));
 		} else {
