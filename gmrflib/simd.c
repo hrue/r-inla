@@ -31,12 +31,6 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#if defined(INLA_WITH_SIMD)
-#define SLEEF_ENABLE_OMP_SIMD
-#include <x86intrin.h>
-#include <sleef.h>
-#endif
-
 // https://philippegroarke.com/blog/2017/02/19/quicktip-understanding-16-byte-memory-alignment-detection/
 #define ALIGNED(ptr_) (((intptr_t)(ptr_) & 0xF) == 0)
 
@@ -359,7 +353,7 @@ void GMRFLib_daddto(int n, double *x, double *y)
 	daxpy_(&n, &one, x, &inc, y, &inc);
 }
 
-void GMRFLib_caddto(int n, double *x, double cx, double *y)
+void GMRFLib_cdaddto(int n, double *x, double cx, double *y)
 {
 	// y = x + const.x
 	if (!n)

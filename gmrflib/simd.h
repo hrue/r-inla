@@ -52,7 +52,15 @@
 #endif
 
 __BEGIN_DECLS
+#include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+#if defined(INLA_WITH_SIMD)
+#define SLEEF_ENABLE_OMP_SIMD
+#include <x86intrin.h>
+#include <sleef.h>
+#endif
+
 void GMRFLib_exp(int, double *, double *);
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y);
 void GMRFLib_log(int, double *, double *);
@@ -62,7 +70,7 @@ void GMRFLib_sqrt(int n, double *x, double *y);
 void GMRFLib_add(int n, double *x, double *y, double *z);
 void GMRFLib_mul(int n, double *x, double *y, double *z);
 void GMRFLib_daddto(int n, double *x, double *y);
-void GMRFLib_caddto(int n, double *x, double cx, double *y);
+void GMRFLib_cdaddto(int n, double *x, double cx, double *y);
 
 __END_DECLS
 #endif
