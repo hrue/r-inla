@@ -4886,7 +4886,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 		int num_trunc = 0;
 		for (int i = 0; i < graph->n; i++) {
 			if (ABS(gsl_vector_get(delta_mu, i) / sd[i]) > max_correct) {
-				gsl_vector_set(delta_mu, i, max_correct * sd[i] * SIGN(gsl_vector_get(delta_mu, i)));
+				gsl_vector_set(delta_mu, i, max_correct * sd[i] * DSIGN(gsl_vector_get(delta_mu, i)));
 				num_trunc++;
 			}
 		}

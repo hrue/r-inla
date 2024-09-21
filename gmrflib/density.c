@@ -852,7 +852,6 @@ double GMRFLib_evaluate_density__intern(double x, void *param)
 {
 	double dens = 0.0;
 	GMRFLib_density_properties_tp *prop = (GMRFLib_density_properties_tp *) param;
-
 	GMRFLib_evaluate_density(&dens, x, prop->density);
 
 	return dens;

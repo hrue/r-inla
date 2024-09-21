@@ -1872,7 +1872,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 		lc->qval2 = pow(MATHLIB_FUN(qgamma) (p2, shape, 1.0, 1, 0), 1.0 / beta);
 	}
 
-	double sign = SIGN(p - 0.5);
+	double sign = DSIGN(p - 0.5);
 	double sigma = exp(-0.5 * lprec);
 	double alpha = sigma * lc->lg_expr;
 	lc->qval1 = sign * alpha * lc->qval2;

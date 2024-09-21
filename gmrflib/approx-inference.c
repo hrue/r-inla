@@ -3442,7 +3442,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}		\
 						} else {		\
 							cor_abs[i_new] = cor_abs_prev; \
-							cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
+							cor[i_new] = DSIGN(cor[i_new]) * cor_abs_prev; \
 							GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
 							GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 							/* use the maximum weight when they are equal */ \
@@ -4654,7 +4654,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			err_dx = DMAX(err_dx, adx);
 			// truncate individual components
 			if (adx > max_correct) {
-				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
+				dx[i] = max_correct * sd[i] * DSIGN(dx[i]);
 			}
 		}
 		dxs[iter] = err_dx;

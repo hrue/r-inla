@@ -1045,7 +1045,7 @@ int loglikelihood_exppower(int thread_id, double *__restrict logll, double *__re
 		double scale = 1.0 / pow(ialpha, beta);
 		for (int i = 0; i < -m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i] + off);
-			logll[i] = 0.5 * (1.0 + SIGN(y - mu) * MATHLIB_FUN(pgamma) (pow(ABS(y - mu), beta), shape, scale, 1, 0));
+			logll[i] = 0.5 * (1.0 + DSIGN(y - mu) * MATHLIB_FUN(pgamma) (pow(ABS(y - mu), beta), shape, scale, 1, 0));
 		}
 	}
 
@@ -1429,7 +1429,7 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 		}
 
 		if (!ISZERO(c[7])) {
-			double sign = SIGN(c[8]);
+			double sign = DSIGN(c[8]);
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-c[7] * log(expm1(c[8] * eta[i]) / (sign * PUSH_AWAY(eta[i]))));
 			}
