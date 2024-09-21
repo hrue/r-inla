@@ -4295,6 +4295,134 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 145:
+	{
+		int n = atoi(args[0]);
+		assert(n > 0);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
+		double *yy = Calloc(n + 1, double);
+
+		for (int i = 0; i < n + 1; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		GMRFLib_exp(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = exp(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log1p(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log1p(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		printf("\n\n");
+		int sign = -1;
+		for (int i = 0; i < n + 1; i++) {
+			sign *= (-1);
+			x[i] = sign * INFINITY;
+		}
+
+		GMRFLib_exp(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = exp(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log1p(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log1p(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		printf("\n\n");
+		for (int i = 0; i < n + 1; i++) {
+			x[i] = NAN;
+		}
+
+		GMRFLib_exp(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = exp(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log1p(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log1p(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+		
+		printf("\n\n");
+		for (int i = 0; i < n + 1; i++) {
+			sign *= (-1);
+			x[i] = sign * DBL_MAX;
+		}
+
+		GMRFLib_exp(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = exp(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+
+		GMRFLib_log1p(n, x, y);
+		for (int i = 0; i < n; i++) {
+			yy[i] = log1p(x[i]);
+		}
+		for(int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		}
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
