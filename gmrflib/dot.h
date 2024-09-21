@@ -53,8 +53,6 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-double GMRFLib_dsum(int n, double *x);
-int GMRFLib_isum(int n, int *ix);
 double GMRFLib_ddot(int n, double *x, double *y);
 double GMRFLib_ddot_idx(int n, double *v, double *a, int *idx);
 double GMRFLib_ddot_idx_mkl(int n, double *v, double *a, int *idx);
@@ -67,9 +65,6 @@ double GMRFLib_dot_product_group_mkl_alt(GMRFLib_idxval_tp * ELM_, double *ARR_)
 double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * ELM_, double *ARR_);
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * ELM_, double *ARR_);
 double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp * ELM_, double *ARR_);
-double GMRFLib_dsum_idx(int n, double *a, int *idx);
-void GMRFLib_dsum_measure_time(double *tused);
-void GMRFLib_isum_measure_time(double *tused);
 void GMRFLib_chose_threshold_ddot(void);
 
 #define NOT_IN_USE____GMRFLib_dot_product_INLINE(ans_, v_, a_)		\
