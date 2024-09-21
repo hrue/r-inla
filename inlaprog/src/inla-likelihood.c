@@ -2460,7 +2460,7 @@ int loglikelihood_poisson(int thread_id, double *__restrict logll, double *__res
 					double xx[m];
 					double exp_x[m];
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
+					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
 					}
 					GMRFLib_exp(m, xx, exp_x);
@@ -3035,19 +3035,19 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				if (m >= mkl_lim) {
 					double xx[m], exx[m];
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
+					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
 					}
 					GMRFLib_exp(m, xx, exx);
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
-						double a =  1.0 + 1.0 / exx[i];
+					for (int i = 0; i < m; i++) {
+						double a = 1.0 + 1.0 / exx[i];
 						double b = (1.0 + exx[i]) * elogll0;
 						xx[i] = 1.0 / a + 1.0 / b;
 					}
 					GMRFLib_log(m, xx, exx);
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
+					for (int i = 0; i < m; i++) {
 						logll[i] = logll0 + exx[i];
 					}
 				} else {
@@ -3063,14 +3063,14 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				if (m >= mkl_lim) {
 					double w[m], ww[m];
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
-						w[i] = - (x[i] + off);
+					for (int i = 0; i < m; i++) {
+						w[i] = -(x[i] + off);
 					}
 					GMRFLib_exp(m, w, ww);
 					GMRFLib_log1p(m, ww, w);
 #pragma omp simd
-					for(int i = 0; i < m; i++) {
-						logll[i] =  logll0 - w[i];
+					for (int i = 0; i < m; i++) {
+						logll[i] = logll0 - w[i];
 					}
 				} else {
 #pragma omp simd
@@ -4901,10 +4901,10 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 					double *v_eta = work;
 					double *v_ee = work + m;
 					double *v_lee = work + 2 * m;
-					
+
 					if (fast) {
 #pragma omp simd
-						for(int i = 0; i < m; i++) {
+						for (int i = 0; i < m; i++) {
 							v_eta[i] = x[i] + off;
 						}
 					} else {
@@ -4915,7 +4915,7 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 					}
 					GMRFLib_exp(m, v_eta, v_ee);
 					GMRFLib_log1p(m, v_ee, v_lee);
-					
+
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						logll[i] = res.val - ny * v_lee[i];
@@ -5603,9 +5603,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

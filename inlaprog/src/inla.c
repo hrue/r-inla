@@ -5990,7 +5990,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			 (func ? func(_x_user, MAP_FORWARD, func_arg) : \
 			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
 			   (_x_user))))
-#define _MAP_X_plain(_x_user) (_x_user) 
+#define _MAP_X_plain(_x_user) (_x_user)
 #define _MAP_X_func(_x_user) func(_x_user, MAP_FORWARD, func_arg)
 #define _MAP_X_tfunc(_x_user) tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov)
 
@@ -6233,9 +6233,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		xx = Calloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (plain) {
-			//for (int i = 0; i < npm; i++) {
-			//     xx[i] = xx[i];
-			//}
+			// for (int i = 0; i < npm; i++) {
+			// xx[i] = xx[i];
+			// }
 		} else if (func) {
 			for (int i = 0; i < npm; i++) {
 				xx[i] = _MAP_X_func(xx[i]);

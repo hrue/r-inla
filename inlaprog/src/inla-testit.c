@@ -4311,24 +4311,24 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			yy[i] = exp(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log1p(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log1p(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		printf("\n\n");
@@ -4342,24 +4342,24 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			yy[i] = exp(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log1p(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log1p(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		printf("\n\n");
@@ -4371,26 +4371,26 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			yy[i] = exp(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log1p(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log1p(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
-		
+
 		printf("\n\n");
 		for (int i = 0; i < n + 1; i++) {
 			sign *= (-1);
@@ -4401,24 +4401,24 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			yy[i] = exp(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _exp %.12f exp %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log %.12f log %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 
 		GMRFLib_log1p(n, x, y);
 		for (int i = 0; i < n; i++) {
 			yy[i] = log1p(x[i]);
 		}
-		for(int i = 0; i < n; i++) {
-			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i]-yy[i]);
+		for (int i = 0; i < n; i++) {
+			printf("x %.12f _log1p %.12f log1p %.12f diff %.12f\n", x[i], y[i], yy[i], y[i] - yy[i]);
 		}
 	}
 		break;

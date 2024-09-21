@@ -53,7 +53,6 @@
 __BEGIN_DECLS
 //
 //
-
 #if defined(INLA_WITH_PARDISO_WORKAROUND)
 int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o);
 #endif

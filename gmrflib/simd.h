@@ -53,7 +53,6 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-
 void GMRFLib_exp(int, double *, double *);
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y);
 void GMRFLib_log(int, double *, double *);

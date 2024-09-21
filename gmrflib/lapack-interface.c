@@ -1349,7 +1349,7 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
 	_Pragma("omp simd")
-	for (int i = 0; i < n; i++) {
+	    for (int i = 0; i < n; i++) {
 		y[i] = a * x[i] + b * y[i];
 	}
 #endif
@@ -1497,7 +1497,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	vdPackV(n, a, ia, y);
 #else
 	_Pragma("omp simd")
-	for (int i = 0; i < n; i++) {
+	    for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
 #endif
@@ -1510,7 +1510,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 	vdUnpackV(n, a, y, iy);
 #else
 	_Pragma("omp simd")
-	for (int i = 0; i < n; i++) {
+	    for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
 #endif
@@ -1524,15 +1524,15 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 		vdPowx(n, x, a, y);
 	} else {
 		_Pragma("omp simd")
-			for (int i = 0; i < n; i++) {
-				y[i] = pow(x[i], a);
-			}
+		    for (int i = 0; i < n; i++) {
+			y[i] = pow(x[i], a);
+		}
 	}
 #else
 	_Pragma("omp simd")
-		for (int i = 0; i < n; i++) {
-			y[i] = pow(x[i], a);
-		}
+	    for (int i = 0; i < n; i++) {
+		y[i] = pow(x[i], a);
+	}
 #endif
 }
 

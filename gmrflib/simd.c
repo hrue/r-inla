@@ -42,7 +42,8 @@
 
 void GMRFLib_exp(int n, double *x, double *y)
 {
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_SIMD)
 	// y = exp(x)
 	if (ALIGNED(x) && ALIGNED(y)) {
@@ -62,7 +63,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 			if (k <= 2) {
 				double xx[2] = { 0, 0 };
 				Memcpy(xx, x + m, k * sizeof(double));
-				
+
 				__m128d vx = _mm_loadu_pd(xx);
 				__m128d vy = Sleef_expd2_u10(vx);
 
@@ -90,13 +91,13 @@ void GMRFLib_exp(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x+1) && ALIGNED(y+1)) {
+		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
 			y[0] = exp(x[0]);
-			return (GMRFLib_exp(n-1, x+1, y+1));
+			return (GMRFLib_exp(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _exp");
 		}
-		
+
 #if defined(INLA_WITH_MKL)
 		vdExp(n, x, y);
 #else
@@ -134,7 +135,8 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 void GMRFLib_log(int n, double *x, double *y)
 {
 	// y = log(x)
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_SIMD)
 	if (ALIGNED(x) && ALIGNED(y)) {
 		const int len = 4L;
@@ -179,9 +181,9 @@ void GMRFLib_log(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x+1) && ALIGNED(y+1)) {
+		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
 			y[0] = log(x[0]);
-			return (GMRFLib_log(n-1, x+1, y+1));
+			return (GMRFLib_log(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _log");
 		}
@@ -210,7 +212,8 @@ void GMRFLib_log(int n, double *x, double *y)
 void GMRFLib_log1p(int n, double *x, double *y)
 {
 	// y = log1p(x)
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_SIMD)
 	if (ALIGNED(x) && ALIGNED(y)) {
 		const int len = 4L;
@@ -228,7 +231,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 		int k = n - m;
 		if (k) {
 			if (k <= 2) {
-				double xx[2] = { 0, 0};
+				double xx[2] = { 0, 0 };
 				Memcpy(xx, x + m, k * sizeof(double));
 
 				__m128d vx = _mm_loadu_pd(xx);
@@ -258,9 +261,9 @@ void GMRFLib_log1p(int n, double *x, double *y)
 			}
 		}
 	} else {
-		if (ALIGNED(x+1) && ALIGNED(y+1)) {
+		if (ALIGNED(x + 1) && ALIGNED(y + 1)) {
 			y[0] = log1p(x[0]);
-			return (GMRFLib_log1p(n-1, x+1, y+1));
+			return (GMRFLib_log1p(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _log1p");
 		}
@@ -289,7 +292,8 @@ void GMRFLib_log1p(int n, double *x, double *y)
 void GMRFLib_sqr(int n, double *x, double *y)
 {
 	// y = x * x
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_MKL)
 	vdSqr(n, x, y);
 #else
@@ -303,7 +307,8 @@ void GMRFLib_sqr(int n, double *x, double *y)
 void GMRFLib_sqrt(int n, double *x, double *y)
 {
 	// y = sqrt(x)
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_MKL)
 	vdSqrt(n, x, y);
 #else
@@ -317,7 +322,8 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 	// z = x + y
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
 #else
@@ -331,7 +337,8 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 	// z = x * y
-	if (!n) return;
+	if (!n)
+		return;
 #if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);
 #else
@@ -345,7 +352,8 @@ void GMRFLib_mul(int n, double *x, double *y, double *z)
 void GMRFLib_daddto(int n, double *x, double *y)
 {
 	// y = y + x
-	if (!n) return;
+	if (!n)
+		return;
 	int inc = 1;
 	double one = 1.0;
 	daxpy_(&n, &one, x, &inc, y, &inc);
@@ -354,7 +362,8 @@ void GMRFLib_daddto(int n, double *x, double *y)
 void GMRFLib_caddto(int n, double *x, double cx, double *y)
 {
 	// y = x + const.x
-	if (!n) return;
+	if (!n)
+		return;
 #pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = x[i] + cx;
