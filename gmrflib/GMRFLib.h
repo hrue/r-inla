@@ -103,6 +103,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
+#include "GMRFLib/simd.h"
 #include "GMRFLib/idxval.h"
 #include "GMRFLib/lapack-interface.h"
 #include "GMRFLib/dot.h"
@@ -150,6 +151,7 @@ void vdLn(int, const double *, double *);
 void vdLog1p(int, const double *, double *);
 void vdLinearFrac(int n, double *a, double *b, double scalea, double shifta, double scaleb, double shiftb, double *y);
 void vdSqr(int, double *, double *);
+void vdSqrt(int, double *, double *);
 void vdMul(int, double *, double *, double *);
 void vdAdd(int, double *, double *, double *);
 void vdPackV(int n, double *a, int *ia, double *y);
