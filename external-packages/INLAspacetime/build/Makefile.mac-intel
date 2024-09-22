@@ -1,4 +1,4 @@
-CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
+CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = -framework Accelerate 
 TARGET = libINLAspacetime.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))

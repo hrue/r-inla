@@ -1,5 +1,5 @@
-CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
-CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I. -I$(EIGEN)
+CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
+CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I. -I$(EIGEN)
 LDFLAGS = -framework Accelerate 
 TARGET = librSPDE.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c)) $(patsubst %.cpp,%.o,$(wildcard *.cpp))
