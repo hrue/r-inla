@@ -57,7 +57,6 @@ __BEGIN_DECLS
 
 #if defined(INLA_WITH_SIMD)
 //#define SLEEF_ENABLE_OMP_SIMD
-#include <x86intrin.h>
 #include <sleef.h>
 #endif
 
