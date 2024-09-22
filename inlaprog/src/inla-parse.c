@@ -323,6 +323,61 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
+
+#if defined(__AVX__)
+		printf("\t\tCompiler macro defined [__AVX__]\n");
+#endif		
+#if defined(__AVX2__)
+		printf("\t\tCompiler macro defined [__AVX2__]\n");
+#endif		
+#if defined(__AVX512BW__)
+		printf("\t\tCompiler macro defined [__AVX512BW__]\n");
+#endif		
+#if defined(__AVX512CD__)
+		printf("\t\tCompiler macro defined [__AVX512CD__]\n");
+#endif		
+#if defined(__AVX512DQ__)
+		printf("\t\tCompiler macro defined [__AVX512DQ__]\n");
+#endif		
+#if defined(__AVX512F__)
+		printf("\t\tCompiler macro defined [__AVX512F__]\n");
+#endif		
+#if defined(__AVX512VL__)
+		printf("\t\tCompiler macro defined [__AVX512VL__]\n");
+#endif		
+#if defined(__AVX512VNNI__)
+		printf("\t\tCompiler macro defined [__AVX512VNNI__]\n");
+#endif		
+#if defined(__AVXVNNI__)
+		printf("\t\tCompiler macro defined [__AVXVNNI__]\n");
+#endif		
+#if defined(__MMX_WITH_SSE__)
+		printf("\t\tCompiler macro defined [__MMX_WITH_SSE__]\n");
+#endif		
+#if defined(__SSE__)
+		printf("\t\tCompiler macro defined [__SSE__]\n");
+#endif		
+#if defined(__SSE2__)
+		printf("\t\tCompiler macro defined [__SSE2__]\n");
+#endif		
+#if defined(__SSE2_MATH__)
+		printf("\t\tCompiler macro defined [__SSE2_MATH__]\n");
+#endif		
+#if defined(__SSE3__)
+		printf("\t\tCompiler macro defined [__SSE3__]\n");
+#endif		
+#if defined(__SSE4_1__)
+		printf("\t\tCompiler macro defined [__SSE4_1__]\n");
+#endif		
+#if defined(__SSE4_2__)
+		printf("\t\tCompiler macro defined [__SSE4_2__]\n");
+#endif		
+#if defined(__SSE_MATH__)
+		printf("\t\tCompiler macro defined [__SSE_MATH__]\n");
+#endif		
+#if defined(__SSSE3__)
+		printf("\t\tCompiler macro defined [__SSSE3__]\n");
+#endif		
 	}
 
 	openmp_strategy = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), Strdup("DEFAULT")));
