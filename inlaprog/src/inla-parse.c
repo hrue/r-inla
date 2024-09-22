@@ -324,6 +324,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
 
+#if defined(__VERSION__)
+		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
+#endif		
 #if defined(__AVX__)
 		printf("\t\tCompiler macro defined [__AVX__]\n");
 #endif		
