@@ -10075,6 +10075,95 @@
                     pdf = "0inflated"
                 ), 
 
+                "binomialmix" = list(
+                    doc = "Binomial mixture",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 56551,
+                            name = "beta11",
+                            short.name = "beta11",
+                            output.name = "beta11 for binomialmix observations", 
+                            output.name.intern = "beta11 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 56552,
+                            name = "beta12",
+                            short.name = "beta12",
+                            output.name = "beta12 for binomialmix observations", 
+                            output.name.intern = "beta12 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 56553,
+                            name = "beta13",
+                            short.name = "beta13",
+                            output.name = "beta13 for binomialmix observations", 
+                            output.name.intern = "beta13 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 56554,
+                            name = "beta21",
+                            short.name = "beta21",
+                            output.name = "beta21 for binomialmix observations", 
+                            output.name.intern = "beta21 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 56555,
+                            name = "beta22",
+                            short.name = "beta22",
+                            output.name = "beta22 for binomialmix observations", 
+                            output.name.intern = "beta22 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 56556,
+                            name = "beta23",
+                            short.name = "beta23",
+                            output.name = "beta23 for binomialmix observations", 
+                            output.name.intern = "beta23 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "logit", "probit"), 
+                    pdf = "binomialmix"
+                ), 
+
                 binomial = list(
                     doc = "The Binomial likelihood",
                     hyper = list(),

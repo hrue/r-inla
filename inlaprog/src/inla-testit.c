@@ -4439,43 +4439,43 @@ int testit(int argc, char **argv)
 		double tref[2];
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_exp(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			vdExp(n, x, y);
 		}
 		tref[1] += GMRFLib_timer();
 		printf("exp MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_log(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			vdLn(n, x, y);
 		}
 		tref[1] += GMRFLib_timer();
 		printf("log MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_log1p(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			vdLog1p(n, x, y);
 		}
 		tref[1] += GMRFLib_timer();
 		printf("log1p MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 	}
 #else
-	printf("Need this:  defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)\n");
+		printf("Need this:  defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)\n");
 #endif
 		break;
 
@@ -4494,14 +4494,14 @@ int testit(int argc, char **argv)
 		double tref[2];
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_exp(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 #pragma omp simd
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				y[i] = exp(x[i]);
 			}
 		}
@@ -4509,14 +4509,14 @@ int testit(int argc, char **argv)
 		printf("exp PLAIN %.4f _exp %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_log(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 #pragma omp simd
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				y[i] = log(x[i]);
 			}
 		}
@@ -4524,14 +4524,14 @@ int testit(int argc, char **argv)
 		printf("log PLAIN %.4f  _log %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 
 		tref[0] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 			GMRFLib_log1p(n, x, y);
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for(int j = 0; j < m; j++) {
+		for (int j = 0; j < m; j++) {
 #pragma omp simd
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				y[i] = log1p(x[i]);
 			}
 		}

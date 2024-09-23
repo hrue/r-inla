@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Binomial-mixture likelihood}
+
+\subsection*{Parametrisation}
+
+\subsubsection*{Details}
+
+This likelihood is a mixture of three binomials, where two of them are
+simple predictors and one is general. The probability for success is
+\begin{displaymath}
+    p = w_1 p_1 + w_2 p_2 + w_3 p_3
+\end{displaymath}
+where $w_1 + w_2 + w_3 = 1$ are the positive weights, and
+\begin{displaymath}
+    \text{logit}(p_3) = \eta
+\end{displaymath}
+where the linear predictor $\eta$ is defined in the formula. Further,
+\begin{displaymath}
+    \text{logit}(p_1) = \beta_{1} z_{1} + \beta_{2} z_{2} +
+    \beta_{3} z_{3}
+\end{displaymath}
+and
+\begin{displaymath}
+    \text{logit}(p_2) = \beta_{4} z_{4} + \beta_{5} z_{5} +
+    \beta_{6} z_{6}
+\end{displaymath}
+for fixed covariates $z_{i}$. 
+
+\subsection*{Link-function}
+
+The link-function is given as usual, and they are all equal.
+
+\subsection*{Hyperparameters}
+
+The six regression coefficients $\beta_{i}$ are treated as
+hyperparameters. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="binomialmix"}
+\item Required arguments: A $n\times 2$ matrix $Y$ with the
+observations and the number of trials $s$,  $Y=(y, s)$,
+    a $n\times 6$ matrix $Z$ with the covariates $Z=c(z_1, \ldots, z_6)$,
+    and a $n\times 2$ matrix $W$ with weights $W=(w_1, w_2)$. The
+    \texttt{inla.mdata} is used as
+\begin{verbatim}
+     inla.mdata(Y, Z, W) ~ ...
+\end{verbatim}
+\end{itemize}
+
+
+\clearpage
+\subsubsection*{Hyperparameter spesification and default values}
+{\small \input{../hyper/likelihood/binomialmix.tex}}
+
+\clearpage
+\subsection*{Example}
+Here is a simple example.
+
+{\small \verbatiminput{example-binomialmix.R}}
+
+
+\end{document}
+
+% LocalWords:  np Hyperparameters Ntrials gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

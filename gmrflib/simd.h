@@ -54,12 +54,10 @@
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
 #if defined(INLA_WITH_SIMD)
 //#define SLEEF_ENABLE_OMP_SIMD
 #include <sleef.h>
 #endif
-
 void GMRFLib_exp(int, double *, double *);
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y);
 void GMRFLib_log(int, double *, double *);

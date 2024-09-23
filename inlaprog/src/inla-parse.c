@@ -326,61 +326,61 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
-#endif		
+#endif
 #if defined(__AVX__)
 		printf("\t\tCompiler macro defined [__AVX__]\n");
-#endif		
+#endif
 #if defined(__AVX2__)
 		printf("\t\tCompiler macro defined [__AVX2__]\n");
-#endif		
+#endif
 #if defined(__AVX512BW__)
 		printf("\t\tCompiler macro defined [__AVX512BW__]\n");
-#endif		
+#endif
 #if defined(__AVX512CD__)
 		printf("\t\tCompiler macro defined [__AVX512CD__]\n");
-#endif		
+#endif
 #if defined(__AVX512DQ__)
 		printf("\t\tCompiler macro defined [__AVX512DQ__]\n");
-#endif		
+#endif
 #if defined(__AVX512F__)
 		printf("\t\tCompiler macro defined [__AVX512F__]\n");
-#endif		
+#endif
 #if defined(__AVX512VL__)
 		printf("\t\tCompiler macro defined [__AVX512VL__]\n");
-#endif		
+#endif
 #if defined(__AVX512VNNI__)
 		printf("\t\tCompiler macro defined [__AVX512VNNI__]\n");
-#endif		
+#endif
 #if defined(__AVXVNNI__)
 		printf("\t\tCompiler macro defined [__AVXVNNI__]\n");
-#endif		
+#endif
 #if defined(__MMX_WITH_SSE__)
 		printf("\t\tCompiler macro defined [__MMX_WITH_SSE__]\n");
-#endif		
+#endif
 #if defined(__SSE__)
 		printf("\t\tCompiler macro defined [__SSE__]\n");
-#endif		
+#endif
 #if defined(__SSE2__)
 		printf("\t\tCompiler macro defined [__SSE2__]\n");
-#endif		
+#endif
 #if defined(__SSE2_MATH__)
 		printf("\t\tCompiler macro defined [__SSE2_MATH__]\n");
-#endif		
+#endif
 #if defined(__SSE3__)
 		printf("\t\tCompiler macro defined [__SSE3__]\n");
-#endif		
+#endif
 #if defined(__SSE4_1__)
 		printf("\t\tCompiler macro defined [__SSE4_1__]\n");
-#endif		
+#endif
 #if defined(__SSE4_2__)
 		printf("\t\tCompiler macro defined [__SSE4_2__]\n");
-#endif		
+#endif
 #if defined(__SSE_MATH__)
 		printf("\t\tCompiler macro defined [__SSE_MATH__]\n");
-#endif		
+#endif
 #if defined(__SSSE3__)
 		printf("\t\tCompiler macro defined [__SSSE3__]\n");
-#endif		
+#endif
 	}
 
 	openmp_strategy = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), Strdup("DEFAULT")));
@@ -874,6 +874,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDCENPOISSON1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_cenpoisson1;
 		ds->data_id = L_ZEROINFLATEDCENPOISSON1;
+		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALMIX")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialmix;
+		ds->data_id = L_BINOMIALMIX;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
@@ -1409,6 +1413,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 		}
 	}
+		break;
+
+	case L_BINOMIALMIX:
+		// later
 		break;
 
 	case L_AGAUSSIAN:
@@ -4717,6 +4725,88 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.binomial0_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
+		break;
+
+	case L_BINOMIALMIX:
+	{
+		const int six = 6;
+		for (i = 0; i < six; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_nfixed = Calloc(six, int);
+		ds->data_nprior = Calloc(six, Prior_tp);
+		ds->data_observations.binmix_beta = Calloc(six, double **);
+
+		for (i = 0; i < six; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->mode_use_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
+			}
+
+			HYPER_NEW(ds->data_observations.binmix_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.binmix_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for binomialmix observations", i + 1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.binmix_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
 				mb->theta_map[mb->ntheta] = map_identity;

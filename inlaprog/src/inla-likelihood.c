@@ -594,6 +594,18 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_BINOMIALMIX:
+	{
+		P(ncol_data_all);
+		assert(ncol_data_all == 11);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		for (i = 0; i < na; i++) {
+			a[i] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -699,6 +711,25 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		}
 	}
 
+	if (ds->data_id == L_BINOMIALMIX) {
+		// re-arrange data so they become more accessible
+		ds->data_observations.binmix_dat = Calloc(mb->predictor_ndata, double *);
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			ds->data_observations.binmix_dat[i] = Calloc(na, double);
+			for (k = 0; k < na; k++) {
+				ds->data_observations.binmix_dat[i][k] = a[k][i];
+			}
+			if (!(ds->data_observations.y[i] >= 0 && ds->data_observations.y[i] <= ds->data_observations.binmix_dat[i][8])) {
+				char *msg = NULL;
+				GMRFLib_sprintf(&msg, "binomialmix Ntrials[%1d] = %g y[%1d] = %g is void\n", i,
+						ds->data_observations.y[i], ds->data_observations.binmix_dat[i][8]);
+				inla_error_general(msg);
+			}
+		}
+		for (i = 0; i < na; i++) {
+			Free(a[i]);
+		}
+	}
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -938,7 +969,7 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 				if (0 && m >= 8L) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 					double tmp[mm];
 					GMRFLib_daxpb(m, -1.0, x, y, tmp);
 					GMRFLib_sqr(m, tmp, tmp);
@@ -1409,7 +1440,7 @@ int loglikelihood_fl(int thread_id, double *__restrict logll, double *__restrict
 			}
 		}
 
-		size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+		size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 		double eta[mm];
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -2459,7 +2490,7 @@ int loglikelihood_poisson(int thread_id, double *__restrict logll, double *__res
 			if ((PREDICTOR_SCALE == 1.0)) {
 				const int mkl_lim = 4L;
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 					double xx[mm];
 					double exp_x[mm];
 #pragma omp simd
@@ -2818,9 +2849,9 @@ int loglikelihood_bell(int thread_id, double *__restrict logll, double *__restri
 	LINK_INIT;
 
 	if (m > 0) {
-		size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
-		double mean[mm]; 
-		double lambda[mm]; 
+		size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
+		double mean[mm];
+		double lambda[mm];
 #pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -3002,7 +3033,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 		if (ds->data_observations.link_simple_invlinkfunc == link_logit) {
 			if (ny >= mkl_lim) {
-				size_t mm = GMRFLib_align_simple((size_t)ny, sizeof(double));
+				size_t mm = GMRFLib_align_simple((size_t) ny, sizeof(double));
 				double w[mm], ww[mm];
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
@@ -3037,7 +3068,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				double elogll0 = exp(logll0);
 
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 					double xx[mm], exx[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
@@ -3066,7 +3097,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			} else {
 
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 					double w[mm], ww[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
@@ -3250,6 +3281,86 @@ int loglikelihood_0binomialS(int thread_id, double *__restrict logll, double *__
 		for (int i = 0; i < -m; i++) {
 			double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = prob + (1.0 - prob) * val;
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_binomialmix(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			      void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double *dat = ds->data_observations.binmix_dat[idx];
+	double n = dat[8];
+	double ny = n - y;
+
+	if (ISZERO(y) && ISZERO(n)) {
+		double val = (m > 0 ? 0.0 : 1.0);
+		for (int i = 0; i < m; i++) {
+			logll[i] = val;
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	if (G_norm_const_compute[idx]) {
+		gsl_sf_result res = { 0, 0 };
+		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		G_norm_const[idx] = res.val;
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+	LINK_INIT;
+
+	double p1_intern = 0.0;
+	for (int i = 0; i < 3; i++) {
+		p1_intern += ds->data_observations.binmix_beta[i][thread_id][0] * dat[i];
+	}
+	double p1 = PREDICTOR_INVERSE_LINK(p1_intern);
+
+	int offset = 3;
+	double p2_intern = 0.0;
+	for (int i = 0; i < 3; i++) {
+		p2_intern += ds->data_observations.binmix_beta[offset + i][thread_id][0] * dat[offset + i];
+	}
+	double p2 = PREDICTOR_INVERSE_LINK(p2_intern);
+
+	double p12 = dat[6] * p1 + dat[7] * p2;
+	double w3 = 1.0 - (dat[6] + dat[7]);
+	assert(w3 >= 0 && w3 <= 1.0);
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		if (ISZERO(y)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double p = p12 + w3 * PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = normc + ny * LOG_1mp(p);
+			}
+		} else if (ISZERO(ny)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double p = p12 + w3 * PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = normc + y * LOG_p(p);
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double p = p12 + w3 * PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = normc + y * LOG_p(p) + ny * LOG_1mp(p);
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		for (int i = 0; i < -m; i++) {
+			double p = p12 + w3 * PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
 		}
 	}
 
@@ -4259,8 +4370,8 @@ int loglikelihood_negative_binomial(int thread_id, double *__restrict logll, dou
 						}
 					}
 				} else {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
-					double ex[mm], lx[mm]; 
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
+					double ex[mm], lx[mm];
 
 					GMRFLib_exp(m, x, ex);
 					GMRFLib_dscale(m, E / size, ex);
@@ -4902,8 +5013,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			if (ISZERO(y)) {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
-					double v_eta[mm], v_ee[mm], v_lee[mm]; 
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
+					double v_eta[mm], v_ee[mm], v_lee[mm];
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -4933,8 +5044,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 				}
 			} else if (ISZERO(ny)) {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
-					double v_eta[mm], v_ee[mm], v_lee[mm]; 
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
+					double v_eta[mm], v_ee[mm], v_lee[mm];
 
 					if (fast) {
 #pragma omp simd
@@ -4965,8 +5076,8 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 				}
 			} else {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t)m, sizeof(double));
-					double v_eta[mm], v_meta[mm], v_ee[mm], v_iee[mm], v_lee[mm], v_liee[mm]; 
+					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
+					double v_eta[mm], v_meta[mm], v_ee[mm], v_iee[mm], v_lee[mm], v_liee[mm];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);

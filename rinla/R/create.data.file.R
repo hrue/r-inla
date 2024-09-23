@@ -648,7 +648,27 @@
             my.stop(paste0("family:", family, ". NA's in arguments 'E/Ntrials', are not allowed"))
         }
 
+    } else if (inla.one.of(family, c("binomialmix"))) {
+
+        response <- cbind(ind, y.orig)
+        na.dat <- is.na(response[, 2L])
+        response <- response[!na.dat,, drop = FALSE]
+        Z <- response[, 4:9, drop = FALSE]
+        Z[is.na(Z)] <- 0
+        cov.names <- paste0("Z", 1:6)
+        colnames(Z) <- cov.names
+
+        W <- response[, 10:11, drop = FALSE]
+        stopifnot(all(W >= 0))
+        stopifnot(all(rowSums(W) <= 1))
+        w.names <- paste0("W", 1:2)
+        colnames(W) <- w.names
+
+        colnames(response) <- c("IDX", "Y", "Ntrials", cov.names, w.names)
+        response <- cbind(IDX = response$IDX, Z, W, Ntrials = response$Ntrials, Y = response$Y)
+
     } else if (inla.one.of(family, c("occupancy"))) {
+
         stopifnot(y.attr[1] == 2)
         ny <- y.attr[2]
         m <- y.attr[3]
