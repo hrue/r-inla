@@ -10,7 +10,7 @@ export INLA_MAC=${INLA_MAC-"rueh@kw-16659.kaust.edu.sa"}
 export INLA_MAC_PORT=${INLA_MAC_PORT-"22"}
 
 export INLA_MAC_ARM64=${INLA_MAC_ARM64-"rueh@kw-18302.kaust.edu.sa"}
-export INLA_MAC_ARM64_PORT=${INLA_MAC_ARM64_PORT-"22"}
+export INLA_MAC_ARM64_PORT=${INLA_MAC_ARM64_PORT-"5555"}
 
 export INLA_LINUX=hrue@localhost
 export INLA_LINUX_PORT=2222
