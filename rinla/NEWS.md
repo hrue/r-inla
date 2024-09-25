@@ -1,4 +1,4 @@
-# INLA 24.09.25
+# INLA 24.09.26
 * Link with armpl-library for Mac-ARM64
 * New experimental likelihood 'binomialmix'
 * Various code improvements
