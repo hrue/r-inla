@@ -103,7 +103,7 @@ typedef struct {
 	GMRFLib_openmp_strategy_tp strategy;
 	int max_threads;
 	int *max_threads_nested;
-	int blas_num_threads;
+	int blas_num_threads_force;
 	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
 	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;

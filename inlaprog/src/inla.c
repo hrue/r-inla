@@ -5628,7 +5628,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)..... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
-		printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		if (GMRFLib_openmp->blas_num_threads_force) {
+			printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
+		} else {
+			printf("\tblas.num.threads........... [%s]\n", "adaptive");
+		}
 		printf("\tDensity-strategy........... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
@@ -6575,8 +6579,6 @@ int main(int argc, char **argv)
 #if !defined(WINDOWS)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
-	int blas_num_threads_set = 0;
-	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
 #if !defined(WINDOWS)
@@ -6591,7 +6593,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
-	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
+	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
@@ -6668,10 +6670,10 @@ int main(int argc, char **argv)
 
 		case 'B':
 		{
-			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
-				blas_num_threads_default = IMAX(blas_num_threads_default, 1);
-				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
-				blas_num_threads_set = 1;
+			int bnt;
+			if (inla_sread_ints(&bnt, 1, optarg) == INLA_OK) {
+				bnt = IMAX(bnt, 0);
+				GMRFLib_openmp->blas_num_threads_force = bnt;
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -6765,10 +6767,6 @@ int main(int argc, char **argv)
 					// much likely it will slow things down.
 					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
-				}
-				if (!blas_num_threads_set) {
-					// this happens unless the -B option have been used already
-					GMRFLib_openmp->blas_num_threads = 1;
 				}
 
 				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
@@ -7082,8 +7080,8 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads);
+				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
+				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads_force);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
