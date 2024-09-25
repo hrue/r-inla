@@ -1,3 +1,8 @@
+# INLA 24.09.25
+* Link with armpl-library for Mac-ARM64
+* New experimental likelihood 'binomialmix'
+* Various code improvements
+
 # INLA 24.09.14
 * Increased number of parameters for model 'intslope'
 * Various code improvements
