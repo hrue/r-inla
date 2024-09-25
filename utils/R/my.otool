@@ -96,11 +96,11 @@ replace () {
 {
     echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
     
-    for f in $HOME/builds/build64/local/lib/libarmpl_lp64.dylib; do
- 	if [ -f $name ]; then
- 	    echo $(myreadlink $f)
- 	fi
-    done
+    if $(otool -L "$@" | grep -q @rpath/); then
+	for f in $(otool -L "$@" | grep @rpath/ | awk -F/ '{print $2}' | awk '{print $1}'); do
+	    echo $(myreadlink $HOME/builds/arm64/local/lib/$f)
+	done
+    fi
 
     for lib in Rblas Rblas.vecLib Rlapack; do
 	name="/Library/Frameworks/R.framework/Versions/Current/Resources/lib/lib$lib.dylib"
