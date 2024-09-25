@@ -8,7 +8,7 @@ build-configs :;
 	./make-builds
 
 update-inla :;
-	-tilix --title="mac64"     -e "ssh -p -p $$INLA_MAC_PORT -x -t $$INLA_MAC         export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update || sleep 30"
+	-tilix --title="mac64"     -e "ssh -p $$INLA_MAC_PORT -x -t $$INLA_MAC         export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update || sleep 30"
 	-tilix --title="mac_arm64" -e "ssh -p $$INLA_MAC_ARM64_PORT -x -t $$INLA_MAC_ARM64   export INLA_TAG=$$INLA_TAG\; make -C builds/arm64   update || sleep 30"
 	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update || sleep 30"
 	-tilix --title="$$INLA_WINDOWS windows64" -e "ssh -p $$INLA_WINDOWS_PORT -x -t $$INLA_WINDOWS export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update || sleep 30"
