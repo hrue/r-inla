@@ -57,8 +57,8 @@ int GMRFLib_set_blas_num_threads(int threads)
 	openblas_set_num_threads(threads);
 #endif	
 #if defined(INLA_WITH_ARMPL)
-	void armpl_set_num_threads(int);
-	armpl_set_num_threads(threads);
+	void armpl_omp_set_num_threads(int);
+	armpl_omp_set_num_threads(threads);
 #endif	
 	return GMRFLib_SUCCESS;
 }
