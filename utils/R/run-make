@@ -7,11 +7,16 @@ is_set() {
 umask 0022
 
 export INLA_MAC=${INLA_MAC-"rueh@kw-16659.kaust.edu.sa"}
+export INLA_MAC_PORT=${INLA_MAC_PORT-"22"}
+
 export INLA_MAC_ARM64=${INLA_MAC_ARM64-"rueh@kw-18302.kaust.edu.sa"}
+export INLA_MAC_ARM64_PORT=${INLA_MAC_ARM64_PORT-"5555"}
 
 export INLA_LINUX=hrue@localhost
 export INLA_LINUX_PORT=2222
+
 export INLA_WINDOWS=hrue@localhost
+export INLA_WINDOWS_PORT=${INLA_WINDOWS_PORT-"22"}
 
 output () {
     echo "$0: $@"
@@ -37,13 +42,20 @@ else
 fi
 
 export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{print $2}')
-output INLA_MAC=$INLA_MAC
-output INLA_MAC_ARM64=$INLA_MAC_ARM64
-output INLA_LINUX=$INLA_LINUX
-output INLA_LINUX_PORT=$INLA_LINUX_POT
-output INLA_WINDOWS=$INLA_WINDOWS
 output INLA_TAG=$INLA_TAG
 output INLA_VERSION=$INLA_VERSION
+
+output INLA_MAC=$INLA_MAC
+output INLA_MAC_PORT=$INLA_MAC_PORT
+
+output INLA_MAC_ARM64=$INLA_MAC_ARM64
+output INLA_MAC_ARM64_PORT=$INLA_MAC_ARM64_PORT
+
+output INLA_LINUX=$INLA_LINUX
+output INLA_LINUX_PORT=$INLA_LINUX_POT
+
+output INLA_WINDOWS=$INLA_WINDOWS
+output INLA_WINDOWS_PORT=$INLA_WINDOWS_PORT
 
 shift 1
 exec make -f Makefile "$@"

@@ -1457,9 +1457,15 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 #define _MAP_DENS(_dens, _x_user, _idx) (func ? (_dens)/(ABS(func(_x_user, MAP_DFORWARD, func_arg))) : \
 					 (tfunc ? (_dens)/(ABS(tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov))) : \
 					  (_dens)))
+#define _MAP_DENS_func(_dens, _x_user, _idx) ((_dens)/(ABS(func(_x_user, MAP_DFORWARD, func_arg))))
+#define _MAP_DENS_tfunc(_dens, _x_user, _idx) ((_dens)/(ABS(tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov))))
+
 #define _MAP_X(_x_user, _idx) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
 			       (tfunc ? tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov) : \
 				(_x_user)))
+#define _MAP_X_func(_x_user, _idx) func(_x_user, MAP_FORWARD, func_arg)
+#define _MAP_X_tfunc(_x_user, _idx) tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov)
+
 #define _MAP_INCREASING(_idx) (func ? func(0.0, MAP_INCREASING, func_arg) : \
 			       (tfunc ? tfunc[_idx]->func(thread_id, 0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
@@ -1591,12 +1597,20 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							D2W_r(i, off, x_user[ii], dens_user); \
 							off += 2;	\
 						}			\
-					} else {			\
+					} else if (func) {		\
 						for (int ii = 0; ii < nn; ii++) { \
 							double dens_user = dens[ii] / density[i]->std_stdev; \
-							D2W_r(i, off, _MAP_X(x_user[ii], i), _MAP_DENS(dens_user, x_user[ii], i)); \
+							D2W_r(i, off, _MAP_X_func(x_user[ii], i), _MAP_DENS_func(dens_user, x_user[ii], i)); \
 							off += 2;	\
 						}			\
+					} else if (tfunc) {		\
+						for (int ii = 0; ii < nn; ii++) { \
+							double dens_user = dens[ii] / density[i]->std_stdev; \
+							D2W_r(i, off, _MAP_X_tfunc(x_user[ii], i), _MAP_DENS_tfunc(dens_user, x_user[ii], i)); \
+							off += 2;	\
+						}			\
+					} else {			\
+						assert(0 == 1);		\
 					}				\
 				} else {				\
 					if (locations) {		\
@@ -1782,7 +1796,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 	Free(d_mode);
 
 #undef _MAP_DENS
+#undef _MAP_DENS_func
+#undef _MAP_DENS_tfunc
 #undef _MAP_X
+#undef _MAP_X_func
+#undef _MAP_X_tfunc
 #undef _MAP_INCREASING
 #undef _MAP_DECREASING
 #undef _FUNC

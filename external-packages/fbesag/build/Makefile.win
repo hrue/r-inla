@@ -1,4 +1,4 @@
-CXXFLAGS = $(FLAGS) -O2 -mtune=generic -fopenmp -pipe -fpic -I.
+CXXFLAGS = $(FLAGS) -O2 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = 
 TARGET = libfbesag.so
 OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))

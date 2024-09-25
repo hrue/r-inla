@@ -1974,6 +1974,19 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_BINOMIALMIX:
+			{
+				int nbeta = 6;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
 			case L_GAMMA:
 			case L_MGAMMA:
 			{
@@ -5615,7 +5628,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)..... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
-		printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		if (GMRFLib_openmp->blas_num_threads_force) {
+			printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
+		} else {
+			printf("\tblas.num.threads........... [%s]\n", "adaptive");
+		}
 		printf("\tDensity-strategy........... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
@@ -5990,14 +6007,20 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			 (func ? func(_x_user, MAP_FORWARD, func_arg) : \
 			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
 			   (_x_user))))
+#define _MAP_X_plain(_x_user) (_x_user)
+#define _MAP_X_func(_x_user) func(_x_user, MAP_FORWARD, func_arg)
+#define _MAP_X_tfunc(_x_user) tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov)
 
-#define _MAP_DX(_x_user) (plain_case ? SIGN(_x_user) : \
+#define _MAP_DX(_x_user) (plain_case ? DSIGN(_x_user) : \
 			  (func ? func(_x_user, MAP_DFORWARD, func_arg) : \
 			   (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov) : \
-			    SIGN(_x_user))))
+			    DSIGN(_x_user))))
+#define _MAP_DX_plain(_x_user) DSIGN(_x_user)
+#define _MAP_DX_func(_x_user) func(_x_user, MAP_DFORWARD, func_arg)
+#define _MAP_DX_tfunc(_x_user) tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov)
 
 	int thread_id = 0;
-	const int plain_case = (!func && !tfunc);
+	const int plain = (!func && !tfunc);
 
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -6021,6 +6044,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
+	GMRFLib_ENTER_ROUTINE;
+
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0 = 0.0, m1 = 0.0, m2 = 0.0;
@@ -6039,7 +6064,6 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		}
 	}
 
-	GMRFLib_ENTER_ROUTINE;
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
 		np = GMRFLib_INT_GHQ_POINTS;
@@ -6058,27 +6082,75 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		m2 = 0.0;
 
 		if (d_mode) {
-#pragma GCC ivdep
-			for (int i = 0; i < np; i++) {
-				double x = xp[i] * stdev + mean;
-				double f = _MAP_X(x);
-				double df = _MAP_DX(x);
-				m1 += wp[i] * f;
-				m2 += wp[i] * SQR(f);
+			if (plain) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_plain(x);
+					double df = _MAP_DX_plain(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
 
-				z[i] = f;
-				ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
-				if ((i == 0) || ldz[i] > ldz[i_max]) {
-					i_max = i;
+					z[i] = f;
+					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					if ((i == 0) || ldz[i] > ldz[i_max]) {
+						i_max = i;
+					}
 				}
+			} else if (func) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_func(x);
+					double df = _MAP_DX_func(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
+
+					z[i] = f;
+					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					if ((i == 0) || ldz[i] > ldz[i_max]) {
+						i_max = i;
+					}
+				}
+			} else if (tfunc) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_tfunc(x);
+					double df = _MAP_DX_tfunc(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
+
+					z[i] = f;
+					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					if ((i == 0) || ldz[i] > ldz[i_max]) {
+						i_max = i;
+					}
+				}
+			} else {
+				assert(0 == 1);
 			}
 		} else {
-#pragma omp simd
-			for (int i = 0; i < np; i++) {
-				double x = xp[i] * stdev + mean;
-				double f = _MAP_X(x);
-				m1 += wp[i] * f;
-				m2 += wp[i] * SQR(f);
+			if (plain) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_plain(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
+				}
+			} else if (func) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_func(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
+				}
+			} else if (tfunc) {
+				for (int i = 0; i < np; i++) {
+					double x = xp[i] * stdev + mean;
+					double f = _MAP_X_tfunc(x);
+					m1 += wp[i] * f;
+					m2 += wp[i] * SQR(f);
+				}
+			} else {
+				assert(0 == 1);
 			}
 		}
 
@@ -6109,12 +6181,26 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			// reusing 'z' for x_user here
 			GMRFLib_density_std2user_n(z, xp, np, density);
 
-			if (plain_case) {
+			if (plain) {
 				Memcpy(ldz, ld, np * sizeof(double));
 			} else {
-				for (int i = 0; i < np; i++) {
-					ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
-					z[i] = _MAP_X(z[i]);
+				if (plain) {
+					for (int i = 0; i < np; i++) {
+						ldz[i] = ld[i] - log(ABS(_MAP_DX_plain(z[i])));
+						z[i] = _MAP_X_plain(z[i]);
+					}
+				} else if (func) {
+					for (int i = 0; i < np; i++) {
+						ldz[i] = ld[i] - log(ABS(_MAP_DX_func(z[i])));
+						z[i] = _MAP_X_func(z[i]);
+					}
+				} else if (tfunc) {
+					for (int i = 0; i < np; i++) {
+						ldz[i] = ld[i] - log(ABS(_MAP_DX_tfunc(z[i])));
+						z[i] = _MAP_X_tfunc(z[i]);
+					}
+				} else {
+					assert(0 == 1);
 				}
 			}
 			GMRFLib_max_value(ldz, np, &i_max);
@@ -6163,11 +6249,20 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		GMRFLib_exp(npm, ldm, ldm);
 		xx = Calloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
-		if (!plain_case) {
-#pragma GCC ivdep
+		if (plain) {
+			// for (int i = 0; i < npm; i++) {
+			// xx[i] = xx[i];
+			// }
+		} else if (func) {
 			for (int i = 0; i < npm; i++) {
-				xx[i] = _MAP_X(xx[i]);
+				xx[i] = _MAP_X_func(xx[i]);
 			}
+		} else if (tfunc) {
+			for (int i = 0; i < npm; i++) {
+				xx[i] = _MAP_X_tfunc(xx[i]);
+			}
+		} else {
+			assert(0 == 1);
 		}
 
 		GMRFLib_mul(npm, ldm, w, ldm);
@@ -6188,7 +6283,13 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 #undef COMPUTE_MODE
 #undef _MAP_X
+#undef _MAP_X_plain
+#undef _MAP_X_func
+#undef _MAP_X_tfunc
 #undef _MAP_DX
+#undef _MAP_DX_plain
+#undef _MAP_DX_func
+#undef _MAP_DX_tfunc
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -6478,8 +6579,6 @@ int main(int argc, char **argv)
 #if !defined(WINDOWS)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
-	int blas_num_threads_set = 0;
-	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
 #if !defined(WINDOWS)
@@ -6494,7 +6593,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
-	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
+	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
@@ -6534,7 +6633,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
 		{
@@ -6571,10 +6670,10 @@ int main(int argc, char **argv)
 
 		case 'B':
 		{
-			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
-				blas_num_threads_default = IMAX(blas_num_threads_default, 1);
-				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
-				blas_num_threads_set = 1;
+			int bnt;
+			if (inla_sread_ints(&bnt, 1, optarg) == INLA_OK) {
+				bnt = IMAX(bnt, 0);
+				GMRFLib_openmp->blas_num_threads_force = bnt;
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -6669,10 +6768,6 @@ int main(int argc, char **argv)
 					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
-				if (!blas_num_threads_set) {
-					// this happens unless the -B option have been used already
-					GMRFLib_openmp->blas_num_threads = 1;
-				}
 
 				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
 					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
@@ -6753,12 +6848,6 @@ int main(int argc, char **argv)
 		{
 			verbose = 0;
 			silent = 1;
-		}
-			break;
-
-		case 'f':
-		{
-			GMRFLib_fpe();
 		}
 			break;
 
@@ -6991,8 +7080,8 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads);
+				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
+				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads_force);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {

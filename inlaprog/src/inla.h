@@ -262,6 +262,7 @@ typedef enum {
 	L_OCCUPANCY,
 	L_SEM,
 	L_EXPPOWER,
+	L_BINOMIALMIX,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -839,6 +840,10 @@ typedef struct {
 	map_func_tp **sem_B_map;
 	void **sem_B_map_arg;
 	void *sem_cache;
+
+	// binomial mix
+	double **binmix_dat;				       // z1..z6, w1, w2, ntrial
+	double ***binmix_beta;
 } Data_tp;
 
 typedef struct {
@@ -2229,6 +2234,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 int loglikelihood_betabinomialna(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_binomialmix(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_cenpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

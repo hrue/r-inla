@@ -3442,7 +3442,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}		\
 						} else {		\
 							cor_abs[i_new] = cor_abs_prev; \
-							cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
+							cor[i_new] = DSIGN(cor[i_new]) * cor_abs_prev; \
 							GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
 							GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 							/* use the maximum weight when they are equal */ \
@@ -4258,7 +4258,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	static double *xp = NULL;
 	static double *wp = NULL;
-	static double *xp2 = NULL;
+	static double *wxp = NULL;
+	static double *wxp2 = NULL;
 
 	if (!wp) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
@@ -4266,9 +4267,11 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			if (!wp) {
 				double *wtmp = NULL;
 				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-				xp2 = Calloc(GMRFLib_INT_GHQ_POINTS, double);
+				wxp = Calloc(GMRFLib_INT_GHQ_POINTS * 2, double);
+				wxp2 = wxp + GMRFLib_INT_GHQ_POINTS;
 				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-					xp2[i] = SQR(xp[i]) - 1.0;
+					wxp[i] = wtmp[i] * xp[i];
+					wxp2[i] = wtmp[i] * (SQR(xp[i]) - 1.0);
 				}
 				wp = wtmp;
 			}
@@ -4282,31 +4285,13 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
 	}
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
-
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	// I do not use 'A'
-	// double A;
-	double B, C, s_inv = 1.0 / sd, s2_inv = SQR(s_inv), tmp;
+	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
+	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp);
+	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp2);
 
-	// optimized version. since xp and wp are symmetric and xp[idx]=0. We do not need 'A'
-	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
-	tmp = wp[ni] * loglik[ni];
-	// A = tmp;
-	B = 0.0;
-	C = -tmp;
-
-#pragma omp simd reduction(+: C, B)
-	for (int i = 0; i < ni; i++) {
-		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
-		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
-		double tt = wp[i] * (loglik[i] + loglik[ii]);
-
-		// A += tt; add reduction...
-		B += tt2 * xp[i];
-		C += tt * xp2[i];
-	}
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * s_inv;
@@ -4332,8 +4317,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 
 	static double *wp = NULL;
 	static double *xp = NULL;
-	static double *xp2 = NULL;
-	static double *xp3 = NULL;
+	static double *wxp2 = NULL;
+	static double *wxp3 = NULL;
 
 	if (!wp) {
 #pragma omp critical (Name_0713ff01bf46f0328663d7242f8e788872085a66)
@@ -4341,12 +4326,12 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 			if (!wp) {
 				double *wtmp = NULL;
 				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-				xp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
-				xp3 = xp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
+				wxp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+				wxp3 = wxp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
 				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 					double z2 = SQR(xp[i]);
-					xp2[i] = z2 - 1.0;
-					xp3[i] = 3.0 - 6.0 * z2 + SQR(z2);
+					wxp2[i] = wtmp[i] * (z2 - 1.0);
+					wxp3[i] = wtmp[i] * (3.0 - 6.0 * z2 + SQR(z2));
 				}
 				wp = wtmp;
 			}
@@ -4354,6 +4339,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	}
 
 	double *x_user = NULL, *loglik = NULL;
+	double s2_inv = 1.0 / SQR(sd);
+
 	if (workspace) {
 		x_user = workspace;
 	} else {
@@ -4364,25 +4351,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	// I do not use 'A'
-	// double A;
-	double B, C, s2_inv = 1.0 / SQR(sd);
-
-	// optimized version, as both xp and wp are symmetric and xp[idx]=0
-	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
-	double tmp = wp[ni] * loglik[ni];
-	// A = tmp;
-	B = -tmp;
-	C = 3.0 * tmp;
-
-#pragma omp simd reduction(+: B, C)
-	for (int i = 0; i < ni; i++) {
-		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
-		double tt = wp[i] * (loglik[i] + loglik[ii]);
-		// A += tt; add reduction
-		B += tt * xp2[i];
-		C += tt * xp3[i];
-	}
+	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp2, loglik);
+	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp3, loglik);
 
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
@@ -4684,7 +4654,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			err_dx = DMAX(err_dx, adx);
 			// truncate individual components
 			if (adx > max_correct) {
-				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
+				dx[i] = max_correct * sd[i] * DSIGN(dx[i]);
 			}
 		}
 		dxs[iter] = err_dx;

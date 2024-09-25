@@ -37,8 +37,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restric
 	if (ELM_->dot_product_func) {
 #if !defined(INLA_WITH_MKL)
 		if (GMRFLib_dot_product_gain >= 0.0) {
-#pragma omp atomic
-			GMRFLib_dot_product_gain += ELM_->cpu_gain;
+			_Pragma("omp atomic")
+			    GMRFLib_dot_product_gain += ELM_->cpu_gain;
 		}
 #endif
 		return (ELM_->dot_product_func((GMRFLib_idxval_tp * __restrict) ELM_, (double *__restrict) ARR_));
@@ -140,55 +140,6 @@ double GMRFLib_ddot(int n, double *x, double *y)
 	return ddot_(&n, x, &one, y, &one);
 }
 
-int GMRFLib_isum(int n, int *ix)
-{
-	int s = 0;
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += ix[i];
-	}
-	return s;
-}
-
-double GMRFLib_dsum(int n, double *x)
-{
-	double s = 0.0;
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += x[i];
-	}
-	return s;
-}
-
-double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
-{
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		int *iidx = idx + i;
-
-		s0 += a[iidx[0]];
-		s1 += a[iidx[1]];
-		s2 += a[iidx[2]];
-		s3 += a[iidx[3]];
-
-		s0 += a[iidx[4]];
-		s1 += a[iidx[5]];
-		s2 += a[iidx[6]];
-		s3 += a[iidx[7]];
-	}
-
-#pragma GCC ivdep
-	for (int i = m; i < n; i++) {
-		s0 += a[idx[i]];
-	}
-
-	return s0 + s1 + s2 + s3;
-}
 
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
@@ -197,7 +148,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0, s1, s2, s3)
 	for (int i = 0; i < m; i += roll) {
 		double *vv = v + i;
 		int *iidx = idx + i;
@@ -213,7 +164,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 		s3 += vv[7] * a[iidx[7]];
 	}
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}

@@ -72,15 +72,16 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
 fi
 
 export PARDISOLICMESSAGE=1
-nt="-t$(sysctl -n hw.ncpu):1"
+nproc=$(sysctl -n hw.ncpu)
+nt="-t$nproc:1"
 for arg in "$@"; do 
     case "$arg" in
 	-t*) nt="$arg";;
     esac
 done
-eval $(echo $nt | awk -F: '{gsub(/^-t/,""); nt=1*$2; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
+eval $(echo $nt | awk -v nproc=$nproc -F: '{gsub(/^-t/,""); nt=1*$2; if ($1*1 == 0) $1=nproc; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; print "export VECLIB_MAXIMUM_THREADS=" nt "; "; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
 if [ ! -z ${INLA_DEBUG+x} ]; then
-    set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
+    set | grep -E '^(OMP|VECLIB)_' | while read v; do echo "*** $0 *** $v"; done
     echo " *** $0 *** exec $DIR/$prog $@"
 fi
 

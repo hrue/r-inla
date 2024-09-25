@@ -1,4 +1,4 @@
-CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
+CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = -framework Accelerate 
 TARGET = libfbesag.so
 OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))

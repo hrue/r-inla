@@ -1,5 +1,5 @@
-CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
-CXXFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I. -I$(EIGEN)
+CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
+CXXFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I. -I$(EIGEN)
 LDFLAGS = 
 TARGET = librSPDE.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c)) $(patsubst %.cpp,%.o,$(wildcard *.cpp))

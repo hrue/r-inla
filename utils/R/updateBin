@@ -18,15 +18,15 @@ fix-perm () {
 for m in 64; do
     DIR=$d/mac/${m}bit
     for p in inla fmesher; do 
-	for f in $(ssh -x $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
+	for f in $(ssh -x -p $INLA_MAC_PORT $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync -auvL $INLA_MAC:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_PORT" -auvL $INLA_MAC:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_PORT" -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
     for f in $DIR/lib*malloc.*; do 
@@ -37,15 +37,15 @@ done
 for m in Something; do
     DIR=$d/mac.arm64
     for p in inla fmesher; do 
-	for f in $(ssh -x $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
+	for f in $(ssh -x -p $INLA_MAC_ARM64_PORT $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync -auvL $INLA_MAC_ARM64:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL $INLA_MAC_ARM64:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
     for f in $DIR/lib*malloc.*; do 
 	test -f "$f" && mv -f -v "$f"  $DIR/malloc
@@ -83,14 +83,14 @@ done
 for m in 64; do
     DIR=$d/windows/${m}bit
     for p in inla fmesher; do 
-	for f in $(ssh -x $INLA_WINDOWS bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
+	for f in $(ssh -x -p $INLA_WINDOWS_PORT $INLA_WINDOWS bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x" -auvL $INLA_WINDOWS:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_WINDOWS_PORT" -auvL $INLA_WINDOWS:$f $DIR/. && break
 	    done
 	done
     done
-    rsync --rsh="ssh -x" -auvL $INLA_WINDOWS:builds/windows$m/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_WINDOWS_PORT" -auvL $INLA_WINDOWS:builds/windows$m/external-packages/external $DIR/.
     fix-perm $DIR
 done
 

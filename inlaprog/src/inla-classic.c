@@ -82,7 +82,11 @@ int inla_INLA(inla_tp *mb)
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
-		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		if (GMRFLib_openmp->blas_num_threads_force) {
+			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
+		} else {
+			printf("\tblas.num.threads......... [%s]\n", "adaptive");
+		}
 		printf("\tDensity-strategy......... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
@@ -636,7 +640,11 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
-		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		if (GMRFLib_openmp->blas_num_threads_force) {
+			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
+		} else {
+			printf("\tblas.num.threads......... [%s]\n", "adaptive");
+		}
 		printf("\tDensity-strategy......... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph............ [%d]\n", N);
@@ -812,7 +820,11 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
-		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		if (GMRFLib_openmp->blas_num_threads_force) {
+			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
+		} else {
+			printf("\tblas.num.threads......... [%s]\n", "adaptive");
+		}
 		printf("\tDensity-strategy......... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}

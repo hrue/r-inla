@@ -164,7 +164,6 @@ int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_gsl_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x);
 int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
 
-void GMRFLib_daddto(int n, double *x, double *y);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
@@ -174,6 +173,10 @@ void GMRFLib_fill(int n, double a, double *x);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void GMRFLib_powx(int n, double *x, double a, double *y);
+
+double GMRFLib_dsum(int n, double *x);
+double GMRFLib_dsum_idx(int n, double *a, int *idx);
+int GMRFLib_isum(int n, int *ix);
 
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
 		       double alpha, gsl_matrix * A, gsl_matrix * B, double beta, gsl_matrix * C, int nt);

@@ -84,6 +84,7 @@ double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_signed_pow(double x, double power);
 size_t GMRFLib_align(size_t n, size_t size);
+size_t GMRFLib_align_simple(size_t n, size_t size);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
@@ -93,7 +94,6 @@ int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_find_value(double *array, int len, int direction, double value);
-int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
@@ -158,15 +158,6 @@ void my_sort2_id(int *ix, double *x, int n);
 void my_sort2_id_x(int *ix, double *x, int n, void *work);
 void my_sort2_ii(int *ix, int *x, int n);
 
-
-void GMRFLib_exp(int, double *, double *);
-void GMRFLib_exp_inc(int n, double *x, int inc, double *y);
-void GMRFLib_log(int, double *, double *);
-void GMRFLib_log1p(int, double *, double *);
-void GMRFLib_sqr(int n, double *x, double *y);
-void GMRFLib_add(int n, double *x, double *y, double *z);
-void GMRFLib_mul(int n, double *x, double *y, double *z);
-void GMRFLib_MKL_chose_thresholds(void);
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
 int GMRFLib_is_sorted_ddec(int n, double *a);

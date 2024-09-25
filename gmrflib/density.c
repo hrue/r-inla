@@ -852,7 +852,6 @@ double GMRFLib_evaluate_density__intern(double x, void *param)
 {
 	double dens = 0.0;
 	GMRFLib_density_properties_tp *prop = (GMRFLib_density_properties_tp *) param;
-
 	GMRFLib_evaluate_density(&dens, x, prop->density);
 
 	return dens;
@@ -1798,8 +1797,6 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 
 int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp *density)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 	// this one must be increasing
 	double p[] = { 0.00001, 0.0001, 0.001, 0.01, 0.025,
 		0.05, 0.10, 0.15, 0.2, 0.25, 0.30,
@@ -1815,7 +1812,6 @@ int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp *dens
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

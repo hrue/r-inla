@@ -610,19 +610,9 @@ int GMRFLib_dcmp_abs_r(const void *a, const void *b)
 double GMRFLib_log_apbex(double a, double b)
 {
 	/*
-	 * try to evaluate log(a + exp(b)) safely 
+	 * evaluate log(a + exp(b))
 	 */
-
-	if (a == 0.0)
-		return b;
-
-	double B = exp(b);
-
-	if (B > a) {
-		return b + log1p(0.0 + a / B);
-	} else {
-		return log(a) + log1p(0.0 + B / a);
-	}
+	return (b + log1p(a / exp(b)));
 }
 
 int GMRFLib_normalize(int n, double *x)
@@ -978,23 +968,6 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
-#if !defined(__APPLE__) && !defined(WINDOWS)
-#ifndef __USE_GNU
-#define __USE_GNU 1
-#endif
-#include <fenv.h>
-int GMRFLib_fpe(void)
-{
-	// feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-	return 0;
-}
-#else
-int GMRFLib_fpe(void)
-{
-	return 0;
-}
-#endif
-
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
 	/*
@@ -1114,6 +1087,7 @@ int GMRFLib_is_zero(double *x, int n)
 	if (!x) {
 		return 1;
 	}
+
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
 
@@ -1138,14 +1112,14 @@ int GMRFLib_is_zero(double *x, int n)
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*
-	 * return the MIN(x[]) 
+	 * return the MIN(x[]), optional idx
 	 */
-	int i, imin;
+	int imin;
 	double min_val;
 
 	min_val = x[0];
 	imin = 0;
-	for (i = 1; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		if (x[i] < min_val) {
 			min_val = x[i];
 			imin = i;
@@ -1162,13 +1136,13 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 int GMRFLib_imin_value(int *x, int n, int *idx)
 {
 	/*
-	 * return the IMIN(x[]) 
+	 * return the IMIN(x[]), optional idx
 	 */
-	int i, imin, min_val;
+	int imin, min_val;
 
 	min_val = x[0];
 	imin = 0;
-	for (i = 1; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		if (x[i] < min_val) {
 			min_val = x[i];
 			imin = i;
@@ -1207,13 +1181,13 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 int GMRFLib_imax_value(int *x, int n, int *idx)
 {
 	/*
-	 * return IMAX(x[]) 
+	 * return IMAX(x[]), optional idx
 	 */
-	int i, imax, max_val;
+	int imax, max_val;
 
 	max_val = x[0];
 	imax = 0;
-	for (i = 1; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		if (x[i] > max_val) {
 			max_val = x[i];
 			imax = i;
@@ -1229,13 +1203,13 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 int GMRFLib_iamax_value(int *x, int n, int *idx)
 {
 	/*
-	 * return IMAX(abs(x[]))
+	 * return IMAX(abs(x[])), optional idx
 	 */
-	int i, imax, max_val;
+	int imax, max_val;
 
 	max_val = IABS(x[0]);
 	imax = 0;
-	for (i = 1; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		if (IABS(x[i]) > max_val) {
 			max_val = IABS(x[i]);
 			imax = i;
@@ -1975,152 +1949,6 @@ int my_sort2_dd_test_cutoff(int verbose)
 	return GMRFLib_sort2_dd_cut_off;
 }
 
-double GMRFLib_cdfnorm_inv(double p)
-{
-	// https://arxiv.org/abs/0901.0638
-	int sign = (p < 0.5 ? -1 : 1);
-	double u = DMAX(p, 1.0 - p);
-	double v = -log(2.0 * (1.0 - u));
-	double P = 1.2533141359896652729 +
-	    v * (3.0333178251950406994 +
-		 v * (2.3884158540184385711 +
-		      v * (0.73176759583280610539 +
-			   v * (0.085838533424158257377 +
-				v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
-	double Q = 1 + v * (2.9202373175993672857 +
-			    v * (2.9373357991677046357 +
-				 v * (1.2356513216582148689 +
-				      v * (0.2168237095066675527 +
-					   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
-	return (sign * v * P / Q);
-};
-
-double GMRFLib_cdfnorm(double x)
-{
-	return (0.5 * (1.0 + GMRFLib_erf(M_SQRT1_2 * x)));
-}
-
-double GMRFLib_erf(double x)
-{
-	return erf(x);
-}
-
-double GMRFLib_erfc(double x)
-{
-	return erfc(x);
-}
-
-double GMRFLib_erf_inv(double x)
-{
-	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv((x + 1.0) * 0.5));
-}
-
-double GMRFLib_erfc_inv(double x)
-{
-	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
-}
-
-
-/////////////////////////////////////////////////////////////////////////
-// 
-/////////////////////////////////////////////////////////////////////////
-
-void GMRFLib_exp(int n, double *x, double *y)
-{
-#if defined(INLA_WITH_MKL)
-	vdExp(n, x, y);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = exp(x[i]);
-	}
-#endif
-}
-
-void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
-{
-#if defined(INLA_WITH_MKL)
-	vdExpI(n, x, inc, y, inc);
-#else
-#pragma omp simd
-	for (int i = 0; i < n * inc; i += inc) {
-		y[i] = exp(x[i]);
-	}
-#endif
-}
-
-void GMRFLib_log(int n, double *x, double *y)
-{
-#if defined(INLA_WITH_MKL)
-	vdLn(n, x, y);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = log(x[i]);
-	}
-#endif
-}
-
-void GMRFLib_log1p(int n, double *x, double *y)
-{
-#if defined(INLA_WITH_MKL)
-	vdLog1p(n, x, y);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = log1p(x[i]);
-	}
-#endif
-}
-
-void GMRFLib_sqr(int n, double *x, double *y)
-{
-#if defined(INLA_WITH_MKL)
-	vdSqr(n, x, y);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = x[i] * x[i];
-	}
-#endif
-}
-
-void GMRFLib_add(int n, double *x, double *y, double *z)
-{
-#if defined(INLA_WITH_MKL)
-	vdAdd(n, x, y, z);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		z[i] = x[i] + y[i];
-	}
-#endif
-}
-
-void GMRFLib_mul(int n, double *x, double *y, double *z)
-{
-#if defined(INLA_WITH_MKL)
-	vdMul(n, x, y, z);
-#else
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		z[i] = x[i] * y[i];
-	}
-#endif
-}
-
-size_t GMRFLib_align(size_t n, size_t size)
-{
-	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bits boundary with an added buffer of GMRFLib_L1_CACHELINE bits.
-	// GMRFLib_L1_CACHELINE/size must be an integer
-
-	int m = GMRFLib_L1_CACHELINE / size;
-	int mm = GMRFLib_MEM_ALIGN / size;
-	div_t d = div(n, mm);
-
-	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
-}
-
 #define SOURCE_INCLUDE(CMP)			\
 	for (int i = 0; i < n - 1; i++)		\
 		if (a[i + 1] CMP a[i])		\
@@ -2241,4 +2069,89 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 		offset += size_y;
 	}
 	Free(xy);
+}
+
+// 
+double GMRFLib_cdfnorm_inv(double p)
+{
+	// https://arxiv.org/abs/0901.0638
+	int sign = (p < 0.5 ? -1 : 1);
+	double u = DMAX(p, 1.0 - p);
+	double v = -log(2.0 * (1.0 - u));
+	double P = 1.2533141359896652729 +
+	    v * (3.0333178251950406994 +
+		 v * (2.3884158540184385711 +
+		      v * (0.73176759583280610539 +
+			   v * (0.085838533424158257377 +
+				v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+	double Q = 1 + v * (2.9202373175993672857 +
+			    v * (2.9373357991677046357 +
+				 v * (1.2356513216582148689 +
+				      v * (0.2168237095066675527 +
+					   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+	return (sign * v * P / Q);
+};
+
+double GMRFLib_cdfnorm(double x)
+{
+	return (0.5 * (1.0 + GMRFLib_erf(M_SQRT1_2 * x)));
+}
+
+double GMRFLib_erf(double x)
+{
+	return erf(x);
+}
+
+double GMRFLib_erfc(double x)
+{
+	return erfc(x);
+}
+
+double GMRFLib_erf_inv(double x)
+{
+	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv((x + 1.0) * 0.5));
+}
+
+double GMRFLib_erfc_inv(double x)
+{
+	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+// 
+/////////////////////////////////////////////////////////////////////////
+
+size_t GMRFLib_align(size_t n, size_t size)
+{
+	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bits boundary with an added buffer of GMRFLib_L1_CACHELINE bits.
+	// GMRFLib_L1_CACHELINE/size must be an integer
+
+	int m = GMRFLib_L1_CACHELINE / size;
+	int mm = GMRFLib_MEM_ALIGN / size;
+	div_t d = div(n, mm);
+
+	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
+}
+
+size_t GMRFLib_align_simple(size_t n, size_t size)
+{
+	// return the length so we are a 16 bytes boundary at the end, ie x[n] is at a 16 byte boundary.
+	// that means steps of 2 for double and 4 for ints
+
+	if (size == 8L) {
+		div_t d = div(n, 2L);
+		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
+	} else if (size == 4L) {
+		div_t d = div(n, 4L);
+		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
+	} else if (size == 2L) {
+		div_t d = div(n, 8L);
+		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
+	} else if (size == 16L) {
+		return n;
+	} else {
+		fprintf(stderr, "\nADD CODE HERE\n");
+		assert(0 == 1);
+	}
 }
