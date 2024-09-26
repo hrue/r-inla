@@ -42,6 +42,7 @@
                                          "Fedora Linux-38", 
                                          "Fedora Linux-39", 
                                          "Fedora Linux-40", 
+                                         "Fedora Linux-41", 
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
                                          "Ubuntu-20.04", 
