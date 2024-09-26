@@ -11,7 +11,7 @@ DIR=${DIR%fmesher.exe}
 ## echo $DIR
 
 
-objdump=x86_64-w64-mingw32-objdump
+objdump=x86_64-w64-mingw32ucrt-objdump
 {
     for f in "$@"; do
 	if true; then
