@@ -1,9 +1,9 @@
-CXXFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
+CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = 
 TARGET = libfbesag.so
-OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 $(TARGET) : $(OBJ)
-	$(CXX) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp -lm
+	  $(CC) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp -lm
 
 clean :; rm -f $(TARGET) $(OBJ)
