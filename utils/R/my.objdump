@@ -26,7 +26,4 @@ objdump=x86_64-w64-mingw32-objdump
 } | sort | uniq | \
     while read f; do
 	if [ -f $DIR/$f ]; then echo $DIR/$f; else echo $f; fi
-    done | sort | uniq
-
-
-							  
+    done | sort | uniq | grep -v ^api-ms-win-crt
