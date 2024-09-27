@@ -54,11 +54,9 @@
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-
 #if defined(INLA_WITH_ARMPL)
 #include "armpl_sparse.h"
 #endif
-
     typedef struct {
 	int n;
 	int n_alloc;
@@ -88,7 +86,7 @@ typedef enum {
 	IDXVAL_SERIAL,
 	IDXVAL_SERIAL_MKL,
 	IDXVAL_SERIAL_MKL_ALT,
-	IDXVAL_SERIAL_ARMPL, 
+	IDXVAL_SERIAL_ARMPL,
 	IDXVAL_GROUP,
 	IDXVAL_GROUP_MKL,
 	IDXVAL_GROUP_MKL_ALT

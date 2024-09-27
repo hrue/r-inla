@@ -559,7 +559,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	return GMRFLib_SUCCESS;
 #endif
 #if defined(INLA_WITH_ARMPL)
-	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val,  0);
+	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
 	assert(info == ARMPL_STATUS_SUCCESS);
 	h->spvec_in_use = 1;
 	h->preference = IDXVAL_SERIAL_ARMPL;
@@ -573,7 +573,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
 	}
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -1191,7 +1190,7 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 		if (hold->spvec_in_use) {
 
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec);
-			assert(info == ARMPL_STATUS_SUCCESS); 
+			assert(info == ARMPL_STATUS_SUCCESS);
 			hold->spvec_in_use = 0;
 		}
 #endif
@@ -1319,7 +1318,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

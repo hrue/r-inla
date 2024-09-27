@@ -207,7 +207,7 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 #endif							       /* if defined(INLA_WITH_MKL) */
 
 #if defined(INLA_WITH_ARMPL)
-double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
+double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double res = 0.0;
 	armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec, ARR_, &res);

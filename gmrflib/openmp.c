@@ -37,7 +37,7 @@
 #define omp_get_nested() (omp_get_max_active_levels() > 1 ? 1 : 0)
 
 static int blas_num_threads = 1;
-int GMRFLib_get_blas_num_threads(void) 
+int GMRFLib_get_blas_num_threads(void)
 {
 	return blas_num_threads;
 }
@@ -55,11 +55,11 @@ int GMRFLib_set_blas_num_threads(int threads)
 #if defined(INLA_WITH_OPENBLAS)
 	void openblas_set_num_threads(int);
 	openblas_set_num_threads(threads);
-#endif	
+#endif
 #if defined(INLA_WITH_ARMPL)
 	void armpl_omp_set_num_threads(int);
 	armpl_omp_set_num_threads(threads);
-#endif	
+#endif
 	return GMRFLib_SUCCESS;
 }
 
@@ -83,7 +83,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	int nested;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	
+
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
@@ -444,8 +444,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] blas.num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,
-		       GMRFLib_MAX_THREADS(), nt, blas_num_threads,
-		       GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
+		       GMRFLib_MAX_THREADS(), nt, blas_num_threads, GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	}
 
 	return GMRFLib_SUCCESS;

@@ -52,9 +52,7 @@
 #endif
 
 __BEGIN_DECLS
-
 #include "GMRFLib/GMRFLibP.h"
-
 double GMRFLib_ddot(int n, double *x, double *y);
 double GMRFLib_ddot_idx(int n, double *v, double *a, int *idx);
 double GMRFLib_ddot_idx_mkl(int n, double *v, double *a, int *idx);
@@ -118,7 +116,7 @@ void GMRFLib_chose_threshold_ddot(void);
 
 #if defined(INLA_WITH_ARMPL)
 #include "armpl_sparse.h"
-double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 #endif
 
 __END_DECLS
