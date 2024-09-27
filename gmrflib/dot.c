@@ -35,7 +35,7 @@
 double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	if (ELM_->dot_product_func) {
-#if !defined(INLA_WITH_MKL)
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 		if (GMRFLib_dot_product_gain >= 0.0) {
 			_Pragma("omp atomic")
 			    GMRFLib_dot_product_gain += ELM_->cpu_gain;
@@ -205,3 +205,13 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 }
 
 #endif							       /* if defined(INLA_WITH_MKL) */
+
+#if defined(INLA_WITH_ARMPL)
+double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
+{
+	double res = 0.0;
+	armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec, ARR_, &res);
+	assert(info == ARMPL_STATUS_SUCCESS);
+	return (res);
+}
+#endif
