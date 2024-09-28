@@ -1094,6 +1094,8 @@ inla.parse.Bmatrix.test <- function() {
     }
     if (!is.null(inla.spec$verbose) && inla.spec$verbose) {
         cat("optpar.fp = stdout\n", sep = " ", file = file, append = TRUE)
+    } else {
+        cat("## optpar.fp = stdout\n", sep = " ", file = file, append = TRUE)
     }
 
     if (!is.null(inla.spec$reordering)) {
