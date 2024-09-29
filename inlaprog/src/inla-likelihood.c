@@ -3063,7 +3063,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		// tref[1] -= GMRFLib_timer();
 
 		double off = OFFSET(idx);
-		if (PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
+		if (0 && PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
 			if (yzero) {
 				double elogll0 = exp(logll0);
 
@@ -3095,7 +3095,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 					}
 				}
 			} else {
-
 				if (m >= mkl_lim) {
 					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
 					double w[mm], ww[mm];
@@ -3110,6 +3109,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 						logll[i] = logll0 - w[i];
 					}
 				} else {
+
+
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						double exd = exp(-(x[i] + off));
@@ -3119,9 +3120,22 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			}
 		} else {
 			if (yzero) {
+				double xcrit = -0.5 * logll0;
+				double x0 = 0.9 * xcrit;
+				double x1 = 0.99 * xcrit;
 				for (int i = 0; i < m; i++) {
-					double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
-					logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
+					double xx = x[i] + off;
+					if (xx < x0) {
+						double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
+						logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
+					} else {
+						double ex0 = exp(-x0);
+						double a = exp(logll0);
+						xx = x0 + (x1-x0) * (1.0 - exp(-(xx - x0)));
+						logll[i] =  log((a+ex0) / (1.0+ex0)) +
+							((ex0*(a-1.0)) / ((a + ex0)*(1.0+ex0)))*(xx-x0) +
+							0.5 * (((-a + SQR(ex0))*(a-1)*ex0) / (SQR(a+ex0) * SQR(1+ex0))) * SQR(xx-x0);
+					}
 				}
 			} else {
 				for (int i = 0; i < m; i++) {
