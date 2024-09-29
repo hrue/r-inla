@@ -381,7 +381,32 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 #if defined(__SSSE3__)
 		printf("\t\tCompiler macro defined [__SSSE3__]\n");
 #endif
+#if defined(INLA_WITH_PARDISO)
+		printf("\t\tCompiled with -DINLA_WITH_PARDISO\n");
+#endif
+#if defined(INLA_WITH_PARDISO_WORKAROUND)
+		printf("\t\tCompiled with -DINLA_WITH_PARDISO_WORKAROUND\n");
+#endif
+#if defined(INLA_WITH_LIBR)
+		printf("\t\tCompiled with -DINLA_WITH_LIBR\n");
+#endif
+#if defined(INLA_WITH_MUPARSER)
+		printf("\t\tCompiled with -DINLA_WITH_MUPARSER\n");
+#endif
+#if defined(INLA_WITH_SIMD)
+		printf("\t\tCompiled with -DINLA_WITH_SIMD\n");
+#endif
+#if defined(INLA_WITH_MKL)
+		printf("\t\tCompiled with -DINLA_WITH_MKL\n");
+#endif
+#if defined(INLA_WITH_OPENBLAS)
+		printf("\t\tCompiled with -DINLA_WITH_OPENBLAS\n");
+#endif
+#if defined(INLA_WITH_ARMPL)
+		printf("\t\tCompiled with -DINLA_WITH_ARMPL\n");
+#endif
 	}
+
 
 	openmp_strategy = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), Strdup("DEFAULT")));
 	if (mb->verbose) {

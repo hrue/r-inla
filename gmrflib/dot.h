@@ -114,5 +114,10 @@ void GMRFLib_chose_threshold_ddot(void);
 #define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_dot_product(v_, a_)
 #endif
 
+#if defined(INLA_WITH_ARMPL)
+#include "armpl_sparse.h"
+double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+#endif
+
 __END_DECLS
 #endif

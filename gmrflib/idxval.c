@@ -43,6 +43,10 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
+#if defined(INLA_WITH_ARMPL)
+#include "armpl_sparse.h"
+#endif
+
 #define IDX_ALLOC_INITIAL 8
 #define IDX_ALLOC_ADD     128
 #define IDX_ALLOC_NDIV    4
@@ -553,15 +557,22 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
 	h->cpu_gain = 0.0;
 	return GMRFLib_SUCCESS;
-#else
+#endif
+#if defined(INLA_WITH_ARMPL)
+	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
+	assert(info == ARMPL_STATUS_SUCCESS);
+	h->spvec_in_use = 1;
+	h->preference = IDXVAL_SERIAL_ARMPL;
+	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_armpl;
+	h->cpu_gain = 0.0;
+	return GMRFLib_SUCCESS;
+#endif
 	if (!prepare || !GMRFLib_internal_opt) {
 		h->preference = IDXVAL_SERIAL_MKL;
 		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial;
 		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
 	}
-#endif
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -1175,6 +1186,14 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 		if (hold->g_mem) {
 			Free(hold->g_mem);
 		}
+#if defined(INLA_WITH_ARMPL)
+		if (hold->spvec_in_use) {
+
+			armpl_status_t info = armpl_spvec_destroy(hold->spvec);
+			assert(info == ARMPL_STATUS_SUCCESS);
+			hold->spvec_in_use = 0;
+		}
+#endif
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;
@@ -1299,7 +1318,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

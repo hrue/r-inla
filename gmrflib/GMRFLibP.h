@@ -553,7 +553,35 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+                        _Pragma("omp parallel for num_threads(nt__) schedule(guided)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
+		}							\
+		Free(work__);						\
+        }
+
+#define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
+	if (1) {							\
+		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
+			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
+		int tmax__ = thread_max_;				\
+		int len_work__ = IMAX(1, len_work_);			\
+		int n_work__ = IMAX(1, n_work_);			\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
+		if (nt__ > 1) {						\
+                        _Pragma("omp parallel for num_threads(nt__) schedule(guided)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\

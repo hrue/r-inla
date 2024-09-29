@@ -5592,7 +5592,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 	}
 #endif
-#if !defined(INLA_WITH_MKL)
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 	// report timings
 	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
@@ -5658,7 +5658,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
 			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
 #endif
-#if !defined(INLA_WITH_MKL)
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 			printf("\tOptimizing dot-products.... serial[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
 			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[2]);
 			printf("\t                                serial[%4.1f] group[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
@@ -6909,7 +6909,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(INLA_WITH_MKL)
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
 	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {

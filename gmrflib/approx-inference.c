@@ -836,7 +836,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			cc[idx] += ccoof[idx];				\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
+			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+			omp_set_num_threads(nt);
+			RUN_CODE_BLOCK(nt, 0, 0);
+			omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
+		} else {
+			RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+		}
 #undef CODE_BLOCK
 
 		double *bb_use = NULL, *cc_use = NULL;
