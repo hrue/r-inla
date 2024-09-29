@@ -1,3 +1,7 @@
+# INLA 24.09.29
+* Code improvement and optimisation
+* Fixed a regression for Intel Mac run-script
+
 # INLA 24.09.26
 * Link with armpl-library for Mac-ARM64
 * New experimental likelihood 'binomialmix'
