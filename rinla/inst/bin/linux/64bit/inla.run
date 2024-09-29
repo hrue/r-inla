@@ -74,7 +74,7 @@ for arg in "$@"; do
 	-t*) nt="$arg";;
     esac
 done
-eval $(echo $nt | awk -v nproc=$(nproc) -F: '{gsub(/^-t/,""); nt=1*$2; if ($1*1 == 0) $1=nproc; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
+eval $(echo $nt | awk -v nproc=$(nproc) -F: '{gsub(/^-t/,""); nt=1*$2; if (nt < 0) nt=-nt; if ($1*1 == 0) $1=nproc; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
 if [ -n "${INLA_DEBUG}" ]; then
     set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
     echo " *** $0 *** exec $DIR/$prog $@"
