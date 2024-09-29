@@ -12335,8 +12335,8 @@
 #'               \item{doc = }{\verb{Occupancy likelihood}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
-#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
-#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{link = }{\verb{default logit}}
+#'               \item{link.simple = }{\verb{default logit}}
 #'               \item{pdf = }{\verb{occupancy}}
 #'              }
 #'            }

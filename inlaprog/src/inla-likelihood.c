@@ -3012,6 +3012,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	}
 
 	LINK_INIT;
+	assert(PREDICTOR_LINK_EQ(link_logit));
 
 	int nb = ds->data_observations.occ_nbeta;
 	int yzero = ds->data_observations.occ_yzero[idx];
@@ -3063,7 +3064,12 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		// tref[1] -= GMRFLib_timer();
 
 		double off = OFFSET(idx);
-		if (0 && PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
+		double x_critical = -0.5 * logll0;
+		double x0 = 0.90 * x_critical;
+		double x1 = 0.98 * x_critical;
+		int tail = (GMRFLib_max_value(x, m, NULL) + off > x0);
+
+		if (!tail && PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
 			if (yzero) {
 				double elogll0 = exp(logll0);
 
@@ -3109,8 +3115,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 						logll[i] = logll0 - w[i];
 					}
 				} else {
-
-
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						double exd = exp(-(x[i] + off));
@@ -3120,21 +3124,32 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			}
 		} else {
 			if (yzero) {
-				double xcrit = -0.5 * logll0;
-				double x0 = 0.9 * xcrit;
-				double x1 = 0.99 * xcrit;
-				for (int i = 0; i < m; i++) {
-					double xx = x[i] + off;
-					if (xx < x0) {
+				if (tail) {
+					// we fix the tail in the low-likelihood area to avoid issues
+					// this is documented in 'internal-doc/occupancy/ll-test.R'
+					double a = exp(logll0);
+					double fac = 1.0;
+					for (int i = 0; i < m; i++) {
+						double xx = x[i] + off;
+						if (xx <= x0) {
+							double phi = PREDICTOR_INVERSE_LINK(xx);
+							logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
+						} else {
+							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-fac * (xx - x0)));
+							double dx = xx-xx0;
+							double exx0 = exp(-xx0);
+							double t1 = a + exx0;
+							double t2 = 1.0 + exx0;
+							double c0 = log(t1 / t2);
+							double c1 = (exx0 * (a - 1.0)) / (t1 * t2);
+							double c2 = ((SQR(exx0) - a) * (a - 1.0) * exx0) / SQR(t1 * t2);
+							logll[i] = c0 + dx * (c1 + 0.5 * c2 * dx);
+						}
+					}
+				} else {
+					for (int i = 0; i < m; i++) {
 						double phi = PREDICTOR_INVERSE_LINK(x[i] + off);
 						logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
-					} else {
-						double ex0 = exp(-x0);
-						double a = exp(logll0);
-						xx = x0 + (x1-x0) * (1.0 - exp(-(xx - x0)));
-						logll[i] =  log((a+ex0) / (1.0+ex0)) +
-							((ex0*(a-1.0)) / ((a + ex0)*(1.0+ex0)))*(xx-x0) +
-							0.5 * (((-a + SQR(ex0))*(a-1)*ex0) / (SQR(a+ex0) * SQR(1+ex0))) * SQR(xx-x0);
 					}
 				}
 			} else {
@@ -5723,9 +5738,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
