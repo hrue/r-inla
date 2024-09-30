@@ -3065,8 +3065,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 
 		double off = OFFSET(idx);
 		double x_critical = -0.5 * logll0;
-		double x0 = 0.90 * x_critical;
-		double x1 = 0.98 * x_critical;
+		double x0 = 0.900 * x_critical;
+		double x1 = 0.999 * x_critical;
 		int tail = (GMRFLib_max_value(x, m, NULL) + off > x0);
 
 		if (!tail && PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
@@ -3128,15 +3128,14 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 					// we fix the tail in the low-likelihood area to avoid issues
 					// this is documented in 'internal-doc/occupancy/ll-test.R'
 					double a = exp(logll0);
-					double fac = 1.0;
 					for (int i = 0; i < m; i++) {
 						double xx = x[i] + off;
 						if (xx <= x0) {
 							double phi = PREDICTOR_INVERSE_LINK(xx);
 							logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
 						} else {
-							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-fac * (xx - x0)));
-							double dx = xx-xx0;
+							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-sqrt(xx - x0)));
+							double dx = xx - xx0;
 							double exx0 = exp(-xx0);
 							double t1 = a + exx0;
 							double t2 = 1.0 + exx0;
@@ -5738,9 +5737,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
