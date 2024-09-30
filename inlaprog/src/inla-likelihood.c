@@ -3012,6 +3012,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	}
 
 	LINK_INIT;
+
+	// code is hard-coded for this case... more work is needed to make it general
 	assert(PREDICTOR_LINK_EQ(link_logit));
 
 	int nb = ds->data_observations.occ_nbeta;
@@ -3028,9 +3030,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	if (m > 0) {
 		const int mkl_lim = 4L;
 		double logll0 = 0.0;
-		// static double tref[] = {0, 0};
-		// static double count = 0;
-		// tref[0] -= GMRFLib_timer();
 
 		if (ds->data_observations.link_simple_invlinkfunc == link_logit) {
 			if (ny >= mkl_lim) {
@@ -3060,16 +3059,13 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			}
 		}
 
-		// tref[0] += GMRFLib_timer();
-		// tref[1] -= GMRFLib_timer();
-
 		double off = OFFSET(idx);
 		double x_critical = -0.5 * logll0;
 		double x0 = 0.900 * x_critical;
 		double x1 = 0.999 * x_critical;
 		int tail = (GMRFLib_max_value(x, m, NULL) + off > x0);
 
-		if (!tail && PREDICTOR_SCALE == 1.0 && PREDICTOR_LINK_EQ(link_logit)) {
+		if (!tail && PREDICTOR_SCALE == 1.0) {
 			if (yzero) {
 				double elogll0 = exp(logll0);
 
@@ -3126,12 +3122,13 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			if (yzero) {
 				if (tail) {
 					// we fix the tail in the low-likelihood area to avoid issues
-					// this is documented in 'internal-doc/occupancy/ll-test.R'
+					// this is documented in 'internal-doc/occupancy/description.pdf'
 					double a = exp(logll0);
 					for (int i = 0; i < m; i++) {
-						double xx = x[i] + off;
+						double xoff = x[i] + off;
+						double xx = PREDICTOR_INVERSE_IDENTITY_LINK(xoff);
 						if (xx <= x0) {
-							double phi = PREDICTOR_INVERSE_LINK(xx);
+ 							double phi = PREDICTOR_INVERSE_LINK(xoff);
 							logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
 						} else {
 							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-sqrt(xx - x0)));
@@ -3158,10 +3155,6 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 				}
 			}
 		}
-
-		// tref[1] += GMRFLib_timer();
-		// count++;
-		// if (0 == (((int) count) % 100000)) P(tref[0] / (tref[0] + tref[1]));
 	} else {
 		GMRFLib_fill(IABS(m), 0.0, logll);
 	}
