@@ -1,3 +1,7 @@
+# INLA 24.10.02
+* New family: 'egp' (experimental)
+* Minor fixes and improvements
+
 # INLA 24.09.29
 * Code improvement and optimisation
 * Fixed a regression for Intel Mac run-script

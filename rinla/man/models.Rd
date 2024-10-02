@@ -17963,6 +17963,7 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Exteneded Generalized Pareto likelihood}}
+\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default quantile}}
