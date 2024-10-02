@@ -14803,6 +14803,7 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
+                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "quantile"),
