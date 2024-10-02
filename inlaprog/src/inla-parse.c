@@ -1087,6 +1087,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GP")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gp;
 		ds->data_id = L_GP;
+	} else if (!strcasecmp(ds->data_likelihood, "EGP")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_egp;
+		ds->data_id = L_EGP;
 	} else if (!strcasecmp(ds->data_likelihood, "DGP")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_dgp;
 		ds->data_id = L_DGP;
@@ -1327,11 +1330,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_GP:
 	case L_DGP:
+	case L_EGP:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: gp/dgp observation y[%1d] = %g is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: gp/dgp/egp observation y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -3519,6 +3523,120 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map[mb->ntheta] = map_interval;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = (void *) (ds->data_observations.gp_tail_interval);
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+		break;
+
+	case L_EGP:
+	{
+		/*
+		 * get options related to the egp
+		 */
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed0 = 1;
+		}
+
+		HYPER_NEW(ds->data_observations.egp_intern_tail, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise internal_tail[%g]\n", ds->data_observations.egp_intern_tail[0][0]);
+			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
+		}
+
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "PCGEVTAIL", NULL);
+		ds->data_observations.egp_tail_interval = Calloc(2, double);
+		if (ds->data_prior0.id == P_PC_GEVTAIL) {
+			ds->data_observations.egp_tail_interval[0] = ds->data_prior0.parameters[1];
+			ds->data_observations.egp_tail_interval[1] = ds->data_prior0.parameters[2];
+		} else {
+			// used a fixed interval then
+			ds->data_observations.egp_tail_interval[0] = -0.5;
+			ds->data_observations.egp_tail_interval[1] = 0.5;
+		}
+
+		if (DMAX(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]) >= 1.0 ||
+		    ds->data_observations.egp_tail_interval[0] >= ds->data_observations.egp_tail_interval[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL", ctmp);
+		}
+		if (mb->verbose) {
+			printf("\t\tegp.tail.interval [%g , %g]\n", ds->data_observations.egp_tail_interval[0],
+			       ds->data_observations.egp_tail_interval[1]);
+		}
+
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for egp observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for egp observations", mb->ds);
+
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.egp_intern_tail;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_interval;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = (void *) (ds->data_observations.egp_tail_interval);
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed1 = 1;
+		}
+
+		HYPER_NEW(ds->data_observations.egp_intern_shape, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise internal_shape[%g]\n", ds->data_observations.egp_intern_shape[0][0]);
+			printf("\t\tfixed1=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "Gaussian", NULL);
+
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern shape parameter for egp observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape parameter for egp observations", mb->ds);
+			
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+			
+			mb->theta[mb->ntheta] = ds->data_observations.egp_intern_shape;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -8201,6 +8319,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			break;
 
 		case L_GP:
+		{
+			ds->link_id = LINK_LOG;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_log;
+		}
+			break;
+
+		case L_EGP:
 		{
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;

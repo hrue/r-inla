@@ -1,0 +1,18 @@
+q := eta -> exp(eta);
+sigma := eta -> xi * q(eta) / ( (1-alpha^(1/kappa))^(-xi) - 1);
+yy := eta ->1+xi * y / sigma(eta);
+xii := -1/xi;
+ld := eta -> log(kappa) + (kappa - 1) * log(1 - yy(eta)^xii) - log(sigma(eta)) + (xii-1) * log(yy(eta));
+
+assume(kappa > 0);
+assume(alpha > 0); additionally(alpha < 1);
+assume(y>0);
+assume(xi>0);
+
+c1 := simplify(diff(ld(eta), eta));
+c2 := simplify(diff(ld(eta), eta,eta));
+
+with(CodeGenetation);
+C(ld(eta), 'optimize');
+C(c1, 'optimize');
+C(c2, 'optimize');

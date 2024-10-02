@@ -17939,6 +17939,52 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'egp'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Exteneded Generalized Pareto likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default quantile}}
+#'               \item{pdf = }{\verb{egp}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101211}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{output.name = }{\verb{Tail parameter for egp observations}}
+#'             \item{output.name.intern = }{\verb{Intern tail parameter for egp observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.egptail}}
+#'             \item{param = }{\verb{5 -0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101212}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{kappa}}
+#'             \item{output.name = }{\verb{Shape parameter for the egp observations}}
+#'             \item{output.name.intern = }{\verb{Intern shape parameter for the egp observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{100 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'dgp'.}{
 #'          \describe{
 #'           \item{Properties:}{
@@ -18451,6 +18497,9 @@
 #'          Number of parameters in the prior = 1
 #'        }
 #'       \item{Model 'pc.gevtail'.}{
+#'          Number of parameters in the prior = 3
+#'        }
+#'       \item{Model 'pc.egptail'.}{
 #'          Number of parameters in the prior = 3
 #'        }
 #'       \item{Model 'pc'.}{

@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage{block}
+
+\begin{document}
+\section*{Extented Generalised Pareto Distribution (EGP)}
+
+\subsection*{Parametrisation}
+
+The EGP distribution as cummulative distribution function
+\begin{displaymath}
+    F(y) = \left(1-\left(1 + \xi \frac{y}{\sigma}\right)^{-1/\xi}\right)^{\kappa}
+\end{displaymath}
+\begin{itemize}
+\item $\xi$ is the tail-parameter
+\item $\sigma > 0$ is the scale-parameter
+\item $\kappa > 0$ is the shape-parameter
+\end{itemize}
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ controls the $\alpha$-quantile of EGP
+\begin{displaymath}
+    \text{Prob}(y \le q_\alpha)=\alpha.
+\end{displaymath}
+$\sigma$ can be expressed in terms of the quantile
+\begin{displaymath}
+    \sigma = \frac{\xi q_\alpha}{(1-\alpha^{1/\kappa})^{-\xi} -1}
+\end{displaymath}
+and the quantile is linked to the linear predictor as
+\begin{displaymath}
+    q_\alpha = \exp(\eta).
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+There are two hyperparameters, the tail and shape parameter,
+ represented as $(\theta_1, \theta_2)$. The tail-parameter is in a
+predefined range $(\xi_L, \xi_H)$
+\begin{displaymath}
+    \xi = \xi_L + (\xi_H - \xi_L) \frac{1}{1+\exp(-\theta_1)}
+\end{displaymath}
+and the prior is defined on $\theta_1$. The shape-parameter is
+\begin{displaymath}
+    \kappa = \exp(\theta_2)
+\end{displaymath}
+and the prior is defined on $\theta_2$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="egp"}
+\item Required arguments: the observations $y$
+\item The quantile level $\alpha$    
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+{\small \input{../hyper/likelihood/egp.tex}}
+
+\clearpage
+\subsection*{Example}
+{\small \verbatiminput{example-egp.R}}
+
+
+\end{document}
+
+% LocalWords:  np Hyperparameters Ntrials gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

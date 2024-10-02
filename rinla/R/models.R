@@ -14773,6 +14773,42 @@
                     pdf = "genPareto"
                 ),
 
+                egp = list(
+                    doc = "Exteneded Generalized Pareto likelihood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 101211,
+                            name = "tail",
+                            short.name = "xi",
+                            output.name = "Tail parameter for egp observations",
+                            output.name.intern = "Intern tail parameter for egp observations",
+                            initial =0,
+                            fixed = FALSE,
+                            prior = "pc.egptail",
+                            param = c(5, -0.5, 0.5), 
+                            to.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x)),
+                            from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
+                        ), 
+                        theta2 = list(
+                            hyperid = 101212,
+                            name = "shape",
+                            short.name = "kappa",
+                            output.name = "Shape parameter for the egp observations",
+                            output.name.intern = "Intern shape parameter for the egp observations",
+                            initial =0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(100, 100),
+                            to.theta = function(x) log(x), 
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "quantile"),
+                    pdf = "egp"
+                ),
+
                 dgp = list(
                     doc = "Discrete generalized Pareto likelihood",
                     hyper = list(
@@ -15312,6 +15348,12 @@
                     doc = "PC prior for the tail in the GEV likelihood",
                     nparameters = 3L,
                     pdf = "pc.gevtail"
+                ),
+
+                pc.egptail = list(
+                    doc = "PC prior for the tail in the EGP likelihood",
+                    nparameters = 3L,
+                    pdf = "pc.egptail"
                 ),
 
                 ## this is the generic one, which is case-specific and possibly adaptive

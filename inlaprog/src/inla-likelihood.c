@@ -291,6 +291,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
 	case L_GOMPERTZ:
+	case L_EGP:
 	{
 		idiv = 2;
 		a[0] = NULL;
@@ -3128,7 +3129,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 						double xoff = x[i] + off;
 						double xx = PREDICTOR_INVERSE_IDENTITY_LINK(xoff);
 						if (xx <= x0) {
- 							double phi = PREDICTOR_INVERSE_LINK(xoff);
+							double phi = PREDICTOR_INVERSE_LINK(xoff);
 							logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
 						} else {
 							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-sqrt(xx - x0)));
@@ -5730,9 +5731,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6549,6 +6550,83 @@ int loglikelihood_dgp(int thread_id, double *__restrict logll, double *__restric
 	LINK_END;
 
 #undef F
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_egp(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+		      void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double xi = map_interval(ds->data_observations.egp_intern_tail[thread_id][0], MAP_FORWARD,
+				 (void *) (ds->data_observations.egp_tail_interval));
+	double kappa = map_exp(ds->data_observations.egp_intern_shape[thread_id][0], MAP_FORWARD, NULL);
+	double alpha = ds->data_observations.quantile;
+
+	double eps = FLT_EPSILON;
+	if (ABS(xi) < eps) {
+		xi = DSIGN(xi) * eps;
+	}
+
+	LINK_INIT;
+
+	double a = pow(1.0 - pow(alpha, 1.0 / kappa), -xi) - 1.0;
+	double ia = 1.0 / a;
+	double xii = -1.0 / xi;
+	double lkappa = log(kappa);
+	double off = OFFSET(idx);
+
+	if (m > 0) {
+		if (xi > 0.0) {
+			for (int i = 0; i < m; i++) {
+				double q = PREDICTOR_INVERSE_LINK(x[i] + off);
+				double sigma = xi * q * ia;
+				double yy = DMAX(DBL_EPSILON, 1.0 + xi * y / sigma);
+				logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
+			}
+		} else {
+			double f[] = { 0.95, 0.99, 1.0 / 0.99, 1.0 / 0.95 };
+			double eta_c = log(-y * a);
+			double eta_L, eta_H;
+			if (eta_c < 0.0) {
+				eta_H = f[0] * eta_c;
+				eta_L = f[1] * eta_c;
+			} else {
+				eta_L = f[2] * eta_c;
+				eta_H = f[3] * eta_c;
+			}
+
+			for (int i = 0; i < m; i++) {
+				double xx = x[i] + off;
+				if (xx > eta_H) {
+					double q = PREDICTOR_INVERSE_LINK(xx);
+					double sigma = xi * q * ia;
+					double yy = 1.0 + xi * y / sigma;
+					logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
+				} else {
+					double eta = eta_H + (eta_L - eta_H) * (1.0 - exp(-sqrt(eta_H - xx)));
+					double c0 = 0.0, c1 = 0.0, c2 = 0.0;
+					double z = xx - eta;
+					// needs 'alpha', 'kappa', 'xi', 'y' and 'eta' 
+#include "egp-c012.h"			
+					logll[i] = c0 + z * (c1 + 0.5 * c2 * z);
+				}
+			}
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (int i = 0; i < -m; i++) {
+			double q = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double sigma = xi * q * ia;
+			logll[i] = pow(1.0 - pow(1.0 + xi * yy / sigma, xii), kappa);
+		}
+	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
