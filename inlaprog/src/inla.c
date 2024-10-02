@@ -1789,6 +1789,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_EGP:
+			{
+				if (!ds->data_fixed0) {
+					double internal_tail = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &internal_tail);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double internal_shape = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &internal_shape);
+					count++;
+				}
+			}
+				break;
+
 			case L_IID_GAMMA:
 			{
 				if (!ds->data_fixed0) {

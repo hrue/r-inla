@@ -145,6 +145,8 @@ extern int GMRFLib_testit_debug;
 extern int GMRFLib_taucs_sort_L;
 extern int GMRFLib_opt_solve;
 
+extern int GMRFLib_intern_flag;
+
 extern char *GMRFLib_tmpdir;
 #endif
 __END_DECLS

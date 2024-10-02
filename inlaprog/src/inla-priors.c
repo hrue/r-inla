@@ -498,6 +498,18 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
 			}
 		}
+	} else if (!strcasecmp(prior->name, "PCEGPTAIL")) {
+		int nparam, i;
+
+		prior->id = P_PC_EGPTAIL;
+		prior->priorfunc = priorfunc_pc_egptail;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 3);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
 	} else if (!strcasecmp(prior->name, "PCGAMMA")) {
 		int nparam, i;
 
@@ -1541,6 +1553,36 @@ double priorfunc_pc_gevtail(double *x, double *parameters)
 	p_low = (low > 0.0 ? ONE_mexp(-lambda * DIST(low)) : 0.0);
 	p_high = (high < 1.0 ? ONE_mexp(-lambda * DIST(high)) : 1.0);
 	ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+
+#undef DIST
+	return ld;
+}
+
+double priorfunc_pc_egptail(double *x, double *parameters)
+{
+#define DIST(_xi) ABS(_xi)
+	double lambda = parameters[0], low = parameters[1], high = parameters[2], xi, xi_deriv, p_low, p_high, ld, d, d_deriv;
+
+	// the internal parameterisation is in the interval [low,high]
+	xi = map_interval(*x, MAP_FORWARD, (void *) &(parameters[1]));
+	xi_deriv = map_interval(*x, MAP_DFORWARD, (void *) &(parameters[1]));
+	d = DIST(xi);					       /* we use below that this does not depend on the sign */
+	d_deriv = 1.0;
+	if (low <= 0 && high >= 0) {
+		p_low = 0.5 * exp(-lambda * DIST(low));
+		p_high = 1.0 - 0.5 * exp(-lambda * DIST(high));
+		ld = -log(p_high - p_low) + log(lambda/2.0) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+	} else if (low >= 0 && high >= 0) {
+		p_low = 1.0 - exp(-lambda * DIST(low));
+		p_high = 1.0 - exp(-lambda * DIST(high));
+		ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+	} else if (low <= 0 && high <= 0) {
+		p_low = 1.0 - exp(-lambda * DIST(-high));
+		p_high = 1.0 - exp(-lambda * DIST(-low));
+		ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+	} else {
+		assert(0 == 1);
+	}
 
 #undef DIST
 	return ld;

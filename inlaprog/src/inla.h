@@ -263,6 +263,7 @@ typedef enum {
 	L_SEM,
 	L_EXPPOWER,
 	L_BINOMIALMIX,
+	L_EGP, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -378,6 +379,7 @@ typedef enum {
 	P_WISHARTK_24D,
 	P_LAPLACE,
 	P_RPRIOR,
+	P_PC_EGPTAIL,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -844,6 +846,10 @@ typedef struct {
 	// binomial mix
 	double **binmix_dat;				       // z1..z6, w1, w2, ntrial
 	double ***binmix_beta;
+
+	double **egp_intern_tail;				       /* xi */
+	double **egp_intern_shape;				       /* kappa */
+	double *egp_tail_interval;				       /* interval for the 'xi' */
 } Data_tp;
 
 typedef struct {
@@ -1999,6 +2005,7 @@ double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_pc_cor0(double *x, double *parameters);
 double priorfunc_pc_cor1(double *x, double *parameters);
 double priorfunc_pc_dof(double *x, double *parameters);
+double priorfunc_pc_egptail(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
 double priorfunc_pc_gevtail(double *x, double *parameters);
@@ -2241,6 +2248,7 @@ int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, in
 int loglikelihood_circular_normal(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_contpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_dgp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_egp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_exp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_exppower(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_expsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

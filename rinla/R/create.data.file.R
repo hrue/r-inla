@@ -401,8 +401,8 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolln", "stochvolt", "stochvolnig", "stochvolsn", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom",
-                                     "logperiodogram"))) {
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp",
+                                     "pom", "egp", "logperiodogram"))) {
         response <- cbind(ind, y.orig)
         null.dat <- is.na(response[, 2L])
         response <- response[!null.dat, ]

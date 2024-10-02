@@ -10,7 +10,7 @@ ll.new <- function(x, a) {
     idx <- which(x >= x0)
     if (length(idx) > 0) {
         xx <- x[idx]
-        x0 <- x0 + (x1-x0) * (1 - exp(-(xx-x0)))
+        x0 <- x0 + (x1-x0) * (1 - exp(-sqrt(xx-x0)))
         ex0 <- exp(-x0)
         yy <- log((a+ex0) / (1+ex0)) +
             ((ex0*(a-1)) / ((a + ex0)*(1+ex0)))*(xx-x0) +
@@ -23,7 +23,7 @@ ll.new <- function(x, a) {
     return (val)
 }
 
-for (a in 1/10^(4)) {
+for (a in 1/10^(1:6)) {
 
     x <- seq(-10, 6, len = 10000)
     y <- ll(x, a)

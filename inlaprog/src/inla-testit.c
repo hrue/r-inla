@@ -4540,6 +4540,61 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 148: 
+	{
+		double dx = 0.0001;
+		double xmin = -20.0;
+		double xmax = 20.0;
+		double sum, x, param[3];
+		double lambda = 1;
+		
+		sum = 0.0;
+		param[0] = lambda;
+		param[1] = -0.35;
+		param[2] = 0.45;
+		
+		for(x = xmin; x <= xmax; x += dx) {
+			sum += exp(priorfunc_pc_egptail(&x, param));
+		}
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+
+		sum = 0.0;
+		param[0] = lambda;
+		param[1] = 0.1;
+		param[2] = 0.5;
+		for(x = xmin; x <= xmax; x += dx) {
+			sum += exp(priorfunc_pc_egptail(&x, param));
+		}
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+
+		sum = 0.0;
+		param[0] = lambda;
+		param[1] = -0.5;
+		param[2] = 0.1;
+		for(x = xmin; x <= xmax; x += dx) {
+			sum += exp(priorfunc_pc_egptail(&x, param));
+		}
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+	}
+	break;
+	
+	case 149: 
+	{
+		for(double x = -1.71; x < -1.5 ; x += 0.0001) {
+
+			GMRFLib_intern_flag = 0;
+			double lf_new;
+			loglikelihood_egp(0, &lf_new, &x, 1, 0, NULL, NULL, NULL, NULL);
+			
+			GMRFLib_intern_flag = 1;
+			double lf;
+			loglikelihood_egp(0, &lf, &x, 1, 0, NULL, NULL, NULL, NULL);
+
+			printf("x lf lf_new %.12g %.12g %.12g\n", x, lf, lf_new);
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
