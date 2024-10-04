@@ -28,6 +28,8 @@
  *
  */
 
+#include <time.h>
+#include <stdlib.h> 
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -2144,13 +2146,13 @@ size_t GMRFLib_align_simple(size_t n, size_t size)
 	// that means steps of 2 for double and 4 for ints
 
 	if (size == 8L) {
-		div_t d = div(n, 2L);
+		ldiv_t d = ldiv(n, 2L);
 		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
 	} else if (size == 4L) {
-		div_t d = div(n, 4L);
+		ldiv_t d = ldiv(n, 4L);
 		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
 	} else if (size == 2L) {
-		div_t d = div(n, 8L);
+		ldiv_t d = ldiv(n, 8L);
 		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
 	} else if (size == 16L) {
 		return n;
