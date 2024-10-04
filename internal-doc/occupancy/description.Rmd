@@ -155,7 +155,6 @@ ll.new <- function(eta, a=0.5) {
 	idx <- which(eta >= eta.L) 
 	if (length(idx) > 0) {
 		x <- eta[idx]
-		##		xx <- eta.L + (eta.H -eta.L) * (1-exp(-sqrt(x-eta.L)))
 		ee <- (x-eta.L)/(eta.H - eta.L)
 		xx <- eta.L + (eta.H -eta.L) * ee/(1+ee)
 		ll.fix <- (c0(a,xx) + c1(a,xx) * (x-xx) 
