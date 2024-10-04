@@ -3134,7 +3134,8 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 							double phi = PREDICTOR_INVERSE_LINK(xoff);
 							logll[i] = GMRFLib_logsum(logll0 + LOG_p(phi), LOG_1mp(phi));
 						} else {
-							double xx0 = x0 + (x1 - x0) * (1.0 - exp(-sqrt(xx - x0)));
+							double z = (xx - x0) / (x1 - x0);
+							double xx0 = x0 + (x1 - x0) * z / (1.0 + z);
 							double dx = xx - xx0;
 							double exx0 = exp(-xx0);
 							double t1 = a + exx0;
@@ -6591,15 +6592,15 @@ int loglikelihood_egp(int thread_id, double *__restrict logll, double *__restric
 				logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
 			}
 		} else {
-			double f[] = { 0.95, 0.99, 1.0 / 0.99, 1.0 / 0.95 };
+			double f[] = { 0.90, 0.99 }; 
 			double eta_c = log(-y * a);
 			double eta_L, eta_H;
 			if (eta_c < 0.0) {
 				eta_H = f[0] * eta_c;
 				eta_L = f[1] * eta_c;
 			} else {
-				eta_L = f[2] * eta_c;
-				eta_H = f[3] * eta_c;
+				eta_L = (1.0 / f[1]) * eta_c;
+				eta_H = (1.0 / f[0]) * eta_c;
 			}
 
 			for (int i = 0; i < m; i++) {
@@ -6610,7 +6611,8 @@ int loglikelihood_egp(int thread_id, double *__restrict logll, double *__restric
 					double yy = 1.0 + xi * y / sigma;
 					logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
 				} else {
-					double eta = eta_H + (eta_L - eta_H) * (1.0 - exp(-sqrt(eta_H - xx)));
+					double zz = (eta_H - xx) / (eta_H - eta_L);
+					double eta = eta_H + (eta_L - eta_H) * zz / (1.0 + zz);
 					double c0 = 0.0, c1 = 0.0, c2 = 0.0;
 					double z = xx - eta;
 					// needs 'alpha', 'kappa', 'xi', 'y' and 'eta' 

@@ -123,10 +123,8 @@ we need to map the interval $[\eta_L, \infty]$ into $[\eta_L,
 \eta_H]$, which we do with ($\eta \ge \eta_L$)
 
 $$
-	\tilde{\eta} = \eta_L + (\eta_H - \eta_L) (1-\exp(-\sqrt{\eta -
-	\eta_L}))
+	\tilde{\eta} = \eta_L + (\eta_H - \eta_L) \frac{z}{1+z}, \qquad z=\frac{\eta - \eta_L}{\eta_H-\eta_L}
 $$
-
 This is implemented as
 
 ```{r}
@@ -147,7 +145,7 @@ ll.new <- function(eta, a=0.5) {
 	}
 
 	eta.c <- -0.5 * log(a)
-	eta.L <- 0.900 * eta.c
+	eta.L <- 0.90 * eta.c
 	eta.H <- 0.999 * eta.c
 
 	phi <- inla.link.invlogit(eta)
@@ -157,7 +155,9 @@ ll.new <- function(eta, a=0.5) {
 	idx <- which(eta >= eta.L) 
 	if (length(idx) > 0) {
 		x <- eta[idx]
-		xx <- eta.L + (eta.H -eta.L) * (1-exp(-sqrt(x-eta.L)))
+		##		xx <- eta.L + (eta.H -eta.L) * (1-exp(-sqrt(x-eta.L)))
+		ee <- (x-eta.L)/(eta.H - eta.L)
+		xx <- eta.L + (eta.H -eta.L) * ee/(1+ee)
 		ll.fix <- (c0(a,xx) + c1(a,xx) * (x-xx) 
 			- 0.5 * c2(a,xx) * (x-xx)^2)
 		ll[idx] <- ll.fix
