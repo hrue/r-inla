@@ -638,7 +638,7 @@ int testit(int argc, char **argv)
 	{
 		double x;
 		for (x = -100.0; x < 100.0; x = x + 0.1) {
-			printf("x %.12g log(Phi(x)) %.12g %.12g\n", x, inla_log_Phi_fast(x), inla_log_Phi(x));
+			printf("x %.12g log(Phi(x)) %.12g %.12g\n", x, inla_logcdf_normal_fast(x), inla_logcdf_normal(x));
 		}
 		exit(0);
 	}
@@ -698,7 +698,7 @@ int testit(int argc, char **argv)
 
 		double xx = 2 * (GMRFLib_uniform() - 0.5);
 
-		printf("compute CDF xx=%f true = %.12f\n", xx, inla_Phi(xx));
+		printf("compute CDF xx=%f true = %.12f\n", xx, inla_cdf_normal(xx));
 
 		integral0 = 0.0;
 		for (i = 0; i < np; i++) {
@@ -1791,7 +1791,7 @@ int testit(int argc, char **argv)
 		for (i = 0; i < n; i++) {
 			xx = -xmax + dx * i;
 			x[i] = xx;
-			pp[i] = inla_Phi(xx);
+			pp[i] = inla_cdf_normal(xx);
 			// printf("%d %.20f %.20f\n", i, x[i], pp[i]); 
 		}
 
@@ -1801,7 +1801,7 @@ int testit(int argc, char **argv)
 		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL12);
 
 		for (xx = -(xmax + 2); xx <= (xmax + 2); xx += 0.5) {
-			double p1 = inla_Phi(xx);
+			double p1 = inla_cdf_normal(xx);
 			double p2 = GMRFLib_spline_eval(xx, P);
 			double xx2 = GMRFLib_spline_eval(p2, Pinv);
 			printf("XX %.20f %.20f %.20f %.20f\n", xx, p1, p2, xx2);
@@ -1829,7 +1829,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			x[i] = -6.0 + i * dx;
 			// this one is normalized
-			y[i] = log(2.0) + log(1.0 / sqrt(2.0 * M_PI)) - 0.5 * SQR(x[i]) + inla_log_Phi(1.0 * x[i]);
+			y[i] = log(2.0) + log(1.0 / sqrt(2.0 * M_PI)) - 0.5 * SQR(x[i]) + inla_logcdf_normal(1.0 * x[i]);
 			z += dx * exp(y[i]);
 		}
 		P(z);					       /* should be 1 */
@@ -3307,7 +3307,7 @@ int testit(int argc, char **argv)
 		for (double xx = xlow; xx <= xhigh; xx += dx) {
 			x[k] = xx;
 			double xs = (xx - p.xi) / p.omega;
-			ld[k] = -0.5 * SQR(xs) + inla_log_Phi(p.alpha * xs);
+			ld[k] = -0.5 * SQR(xs) + inla_logcdf_normal(p.alpha * xs);
 			k++;
 		}
 		n = k;
@@ -4540,52 +4540,52 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 148: 
+	case 148:
 	{
 		double dx = 0.0001;
 		double xmin = -20.0;
 		double xmax = 20.0;
 		double sum, x, param[3];
 		double lambda = 1;
-		
+
 		sum = 0.0;
 		param[0] = lambda;
 		param[1] = -0.35;
 		param[2] = 0.45;
-		
-		for(x = xmin; x <= xmax; x += dx) {
+
+		for (x = xmin; x <= xmax; x += dx) {
 			sum += exp(priorfunc_pc_egptail(&x, param));
 		}
-		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n", param[0], param[1], param[2], sum * dx);
 
 		sum = 0.0;
 		param[0] = lambda;
 		param[1] = 0.1;
 		param[2] = 0.5;
-		for(x = xmin; x <= xmax; x += dx) {
+		for (x = xmin; x <= xmax; x += dx) {
 			sum += exp(priorfunc_pc_egptail(&x, param));
 		}
-		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n", param[0], param[1], param[2], sum * dx);
 
 		sum = 0.0;
 		param[0] = lambda;
 		param[1] = -0.5;
 		param[2] = 0.1;
-		for(x = xmin; x <= xmax; x += dx) {
+		for (x = xmin; x <= xmax; x += dx) {
 			sum += exp(priorfunc_pc_egptail(&x, param));
 		}
-		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n",  param[0], param[1], param[2], sum*dx);
+		printf("lambda[%g] interval[%g, %g] integral[%.8g]\n", param[0], param[1], param[2], sum * dx);
 	}
-	break;
-	
-	case 149: 
+		break;
+
+	case 149:
 	{
-		for(double x = -1.71; x < -1.5 ; x += 0.0001) {
+		for (double x = -1.71; x < -1.5; x += 0.0001) {
 
 			GMRFLib_intern_flag = 0;
 			double lf_new;
 			loglikelihood_egp(0, &lf_new, &x, 1, 0, NULL, NULL, NULL, NULL);
-			
+
 			GMRFLib_intern_flag = 1;
 			double lf;
 			loglikelihood_egp(0, &lf, &x, 1, 0, NULL, NULL, NULL, NULL);
@@ -4593,7 +4593,7 @@ int testit(int argc, char **argv)
 			printf("x lf lf_new %.12g %.12g %.12g\n", x, lf, lf_new);
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{

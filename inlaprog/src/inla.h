@@ -263,7 +263,7 @@ typedef enum {
 	L_SEM,
 	L_EXPPOWER,
 	L_BINOMIALMIX,
-	L_EGP, 
+	L_EGP,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -847,9 +847,9 @@ typedef struct {
 	double **binmix_dat;				       // z1..z6, w1, w2, ntrial
 	double ***binmix_beta;
 
-	double **egp_intern_tail;				       /* xi */
-	double **egp_intern_shape;				       /* kappa */
-	double *egp_tail_interval;				       /* interval for the 'xi' */
+	double **egp_intern_tail;			       /* xi */
+	double **egp_intern_shape;			       /* kappa */
+	double *egp_tail_interval;			       /* interval for the 'xi' */
 } Data_tp;
 
 typedef struct {
@@ -1873,8 +1873,8 @@ double GMRFLib_logsum(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
-double inla_Phi(double x);
-double inla_Phi_fast(double x);
+double inla_cdf_normal(double x);
+double inla_cdf_normal_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
@@ -1884,9 +1884,9 @@ double inla_dnchisq(double x, double df, double ncp);
 double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
 double inla_interpolate_mode(double *x, double *y);
 double inla_lgamma_fast(double x);
-double inla_log_Phi(double x);
-double inla_log_Phi_fast(double x);
-double inla_logit_Phi(double x);
+double inla_logcdf_normal(double x);
+double inla_logcdf_normal_fast(double x);
+double inla_logitcdf_normal(double x);
 double inla_negative_binomial_interval(double size, double mu, int y_from, int y_to);
 double inla_poisson_interval(double lambda, int y_from, int y_to);
 double inla_sn_intercept(double intern_quantile, double skew);
@@ -2285,7 +2285,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

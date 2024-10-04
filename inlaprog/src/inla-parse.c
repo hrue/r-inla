@@ -3577,13 +3577,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			
+
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for egp observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for egp observations", mb->ds);
 
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior0.from_theta);
@@ -3597,7 +3597,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->mode_use_mode) {
@@ -3620,18 +3620,18 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			
+
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern shape parameter for egp observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape parameter for egp observations", mb->ds);
-			
+
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior1.to_theta);
-			
+
 			mb->theta[mb->ntheta] = ds->data_observations.egp_intern_shape;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;

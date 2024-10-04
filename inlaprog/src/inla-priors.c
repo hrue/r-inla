@@ -1536,7 +1536,7 @@ double priorfunc_linksnintercept(double *x, double *parameters)
 	}
 
 	// d_mu/d_theta = 1 / (d_theta/d_mu) 
-	double deriv = 1.0 / ((inla_logit_Phi(mu + step) - inla_logit_Phi(mu - step)) / (2.0 * step));
+	double deriv = 1.0 / ((inla_logitcdf_normal(mu + step) - inla_logitcdf_normal(mu - step)) / (2.0 * step));
 	return (log(ABS(deriv)) + priorfunc_normal(&mu, parameters));
 }
 
@@ -1571,7 +1571,7 @@ double priorfunc_pc_egptail(double *x, double *parameters)
 	if (low <= 0 && high >= 0) {
 		p_low = 0.5 * exp(-lambda * DIST(low));
 		p_high = 1.0 - 0.5 * exp(-lambda * DIST(high));
-		ld = -log(p_high - p_low) + log(lambda/2.0) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+		ld = -log(p_high - p_low) + log(lambda / 2.0) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
 	} else if (low >= 0 && high >= 0) {
 		p_low = 1.0 - exp(-lambda * DIST(low));
 		p_high = 1.0 - exp(-lambda * DIST(high));
@@ -2116,7 +2116,7 @@ double priorfunc_dirichlet(double *x, double *parameters)
 #define _F_logit(_x) (1.0/(1.0+exp(-(_x))))
 #define _f_logit(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
 
-#define _F_probit(_x) inla_Phi(_x)
+#define _F_probit(_x) inla_cdf_normal(_x)
 #define _f_probit(_x) (0.39894228040143270286 * exp(-0.5 * SQR(_x)))
 
 #define _F(_x) (cdf_logit ? _F_logit(_x) : _F_probit(_x))

@@ -28,24 +28,24 @@
  */
 
 
-double inla_Phi(double x)
+double inla_cdf_normal(double x)
 {
 	/*
-	 * the un-log version of inla_log_Phi 
+	 * the un-log version of inla_logcdf_normal 
 	 */
 	if (ABS(x) < 7.0) {
 		return GMRFLib_cdfnorm(x);
 	} else {
-		return exp(inla_log_Phi(x));
+		return exp(inla_logcdf_normal(x));
 	}
 }
 
-double inla_logit_Phi(double x)
+double inla_logitcdf_normal(double x)
 {
 	// return log(Phi(x)/(1-Phi(x)))
 
 	if (ABS(x) < 7.0) {
-		double y = inla_Phi(x);
+		double y = inla_cdf_normal(x);
 		return (log(y / (1.0 - y)));
 	} else {
 		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
@@ -60,7 +60,7 @@ double inla_logit_Phi(double x)
 	}
 }
 
-double inla_log_Phi(double x)
+double inla_logcdf_normal(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
 	// This version is ok for all x 
@@ -98,7 +98,7 @@ double inla_log_Phi(double x)
 	return 0;
 }
 
-double inla_Phi_fast(double x)
+double inla_cdf_normal_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
 	if (ABS(x) <= 7.0) {
@@ -112,17 +112,17 @@ double inla_Phi_fast(double x)
 		abort();
 		return (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x))));
 	} else {
-		return inla_Phi(x);
+		return inla_cdf_normal(x);
 	}
 }
 
-double inla_log_Phi_fast(double x)
+double inla_logcdf_normal_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
 	// sqrt(M_PI / 8.0) = 0.6266570686577502....
 	// log(1.0/4.0) = -1.386294361119891...
 	if (ABS(x) < 7.0) {
-		return (log(inla_Phi_fast(x)));
+		return (log(inla_cdf_normal_fast(x)));
 	} else {
 		if (x > 7.0) {
 			return (-0.25 * exp(-0.6266570686577502 * SQR(x)));
