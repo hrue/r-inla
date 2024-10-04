@@ -1,3 +1,13 @@
+#include <values.h>
+#include <assert.h>
+#include <stddef.h>
+#include <float.h>
+#include <time.h>
+#include <math.h>
+#include <strings.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* inla-testit.c
  * 
@@ -4594,6 +4604,102 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
+
+	case 150:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+		int *ixx = Calloc(n, int);
+
+		P(n);
+		P(m);
+
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
+				xx[i] = GMRFLib_uniform();
+			}
+			tref1 -= GMRFLib_timer();
+			double xm = xx[0];
+			for (int i = 1; i < n; i++) {
+				if (xx[i] <  xm){
+					xm = xx[i];
+				}
+			}
+			tref1 += GMRFLib_timer();
+			tref2 -= GMRFLib_timer();
+			double xxm = GMRFLib_min_value(xx, n, NULL);
+			tref2 += GMRFLib_timer();
+			assert(xm == xxm);
+		}
+		printf("DBL MAX plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+
+		tref1 = 0.0;
+		tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
+				xx[i] = GMRFLib_uniform();
+			}
+			tref1 -= GMRFLib_timer();
+			double xm = xx[0];
+			for (int i = 1; i < n; i++) {
+				if (xx[i] > xm){
+					xm = xx[i];
+				}
+			}
+			tref1 += GMRFLib_timer();
+			tref2 -= GMRFLib_timer();
+			double xxm = GMRFLib_max_value(xx, n, NULL);
+			tref2 += GMRFLib_timer();
+			assert(xm == xxm);
+		}
+		printf("DBL MIN plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+
+		tref1 = 0.0;
+		tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
+				ixx[i] = (int)(MAXINT * GMRFLib_uniform());
+			}
+			tref1 -= GMRFLib_timer();
+			int xm = ixx[0];
+			for (int i = 1; i < n; i++) {
+				if (ixx[i] < xm){
+					xm = ixx[i];
+				}
+			}
+			tref1 += GMRFLib_timer();
+			tref2 -= GMRFLib_timer();
+			int xxm = GMRFLib_imin_value(ixx, n, NULL);
+			tref2 += GMRFLib_timer();
+			assert(xm == xxm);
+		}
+		printf("INT MAX int plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+
+		tref1 = 0.0;
+		tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
+				ixx[i] = (int)(MAXINT * GMRFLib_uniform());
+			}
+			tref1 -= GMRFLib_timer();
+			int xm = ixx[0];
+			for (int i = 1; i < n; i++) {
+				if (ixx[i] > xm){
+					xm = ixx[i];
+				}
+			}
+			tref1 += GMRFLib_timer();
+			tref2 -= GMRFLib_timer();
+			int xxm = GMRFLib_imax_value(ixx, n, NULL);
+			tref2 += GMRFLib_timer();
+			assert(xm == xxm);
+		}
+		printf("INT MIN plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+	}
+		break;
+		
 
 	case 999:
 	{

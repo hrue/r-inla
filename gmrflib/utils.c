@@ -28,6 +28,7 @@
  *
  */
 
+#include <values.h>
 #include <time.h>
 #include <stdlib.h> 
 #include <assert.h>
@@ -1111,28 +1112,154 @@ int GMRFLib_is_zero(double *x, int n)
 	return 1;
 }
 
+double GMRFLib_max_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MAX(x[]), optional idx
+	 */
+
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return NAN;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
+		}
+	}
+	
+	// sometimes the max is at the boundary
+	if (idx) {
+		int imax;
+		double max_val;
+		if (x[0] > x[n-1]) {
+			imax = 0;
+			max_val = x[0];
+		} else {
+			imax = n-1;
+			max_val = x[n-1];
+		}
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+				imax = i;
+			}
+		}
+		*idx = imax;
+		return max_val;
+	} else {
+		double max_val = DMAX(x[0], x[n-1]);
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+			}
+		}
+		return max_val;
+	}
+}
+
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*
 	 * return the MIN(x[]), optional idx
 	 */
-	int imin;
-	double min_val;
 
-	min_val = x[0];
-	imin = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return NAN;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
 		}
 	}
-
+	
+	// sometimes the min is at the boundary
 	if (idx) {
+		int imin;
+		double min_val;
+		if (x[0] < x[n-1]) {
+			imin = 0;
+			min_val = x[0];
+		} else {
+			imin = n-1;
+			min_val = x[n-1];
+		}
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+				imin = i;
+			}
+		}
 		*idx = imin;
+		return min_val;
+	} else {
+		double min_val = DMIN(x[0], x[n-1]);
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+			}
+		}
+		return min_val;
 	}
+}
 
-	return min_val;
+int GMRFLib_imax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return the IMAX(x[]), optional idx
+	 */
+
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return MAXINT;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
+		}
+	}
+	
+	// sometimes the max is at the boundary, but we're just 'almost' sure
+	if (idx) {
+		int imax;
+		int max_val;
+		if (x[0] > x[n-1]) {
+			imax = 0;
+			max_val = x[0];
+		} else {
+			imax = n-1;
+			max_val = x[n-1];
+		}
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+				imax = i;
+			}
+		}
+		*idx = imax;
+		return max_val;
+	} else {
+		int max_val = IMAX(x[0], x[n-1]);
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+			}
+		}
+		return max_val;
+	}
 }
 
 int GMRFLib_imin_value(int *x, int n, int *idx)
@@ -1140,66 +1267,49 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 	/*
 	 * return the IMIN(x[]), optional idx
 	 */
-	int imin, min_val;
 
-	min_val = x[0];
-	imin = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return MININT;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
 		}
 	}
-
+	
+	// sometimes the min is at the boundary, but we're just 'almost' sure
 	if (idx) {
+		int imin;
+		int min_val;
+		if (x[0] < x[n-1]) {
+			imin = 0;
+			min_val = x[0];
+		} else {
+			imin = n-1;
+			min_val = x[n-1];
+		}
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+				imin = i;
+			}
+		}
 		*idx = imin;
-	}
-	return min_val;
-}
-
-double GMRFLib_max_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MAX(x[]), optional idx
-	 */
-	int i, imax;
-	double max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
+		return min_val;
+	} else {
+		int min_val = IMIN(x[0], x[n-1]);
+		for (int i = 1; i < n-1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+			}
 		}
+		return min_val;
 	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
-}
-
-int GMRFLib_imax_value(int *x, int n, int *idx)
-{
-	/*
-	 * return IMAX(x[]), optional idx
-	 */
-	int imax, max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
 }
 
 int GMRFLib_iamax_value(int *x, int n, int *idx)

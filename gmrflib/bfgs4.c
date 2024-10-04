@@ -720,7 +720,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
-		int iidx;
+		int iidx = 0;
 		GMRFLib_min_value(y, nn, &iidx);
 		*xmin = x[iidx];
 		if (ymin) {
@@ -972,7 +972,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 
 	bfgs4_robust_minimize(&aa_min, &fmin, na, aa, fun, nd, dfalphas, dfunval, order);
 	if (aa_min > amax || aa_min < amin) {
-		int idx_min;
+		int idx_min = 0;
 		GMRFLib_min_value(fun, na, &idx_min);
 		aa_min = aa[idx_min];
 		robust_regression = 0;
