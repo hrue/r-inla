@@ -319,7 +319,7 @@
     ## The last multiplication factor is because the C matrix
     ## is different by a factor of 3 compared to the corresponding matrix
     ## in the stationary spde approach
-    ## (factor of 3 commented as now C is now as in the stationary case)
+    ## (factor of 3 commented as C from inla.barrier.fem() is now as in the stationary case)
     Q <- inla.as.sparse(t(A) %*% Cinv %*% A * (1 / sigma^2) / pi * 2) ## * 3)
 
     ## if it exists, then this is the environment used for caching and optimize=TRUE.
@@ -380,7 +380,7 @@
                 Ck[px[i]] <- Ck[px[i]] + area
             }
         }
-        return(Ck/3)
+        return(Ck/3) ## divide by 3 to match with C in inla.mesh.fem()
     }
 
     ## This function computes the Finite Element matrix for the '1' in
