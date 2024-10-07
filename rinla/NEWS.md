@@ -1,5 +1,6 @@
 # INLA 24.10.07
 * Some minor changes in family=egp and binomialmix
+* Fix a constant in barrier model (see diff for details)
 * Code cleanup
 
 # INLA 24.10.02
