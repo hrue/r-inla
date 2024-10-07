@@ -328,10 +328,10 @@ double ptweedie(double y, double mu, double phi, double p)
 #define LOG_PDF_POISSON(y_) ((y_)*log_lambda - lambda - LOGNFACTORIAL((int) (y_)))
 #define CDF(n_) ((n_) < n_gauss ?					\
 		 gsl_cdf_gamma_P(y, (n_) * alpha, gamma) :		\
-		 inla_Phi_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
+		 inla_cdf_normal_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
 #define LOG_CDF(n_) ((n_) < n_gauss ?					\
 		     MATHLIB_FUN(pgamma) (y, (n_) * alpha, gamma, 1, 1) : \
-		     inla_log_Phi_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
+		     inla_logcdf_normal_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
 
 	double lambda = pow(mu, 2.0 - p) / (phi * (2.0 - p));
 	double log_lambda = log(lambda);

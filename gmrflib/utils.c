@@ -28,6 +28,9 @@
  *
  */
 
+#include <values.h>
+#include <time.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -1109,28 +1112,151 @@ int GMRFLib_is_zero(double *x, int n)
 	return 1;
 }
 
+double GMRFLib_max_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MAX(x[]), optional idx
+	 */
+
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return NAN;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
+		}
+	}
+	// sometimes the max is at the boundary
+	if (idx) {
+		int imax;
+		double max_val;
+		if (x[0] > x[n - 1]) {
+			imax = 0;
+			max_val = x[0];
+		} else {
+			imax = n - 1;
+			max_val = x[n - 1];
+		}
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+				imax = i;
+			}
+		}
+		*idx = imax;
+		return max_val;
+	} else {
+		double max_val = DMAX(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+			}
+		}
+		return max_val;
+	}
+}
+
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*
 	 * return the MIN(x[]), optional idx
 	 */
-	int imin;
-	double min_val;
 
-	min_val = x[0];
-	imin = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return NAN;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
 		}
 	}
-
+	// sometimes the min is at the boundary
 	if (idx) {
+		int imin;
+		double min_val;
+		if (x[0] < x[n - 1]) {
+			imin = 0;
+			min_val = x[0];
+		} else {
+			imin = n - 1;
+			min_val = x[n - 1];
+		}
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+				imin = i;
+			}
+		}
 		*idx = imin;
+		return min_val;
+	} else {
+		double min_val = DMIN(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+			}
+		}
+		return min_val;
 	}
+}
 
-	return min_val;
+int GMRFLib_imax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return the IMAX(x[]), optional idx
+	 */
+
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return MAXINT;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
+		}
+	}
+	// sometimes the max is at the boundary, but we're just 'almost' sure
+	if (idx) {
+		int imax;
+		int max_val;
+		if (x[0] > x[n - 1]) {
+			imax = 0;
+			max_val = x[0];
+		} else {
+			imax = n - 1;
+			max_val = x[n - 1];
+		}
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+				imax = i;
+			}
+		}
+		*idx = imax;
+		return max_val;
+	} else {
+		int max_val = IMAX(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] > max_val)) {
+				max_val = x[i];
+			}
+		}
+		return max_val;
+	}
 }
 
 int GMRFLib_imin_value(int *x, int n, int *idx)
@@ -1138,66 +1264,48 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 	/*
 	 * return the IMIN(x[]), optional idx
 	 */
-	int imin, min_val;
 
-	min_val = x[0];
-	imin = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
+	if (n <= 1) {
+		if (n == 0) {
+			if (idx) {
+				idx = NULL;
+			}
+			return MININT;
+		} else {
+			if (idx) {
+				*idx = 0;
+			}
+			return x[0];
 		}
 	}
-
+	// sometimes the min is at the boundary, but we're just 'almost' sure
 	if (idx) {
+		int imin;
+		int min_val;
+		if (x[0] < x[n - 1]) {
+			imin = 0;
+			min_val = x[0];
+		} else {
+			imin = n - 1;
+			min_val = x[n - 1];
+		}
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+				imin = i;
+			}
+		}
 		*idx = imin;
-	}
-	return min_val;
-}
-
-double GMRFLib_max_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MAX(x[]), optional idx
-	 */
-	int i, imax;
-	double max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
+		return min_val;
+	} else {
+		int min_val = IMIN(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
+			if (unlikely(x[i] < min_val)) {
+				min_val = x[i];
+			}
 		}
+		return min_val;
 	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
-}
-
-int GMRFLib_imax_value(int *x, int n, int *idx)
-{
-	/*
-	 * return IMAX(x[]), optional idx
-	 */
-	int imax, max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (int i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
 }
 
 int GMRFLib_iamax_value(int *x, int n, int *idx)
@@ -2074,23 +2182,28 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 // 
 double GMRFLib_cdfnorm_inv(double p)
 {
-	// https://arxiv.org/abs/0901.0638
-	int sign = (p < 0.5 ? -1 : 1);
-	double u = DMAX(p, 1.0 - p);
-	double v = -log(2.0 * (1.0 - u));
-	double P = 1.2533141359896652729 +
-	    v * (3.0333178251950406994 +
-		 v * (2.3884158540184385711 +
-		      v * (0.73176759583280610539 +
-			   v * (0.085838533424158257377 +
-				v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
-	double Q = 1 + v * (2.9202373175993672857 +
-			    v * (2.9373357991677046357 +
-				 v * (1.2356513216582148689 +
-				      v * (0.2168237095066675527 +
-					   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
-	return (sign * v * P / Q);
-};
+	return (gsl_cdf_ugaussian_Pinv(p));
+
+	if (0) {
+		// https://arxiv.org/abs/0901.0638
+		int sign = (p < 0.5 ? -1 : 1);
+		double u = DMAX(p, 1.0 - p);
+		double v = -log(2.0 * (1.0 - u));
+		double P = 1.2533141359896652729 +
+		    v * (3.0333178251950406994 +
+			 v * (2.3884158540184385711 +
+			      v * (0.73176759583280610539 +
+				   v * (0.085838533424158257377 +
+					v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+		double Q = 1 + v * (2.9202373175993672857 +
+				    v * (2.9373357991677046357 +
+					 v * (1.2356513216582148689 +
+					      v * (0.2168237095066675527 +
+						   v * (0.014494272424798068406 +
+							(0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+		return (sign * v * P / Q);
+	}
+}
 
 double GMRFLib_cdfnorm(double x)
 {
@@ -2140,13 +2253,13 @@ size_t GMRFLib_align_simple(size_t n, size_t size)
 	// that means steps of 2 for double and 4 for ints
 
 	if (size == 8L) {
-		div_t d = div(n, 2L);
+		ldiv_t d = ldiv(n, 2L);
 		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
 	} else if (size == 4L) {
-		div_t d = div(n, 4L);
+		ldiv_t d = ldiv(n, 4L);
 		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
 	} else if (size == 2L) {
-		div_t d = div(n, 8L);
+		ldiv_t d = ldiv(n, 8L);
 		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
 	} else if (size == 16L) {
 		return n;

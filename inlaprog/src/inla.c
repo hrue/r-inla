@@ -121,6 +121,7 @@
 #define RCPOISSON_MAXTHETA (10L)
 #define TPOISSON_MAXTHETA (10L)
 #define OCCUPANCY_MAXTHETA (10L)
+#define BINOMIALMIX_NBETA (8L)
 #define L_FL_NC (9L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
@@ -1991,8 +1992,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_BINOMIALMIX:
 			{
-				int nbeta = 6;
-				for (int k = 0; k < nbeta; k++) {
+				for (int k = 0; k < BINOMIALMIX_NBETA; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &b);

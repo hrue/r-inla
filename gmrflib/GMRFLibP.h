@@ -443,6 +443,9 @@ typedef enum {
 #endif
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
+#define likely(x)   __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
 #define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}

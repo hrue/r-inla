@@ -2037,7 +2037,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	switch (typ) {
 	case MAP_FORWARD:
 	{
-		return gsl_cdf_lognormal_Pinv(inla_Phi(x), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec));
+		return gsl_cdf_lognormal_Pinv(inla_cdf_normal(x), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec));
 	}
 		break;
 
@@ -2049,8 +2049,8 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case MAP_DFORWARD:
 	{
-		return (gsl_cdf_lognormal_Pinv(inla_Phi(x + h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)) -
-			gsl_cdf_lognormal_Pinv(inla_Phi(x - h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec))) / (2.0 * h);
+		return (gsl_cdf_lognormal_Pinv(inla_cdf_normal(x + h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)) -
+			gsl_cdf_lognormal_Pinv(inla_cdf_normal(x - h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec))) / (2.0 * h);
 	}
 		break;
 

@@ -5,6 +5,7 @@ all:; \
 	-make -C rinla/R
 	-make -C r-inla.org/doc
 	-make doc-links
+	./bin/compress
 
 
 ## The following finds all .tex files in

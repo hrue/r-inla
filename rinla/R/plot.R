@@ -860,7 +860,7 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
         param <- h[[1]]$theta$param
         from.theta <- h[[1]]$theta$from.theta
         to.theta <- h[[1]]$theta$to.theta
-    } else if (length(grep("^inla.data[0-9]+$", section)) > 0) {
+    } else if (length(grep("^inla.data[0-9]+$", section, ignore.case = TRUE)) > 0) {
         ## likelihood
         output("request for likelihood ", section, " with hyperid ", hyperid)
         h <- all.hyper$family
@@ -1089,6 +1089,42 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
                log(abs(xi.deriv)))
     }
 
+    my.pc.egptail <- function(theta, param, log = FALSE) {
+        dist <- function(xi, deriv = 0) {
+            if (deriv == 0) {
+                return (abs(xi))
+            } else {
+                return (1.0)
+            }
+        }
+
+        lambda <- param[1]
+        interval <- param[c(2, 3)]
+        xi <- map.interval(theta, interval)
+        xi.deriv <- map.interval(theta, interval, deriv = 1)
+        d <- dist(xi)
+        d.deriv <- dist(xi, deriv = 1)
+
+        if (interval[1] <= 0 && interval[2] >= 0) {
+                p.low <- 0.5 * exp(-lambda * dist(interval[1]))
+                p.high <- 1.0 - 0.5 * exp(-lambda * dist(interval[2]))
+                ld <- log(p.high - p.low) + log(lambda/2.0) - lambda * d + log(abs(d.deriv)) + log(abs(xi.deriv))
+        } else if (all(interval>= 0)) {
+                p.low <- 1.0 - exp(-lambda * dist(interval[1]))
+                p.high <- 1.0 - exp(-lambda * dist(interval[2]))
+                ld <- -log(p.high - p.low) + log(lambda) - lambda * d + log(abs(d.deriv)) + log(abs(xi.deriv))
+        } else if (all(interval <= 0)) {
+                p.low = 1.0 - exp(-lambda * dist(-interval[2]))
+                p.high = 1.0 - exp(-lambda * dist(-interval[1]))
+                ld <- -log(p.high - p.low) + log(lambda) - lambda * d + log(abs(d.deriv)) + log(abs(xi.deriv))
+        } else if (interval[1] > interval[2]) {
+            stopifnot(interval[1] < interval[2])
+        } else {
+            stop("this should not happen")
+        }
+        return(if (log) ld else exp(ld))
+    }
+
     my.pc.dof <- function(theta, param, log = FALSE) {
         dof <- inla.models()$likelihood$t$hyper$theta2$from.theta(theta)
         ld <- inla.pc.ddof(dof, lambda = param[1], log = TRUE) + log.jac(dof, theta)
@@ -1273,7 +1309,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         return(list(x = NA, y = NA))
     }
 
-    if (length(grep("table:", prior$prior)) > 0) {
+    if (length(grep("^table:", prior$prior, ignore.case = TRUE)) > 0) {
         tab <- substr(prior$prior, nchar("table:") + 1, nchar(prior$prior))
         xy <- as.numeric(unlist(strsplit(tab, "[ \t\n\r]+")))
         xy <- xy[!is.na(xy)]
@@ -1284,7 +1320,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         prior$param <- xy
         prior$prior <- "table"
     }
-    if (length(grep("expression:", prior$prior)) > 0) {
+    if (length(grep("^expression:", prior$prior, ignore.case = TRUE)) > 0) {
         ## not available yet.
         return(list(x = NA, y = NA))
     }
@@ -1300,7 +1336,6 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
     } else {
         myp <- paste("my.", prior$prior, sep = "")
     }
-
 
     if (!exists(myp) || !is.function(eval(parse(text = myp)))) {
         output("internal prior-function not found: ", myp, ", NEEDS TO BE IMPLEMENTED", force = TRUE)
@@ -1325,7 +1360,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
 
         ## this is a special case, need to extract the interval and use that as the correct
         ## argument
-        if (!have.rprior && (prior$prior == "pc.gevtail")) {
+        if (!have.rprior && (prior$prior == "pc.gevtail" || prior$prior == "pc.egptail")) {
             interval <- prior$param[c(2, 3)]
             range.theta <- prior$to.theta(range, interval = interval)
             theta <- seq(range.theta[1], range.theta[2], length.out = len)

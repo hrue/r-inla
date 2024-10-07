@@ -236,7 +236,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 {
 	// RATIO is the skew-normal density divided by the normal, each with mean zero and unit variance
 	// skew3 is the skewness^(1/3)
-#define RATIO_CORE(x_, z_) (2.0 / omega * exp(-0.5 * SQR(z_) + 0.5 * SQR(x_) + inla_log_Phi(alpha * (z_))))
+#define RATIO_CORE(x_, z_) (2.0 / omega * exp(-0.5 * SQR(z_) + 0.5 * SQR(x_) + inla_logcdf_normal(alpha * (z_))))
 #define RATIO(x_) RATIO_CORE(x_, (((x_)-xi)/omega))
 
 	// Return a new allocted _snq_tp object with the required information. Note that 'n' in the object can be less than the
