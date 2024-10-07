@@ -42,7 +42,7 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
     esac
 fi
 
-export OMP_SCHEDULE=STATIC
+export OMP_SCHEDULE=GUIDED
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
 export PARDISOLICMESSAGE=1
