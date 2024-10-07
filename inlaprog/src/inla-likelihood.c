@@ -720,13 +720,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 				ds->data_observations.binmix_dat[i][k] = a[k][i];
 			}
 			char *msg = NULL;
-			if (!(ds->data_observations.y[i] >= 0 && ds->data_observations.y[i] <= ds->data_observations.binmix_dat[i][na-1])) {
+			if (!(ds->data_observations.y[i] >= 0 && ds->data_observations.y[i] <= ds->data_observations.binmix_dat[i][na - 1])) {
 				GMRFLib_sprintf(&msg, "binomialmix Ntrials[%1d] = %g y[%1d] = %g is void\n", i,
-						ds->data_observations.y[i], ds->data_observations.binmix_dat[i][na-1]);
+						ds->data_observations.y[i], ds->data_observations.binmix_dat[i][na - 1]);
 				inla_error_general(msg);
 			}
 			if ((double) ((int) ds->data_observations.y[i]) != ds->data_observations.y[i]) {
-				GMRFLib_sprintf(&msg, "binomialmix y[%1d] = %g is not integer\n", i, ds->data_observations.y[i]); 
+				GMRFLib_sprintf(&msg, "binomialmix y[%1d] = %g is not integer\n", i, ds->data_observations.y[i]);
 				inla_error_general(msg);
 			}
 		}
@@ -3360,8 +3360,8 @@ int loglikelihood_binomialmix(int thread_id, double *__restrict logll, double *_
 	}
 	double p2 = PREDICTOR_INVERSE_LINK(p2_intern);
 
-	double p12 = dat[BINOMIALMIX_NBETA] * p1 + dat[BINOMIALMIX_NBETA+1] * p2;
-	double w3 = 1.0 - (dat[BINOMIALMIX_NBETA] + dat[BINOMIALMIX_NBETA+1]);
+	double p12 = dat[BINOMIALMIX_NBETA] * p1 + dat[BINOMIALMIX_NBETA + 1] * p2;
+	double w3 = 1.0 - (dat[BINOMIALMIX_NBETA] + dat[BINOMIALMIX_NBETA + 1]);
 	assert(w3 >= 0 && w3 <= 1.0);
 
 	double off = OFFSET(idx);
@@ -5738,9 +5738,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6596,7 +6596,7 @@ int loglikelihood_egp(int thread_id, double *__restrict logll, double *__restric
 				logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
 			}
 		} else {
-			double f[] = { 0.90, 0.99 }; 
+			double f[] = { 0.90, 0.99 };
 			double eta_c = log(-y * a);
 			double eta_L, eta_H;
 			if (eta_c < 0.0) {

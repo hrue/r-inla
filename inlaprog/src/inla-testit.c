@@ -4623,7 +4623,7 @@ int testit(int argc, char **argv)
 			tref1 -= GMRFLib_timer();
 			double xm = xx[0];
 			for (int i = 1; i < n; i++) {
-				if (xx[i] <  xm){
+				if (xx[i] < xm) {
 					xm = xx[i];
 				}
 			}
@@ -4644,7 +4644,7 @@ int testit(int argc, char **argv)
 			tref1 -= GMRFLib_timer();
 			double xm = xx[0];
 			for (int i = 1; i < n; i++) {
-				if (xx[i] > xm){
+				if (xx[i] > xm) {
 					xm = xx[i];
 				}
 			}
@@ -4660,12 +4660,12 @@ int testit(int argc, char **argv)
 		tref2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			for (int i = 0; i < n; i++) {
-				ixx[i] = (int)(MAXINT * GMRFLib_uniform());
+				ixx[i] = (int) (MAXINT * GMRFLib_uniform());
 			}
 			tref1 -= GMRFLib_timer();
 			int xm = ixx[0];
 			for (int i = 1; i < n; i++) {
-				if (ixx[i] < xm){
+				if (ixx[i] < xm) {
 					xm = ixx[i];
 				}
 			}
@@ -4681,12 +4681,12 @@ int testit(int argc, char **argv)
 		tref2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			for (int i = 0; i < n; i++) {
-				ixx[i] = (int)(MAXINT * GMRFLib_uniform());
+				ixx[i] = (int) (MAXINT * GMRFLib_uniform());
 			}
 			tref1 -= GMRFLib_timer();
 			int xm = ixx[0];
 			for (int i = 1; i < n; i++) {
-				if (ixx[i] > xm){
+				if (ixx[i] > xm) {
 					xm = ixx[i];
 				}
 			}
@@ -4699,7 +4699,7 @@ int testit(int argc, char **argv)
 		printf("INT MIN plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 	}
 		break;
-		
+
 
 	case 999:
 	{

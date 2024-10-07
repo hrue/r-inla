@@ -30,7 +30,7 @@
 
 #include <values.h>
 #include <time.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -1131,19 +1131,18 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 			return x[0];
 		}
 	}
-	
 	// sometimes the max is at the boundary
 	if (idx) {
 		int imax;
 		double max_val;
-		if (x[0] > x[n-1]) {
+		if (x[0] > x[n - 1]) {
 			imax = 0;
 			max_val = x[0];
 		} else {
-			imax = n-1;
-			max_val = x[n-1];
+			imax = n - 1;
+			max_val = x[n - 1];
 		}
-		for (int i = 1; i < n-1; i++) {
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
 				imax = i;
@@ -1152,8 +1151,8 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		*idx = imax;
 		return max_val;
 	} else {
-		double max_val = DMAX(x[0], x[n-1]);
-		for (int i = 1; i < n-1; i++) {
+		double max_val = DMAX(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
 			}
@@ -1181,19 +1180,18 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 			return x[0];
 		}
 	}
-	
 	// sometimes the min is at the boundary
 	if (idx) {
 		int imin;
 		double min_val;
-		if (x[0] < x[n-1]) {
+		if (x[0] < x[n - 1]) {
 			imin = 0;
 			min_val = x[0];
 		} else {
-			imin = n-1;
-			min_val = x[n-1];
+			imin = n - 1;
+			min_val = x[n - 1];
 		}
-		for (int i = 1; i < n-1; i++) {
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
 				imin = i;
@@ -1202,8 +1200,8 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		*idx = imin;
 		return min_val;
 	} else {
-		double min_val = DMIN(x[0], x[n-1]);
-		for (int i = 1; i < n-1; i++) {
+		double min_val = DMIN(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
 			}
@@ -1231,19 +1229,18 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 			return x[0];
 		}
 	}
-	
 	// sometimes the max is at the boundary, but we're just 'almost' sure
 	if (idx) {
 		int imax;
 		int max_val;
-		if (x[0] > x[n-1]) {
+		if (x[0] > x[n - 1]) {
 			imax = 0;
 			max_val = x[0];
 		} else {
-			imax = n-1;
-			max_val = x[n-1];
+			imax = n - 1;
+			max_val = x[n - 1];
 		}
-		for (int i = 1; i < n-1; i++) {
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
 				imax = i;
@@ -1252,8 +1249,8 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		*idx = imax;
 		return max_val;
 	} else {
-		int max_val = IMAX(x[0], x[n-1]);
-		for (int i = 1; i < n-1; i++) {
+		int max_val = IMAX(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
 			}
@@ -1281,19 +1278,18 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 			return x[0];
 		}
 	}
-	
 	// sometimes the min is at the boundary, but we're just 'almost' sure
 	if (idx) {
 		int imin;
 		int min_val;
-		if (x[0] < x[n-1]) {
+		if (x[0] < x[n - 1]) {
 			imin = 0;
 			min_val = x[0];
 		} else {
-			imin = n-1;
-			min_val = x[n-1];
+			imin = n - 1;
+			min_val = x[n - 1];
 		}
-		for (int i = 1; i < n-1; i++) {
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
 				imin = i;
@@ -1302,8 +1298,8 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		*idx = imin;
 		return min_val;
 	} else {
-		int min_val = IMIN(x[0], x[n-1]);
-		for (int i = 1; i < n-1; i++) {
+		int min_val = IMIN(x[0], x[n - 1]);
+		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
 			}
@@ -2115,9 +2111,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2137,15 +2133,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2194,16 +2190,17 @@ double GMRFLib_cdfnorm_inv(double p)
 		double u = DMAX(p, 1.0 - p);
 		double v = -log(2.0 * (1.0 - u));
 		double P = 1.2533141359896652729 +
-			v * (3.0333178251950406994 +
-			     v * (2.3884158540184385711 +
-				  v * (0.73176759583280610539 +
-				       v * (0.085838533424158257377 +
-					    v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+		    v * (3.0333178251950406994 +
+			 v * (2.3884158540184385711 +
+			      v * (0.73176759583280610539 +
+				   v * (0.085838533424158257377 +
+					v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
 		double Q = 1 + v * (2.9202373175993672857 +
 				    v * (2.9373357991677046357 +
 					 v * (1.2356513216582148689 +
 					      v * (0.2168237095066675527 +
-						   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+						   v * (0.014494272424798068406 +
+							(0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
 		return (sign * v * P / Q);
 	}
 }
