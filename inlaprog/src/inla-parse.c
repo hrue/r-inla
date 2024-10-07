@@ -4882,8 +4882,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_BINOMIALMIX:
 	{
-		const int six = 6;
-		for (i = 0; i < six; i++) {
+		const int nbeta = BINOMIALMIX_NBETA;
+		assert(GSL_IS_EVEN(BINOMIALMIX_NBETA));
+
+		for (i = 0; i < nbeta; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -4906,11 +4908,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
-		ds->data_nfixed = Calloc(six, int);
-		ds->data_nprior = Calloc(six, Prior_tp);
-		ds->data_observations.binmix_beta = Calloc(six, double **);
+		ds->data_nfixed = Calloc(nbeta, int);
+		ds->data_nprior = Calloc(nbeta, Prior_tp);
+		ds->data_observations.binmix_beta = Calloc(nbeta, double **);
 
-		for (i = 0; i < six; i++) {
+		for (i = 0; i < nbeta; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 

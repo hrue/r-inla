@@ -12225,7 +12225,7 @@ Number of hyperparmeters is 10.
 }
 }
 }
-Number of hyperparmeters is 6.
+Number of hyperparmeters is 8.
 \describe{
 \item{Hyperparameter 'theta1'}{
 \describe{
@@ -12309,6 +12309,36 @@ Number of hyperparmeters is 6.
 \item{short.name = }{\verb{beta6}}
 \item{output.name = }{\verb{beta6 for binomialmix observations}}
 \item{output.name.intern = }{\verb{beta6 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta7'}{
+\describe{
+\item{hyperid = }{\verb{56557}}
+\item{name = }{\verb{beta7}}
+\item{short.name = }{\verb{beta7}}
+\item{output.name = }{\verb{beta7 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta7 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta8'}{
+\describe{
+\item{hyperid = }{\verb{56558}}
+\item{name = }{\verb{beta8}}
+\item{short.name = }{\verb{beta8}}
+\item{output.name = }{\verb{beta8 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta8 for binomialmix observations}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}

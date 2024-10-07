@@ -10155,6 +10155,32 @@
                             param = c(0, 100),
                             to.theta = function(x) x,
                             from.theta = function(x) x
+                        ), 
+                        theta7 = list(
+                            hyperid = 56557,
+                            name = "beta7",
+                            short.name = "beta7",
+                            output.name = "beta7 for binomialmix observations", 
+                            output.name.intern = "beta7 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ), 
+                        theta8 = list(
+                            hyperid = 56558,
+                            name = "beta8",
+                            short.name = "beta8",
+                            output.name = "beta8 for binomialmix observations", 
+                            output.name.intern = "beta8 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     status = "experimental", 

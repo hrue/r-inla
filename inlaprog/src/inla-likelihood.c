@@ -597,8 +597,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_BINOMIALMIX:
 	{
-		P(ncol_data_all);
-		assert(ncol_data_all == 11);
+		assert(ncol_data_all == 13);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		for (i = 0; i < na; i++) {
@@ -720,10 +719,14 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 			for (k = 0; k < na; k++) {
 				ds->data_observations.binmix_dat[i][k] = a[k][i];
 			}
-			if (!(ds->data_observations.y[i] >= 0 && ds->data_observations.y[i] <= ds->data_observations.binmix_dat[i][8])) {
-				char *msg = NULL;
+			char *msg = NULL;
+			if (!(ds->data_observations.y[i] >= 0 && ds->data_observations.y[i] <= ds->data_observations.binmix_dat[i][na-1])) {
 				GMRFLib_sprintf(&msg, "binomialmix Ntrials[%1d] = %g y[%1d] = %g is void\n", i,
-						ds->data_observations.y[i], ds->data_observations.binmix_dat[i][8]);
+						ds->data_observations.y[i], ds->data_observations.binmix_dat[i][na-1]);
+				inla_error_general(msg);
+			}
+			if ((double) ((int) ds->data_observations.y[i]) != ds->data_observations.y[i]) {
+				GMRFLib_sprintf(&msg, "binomialmix y[%1d] = %g is not integer\n", i, ds->data_observations.y[i]); 
 				inla_error_general(msg);
 			}
 		}
@@ -3323,7 +3326,7 @@ int loglikelihood_binomialmix(int thread_id, double *__restrict logll, double *_
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double *dat = ds->data_observations.binmix_dat[idx];
-	double n = dat[8];
+	double n = dat[BINOMIALMIX_NBETA + 2];
 	double ny = n - y;
 
 	if (ISZERO(y) && ISZERO(n)) {
@@ -3343,21 +3346,22 @@ int loglikelihood_binomialmix(int thread_id, double *__restrict logll, double *_
 	double normc = G_norm_const[idx];
 	LINK_INIT;
 
+	int nbeta2 = BINOMIALMIX_NBETA / 2L;		       /* yes, _NBETA is even */
 	double p1_intern = 0.0;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < nbeta2; i++) {
 		p1_intern += ds->data_observations.binmix_beta[i][thread_id][0] * dat[i];
 	}
 	double p1 = PREDICTOR_INVERSE_LINK(p1_intern);
 
-	int offset = 3;
+	int offset = nbeta2;
 	double p2_intern = 0.0;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < nbeta2; i++) {
 		p2_intern += ds->data_observations.binmix_beta[offset + i][thread_id][0] * dat[offset + i];
 	}
 	double p2 = PREDICTOR_INVERSE_LINK(p2_intern);
 
-	double p12 = dat[6] * p1 + dat[7] * p2;
-	double w3 = 1.0 - (dat[6] + dat[7]);
+	double p12 = dat[BINOMIALMIX_NBETA] * p1 + dat[BINOMIALMIX_NBETA+1] * p2;
+	double w3 = 1.0 - (dat[BINOMIALMIX_NBETA] + dat[BINOMIALMIX_NBETA+1]);
 	assert(w3 >= 0 && w3 <= 1.0);
 
 	double off = OFFSET(idx);
