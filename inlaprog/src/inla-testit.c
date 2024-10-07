@@ -4660,7 +4660,7 @@ int testit(int argc, char **argv)
 		tref2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			for (int i = 0; i < n; i++) {
-				ixx[i] = (int) (MAXINT * GMRFLib_uniform());
+				ixx[i] = (int) (INT_MAX * GMRFLib_uniform());
 			}
 			tref1 -= GMRFLib_timer();
 			int xm = ixx[0];
@@ -4681,7 +4681,7 @@ int testit(int argc, char **argv)
 		tref2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			for (int i = 0; i < n; i++) {
-				ixx[i] = (int) (MAXINT * GMRFLib_uniform());
+				ixx[i] = (int) (INT_MAX * GMRFLib_uniform());
 			}
 			tref1 -= GMRFLib_timer();
 			int xm = ixx[0];

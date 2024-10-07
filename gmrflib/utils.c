@@ -28,7 +28,7 @@
  *
  */
 
-#include <values.h>
+#include <limits.h>
 #include <time.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -1221,7 +1221,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 			if (idx) {
 				idx = NULL;
 			}
-			return MAXINT;
+			return INT_MAX;
 		} else {
 			if (idx) {
 				*idx = 0;
@@ -1270,7 +1270,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 			if (idx) {
 				idx = NULL;
 			}
-			return MININT;
+			return INT_MIN;
 		} else {
 			if (idx) {
 				*idx = 0;
