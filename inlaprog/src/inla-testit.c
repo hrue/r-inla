@@ -4434,7 +4434,6 @@ int testit(int argc, char **argv)
 		break;
 
 	case 146:
-#if defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
@@ -4442,6 +4441,10 @@ int testit(int argc, char **argv)
 		assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
+
+#if !defined(INLA_WITH_MKL)
+		mkl = 0;
+#endif		
 
 		P(n);
 		P(m);
@@ -4460,9 +4463,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
+#if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdExp(n, x, y);
 			}
+#endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
@@ -4484,9 +4489,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
+#if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdLn(n, x, y);
 			}
+#endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
@@ -4508,9 +4515,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
+#if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdLog1p(n, x, y);
 			}
+#endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
