@@ -4534,9 +4534,6 @@ int testit(int argc, char **argv)
 			printf("log1p PLAIN %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		}
 	}
-#else
-		printf("Need this:  defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)\n");
-#endif
 		break;
 
 	case 147:
