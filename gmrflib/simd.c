@@ -91,7 +91,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdExp(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		vvexp(y, x, &n);
 #else		
 		_Pragma("omp simd")
@@ -103,7 +103,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdExp(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 	vvexp(y, x, &n);
 #else
 	_Pragma("omp simd")
@@ -185,7 +185,7 @@ void GMRFLib_log(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdLn(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		vvlog(y, x, &n);
 #else
 		_Pragma("omp simd")
@@ -197,7 +197,7 @@ void GMRFLib_log(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdLn(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 	vvlog(y, x, &n);
 #else
 	_Pragma("omp simd")
@@ -269,7 +269,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdLog1p(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		vvlog1p(y, x, &n);
 #else
 		_Pragma("omp simd")
@@ -281,7 +281,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdLog1p(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 	vvlog1p(y, x, &n);
 #else
 	_Pragma("omp simd")
@@ -314,7 +314,7 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 		return;
 #if defined(INLA_WITH_MKL)
 	vdSqrt(n, x, y);
-#elif defined(__APPLE__)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 	vvsqrt(y, x, &n);
 #else
 	_Pragma("omp simd")

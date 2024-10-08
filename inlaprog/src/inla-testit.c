@@ -4477,9 +4477,9 @@ int testit(int argc, char **argv)
 		}
 		tref[1] += GMRFLib_timer();
 		if (mkl) {
-			printf("exp MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("exp MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		} else {
-			printf("exp PLAIN %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("exp PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		}
 
 		tref[0] = -GMRFLib_timer();
@@ -4503,9 +4503,9 @@ int testit(int argc, char **argv)
 		}
 		tref[1] += GMRFLib_timer();
 		if (mkl) {
-			printf("log MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("log MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		} else {
-			printf("log PLAIN %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("log PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		}
 
 		tref[0] = -GMRFLib_timer();
@@ -4529,9 +4529,9 @@ int testit(int argc, char **argv)
 		}
 		tref[1] += GMRFLib_timer();
 		if (mkl) {
-			printf("log1p MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("log1p MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		} else {
-			printf("log1p PLAIN %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+			printf("log1p PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
 		}
 	}
 		break;
