@@ -91,7 +91,9 @@ void GMRFLib_exp(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdExp(n, x, y);
-#else
+#elif defined(__APPLE__)
+		vvexp(y, x, &n);
+#else		
 		_Pragma("omp simd")
 		    for (int i = 0; i < n; i++) {
 			y[i] = exp(x[i]);
@@ -101,6 +103,8 @@ void GMRFLib_exp(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdExp(n, x, y);
+#elif defined(__APPLE__)
+	vvexp(y, x, &n);
 #else
 	_Pragma("omp simd")
 	    for (int i = 0; i < n; i++) {
@@ -181,6 +185,8 @@ void GMRFLib_log(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdLn(n, x, y);
+#elif defined(__APPLE__)
+		vvlog(y, x, &n);
 #else
 		_Pragma("omp simd")
 		    for (int i = 0; i < n; i++) {
@@ -191,6 +197,8 @@ void GMRFLib_log(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdLn(n, x, y);
+#elif defined(__APPLE__)
+	vvlog(y, x, &n);
 #else
 	_Pragma("omp simd")
 	    for (int i = 0; i < n; i++) {
@@ -261,6 +269,8 @@ void GMRFLib_log1p(int n, double *x, double *y)
 
 #if defined(INLA_WITH_MKL)
 		vdLog1p(n, x, y);
+#elif defined(__APPLE__)
+		vvlog1p(y, x, &n);
 #else
 		_Pragma("omp simd")
 		    for (int i = 0; i < n; i++) {
@@ -271,6 +281,8 @@ void GMRFLib_log1p(int n, double *x, double *y)
 #else
 #if defined(INLA_WITH_MKL)
 	vdLog1p(n, x, y);
+#elif defined(__APPLE__)
+	vvlog1p(y, x, &n);
 #else
 	_Pragma("omp simd")
 	    for (int i = 0; i < n; i++) {
@@ -302,6 +314,8 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 		return;
 #if defined(INLA_WITH_MKL)
 	vdSqrt(n, x, y);
+#elif defined(__APPLE__)
+	vvsqrt(y, x, &n);
 #else
 	_Pragma("omp simd")
 	    for (int i = 0; i < n; i++) {
