@@ -152,7 +152,6 @@ int R_load_INLA = 0;
    these are the same, just that the interface is cleaner with the `ds'
  */
 #define OFFSET(idx_) ds->offset[idx_]
-#define OFFSET2(idx_) mb_old->offset[idx_]
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define LINK_INIT							\

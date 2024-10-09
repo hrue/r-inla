@@ -901,15 +901,14 @@ int loglikelihood_gaussian(int thread_id, double *__restrict logll, double *__re
 	}
 
 	double off = OFFSET(idx);
-
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
-			if (PREDICTOR_SCALE == 1.0 && off == 0.0) {
+			if (PREDICTOR_SCALE == 1.0) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					double res = y - x[i];
+					double res = y - (x[i] + off);
 					logll[i] = b + a * SQR(res);
 				}
 			} else {
@@ -969,21 +968,13 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
 
-			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0 && off == 0.0)) {
+			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0)) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
-				if (0 && m >= 8L) {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double tmp[mm];
-					GMRFLib_daxpb(m, -1.0, x, y, tmp);
-					GMRFLib_sqr(m, tmp, tmp);
-					GMRFLib_daxpb(m, a, tmp, b, logll);
-				} else {
 #pragma omp simd
-					for (int i = 0; i < m; i++) {
-						double res = y - x[i];
-						logll[i] = b + a * SQR(res);
-					}
+				for (int i = 0; i < m; i++) {
+					double res = y - (x[i] + off);
+					logll[i] = b + a * SQR(res);
 				}
 			} else {
 #pragma omp simd
@@ -1105,12 +1096,12 @@ int loglikelihood_sem(int thread_id, double *__restrict logll, double *__restric
 	double lprec = log(prec);
 
 	if (m > 0) {
-		if (PREDICTOR_LINK_EQ(link_identity) && ISZERO(off)) {
+		if (PREDICTOR_LINK_EQ(link_identity)) {
 			double a = -0.5 * prec;
 			double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
-				double res = y - x[i];
+				double res = y - (x[i] + off);
 				logll[i] = b + a * SQR(res);
 			}
 		} else {
@@ -2656,13 +2647,14 @@ int loglikelihood_nzpoisson(int thread_id, double *__restrict logll, double *__r
 	double off = OFFSET(idx);
 	if (m > 0) {
 		double ylEmn = normc;
-		if (PREDICTOR_LINK_EQ(link_log) && (PREDICTOR_SCALE == 1.0) && (off == 0.0)) {
+		if (PREDICTOR_LINK_EQ(link_log) && (PREDICTOR_SCALE == 1.0)) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
-				double lambda = exp(x[i]);
+				double xx = x[i] + off;
+				double lambda = exp(xx);
 				double mu = E * lambda;
 				double p0 = exp(-mu);
-				logll[i] = y * x[i] + ylEmn - mu - LOG_1mp(p0);
+				logll[i] = y * xx + ylEmn - mu - LOG_1mp(p0);
 			}
 		} else {
 			for (int i = 0; i < m; i++) {
@@ -4381,34 +4373,35 @@ int loglikelihood_negative_binomial(int thread_id, double *__restrict logll, dou
 			double lsize = log(size);
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
-			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
 
-			if (fast) {
+			if (PREDICTOR_SCALE == 1.0) {
 				double tt2 = t2 + t3 * lsize;
 				if (0) {
 					double b = E / size;
 					if (y > 0) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
-							logll[i] = tt2 + t3 * log1p(b * exp(x[i])) + y * x[i];
+							double xx = x[i] + off;
+							logll[i] = tt2 + t3 * log1p(b * exp(xx)) + y * xx;
 						}
 					} else {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
-							logll[i] = tt2 + t3 * log1p(b * exp(x[i]));
+							logll[i] = tt2 + t3 * log1p(b * exp(x[i] + off));
 						}
 					}
 				} else {
 					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double ex[mm], lx[mm];
+					double xx[mm], ex[mm], lx[mm];
 
-					GMRFLib_exp(m, x, ex);
+					GMRFLib_cdaddto(m, x, off, xx);
+					GMRFLib_exp(m, xx, ex);
 					GMRFLib_dscale(m, E / size, ex);
 					GMRFLib_log1p(m, ex, lx);
 
 					if (y > 0) {
 						// logll[i] = tt2 + t3 * lx[i] + y * x[i]);
-						GMRFLib_daxpbypcz(m, t3, lx, y, x, tt2, logll);
+						GMRFLib_daxpbypcz(m, t3, lx, y, xx, tt2, logll);
 					} else {
 						// logll[i] = tt2 + t3 * lx[i];
 						GMRFLib_daxpb(m, t3, lx, tt2, logll);

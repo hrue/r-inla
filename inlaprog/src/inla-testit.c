@@ -1,13 +1,3 @@
-#include <limits.h>
-#include <assert.h>
-#include <stddef.h>
-#include <float.h>
-#include <time.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 /* inla-testit.c
  * 
@@ -37,6 +27,16 @@
  *
  */
 
+#include <limits.h>
+#include <assert.h>
+#include <stddef.h>
+#include <float.h>
+#include <time.h>
+#include <math.h>
+#include <strings.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
 			 void *UNUSED(arg), char **UNUSED(arg_str))
