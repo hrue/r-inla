@@ -790,7 +790,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				if (!ISNAN(f0) && (ff0 > ff) && !early_stop) {
 					if (G.ai_par->fp_log || debug)
 						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-							"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff - ff0);
+							"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff0 - ff);
 					ff0 = ff;
 					early_stop = 1;
 				}
@@ -949,7 +949,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					if (CHECK_FOR_EARLY_STOP && (f11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
 							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
+								"enable early_stop f11 < f_best_save: %f < %f (diff %f)\n",
+								f11, f_best_save, f_best_save - f11);
 						early_stop = 1;
 						continue;
 					}
@@ -959,7 +960,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					if (CHECK_FOR_EARLY_STOP && (f11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
 							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
+								"enable early_stop f11 < f_best_save: %f < %f (diff %f)\n",
+								f11, f_best_save, f_best_save - f11);
 						early_stop = 1;
 						continue;
 					}
@@ -971,7 +973,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					if (CHECK_FOR_EARLY_STOP && (fm11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
 							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop fm11 < f_best_save: %f < %f\n", fm11, f_best_save);
+								"enable early_stop fm11 < f_best_save: %f < %f (diff %f)\n",
+								fm11, f_best_save, f_best_save - fm11);
 						early_stop = 1;
 						continue;
 					}
@@ -983,7 +986,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					if (CHECK_FOR_EARLY_STOP && (f1m1 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
 							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop f1m1 < f_best_save: %f < %f\n", f1m1, f_best_save);
+								"enable early_stop f1m1 < f_best_save: %f < %f (diff %f)\n",
+								f1m1, f_best_save, f_best_save - f1m1);
 						early_stop = 1;
 						continue;
 					}
@@ -995,7 +999,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					if (CHECK_FOR_EARLY_STOP && (fm1m1 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
 							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
-								"enable early_stop fm1m1 < f_best_save: %f < %f\n", fm1m1, f_best_save);
+								"enable early_stop fm1m1 < f_best_save: %f < %f (diff %f)\n",
+								fm1m1, f_best_save, f_best_save - fm1m1);
 						early_stop = 1;
 						continue;
 					}
