@@ -2644,7 +2644,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 		double sum = 0.0, sum1 = 0.0, sum2 = 0.0, sum0 = 0.0;
-		double tref[3] = {0, 0, 0};
+		double tref[3] = { 0, 0, 0 };
 		double work[n];
 
 		for (int k = 0; k < m; k++) {
@@ -2668,7 +2668,7 @@ int testit(int argc, char **argv)
 		P((sum1 - sum2) / (sum1 + sum2));
 		P((sum - sum2) / (sum + sum2));
 		sum0 = sum;
-		
+
 		tref[0] = tref[1] = tref[2] = sum = sum1 = sum2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			tref[0] -= GMRFLib_timer();
@@ -4469,12 +4469,12 @@ int testit(int argc, char **argv)
 
 #if !defined(INLA_WITH_MKL)
 		mkl = 0;
-#endif		
+#endif
 
 		P(n);
 		P(m);
 		P(mkl);
-		
+
 		for (int i = 0; i < n + 1; i++) {
 			x[i] = GMRFLib_uniform();
 		}

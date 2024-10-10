@@ -653,12 +653,12 @@
         response <- cbind(ind, y.orig)
         na.dat <- is.na(response[, 2L])
         response <- response[!na.dat,, drop = FALSE]
-        Z <- response[, 4:11, drop = FALSE]
+        Z <- response[, 4:14, drop = FALSE]
         Z[is.na(Z)] <- 0
-        cov.names <- paste0("Z", 1:8)
+        cov.names <- paste0("Z", 1:11)
         colnames(Z) <- cov.names
 
-        W <- response[, 12:13, drop = FALSE]
+        W <- response[, 15:16, drop = FALSE]
         stopifnot(all(W >= 0))
         stopifnot(all(rowSums(W) <= 1))
         w.names <- paste0("W", 1:2)

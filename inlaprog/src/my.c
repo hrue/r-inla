@@ -239,7 +239,7 @@ double my_betabinomial_helper4(int n, double a, double *work)
 #pragma omp simd
 	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
-		work[i] = aa * (aa + 1) * (aa + 2) * (aa + 3); 
+		work[i] = aa * (aa + 1) * (aa + 2) * (aa + 3);
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -329,7 +329,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 		double aa = i * roll + a;
 		double s = 1.0;
 #pragma omp simd reduction(*: s)
-		for(int j = 0; j < roll; j++) {
+		for (int j = 0; j < roll; j++) {
 			s *= (aa + j);
 		}
 		work[i] = s;

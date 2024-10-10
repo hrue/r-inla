@@ -136,8 +136,17 @@ double GMRFLib_dot_product_serial_mkl_alt(GMRFLib_idxval_tp *__restrict ELM_, do
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	int one = 1;
-	return ddot_(&n, x, &one, y, &one);
+	if (n <= 4L) {
+		double r = 0.0;
+#pragma omp simd reduction(+: r)
+		for (int i = 0; i < n; i++) {
+			r += x[i] * y[i];
+		}
+		return r;
+	} else {
+		int one = 1;
+		return ddot_(&n, x, &one, y, &one);
+	}
 }
 
 

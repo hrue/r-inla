@@ -93,7 +93,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 		vdExp(n, x, y);
 #elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		vvexp(y, x, &n);
-#else		
+#else
 		_Pragma("omp simd")
 		    for (int i = 0; i < n; i++) {
 			y[i] = exp(x[i]);
