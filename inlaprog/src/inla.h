@@ -1829,6 +1829,7 @@ char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
 char *inla_make_tag2(const char *string, int ds, const char *estr);
 const char *inla_string_join(const char *a, const char *b);
+double GMRFLib_logsum(double lA, double lB);
 double Qfunc_2diid(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_2diid_wishart(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_ar(int thread_id, int i, int j, double *values, void *arg);
@@ -1869,13 +1870,12 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
-double GMRFLib_logsum(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
+double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_cdf_normal(double x);
 double inla_cdf_normal_fast(double x);
-double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
@@ -1924,6 +1924,8 @@ double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *co
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
+void link_log_invccloglog2(double x, double *r1, double *r2);
+void link_log_invcloglog2(double x, double *r1, double *r2);
 
 // define macros for some of the forward calls, but it seems like the compiler figure this out itself
 #define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))

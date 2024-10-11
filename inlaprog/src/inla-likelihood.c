@@ -5103,8 +5103,9 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				double log_p = link_log_invcloglog(eta);
-				double log_1mp = link_log_1m_invcloglog(eta);
+				// double log_p = link_log_invcloglog(eta), log_1mp = link_log_1m_invcloglog(eta);
+				double log_p, log_1mp;
+				link_log_invcloglog2(eta, &log_p, &log_1mp);
 				logll[i] = res.val + y * log_p + ny * log_1mp;
 			}
 		} else if (PREDICTOR_LINK_EQ(link_ccloglog)) {
@@ -5112,8 +5113,18 @@ int loglikelihood_binomial(int thread_id, double *__restrict logll, double *__re
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				double log_p = link_log_invccloglog(eta);
-				double log_1mp = link_log_1m_invccloglog(eta);
+				// double log_p = link_log_invccloglog(eta), log_1mp = link_log_1m_invccloglog(eta);
+				double log_p, log_1mp;
+				link_log_invccloglog2(eta, &log_p, &log_1mp);
+				logll[i] = res.val + y * log_p + ny * log_1mp;
+			}
+		} else if (PREDICTOR_LINK_EQ(link_probit)) {
+			// this one is numerically unstable int the tails without this
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+				double log_p = GMRFLib_log_cdfnorm(eta);
+				double log_1mp = GMRFLib_log_cdfnorm(-eta);
 				logll[i] = res.val + y * log_p + ny * log_1mp;
 			}
 		} else {

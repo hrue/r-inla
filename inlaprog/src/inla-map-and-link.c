@@ -658,6 +658,14 @@ double link_log_1m_invcloglog(double x)
 	return (-exp(x));
 }
 
+void link_log_invcloglog2(double x, double *r1, double *r2) 
+{
+	// return the result of link_log_invcloglog(x) in r1, link_log_1m_invcloglog(x) in r2
+	double v = -exp(x);
+	*r2 = v;
+	*r1 = log1p(-exp(v));
+}
+
 double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -701,6 +709,14 @@ double link_log_1m_invccloglog(double x)
 {
 	// log(1 - invccloglog(x))
 	return log1p(-exp(-exp(-x)));
+}
+
+void link_log_invccloglog2(double x, double *r1, double *r2) 
+{
+	// return the result of link_log_invccloglog(x) in r1, link_log_1m_invccloglog(x) in r2
+	double v = -exp(-x);
+	*r1 = v;
+	*r2 = log1p(-exp(v));
 }
 
 double map_invccloglog(double arg, map_arg_tp typ, void *UNUSED(param))
