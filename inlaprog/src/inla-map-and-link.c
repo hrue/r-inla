@@ -658,7 +658,7 @@ double link_log_1m_invcloglog(double x)
 	return (-exp(x));
 }
 
-void link_log_invcloglog2(double x, double *r1, double *r2) 
+void link_log_invcloglog2(double x, double *r1, double *r2)
 {
 	// return the result of link_log_invcloglog(x) in r1, link_log_1m_invcloglog(x) in r2
 	double v = -exp(x);
@@ -711,7 +711,7 @@ double link_log_1m_invccloglog(double x)
 	return log1p(-exp(-exp(-x)));
 }
 
-void link_log_invccloglog2(double x, double *r1, double *r2) 
+void link_log_invccloglog2(double x, double *r1, double *r2)
 {
 	// return the result of link_log_invccloglog(x) in r1, link_log_1m_invccloglog(x) in r2
 	double v = -exp(-x);

@@ -4790,17 +4790,15 @@ int testit(int argc, char **argv)
 		break;
 
 
-	case 151: 
+	case 151:
 	{
 		double aa, bb, cc, dd;
 		for (int stencil = 3; stencil <= 9; stencil += 2) {
-			GMRFLib_2order_approx(0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, 
-					      NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
-			printf("stencil %d err0[%.16g] err1[%.16g] err2[%.16g] err3[%.16g]\n",
-			       stencil, aa - 1.0, bb - 1.0, cc + 1.0, dd - 1.0);
+			GMRFLib_2order_approx(0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
+			printf("stencil %d err0[%.16g] err1[%.16g] err2[%.16g] err3[%.16g]\n", stencil, aa - 1.0, bb - 1.0, cc + 1.0, dd - 1.0);
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{
