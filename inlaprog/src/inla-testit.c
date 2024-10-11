@@ -100,6 +100,23 @@ int loglikelihood_testit2(int UNUSED(thread_id), double *logll, double *x, int m
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_testit3(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
+			  void *UNUSED(arg), char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			logll[i] = exp(x[i]);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -4772,6 +4789,18 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+
+	case 151: 
+	{
+		double aa, bb, cc, dd;
+		for (int stencil = 3; stencil <= 9; stencil += 2) {
+			GMRFLib_2order_approx(0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, 
+					      NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
+			printf("stencil %d err0[%.16g] err1[%.16g] err2[%.16g] err3[%.16g]\n",
+			       stencil, aa - 1.0, bb - 1.0, cc + 1.0, dd - 1.0);
+		}
+	}
+	break;
 
 	case 999:
 	{
