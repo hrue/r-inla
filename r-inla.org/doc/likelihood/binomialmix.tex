@@ -16,21 +16,24 @@ simple predictors and one is general. The probability for success is
 \begin{displaymath}
     p = w_1 p_1 + w_2 p_2 + w_3 p_3
 \end{displaymath}
-where $w_1 + w_2 + w_3 = 1$ are the positive weights, and
-\begin{displaymath}
-    \text{logit}(p_3) = \eta
-\end{displaymath}
-where the linear predictor $\eta$ is defined in the formula. Further,
+where $w_1 + w_2 + w_3 = 1$ are the positive weights,
 \begin{displaymath}
     \text{logit}(p_1) = \beta_{1} z_{1} + \beta_{2} z_{2} +
-    \beta_{3} z_{3} + \beta_4 z_4
+    \beta_{3} z_{3} + \beta_4 z_4 + \beta_9 z_9,
+\end{displaymath}
+\begin{displaymath}
+    \text{logit}(p_2) = \beta_{5} z_{5} +
+    \beta_{6} z_{6} + \beta_7 z_7 + \beta_8 z_8 + \beta_9 z_{10}
 \end{displaymath}
 and
 \begin{displaymath}
-    \text{logit}(p_2) = \beta_{5} z_{5} +
-    \beta_{6} z_{6} + \beta_7 z_7 + \beta_8 z_8
+    \text{logit}(p_3) = \eta + \beta_9 z_{11}
 \end{displaymath}
-for fixed covariates $z_{i}$. 
+for fixed covariates $z_{i}$.
+The linear predictor $\eta$ is defined in the formula.
+
+\textbf{Note:} $\beta_9$ is the \emph{same} variable in the three
+expressions.
 
 \subsection*{Link-function}
 
@@ -38,7 +41,7 @@ The link-function is given as usual, and they are all equal.
 
 \subsection*{Hyperparameters}
 
-The eight regression coefficients $\beta_{i}$ are treated as
+The nine regression coefficients $\beta_{i}$ are treated as
 hyperparameters. 
 
 \subsection*{Specification}
@@ -47,7 +50,7 @@ hyperparameters.
 \item \texttt{family="binomialmix"}
 \item Required arguments: A $n\times 2$ matrix $Y$ with the
 observations and the number of trials $s$,  $Y=(y, s)$,
-    a $n\times 8$ matrix $Z$ with the covariates $Z=c(z_1, \ldots, z_8)$,
+    a $n\times 11$ matrix $Z$ with the covariates $Z=c(z_1, \ldots, z_{11})$,
     and a $n\times 2$ matrix $W$ with weights $W=(w_1, w_2)$. The
     \texttt{inla.mdata} is used as
 \begin{verbatim}

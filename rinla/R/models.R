@@ -10181,6 +10181,19 @@
                             param = c(0, 100),
                             to.theta = function(x) x,
                             from.theta = function(x) x
+                        ), 
+                        theta9 = list(
+                            hyperid = 56559,
+                            name = "beta9",
+                            short.name = "beta9",
+                            output.name = "beta9 for binomialmix observations", 
+                            output.name.intern = "beta9 for binomialmix observations", 
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     status = "experimental", 

@@ -1,13 +1,3 @@
-#include <limits.h>
-#include <assert.h>
-#include <stddef.h>
-#include <float.h>
-#include <time.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 /* inla-testit.c
  * 
@@ -37,6 +27,16 @@
  *
  */
 
+#include <limits.h>
+#include <assert.h>
+#include <stddef.h>
+#include <float.h>
+#include <time.h>
+#include <math.h>
+#include <strings.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
 			 void *UNUSED(arg), char **UNUSED(arg_str))
@@ -93,6 +93,23 @@ int loglikelihood_testit2(int UNUSED(thread_id), double *logll, double *x, int m
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			logll[i] = -0.5 * SQR(y - x[i]);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_testit3(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
+			  void *UNUSED(arg), char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			logll[i] = exp(x[i]);
 		}
 	} else {
 		abort();
@@ -2643,29 +2660,54 @@ int testit(int argc, char **argv)
 
 		P(n);
 		P(m);
-		double sum = 0.0, sum1 = 0.0, sum2 = 0.0;
-		double start = 0, start2 = 0, finish = 0, finish2 = 0;
+		double sum = 0.0, sum1 = 0.0, sum2 = 0.0, sum0 = 0.0;
+		double tref[3] = { 0, 0, 0 };
 		double work[n];
 
 		for (int k = 0; k < m; k++) {
+			tref[0] -= GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
-				sum += my_betabinomial_helper4(n, a[i]);
+				sum += my_betabinomial_helper4(n, a[i], work);
 			}
-			start += GMRFLib_timer();
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
 				sum1 += my_betabinomial_helper8(n, a[i], work);
 			}
-			finish += GMRFLib_timer();
-			start2 += GMRFLib_timer();
+			tref[1] += GMRFLib_timer();
+			tref[2] -= GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
 				sum2 += my_betabinomial_helper16(n, a[i], work);
 			}
-			finish2 += GMRFLib_timer();
+			tref[2] += GMRFLib_timer();
 		}
-		printf("h8 = %.4g h16= %.4g ratio h16/h8= %.4f\n",
-		       (finish - start) / m, (finish2 - start2) / m, 1.0 / ((finish - start) / (finish2 - start2)));
+		printf("h4 = %.6f h8 = %.6f h16= %.6f\n", tref[0], tref[1], tref[2]);
 		P((sum1 - sum2) / (sum1 + sum2));
 		P((sum - sum2) / (sum + sum2));
+		sum0 = sum;
+
+		tref[0] = tref[1] = tref[2] = sum = sum1 = sum2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			tref[0] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				sum += my_betabinomial_helper_core(n, a[i], work, 8);
+			}
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				sum1 += my_betabinomial_helper_core(n, a[i], work, 12);
+			}
+			tref[1] += GMRFLib_timer();
+			tref[2] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				sum2 += my_betabinomial_helper_core(n, a[i], work, 16);
+			}
+			tref[2] += GMRFLib_timer();
+		}
+		printf("CORE h8 = %.6f h12 = %.6f h16= %.6f\n", tref[0], tref[1], tref[2]);
+		P((sum1 - sum2) / (sum1 + sum2));
+		P((sum - sum2) / (sum + sum2));
+		P((sum0 - sum2) / (sum0 + sum2));
 	}
 		break;
 
@@ -4434,13 +4476,21 @@ int testit(int argc, char **argv)
 		break;
 
 	case 146:
-#if defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
+		int mkl = (nargs >= 3 ? atoi(args[2]) : 1);
 		assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
+
+#if !defined(INLA_WITH_MKL)
+		mkl = 0;
+#endif
+
+		P(n);
+		P(m);
+		P(mkl);
 
 		for (int i = 0; i < n + 1; i++) {
 			x[i] = GMRFLib_uniform();
@@ -4454,11 +4504,25 @@ int testit(int argc, char **argv)
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for (int j = 0; j < m; j++) {
-			vdExp(n, x, y);
+		if (mkl) {
+#if defined(INLA_WITH_MKL)
+			for (int j = 0; j < m; j++) {
+				vdExp(n, x, y);
+			}
+#endif
+		} else {
+			for (int j = 0; j < m; j++) {
+				for (int i = 0; i < n; i++) {
+					y[i] = exp(x[i]);
+				}
+			}
 		}
 		tref[1] += GMRFLib_timer();
-		printf("exp MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		if (mkl) {
+			printf("exp MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		} else {
+			printf("exp PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		}
 
 		tref[0] = -GMRFLib_timer();
 		for (int j = 0; j < m; j++) {
@@ -4466,11 +4530,25 @@ int testit(int argc, char **argv)
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for (int j = 0; j < m; j++) {
-			vdLn(n, x, y);
+		if (mkl) {
+#if defined(INLA_WITH_MKL)
+			for (int j = 0; j < m; j++) {
+				vdLn(n, x, y);
+			}
+#endif
+		} else {
+			for (int j = 0; j < m; j++) {
+				for (int i = 0; i < n; i++) {
+					y[i] = log(x[i]);
+				}
+			}
 		}
 		tref[1] += GMRFLib_timer();
-		printf("log MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		if (mkl) {
+			printf("log MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		} else {
+			printf("log PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		}
 
 		tref[0] = -GMRFLib_timer();
 		for (int j = 0; j < m; j++) {
@@ -4478,15 +4556,26 @@ int testit(int argc, char **argv)
 		}
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
-		for (int j = 0; j < m; j++) {
-			vdLog1p(n, x, y);
+		if (mkl) {
+#if defined(INLA_WITH_MKL)
+			for (int j = 0; j < m; j++) {
+				vdLog1p(n, x, y);
+			}
+#endif
+		} else {
+			for (int j = 0; j < m; j++) {
+				for (int i = 0; i < n; i++) {
+					y[i] = log1p(x[i]);
+				}
+			}
 		}
 		tref[1] += GMRFLib_timer();
-		printf("log1p MKL %.4f  SIMD %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		if (mkl) {
+			printf("log1p MKL %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		} else {
+			printf("log1p PLAIN %.4f  SIMD/ACCEL %.4f\n", tref[1] / (tref[0] + tref[1]), tref[0] / (tref[0] + tref[1]));
+		}
 	}
-#else
-		printf("Need this:  defined(INLA_WITH_SIMD) && defined(INLA_WITH_MKL)\n");
-#endif
 		break;
 
 	case 147:
@@ -4700,6 +4789,16 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+
+	case 151:
+	{
+		double aa, bb, cc, dd;
+		for (int stencil = 3; stencil <= 9; stencil += 2) {
+			GMRFLib_2order_approx(0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
+			printf("stencil %d err0[%.16g] err1[%.16g] err2[%.16g] err3[%.16g]\n", stencil, aa - 1.0, bb - 1.0, cc + 1.0, dd - 1.0);
+		}
+	}
+		break;
 
 	case 999:
 	{

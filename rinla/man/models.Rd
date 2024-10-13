@@ -12225,7 +12225,7 @@ Number of hyperparmeters is 10.
 }
 }
 }
-Number of hyperparmeters is 8.
+Number of hyperparmeters is 9.
 \describe{
 \item{Hyperparameter 'theta1'}{
 \describe{
@@ -12339,6 +12339,21 @@ Number of hyperparmeters is 8.
 \item{short.name = }{\verb{beta8}}
 \item{output.name = }{\verb{beta8 for binomialmix observations}}
 \item{output.name.intern = }{\verb{beta8 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta9'}{
+\describe{
+\item{hyperid = }{\verb{56559}}
+\item{name = }{\verb{beta9}}
+\item{short.name = }{\verb{beta9}}
+\item{output.name = }{\verb{beta9 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta9 for binomialmix observations}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}

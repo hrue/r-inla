@@ -121,7 +121,7 @@
 #define RCPOISSON_MAXTHETA (10L)
 #define TPOISSON_MAXTHETA (10L)
 #define OCCUPANCY_MAXTHETA (10L)
-#define BINOMIALMIX_NBETA (8L)
+#define BINOMIALMIX_NBETA (9L)
 #define L_FL_NC (9L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
@@ -152,10 +152,10 @@ int R_load_INLA = 0;
    these are the same, just that the interface is cleaner with the `ds'
  */
 #define OFFSET(idx_) ds->offset[idx_]
-#define OFFSET2(idx_) mb_old->offset[idx_]
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define LINK_INIT							\
+	double off = OFFSET(idx);					\
 	double *_link_covariates = NULL;				\
 	Link_param_tp *predictor_invlinkfunc_arg = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
 	if (ds->link_covariates) {					\
@@ -167,12 +167,15 @@ int R_load_INLA = 0;
 		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][thread_id][0]; \
 	}
 
+
 #define LINK_END Free(_link_covariates)
 #define PREDICTOR_SCALE _lp_scale
 #define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
 #define PREDICTOR_SIMPLE_LINK_EQ(_fun) (ds->data_observations.link_simple_invlinkfunc ==  (_fun))
 #define PREDICTOR_INVERSE_LINK(xx_)					\
 	ds->predictor_invlinkfunc(thread_id, _lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK_NO_SCALE(xx_)				\
+	ds->predictor_invlinkfunc(thread_id, (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_IDENTITY_LINK(xx_) (_lp_scale * (xx_))
 #define PREDICTOR_LINK(xx_)						\
 	(ds->predictor_invlinkfunc(thread_id, (xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) / _lp_scale)

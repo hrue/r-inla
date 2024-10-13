@@ -4883,8 +4883,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case L_BINOMIALMIX:
 	{
 		const int nbeta = BINOMIALMIX_NBETA;
-		assert(GSL_IS_EVEN(BINOMIALMIX_NBETA));
-
 		for (i = 0; i < nbeta; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);

@@ -163,7 +163,14 @@ void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *al
 double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
 #endif
 
-
+#if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+void vvsqrt(double *, const double *, const int *);
+void vvexp(double *, const double *, const int *);
+void vvexpm1(double *, const double *, const int *);
+void vvlog(double *, const double *, const int *);
+void vvlog1p(double *, const double *, const int *);
+void vvpow(double *, const double *, const double *, const int *);
+#endif
 
 __END_DECLS
 #endif
