@@ -1,3 +1,8 @@
+# INLA 24.10.13
+* Changes in family binomialmix
+* Code optimization for Mac Intel/ARM
+* Code cleanup and optimization
+
 # INLA 24.10.07
 * Some minor changes in family=egp and binomialmix
 * Fix a constant in barrier model (see diff for details)
