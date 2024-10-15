@@ -4800,6 +4800,35 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 152:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+		double *xx2 = Calloc(n, double);
+
+		P(n);
+		P(m);
+
+		double tref1 = 0.0, tref2 = 0.0; 
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+		for (int k = 0; k < m; k++) {
+			tref1 -= GMRFLib_timer();
+#pragma omp simd 
+			for(int i = 0; i < n; i++) {
+				xx2[i] = xx[i] * xx[i];
+			}
+			tref1 += GMRFLib_timer();
+			tref2 -= GMRFLib_timer();
+			GMRFLib_sqr(n, xx,xx2);
+			tref2 += GMRFLib_timer();
+		}
+		printf("plain %.4g mkl %.4g\n", tref1/(tref1+tref2), tref2/(tref1+tref2));
+	}
+		break;
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

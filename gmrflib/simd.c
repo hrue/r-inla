@@ -295,14 +295,22 @@ void GMRFLib_log1p(int n, double *x, double *y)
 void GMRFLib_sqr(int n, double *x, double *y)
 {
 	// y = x * x
-	if (!n)
+	if (!n) {
 		return;
+	}
 #if defined(INLA_WITH_MKL)
-	vdSqr(n, x, y);
+	if (n < 96) {
+		_Pragma("omp simd")
+			for (int i = 0; i < n; i++) {
+				y[i] = SQR(x[i]); 
+			} 
+	} else {
+		vdSqr(n, x, y);
+	}
 #else
 	_Pragma("omp simd")
 	    for (int i = 0; i < n; i++) {
-		y[i] = x[i] * x[i];
+		    y[i] = SQR(x[i]);
 	}
 #endif
 }
@@ -310,8 +318,9 @@ void GMRFLib_sqr(int n, double *x, double *y)
 void GMRFLib_sqrt(int n, double *x, double *y)
 {
 	// y = sqrt(x)
-	if (!n)
+	if (!n) {
 		return;
+	}
 #if defined(INLA_WITH_MKL)
 	vdSqrt(n, x, y);
 #elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
