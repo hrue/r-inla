@@ -33,8 +33,6 @@
 
 void GMRFLib_exp(int n, double *x, double *y)
 {
-	if (!n)
-		return;
 #if defined(INLA_WITH_SIMD)
 	// y = exp(x)
 	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
@@ -130,8 +128,6 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 void GMRFLib_log(int n, double *x, double *y)
 {
 	// y = log(x)
-	if (!n)
-		return;
 #if defined(INLA_WITH_SIMD)
 	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
 		const int len = 4L;
@@ -211,8 +207,6 @@ void GMRFLib_log(int n, double *x, double *y)
 void GMRFLib_log1p(int n, double *x, double *y)
 {
 	// y = log1p(x)
-	if (!n)
-		return;
 #if defined(INLA_WITH_SIMD)
 	if (SIMD_ALIGNED(x) && SIMD_ALIGNED(y)) {
 		const int len = 4L;
@@ -295,9 +289,6 @@ void GMRFLib_log1p(int n, double *x, double *y)
 void GMRFLib_sqr(int n, double *x, double *y)
 {
 	// y = x * x
-	if (!n) {
-		return;
-	}
 #if defined(INLA_WITH_MKL)
 	if (n < 96) {
 		_Pragma("omp simd")
@@ -318,9 +309,6 @@ void GMRFLib_sqr(int n, double *x, double *y)
 void GMRFLib_sqrt(int n, double *x, double *y)
 {
 	// y = sqrt(x)
-	if (!n) {
-		return;
-	}
 #if defined(INLA_WITH_MKL)
 	vdSqrt(n, x, y);
 #elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
@@ -336,8 +324,6 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 	// z = x + y
-	if (!n)
-		return;
 #if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
 #else
@@ -351,8 +337,6 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 	// z = x * y
-	if (!n)
-		return;
 #if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);
 #else
@@ -366,8 +350,6 @@ void GMRFLib_mul(int n, double *x, double *y, double *z)
 void GMRFLib_daddto(int n, double *x, double *y)
 {
 	// y = y + x
-	if (!n)
-		return;
 	int inc = 1;
 	double one = 1.0;
 	daxpy_(&n, &one, x, &inc, y, &inc);
@@ -376,8 +358,6 @@ void GMRFLib_daddto(int n, double *x, double *y)
 void GMRFLib_cdaddto(int n, double *x, double cx, double *y)
 {
 	// y = x + const.x
-	if (!n)
-		return;
 #pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = x[i] + cx;
