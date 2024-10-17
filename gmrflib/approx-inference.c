@@ -4486,6 +4486,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	gsl_permutation *perm = gsl_permutation_alloc(vb_idx->n);
 	gsl_vector *MB = gsl_vector_alloc(vb_idx->n);
 	gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
+	gsl_vector *delta_prev = NULL;
 	gsl_vector *delta_mu = gsl_vector_alloc(graph->n);
 
 	double *BB = Calloc_get(preopt->Npred);
@@ -4561,6 +4562,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		dxs[iter] = 0.0;
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
+		if (iter > 0) {
+			if (delta_prev) {
+				gsl_vector_free(delta_prev);
+			}
+			delta_prev = GMRFLib_gsl_duplicate_vector(delta);
+		}
 		gsl_vector_set_zero(delta);
 		gsl_vector_set_zero(delta_mu);
 		if (update_MM) {
@@ -4654,6 +4661,22 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 		}
 
+		int flag_cyclic = 0;
+		if (iter > 0) {
+			double mean_delta = 0.0;
+			for(int i = 0; i < (int) delta->size; i++) {
+				mean_delta += SQR(gsl_vector_get(delta, i) + gsl_vector_get(delta_prev, i));
+			}
+			mean_delta = sqrt(mean_delta / delta->size);
+			if (mean_delta < FLT_EPSILON) {
+				// take the half and then exit later
+				flag_cyclic = 1;
+				for(int i = 0; i < (int) delta->size; i++) {
+					gsl_vector_set(delta, i, 0.5 * gsl_vector_get(delta, i));
+				}
+			}
+		}
+		
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 		err_dx = 0.0;
 		for (int i = 0; i < graph->n; i++) {
@@ -4686,14 +4709,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
 				if (delta_is_NAN) {
-					fprintf(stderr, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", delta_is_NAN - 1);
+					fprintf(stderr, "\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", thread_id, delta_is_NAN - 1);
 				}
 				if (diverge) {
-					fprintf(stderr, "\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
+					fprintf(stderr, "\n\n\t***[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n", thread_id);
 				}
 				if (max_corr_flag) {
-					fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
-						max_correction, ai_par->vb_emergency);
+					fprintf(stderr, "\n\n\t***[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+						thread_id, max_correction, ai_par->vb_emergency);
 					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
 						ai_par->vb_emergency);
 					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
@@ -4702,12 +4725,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 				if (fp != stderr) {
 					if (delta_is_NAN) {
-						fprintf(fp, "\n\n\t*** warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
-							delta_is_NAN - 1);
+						fprintf(fp, "\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+							thread_id, delta_is_NAN - 1);
 					}
 					if (diverge) {
 						fprintf(fp,
-							"\n\n\t*** warning *** iterative process seems to diverge, 'vb.correction' is aborted\n");
+							"\n\n\t***[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n", thread_id);
 					}
 					if (max_corr_flag) {
 						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
@@ -4726,15 +4749,16 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		// this is RMS standardized change between the iterations, otherwise, just run the max iterations.
 		// test this here so we can adjust the verbose output below
 		int do_break = 0;
-		if (err_dx < 0.01 || iter == niter - 1) {
+		if (err_dx < 0.01 || iter == niter - 1 || flag_cyclic) {
 			do_break = 1;
 		}
 
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
-				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.2f sec/iter]\n",
-					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0));
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.2f sec/iter] cyclic[%s]\n",
+					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0),
+					(flag_cyclic ? strdup("Yes") : strdup("No")));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -4780,6 +4804,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	gsl_vector_free(MB);
 	gsl_vector_free(delta);
 	gsl_vector_free(delta_mu);
+	if (delta_prev) {
+		gsl_vector_free(delta_prev);
+	}
 
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
