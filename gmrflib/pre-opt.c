@@ -34,6 +34,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#if !defined(WINDOWS)
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc, void **f_Qfunc_arg,
@@ -708,6 +713,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	g_arr[1] = (*preopt)->like_graph;
 	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
 
+#if !defined(WINDOWS)
+	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {
+		static int count = 0;
+		char *homedir = getenv("HOME");
+		if (!homedir) {
+			homedir = getpwuid(getuid())->pw_dir;
+		}
+		if (!homedir) {
+			homedir = strdup("./");
+		}
+		char *fnm = NULL;
+		GMRFLib_sprintf(&fnm, "%s/INLA-graph-pid%1d-count%1d.txt", homedir, (int) getpid(), ++count);
+		GMRFLib_graph_write(fnm, (*preopt)->preopt_graph);
+		fprintf(stderr, "\n\t*** write graph to file [%s]\n", fnm);
+	}
+#endif
+	
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 	(*preopt)->gcpo_Qfunc = GMRFLib_preopt_gcpo_Qfunc;
