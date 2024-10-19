@@ -41,7 +41,7 @@
 mkfun(__GSHandlerCheck);
 mkfun(__chkstk);
 
-int64_t __security_cookie;
+uint64_t __security_cookie;
 void __security_init_cookie() {
     __security_cookie = 0;
 }
