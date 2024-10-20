@@ -29,7 +29,6 @@
 
 // workaround for mingw32 builds when linking with MKL
 
-#if defined(WINDOWS) && defined(INLA_WITH_MKL) && (defined(__MINGW32__) || defined(__MINGW64__))
 
 #include <stdint.h>
 #include <stdio.h>
@@ -37,6 +36,8 @@
 
 #define MSG(fun_) fprintf(stderr, "\n\n*** Warning *** Fake function [%s] called. This may, or may not, go well.\n\n\n", fun_)
 #define mkfun(fun_) void fun_(void) { static char first = 1;  if (first) MSG(# fun_); first = 0; return; }
+
+#if defined(WINDOWS) && defined(INLA_WITH_MKL) && (defined(__MINGW32__) || defined(__MINGW64__))
 
 mkfun(__GSHandlerCheck);
 mkfun(__chkstk);
@@ -51,4 +52,8 @@ void __security_check_cookie(uint64_t retrieved) {
     }
 }
 
+#endif
+
+#if defined(WINDOWS) && defined(INLA_WITH_OPENBLAS) && (defined(__MINGW32__) || defined(__MINGW64__))
+mkfun(__imp__cprintf);
 #endif
