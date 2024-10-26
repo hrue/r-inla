@@ -54,17 +54,17 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	utils.o simd.o idxval.o dot.o graph-edit.o domin-interface.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o bfgs4.o fmesher-io.o smtp-pardiso.o interpol.o pre-opt.o cores.o \
-	approx-inference--classic.o high-prec-timer.o fsort.o
+	approx-inference--classic.o high-prec-timer.o fsort.o mingw.o moments.o sn-g.o
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h io.h \
+	tabulate-Qfunc.h io.h moments.h \
 	approx-inference.h density.h utils.h simd.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
-	interpol.h pre-opt.h cores.h fsort.h
+	interpol.h pre-opt.h cores.h fsort.h sn-g.h sn-g-tables.h
 HEADERS1 = fsort/fluxsort.c fsort/fluxsort.h fsort/quadsort.c fsort/quadsort.h
 
 EXAMPLES = examples/Makefile examples/Makefile.in \

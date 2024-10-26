@@ -179,7 +179,6 @@ double inla_qgamma_cache(double shape, double quantile)
 			}
 			cache[id]->s = GMRFLib_spline_create(x, y, nn);
 			cache[id]->quantile = quantile;
-
 			Calloc_free();
 		}
 		return (exp(GMRFLib_spline_eval(log(shape), cache[id]->s)));

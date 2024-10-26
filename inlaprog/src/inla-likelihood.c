@@ -950,7 +950,7 @@ int loglikelihood_stdgaussian(int thread_id, double *__restrict logll, double *_
 	double y = ds->data_observations.y[idx];
 	double w = ds->data_observations.weight_gaussian[idx];
 	double prec = w;
-	double lprec = log(prec);
+	double lprec = (w == 1.0 ? 0.0 : log(prec));
 
 	LINK_INIT;
 	if (arg_str) {

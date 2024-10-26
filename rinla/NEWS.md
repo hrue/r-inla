@@ -1,3 +1,7 @@
+# INLA 24.10.26
+* Fixed a bug when using family 'egp'
+* Code cleanup and improvement
+
 # INLA 24.10.13
 * Changes in family binomialmix
 * Code optimization for Mac Intel/ARM

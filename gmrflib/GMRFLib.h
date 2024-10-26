@@ -62,7 +62,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 /* 
  *  include files we need from GSL
  */
-#define GSL_RANGE_CHECK 0
+#define GSL_RANGE_CHECK_OFF
 #define HAVE_INLINE
 #include <gsl/gsl_inline.h>
 #include <gsl/gsl_math.h>
@@ -140,6 +140,8 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
+#include "GMRFLib/moments.h"
+#include "GMRFLib/sn-g.h"
 
 #if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);

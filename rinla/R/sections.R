@@ -164,7 +164,7 @@ inla.parse.Bmatrix.test <- function() {
         ## the PCGEVTAIL prior is a special case, as the (low, high) is given as parameters 2
         ## and 3, in the prior. So we need to extract those, and make sure they are set to
         ## (low, high), so they will be replaced
-        if (tmp.prior == "pcgevtail") {
+        if (inla.one.of(tmp.prior, c("pcgevtail", "pcegptail"))) {
             low <- hyper[[k]]$param[2]
             high <- hyper[[k]]$param[3]
         }
