@@ -1,5 +1,6 @@
-# INLA 24.10.26
+# INLA 24.10.29
 * Fixed a bug when using family 'egp'
+* Update vignette 'SPDE2mdatasurv'
 * Code cleanup and improvement
 
 # INLA 24.10.13

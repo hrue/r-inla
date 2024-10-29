@@ -24,6 +24,10 @@ knitr::opts_chunk$set(
 )
 knitr::opts_chunk$set(echo = TRUE)
 set.seed(1)
+library(INLA)
+inla.setOption(smtp="taucs")
+inla.setOption(num.threads="1:1")
+if (file.exists("myinit.R")) source("myinit.R")
 ```
 
 # Abstract 
@@ -37,26 +41,26 @@ three outcomes, of different type, and model them jointly.
 
 # Introduction 
 
-Usually correlations between outcomes are modeled by
-sharing common model terms in the linear predictor.
-These terms can be covariates, random effects or sums of these.
-In some cases, the likelihood requires more information 
-than just the vector of observations. 
-As an example, the likelihood for survival models requires
-both observed times and information about censoring.
+Usually correlations between outcomes are modeled by sharing common
+model terms in the linear predictor. These terms can be covariates,
+random effects or sums of these. In some cases, the likelihood
+requires more information than just the vector of observations. As an
+example, the likelihood for survival models requires both observed
+times and information about censoring.
 
 In this vignette we consider a joint model for three outcomes,
-simulate data from this model and illustrate how to fit the 
-joint model accounting for shared terms.
-The linear predictor for each outcome includes covariates and 
-a spatial random effect modeled using the SPDE approach.
+simulate data from this model and illustrate how to fit the joint
+model accounting for shared terms. The linear predictor for each
+outcome includes covariates and a spatial random effect modeled using
+the SPDE approach.
 
-The first outcome is known at an aggregated level,
-in a setting were we model it considering a kind of likelihood designed in
-**INLA** to account for all the information available with respect to the aggregation.
-The second outcome is assumed to be censored,
-so that we have to consider the observed value and the censoring information.
-The third outcome is just the usual kind of data: one scalar per data unit.
+The first outcome is known at an aggregated level, in a setting were
+we model it considering a kind of likelihood designed in **INLA** to
+account for all the information available with respect to the
+aggregation. The second outcome is assumed to be censored, so that we
+have to consider the observed value and the censoring information. The
+third outcome is just the usual kind of data: one scalar per data
+unit.
 
 ## The spatial domain 
 
@@ -81,7 +85,7 @@ We sample a set of $n$ locations,
 $l_1, ..., l_n$, in this domain, $l_i \in D$, 
 completely at random as follows:
 ```{r loc}
-n <- 1000
+n <- 3000
 loc <- cbind(
     runif(n, bb[1, 1], bb[1, 2]),
     runif(n, bb[2, 1], bb[2, 2]))
@@ -132,9 +136,9 @@ group.id <- ceiling(loc[,1]/h) +
   ceiling(rxy[1]/h) * (ceiling(loc[,2]/h)-1)
 ```
 
-This will be used as a grouping index, so that each group is made of the
-observations falling in each of the pixels.
-We will visualize the locations with color depending on this grouping later.
+This will be used as a grouping index, so that each group is made of
+the observations falling in each of the pixels. We will visualize the
+locations with color depending on this grouping later.
 
 ## Covariates
 
@@ -161,7 +165,7 @@ The first outcome is Gaussian distributes,
 with unknown mean and variance,
 and a known scaling factor, $s$, such that 
 \[ 
-y_i \sim \textrm{N}(\mu_i, s_i\sigma^2).
+	y_i \sim \textrm{N}(\mu_i, s_i\sigma^2).
 \]
 
 We assume $\boldsymbol{\eta}_y = \{\mu_1, ..., \mu_n\}$ and
