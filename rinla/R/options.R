@@ -299,17 +299,17 @@ NULL
                        c("compact", "classic", "twostage", "experimental"),
                        several.ok = FALSE)
     if (dummy == "experimental") {
-        inla.setOption(inla.mode = "compact")
+        inla.setOption.core("inla.mode", "compact")
     }
 
     arg <- inla.getOption("malloc.lib")
     if (is.null(arg) || arg == "default") {
-        inla.setOption(malloc.lib = inla.getOption.default()$malloc.lib)
+        inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
     }
     if (length(grep("^/", arg)) == 1 && !file.exists(arg)) {
         warning(paste0("User-defined library for option 'malloc.lib, ", arg,
                        ", does not exists. Use malloc.lib='default'"))
-            inla.setOption(malloc.lib = inla.getOption.default()$malloc.lib)
+        inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
     } else {
         arg <- match.arg(arg, c("default", "compiler", "je", "tc", "mi"), several.ok = FALSE)
         if (arg != "default" && arg != "compiler") {
@@ -317,7 +317,7 @@ NULL
                             dir(paste0(dirname(inla.call.builtin()),"/malloc")))) == 0) {
                 ## warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
                 ## "Use malloc.lib='default'"))
-                inla.setOption(malloc.lib = inla.getOption.default()$malloc.lib)
+                inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
             }
         }
     }
