@@ -38,10 +38,11 @@
 #' inla.dev.new()
 #' inla.spy(g)
 #' 
-#' inla.dev.new()
-#' inla.spy(3, 1, "1 2 2 1 1 3 0")
-#' inla.dev.new()
-#' inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
+#' ## Old examples that don't work with the inla.spy call syntax:
+#' # inla.dev.new()
+#' # inla.spy(3, 1, "1 2 2 1 1 3 0")
+#' # inla.dev.new()
+#' # inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 #' 
 #' @name graph.matrix
 #' @rdname graph.matrix

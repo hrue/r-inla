@@ -26,7 +26,7 @@ For \code{inla.has_PROJ6}, always returns \code{TRUE}. Previously: logical; \cod
 \code{FALSE} otherwise
 }
 \description{
-Detect whether PROJ6 is available for INLA. Deprecated and always returns \code{TRUE}..
+Detect whether PROJ6 is available for INLA. Deprecated and always returns \code{TRUE}.
 }
 \details{
 \code{inla.has_PROJ6} is called to check if PROJ6&GDAL3 are available.

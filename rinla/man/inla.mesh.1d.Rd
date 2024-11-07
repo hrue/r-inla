@@ -35,12 +35,17 @@ basis functions to the interval endpoints.}
 \item{mesh}{An inla.mesh.1d object}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}} instead.
 
 Create a 1D mesh specification \code{inla.mesh.1d} object, that defines a
 function space for 1D SPDE models.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.mesh.1d.fem()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Use \code{\link[fmesher:fm_fem]{fmesher::fm_fem()}} instead.
+
+}}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }

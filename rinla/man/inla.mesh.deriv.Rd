@@ -16,6 +16,8 @@ inla.mesh.deriv(mesh, loc)
 \item{dx, dy, dz }{Derivative weight matrices, \verb{du/dx(loc_i)=sum_j dx_ij w_i}, etc.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}} instead.
+
 Calculates directional derivative matrices for functions on
 \code{\link[=inla.mesh]{inla.mesh()}} objects.
 }

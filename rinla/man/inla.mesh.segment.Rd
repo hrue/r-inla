@@ -2,23 +2,10 @@
 % Please edit documentation in R/mesh.R
 \name{inla.mesh.segment}
 \alias{inla.mesh.segment}
-\alias{inla.mesh.segment.default}
-\alias{inla.mesh.segment.inla.mesh.segment}
 \alias{inla.contour.segment}
 \title{Constraint segments for inla.mesh}
 \usage{
 inla.mesh.segment(...)
-
-\method{inla.mesh.segment}{default}(
-  loc = NULL,
-  idx = NULL,
-  grp = NULL,
-  is.bnd = TRUE,
-  crs = NULL,
-  ...
-)
-
-\method{inla.mesh.segment}{inla.mesh.segment}(..., grp.default = 0)
 
 inla.contour.segment(
   x = seq(0, 1, length.out = nrow(z)),
@@ -35,6 +22,18 @@ inla.contour.segment(
 \arguments{
 \item{...}{Additional parameters.  When joining segments, a list of
 \code{inla.mesh.segment} objects.}
+
+\item{x, y, z, nlevels, levels}{Parameters specifying a set of surface contours,
+with syntax described in \code{\link[=contour]{contour()}}.}
+
+\item{groups}{Vector of group ID:s, one for each contour level.}
+
+\item{positive}{\code{TRUE} if the contours should encircle positive level
+excursions in a counter clockwise direction.}
+
+\item{eps}{Tolerance for \code{\link[=inla.simplify.curve]{inla.simplify.curve()}}.}
+
+\item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
 
 \item{loc}{Matrix of point locations, or \code{SpatialPoints}, or \code{sf}/\code{sfc} point
 object.}
@@ -53,30 +52,24 @@ let the labels be chosen automatically in a call to
 \item{is.bnd}{\code{TRUE} if the segments are boundary segments, otherwise
 \code{FALSE}.}
 
-\item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
-
 \item{grp.default}{When joining segments, use this group label for segments
 that have \code{grp=NULL}.}
-
-\item{x, y, z, nlevels, levels}{Parameters specifying a set of surface contours,
-with syntax described in \code{\link[=contour]{contour()}}.}
-
-\item{groups}{Vector of group ID:s, one for each contour level.}
-
-\item{positive}{\code{TRUE} if the contours should encircle positive level
-excursions in a counter clockwise direction.}
-
-\item{eps}{Tolerance for \code{\link[=inla.simplify.curve]{inla.simplify.curve()}}.}
 }
 \value{
 An \code{inla.mesh.segment} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
 
 Constructs \code{inla.mesh.segment} objects that can be used to specify
 boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.contour.segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use
+\code{\link[fmesher:fm_segm_contour_helper]{fmesher::fm_segm_contour_helper()}} instead.
+
+}}
 \examples{
 
 ## Create a square boundary and a diagonal interior segment
@@ -93,10 +86,9 @@ mesh <- inla.mesh.create(loc,
   refine = list()
 )
 plot(mesh)
-\dontrun{
-mesh <- inla.mesh.create(loc, interior = list(segm.bnd, segm.int))
+
+mesh <- inla.mesh.create(loc, interior = fm_segm_join(segm.bnd, segm.int))
 plot(mesh)
-}
 
 }
 \seealso{

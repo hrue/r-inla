@@ -17,6 +17,8 @@ A list of sparse matrices based on basis functions \code{psi_i}:
 \item{g2 }{\code{g2 = g1 * c0^-1 * g1}} \item{gk }{\code{gk = g1 * (c0^-1 * g1)^(k-1)}, up to and including \code{k=order}}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_fem]{fmesher::fm_fem()}} instead.
+
 Constructs finite element matrices for \code{\link[=inla.mesh]{inla.mesh()}} and
 \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }

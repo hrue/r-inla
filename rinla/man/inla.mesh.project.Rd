@@ -12,56 +12,11 @@
 \usage{
 inla.mesh.project(...)
 
-\method{inla.mesh.project}{inla.mesh}(mesh, loc = NULL, field = NULL, crs = NULL, ...)
-
-\method{inla.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, ...)
-
-\method{inla.mesh.project}{inla.mesh.projector}(projector, field, ...)
-
 inla.mesh.projector(...)
-
-\method{inla.mesh.projector}{inla.mesh}(
-  mesh,
-  loc = NULL,
-  lattice = NULL,
-  xlim = NULL,
-  ylim = NULL,
-  dims = c(100, 100),
-  projection = NULL,
-  crs = NULL,
-  ...
-)
-
-\method{inla.mesh.projector}{inla.mesh.1d}(mesh, loc = NULL, xlim = mesh$interval, dims = 100, ...)
 }
 \arguments{
-\item{\dots}{Additional arguments passed on to methods.}
-
-\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} or \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
-
-\item{loc}{Projection locations.  Can be a matrix or a \code{SpatialPoints}
-or a \code{SpatialPointsDataFrame} object.}
-
-\item{field}{Basis function weights, one per mesh basis function, describing
-the function to be avaluated at the projection locationssFunction values for
-on the mesh}
-
-\item{crs}{An optional CRS or inla.CRS object associated with \code{loc}
-and/or \code{lattice}.}
-
-\item{projector}{An \code{inla.mesh.projector} object.}
-
-\item{lattice}{An \code{\link[=inla.mesh.lattice]{inla.mesh.lattice()}} object.}
-
-\item{xlim}{X-axis limits for a lattice. For R2 meshes, defaults to covering
-the domain.}
-
-\item{ylim}{Y-axis limits for a lattice. For R2 meshes, defaults to covering
-the domain.}
-
-\item{dims}{Lattice dimensions.}
-
-\item{projection}{One of \code{c("default", "longlat", "longsinlat", "mollweide")}.}
+\item{\dots}{Arguments passed on to \code{\link[fmesher:fm_evaluate]{fmesher::fm_evaluate()}} and
+\code{\link[fmesher:fm_evaluate]{fmesher::fm_evaluator()}}.}
 }
 \value{
 For \code{inla.mesh.project(mesh, ...)}, a list with projection
@@ -70,11 +25,13 @@ information.  For \code{inla.mesh.projector(mesh, ...)}, an
 the projector object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_evaluate]{fmesher::fm_evaluate()}} and
+\code{\link[fmesher:fm_evaluate]{fmesher::fm_evaluator()}} instead.
+
 Calculate a lattice projection to/from an \code{\link[=inla.mesh]{inla.mesh()}}.
-Deprecated in favour of \code{fmesher::fm_evaluate()} and \code{fmesher::fm_evaluator()}.
 
 The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a shortcut
-to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
+to \code{inla.mesh.project(inla.mesh.projector(mesh, loc), field)}.
 }
 \examples{
 

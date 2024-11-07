@@ -7,7 +7,7 @@
 inla.over_sp_mesh(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE)
 }
 \arguments{
-\item{x}{geometry (typically a \code{\link[sp:SpatialPolygons]{sp::SpatialPolygons()}} object) for the queries}
+\item{x}{geometry (typically a \code{sp::SpatialPolygons()} object) for the queries}
 
 \item{y}{an \code{\link[=inla.mesh]{inla.mesh()}} object}
 
@@ -22,40 +22,43 @@ A vector of triangle indices (when \code{type} is \code{'centroid'}) or
 vertex indices (when \code{type} is \code{'vertex'})
 }
 \description{
-Wrapper for the \code{\link[sp:over]{sp::over()}} method to find triangle centroids
+Wrapper for the \code{sp::over()} method to find triangle centroids
 or vertices inside \code{sp} polygon objects.
-Deprecated since 23.06.06 in favour of \code{inlabru::fm_contains()} when \code{inlabru}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since 23.06.06 in favour of
+\code{inlabru::fm_contains()} when \code{inlabru}
 version \verb{>= 2.7.0.9011} is installed, and since 23.08.02 in favour of
 \code{fmesher::fm_contains()} when \code{fmesher}.
 }
 \examples{
-# Create a polygon and a mesh
-obj <- sp::SpatialPolygons(
-    list(Polygons(
-        list(Polygon(rbind(
-            c(0, 0),
-            c(50, 0),
-            c(50, 50),
-            c(0, 50)
-        ))),
-        ID = 1
-    )),
-    proj4string = fmesher::fm_CRS("longlat_globe")
-)
-mesh <- inla.mesh.create(globe = 2, crs = fmesher::fm_CRS("sphere"))
+if (require("sp", quietly = TRUE)) {
+    # Create a polygon and a mesh
+    obj <- sp::SpatialPolygons(
+        list(sp::Polygons(
+            list(sp::Polygon(rbind(
+                c(0, 0),
+                c(50, 0),
+                c(50, 50),
+                c(0, 50)
+            ))),
+            ID = 1
+        )),
+        proj4string = fmesher::fm_CRS("longlat_globe")
+    )
+    mesh <- inla.mesh.create(globe = 2, crs = fmesher::fm_CRS("sphere"))
 
-## 3 vertices found in the polygon
-inla.over_sp_mesh(obj, mesh, type = "vertex")
+    ## 3 vertices found in the polygon
+    inla.over_sp_mesh(obj, mesh, type = "vertex")
 
-## 3 triangles found in the polygon
-inla.over_sp_mesh(obj, mesh)
+    ## 3 triangles found in the polygon
+    inla.over_sp_mesh(obj, mesh)
 
-## Multiple transformations can lead to slightly different results due to edge cases
-## 4 triangles found in the polygon
-inla.over_sp_mesh(
-    obj,
-    fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
-)
+    ## Multiple transformations can lead to slightly different results due to edge cases
+    ## 4 triangles found in the polygon
+    inla.over_sp_mesh(
+        obj,
+        fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
+    )
+}
 }
 \author{
 Haakon Bakka, \email{bakka@r-inla.org}, and Finn Lindgren \email{finn.lindgren@gmail.com}

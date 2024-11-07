@@ -73,10 +73,11 @@ It implements the models in Knorr-Held, L. (2000) with three different
 constraint approaches: sum-to-zero, contrast or diagonal add.
 }
 \examples{
+\dontshow{if (require("sp")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 ### define space domain as a grid
-grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
-(n <- nrow(xy <- coordinates(grid)))
+grid <- sp::SpatialGrid(sp::GridTopology(c(0,0), c(1, 1), c(4, 5)))
+(n <- nrow(xy <- sp::coordinates(grid)))
 
 ### build a spatial neighborhood list
 jj <- lapply(1:n, function(i)
@@ -106,7 +107,7 @@ res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
      control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 sapply(res, function(x)
        c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=inla.knmodels.sample]{inla.knmodels.sample()}} to sample from

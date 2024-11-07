@@ -47,7 +47,6 @@
 #include "GMRFLib/timer.h"
 extern char *GMRFLib_tmpdir;
 
-
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
@@ -75,11 +74,17 @@ __END_DECLS
 #include "R-interface.h"
 static int R_init = 1;
 static int R_debug = 0;
+static char *R_home = NULL;
 double R_rgeneric_cputime = 0.0;
 
 #if !defined(_OPENMP)
 #error "OpenMP must be enabled."
 #endif
+
+void inla_set_R_home(char *home)
+{
+	R_home = (home ? Strdup(home) : NULL);
+}
 
 #if defined(INLA_WITH_LIBR)
 
@@ -185,6 +190,8 @@ int inla_R_exit_(void)
 		Rf_endEmbeddedR(0);
 		R_rgeneric_cputime = 0.0;
 		R_init = 1;
+		R_debug = 0;
+		R_home = NULL;
 	}
 
 	return INLA_OK;
@@ -196,11 +203,10 @@ int inla_R_init_(void)
 #pragma omp critical (Name_aac7e80b592e4a6319788827c44116e831460cd6)
 		{
 			if (R_init) {
-				/*
-				 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
-				 */
-				char *rhome = getenv((const char *) "R_HOME");
+				R_debug = (getenv((const char *) "INLA_DEBUG_R") ? 1 : 0);
 
+				// Check if R_HOME is set. If not, try to guess it, otherwise fail.
+				char *rhome = (R_home ? R_home : getenv((const char *) "R_HOME"));
 				if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
 					if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 						GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
@@ -208,8 +214,10 @@ int inla_R_init_(void)
 						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
 					} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
 						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
-					} else if (my_dir_exists("/usr/lib32/R") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
+					} else if (my_dir_exists("/usr/local/lib64/R") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib64/R");
+					} else if (my_dir_exists("/usr/local/lib/R") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib/R");
 					} else {
 						fprintf(stderr, "\n\n");
 						fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
@@ -223,15 +231,18 @@ int inla_R_init_(void)
 					fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
 					fflush(stderr);
 					my_setenv(rhome, 0);
-					Free(rhome);
+				} else {
+					char *rrhome = NULL;
+					GMRFLib_sprintf(&rrhome, "R_HOME=%s", rhome);
+					my_setenv(rrhome, 0);
 				}
+
 				char *Rargv[4];
 				Rargv[0] = Strdup("REmbeddedPostgres");
 				Rargv[1] = Strdup("--gui=none");
 				Rargv[2] = Strdup("--vanilla");
 				Rargv[3] = Strdup("--quiet");
-				int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
-				Rf_initEmbeddedR(Rargc, Rargv);
+				Rf_initEmbeddedR((R_debug ? 3 : 4), Rargv);
 
 				if (R_debug) {
 					fprintf(stderr, "R-interface: init\n");
@@ -246,6 +257,10 @@ int inla_R_init_(void)
 				int fd = mkstemp(filename);
 				close(fd);
 				FILE *fp = fopen(filename, "w");
+				if (R_debug) {
+					fprintf(fp, "base::searchpaths()\n");
+					fprintf(fp, "utils::sessionInfo()\n");
+				}
 				fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
 					R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
 				fclose(fp);
@@ -332,12 +347,12 @@ int inla_R_source_quiet_(const char *filename)
 		fflush(stderr);
 	}
 
-	SEXP e, result, yy, ffalse;
+	SEXP e, result, yy, logical;
 	int error;
 
-	ffalse = PROTECT(ScalarLogical(FALSE));
+	logical = PROTECT(ScalarLogical((R_debug ? TRUE : FALSE)));
 	yy = PROTECT(mkString(filename));
-	e = PROTECT(lang4(install("source"), yy, ffalse, ffalse));
+	e = PROTECT(lang4(install("source"), yy, logical, logical));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);

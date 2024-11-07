@@ -19,6 +19,8 @@ constrain groups are extracted.}
 A list of \code{inla.mesh.segment} objects.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
+
 Constructs an list of \code{inla.mesh.segment} object from boundary or
 interior constraint information in an \code{\link[=inla.mesh]{inla.mesh()}} object.
 }

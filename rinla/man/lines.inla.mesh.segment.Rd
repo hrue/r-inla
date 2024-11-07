@@ -37,6 +37,9 @@ plot.}
 \item{\dots}{Additional parameters, passed on to graphics methods.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:plot.fm_segm]{fmesher::lines.fm_segm()}} or
+\code{\link[fmesher:plot_rgl]{fmesher::lines_rgl()}} instead.
+
 Draws a \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object with generic or \code{rgl}
 graphics.
 }

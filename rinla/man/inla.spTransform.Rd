@@ -19,6 +19,7 @@ The object is returned with its coordinates transformed
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_transform]{fmesher::fm_transform()}}.
+
 Handles transformation of various inla objects according to coordinate
 reference systems of \code{sf::crs}, \code{sp::CRS} or \code{inla.CRS} class.
 }

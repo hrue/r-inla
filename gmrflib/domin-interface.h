@@ -107,16 +107,19 @@ int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr);
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
 int GMRFLib_opt_get_f_count(void);
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
+
 int GMRFLib_opt_get_hyper(double *x);
 int GMRFLib_opt_get_latent(double *latent);
 int GMRFLib_opt_set_hyper(double *x);
 int GMRFLib_opt_set_latent(double *latent);
 
+int GMRFLib_opt_setget_latent(double *latent, int setget);
+int GMRFLib_opt_setget_hyper(double *x, int setget);
+
 GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_opt_get_f(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
-int GMRFLib_opt_get_latent(double *latent);
 int GMRFLib_opt_reset_directions(void);
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_opt_dir_step(double *x, int idx, double h);

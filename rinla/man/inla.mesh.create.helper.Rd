@@ -16,12 +16,14 @@ extent.}
 \item{\dots}{Additional arguments passed on to \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}} instead.
+
 Create a triangle mesh based on initial point locations, specified or
 automatic boundaries, and mesh quality parameters.
 }
 \note{
 Obsolete function kept for backwards compatibility.  Use
-\code{\link[=inla.mesh.2d]{inla.mesh.2d()}} instead.
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}} instead.
 }
 \seealso{
 \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}

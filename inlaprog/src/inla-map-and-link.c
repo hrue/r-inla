@@ -1751,7 +1751,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double s = (lparam->scale ? lparam->scale[lparam->idx] : 1.0);
-	//double phi_param = map_exp(lparam->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	// double phi_param = map_exp(lparam->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi_param = exp(lparam->log_prec[thread_id][0]);
 	double shape = phi_param * s;
 	double ret = 0.0;

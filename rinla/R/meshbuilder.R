@@ -68,7 +68,7 @@ meshbuilder.app <- function() {
             class(sp),
             c("SpatialPoints", "SpatialPointsDataFrame")
         )) > 0) {
-            coord <- coordinates(sp)
+            coord <- sp::coordinates(sp)
             crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialPointsDataFrame")) {
                 code <- 'as(%%%, "SpatialPoints")'
@@ -613,10 +613,10 @@ meshbuilder.app <- function() {
             if (is.null(loc)) {
                 out <- NULL
             } else {
-                out <- INLA::inla.nonconvex.hull(coordinates(loc), offset)
+                out <- INLA::inla.nonconvex.hull(sp::coordinates(loc), offset)
                 attr(out, "code") <-
                     paste0(
-                        "inla.nonconvex.hull(coordinates(boundary.loc), ",
+                        "inla.nonconvex.hull(sp::coordinates(boundary.loc), ",
                         offset, ")"
                     )
                 out <- list(out)
@@ -1507,7 +1507,7 @@ meshbuilder.app <- function() {
                 range(
                     unlist(lapply(
                         boundary.loc.input(),
-                        function(x) range(coordinates(x)[, 1], na.rm = TRUE)
+                        function(x) range(sp::coordinates(x)[, 1], na.rm = TRUE)
                     )),
                     na.rm = TRUE
                 )
@@ -1518,7 +1518,7 @@ meshbuilder.app <- function() {
                 range(
                     unlist(lapply(
                         mesh.loc.input(),
-                        function(x) range(coordinates(x)[, 1], na.rm = TRUE)
+                        function(x) range(sp::coordinates(x)[, 1], na.rm = TRUE)
                     )),
                     na.rm = TRUE
                 )
@@ -1560,7 +1560,7 @@ meshbuilder.app <- function() {
                 range(
                     unlist(lapply(
                         boundary.loc.input(),
-                        function(x) range(coordinates(x)[, 2], na.rm = TRUE)
+                        function(x) range(sp::coordinates(x)[, 2], na.rm = TRUE)
                     )),
                     na.rm = TRUE
                 )
@@ -1571,7 +1571,7 @@ meshbuilder.app <- function() {
                 range(
                     unlist(lapply(
                         mesh.loc.input(),
-                        function(x) range(coordinates(x)[, 2], na.rm = TRUE)
+                        function(x) range(sp::coordinates(x)[, 2], na.rm = TRUE)
                     )),
                     na.rm = TRUE
                 )
@@ -1616,7 +1616,7 @@ meshbuilder.app <- function() {
         shiny::observe({
             lim1 <- userinput.xlim()
             lim2 <- if (random.loc.usage$boundary || random.loc.usage$mesh) {
-                if (is.null(loc())) NA else range(coordinates(loc())[, 1], na.rm = TRUE)
+                if (is.null(loc())) NA else range(sp::coordinates(loc())[, 1], na.rm = TRUE)
             } else {
                 NA
             }
@@ -1630,7 +1630,7 @@ meshbuilder.app <- function() {
 
             lim1 <- userinput.ylim()
             lim2 <- if (random.loc.usage$boundary || random.loc.usage$mesh) {
-                if (is.null(loc())) NA else range(coordinates(loc())[, 2], na.rm = TRUE)
+                if (is.null(loc())) NA else range(sp::coordinates(loc())[, 2], na.rm = TRUE)
             } else {
                 NA
             }
@@ -2081,6 +2081,7 @@ meshbuilder.app <- function() {
 meshbuilder <- function() {
     inla.require("fields", stop.on.error = TRUE)
     inla.require("shiny", stop.on.error = TRUE)
-
+    inla.require("sp", stop.on.error = TRUE)
+    
     shiny::runApp(meshbuilder.app())
 }

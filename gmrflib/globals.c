@@ -174,4 +174,5 @@ int GMRFLib_testit_debug = 0;
 int GMRFLib_taucs_sort_L = 0;
 int GMRFLib_opt_solve = 0;
 int GMRFLib_intern_flag = 0;
+int GMRFLib_cachelinesize = 64;
 char *GMRFLib_tmpdir = NULL;

@@ -18,9 +18,11 @@ An index vector into \code{loc} specifying the simplified polygonal
 curve.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_simplify_helper]{fmesher::fm_simplify_helper()}}
+instead.
+
 Attempts to simplify a polygonal curve by joining nearly colinear segments.
-}
-\details{
+
 Uses a variation of the binary splitting Ramer-Douglas-Peucker algorithm,
 with a width \code{eps} ellipse instead of a rectangle, motivated by
 prediction ellipse for Brownian bridge.

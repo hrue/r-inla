@@ -30,6 +30,7 @@ object}
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
 \code{\link[fmesher:fm_CRS_sp]{fmesher::fm_CRS()}}
+
 Creates either a CRS object or an inla.CRS object, describing a coordinate
 reference system.
 }
@@ -40,15 +41,13 @@ reference system.
 
 }}
 \examples{
-
-
-if (require("sf") && require("sp")) {
-    crs1 <- fmesher::fm_CRS("longlat_globe")
-    crs2 <- fmesher::fm_CRS("lambert_globe")
-    crs3 <- fmesher::fm_CRS("mollweide_norm")
-    crs4 <- fmesher::fm_CRS("hammer_globe")
-    crs5 <- fmesher::fm_CRS("sphere")
-    crs6 <- fmesher::fm_CRS("globe")
+if (require("sf")) {
+    crs1 <- fmesher::fm_crs("longlat_globe")
+    crs2 <- fmesher::fm_crs("lambert_globe")
+    crs3 <- fmesher::fm_crs("mollweide_norm")
+    crs4 <- fmesher::fm_crs("hammer_globe")
+    crs5 <- fmesher::fm_crs("sphere")
+    crs6 <- fmesher::fm_crs("globe")
 }
 \dontrun{
 names(inla.wkt_predef())
@@ -59,9 +58,8 @@ names(inla.wkt_predef())
 }
 }
 \seealso{
-\code{\link[sp:CRS-class]{sp::CRS()}}, \code{\link[=crs_wkt]{crs_wkt()}},
-\code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}} \code{\link[=plot.CRS]{plot.CRS()}},
-\code{\link[=inla.identical.CRS]{inla.identical.CRS()}}
+\code{\link[fmesher:fm_crs]{fmesher::fm_crs()}}, \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}},
+\code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

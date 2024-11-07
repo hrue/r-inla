@@ -27,7 +27,10 @@ Query information about an inla.mesh object.
 \examples{
 
 loc <- matrix(c(0.1, 0.15), 1, 2)
-lattice <- inla.mesh.lattice(dims = c(10, 10))
+lattice <- inla.mesh.lattice(
+  seq(0, 1, length.out = 10),
+  seq(0, 1, length.out = 10)
+)
 mesh <- inla.mesh.create(loc = loc, lattice = lattice, extend = FALSE)
 
 vt <- which(inla.mesh.query(mesh,

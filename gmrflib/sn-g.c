@@ -139,7 +139,7 @@ double GMRFLib_sn_g_eval(double x, double *cx)
 		res = val + deriv * (x - x0);
 	} else {
 		double fact = 1.0, pow = 1.0;
-		res = cx[0]; 
+		res = cx[0];
 		for (int i = 1; i < ORDER + 1; i++) {
 			fact *= i;
 			pow *= x;
@@ -159,7 +159,7 @@ double GMRFLib_sn_g_eval_deriv(double x, double *cx)
 		res = GMRFLib_sn_g_eval_deriv(x0, cx);
 	} else {
 		double fact = 1.0, pow = 1.0;
-		res = cx[1]; 
+		res = cx[1];
 		for (int i = 2; i < ORDER + 1; i++) {
 			fact *= (i - 1);
 			pow *= x;

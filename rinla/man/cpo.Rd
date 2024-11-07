@@ -41,7 +41,12 @@ removing data-points.
 
 n = 10
 y = rnorm(n)
-r = inla(y ~ 1, data = data.frame(y), control.compute = list(cpo=TRUE))
+r = inla(
+  y ~ 1,
+  data = data.frame(y),
+  control.compute = list(cpo=TRUE),
+  num.threads = "1:1" # Protect package testing from parallel execution
+)
 \donttest{
 rr = inla.cpo(r, force=TRUE)
 }

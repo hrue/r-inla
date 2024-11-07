@@ -64,6 +64,9 @@ edges more prominently.}
 plotting systems.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:plot.fm_mesh_2d]{fmesher::plot.fm_mesh_2d()}} or
+\code{\link[fmesher:plot_rgl]{fmesher::plot_rgl()}} instead.
+
 Plots an \code{\link[=inla.mesh]{inla.mesh()}} object using either standard graphics or
 with \code{rgl}.
 }

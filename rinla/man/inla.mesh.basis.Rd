@@ -48,7 +48,7 @@ repeating the boundary knots.}
 \item{...}{Unused}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use the \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.
 
 Calculate basis functions on a 1d or 2d \code{\link[=inla.mesh]{inla.mesh()}}
 }

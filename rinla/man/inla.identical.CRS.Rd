@@ -10,6 +10,9 @@ inla.identical.CRS(...)
 \item{...}{Arguments passed on to \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}
+instead.
+
 Wrapper for identical, optionally testing only the CRS part of two objects
 Deprecated in favour of \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}
 }

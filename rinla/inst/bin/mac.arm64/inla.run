@@ -39,6 +39,12 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 	*libjemalloc*.dylib) 
 	    export MALLOC_CONF='abort_conf:true,metadata_thp:always'
 	    ;;
+	*libmimalloc*.dylib) 
+	    ## https://microsoft.github.io/mimalloc/environment.html
+	    export MIMALLOC_ARENA_EAGER_COMMIT=1 
+	    export MIMALLOC_PURGE_DELAY=-1 
+	    export MIMALLOC_PURGE_DECOMMITS=0
+	    ;;
     esac
 fi
 
@@ -69,6 +75,15 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
 
     p="/usr/bin/sw_vers"
     test -x $p && $p
+
+    for arg in "$@"; do
+	if [ -r "$arg" ]; then
+	    echo -e "\n*** FILE $arg:"
+	    grep ^### "$arg" 
+	    echo -e "*** END OF FILE $arg:\n"
+	fi
+    done
+
 fi
 
 export PARDISOLICMESSAGE=1

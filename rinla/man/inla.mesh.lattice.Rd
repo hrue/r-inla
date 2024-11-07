@@ -34,6 +34,8 @@ inla.mesh.lattice(
 An \code{inla.mesh.lattice} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_lattice_2d]{fmesher::fm_lattice_2d()}} instead.
+
 Construct a lattice grid for \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{

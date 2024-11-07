@@ -506,6 +506,14 @@ NULL
 
 ## NOT-YET-IN-USE
 ## 'plot' and 'summary'-methods for marginals
+#' Not yet in use
+#' 
+#' Method not yet in use
+#' 
+#' @param x,y,... Not yet in use
+#' 
+#' @keywords internal
+#' @exportS3Method plot inla.marginal
 plot.inla.marginal <- function(x, y, ...) {
     m <- inla.emarginal(function(xx) c(xx, xx^2L), x)
     xlab <- paste(
@@ -517,6 +525,17 @@ plot.inla.marginal <- function(x, y, ...) {
     return(invisible())
 }
 ## NOT-YET-IN-USE
+#' Not yet in use
+#' 
+#' Method not yet in use
+#' 
+#' @usage
+#' \method{summary}{inla.marginal}(object, ...)
+#' 
+#' @param object,... Not yet in use
+#' 
+#' @keywords internal
+#' @exportS3Method summary inla.marginal
 summary.inla.marginal <- function(object, ...) {
     ## option
     silent <- FALSE

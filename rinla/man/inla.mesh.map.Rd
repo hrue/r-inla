@@ -32,11 +32,16 @@ the map domain} \item{ylim }{Y axis limits in the map domain} No attempt is
 made to find minimal limits for partial spherical domains.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_mesh_2d_map]{fmesher::fm_mesh_2d_map()}} instead.
+
 Calculates coordinate mappings for \code{inla.mesh} projections.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.mesh.map.lim()}: Projection extent limit calculations
+\item \code{inla.mesh.map.lim()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_mesh_2d_map]{fmesher::fm_mesh_2d_map_lim()}}
+instead.
+
+Projection extent limit calculations
 
 }}
 \seealso{

@@ -77,7 +77,7 @@ result after each step of the multi-step domain extension algorithm.}
 An \code{inla.mesh} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}} instead.
 
 Create a triangle mesh based on initial point locations, specified or
 automatic boundaries, and mesh quality parameters.

@@ -4810,64 +4810,61 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref1 = 0.0, tref2 = 0.0; 
+		double tref1 = 0.0, tref2 = 0.0;
 		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 		for (int k = 0; k < m; k++) {
 			tref1 -= GMRFLib_timer();
-#pragma omp simd 
-			for(int i = 0; i < n; i++) {
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
 				xx2[i] = xx[i] * xx[i];
 			}
 			tref1 += GMRFLib_timer();
 			tref2 -= GMRFLib_timer();
-			GMRFLib_sqr(n, xx,xx2);
+			GMRFLib_sqr(n, xx, xx2);
 			tref2 += GMRFLib_timer();
 		}
-		printf("plain %.4g mkl %.4g\n", tref1/(tref1+tref2), tref2/(tref1+tref2));
+		printf("plain %.4g mkl %.4g\n", tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 	}
 		break;
-		
-	case 153: 
+
+	case 153:
 	{
-		double mi = 0.33, mj = 0.44, Sii = 0.55,  Sij = 0.66,  Sjj = 0.88;
+		double mi = 0.33, mj = 0.44, Sii = 0.55, Sij = 0.66, Sjj = 0.88;
 		int ord = 5;
 
 
-		for(int i = 1; i <= 2*ord; i++) {
+		for (int i = 1; i <= 2 * ord; i++) {
 			printf("E(x^%1d) =  %.12f\n", i, GMRFLib_noncentral_moment(i, 0, mi, 0.0, Sii, 0.0, 0.0));
 		}
 
-		for(int i = 1; i <= ord; i++) {
-			for(int j = 1; j <= ord; j++) {
-				printf("E(x^%1d * y^%1d) =  %.12f\n", i, j,
-				       GMRFLib_noncentral_moment(i, j, mi, mj, Sii, Sij, Sjj));
+		for (int i = 1; i <= ord; i++) {
+			for (int j = 1; j <= ord; j++) {
+				printf("E(x^%1d * y^%1d) =  %.12f\n", i, j, GMRFLib_noncentral_moment(i, j, mi, mj, Sii, Sij, Sjj));
 			}
 		}
 
 		mi = mj = 0.0;
-		for(int i = 1; i <= 2*ord; i++) {
+		for (int i = 1; i <= 2 * ord; i++) {
 			printf("DIFF E(x^%1d) =  %.12f\n", i,
-			       GMRFLib_noncentral_moment(i, 0, mi, 0.0, Sii, 0.0, 0.0) -
-			       GMRFLib_central_moment(i, 0, Sii, 0.0, 0.0));
+			       GMRFLib_noncentral_moment(i, 0, mi, 0.0, Sii, 0.0, 0.0) - GMRFLib_central_moment(i, 0, Sii, 0.0, 0.0));
 		}
 
-		for(int i = 1; i <= ord; i++) {
-			for(int j = 1; j <= ord; j++) {
+		for (int i = 1; i <= ord; i++) {
+			for (int j = 1; j <= ord; j++) {
 				printf("DIFF E(x^%1d * y^%1d) =  %.12f\n", i, j,
-				       GMRFLib_noncentral_moment(i, j, mi, mj, Sii, Sij, Sjj) -
-				       GMRFLib_central_moment(i, j, Sii, Sij, Sjj));
+				       GMRFLib_noncentral_moment(i, j, mi, mj, Sii, Sij, Sjj) - GMRFLib_central_moment(i, j, Sii, Sij, Sjj));
 			}
 		}
 	}
-	break;
+		break;
 
-	case 154: 
+	case 154:
 	{
 		double skew = 0.54;
 		double *cx = GMRFLib_sn_g_get_coof(skew, NULL);
-		
+
 		P(skew);
 		P(GMRFLib_sn_g_eval(-1, cx));
 		P(GMRFLib_sn_g_eval_deriv(-1, cx));
@@ -4888,17 +4885,17 @@ int testit(int argc, char **argv)
 		P(GMRFLib_sn_g_eval(1, cx));
 		P(GMRFLib_sn_g_eval_deriv(1, cx));
 	}
-	break;
-		
-	case 155: 
+		break;
+
+	case 155:
 	{
 		double skew = atof(args[0]);
 		P(skew);
-		
+
 		double *cx = GMRFLib_sn_g_get_coof(skew, NULL);
 		double *icx = GMRFLib_sn_ginv_get_coof(skew, NULL);
 
-		for(double x = -6; x <= 6; x += 0.01) {
+		for (double x = -6; x <= 6; x += 0.01) {
 			double zx = GMRFLib_sn_g_eval(x, cx);
 			double izx = GMRFLib_sn_g_eval(x, icx);
 			double zz = GMRFLib_sn_g_eval(zx, icx);
@@ -4906,8 +4903,8 @@ int testit(int argc, char **argv)
 			printf("YY %f %f %f\n", x, zx, izx);
 		}
 	}
-	break;
-		
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

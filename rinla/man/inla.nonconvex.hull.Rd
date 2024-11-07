@@ -47,8 +47,8 @@ details.}
 An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla()}} and \code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}}.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla()}} or
+\code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}} instead.
 
 Constructs a nonconvex boundary for a point set using morphological
 operations.
@@ -67,6 +67,12 @@ The implementation is based on the identity \deqn{dilation(a) \& closing(b)
 erosion(b)} where all operations are with respect to disks with the
 specified radii.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.nonconvex.hull.basic()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Use \code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla_basic()}} instead.
+
+}}
 \note{
 Requires \code{nndistF} from the \code{splancs} package.
 }

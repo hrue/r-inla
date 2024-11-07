@@ -362,7 +362,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 {
 	// this for metis version 5
 
-	int n, nnz, i, j, ip;
+	int n, nnz;
 	int *xadj = NULL;
 	int *adj = NULL;
 	int *len = NULL;
@@ -404,15 +404,15 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	}
 
 	ptr = len = *perm;
-	for (i = 0; i < n; i++)
+	for (int i = 0; i < n; i++)
 		len[i] = 0;
 
-	for (j = 0; j < n; j++) {
-		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+	for (int j = 0; j < n; j++) {
+		for (int ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
 			 * i = (m->rowind)[ip] - (m->indshift);
 			 */
-			i = (m->rowind)[ip];
+			int i = (m->rowind)[ip];
 			if (i != j) {
 				len[i]++;
 				len[j]++;
@@ -421,18 +421,18 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	}
 
 	xadj[0] = 0;
-	for (i = 1; i <= n; i++)
+	for (int i = 1; i <= n; i++)
 		xadj[i] = xadj[i - 1] + len[i - 1];
 
-	for (i = 0; i < n; i++)
+	for (int i = 0; i < n; i++)
 		ptr[i] = xadj[i];
 
-	for (j = 0; j < n; j++) {
-		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+	for (int j = 0; j < n; j++) {
+		for (int ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
 			 * i = (m->rowind)[ip] - (m->indshift);
 			 */
-			i = (m->rowind)[ip];
+			int i = (m->rowind)[ip];
 			if (i != j) {
 				adj[ptr[i]] = j;
 				adj[ptr[j]] = i;
@@ -444,7 +444,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	int options[METIS_NOPTIONS];
 	// Have to adapt to the PARDISO metis libs
 	// METIS_SetDefaultOptions(options);
-	for (i = 0; i < METIS_NOPTIONS; i++) {
+	for (int i = 0; i < METIS_NOPTIONS; i++) {
 		options[i] = -1;
 	}
 
@@ -471,15 +471,12 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	Free(adj);
 }
 
-
-
 #if defined(INLA_WITH_PARDISO_WORKAROUND)
 int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o)
 {
 	return METIS_NodeND(i, j, k, l, m, n, o);
 }
 #endif
-
 
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
@@ -566,9 +563,6 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix *L)
 
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp *gn_ptr)
 {
-	/*
-	 * new improved version which treats global nodes spesifically. 
-	 */
 	int i, j, k, ic, ne, n, ns, nnz, *perm = NULL, *iperm = NULL, limit, free_subgraph, *iperm_new = NULL, simple;
 	char *fixed = NULL, *p = NULL;
 	taucs_ccs_matrix *Q = NULL;
@@ -897,8 +891,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
 					  GMRFLib_fact_info_tp *finfo)
 {
-	int flags, k, retval;
-
 	if (!L) {
 		return GMRFLib_SUCCESS;
 	}
@@ -907,6 +899,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	/*
 	 * compute some info about the factorization 
 	 */
+	int flags, k, retval;
 	k = (*L)->colptr[(*L)->n] - (*L)->n;
 	finfo->n = (*L)->n;
 	finfo->nnzero = 2 * k + (*L)->n;
@@ -1208,7 +1201,7 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 	for (int i = 0; i < L->n; i++) {
 		*logdet += log(L->values.d[L->colptr[i]]);
 	}
-	*logdet *= 2;
+	*logdet *= 2.0;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1219,215 +1212,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 		return GMRFLib_SUCCESS;
 	}
 
-	if (1) {
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL));
-	} else {
-		double tref[] = { 0, 0 };
-		FIXME("NEW");
-		tref[0] -= GMRFLib_timer();
-		GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL);
-		tref[0] += GMRFLib_timer();
-		FIXME("OLD");
-		tref[1] -= GMRFLib_timer();
-		GMRFLib_compute_Qinv_TAUCS_compute_OLD(problem, NULL);
-		tref[1] += GMRFLib_timer();
-		P(tref[0] / (tref[0] + tref[1]));
-		P(tref[1] / (tref[0] + tref[1]));
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
-{
-	double *ptr = NULL, value = 0.0, diag, *Zj = NULL;
-	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
-	    NULL, *Zj_set = NULL, nset;
-	taucs_ccs_matrix *L = NULL;
-	map_id **Qinv_L = NULL, *q = NULL;
-
-	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
-	n = L->n;
-
-	/*
-	 * construct a row-list of L_ij's including the diagonal 
-	 */
-	nnbs = Calloc(n, int);
-	nbs = Calloc(n, int *);
-	nnbsQ = Calloc(n, int);				       /* number of elm in the Qinv_L[j] hash-table */
-
-	for (i = 0; i < n; i++) {
-		for (jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {
-			nnbs[L->rowind[jp]]++;
-		}
-	}
-
-	for (i = 0; i < n; i++) {
-		nbs[i] = Calloc(nnbs[i], int);
-		nnbs[i] = 0;
-	}
-
-	for (j = 0; j < n; j++) {
-		for (jp = L->colptr[j]; jp < L->colptr[j + 1]; jp++) {	/* including the diagonal */
-			i = L->rowind[jp];
-			nbs[i][nnbs[i]] = j;
-			nnbs[i]++;
-			nnbsQ[IMIN(i, j)]++;		       /* for the Qinv_L[] hash-table */
-		}
-	}
-
-	/*
-	 * sort and setup the hash-table for storing Qinv_L 
-	 */
-	Qinv_L = Calloc(n, map_id *);
-#pragma omp parallel for private(i)
-	for (i = 0; i < n; i++) {
-		QSORT_FUN(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
-		Qinv_L[i] = Calloc(1, map_id);
-		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
-	}
-
-	Zj = Calloc(n, double);
-	Zj_set = Calloc(n, int);
-
-	for (j = n - 1; j >= 0; j--) {
-		/*
-		 * store those indices that are used and set only those to zero 
-		 */
-		nset = 0;
-		q = Qinv_L[j];				       /* just to store the ptr */
-
-		for (k = -1; (k = (int) map_id_next(q, k)) != -1;) {
-			jj = q->contents[k].key;
-			Zj_set[nset++] = jj;
-			Zj[jj] = q->contents[k].value;
-		}
-		for (ii = nnbs[j] - 1; ii >= 0; ii--) {
-			i = nbs[j][ii];
-			diag = L->values.d[L->colptr[i]];
-			value = (i == j ? 1. / diag : 0.0);
-			for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
-				value -= L->values.d[kk] * Zj[L->rowind[kk]];
-			}
-
-			value /= diag;
-			Zj[i] = value;
-			Zj_set[nset++] = i;
-
-			map_id_set(Qinv_L[i], j, value);
-		}
-		if (j > 0) {
-			Memset(Zj, 0, n * sizeof(double));
-		}
-	}
-	if (0) {
-		/*
-		 * keep this OLD version in the source 
-		 */
-		for (j = n - 1; j >= 0; j--) {
-			for (ii = nnbs[j] - 1; ii >= 0; ii--) {
-				i = nbs[j][ii];
-				diag = L->values.d[L->colptr[i]];
-				value = (i == j ? 1. / diag : 0.0);
-
-				for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
-					k = L->rowind[kk];
-					if ((ptr = map_id_ptr(Qinv_L[IMIN(k, j)], IMAX(k, j)))) {
-						value -= L->values.d[kk] * *ptr;
-					}
-				}
-
-				value /= diag;
-				map_id_set(Qinv_L[IMIN(i, j)], IMAX(i, j), value);
-			}
-		}
-	}
-
-	/*
-	 * compute the mapping 
-	 */
-	inv_remap = Calloc(n, int);
-
-	for (k = 0; k < n; k++) {
-		inv_remap[problem->sub_sm_fact.remap[k]] = k;
-	}
-
-	/*
-	 * possible remove entries: options are GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
-	 */
-	if (1) {
-		rremove = Calloc(n, int);
-		for (i = 0; i < n; i++) {
-			iii = inv_remap[i];
-			for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-				j = Qinv_L[i]->contents[k].key;
-
-				if (j != i) {
-					jjj = inv_remap[j];
-					if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
-						rremove[nrremove++] = j;
-					}
-				}
-			}
-			for (k = 0; k < nrremove; k++) {
-				map_id_remove(Qinv_L[i], rremove[k]);
-			}
-			// map_id_adjustcapacity(Qinv_L[i]);
-		}
-	}
-
-	/*
-	 * correct for constraints, if any. need `iremap' as the matrix terms, constr_m and qi_at_m, is in the sub_graph
-	 * coordinates without reordering!
-	 * 
-	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
-	 */
-	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, iii, k, j, jjj, kk)
-		for (i = 0; i < n; i++) {
-			iii = inv_remap[i];
-			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-				j = Qinv_L[i]->contents[k].key;
-				jjj = inv_remap[j];
-
-				double vvalue = 0.0;
-				map_id_get(Qinv_L[i], j, &vvalue);
-				for (kk = 0; kk < problem->sub_constr->nc; kk++) {
-					vvalue -= problem->constr_m[iii + kk * n] * problem->qi_at_m[jjj + kk * n];
-				}
-				map_id_set(Qinv_L[i], j, vvalue);
-			}
-		}
-	}
-
-	/*
-	 * done. store Qinv 
-	 */
-	problem->sub_inverse = Calloc(1, GMRFLib_Qinv_tp);
-	problem->sub_inverse->Qinv = Qinv_L;
-
-	/*
-	 * compute the mapping for lookup using GMRFLib_Qinv_get(). here, the user lookup using a global index, which is then
-	 * transformed to the reordered sub_graph. 
-	 */
-	problem->sub_inverse->mapping = Calloc(n, int);
-	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
-
-	/*
-	 * cleanup 
-	 */
-
-	for (i = 0; i < n; i++) {
-		Free(nbs[i]);
-	}
-	Free(nbs);
-	Free(nnbs);
-	Free(nnbsQ);
-	Free(inv_remap);
-	Free(rremove);
-	Free(Zj);
-	Free(Zj_set);
-
+	GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL);
 	return GMRFLib_SUCCESS;
 }
 
@@ -1950,7 +1735,7 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix *L, const char *
 #define ROUND(_i) ((int) ((_i) * reduce_factor))
 #define SET(_i, _j) bitmap[ROUND(_i) + ROUND(_j) * N] = 1
 
-	int i, j, jp, n = L->n, N, err;
+	int n = L->n, N, err;
 	double reduce_factor;
 	GMRFLib_uchar *bitmap = NULL;
 
@@ -1963,10 +1748,10 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix *L, const char *
 	}
 
 	bitmap = Calloc(ISQR(N), GMRFLib_uchar);
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		SET(i, i);
-		for (jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			j = L->rowind[jp];
+		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
+			int j = L->rowind[jp];
 			SET(i, j);
 		}
 	}
@@ -1995,14 +1780,14 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), i
 		 int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
 		 int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))
 {
-	int result, i;
+	int result;
 	double control[AMD_CONTROL], info[AMD_INFO];
 
 	amd_defaults(control);
 	result = amd_order(n, pe, iw, last, control, info);
 	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
 
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		last[i]++;				       /* to Fortran indexing. */
 	}
 
@@ -2013,7 +1798,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 		    int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
 		    int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))
 {
-	int result, i;
+	int result;
 	double control[AMD_CONTROL], info[AMD_INFO];
 
 	amd_defaults(control);
@@ -2021,7 +1806,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 	result = amd_order(n, pe, iw, last, control, info);
 	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
 
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		last[i]++;				       /* to Fortran indexing. */
 	}
 

@@ -297,14 +297,14 @@ NULL
 
 
 
-#' The New England map
+#' The North West England map
 #'
 #' This map is used in association to the Leukemia data from Henderson et al
 #' (2003); see source.
 #'
 #'
 #' @name nwEngland
-#' @aliases nwEngland NewEngland
+#' @aliases nwEngland
 #' @docType data
 #' @format A SpatialPolygons object.
 #' @source This map are used to analyse the Leukaemia dataset from

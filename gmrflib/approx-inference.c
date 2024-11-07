@@ -660,13 +660,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	assert(mean == NULL);
 	assert(x);
 
-	if (0) {
-		FIXME("Enter with x=");
-		for (int i = 0; i < graph->n; i++)
-			printf(" %.4f", x[i]);
-		printf("\n");
-	}
-
 	/*
 	 * This is copy of the original routine but with optional arguments 
 	 */
@@ -752,19 +745,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	Memcpy(mode_initial, mode, n * sizeof(double));	       /* store the starting value */
 
-	double *bcoof = NULL, *ccoof = NULL, *linear_predictor = NULL;
+	double *linear_predictor = NULL;
 	int free_linear_predictor = 0;
 
-	bcoof = Calloc(Npred, double);
-	ccoof = Calloc(Npred, double);
-
 	for (iter = 0; iter < itmax; iter++) {
-
-		if (0) {
-			for (int i = 0; i < n; i++) {
-				printf("i mode %d %f \n", i, mode[i]);
-			}
-		}
 
 		Memset(aa, 0, Npred * sizeof(double));
 		Memset(bb, 0, Npred * sizeof(double));
@@ -776,29 +760,21 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				free_linear_predictor = 1;
 			}
 			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
-
-			if (0) {
-				for (int i = 0; i < preopt->Npred; i++) {
-					printf("i predictor %d %f\n", i, linear_predictor[i]);
-				}
-			}
-
 		} else {
 			linear_predictor = mode;
 		}
 
 		cc_is_negative = 0;
-		Memset(bcoof, 0, Npred * sizeof(double));
-		Memset(ccoof, 0, Npred * sizeof(double));
 
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
 			int idx = d_idx->idx[i_];			\
 			double ccmin = cmin;				\
 			double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
+			double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;	\
 			if (fl && fl[idx]) {				\
 				/* then do nothing fancy and no checks, cmin = NULL*/ \
-				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+				GMRFLib_2order_approx(thread_id, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 						      &step_len, &(optpar->stencil), NULL); \
 			} else {					\
@@ -806,44 +782,53 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
 					/* If not successful then fall back to default step_len with cmin=0 */ \
 					while(1) {			\
-						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+						GMRFLib_2order_approx(thread_id, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 								      &step_len, &(optpar->stencil), NULL); \
 						/* if ok, we are done */ \
-						if (ccoof[idx] > 0.0) break; \
+						if (ccoof > 0.0) break; \
 						/* otherwise, increase the step_len and retry */ \
 						step_len *= 10.0;	\
 						/* unless we have gone to far... */ \
 						if (step_len > 1.0) {	\
 							ccmin = DBL_EPSILON; \
-							GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							GMRFLib_2order_approx(thread_id, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 									      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 									      &(optpar->step_len), &(optpar->stencil), &ccmin); \
 							break;		\
 						}			\
 					}				\
 				} else {				\
-					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+					GMRFLib_2order_approx(thread_id, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 							      &(optpar->step_len), &(optpar->stencil), &cmin); \
 				}					\
-				cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
-				if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
-					bcoof[idx] = 0.0;		\
+				if (!cc_is_negative) cc_is_negative = (cc_is_negative || ccoof < 0.0); \
+				if (ccoof == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
+					bcoof = 0.0;			\
 				}					\
 			}						\
-			bb[idx] += bcoof[idx];				\
-			cc[idx] += ccoof[idx];				\
+			aa[idx] = acoof;				\
+			bb[idx] = bcoof;				\
+			cc[idx] = ccoof;				\
 		}
 
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
 			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
 			omp_set_num_threads(nt);
-			RUN_CODE_BLOCK(nt, 0, 0);
+			if (GMRFLib_gaussian_data) {
+				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
+			} else {
+				RUN_CODE_BLOCK(nt, 0, 0);
+			}
 			omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 		} else {
-			RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+			if (GMRFLib_gaussian_data) {
+				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 0, 0);
+			} else {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+			}
 		}
 #undef CODE_BLOCK
 
@@ -938,15 +923,24 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			} else {
 				linear_predictor = mode;
 			}
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < d_idx->n; i++) {		\
-				int idx = d_idx->idx[i];		\
-				double local_bb, local_cc;		\
+				int idx = d_idx->idx[i], three = 3;	\
+				double bloc, cloc;			\
 				GMRFLib_2order_approx(thread_id,	\
-						      &(aa[idx]), &local_bb, &local_cc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc, \
-						      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), NULL); \
+						      &(aa[idx]), &bloc, &cloc, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc, \
+						      loglFunc_arg, &(optpar->step_len), &three, NULL); \
 			}
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+
+			if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+				// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
+				int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
+				omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
+			} else {
+				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 0, 0);
+			}
 #undef CODE_BLOCK
 		}
 
@@ -964,9 +958,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		err_previous = err;
 	}
 
-	Free(ccoof);
-	Free(bcoof);
-
 	if (free_linear_predictor)
 		Free(linear_predictor);
 
@@ -975,15 +966,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	} else {
 		*problem = NULL;
 		GMRFLib_free_problem(lproblem);
-	}
-
-	if (0) {
-		if (*problem) {
-			FIXME("Leave with x=");
-			for (int i = 0; i < graph->n; i++)
-				printf(" %.4f", (*problem)->sub_mean_constr[i]);
-			printf("\n");
-		}
 	}
 
 	if (!*problem) {
@@ -1495,10 +1477,17 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
 						if (ai_par->fp_log) {
 							fprintf(stderr,
-								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break\n");
 						}
 						break;
 					}
+
+					if (log_dens_mode_save == log_dens_mode) {
+						if (ai_par->fp_log) {
+							fprintf(stderr, "\n\n*** Hessian failed but no better mode found\n");
+						}
+					}
+
 					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 					log_dens_mode_save = log_dens_mode;
 
@@ -3306,15 +3295,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						mask[k] = 0.0;
 						diag[k] = big;
 					}
-				}
-			}
-
-			if (0) {
-				for (int i = 0; i < gcpo_param->idx_tot; i++) {
-					printf("\t\t%-30s %10d %10d\n", gcpo_param->idx_tag[i], gcpo_param->idx_start[i], gcpo_param->idx_n[i]);
-				}
-				for (int i = 0; i < nn; i++) {
-					printf("i %d mask %g diag %g\n", i, mask[i], diag[i]);
 				}
 			}
 

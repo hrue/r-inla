@@ -110,6 +110,11 @@ coarser domain extensions.
 a point set and calling \code{inla.mesh.create} to generate the classical
 Delaunay tringulation.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.delaunay()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_delaunay_2d()}} instead.
+
+}}
 \examples{
 
 loc <- matrix(runif(10 * 2), 10, 2)

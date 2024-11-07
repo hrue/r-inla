@@ -157,7 +157,9 @@ static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE) (double x, double low, double h
 	return DMIN(DMAX(x, low), high);
 }
 
-#define GMRFLib_L1_CACHELINE (64L)
+#define GMRFLib_CACHELINESIZE (GMRFLib_cachelinesize)
+#define GMRFLib_CACHELINESIZE_ND (GMRFLib_CACHELINESIZE / sizeof(double))
+#define GMRFLib_CACHELINESIZE_NI (GMRFLib_CACHELINESIZE / sizeof(int))
 #define GMRFLib_MEM_ALIGN (32L)
 
 typedef enum {
@@ -383,7 +385,7 @@ typedef enum {
 
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
-	size_t calloc_l1_cacheline_ = GMRFLib_L1_CACHELINE / sizeof(double); \
+	size_t calloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_ND;		\
 	size_t calloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
 	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_mem_align_ * calloc_l1_cacheline_); \
 	size_t calloc_offset_ = 0;					\
@@ -393,7 +395,7 @@ typedef enum {
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
-	size_t icalloc_l1_cacheline_ = GMRFLib_L1_CACHELINE / sizeof(int); \
+	size_t icalloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_NI;		\
 	size_t icalloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(int);	\
 	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_mem_align_ * icalloc_l1_cacheline_); \
 	size_t icalloc_offset_ = 0;					\
@@ -613,6 +615,34 @@ typedef enum {
 									\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		for (int i_ = 0; i_ < nt__; i_++) {			\
+			Free(work__[i_]);				\
+		}							\
+		Free(work__);						\
+        }
+
+#define RUN_CODE_BLOCK_STATIC(thread_max_, n_work_, len_work_)		\
+	if (1) {							\
+		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
+			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
+		int tmax__ = thread_max_;				\
+		int len_work__ = IMAX(1, len_work_);			\
+		int n_work__ = IMAX(1, n_work_);			\
+		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
+									\
+		double ** work__ = Calloc(nt__, double *);		\
+		for (int i_ = 0; i_ < nt__; i_++) { \
+			work__[i_] = Calloc(len_work__ * n_work__, double); \
+			assert(work__[i_]);				\
+		}							\
+		assert(work__);						\
+									\
+		if (nt__ > 1) {						\
+			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\

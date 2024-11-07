@@ -84,13 +84,13 @@ nearest integer.}
 \item{inla.mode}{Which mode to use in INLA? Default is \code{"compact"}. Other
 options are \code{"classic"} and \code{"twostage"}.}
 
-\item{malloc.lib}{Optional alternative malloc library to use: \code{"je"}, \code{"tc"} or \code{"mi"}.
-Default option is \code{"default"} which use the compiler's implementation. The library
+\item{malloc.lib}{Which malloc library to use: \code{"je"}, \code{"tc"}, \code{"mi"}, \code{"compiler"} or \code{"default"}.
+Option \code{"compiler"} use the compiler's implementation. The library
 is loaded using \code{LD_PRELOAD} and similar functionality. Loosely, \code{jemalloc} is from Facebook,
 \code{tcmalloc} is from Google and \code{mimalloc} is from Microsoft. This option is not available for
 Windows and not all options might be available for every arch.
 If \code{malloc.lib} is a complete path to an external library, that file will be used
-instead of one of the supported ones. }
+instead of one of the supported ones.}
 
 \item{fmesher.evolution}{Control use of fmesher methods during the transition
 to a separate fmesher package. Levels of

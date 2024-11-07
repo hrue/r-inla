@@ -15,8 +15,7 @@ Description: Full Bayesian analysis of latent Gaussian models using Integrated N
 Additional_repositories: http:://inlabru-org.r-universe.dev/
 Depends:
     R (>= 3.5),
-    Matrix (>= 1.3-0),
-    sp (>= 1.6-0)
+    Matrix (>= 1.3-0)
 Imports:
     graphics,
     grDevices,
@@ -31,6 +30,7 @@ Imports:
     withr,
     MatrixModels
 Suggests:
+    compositions,
     Deriv,
     Ecdat,
     HKprocess,
@@ -40,6 +40,7 @@ Suggests:
     doParallel,
     dplyr,
     evd,
+    fastGHQuad,
     fields,
     ggplot2,
     gsl,
@@ -55,9 +56,11 @@ Suggests:
     pixmap,
     rgl,
     rmarkdown,
+    runjags,
     sf,
     shiny,
     sn,
+    sp (>= 1.6-0),
     spdep,
     splancs,
     terra,

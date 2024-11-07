@@ -768,11 +768,15 @@ inla.spde.make.block.A <-
 
 
 
-#' Observation/prediction matrices for mesh models.
+#' @title Observation/prediction matrices for mesh models.
 #'
+#' @description
 #' Constructs observation/prediction weight matrices for models based on
 #' [inla.mesh()] and [inla.mesh.1d()] objects.
 #'
+#' For a more modular approach, see [fmesher::fm_basis()],
+#' [fmesher::fm_row_kron()], [fmesher::fm_block()], and the `inlabru`
+#' `bru_mapper()` system.
 #'
 #' @param mesh An [inla.mesh()] or [inla.mesh.1d()] object
 #' specifying a function basis on a mesh domain.  Alternatively, an

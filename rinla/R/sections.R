@@ -1371,7 +1371,7 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", sep = " ", file = file, append = TRUE)
     cat(inla.secsep("INLA.libR"), "\n", sep = " ", file = file, append = TRUE)
     cat("type = libR\n", sep = " ", file = file, append = TRUE)
-    cat("R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = "", file = file, append = TRUE)
+    cat("R_HOME = ", R.home(), "\n", sep = "", file = file, append = TRUE)
 
     cat("\n", sep = " ", file = file, append = TRUE)
     cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file, append = TRUE)

@@ -1,3 +1,8 @@
+# INLA 24.11.07
+* Dependency of 'sp' is removed
+* Default malloc.lib is now 'mi'
+* Code improvement
+
 # INLA 24.10.29
 * Fixed a bug when using family 'egp'
 * Update vignette 'SPDE2mdatasurv'

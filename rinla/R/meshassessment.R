@@ -118,6 +118,6 @@ inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
         sd.dev = as.vector(sd.deviation),
         edge.len = edgelengths
     )
-    coordinates(out) <- ~ x + y
+    sp::coordinates(out) <- ~ x + y
     out
 }

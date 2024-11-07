@@ -127,9 +127,9 @@ Get and set CRS object or WKT string properties.
 }}
 \examples{
 \dontrun{
-c1 <- fmesher::fm_CRS("globe")
+c1 <- fmesher::fm_crs("globe")
 inla.crs_get_lengthunit(c1)
-c2 <- inla.crs_set_lengthunit(c1, "km")
+c2 <- inla.crs_set_lengthunit(c1, "metre")
 inla.crs_get_lengthunit(c2)
 }
 

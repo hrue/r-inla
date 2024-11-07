@@ -10,16 +10,6 @@
 \title{Diameter of a point set}
 \usage{
 inla.diameter(x, ...)
-
-\method{inla.diameter}{default}(x, manifold = "", ...)
-
-\method{inla.diameter}{inla.mesh.1d}(x, ...)
-
-\method{inla.diameter}{inla.mesh}(x, ...)
-
-\method{inla.diameter}{inla.mesh.segment}(x, ...)
-
-\method{inla.diameter}{inla.mesh.lattice}(x, ...)
 }
 \arguments{
 \item{x}{A point set as an \eqn{n\times d}{n x d} matrix, or an
@@ -37,14 +27,9 @@ A scalar, upper bound for the diameter of the convex hull of the
 point set.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_diameter]{fmesher::fm_diameter()}} instead.
+
 Find an upper bound to the convex hull of a point set
-}
-\details{
-\itemize{
-\item \code{inla.diameter.default}
-Calculate upper bound for the diameter of a point set,
-by encapsulating in a circular domain.
-}
 }
 \examples{
 

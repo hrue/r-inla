@@ -53,6 +53,8 @@ limits.}
 \item{\dots}{Additional parameters passed to and from other methods.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:plot_rgl]{fmesher::plot_rgl()}} instead.
+
 Plots a triangulation mesh using \code{rgl}.
 }
 \seealso{

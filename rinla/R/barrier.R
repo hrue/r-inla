@@ -182,7 +182,7 @@
         ## Here we create the graph by just calling the Q function a few times
         ## on some arbitrary inputs (several: to be sure we do not get accidental 0s)
         graph <- function(theta) {
-            require(methods)
+            requireNamespace(methods)
             ntheta <- 2 # only for barrier model
             theta.full <- (1:ntheta) / 3.217233456
             G1 <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction), sigma = exp(theta.full[1]))
@@ -253,9 +253,9 @@
             px <- mesh$graph$tv[tri, ]
             temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
             poly.list <-
-                c(poly.list, Polygon(rbind(temp[c(3,2,1), 1:2], temp[3, 1:2]), hole = FALSE))
+                c(poly.list, sp::Polygon(rbind(temp[c(3,2,1), 1:2], temp[3, 1:2]), hole = FALSE))
         }
-        mesh.polys <- SpatialPolygons(list(Polygons(poly.list, ID = "noid")))
+        mesh.polys <- sp::SpatialPolygons(list(sp::Polygons(poly.list, ID = "noid")))
         if (interactive() &&
             compareVersion(getNamespaceVersion("sf"), "1.0-10") < 0) {
             warning(

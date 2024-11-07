@@ -117,6 +117,7 @@ int inla_parse_libR(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	mb->libR_R_HOME = Strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
+	inla_set_R_home(mb->libR_R_HOME);
 	if (mb->verbose) {
 		printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
 	}

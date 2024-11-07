@@ -3,8 +3,7 @@
 \docType{data}
 \name{nwEngland}
 \alias{nwEngland}
-\alias{NewEngland}
-\title{The New England map}
+\title{The North West England map}
 \format{
 A SpatialPolygons object.
 }

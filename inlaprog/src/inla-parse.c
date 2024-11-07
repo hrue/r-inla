@@ -323,6 +323,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
+		printf("\t\tCACHE_LINE_SIZE is %1d bytes\n", GMRFLib_cachelinesize);
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);

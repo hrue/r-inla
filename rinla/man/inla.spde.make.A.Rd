@@ -84,6 +84,10 @@ joining entries as grouped by a \code{block} specification.  See
 \description{
 Constructs observation/prediction weight matrices for models based on
 \code{\link[=inla.mesh]{inla.mesh()}} and \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
+
+For a more modular approach, see \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}},
+\code{\link[fmesher:fm_row_kron]{fmesher::fm_row_kron()}}, \code{\link[fmesher:fm_block]{fmesher::fm_block()}}, and the \code{inlabru}
+\code{bru_mapper()} system.
 }
 \examples{
 

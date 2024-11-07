@@ -165,6 +165,8 @@ typedef struct {
 	int *colidx;
 	int *colptr;
 	int *rowidx;
+
+	int max_nnbs;
 } GMRFLib_graph_tp;
 
 typedef struct {

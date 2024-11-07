@@ -5,7 +5,6 @@
 #' @import grDevices
 #' @rawNamespace import(utils, except= c(tail, head))
 #' @import methods
-#' @import sp
 #' @import splines
 #' @import Matrix
 NULL

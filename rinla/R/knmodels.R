@@ -53,11 +53,11 @@
 #' or 4d, it also includes linear combinations summary.
 #' @author Elias T. Krainski
 #' @seealso [inla.knmodels.sample()] to sample from
-#' @examples
+#' @examplesIf require("sp")
 #' 
 #' ### define space domain as a grid
-#' grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
-#' (n <- nrow(xy <- coordinates(grid)))
+#' grid <- sp::SpatialGrid(sp::GridTopology(c(0,0), c(1, 1), c(4, 5)))
+#' (n <- nrow(xy <- sp::coordinates(grid)))
 #' 
 #' ### build a spatial neighborhood list
 #' jj <- lapply(1:n, function(i)
@@ -195,7 +195,7 @@
 
 ##     cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
-        etemp <- INLA:::inla.interpret.formula(formula, data, debug = FALSE)
+        etemp <- inla.interpret.formula(formula, data, debug = FALSE)
 ##        print(str(etemp))
         rterms <- attr(terms(etemp[[1]]), "term.labels")
         if(length(rterms)>0) {

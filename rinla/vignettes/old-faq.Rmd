@@ -160,7 +160,7 @@ r3 = inla(y~1, data = data.frame(y),
           control.family = list(hyper = list(
 		                        prec = list(prior = prior.table))))
 
-print(round(c(r1$mlik[1], r2$mlik[1], r3$mlik[1]), dig=3))
+print(round(c(r1$mlik[1], r2$mlik[1], r3$mlik[1]), digits=3))
 ```
 
 
@@ -366,7 +366,12 @@ has 1 neighbour 1, and the graph looks like this (requires `Rgraphviz` and `grap
 ```{r,plot=TRUE,fig.width=2,fig.align='center'}
 if (requireNamespace("Rgraphviz") && requireNamespace("graph")) {
   g = inla.read.graph("4 1 2 3 4 2 0 3 1 1 4 1 1")
-  plot(g)
+  tryCatch(
+    plot(g),
+    error = function(e) {
+      message("Rgraphviz plotting doesn't seem to work on this installation.")
+    }
+  )
 }
 ```
 

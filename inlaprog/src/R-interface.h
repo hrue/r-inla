@@ -59,6 +59,8 @@ __BEGIN_DECLS
 	INLA_R_EXIT
 } inla_R_cmd_tp;
 
+void inla_set_R_home(char *home);
+
 int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6);
 
 #define inla_R_assign(a1, a2, a3) inla_R_do_(INLA_R_ASSIGN, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)

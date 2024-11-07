@@ -6062,7 +6062,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_ROUTINE;
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
@@ -6309,7 +6309,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #undef _MAP_DX_func
 #undef _MAP_DX_tfunc
 
-	GMRFLib_LEAVE_ROUTINE;
+//      GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -6635,6 +6635,8 @@ int main(int argc, char **argv)
 	GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 	my_sort2_id_test_cutoff(0);
 	my_sort2_dd_test_cutoff(0);
+
+	GMRFLib_cachelinesize = GMRFLib_get_cachelinesize();
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 

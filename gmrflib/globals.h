@@ -146,6 +146,7 @@ extern int GMRFLib_taucs_sort_L;
 extern int GMRFLib_opt_solve;
 
 extern int GMRFLib_intern_flag;
+extern int GMRFLib_cachelinesize;
 
 extern char *GMRFLib_tmpdir;
 #endif

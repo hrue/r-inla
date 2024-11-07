@@ -24,9 +24,17 @@ basis function properties.}
 \code{dA} and \code{d2A}.}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}} instead.
+
 Calculates barycentric coordinates and weight matrices for
 \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.mesh.1d.bary()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Use \code{\link[fmesher:fm_bary]{fmesher::fm_bary()}} instead.
+
+}}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }

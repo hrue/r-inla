@@ -71,13 +71,13 @@
 #' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
 #' options are `"classic"` and `"twostage"`.}
 #' 
-#' \item{malloc.lib}{Optional alternative malloc library to use: `"je"`, `"tc"` or `"mi"`.
-#' Default option is `"default"` which use the compiler's implementation. The library
+#' \item{malloc.lib}{Which malloc library to use: `"je"`, `"tc"`, `"mi"`, `"compiler"` or `"default"`.
+#' Option `"compiler"` use the compiler's implementation. The library
 #' is loaded using `LD_PRELOAD` and similar functionality. Loosely, `jemalloc` is from Facebook,
 #' `tcmalloc` is from Google and `mimalloc` is from Microsoft. This option is not available for
 #' Windows and not all options might be available for every arch. 
 #' If `malloc.lib` is a complete path to an external library, that file will be used
-#' instead of one of the supported ones. }
+#' instead of one of the supported ones.}
 #'
 #' \item{fmesher.evolution}{Control use of fmesher methods during the transition
 #' to a separate fmesher package. Levels of
@@ -137,7 +137,7 @@ NULL
             inla.timeout = 0, 
             fmesher.timeout = 0,
             inla.mode = "compact",
-            malloc.lib = "default", 
+            malloc.lib = "mi", 
             fmesher.evolution = 2L,
             fmesher.evolution.warn = FALSE,
             fmesher.evolution.verbosity = "default"
@@ -303,19 +303,21 @@ NULL
     }
 
     arg <- inla.getOption("malloc.lib")
-    if (is.null(arg)) { ## NULL means default
-        inla.setOption(malloc.lib = "default")
-    } else if (length(grep("^/", arg)) == 1) {
-        if (!file.exists(arg)) {
-            warning("User-defined library for option 'malloc.lib, ",  arg, ", does not exists")
-        }
+    if (is.null(arg) || arg == "default") {
+        inla.setOption(malloc.lib = inla.getOption.default()$malloc.lib)
+    }
+    if (length(grep("^/", arg)) == 1 && !file.exists(arg)) {
+        warning(paste0("User-defined library for option 'malloc.lib, ", arg,
+                       ", does not exists. Use malloc.lib='default'"))
+            inla.setOption(malloc.lib = "default")
     } else {
-        ## this will go into error...
-        arg <- match.arg(arg, c("default", "je", "tc", "mi"), several.ok = FALSE)
-        if (arg != "default") {
+        arg <- match.arg(arg, c("default", "compiler", "je", "tc", "mi"), several.ok = FALSE)
+        if (arg != "default" && arg != "compiler") {
             if (length(grep(paste0("lib", arg, "malloc"),
                             dir(paste0(dirname(inla.call.builtin()),"/malloc")))) == 0) {
-                warning("Value for option 'malloc.lib, ", arg, ", is not availble")
+                ## warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
+                ## "Use malloc.lib='default'"))
+                inla.setOption(malloc.lib = "default")
             }
         }
     }
