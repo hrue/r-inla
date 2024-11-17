@@ -12225,7 +12225,7 @@ Number of hyperparmeters is 10.
 }
 }
 }
-Number of hyperparmeters is 9.
+Number of hyperparmeters is 51.
 \describe{
 \item{Hyperparameter 'theta1'}{
 \describe{
@@ -12362,6 +12362,636 @@ Number of hyperparmeters is 9.
 \item{from.theta = }{\verb{function(x) x}}
 }
 }
+\item{Hyperparameter 'theta10'}{
+\describe{
+\item{hyperid = }{\verb{56560}}
+\item{name = }{\verb{beta10}}
+\item{short.name = }{\verb{beta10}}
+\item{output.name = }{\verb{beta10 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta10 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta11'}{
+\describe{
+\item{hyperid = }{\verb{56561}}
+\item{name = }{\verb{beta11}}
+\item{short.name = }{\verb{beta11}}
+\item{output.name = }{\verb{beta11 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta11 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta12'}{
+\describe{
+\item{hyperid = }{\verb{56562}}
+\item{name = }{\verb{beta12}}
+\item{short.name = }{\verb{beta12}}
+\item{output.name = }{\verb{beta12 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta12 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta13'}{
+\describe{
+\item{hyperid = }{\verb{56563}}
+\item{name = }{\verb{beta13}}
+\item{short.name = }{\verb{beta13}}
+\item{output.name = }{\verb{beta13 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta13 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta14'}{
+\describe{
+\item{hyperid = }{\verb{56564}}
+\item{name = }{\verb{beta14}}
+\item{short.name = }{\verb{beta14}}
+\item{output.name = }{\verb{beta14 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta14 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta15'}{
+\describe{
+\item{hyperid = }{\verb{56565}}
+\item{name = }{\verb{beta15}}
+\item{short.name = }{\verb{beta15}}
+\item{output.name = }{\verb{beta15 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta15 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta16'}{
+\describe{
+\item{hyperid = }{\verb{56566}}
+\item{name = }{\verb{beta16}}
+\item{short.name = }{\verb{beta16}}
+\item{output.name = }{\verb{beta16 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta16 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta17'}{
+\describe{
+\item{hyperid = }{\verb{56567}}
+\item{name = }{\verb{beta17}}
+\item{short.name = }{\verb{beta17}}
+\item{output.name = }{\verb{beta17 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta17 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta18'}{
+\describe{
+\item{hyperid = }{\verb{56568}}
+\item{name = }{\verb{beta18}}
+\item{short.name = }{\verb{beta18}}
+\item{output.name = }{\verb{beta18 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta18 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta19'}{
+\describe{
+\item{hyperid = }{\verb{56569}}
+\item{name = }{\verb{beta19}}
+\item{short.name = }{\verb{beta19}}
+\item{output.name = }{\verb{beta19 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta19 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta20'}{
+\describe{
+\item{hyperid = }{\verb{56570}}
+\item{name = }{\verb{beta20}}
+\item{short.name = }{\verb{beta20}}
+\item{output.name = }{\verb{beta20 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta20 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta21'}{
+\describe{
+\item{hyperid = }{\verb{56571}}
+\item{name = }{\verb{beta21}}
+\item{short.name = }{\verb{beta21}}
+\item{output.name = }{\verb{beta21 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta21 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta22'}{
+\describe{
+\item{hyperid = }{\verb{56572}}
+\item{name = }{\verb{beta22}}
+\item{short.name = }{\verb{beta22}}
+\item{output.name = }{\verb{beta22 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta22 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta23'}{
+\describe{
+\item{hyperid = }{\verb{56573}}
+\item{name = }{\verb{beta23}}
+\item{short.name = }{\verb{beta23}}
+\item{output.name = }{\verb{beta23 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta23 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta24'}{
+\describe{
+\item{hyperid = }{\verb{56574}}
+\item{name = }{\verb{beta24}}
+\item{short.name = }{\verb{beta24}}
+\item{output.name = }{\verb{beta24 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta24 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta25'}{
+\describe{
+\item{hyperid = }{\verb{56575}}
+\item{name = }{\verb{beta25}}
+\item{short.name = }{\verb{beta25}}
+\item{output.name = }{\verb{beta25 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta25 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta26'}{
+\describe{
+\item{hyperid = }{\verb{56576}}
+\item{name = }{\verb{beta26}}
+\item{short.name = }{\verb{beta26}}
+\item{output.name = }{\verb{beta26 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta26 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta27'}{
+\describe{
+\item{hyperid = }{\verb{56577}}
+\item{name = }{\verb{beta27}}
+\item{short.name = }{\verb{beta27}}
+\item{output.name = }{\verb{beta27 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta27 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta28'}{
+\describe{
+\item{hyperid = }{\verb{56578}}
+\item{name = }{\verb{beta28}}
+\item{short.name = }{\verb{beta28}}
+\item{output.name = }{\verb{beta28 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta28 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta29'}{
+\describe{
+\item{hyperid = }{\verb{56579}}
+\item{name = }{\verb{beta29}}
+\item{short.name = }{\verb{beta29}}
+\item{output.name = }{\verb{beta29 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta29 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta30'}{
+\describe{
+\item{hyperid = }{\verb{56580}}
+\item{name = }{\verb{beta30}}
+\item{short.name = }{\verb{beta30}}
+\item{output.name = }{\verb{beta30 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta30 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta31'}{
+\describe{
+\item{hyperid = }{\verb{56581}}
+\item{name = }{\verb{beta31}}
+\item{short.name = }{\verb{beta31}}
+\item{output.name = }{\verb{beta31 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta31 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta32'}{
+\describe{
+\item{hyperid = }{\verb{56582}}
+\item{name = }{\verb{beta32}}
+\item{short.name = }{\verb{beta32}}
+\item{output.name = }{\verb{beta32 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta32 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta33'}{
+\describe{
+\item{hyperid = }{\verb{56583}}
+\item{name = }{\verb{beta33}}
+\item{short.name = }{\verb{beta33}}
+\item{output.name = }{\verb{beta33 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta33 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta34'}{
+\describe{
+\item{hyperid = }{\verb{56584}}
+\item{name = }{\verb{beta34}}
+\item{short.name = }{\verb{beta34}}
+\item{output.name = }{\verb{beta34 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta34 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta35'}{
+\describe{
+\item{hyperid = }{\verb{56585}}
+\item{name = }{\verb{beta35}}
+\item{short.name = }{\verb{beta35}}
+\item{output.name = }{\verb{beta35 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta35 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta36'}{
+\describe{
+\item{hyperid = }{\verb{56586}}
+\item{name = }{\verb{beta36}}
+\item{short.name = }{\verb{beta36}}
+\item{output.name = }{\verb{beta36 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta36 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta37'}{
+\describe{
+\item{hyperid = }{\verb{56587}}
+\item{name = }{\verb{beta37}}
+\item{short.name = }{\verb{beta37}}
+\item{output.name = }{\verb{beta37 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta37 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta38'}{
+\describe{
+\item{hyperid = }{\verb{56588}}
+\item{name = }{\verb{beta38}}
+\item{short.name = }{\verb{beta38}}
+\item{output.name = }{\verb{beta38 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta38 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta39'}{
+\describe{
+\item{hyperid = }{\verb{56589}}
+\item{name = }{\verb{beta39}}
+\item{short.name = }{\verb{beta39}}
+\item{output.name = }{\verb{beta39 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta39 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta40'}{
+\describe{
+\item{hyperid = }{\verb{56590}}
+\item{name = }{\verb{beta40}}
+\item{short.name = }{\verb{beta40}}
+\item{output.name = }{\verb{beta40 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta40 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta41'}{
+\describe{
+\item{hyperid = }{\verb{56591}}
+\item{name = }{\verb{beta41}}
+\item{short.name = }{\verb{beta41}}
+\item{output.name = }{\verb{beta41 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta41 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta42'}{
+\describe{
+\item{hyperid = }{\verb{56592}}
+\item{name = }{\verb{beta42}}
+\item{short.name = }{\verb{beta42}}
+\item{output.name = }{\verb{beta42 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta42 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta43'}{
+\describe{
+\item{hyperid = }{\verb{56593}}
+\item{name = }{\verb{beta43}}
+\item{short.name = }{\verb{beta43}}
+\item{output.name = }{\verb{beta43 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta43 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta44'}{
+\describe{
+\item{hyperid = }{\verb{56594}}
+\item{name = }{\verb{beta44}}
+\item{short.name = }{\verb{beta44}}
+\item{output.name = }{\verb{beta44 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta44 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta45'}{
+\describe{
+\item{hyperid = }{\verb{56595}}
+\item{name = }{\verb{beta45}}
+\item{short.name = }{\verb{beta45}}
+\item{output.name = }{\verb{beta45 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta45 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta46'}{
+\describe{
+\item{hyperid = }{\verb{56596}}
+\item{name = }{\verb{beta46}}
+\item{short.name = }{\verb{beta46}}
+\item{output.name = }{\verb{beta46 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta46 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta47'}{
+\describe{
+\item{hyperid = }{\verb{56597}}
+\item{name = }{\verb{beta47}}
+\item{short.name = }{\verb{beta47}}
+\item{output.name = }{\verb{beta47 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta47 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta48'}{
+\describe{
+\item{hyperid = }{\verb{56598}}
+\item{name = }{\verb{beta48}}
+\item{short.name = }{\verb{beta48}}
+\item{output.name = }{\verb{beta48 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta48 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta49'}{
+\describe{
+\item{hyperid = }{\verb{56599}}
+\item{name = }{\verb{beta49}}
+\item{short.name = }{\verb{beta49}}
+\item{output.name = }{\verb{beta49 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta49 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta50'}{
+\describe{
+\item{hyperid = }{\verb{56600}}
+\item{name = }{\verb{beta50}}
+\item{short.name = }{\verb{beta50}}
+\item{output.name = }{\verb{beta50 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta50 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+\item{Hyperparameter 'theta51'}{
+\describe{
+\item{hyperid = }{\verb{56601}}
+\item{name = }{\verb{beta51}}
+\item{short.name = }{\verb{beta51}}
+\item{output.name = }{\verb{beta51 for binomialmix observations}}
+\item{output.name.intern = }{\verb{beta51 for binomialmix observations}}
+\item{initial = }{\verb{0}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 100}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
 }
 }
 \item{Model 'binomial'.}{
@@ -12399,8 +13029,8 @@ Number of hyperparmeters is 0.
 \item{doc = }{\verb{Occupancy likelihood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
-\item{link = }{\verb{default logit}}
-\item{link.simple = }{\verb{default logit}}
+\item{link = }{\verb{default logit cloglog}}
+\item{link.simple = }{\verb{default logit cloglog}}
 \item{pdf = }{\verb{occupancy}}
 }
 }

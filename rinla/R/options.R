@@ -321,6 +321,12 @@ NULL
             }
         }
     }
+    
+    arg <- inla.getOption("working.directory")
+    if (!is.null(arg) && inla.anyMultibyteUTF8Characters(arg)) {
+        warning(paste0("*** working.directory=[", arg,
+                       "] contains multibyte characters. Normally, this will fail.\n"))
+    }
 
     return(invisible())
 }

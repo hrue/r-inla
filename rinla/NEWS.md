@@ -1,3 +1,8 @@
+# INLA 24.11.17
+* Revised family=binomialmix
+* Added cloglog link in family=occupancy
+* Code cleanup and improvement
+
 # INLA 24.11.07
 * Dependency of 'sp' is removed
 * Default malloc.lib is now 'mi'

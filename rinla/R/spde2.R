@@ -768,25 +768,9 @@ inla.spde2.matern <- function(mesh,
     n.spde <- inla.ifelse(d == 2, mesh$n, mesh$m)
     n.theta <- ncol(B.kappa) - 1L
 
-    if (fmesher_deprecate_allow(2L)) {
-        fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
-        if ((d == 1) && (mesh$degree == 2)) {
-            fem$c0 <- fem$c1 ## Use higher order matrix.
-        }
-    } else {
-        if (d == 2) {
-            fem <-
-                inla.fmesher.smorg(mesh$loc,
-                    mesh$graph$tv,
-                    fem = 2,
-                    output = list("c0", "c1", "g1", "g2")
-                )
-        } else {
-            fem <- inla.mesh.1d.fem(mesh)
-            if (mesh$degree == 2) {
-                fem$c0 <- fem$c1 ## Use higher order matrix.
-            }
-        }
+    fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
+    if ((d == 1) && (mesh$degree == 2)) {
+        fem$c0 <- fem$c1 ## Use higher order matrix.
     }
 
     if (alpha == 2) {
@@ -1315,11 +1299,11 @@ inla.spde2.iheat <- function(mesh.space,
     ## gamma.E and alpha.E known
 
     inla.require.inherits(
-        mesh.space, c("inla.mesh", "inla.mesh.1d"),
+        mesh.space, c("fm_mesh_2d", "fm_mesh_1d"),
         "'mesh.space'"
     )
     inla.require.inherits(
-        mesh.time, c("inla.mesh.1d"),
+        mesh.time, c("fm_mesh_1d"),
         "'mesh.time'"
     )
 
@@ -1332,22 +1316,22 @@ inla.spde2.iheat <- function(mesh.space,
         ##                theta.prior.prec)
     }
 
-    d.space <- inla.ifelse(inherits(mesh.space, "inla.mesh.1d"), 1, 2)
-    d.time <- 1
-    n.space <- inla.ifelse(d.space == 2, mesh.space$n, mesh.space$m)
-    n.time <- mesh.time$m
+    d.space <- fmesher::fm_manifold_dim(mesh.space)
+    d.time <- fmesher::fm_manifold_dim(mesh.time)
+    n.space <- fmesher::fm_dof(mesh.space)
+    n.time <- fmesher::fm_dof(mesh.time)
     n.spde <- n.space * n.time
     n.theta <- 2L ## gamma.s, gamma.t
 
     if (d.space == 2) {
-        fem.space <- inla.mesh.fem(mesh.space$loc, 2)
+        fem.space <- fmesher::fm_fem(mesh.space, order = 2)
     } else {
-        fem.space <- inla.mesh.1d.fem(mesh.space)
+        fem.space <- fmesher::fm_fem(mesh.space, order = 2)
         if (mesh.space$degree == 2) {
             fem.space$c0 <- fem.space$c1 ## Use higher order matrix.
         }
     }
-    fem.time <- inla.mesh.1d.fem(mesh.time)
+    fem.time <- fmesher::fm_fem(mesh.time, order = 2)
     if (mesh.time$degree == 2) {
         fem.time$c0 <- fem.time$c1 ## Use higher order matrix.
     }

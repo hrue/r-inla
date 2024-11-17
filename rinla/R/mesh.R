@@ -13,51 +13,29 @@
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
 #'
-#' @param loc Matrix of point locations, or `SpatialPoints`, or `sf`/`sfc` point
-#' object.
-#' @param idx Segment index sequence vector or index pair matrix.  The indices
-#' refer to the rows of `loc`.  If `loc==NULL`, the indices will be
-#' interpreted as indices into the point specification supplied to
-#' [inla.mesh.create()].  If `is.bnd==TRUE`, defaults to linking
-#' all the points in `loc`, as `c(1:nrow(loc),1L)`, otherwise
-#' `1:nrow(loc)`.
-#' @param grp Vector of group labels for each segment.  Set to `NULL` to
-#' let the labels be chosen automatically in a call to
-#' [inla.mesh.create()].
-#' @param is.bnd `TRUE` if the segments are boundary segments, otherwise
-#' `FALSE`.
-#' @param grp.default When joining segments, use this group label for segments
-#' that have `grp=NULL`.
-#' @param x,y,z,nlevels,levels Parameters specifying a set of surface contours,
-#' with syntax described in [contour()].
-#' @param groups Vector of group ID:s, one for each contour level.
-#' @param positive `TRUE` if the contours should encircle positive level
-#' excursions in a counter clockwise direction.
-#' @param eps Tolerance for [inla.simplify.curve()].
-#' @param crs An optional `CRS` or `inla.CRS` object
-#' @param ...  Additional parameters.  When joining segments, a list of
-#' `inla.mesh.segment` objects.
-#' @return An `inla.mesh.segment` object.
+#' @param ...  Parameters passed on to [fmesher::fm_segm()] and other
+#' replacement `fmesher` functions.
+#' @return An `fm_segm` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.create()], [inla.mesh.2d()]
 #' @examples
-#'
+#' require("fmesher")
 #' ## Create a square boundary and a diagonal interior segment
 #' loc.bnd <- matrix(c(0, 0, 1, 0, 1, 1, 0, 1), 4, 2, byrow = TRUE)
 #' loc.int <- matrix(c(0.9, 0.1, 0.1, 0.6), 2, 2, byrow = TRUE)
-#' segm.bnd <- inla.mesh.segment(loc.bnd)
-#' segm.int <- inla.mesh.segment(loc.int, is.bnd = FALSE)
+#' segm.bnd <- fm_segm(loc.bnd)
+#' segm.int <- fm_segm(loc.int, is.bnd = FALSE)
 #'
 #' ## Points to be meshed
 #' loc <- matrix(runif(10 * 2), 10, 2) * 0.9 + 0.05
-#' mesh <- inla.mesh.create(loc,
+#' mesh <- fm_rcdt_2d_inla(loc,
 #'   boundary = segm.bnd,
 #'   interior = segm.int,
 #'   refine = list()
 #' )
 #' plot(mesh)
 #'
-#' mesh <- inla.mesh.create(loc, interior = fm_segm_join(segm.bnd, segm.int))
+#' mesh <- fm_rcdt_2d_inla(loc, interior = fm_segm_join(segm.bnd, segm.int))
 #' plot(mesh)
 #'
 #' @export inla.mesh.segment
@@ -542,12 +520,6 @@ extract.groups <- function(segm, groups, groups.new = groups, ...) {
   return(fmesher::fm_segm(fmesher::fm_as_fm(segm), grp = groups))
 }
 
-
-
-
-
-
-
 # Mesh creation ----
 
 inla.mesh <- function(...) {
@@ -561,8 +533,6 @@ inla.mesh <- function(...) {
   stop("'inla.mesh(...)' is deprecated.  Use 'fmesher::fm_mesh_2d_inla(...)' instead.")
   return(inla.mesh.create(...))
 }
-
-
 
 
 #' @title Low level function for high-quality triangulations
@@ -696,8 +666,6 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
     crs = crs
   ))
 }
-
-
 
 #' @title Constraint segment extraction for inla.mesh
 #'
@@ -931,9 +899,6 @@ inla.delaunay <- function(loc, ...) {
 }
 
 
-
-
-
 # Queries ----
 
 
@@ -1108,8 +1073,6 @@ inla.mesh.query <- function(mesh, ...) {
   return(result)
 }
 
-
-
 #' Summarizing triangular mesh objects
 #'
 #' Construct and print `inla.mesh` object summaries
@@ -1258,7 +1221,6 @@ print.summary.inla.mesh <- function(x, ...) {
 }
 
 
-
 # Point/mesh connection methods ####
 
 #' @title Methods for projecting to/from an inla.mesh
@@ -1310,7 +1272,6 @@ inla.mesh.project <- function(...) {
   return(fmesher::fm_evaluate(...))
 }
 
-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
@@ -1322,8 +1283,6 @@ inla.mesh.projector <- function(...) {
   )
   return(fmesher::fm_evaluator(...))
 }
-
-
 
 
 # Misc ####
@@ -1406,7 +1365,6 @@ inla.mesh.basis <- function(mesh,
   )
 }
 
-
 inla.parse.queries <- function(...) {
   queries <- list(...)
   if (length(queries) == 0) {
@@ -1439,7 +1397,6 @@ inla.parse.queries <- function(...) {
 
   return(queries)
 }
-
 
 #' @title Compute various mesh related quantities.
 #'
@@ -1587,7 +1544,6 @@ inla.parse.queries <- function(...) {
   return(output)
 }
 
-
 # 1D mesh creation ----
 
 
@@ -1644,26 +1600,36 @@ inla.mesh.1d <- function(loc,
 #' Use [fmesher::fm_bary()] instead.
 inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
   fmesher_deprecate(
-    "soft",
+    "warn",
     2L,
     "23.08.18",
     "inla.mesh.1d.bary()",
     "fmesher::fm_bary()",
     details =
       c(
-        "An `index` field his being included for backwards compatibility.",
-        "The canconical element from `fm_bary()` is `t`."
+        "From fmesher 0.2.0.9001, fmesher::fm_bary() returns a special fm_bary object.",
+        "inla.mesh.1d.bary returns the old format."
       )
   )
+  mesh <- fmesher::fm_as_mesh_1d(mesh)
   result <- fmesher::fm_bary(
-    fmesher::fm_as_mesh_1d(mesh),
+    mesh,
     loc,
     method = method
   )
-  result$index <- result$t
+  if (package_version(utils::packageVersion("fmesher")) <= "0.2.0.9000") {
+    result$index <- result$t
+    return(result)
+  }
+  # Convert to old format
+  index <- fmesher::fm_bary_simplex(mesh, result)
+  result <- list(
+    index = index,
+    t = index,
+    bary = result$bary
+  )
   return(result)
 }
-
 
 
 #' @title Mapping matrix for 1D meshes
@@ -1691,19 +1657,28 @@ inla.mesh.1d.A <- function(mesh, loc,
                            derivatives = NULL,
                            method = NULL) {
   fmesher_deprecate(
-    "soft",
+    "warn",
     2L,
     "23.08.18",
     "inla.mesh.1d.A()",
     "fmesher::fm_basis()"
   )
-  return(fmesher::fm_basis(
-    fmesher::fm_as_mesh_1d(mesh),
-    loc,
-    weights = weights,
-    derivatives = derivatives,
-    method = method
-  ))
+  if (is.null(method)) {
+    return(fmesher::fm_basis(
+      fmesher::fm_as_mesh_1d(mesh),
+      loc,
+      weights = weights,
+      derivatives = derivatives
+    ))
+  } else {
+    return(fmesher::fm_basis(
+      fmesher::fm_as_mesh_1d(mesh),
+      loc,
+      weights = weights,
+      derivatives = derivatives,
+      method = method
+    ))
+  }
 }
 
 #' @param mesh An inla.mesh.1d object
@@ -1736,12 +1711,8 @@ inla.mesh.1d.fem <- function(mesh) {
 #' inla.diameter.inla.mesh.segment inla.diameter.inla.mesh.lattice
 #' inla.diameter.inla.mesh.1d
 #' @param x A point set as an \eqn{n\times d}{n x d} matrix, or an
-#' `inla.mesh` related object.
-#' @param manifold Character string specifying the manifold type. Default is to
-#' treat the point set with Euclidean \eqn{R^d} metrics. Use
-#' `manifold="S2"` for great circle distances on the unit sphere (this is
-#' set automatically for `inla.mesh` objects).
-#' @param \dots Additional parameters passed on to other methods.
+#' fmesher::fm_mesh_2d()] related object.
+#' @param \dots Additional parameters passed on to [fmesher::fm_diameter()].
 #' @return A scalar, upper bound for the diameter of the convex hull of the
 #' point set.
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
@@ -1868,15 +1839,7 @@ inla.simplify.curve <- function(loc, idx, eps) {
 #' @export
 #' @describeIn inla.mesh.segment `r lifecycle::badge("deprecated")` Use
 #'   [fmesher::fm_segm_contour_helper()] instead.
-inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
-                                 y = seq(0, 1, length.out = ncol(z)),
-                                 z,
-                                 nlevels = 10,
-                                 levels = pretty(range(z, na.rm = TRUE), nlevels),
-                                 groups = seq_len(length(levels)),
-                                 positive = TRUE,
-                                 eps = NULL,
-                                 crs = NULL) {
+inla.contour.segment <- function(...) {
   fmesher_deprecate(
     "soft",
     2L,
@@ -1885,15 +1848,7 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
     "fmesher::fm_segm_contour_helper()"
   )
   return(fmesher::fm_segm_contour_helper(
-    x = x,
-    y = y,
-    z = z,
-    nlevels = nlevels,
-    levels = levels,
-    groups = groups,
-    positive = positive,
-    eps = eps,
-    crs = crs
+    ...
   ))
 }
 

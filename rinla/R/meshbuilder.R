@@ -1727,7 +1727,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- fmesher::fm_evaluator(mesh(), clicks$meshplot.loc)$proj$A
+                A <- fmesher::fm_basis(mesh(), clicks$meshplot.loc)
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }
@@ -1747,7 +1747,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- fmesher::fm_evaluator(fine(), clicks$meshplot.loc)$proj$A
+                A <- fmesher::fm_basis(fine(), clicks$meshplot.loc)
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }

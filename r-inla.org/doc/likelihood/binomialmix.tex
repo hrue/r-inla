@@ -3,6 +3,7 @@
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{verbatim}
+\usepackage{block}
 
 \begin{document}
 \section*{Binomial-mixture likelihood}
@@ -18,22 +19,20 @@ simple predictors and one is general. The probability for success is
 \end{displaymath}
 where $w_1 + w_2 + w_3 = 1$ are the positive weights,
 \begin{displaymath}
-    \text{logit}(p_1) = \beta_{1} z_{1} + \beta_{2} z_{2} +
-    \beta_{3} z_{3} + \beta_4 z_4 + \beta_9 z_9,
+    \text{logit}(p_1) = \sum_{i=1}^{m}\beta_{i} z_{i} + \beta_{2m+1} z_{2m+1}
 \end{displaymath}
 \begin{displaymath}
-    \text{logit}(p_2) = \beta_{5} z_{5} +
-    \beta_{6} z_{6} + \beta_7 z_7 + \beta_8 z_8 + \beta_9 z_{10}
+    \text{logit}(p_2) = \sum_{i=m+1}^{2m}\beta_{i} z_{i} + \beta_{2m+1} z_{2m+2}
 \end{displaymath}
 and
 \begin{displaymath}
-    \text{logit}(p_3) = \eta + \beta_9 z_{11}
+    \text{logit}(p_3) = \eta + \beta_{2m+1} z_{2m+3}
 \end{displaymath}
-for fixed covariates $z_{i}$.
+for fixed covariates $\{z_{i}\}$.
 The linear predictor $\eta$ is defined in the formula.
 
-\textbf{Note:} $\beta_9$ is the \emph{same} variable in the three
-expressions.
+\textbf{Note:} $\beta_{2m+1}$ is the \emph{same} variable in the three
+expressions. The allowed range for $m$ is $0\le m \le 25$.
 
 \subsection*{Link-function}
 
@@ -41,7 +40,7 @@ The link-function is given as usual, and they are all equal.
 
 \subsection*{Hyperparameters}
 
-The nine regression coefficients $\beta_{i}$ are treated as
+The $2m+1$ regression coefficients $\{\beta_{i}\}$ are treated as
 hyperparameters. 
 
 \subsection*{Specification}
@@ -49,8 +48,8 @@ hyperparameters.
 \begin{itemize}
 \item \texttt{family="binomialmix"}
 \item Required arguments: A $n\times 2$ matrix $Y$ with the
-observations and the number of trials $s$,  $Y=(y, s)$,
-    a $n\times 11$ matrix $Z$ with the covariates $Z=c(z_1, \ldots, z_{11})$,
+    observations and the number of trials $s$,  $Y=(y, s)$,
+    a $n\times (2m+3)$ matrix $Z$ with the covariates $Z=c(z_1, \ldots, z_{2m+3})$,
     and a $n\times 2$ matrix $W$ with weights $W=(w_1, w_2)$. The
     \texttt{inla.mdata} is used as
 \begin{verbatim}

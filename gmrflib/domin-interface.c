@@ -118,8 +118,8 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.ai_store = ai_store;
 	G.d_idx = d_idx;
 
-	B.f_best_latent = Calloc(1+G.graph->n, double);
-	B.f_best_x = Calloc(1+G.nhyper, double);
+	B.f_best_latent = Calloc(1 + G.graph->n, double);
+	B.f_best_x = Calloc(1 + G.nhyper, double);
 
 	return GMRFLib_SUCCESS;
 
@@ -153,11 +153,10 @@ int GMRFLib_opt_setget_latent(double *latent, int setget)
 {
 	// setget >= 0 : set
 	// setget < 0 : get
-	
-	if (!latent || !B.f_best_latent)  {
+
+	if (!latent || !B.f_best_latent) {
 		return GMRFLib_SUCCESS;
 	}
-	
 #pragma omp critical (Name_4149e7648e6459ac6ca0a7925146ec4c473ad0ca)
 	{
 		if (setget >= 0) {
@@ -184,11 +183,10 @@ int GMRFLib_opt_setget_hyper(double *x, int setget)
 {
 	// setget >= 0 : set
 	// setget < 0 : get
-	
+
 	if (!x || !B.f_best_x) {
 		return GMRFLib_SUCCESS;
 	}
-
 #pragma omp critical (Name_d3cc86b5243044ce1bb31daf3268917d0599d98e)
 	{
 		if (setget >= 0) {
@@ -211,7 +209,7 @@ int GMRFLib_opt_exit(void)
 	opt_setup = 0;
 	Memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
 	Memset(&B, 0, sizeof(Best_tp));
-	
+
 	// we want to keep the directions. if the dimension changes then we reset... see below
 	if (0) {
 		Memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
@@ -736,7 +734,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	double *early_local_latent = Calloc(G.graph->n, double);
 	double *early_local_hyper = Calloc(n, double);
 	double early_local_value = NAN;
-	
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < 2 * n + 1; ii++) {
 		int i = order[ii], j;
@@ -806,8 +804,9 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	if (early_stop) {
 		if (G.ai_par->fp_log)
-			fprintf(G.ai_par->fp_log, "\nEarly stop. Mode not found sufficiently accurate f0=[%.6f] f_best=[%.6f] local.value=[%.6f]\n\n",
-				f0, B.f_best, early_local_value);
+			fprintf(G.ai_par->fp_log,
+				"\nEarly stop. Mode not found sufficiently accurate f0=[%.6f] f_best=[%.6f] local.value=[%.6f]\n\n", f0, B.f_best,
+				early_local_value);
 
 		if (G.ai_par->mode_restart) {
 			if (early_local_value != B.f_best) {

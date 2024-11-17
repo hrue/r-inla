@@ -649,24 +649,37 @@
         }
 
     } else if (inla.one.of(family, c("binomialmix"))) {
+        ncy <- ncol(y.orig)
+        m <- ncy - 7L
+        stopifnot(m >= 0 && m %% 2L ==  0L)
+        m <- m %/% 2L
+        stopifnot(2*m+1 <= length(inla.models()$likelihood$binomialmix$hyper))
+        idx.YY <- 1:2
+        idx.WW <- (ncy-1):ncy
 
-        response <- cbind(ind, y.orig)
-        na.dat <- is.na(response[, 2L])
-        response <- response[!na.dat,, drop = FALSE]
-        Z <- response[, 4:14, drop = FALSE]
-        Z[is.na(Z)] <- 0
-        cov.names <- paste0("Z", 1:11)
-        colnames(Z) <- cov.names
+        YY <- y.orig[, idx.YY]
+        WW <- y.orig[, idx.WW]
+        ZZ <- y.orig[, -c(idx.YY, idx.WW)]
+        
+        YY <- cbind(ind, YY)
+        na.dat <- is.na(YY[, 2L])
+        YY <- YY[!na.dat,, drop = FALSE]
+        WW <- WW[!na.dat,, drop = FALSE]
+        ZZ <- ZZ[!na.dat,, drop = FALSE]
+        ZZ[is.na(ZZ)] <- 0
 
-        W <- response[, 15:16, drop = FALSE]
-        stopifnot(all(W >= 0))
-        stopifnot(all(rowSums(W) <= 1))
-        w.names <- paste0("W", 1:2)
-        colnames(W) <- w.names
+        YY.names <- c("IDX", "Y", "Ntrials")
+        ZZ.names <- paste0("Z", 1:ncol(ZZ))
+        WW.names <- paste0("W", 1:ncol(WW))
+        
+        colnames(YY) <- YY.names
+        colnames(ZZ) <- ZZ.names
+        colnames(WW) <- WW.names
 
-        colnames(response) <- c("IDX", "Y", "Ntrials", cov.names, w.names)
-        response <- cbind(IDX = response$IDX, Z, W, Ntrials = response$Ntrials, Y = response$Y)
+        stopifnot(all(WW >= 0))
+        stopifnot(all(rowSums(WW) <= 1))
 
+        response <- cbind(YY[, 1, drop = FALSE], ZZ, WW, YY[, 3, drop = FALSE], YY[, 2, drop = FALSE])
     } else if (inla.one.of(family, c("occupancy"))) {
 
         stopifnot(y.attr[1] == 2)

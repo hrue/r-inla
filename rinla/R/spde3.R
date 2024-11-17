@@ -453,17 +453,9 @@ inla.spde3.matern =
     n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
     n.theta = ncol(B.kappa)-1L
 
-    if (d==2) {
-        fem =
-            inla.fmesher.smorg(mesh$loc,
-                               mesh$graph$tv,
-                               fem=2,
-                               output=list("c0", "c1", "g1", "g2"))
-    } else {
-        fem = inla.mesh.1d.fem(mesh)
-        if (mesh$degree==2) {
-            fem$c0 = fem$c1 ## Use higher order matrix.
-        }
+    fem = fmesher::fm_fem(mesh, order = 2)
+    if ((d==1) && (mesh$degree==2)) {
+        fem$c0 = fem$c1 ## Use higher order matrix.
     }
 
     if (alpha==2) {
@@ -605,22 +597,18 @@ inla.spde3.iheat =
         ##                theta.prior.prec)
     }
 
-    d.space = inla.ifelse(inherits(mesh.space, "inla.mesh.1d"), 1, 2)
+    d.space = fmesher::fm_manifold_dim(mesh.space)
     d.time = 1
-    n.space = inla.ifelse(d.space==2, mesh.space$n, mesh.space$m)
-    n.time = mesh.time$m
+    n.space = fmesher::fm_dof(mesh.space)
+    n.time = fmesher::fm_dof(mesh.time)
     n.spde = n.space*n.time
     n.theta = 2L ## gamma.s, gamma.t
 
-    if (d.space==2) {
-        fem.space = inla.mesh.fem(mesh.space$loc, 2)
-    } else {
-        fem.space = inla.mesh.1d.fem(mesh.space)
-        if (mesh.space$degree==2) {
-            fem.space$c0 = fem.space$c1 ## Use higher order matrix.
-        }
+    fem.space = fmesher::fm_fem(mesh.space, order = 2)
+    if ((d.space==1) && (mesh.space$degree==2)) {
+        fem.space$c0 = fem.space$c1 ## Use higher order matrix.
     }
-    fem.time = inla.mesh.1d.fem(mesh.time)
+    fem.time = fmesher::fm_fem(mesh.time, order = 2)
     if (mesh.time$degree==2) {
         fem.time$c0 = fem.time$c1 ## Use higher order matrix.
     }

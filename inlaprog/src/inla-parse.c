@@ -4883,7 +4883,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_BINOMIALMIX:
 	{
-		const int nbeta = BINOMIALMIX_NBETA;
+		int nbeta = BINOMIALMIX_NBETA;
 		for (i = 0; i < nbeta; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
@@ -4905,6 +4905,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		int m = ds->data_observations.binmix_m;
+		nbeta = 2 * m + 1;
+		if (mb->verbose) {
+			printf("\t\tm = %d\n", m);
+			printf("\t\tnbeta = %d\n", nbeta);
 		}
 
 		ds->data_nfixed = Calloc(nbeta, int);

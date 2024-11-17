@@ -879,18 +879,12 @@ inla.spde.make.A <-
         } else if (inherits(mesh, "inla.spde")) {
             spde <- mesh
             mesh <- spde$mesh
-            inla.require.inherits(spde$mesh, c("inla.mesh", "inla.mesh.1d"), "'spde$mesh'")
             n.spde <- spde$n.spde
         } else {
-            inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
-            if (inherits(mesh, "inla.mesh.1d")) {
-                n.spde <- mesh$m
-            } else {
-                n.spde <- mesh$n
-            }
+            n.spde <- fmesher::fm_dof(mesh)
         }
         if (!is.null(group.mesh)) {
-            inla.require.inherits(group.mesh, "inla.mesh.1d", "'mesh'")
+            inla.require.inherits(group.mesh, "fm_mesh_1d", "'mesh'")
         }
 
         n.group <-
@@ -936,7 +930,7 @@ inla.spde.make.A <-
                   stop("'loc' specified but 'mesh' is NULL.")
               }
 
-            A.loc <- fmesher::fm_evaluator(mesh, loc = loc)$proj$A
+            A.loc <- fmesher::fm_basis(mesh, loc = loc)
         }
         if (is.null(index)) {
             index <- seq_len(nrow(A.loc))
@@ -975,7 +969,7 @@ inla.spde.make.A <-
         }
 
         if (!is.null(group.mesh) && is.null(A.group)) {
-            A.group <- inla.mesh.1d.A(group.mesh, loc = group)
+            A.group <- fmesher::fm_basis(group.mesh, loc = group)
         }
         ## Now 'group.index' points into the rows of 'A.group' or 'group'
 

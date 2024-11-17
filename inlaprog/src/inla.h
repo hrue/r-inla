@@ -844,7 +844,8 @@ typedef struct {
 	void *sem_cache;
 
 	// binomial mix
-	double **binmix_dat;				       // z1..z6, w1, w2, ntrial
+	int binmix_m;
+	double **binmix_dat;				       // z1..z_{2m+3}, w1, w2, ntrial
 	double ***binmix_beta;
 
 	double **egp_intern_tail;			       /* xi */

@@ -7,56 +7,14 @@
 \usage{
 inla.mesh.segment(...)
 
-inla.contour.segment(
-  x = seq(0, 1, length.out = nrow(z)),
-  y = seq(0, 1, length.out = ncol(z)),
-  z,
-  nlevels = 10,
-  levels = pretty(range(z, na.rm = TRUE), nlevels),
-  groups = seq_len(length(levels)),
-  positive = TRUE,
-  eps = NULL,
-  crs = NULL
-)
+inla.contour.segment(...)
 }
 \arguments{
-\item{...}{Additional parameters.  When joining segments, a list of
-\code{inla.mesh.segment} objects.}
-
-\item{x, y, z, nlevels, levels}{Parameters specifying a set of surface contours,
-with syntax described in \code{\link[=contour]{contour()}}.}
-
-\item{groups}{Vector of group ID:s, one for each contour level.}
-
-\item{positive}{\code{TRUE} if the contours should encircle positive level
-excursions in a counter clockwise direction.}
-
-\item{eps}{Tolerance for \code{\link[=inla.simplify.curve]{inla.simplify.curve()}}.}
-
-\item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
-
-\item{loc}{Matrix of point locations, or \code{SpatialPoints}, or \code{sf}/\code{sfc} point
-object.}
-
-\item{idx}{Segment index sequence vector or index pair matrix.  The indices
-refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices will be
-interpreted as indices into the point specification supplied to
-\code{\link[=inla.mesh.create]{inla.mesh.create()}}.  If \code{is.bnd==TRUE}, defaults to linking
-all the points in \code{loc}, as \code{c(1:nrow(loc),1L)}, otherwise
-\code{1:nrow(loc)}.}
-
-\item{grp}{Vector of group labels for each segment.  Set to \code{NULL} to
-let the labels be chosen automatically in a call to
-\code{\link[=inla.mesh.create]{inla.mesh.create()}}.}
-
-\item{is.bnd}{\code{TRUE} if the segments are boundary segments, otherwise
-\code{FALSE}.}
-
-\item{grp.default}{When joining segments, use this group label for segments
-that have \code{grp=NULL}.}
+\item{...}{Parameters passed on to \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} and other
+replacement \code{fmesher} functions.}
 }
 \value{
-An \code{inla.mesh.segment} object.
+An \code{fm_segm} object.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
@@ -71,23 +29,23 @@ boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.
 
 }}
 \examples{
-
+require("fmesher")
 ## Create a square boundary and a diagonal interior segment
 loc.bnd <- matrix(c(0, 0, 1, 0, 1, 1, 0, 1), 4, 2, byrow = TRUE)
 loc.int <- matrix(c(0.9, 0.1, 0.1, 0.6), 2, 2, byrow = TRUE)
-segm.bnd <- inla.mesh.segment(loc.bnd)
-segm.int <- inla.mesh.segment(loc.int, is.bnd = FALSE)
+segm.bnd <- fm_segm(loc.bnd)
+segm.int <- fm_segm(loc.int, is.bnd = FALSE)
 
 ## Points to be meshed
 loc <- matrix(runif(10 * 2), 10, 2) * 0.9 + 0.05
-mesh <- inla.mesh.create(loc,
+mesh <- fm_rcdt_2d_inla(loc,
   boundary = segm.bnd,
   interior = segm.int,
   refine = list()
 )
 plot(mesh)
 
-mesh <- inla.mesh.create(loc, interior = fm_segm_join(segm.bnd, segm.int))
+mesh <- fm_rcdt_2d_inla(loc, interior = fm_segm_join(segm.bnd, segm.int))
 plot(mesh)
 
 }

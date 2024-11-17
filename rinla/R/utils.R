@@ -1118,7 +1118,7 @@
     matrix(x[(((col(A) - row(A)) + n) %% n) + 1L], n, n)
 }
 
-inla.anyMultibyteUTF8Characters <- function(string)
+`inla.anyMultibyteUTF8Characters` <- function(string)
 {
     ## this function is copied from package 'tikzDevice'
     mb <- FALSE
@@ -1131,4 +1131,32 @@ inla.anyMultibyteUTF8Characters <- function(string)
         }
     }
     return(mb)
+}
+
+`inla.sparse.write.mtx` <- function(Q, filename = "sparse.matrix.mtx")
+{
+    ## assume Q is symmetric
+    Q <- as(Q, "TsparseMatrix")
+    n <- nrow(Q)
+
+    idx.eq <- which(Q@i == Q@j)
+    idx.lower <- which(Q@i > Q@j)
+    if (length(idx.lower) == 0) {
+        Q <- t(Q)
+        idx.lower <- which(Q@i > Q@j)
+    }
+    off <- if (min(c(Q@i, Q@j)) == 0 || max(c(Q@i, Q@j)) == n-1) 1L else 0L
+    c1 <- c(n, Q@i[idx.eq] + off, Q@i[idx.lower] + off)
+    c2 <- c(n, Q@j[idx.eq] + off, Q@j[idx.lower] + off)
+    c3 <- c(length(c2) - 1L, Q@x[idx.eq], Q@x[idx.lower])
+    
+    V <- cbind(c1, c2, c3)
+    opt <- options()
+    options(digits = 16)
+    cat("%%MatrixMarket matrix coordinate real symmetric\n",
+        file = filename, append = FALSE)
+    cat(t(V), file = filename, sep = c(rep.int(" ", 2L), "\n"), 
+        append = TRUE)
+    options(opt)
+    return (invisible(filename))
 }

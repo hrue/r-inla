@@ -13,14 +13,9 @@ inla.diameter(x, ...)
 }
 \arguments{
 \item{x}{A point set as an \eqn{n\times d}{n x d} matrix, or an
-\code{inla.mesh} related object.}
+fmesher::fm_mesh_2d()] related object.}
 
-\item{\dots}{Additional parameters passed on to other methods.}
-
-\item{manifold}{Character string specifying the manifold type. Default is to
-treat the point set with Euclidean \eqn{R^d} metrics. Use
-\code{manifold="S2"} for great circle distances on the unit sphere (this is
-set automatically for \code{inla.mesh} objects).}
+\item{\dots}{Additional parameters passed on to \code{\link[fmesher:fm_diameter]{fmesher::fm_diameter()}}.}
 }
 \value{
 A scalar, upper bound for the diameter of the convex hull of the

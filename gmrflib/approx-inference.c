@@ -815,8 +815,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
-			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
-			omp_set_num_threads(nt);
+			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS_LIKE();
 			if (GMRFLib_gaussian_data) {
 				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
 			} else {
@@ -824,10 +823,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 			omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 		} else {
+			int nt = GMRFLib_NUM_THREADS_LIKE();
 			if (GMRFLib_gaussian_data) {
-				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 0, 0);
+				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
 			} else {
-				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+				RUN_CODE_BLOCK(nt, 0, 0);
 			}
 		}
 #undef CODE_BLOCK
@@ -1487,7 +1487,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							fprintf(stderr, "\n\n*** Hessian failed but no better mode found\n");
 						}
 					}
-
 					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 					log_dens_mode_save = log_dens_mode;
 

@@ -110,6 +110,8 @@ typedef struct {
 	int max_threads_inner;
 	// when this is TRUE, then do PARDISO is parallel if the function call is serial
 	int adaptive;
+	// optimal number of threads for likelihood computations
+	int likelihood_nt;
 } GMRFLib_openmp_tp;
 
 #define GMRFLib_MAX_THREADS() (GMRFLib_openmp->max_threads)
@@ -118,6 +120,13 @@ typedef struct {
 #define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
 					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2) : \
 					   GMRFLib_openmp->max_threads_nested[1])
+
+#define GMRFLib_PARDISO_MAX_NUM_THREADS_LIKE() (GMRFLib_openmp->likelihood_nt > 0 ? \
+						IMIN(GMRFLib_openmp->likelihood_nt, GMRFLib_PARDISO_MAX_NUM_THREADS()) : \
+						GMRFLib_PARDISO_MAX_NUM_THREADS())
+
+#define GMRFLib_NUM_THREADS_LIKE() IMAX(1, (GMRFLib_openmp->likelihood_nt > 0 ? IMIN(GMRFLib_openmp->likelihood_nt, GMRFLib_openmp->max_threads_inner) : \
+					    GMRFLib_openmp->max_threads_inner))
 
 #define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
 #define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())
