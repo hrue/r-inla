@@ -275,7 +275,7 @@ NULL
 #' @rdname link-functions
 #' @export
 `inla.link.gev` = function(x, tail = 0.1, inverse = FALSE) {
-    stopifnot(all(0 < tail & tail <= 0.5))
+    stopifnot(abs(tail) <= 0.5)
     if (!inverse) {
         Finv <- function(p) {
             qalpha <- 0
@@ -302,7 +302,7 @@ NULL
             l3.tail <- (-log(beta/2))^(-tail)
             pfrechet = function(y) {
                 aux1 <- (y - qalpha) / (sbeta * (l2.tail - l3.tail)^(-1)) + l1.tail
-                return (exp(-pmax(0, aux1^(-1/tail))))
+                return (exp(-pmax(0, aux1)^(-1/tail)))
             }
             return (pfrechet(x))
         }

@@ -1996,7 +1996,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_BINOMIALMIX:
 			{
 				int m = ds->data_observations.binmix_m;
-				for (int k = 0; k < 2*m+1; k++) {
+				for (int k = 0; k < 2 * m + 1; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &b);
@@ -5948,30 +5948,30 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_openmp->likelihood_nt = 0;
 		int nt_upper = IMAX(1, IMIN(512, GMRFLib_MAX_THREADS()));
 		double tused[nt_upper + 1];
-		for(int nt = 1; nt <= nt_upper; nt++) {
+		for (int nt = 1; nt <= nt_upper; nt++) {
 			double sum = 0.0, xx = 0.0;
 			tused[nt] = -GMRFLib_timer();
-			for(int kk = 0; kk < 2; kk++) {
+			for (int kk = 0; kk < 2; kk++) {
 #pragma omp parallel for num_threads(nt) reduction(+: sum)
-				for (int ii = 0; ii < d_idx->n; ii++) {			
+				for (int ii = 0; ii < d_idx->n; ii++) {
 					int idx = d_idx->idx[ii];
-					double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;	
-					GMRFLib_2order_approx(0, &acoof, &bcoof, &ccoof, NULL, mb->d[idx], 
-							      xx, idx, NULL, loglikelihood_inla, (void *) mb, 
-							      &(mb->ai_par->step_len), &(mb->ai_par->stencil), NULL); 
+					double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;
+					GMRFLib_2order_approx(0, &acoof, &bcoof, &ccoof, NULL, mb->d[idx],
+							      xx, idx, NULL, loglikelihood_inla, (void *) mb,
+							      &(mb->ai_par->step_len), &(mb->ai_par->stencil), NULL);
 					sum += acoof + bcoof + ccoof;
 				}
 			}
 			assert(sum != 0.0);
 			tused[nt] += GMRFLib_timer();
 			if (mb->verbose) {
-				printf("\tnum.threads = %1d  time = %.4fms\n", nt, tused[nt]*1.0E3);
+				printf("\tnum.threads = %1d  time = %.4fms\n", nt, tused[nt] * 1.0E3);
 			}
-			if (nt > 1 && tused[nt] >= tused[nt-1]) {
+			if (nt > 1 && tused[nt] >= tused[nt - 1]) {
 				if (mb->verbose) {
-					printf("\t\tFound optimal num.threads = %1d\n\n", nt-1);
+					printf("\t\tFound optimal num.threads = %1d\n\n", nt - 1);
 				}
-				GMRFLib_openmp->likelihood_nt = nt-1;
+				GMRFLib_openmp->likelihood_nt = nt - 1;
 				break;
 			} else if (nt == nt_upper) {
 				GMRFLib_openmp->likelihood_nt = nt;
@@ -5980,7 +5980,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_idx_free(d_idx);
 	}
 #endif
-	
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -6670,7 +6670,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->likelihood_nt = 0;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-	
+
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;

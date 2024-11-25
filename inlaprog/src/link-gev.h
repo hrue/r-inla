@@ -54,6 +54,9 @@ double inla_inv_pcgev(double p, double xi, double *l_xi);
 double link_gev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
 double link_cgev(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
 double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int type);
+double link_gev_bound(double xi, double *l_xi);
+void link_gev_test(double xi, double intercept);
+
 
 __END_DECLS
 #endif

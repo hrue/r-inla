@@ -10911,10 +10911,10 @@
 #'             \item{hyperid = }{\verb{49033}}
 #'             \item{name = }{\verb{tail}}
 #'             \item{short.name = }{\verb{xi}}
-#'             \item{initial = }{\verb{-3}}
+#'             \item{initial = }{\verb{0.1}}
 #'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{pc.gevtail}}
-#'             \item{param = }{\verb{7 0 0.5}}
+#'             \item{prior = }{\verb{pc.egptail}}
+#'             \item{param = }{\verb{5 -0.5 0.5}}
 #'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
 #'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
 #'             }

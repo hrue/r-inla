@@ -2981,13 +2981,12 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
 	}
-
 #if 0
 	// debug-code to check the likelihood
 	if (m != 99) {
 		double xx[99];
-		for(int i = 0; i < 99; i++) {
-			xx[i] = -4.0 + 8.0 * i/99.0;
+		for (int i = 0; i < 99; i++) {
+			xx[i] = -4.0 + 8.0 * i / 99.0;
 		}
 		double llxx[99];
 		loglikelihood_occupancy(thread_id, llxx, xx, 99, idx, NULL, NULL, arg, NULL);
@@ -2995,13 +2994,13 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 		char *fnm;
 		GMRFLib_sprintf(&fnm, "FILE%1d.txt", idx);
 		FILE *fp = fopen(fnm, "w");
-		for(int i = 0; i < 99; i++) {
-			fprintf(fp,  "%f %f\n", xx[i], llxx[i]);
+		for (int i = 0; i < 99; i++) {
+			fprintf(fp, "%f %f\n", xx[i], llxx[i]);
 		}
 		fclose(fp);
 	}
 #endif
-	
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int ny = ds->data_observations.occ_ny[idx];
 
@@ -3202,7 +3201,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 							double t19 = exp(-t2);
 							double t22 = SQR(-cg + cg * t19 - t19);
 							double c2 =
-								-(-t1 * t4 + t1 * t8 - 2.0 * cg * t8 + t1 * t14 + cg * t4 + t8 - cg * t14) / t22;
+							    -(-t1 * t4 + t1 * t8 - 2.0 * cg * t8 + t1 * t14 + cg * t4 + t8 - cg * t14) / t22;
 							logll[i] = c0 + dx * (c1 + 0.5 * c2 * dx);
 						}
 					}
@@ -3393,7 +3392,7 @@ int loglikelihood_binomialmix(int thread_id, double *__restrict logll, double *_
 	int nbeta = 2 * mm + 1;
 	double y = ds->data_observations.y[idx];
 	double *dat = ds->data_observations.binmix_dat[idx];
-	double n = dat[nbeta + 4];		      
+	double n = dat[nbeta + 4];
 	double ny = n - y;
 
 	if (ISZERO(y) && ISZERO(n)) {
@@ -7290,6 +7289,7 @@ int loglikelihood_expsurv(int thread_id, double *__restrict logll, double *__res
 int loglikelihood_generic_surv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
 			       void *arg, GMRFLib_logl_tp *loglfun, char **arg_str)
 {
+#define FDIFF(Fdiff_) TRUNCATE(Fdiff_, eps, 1.0)
 #define SAFEGUARD1(value_) value_ = TRUNCATE(value_, eps, 1.0 - eps)
 #define SAFEGUARD(value_)						\
 	for(int i_ = 0; i_ < (m); i_++) {				\
@@ -7469,12 +7469,14 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = LOG_p((1.0 - pcure) * (F_upper[i] - F_lower[i]));
+					double Fdiff = FDIFF(F_upper[i] - F_lower[i]);
+					logll[i] = LOG_p((1.0 - pcure) * Fdiff);
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = LOG_p(F_upper[i] - F_lower[i]);
+					double Fdiff = FDIFF(F_upper[i] - F_lower[i]);
+					logll[i] = LOG_p(Fdiff);
 				}
 			}
 		}
@@ -7510,12 +7512,14 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 			if (pcure) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = l_1mpcure + lf[i] - LOG_p((F_upper[i] - F_lower[i]));
+					double Fdiff = FDIFF(F_upper[i] - F_lower[i]);
+					logll[i] = l_1mpcure + lf[i] - LOG_p(Fdiff);
 				}
 			} else {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
-					logll[i] = lf[i] - LOG_p((F_upper[i] - F_lower[i]));
+					double Fdiff = FDIFF(F_upper[i] - F_lower[i]);
+					logll[i] = lf[i] - LOG_p(Fdiff);
 				}
 			}
 		}
@@ -7526,11 +7530,11 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 		}
 
 		Calloc_free();
-		return GMRFLib_SUCCESS;
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
+#undef FDIFF
 #undef SAFEGUARD
 #undef SAFEGUARD1
 	return GMRFLib_SUCCESS;
@@ -7669,7 +7673,7 @@ int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *_
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int i;
+	int debug = 0;
 	double y, ly = 0, lambda, alpha, lalpha = 0;
 
 	y = ds->data_observations.y[idx];
@@ -7685,13 +7689,13 @@ int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *_
 	case 0:
 	{
 		if (m > 0) {
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha - 2.0 * log1p(lambda * pow(y, -alpha));
 			}
 		} else {
 			double yy = (y_cdf ? *y_cdf : y);
-			for (i = 0; i < -m; i++) {
+			for (int i = 0; i < -m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				logll[i] = 1.0 / (1.0 + lambda * pow(yy, -alpha));
 			}
@@ -7703,23 +7707,30 @@ int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *_
 	{
 		if (m > 0) {
 			double lam_y;
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				lam_y = lambda * y;
 				logll[i] = -alpha * log(lam_y) + lalpha - ly - 2.0 * log1p(pow(lam_y, -alpha));
 			}
 		} else {
 			double yy = (y_cdf ? *y_cdf : y);
-			for (i = 0; i < -m; i++) {
+			for (int i = 0; i < -m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				logll[i] = 1.0 / (1.0 + pow(lambda * yy, -alpha));
 			}
 		}
+
 	}
 		break;
 
 	default:
 		assert(0 == 1);
+	}
+
+	if (debug) {
+		for (int i = 0; i < IABS(m); i++) {
+			printf("m %d idx %d y %g i %d x %g logll %g\n", m, idx, y, i, x[i], logll[i]);
+		}
 	}
 
 	LINK_END;

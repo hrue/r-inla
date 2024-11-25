@@ -59,7 +59,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate
 }
 
 
-int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
+int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
@@ -73,7 +73,7 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 	if (ISZERO(d)) {
 		f0 = df = ddf = 0.0;
 	} else {
-		GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg, step_len,
+		GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg, step_len,
 					   stencil);
 	}
 
@@ -95,7 +95,7 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
+int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin)
 {
 	/*
@@ -134,11 +134,30 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 
 	double f0 = 0.0, df = 0.0, ddf = 0.0, dddf = 0.0;
 	int rescue = 0;
+	static int give_warning_c = 0;
+	static int give_warning_idx = -1;		       /* this is set at first call */
 
-	GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
+	if (give_warning_idx < 0) {
+#pragma omp critical (Name_53f42442f89dc6478eaee39aa0766bbff846950c)
+		if (give_warning_idx < 0) {
+			give_warning_idx = idx;
+		}
+	}
+
+	if (idx == give_warning_idx && give_warning_c > 1) {
+		fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: reset counter for %1d NAN/INF values in logl\n", give_warning_c);
+#pragma omp critical
+		give_warning_c = 0;
+	}
+
+	GMRFLib_2order_approx_core(thread_id, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
 	if (INVALID(ddf)) {
-		// if (INVALID(x0) || INVALID(f0) || INVALID(df) || INVALID(ddf)) {
-		fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
+		if (give_warning_c == 0) {
+			fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", idx);
+		}
+#pragma omp critical
+		give_warning_c++;
+
 		f0 = df = 0.0;
 		ddf = -1.0;				       /* we try with this */
 		if (dd) {
@@ -180,7 +199,7 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
+forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int idx,
 					   double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
@@ -200,7 +219,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 		xx[3] = x0 + step;
 		xx[4] = x0 + 2 * step;
 
-		loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[2];
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
@@ -222,7 +241,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 			f0 = f[1];
 			df = 0.5 * (-f[0] + f[2]);
@@ -264,7 +283,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -316,7 +335,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -381,7 +400,7 @@ forceinline int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;

@@ -9041,10 +9041,10 @@
                             hyperid = 49033,
                             name = "tail",
                             short.name = "xi",
-                            initial = -3,
+                            initial = 0.1,
                             fixed = FALSE,
-                            prior = "pc.gevtail",
-                            param = c(7, 0.0, 0.5),
+                            prior = "pc.egptail",
+                            param = c(5, -0.5, 0.5), 
                             to.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x)),
                             from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
                         ),

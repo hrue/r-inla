@@ -8823,25 +8823,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		ds->link_prior = Calloc(2, Prior_tp);
-		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "PCGEVTAIL", NULL);
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "PCEGPTAIL", NULL);
+		// maybe clean this up later, as we're using 'bgev_tail' in this model
 		ds->link_parameters->bgev_tail_interval = Calloc(2, double);
-		if (ds->link_prior[0].id == P_PC_GEVTAIL) {
-			ds->link_parameters->bgev_tail_interval[0] = ds->link_prior[0].parameters[1];
-			ds->link_parameters->bgev_tail_interval[1] = ds->link_prior[0].parameters[2];
-		} else {
-			// used a fixed interval then
-			ds->link_parameters->bgev_tail_interval[0] = 0.0;
-			ds->link_parameters->bgev_tail_interval[1] = 0.5;
-		}
+		ds->link_parameters->bgev_tail_interval[0] = ds->link_prior[0].parameters[1];
+		ds->link_parameters->bgev_tail_interval[1] = ds->link_prior[0].parameters[2];
 
-		if (DMIN(ds->link_parameters->bgev_tail_interval[0], ds->link_parameters->bgev_tail_interval[1]) < 0.0 ||
-		    DMAX(ds->link_parameters->bgev_tail_interval[0], ds->link_parameters->bgev_tail_interval[1]) > 0.5 ||
-		    ds->link_parameters->bgev_tail_interval[0] >= ds->link_parameters->bgev_tail_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "BGEV.TAIL.INTERVAL", ctmp);
-		}
+		assert(ds->link_prior[0].parameters[1] <  ds->link_prior[0].parameters[2]);
 		if (mb->verbose) {
-			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_parameters->bgev_tail_interval[0],
-			       ds->link_parameters->bgev_tail_interval[1]);
+			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_prior[0].parameters[1], 
+			       ds->link_prior[0].parameters[2]);
+
 		}
 
 		if (!ds->link_fixed[0]) {
