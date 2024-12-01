@@ -7165,7 +7165,11 @@ int main(int argc, char **argv)
 				}
 			}
 
-			if (cwd) chdir(cwd);
+			if (cwd) {
+				int retval = chdir(cwd);
+				assert(retval == 0);
+			}
+			
 			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
 			char *model_ini = NULL;
 			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
@@ -7177,7 +7181,8 @@ int main(int argc, char **argv)
 					if (verbose) {
 						printf("Change directory to [%s]\n", argv[arg]);
 					}
-					chdir(argv[arg]);
+					int retval = chdir(argv[arg]);
+					assert(retval == 0);
 				} else {
 					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n",
 						argv[arg]);
