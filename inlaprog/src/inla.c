@@ -7109,14 +7109,14 @@ int main(int argc, char **argv)
 		_USAGE;
 		exit(EXIT_FAILURE);
 	}
-	if (optind < argc - 1) {
-		fprintf(stderr, "\n");
-		for (i = 0; i < argc; i++) {
-			fprintf(stderr, "\targv[%1d] = [%s]\n", i, argv[i]);
+	if (verbose) {
+		if (optind < argc - 1) {
+			printf("\n");
+			for (i = 0; i < argc; i++) {
+				printf("\targv[%1d] = [%s]\n", i, argv[i]);
+			}
+			printf("\targc=[%1d] optind=[%1d]\n\n", argc, optind);
 		}
-		fprintf(stderr, "\targc=[%1d] optind=[%1d]\n\n", argc, optind);
-		fprintf(stderr, "\n*** Error: Can only process one .INI-file at the time.\n");
-		exit(EXIT_SUCCESS);
 	}
 	if (verbose) {
 		if (G.mode == INLA_MODE_HYPER) {
@@ -7150,9 +7150,13 @@ int main(int argc, char **argv)
 	}
 
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
+		char cwd_buff[1024+1], *cwd = NULL;
+		cwd = getcwd(cwd_buff, (size_t) 1024);
+
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
+				printf("\ncwd[%s]\n", cwd);
+				printf("Process file/directory[%s] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
 				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads_force);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -7160,14 +7164,38 @@ int main(int argc, char **argv)
 					printf("\n");
 				}
 			}
+
+			if (cwd) chdir(cwd);
+			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
+			char *model_ini = NULL;
+			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
+				model_ini = argv[arg];
+			} else {
+				if (my_dir_exists(argv[arg]) == INLA_OK) {
+					char *new = strdup("Model.ini");
+					model_ini = new;
+					if (verbose) {
+						printf("Change directory to [%s]\n", argv[arg]);
+					}
+					chdir(argv[arg]);
+				} else {
+					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n",
+						argv[arg]);
+					continue;
+				}
+			}
+			
+			if (verbose) {
+				printf("Run with model[%s]\n", model_ini);
+			}
 			if (!silent) {
-				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS());
+				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", model_ini, GMRFLib_MAX_THREADS());
 			}
 			time_used[0] = GMRFLib_timer();
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
-			mb = inla_build(argv[arg], verbose, 1);
+			mb = inla_build(model_ini, verbose, 1);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
@@ -7273,7 +7301,7 @@ int main(int argc, char **argv)
 				fflush(stdout);
 			}
 			if (verbose) {
-				printf("\nWall-clock time used on [%s]\n", argv[arg]);
+				printf("\nWall-clock time used on [%s]\n", model_ini);
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 					printf("\tApprox inference         : %7.3f seconds\n", time_used[1]);
@@ -7331,7 +7359,7 @@ int main(int argc, char **argv)
 				GMRFLib_sprintf(&nfile, "%s/cpu-intern", mb->dir);
 				FILE *fp = fopen(nfile, "w");
 				if (fp) {
-					fprintf(fp, "Wall-clock time used on [%s]\n", argv[arg]);
+					fprintf(fp, "Wall-clock time used on [%s]\n", model_ini);
 					fprintf(fp, "Preparations             : %7.3f seconds\n", time_used[0]);
 					if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 						fprintf(fp, "Approx inference         : %7.3f seconds\n", time_used[1]);
@@ -7379,6 +7407,9 @@ int main(int argc, char **argv)
 #endif
 				fclose(fp);
 				Free(nfile);
+			}
+			if (mb) {
+				inla_output_ok(mb->dir);
 			}
 		}
 	}

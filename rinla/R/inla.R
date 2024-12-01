@@ -969,10 +969,15 @@
     }
     if (keep) {
         ## create the directory locally or whereever specified by the user
+        if (!is.null(working.directory)) {
+            dir.create(working.directory, showWarnings = FALSE, recursive = TRUE)
+        }
+
         if (is.null(working.directory)) {
             working.directory <- "inla.model"
             working.directory.start <- "inla.model"
         } else {
+            working.directory <- paste0(working.directory, "/inla.model")
             working.directory.start <- working.directory
         }
 
@@ -2708,4 +2713,96 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     )
     do.call("Sys.setenv", vars)
     return (invisible())
+}
+
+`inla.run.many` <- function(working.directory = NULL,
+                            verbose = inla.getOption("verbose"),
+                            num.threads = inla.getOption("num.threads"),
+                            cleanup = FALSE)
+{
+    stopifnot(!is.null(working.directory))
+    inla.call <- inla.getOption('inla.call')
+    silent <- inla.getOption('silent')
+    timeout <- inla.getOption('inla.timeout')
+    file.log <- inla.tempfile()
+    file.log2 <- inla.tempfile()
+    verbose.arg <- if (verbose) "-v" else ""
+    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'))
+    models <- dir(working.directory, full.names = TRUE)
+    mfiles <- paste(shQuote(models), collapse = " ")
+    timeout.used <- Sys.time()
+
+    try_catch_result <- tryCatch({
+        if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+            if (verbose) {
+                echoc <- system(paste(shQuote(inla.call), all.args, mfiles), timeout = timeout)
+            } else {
+                echoc <- system(paste(
+                    shQuote(inla.call), all.args, mfiles, " > ", shQuote(file.log),
+                    inla.ifelse(silent == 2L, " 2>/dev/null", "")
+                ), timeout = timeout)
+            }
+            timeout.used <- Sys.time() - timeout.used
+            inla.inlaprogram.timeout(timeout.used, timeout)
+        } else if (inla.os("windows")) {
+            ## need to set these variables here 
+            Sys.setenv(
+                MIMALLOC_ARENA_EAGER_COMMIT = 1,
+                MIMALLOC_PURGE_DELAY = -1,
+                MIMALLOC_PURGE_DECOMMITS = 0
+            )
+            if (verbose) {
+                echoc <- try(system2(inla.call,
+                                     args = paste(all.args, mfiles),
+                                     stdout = "", stderr = "", wait = TRUE, timeout = timeout))
+            } else {
+                echoc <- try(system2(inla.call,
+                                     args = paste(all.args, mfiles), 
+                                     stdout = file.log, stderr = file.log2,
+                                     wait = TRUE, timeout = timeout))
+            }
+            ## and unset them here 
+            Sys.unsetenv(
+                c(
+                    "MIMALLOC_ARENA_EAGER_COMMIT",
+                    "MIMALLOC_PURGE_DELAY",
+                    "MIMALLOC_PURGE_DECOMMITS"
+                )
+            )
+            timeout.used <- Sys.time() - timeout.used
+            inla.inlaprogram.timeout(timeout.used, timeout)
+            if (echoc != 0L) {
+                if (!verbose && (silent != 2L)) {
+                    inla.inlaprogram.has.crashed()
+                }
+            }
+        } else {
+            stop("\n\tNot supported architecture.")
+        }
+        TRUE
+    },
+    error = function(e) {
+        errorCondition("The inla program call crashed.",
+                       class = "inlaCrashError")
+    })
+
+    if (inherits(try_catch_result, "error")) {
+        stop(try_catch_result)
+    }
+
+    res <- rep(list(list()), length(models))
+    for(i in seq_along(models)) {
+        res[[i]] <- inla.collect.results(models[i])
+        if (!verbose && (i == 1)) {
+            if (file.exists(file.log)) res[[i]]$logfile <- readLines(file.log)
+            if (file.exists(file.log2)) res[[i]]$logfile2 <- readLines(file.log2)
+        }
+    }
+    unlink(file.log)
+    unlink(file.log2)
+    if (cleanup) {
+        unlink(working.directory, recursive = TRUE)
+    }
+ 
+   return (res)
 }

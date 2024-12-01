@@ -1,3 +1,6 @@
+# INLA 24.12.01
+* Code improvements
+
 # INLA 24.11.25
 * Code improvement for survival-families
 * GEV link now accept negative tail parameter
