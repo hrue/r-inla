@@ -165,6 +165,28 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	return INLA_OK;
 }
 
+char *inla_read_lineno(int lineno, char *filename) 
+{
+	// return lineno from filename
+	FILE *fp = fopen(filename, "r"); 
+	char line[8*1024+1];
+	int count = 0;
+
+	assert(fp);
+	assert(lineno >= 0);
+
+	while(1) {
+		int ret = fscanf(fp, "%s\n", line);
+		assert(ret != EOF);
+		if (count == lineno) {
+			break;
+		}
+		count++;
+	}
+	fclose(fp);
+	return (Strdup(line));
+}
+
 int inla_sread_str_int(char **tag, int *i, const char *str)
 {
 	char *strtok_ptr = NULL, *token = NULL;
@@ -189,6 +211,22 @@ int inla_sread_str_str(char **tag, int nmax, char *str)
 {
 	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
+	char *p = Strdup(str);
+	int i = 0;
+
+	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
+		p = NULL;
+		tag[i++] = Strdup(token);
+		if (i == nmax)
+			break;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int inla_sread_str_str_x(char **tag, int nmax, char *str)
+{
+	char *strtok_ptr = NULL, *token = NULL;
+	const char *delim = " ";
 	char *p = Strdup(str);
 	int i = 0;
 

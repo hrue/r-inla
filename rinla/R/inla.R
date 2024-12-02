@@ -1023,7 +1023,7 @@
     inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
-
+ 
     if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
         if (inla.anyMultibyteUTF8Characters(inla.dir)) {
             stop(paste0("*** Failed to create directory [", inla.dir, "]\n", 
@@ -1039,6 +1039,15 @@
 
     inla.dir.create(inla.dir)
     inla.dir.create(data.dir)
+
+    count <- 0
+    results.dir.orig <- results.dir
+    if (inla.is.dir(results.dir)) {
+        results.dir <- paste0(results.dir.orig, "-", count)
+        count <- count + 1
+        if (count > 10^6) stop("TO MANY results.dir")
+    }
+
     ## create the .file.ini and make the problem.section
     file.ini <- paste(inla.dir, "/Model.ini", sep = "")
     file.log <- paste(inla.dir, "/Logfile.txt", sep = "")
@@ -1171,11 +1180,24 @@
     if (is.null(offset)) {
         offset <- 0
     }
-    if (length(offset) == 1L) {
-        offset <- rep(offset, offset.len)
+    n.models <- 1
+    if (inla.enabled.INLAjoint.features() && is.matrix(offset)) {
+        n.models <- ncol(offset)
     }
-    if (length(offset) != offset.len) {
-        stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+    if (inla.enabled.INLAjoint.features() && is.matrix(offset)) {
+        if (length(offset) == 1L) {
+            offset <- matrix(rep(offset, n.models * offset.len), offset.len, n.models)
+        }
+        if (nrow(offset) != offset.len) {
+            stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+        }
+    } else {
+        if (length(offset) == 1L) {
+            offset <- rep(offset, offset.len)
+        }
+        if (length(offset) != offset.len) {
+            stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+        }
     }
     if (length(offset.formula) != offset.formula.len) {
         stop(paste("Length of 'offset(...)' in the formula is wrong:", length(offset.formula), "!=", offset.formula.len))
@@ -1269,14 +1291,32 @@
     stopifnot(!is.null(offset.formula) && !is.null(offset)) ## must be zeros if not used. this makes it easier
     offset.formula[is.na(offset.formula)] <- 0
     offset[is.na(offset)] <- 0
-    if (!is.null(control.predictor$A)) {
-        off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset), offset.formula))
+
+    file.offset <- c()
+    if (n.models == 1) {
+        if (!is.null(control.predictor$A)) {
+            off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset), offset.formula))
+        } else {
+            off <- cbind(indN, offset + offset.formula)
+        }
+        file.offset <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
+        file.offset <- gsub(data.dir, "$inladatadir", file.offset, fixed = TRUE)
     } else {
-        off <- cbind(indN, offset + offset.formula)
+        for(m in 1:n.models) {
+            if (!is.null(control.predictor$A)) {
+                off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset[, m]), offset.formula))
+            } else {
+                off <- cbind(indN, offset[, m] + offset.formula)
+            }
+            file.offset.tmp <- inla.tempfile(tmpdir = data.dir)
+            inla.write.fmesher.file(as.matrix(off), filename = file.offset.tmp, debug = debug)
+            file.offset <- c(file.offset, gsub(data.dir, "$inladatadir", file.offset.tmp, fixed = TRUE))
+        }
+        file.out <- inla.tempfile(tmpdir = data.dir)
+        writeLines(file.offset, file.out)
+        file.offset <- gsub(data.dir, "$inladatadir", file.out, fixed = TRUE)
     }
-    file.offset <- inla.tempfile(tmpdir = data.dir)
-    inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
-    file.offset <- gsub(data.dir, "$inladatadir", file.offset, fixed = TRUE)
 
     if (!is.null(cont.predictor$link)) {
         not.na <- which(!is.na(cont.predictor$link))
@@ -2177,7 +2217,7 @@
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
             if (!submit) {
-                ret <- tryCatch(inla.collect.results(results.dir,
+                ret <- tryCatch(inla.collect.results(inla.dir,
                                                      only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
                                                      silent = silent),
                                 error = function(e) {
@@ -2715,7 +2755,8 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return (invisible())
 }
 
-`inla.run.many` <- function(working.directory = NULL,
+`inla.run.many` <- function(n.models = 1,
+                            working.directory = NULL,
                             verbose = inla.getOption("verbose"),
                             num.threads = inla.getOption("num.threads"),
                             cleanup = FALSE)
@@ -2727,15 +2768,16 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     file.log <- inla.tempfile()
     file.log2 <- inla.tempfile()
     verbose.arg <- if (verbose) "-v" else ""
-    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'))
+    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'),
+                       " -d", n.models)
     models <- dir(working.directory, full.names = TRUE)
-    mfiles <- paste(shQuote(models), collapse = " ")
+    mfiles <- shQuote(models)
     timeout.used <- Sys.time()
 
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
-                echoc <- system(paste(shQuote(inla.call), all.args, mfiles), timeout = timeout)
+                echoc <- system(paste(c(shQuote(inla.call), all.args, mfiles), collapse=" "), timeout = timeout)
             } else {
                 echoc <- system(paste(
                     shQuote(inla.call), all.args, mfiles, " > ", shQuote(file.log),
@@ -2790,6 +2832,13 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         stop(try_catch_result)
     }
 
+    models <- list.files(paste0(working.directory, "/inla.model"), full.names = TRUE, pattern="results.files-.*")
+
+    if (length(models) != n.models) {
+        stop(paste("n.models=", n.models,
+                   ",  which do not corresponds to the number of fitted models", length(models)))
+    }
+
     res <- rep(list(list()), length(models))
     for(i in seq_along(models)) {
         res[[i]] <- inla.collect.results(models[i])
@@ -2803,6 +2852,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     if (cleanup) {
         unlink(working.directory, recursive = TRUE)
     }
- 
-   return (res)
+    
+    return (res)
 }

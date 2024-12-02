@@ -1671,22 +1671,42 @@ inla.parse.Bmatrix.test <- function() {
         }
 
         if (!is.null(args$theta)) {
-            args$theta <- inla.text2vector(args$theta)
-            ## set non-finite's to 0
-            args$theta[!is.finite(args$theta)] <- 0
-            file.theta <- inla.tempfile(tmpdir = data.dir)
-            ## cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
-            fp.binary <- file(file.theta, "wb")
-            ## convert from character to a vector of doubles
-            if (is.character(args$theta)) {
-                args$theta <- as.numeric(strsplit(args$theta, "[ \t]+")[[1]])
+            if (inla.enabled.INLAjoint.features() && is.matrix(args$theta) && ncol(args$theta) > 1) {
+                n.models <- ncol(args$theta)
+                stopifnot(n.models > 1)
+                fnm <- c()
+                for(i in 1:n.models) {
+                    file.theta.tmp <- inla.tempfile(tmpdir = data.dir)
+                    args$theta[!is.finite(args$theta)] <- 0
+                    fp.binary <- file(file.theta.tmp, "wb")
+                    xx <- args$theta[, i]
+                    writeBin(as.integer(length(xx)), fp.binary)
+                    writeBin(xx, fp.binary)
+                    close(fp.binary)
+                    fnm <- c(fnm, gsub(data.dir, "$inladatadir", file.theta.tmp, fixed = TRUE))
+                }
+                file.out <- inla.tempfile(tmpdir = data.dir)
+                writeLines(fnm, file.out)
+                file.out <- gsub(data.dir, "$inladatadir", file.out, fixed = TRUE)
+                cat("theta =", file.out, "\n", file = file, append = TRUE)
+            } else {
+                args$theta <- inla.text2vector(args$theta)
+                ## set non-finite's to 0
+                args$theta[!is.finite(args$theta)] <- 0
+                file.theta <- inla.tempfile(tmpdir = data.dir)
+                ## cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
+                fp.binary <- file(file.theta, "wb")
+                ## convert from character to a vector of doubles
+                if (is.character(args$theta)) {
+                    args$theta <- as.numeric(strsplit(args$theta, "[ \t]+")[[1]])
+                }
+                args$theta <- args$theta[!is.na(args$theta)]
+                writeBin(as.integer(length(args$theta)), fp.binary)
+                writeBin(args$theta, fp.binary)
+                close(fp.binary)
+                fnm <- gsub(data.dir, "$inladatadir", file.theta, fixed = TRUE)
+                cat("theta =", fnm, "\n", file = file, append = TRUE)
             }
-            args$theta <- args$theta[!is.na(args$theta)]
-            writeBin(as.integer(length(args$theta)), fp.binary)
-            writeBin(args$theta, fp.binary)
-            close(fp.binary)
-            fnm <- gsub(data.dir, "$inladatadir", file.theta, fixed = TRUE)
-            cat("theta =", fnm, "\n", file = file, append = TRUE)
         }
 
         ## use default the mode in result if given
@@ -1706,7 +1726,7 @@ inla.parse.Bmatrix.test <- function() {
             fnm <- gsub(data.dir, "$inladatadir", file.x, fixed = TRUE)
             cat("x =", fnm, "\n", file = file, append = TRUE)
         }
-
+        
         args$restart <- if (!is.null(args$restart)) as.logical(args$restart) else TRUE
         args$fixed <- if (!is.null(args$fixed)) as.logical(args$fixed) else FALSE
         if (args$fixed && args$restart) {

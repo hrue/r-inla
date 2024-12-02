@@ -207,6 +207,11 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 	secname = Strdup(iniparser_getsecname(ini, sec));
 	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
 
+	if (GMRFLib_model_n > 1) {
+		tmp = inla_read_lineno(GMRFLib_model_idx, tmp);
+		tmp = dictionary_replace_variables(mb->ini, tmp);
+	}
+
 	/*
 	 * first try if 'tmp' is a filename, is so, read (using binary format) from that. format: NTHETA theta[0] theta[1] .... theta[ NTHETA-1 ] 
 	 */
@@ -489,17 +494,23 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, &GMRFLib_smtp);
 
-	mb->dir = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup("results-%1d")));
+	mb->dir = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), NULL));
 	ok = 0;
 	int accept_argument = 0;
 
 	if (make_dir) {
 		GMRFLib_sprintf(&tmp, mb->dir, 0);
-		GMRFLib_sprintf(&tmpp, mb->dir, 99);
+		GMRFLib_sprintf(&tmpp, mb->dir, 99999);
 		accept_argument = (strcmp(tmp, tmpp) == 0 ? 0 : 1);
+		if (!accept_argument) {
+			char *ctmp = NULL;
+			GMRFLib_sprintf(&ctmp, "%s-%s", mb->dir, "%1d");
+			mb->dir = ctmp;
+			accept_argument = 1;
+		}
 		Free(tmp);
 		Free(tmpp);
-		for (i = 0; i < 9999; i++) {
+		for (i = 0; i < 1E6; i++) {
 			GMRFLib_sprintf(&tmp, mb->dir, i);
 			if (inla_mkdir(tmp) != 0) {
 				if (mb->verbose) {
@@ -636,6 +647,11 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "OFFSET"), NULL));
+	if (GMRFLib_model_n > 1) {
+		filename = inla_read_lineno(GMRFLib_model_idx, filename);
+		filename = dictionary_replace_variables(mb->ini, filename);
+	}
+
 	if (filename) {
 		if (mb->verbose) {
 			printf("\t\tread offsets from file=[%s]\n", filename);

@@ -148,6 +148,9 @@ extern int GMRFLib_opt_solve;
 extern int GMRFLib_intern_flag;
 extern int GMRFLib_cachelinesize;
 
+extern int GMRFLib_model_idx;
+extern int GMRFLib_model_n;
+
 extern char *GMRFLib_tmpdir;
 #endif
 __END_DECLS

@@ -270,7 +270,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->mode_restart = 1;
 	mb->mode_fixed = mb->mode_use_mode = 0;
 
-	ini = iniparser_load(dict_filename);
+	ini = mb->ini = iniparser_load(dict_filename);
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
 		inla_error_general(msg);
@@ -6705,7 +6705,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "d:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
 		{
@@ -6748,6 +6748,19 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->blas_num_threads_force = bnt;
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
+				exit(EXIT_SUCCESS);
+			}
+		}
+			break;
+
+		case 'd':
+		{
+			int nm = 0;
+			if (inla_sread_ints(&nm, 1, optarg) == INLA_OK) {
+				GMRFLib_model_n = nm;
+				assert(nm >= 0);
+			} else {
+				fprintf(stderr, "Fail to read MODEL_N from %s\n", optarg);
 				exit(EXIT_SUCCESS);
 			}
 		}
@@ -7152,12 +7165,15 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		char cwd_buff[1024+1], *cwd = NULL;
 		cwd = getcwd(cwd_buff, (size_t) 1024);
+		arg = optind; 
 
-		for (arg = optind; arg < argc; arg++) {
+		for (int k = 0; m < GMRFLib_model_n; k++) {
+			GMRFLib_model_idx = k;
 			if (verbose) {
 				printf("\ncwd[%s]\n", cwd);
-				printf("Process file/directory[%s] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads_force);
+				printf("Process file/directory[%s] model[%1d/%1d/] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
+				       argv[arg], GMRFLib_model_idx, GMRFLib_model_n,
+				       GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads_force);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
@@ -7416,6 +7432,8 @@ int main(int argc, char **argv)
 			if (mb) {
 				inla_output_ok(mb->dir);
 			}
+			inla_tp_free(mb);
+			mb = NULL;
 		}
 	}
 
@@ -7429,4 +7447,38 @@ int main(int argc, char **argv)
 #undef _HELP
 #undef _BUGS_intern
 #undef _BUGS
+}
+
+int inla_tp_free(inla_tp *mb) 
+{
+	// this is incomplete
+
+	GMRFLib_preopt_free(mb->preopt);
+	Free(mb->offset);
+	Free(mb->link_fitted_values);
+
+	for (int i = 0; i < mb->nds; i++) {
+		Data_section_tp ds = mb->data_sections[i];
+		Data_tp *d = &(ds.data_observations);
+		Free(d->d);
+		Free(d->y);
+		Free(d->E);
+		Free(d->cen_low);
+		Free(d->cen_high);
+		Free(d->nb);
+		Free(d->p_scale);
+		Free(d->S);
+		Free(d->cbinomial_k);
+		Free(d->cbinomial_n);
+		Free(d->strata);
+		Free(d->truncation);
+		Free(d->event);
+		Free(d->lower);
+		Free(d->upper);
+		Free(d->tp_E);
+		Free(d->tp_event);
+		Free(d->tp_offset);
+	}
+	
+	return 0;
 }

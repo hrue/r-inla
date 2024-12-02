@@ -1354,6 +1354,8 @@ struct inla_tp_struct {
 
 	// experimental mode only
 	int compute_initial_values;
+
+	dictionary *ini;
 };
 
 typedef struct {
@@ -1829,6 +1831,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
 char *inla_make_tag2(const char *string, int ds, const char *estr);
+char *inla_read_lineno(int lineno, char *filename);
 const char *inla_string_join(const char *a, const char *b);
 double GMRFLib_logsum(double lA, double lB);
 double Qfunc_2diid(int thread_id, int i, int j, double *values, void *arg);
@@ -2224,6 +2227,7 @@ int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread_str_str(char **tag, int nmax, char *str);
+int inla_sread_str_str_x(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
@@ -2372,6 +2376,7 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, double *logll, double *x,
 int loglikelihood_zeroinflated_poisson2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 					char **arg_str);
 
+int inla_tp_free(inla_tp *mb);
 int inla_reset(void);
 int inla_testit_timer(void);
 int my_dir_exists(const char *dirname);
