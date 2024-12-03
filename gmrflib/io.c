@@ -38,6 +38,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -404,4 +407,21 @@ int GMRFLib_io_write(GMRFLib_io_tp *io, const void *buf, size_t len)
 		}
 	}
 	return GMRFLib_SUCCESS;
+}
+
+intmax_t GMRFLib_io_file_size(const char *filename) 
+{
+	if (!filename) {
+		return (0);
+	}
+	
+	struct stat buffer;
+	int status;
+
+	status = stat(filename, &buffer);
+	if (status == 0) {
+		return (buffer.st_size);
+	} else {
+		return (0);
+	}
 }

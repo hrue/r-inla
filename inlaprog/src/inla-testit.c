@@ -4905,13 +4905,13 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 156: 
+	case 156:
 	{
 		double xi = atof(args[0]);
 		double intercept = atof(args[1]);
 		link_gev_test(xi, intercept);
 	}
-	break;
+		break;
 
 	case 999:
 	{

@@ -295,7 +295,7 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 	return INLA_OK;
 }
 
-int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
+int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = PROBLEM
@@ -498,43 +498,42 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 	ok = 0;
 	int accept_argument = 0;
 
-	if (make_dir) {
-		GMRFLib_sprintf(&tmp, mb->dir, 0);
-		GMRFLib_sprintf(&tmpp, mb->dir, 99999);
-		accept_argument = (strcmp(tmp, tmpp) == 0 ? 0 : 1);
-		if (!accept_argument) {
-			char *ctmp = NULL;
-			GMRFLib_sprintf(&ctmp, "%s-%s", mb->dir, "%1d");
-			mb->dir = ctmp;
-			accept_argument = 1;
+	GMRFLib_sprintf(&tmp, mb->dir, 0);
+	GMRFLib_sprintf(&tmpp, mb->dir, 99999);
+	accept_argument = (strcmp(tmp, tmpp) == 0 ? 0 : 1);
+	if (!accept_argument) {
+		char *ctmp = NULL;
+		GMRFLib_sprintf(&ctmp, "%s-%s", mb->dir, "%1d");
+		mb->dir = ctmp;
+		accept_argument = 1;
+	}
+	Free(tmp);
+	Free(tmpp);
+	for (i = GMRFLib_model_idx; i < 1E6; i++) {
+		GMRFLib_sprintf(&tmp, mb->dir, i);
+		if (inla_mkdir(tmp) != 0) {
+			if (mb->verbose) {
+				printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
+			}
+			if (!accept_argument) {
+				fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
+				fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			if (mb->verbose) {
+				printf("\t\tstore results in directory=[%s]\n", tmp);
+			}
+			mb->dir = tmp;
+			ok = 1;
+			break;
 		}
 		Free(tmp);
-		Free(tmpp);
-		for (i = 0; i < 1E6; i++) {
-			GMRFLib_sprintf(&tmp, mb->dir, i);
-			if (inla_mkdir(tmp) != 0) {
-				if (mb->verbose) {
-					printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
-				}
-				if (!accept_argument) {
-					fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
-					fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
-					exit(EXIT_FAILURE);
-				}
-			} else {
-				if (mb->verbose) {
-					printf("\t\tstore results in directory=[%s]\n", tmp);
-				}
-				mb->dir = tmp;
-				ok = 1;
-				break;
-			}
-			Free(tmp);
-		}
-		if (!ok) {
-			inla_error_general("Fail to create directory. I give up.");
-		}
 	}
+	if (!ok) {
+		inla_error_general("Fail to create directory. I give up.");
+	}
+
 	GMRFLib_tmpdir = mb->dir;			       /* so we can easily use it elsewhere */
 
 	inla_parse_output(mb, ini, sec, &(mb->output));
@@ -547,7 +546,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = PREDICTOR 
 	 */
 	char *secname = NULL, *msg = NULL, *filename = NULL;
-	int i, noffsets, nlinks_fitted_values;
+	int noffsets, nlinks_fitted_values;
 	double tmp;
 
 	if (mb->verbose) {
@@ -674,7 +673,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 
 	if (0) {
 		if (mb->link_fitted_values) {
-			for (i = 0; i < mb->predictor_n + mb->predictor_m; i++)
+			for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++)
 				if (gsl_isnan(mb->link_fitted_values[i]))
 					fprintf(stderr, "link[%d] = NAN\n", i);
 				else
@@ -699,7 +698,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 						len_cross, mb->predictor_n + mb->predictor_m);
 			}
 			icross = Calloc(len_cross, int);
-			for (i = 0; i < len_cross; i++)
+			for (int i = 0; i < len_cross; i++)
 				icross[i] = (int) dcross[i];
 			Free(dcross);
 			mb->predictor_cross_sumzero = icross;
@@ -708,7 +707,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose && mb->predictor_cross_sumzero) {
 		GMRFLib_iuniques(&nu, NULL, mb->predictor_cross_sumzero, mb->predictor_n);
 		printf("\t\tread cross-sum-to-zero from file[%s]: %1d constraints\n", filename, nu);
-		for (i = 0; i < IMIN(PREVIEW, mb->predictor_n + mb->predictor_m); i++) {
+		for (int i = 0; i < IMIN(PREVIEW, mb->predictor_n + mb->predictor_m); i++) {
 			printf("\t\t\t%1d %1d\n", i, mb->predictor_cross_sumzero[i]);
 		}
 	}
@@ -8845,10 +8844,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_parameters->bgev_tail_interval[0] = ds->link_prior[0].parameters[1];
 		ds->link_parameters->bgev_tail_interval[1] = ds->link_prior[0].parameters[2];
 
-		assert(ds->link_prior[0].parameters[1] <  ds->link_prior[0].parameters[2]);
+		assert(ds->link_prior[0].parameters[1] < ds->link_prior[0].parameters[2]);
 		if (mb->verbose) {
-			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_prior[0].parameters[1], 
-			       ds->link_prior[0].parameters[2]);
+			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_prior[0].parameters[1], ds->link_prior[0].parameters[2]);
 
 		}
 
@@ -18071,7 +18069,7 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 }
 
 
-int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
+int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = INLA 
@@ -18571,7 +18569,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	return INLA_OK;
 }
 
-int inla_parse_update(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
+int inla_parse_update(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = UPDATE
@@ -18650,7 +18648,7 @@ int inla_parse_update(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir
 	return INLA_OK;
 }
 
-int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
+int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = PARDISO
@@ -18693,7 +18691,7 @@ int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_di
 	return INLA_OK;
 }
 
-int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
+int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = LP.SCALE

@@ -252,7 +252,7 @@ double inla_interpolate_mode(double *x, double *y)
 }
 
 
-inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
+inla_tp *inla_build(const char *dict_filename, int verbose)
 {
 	/*
 	 * This function builds the model from the contents in INI 
@@ -374,7 +374,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				inla_error_general(msg);
 			}
 			sec_read[sec] = 1;
-			inla_parse_problem(mb, ini, sec, make_dir);
+			inla_parse_problem(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -488,7 +488,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				printf("\tparse section=[%1d] name=[%s] type=[UPDATE]\n", sec, iniparser_getsecname(ini, sec));
 			}
 			sec_read[sec] = 1;
-			inla_parse_update(mb, ini, sec, make_dir);
+			inla_parse_update(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -505,7 +505,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
 			}
 			sec_read[sec] = 1;
-			inla_parse_pardiso(mb, ini, sec, make_dir);
+			inla_parse_pardiso(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -522,7 +522,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				printf("\tparse section=[%1d] name=[%s] type=[LP.SCALE]\n", sec, iniparser_getsecname(ini, sec));
 			}
 			sec_read[sec] = 1;
-			inla_parse_lp_scale(mb, ini, sec, make_dir);
+			inla_parse_lp_scale(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -606,7 +606,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				printf("\tparse section=[%1d] name=[%s] type=[INLA]\n", sec, iniparser_getsecname(ini, sec));
 			}
 			sec_read[sec] = 1;
-			inla_parse_INLA(mb, ini, sec, make_dir);
+			inla_parse_INLA(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -806,7 +806,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
 	}
 
-	iniparser_freedict(ini);
 	return mb;
 }
 
@@ -6657,7 +6656,8 @@ int main(int argc, char **argv)
 	inla_tp *mb = NULL;
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
-
+	int model_n_is_set = 0;
+	
 	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
@@ -6718,14 +6718,14 @@ int main(int argc, char **argv)
 				assert(0 == 1);
 			}
 		}
-		break;
+			break;
 
 		case 'v':
 		{
 			silent = 1;
 			verbose++;
 		}
-		break;
+			break;
 
 		case 'V':
 		{
@@ -6734,12 +6734,12 @@ int main(int argc, char **argv)
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}
-		break;
+			break;
 		case 'e':
 		{
 			my_setenv(optarg, 1);
 		}
-		break;
+			break;
 
 		case 'B':
 		{
@@ -6752,20 +6752,21 @@ int main(int argc, char **argv)
 				exit(EXIT_SUCCESS);
 			}
 		}
-		break;
+			break;
 
 		case 'd':
 		{
 			int nm = 0;
 			if (inla_sread_ints(&nm, 1, optarg) == INLA_OK) {
 				GMRFLib_model_n = nm;
+				model_n_is_set = 1;
 				assert(nm >= 0);
 			} else {
 				fprintf(stderr, "Fail to read MODEL_N from %s\n", optarg);
 				exit(EXIT_SUCCESS);
 			}
 		}
-		break;
+			break;
 
 		case 'm':
 		{
@@ -6800,7 +6801,7 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 		}
-		break;
+			break;
 
 		case 'S':
 		{
@@ -6822,7 +6823,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
 		}
-		break;
+			break;
 
 		case 't':
 		{
@@ -6897,7 +6898,7 @@ int main(int argc, char **argv)
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 		}
-		break;
+			break;
 
 		case 'z':
 		{
@@ -6920,7 +6921,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		break;
+			break;
 
 		case 'h':
 		{
@@ -6928,14 +6929,14 @@ int main(int argc, char **argv)
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}
-		break;
+			break;
 
 		case 's':
 		{
 			verbose = 0;
 			silent = 1;
 		}
-		break;
+			break;
 
 		case 'r':
 		{
@@ -6948,7 +6949,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
 		}
-		break;
+			break;
 
 		case 'R':
 		{
@@ -6960,7 +6961,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_pardiso_set_nrhs(nrhs);
 		}
-		break;
+			break;
 
 		case 'c':
 		{
@@ -6968,7 +6969,7 @@ int main(int argc, char **argv)
 			enable_core_file = 1;		       /* allow for core files */
 #endif
 		}
-		break;
+			break;
 
 		case 'p':
 		{
@@ -6981,13 +6982,13 @@ int main(int argc, char **argv)
 			}
 #endif
 		}
-		break;
+			break;
 
 		case 'L':
 		{
 			// link with vecLib on Mac. this is just dummy option
 		}
-		break;
+			break;
 
 		default:
 			_USAGE;
@@ -7026,28 +7027,28 @@ int main(int argc, char **argv)
 	{
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_QINV:
 	{
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_QSOLVE:
 	{
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_QREORDERING:
 	{
 		inla_qreordering(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_QSAMPLE:
 	{
@@ -7055,49 +7056,49 @@ int main(int argc, char **argv)
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_FINN:
 	{
 		inla_finn(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_GRAPH:
 	{
 		inla_read_graph(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_R:
 	{
 		inla_R(&(argv[optind]));
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_FGN:
 	{
 		inla_fgn(argv[optind], argv[optind + 1]);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_PARDISO:
 	{
 		inla_check_pardiso();
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_TESTIT:
 	{
 		testit(argc - optind, &(argv[optind]));
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
 	case INLA_MODE_HYPER:
 	case INLA_MODE_DEFAULT:
@@ -7138,7 +7139,7 @@ int main(int argc, char **argv)
 
 	if (G.mode == INLA_MODE_DRYRUN) {
 		for (arg = optind; arg < argc; arg++) {
-			mb = inla_build(argv[arg], verbose, 1);
+			mb = inla_build(argv[arg], verbose);
 
 			char *nndir = NULL;
 			FILE *fp = NULL;
@@ -7162,12 +7163,20 @@ int main(int argc, char **argv)
 	}
 
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
-		char cwd_buff[1024+1], *cwd = NULL;
+		char cwd_buff[1024 + 1], *cwd = NULL;
 		cwd = getcwd(cwd_buff, (size_t) 1024);
-		arg = optind; 
 
-		for (int k = 0; k < GMRFLib_model_n; k++) {
-			GMRFLib_model_idx = k;
+		// in this way, we can do both options, '-d..' and list of models
+		int nm = GMRFLib_model_n;
+		if (!model_n_is_set) {
+			nm = argc - optind;
+		}
+
+		for (int k = 0; k < nm; k++) {
+
+			GMRFLib_model_idx = (model_n_is_set ? k : 0);
+			arg = (model_n_is_set ? optind : optind + k);
+				
 			if (verbose) {
 				printf("\ncwd[%s]\n", cwd);
 				printf("Process file/directory[%s] model[%1d/%1d/] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
@@ -7180,7 +7189,11 @@ int main(int argc, char **argv)
 				}
 			}
 
-			if (cwd) chdir(cwd);
+			if (cwd) {
+				int ret = chdir(cwd);
+				assert(ret == 0);
+			}
+			
 			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
 			char *model_ini = NULL;
 			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
@@ -7192,14 +7205,14 @@ int main(int argc, char **argv)
 					if (verbose) {
 						printf("Change directory to [%s]\n", argv[arg]);
 					}
-					chdir(argv[arg]);
+					int ret = chdir(argv[arg]);
+					assert(ret == 0);
 				} else {
-					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n",
-						argv[arg]);
+					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n", argv[arg]);
 					continue;
 				}
 			}
-			
+
 			if (verbose) {
 				printf("Run with model[%s]\n", model_ini);
 			}
@@ -7210,7 +7223,7 @@ int main(int argc, char **argv)
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
-			mb = inla_build(model_ini, verbose, 1);
+			mb = inla_build(model_ini, verbose);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
@@ -7443,18 +7456,37 @@ int main(int argc, char **argv)
 #undef _BUGS
 }
 
-int inla_tp_free(inla_tp *mb) 
+int inla_tp_free(inla_tp *mb)
 {
 	// this is incomplete
 
-	GMRFLib_preopt_free(mb->preopt);
 	Free(mb->offset);
 	Free(mb->link_fitted_values);
-	dictionary_del(mb->ini);
+	iniparser_freedict(mb->ini);
+	Free(mb->x_file);
+	Free(mb->loglikelihood);
+	Free(mb->loglikelihood_arg);
+	Free(mb->d);
+	Free(mb->family_idx);
+	if (mb->transform_funcs) {
+		for (int i = 0; i < mb->preopt->mnpred; i++) {
+			Free(mb->transform_funcs[i]);
+		}
+		Free(mb->transform_funcs);
+	}
+	Free(mb->predictor_invlinkfunc);
+	Free(mb->predictor_invlinkfunc_arg);
+	Free(mb->predictor_invlinkfunc_covariates);
+	Free(mb->predictor_family);
+	Free(mb->fl);
+	
+	GMRFLib_preopt_free(mb->preopt);
 
 	for (int i = 0; i < mb->nds; i++) {
 		Data_section_tp ds = mb->data_sections[i];
 		Data_tp *d = &(ds.data_observations);
+
+		Free(ds.predictor_invlinkfunc_arg);
 		Free(d->d);
 		Free(d->y);
 		Free(d->E);
@@ -7489,12 +7521,14 @@ int inla_tp_free(inla_tp *mb)
 		Free(d->bgev_qmix);
 		Free(d->bgev_scale);
 		if (d->bgev_x) {
-			for(int j = 0; j < d->bgev_nbetas[0] + d->bgev_nbetas[1]; j++) {
+			for (int j = 0; j < d->bgev_nbetas[0] + d->bgev_nbetas[1]; j++) {
 				Free(d->bgev_x[j]);
 			}
 			Free(d->bgev_x);
 		}
 	}
+	Free(mb->data_sections);
+	Free(mb);
 
 	return 0;
 }

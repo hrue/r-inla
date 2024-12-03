@@ -2227,6 +2227,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			Free(cpodens_moments);
 			Free(gcpodens_moments);
 		}
+		Free(lpred_mode);
 		Free(mean_corrected);
 		Free(c_corrected);
 	}
@@ -3024,6 +3025,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	Free(userfunc_values);
 	Free(weights);
 	Free(z);
+	Free(lpred);
+
 	if (cpo_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
 			int j = i;

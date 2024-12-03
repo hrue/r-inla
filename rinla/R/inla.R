@@ -1040,14 +1040,6 @@
     inla.dir.create(inla.dir)
     inla.dir.create(data.dir)
 
-    count <- 0
-    results.dir.orig <- results.dir
-    if (inla.is.dir(results.dir)) {
-        results.dir <- paste0(results.dir.orig, "-", count)
-        count <- count + 1
-        if (count > 10^6) stop("TO MANY results.dir")
-    }
-
     ## create the .file.ini and make the problem.section
     file.ini <- paste(inla.dir, "/Model.ini", sep = "")
     file.log <- paste(inla.dir, "/Logfile.txt", sep = "")
@@ -2781,7 +2773,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     }
 }
 
-`inla.run.many` <- function(working.directory = NULL,
 `inla.run.many` <- function(n.models = 1,
                             working.directory = NULL,
                             verbose = inla.getOption("verbose"),
@@ -2795,7 +2786,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     file.log <- inla.tempfile()
     file.log2 <- inla.tempfile()
     verbose.arg <- if (verbose) "-v" else ""
-    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'), " -d", n.models)
+    all.args <- paste0(verbose.arg, " -Pcompact -t", num.threads, " -d", n.models)
     models <- dir(working.directory, full.names = TRUE)
     mfiles <- shQuote(models)
     timeout.used <- Sys.time()
@@ -2856,12 +2847,18 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     }
 
     res <- rep(list(list()), length(models))
-    for(i in seq_along(models)) {
-        res[[i]] <- inla.collect.results(models[i])
-        if (!verbose && (i == 1)) {
-            if (file.exists(file.log)) res[[i]]$logfile <- readLines(file.log)
-            if (file.exists(file.log2)) res[[i]]$logfile2 <- readLines(file.log2)
+    
+    if (inla.os("windows")) {
+        for(i in seq_along(models)) {
+            res[[i]] <- inla.collect.results(models[i])
         }
+    } else {
+        res <- parallel::mclapply(seq_along(models),
+                                  function(i) inla.collect.results(models[i]))
+    }
+    if (!verbose) {
+        if (file.exists(file.log)) res[[1]]$logfile <- readLines(file.log)
+        if (file.exists(file.log2)) res[[1]]$logfile2 <- readLines(file.log2)
     }
     unlink(file.log)
     unlink(file.log2)

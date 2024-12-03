@@ -1831,7 +1831,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
 char *inla_make_tag2(const char *string, int ds, const char *estr);
-char *inla_read_lineno(int lineno, char *filename);
+char *inla_read_lineno(int lineno, const char *filename);
 const char *inla_string_join(const char *a, const char *b);
 double GMRFLib_logsum(double lA, double lB);
 double Qfunc_2diid(int thread_id, int i, int j, double *values, void *arg);
@@ -2059,7 +2059,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
-inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
+inla_tp *inla_build(const char *dict_filename, int verbose);
 
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
@@ -2154,20 +2154,20 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
 
-int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec);
-int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir));
+int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out);
-int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
-int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
-int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec);
 
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
@@ -2227,7 +2227,6 @@ int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread_str_str(char **tag, int nmax, char *str);
-int inla_sread_str_str_x(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
@@ -2292,7 +2291,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2376,7 +2375,7 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, double *logll, double *x,
 int loglikelihood_zeroinflated_poisson2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 					char **arg_str);
 
-int inla_tp_free(inla_tp *mb);
+int inla_tp_free(inla_tp * mb);
 int inla_reset(void);
 int inla_testit_timer(void);
 int my_dir_exists(const char *dirname);

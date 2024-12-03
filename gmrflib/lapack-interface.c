@@ -1489,6 +1489,34 @@ void GMRFLib_fill(int n, double a, double *x)
 	}
 }
 
+void GMRFLib_ifill(int n, int ia, int *ix)
+{
+	if (n > 0) {
+		if (ISZERO(ia)) {
+			memset((void *) ix, 0, (size_t) (n * sizeof(int)));
+		} else {
+			int len0 = BUFSIZ / sizeof(int);
+			if (n < 2 * len0) {
+#pragma omp simd
+				for (int i = 0; i < n; i++) {
+					ix[i] = ia;
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < len0; i++) {
+					ix[i] = ia;
+				}
+
+				int offset = len0;
+				while (offset < n) {
+					int len = IMIN(len0, n - offset);
+					memcpy((void *) (ix + offset), (void *) ix, (size_t) (len * sizeof(int)));
+					offset += len;
+				}
+			}
+		}
+	}
+}
 
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
