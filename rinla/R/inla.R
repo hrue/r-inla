@@ -2768,8 +2768,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     file.log <- inla.tempfile()
     file.log2 <- inla.tempfile()
     verbose.arg <- if (verbose) "-v" else ""
-    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'),
-                       " -d", n.models)
+    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'), " -d", n.models)
     models <- dir(working.directory, full.names = TRUE)
     mfiles <- shQuote(models)
     timeout.used <- Sys.time()
@@ -2777,7 +2776,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
-                echoc <- system(paste(c(shQuote(inla.call), all.args, mfiles), collapse=" "), timeout = timeout)
+                echoc <- system(paste(shQuote(inla.call), all.args, mfiles), timeout = timeout)
             } else {
                 echoc <- system(paste(
                     shQuote(inla.call), all.args, mfiles, " > ", shQuote(file.log),

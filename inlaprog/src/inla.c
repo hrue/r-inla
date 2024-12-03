@@ -6717,14 +6717,14 @@ int main(int argc, char **argv)
 				assert(0 == 1);
 			}
 		}
-			break;
+		break;
 
 		case 'v':
 		{
 			silent = 1;
 			verbose++;
 		}
-			break;
+		break;
 
 		case 'V':
 		{
@@ -6733,12 +6733,12 @@ int main(int argc, char **argv)
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}
-			break;
+		break;
 		case 'e':
 		{
 			my_setenv(optarg, 1);
 		}
-			break;
+		break;
 
 		case 'B':
 		{
@@ -6751,7 +6751,7 @@ int main(int argc, char **argv)
 				exit(EXIT_SUCCESS);
 			}
 		}
-			break;
+		break;
 
 		case 'd':
 		{
@@ -6764,7 +6764,7 @@ int main(int argc, char **argv)
 				exit(EXIT_SUCCESS);
 			}
 		}
-			break;
+		break;
 
 		case 'm':
 		{
@@ -6799,7 +6799,7 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 		}
-			break;
+		break;
 
 		case 'S':
 		{
@@ -6821,7 +6821,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
 		}
-			break;
+		break;
 
 		case 't':
 		{
@@ -6896,7 +6896,7 @@ int main(int argc, char **argv)
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 		}
-			break;
+		break;
 
 		case 'z':
 		{
@@ -6919,7 +6919,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-			break;
+		break;
 
 		case 'h':
 		{
@@ -6927,14 +6927,14 @@ int main(int argc, char **argv)
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}
-			break;
+		break;
 
 		case 's':
 		{
 			verbose = 0;
 			silent = 1;
 		}
-			break;
+		break;
 
 		case 'r':
 		{
@@ -6947,7 +6947,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
 		}
-			break;
+		break;
 
 		case 'R':
 		{
@@ -6959,7 +6959,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_pardiso_set_nrhs(nrhs);
 		}
-			break;
+		break;
 
 		case 'c':
 		{
@@ -6967,7 +6967,7 @@ int main(int argc, char **argv)
 			enable_core_file = 1;		       /* allow for core files */
 #endif
 		}
-			break;
+		break;
 
 		case 'p':
 		{
@@ -6980,13 +6980,13 @@ int main(int argc, char **argv)
 			}
 #endif
 		}
-			break;
+		break;
 
 		case 'L':
 		{
 			// link with vecLib on Mac. this is just dummy option
 		}
-			break;
+		break;
 
 		default:
 			_USAGE;
@@ -7027,28 +7027,28 @@ int main(int argc, char **argv)
 		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[1] <= 1 ? 1 : 2));
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_QINV:
 	{
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_QSOLVE:
 	{
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_QREORDERING:
 	{
 		inla_qreordering(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_QSAMPLE:
 	{
@@ -7056,49 +7056,49 @@ int main(int argc, char **argv)
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_FINN:
 	{
 		inla_finn(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_GRAPH:
 	{
 		inla_read_graph(argv[optind]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_R:
 	{
 		inla_R(&(argv[optind]));
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_FGN:
 	{
 		inla_fgn(argv[optind], argv[optind + 1]);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_PARDISO:
 	{
 		inla_check_pardiso();
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_TESTIT:
 	{
 		testit(argc - optind, &(argv[optind]));
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case INLA_MODE_HYPER:
 	case INLA_MODE_DEFAULT:
@@ -7167,7 +7167,7 @@ int main(int argc, char **argv)
 		cwd = getcwd(cwd_buff, (size_t) 1024);
 		arg = optind; 
 
-		for (int k = 0; m < GMRFLib_model_n; k++) {
+		for (int k = 0; k < GMRFLib_model_n; k++) {
 			GMRFLib_model_idx = k;
 			if (verbose) {
 				printf("\ncwd[%s]\n", cwd);
@@ -7456,6 +7456,7 @@ int inla_tp_free(inla_tp *mb)
 	GMRFLib_preopt_free(mb->preopt);
 	Free(mb->offset);
 	Free(mb->link_fitted_values);
+	dictionary_del(mb->ini);
 
 	for (int i = 0; i < mb->nds; i++) {
 		Data_section_tp ds = mb->data_sections[i];
@@ -7471,14 +7472,35 @@ int inla_tp_free(inla_tp *mb)
 		Free(d->cbinomial_k);
 		Free(d->cbinomial_n);
 		Free(d->strata);
+		Free(d->weight_gaussian);
+		Free(d->bc_scale);
+		Free(d->bc_mean);
+		Free(d->beta_weight);
+		Free(d->weight_simplex);
+		Free(d->weight_t);
+		Free(d->weight_tstrata);
+		Free(d->strata_tstrata);
 		Free(d->truncation);
+		Free(d->cure_cov);
 		Free(d->event);
 		Free(d->lower);
 		Free(d->upper);
 		Free(d->tp_E);
 		Free(d->tp_event);
 		Free(d->tp_offset);
+		Free(d->betabinomialnb_scale);
+		Free(d->sn_scale);
+		Free(d->weight_gev);
+		Free(d->bgev_tail_interval);
+		Free(d->bgev_qmix);
+		Free(d->bgev_scale);
+		if (d->bgev_x) {
+			for(int j = 0; j < d->bgev_nbetas[0] + d->bgev_nbetas[1]; j++) {
+				Free(d->bgev_x[j]);
+			}
+			Free(d->bgev_x);
+		}
 	}
-	
+
 	return 0;
 }
