@@ -2097,6 +2097,7 @@
     timeout <- if (!is.numeric(timeout) || timeout < 0) 0 else ceiling(timeout)
     timeout.used <- Sys.time()
     
+    env <- inla.run.environment.set()
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
@@ -2122,12 +2123,6 @@
                 inla.inlaprogram.timeout(timeout.used, timeout)
             } else if (inla.os("windows")) {
                 if (!remote && !submit) {
-                    ## need to set these variables here 
-                    Sys.setenv(
-                        MIMALLOC_ARENA_EAGER_COMMIT = 1,
-                        MIMALLOC_PURGE_DELAY = -1,
-                        MIMALLOC_PURGE_DECOMMITS = 0
-                    )
                     if (verbose) {
                         echoc <- try(system2(inla.call,
                                              args = paste(all.args, shQuote(file.ini)),
@@ -2138,14 +2133,6 @@
                                              stdout = file.log, stderr = file.log2,
                                              wait = TRUE, timeout = timeout))
                     }
-                    ## and unset them here 
-                    Sys.unsetenv(
-                        c(
-                            "MIMALLOC_ARENA_EAGER_COMMIT",
-                            "MIMALLOC_PURGE_DELAY",
-                            "MIMALLOC_PURGE_DECOMMITS"
-                        )
-                    )
                     timeout.used <- Sys.time() - timeout.used
                     inla.inlaprogram.timeout(timeout.used, timeout)
                     if (echoc != 0L) {
@@ -2274,6 +2261,9 @@
         ret <- list()
         class(ret) <- "inla"
     }
+
+    ## set environment values back to user-state
+    inla.run.environment.unset(env)
 
     ## if we just write model-files, we can exit here
     if (nchar(inla.call) == 0) {
@@ -2715,6 +2705,42 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return (invisible())
 }
 
+`inla.run.environment.set` <- function() {
+    ## we like to control OMP_ / malloc-lib-variables ourself
+    env.vars <- c("OMP_NUM_THREADS",
+                  "OMP_SCHEDULE",
+                  "OMP_MAX_ACTIVE_LEVELS",
+                  "OMP_SCHEDULE", 
+                  "MIMALLOC_ARENA_EAGER_COMMIT",
+                  "MIMALLOC_PURGE_DELAY",
+                  "MIMALLOC_PURGE_DECOMMITS",
+                  "MALLOC_CONF",
+                  "TSAN_OPTIONS")
+    ## save current values
+    env.vars.value <- Sys.getenv(env.vars)
+    ## unset and then set defaults
+    Sys.unsetenv(env.vars)
+    Sys.setenv(
+        MIMALLOC_ARENA_EAGER_COMMIT = 1,
+        MIMALLOC_PURGE_DELAY = -1,
+        MIMALLOC_PURGE_DECOMMITS = 0,
+        MALLOC_CONF = "abort_conf:true,metadata_thp:always", 
+        TSAN_OPTIONS = "ignore_noninstrumented_modules=1"
+    )
+    return (list(vars = env.vars, values = env.vars.value))
+}
+
+`inla.run.environment.unset` <- function(env) {
+    ## set environment values back to user-state
+    for(i in seq_along(env$vars)) {
+        if (nchar(env$values[i]) > 0) {
+            a <- list(env$values[i])
+            names(a) <- env$vars[i]
+            do.call(Sys.setenv, args = a)
+        }
+    }
+}
+
 `inla.run.many` <- function(working.directory = NULL,
                             verbose = inla.getOption("verbose"),
                             num.threads = inla.getOption("num.threads"),
@@ -2732,6 +2758,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     mfiles <- paste(shQuote(models), collapse = " ")
     timeout.used <- Sys.time()
 
+    env <- inla.run.environment.set()
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
@@ -2745,12 +2772,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
             timeout.used <- Sys.time() - timeout.used
             inla.inlaprogram.timeout(timeout.used, timeout)
         } else if (inla.os("windows")) {
-            ## need to set these variables here 
-            Sys.setenv(
-                MIMALLOC_ARENA_EAGER_COMMIT = 1,
-                MIMALLOC_PURGE_DELAY = -1,
-                MIMALLOC_PURGE_DECOMMITS = 0
-            )
             if (verbose) {
                 echoc <- try(system2(inla.call,
                                      args = paste(all.args, mfiles),
@@ -2761,14 +2782,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                                      stdout = file.log, stderr = file.log2,
                                      wait = TRUE, timeout = timeout))
             }
-            ## and unset them here 
-            Sys.unsetenv(
-                c(
-                    "MIMALLOC_ARENA_EAGER_COMMIT",
-                    "MIMALLOC_PURGE_DELAY",
-                    "MIMALLOC_PURGE_DECOMMITS"
-                )
-            )
             timeout.used <- Sys.time() - timeout.used
             inla.inlaprogram.timeout(timeout.used, timeout)
             if (echoc != 0L) {
@@ -2785,6 +2798,9 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         errorCondition("The inla program call crashed.",
                        class = "inlaCrashError")
     })
+
+    ## set environment values back to user-state
+    inla.run.environment.unset(env)
 
     if (inherits(try_catch_result, "error")) {
         stop(try_catch_result)

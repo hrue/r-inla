@@ -101,6 +101,7 @@
     method <- match.arg(method)
 
     inla.set.environment()
+    env <- inla.run.environment.set()
     Xfile <- inla.tempfile(tmpdir = t.dir)
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         s <- system(paste(
@@ -116,6 +117,7 @@
         stop("\n\tNot supported architecture.")
     }
 
+    inla.run.environment.unset(env)
     X <- inla.read.fmesher.file(Xfile)
     unlink(t.dir, recursive = TRUE)
 

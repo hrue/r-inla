@@ -1172,7 +1172,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		}
 
 	} else {
-
 		// not data-rich case
 
 		if (preopt->pA_idxval) {
@@ -1182,24 +1181,19 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// pred_offset[i] = GMRFLib_dot_product(elm, latent); 
 			// pred[i] = GMRFLib_dot_product(elm, latent); 
 
-#define CODE_BLOCK							\
-			for (int j = 0; j < 2; j++) {			\
-				if (j == 0) {				\
-					for (int i = 0; i < preopt->npred; i++) { \
-						GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-						GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
-					}				\
-				} else {				\
-					for (int i = 0; i < preopt->mpred; i++) { \
-						GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-						GMRFLib_dot_product_INLINE(pred[i], elm, latent); \
-					}				\
-				}					\
+#pragma omp parallel num_threads(GMRFLib_MAX_THREADS())
+			{
+#pragma omp for nowait
+				for (int i = 0; i < preopt->npred; i++) { 
+					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; 
+					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); 
+				}	
+#pragma omp for
+				for (int i = 0; i < preopt->mpred; i++) { 
+					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; 
+					GMRFLib_dot_product_INLINE(pred[i], elm, latent); 
+				}
 			}
-
-			RUN_CODE_BLOCK(2, 0, 0);
-#undef CODE_BLOCK
-
 		} else {
 			// one loop
 			double *pred_offset = pred + offset;

@@ -6667,6 +6667,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
 	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
+	GMRFLib_openmp->schedule = omp_sched_guided;
 	GMRFLib_openmp->likelihood_nt = 0;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -6874,7 +6875,7 @@ int main(int argc, char **argv)
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
-				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
+				GMRFLib_openmp->max_threads = IMIN(host_max_threads, ntt[0] * ntt[1]);
 			}
 			if (verbose > 0) {
 				printf("\tFound num.threads = %1d:%1d max_threads = %1d\n", GMRFLib_openmp->max_threads_nested[0],
@@ -7010,8 +7011,6 @@ int main(int argc, char **argv)
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
 	{
-		printf("export OMP_NUM_THREADS=%1d,%1d,1,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[1] <= 1 ? 1 : 2));
 		exit(EXIT_SUCCESS);
 	}
 		break;
@@ -7165,11 +7164,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			if (cwd) {
-				int retval = chdir(cwd);
-				assert(retval == 0);
-			}
-			
+			if (cwd) chdir(cwd);
 			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
 			char *model_ini = NULL;
 			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
@@ -7181,8 +7176,7 @@ int main(int argc, char **argv)
 					if (verbose) {
 						printf("Change directory to [%s]\n", argv[arg]);
 					}
-					int retval = chdir(argv[arg]);
-					assert(retval == 0);
+					chdir(argv[arg]);
 				} else {
 					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n",
 						argv[arg]);

@@ -33,11 +33,7 @@ else
     export LD_LIBRARY_PATH="$DIR/first:$DR:$DIR:$D:$LD_LIBRARY_PATH"
 fi
 
-export OMP_SCHEDULE=GUIDED
-##export OMP_PROC_BIND=FALSE
-##export OMP_WAIT_POLICY=ACTIVE
 export PARDISOLICMESSAGE=1
-
 if [ -n "${INLA_MALLOC_LIB}" ]; then
     if [ -f "${INLA_MALLOC_LIB}" ]; then
 	export LD_PRELOAD="${INLA_MALLOC_LIB}:$LD_PRELOAD"
@@ -53,13 +49,8 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
     fi
     case "$LD_PRELOAD" in
 	*libjemalloc*) 
-	    export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always'
 	    ;;
 	*libmimalloc*) 
-	    ## https://microsoft.github.io/mimalloc/environment.html
-	    export MIMALLOC_ARENA_EAGER_COMMIT=1 
-	    export MIMALLOC_PURGE_DELAY=-1 
-	    export MIMALLOC_PURGE_DECOMMITS=0
 	    ;;
     esac
 fi
@@ -83,14 +74,6 @@ if [ -n "${INLA_DEBUG}" ]; then
 
 fi
 
-## set default levels for nested openmp
-nt="-t$(nproc):1"
-for arg in "$@"; do 
-    case "$arg" in
-	-t*) nt="$arg";;
-    esac
-done
-eval $(echo $nt | awk -v nproc=$(nproc) -F: '{gsub(/^-t/,""); nt=1*$2; if (nt < 0) nt=-nt; if ($1*1 == 0) $1=nproc; if (nt==0) nt=1; print "export OMP_NUM_THREADS=" $1 "," nt ";"; al=1; if(nt>1) al=2; print "export OMP_MAX_ACTIVE_LEVELS=" al ";"}')
 if [ -n "${INLA_DEBUG}" ]; then
     set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
     echo " *** $0 *** exec $DIR/$prog $@"
