@@ -3553,7 +3553,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "PCGEVTAIL", NULL);
 		ds->data_observations.egp_tail_interval = Calloc(2, double);
-		if (ds->data_prior0.id == P_PC_GEVTAIL) {
+		if (ds->data_prior0.id == P_PC_GEVTAIL || ds->data_prior0.id == P_PC_EGPTAIL) {
 			ds->data_observations.egp_tail_interval[0] = ds->data_prior0.parameters[1];
 			ds->data_observations.egp_tail_interval[1] = ds->data_prior0.parameters[2];
 		} else {
