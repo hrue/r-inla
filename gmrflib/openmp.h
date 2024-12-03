@@ -110,6 +110,8 @@ typedef struct {
 	int max_threads_inner;
 	// when this is TRUE, then do PARDISO is parallel if the function call is serial
 	int adaptive;
+	// default schedule
+	omp_sched_t schedule;
 	// optimal number of threads for likelihood computations
 	int likelihood_nt;
 } GMRFLib_openmp_tp;
