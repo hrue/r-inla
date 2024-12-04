@@ -4991,7 +4991,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * get options related to the gamma
 		 */
-		char *nm = (ds->data_id == L_GAMMA ? strdup("Gamma") : strdup("mGamma"));
+		char *nm = (ds->data_id == L_GAMMA ? Strdup("Gamma") : Strdup("mGamma"));
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->mode_use_mode) {
@@ -5050,7 +5050,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * get options related to the gamma
 		 */
-		char *nm = (ds->data_id == L_GAMMASURV ? strdup("Gamma") : strdup("mGamma"));
+		char *nm = (ds->data_id == L_GAMMASURV ? Strdup("Gamma") : Strdup("mGamma"));
 
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
@@ -9826,7 +9826,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	_SET(Alocal, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
-	mb->f_tag[mb->nf] = (secname ? strdup(secname) : strdup(default_tag));
+	mb->f_tag[mb->nf] = (secname ? Strdup(secname) : Strdup(default_tag));
 	mb->f_dir[mb->nf] = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->f_tag[mb->nf])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->f_dir[mb->nf]);
@@ -18024,7 +18024,7 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 	mb->linear_compute = Realloc(mb->linear_compute, mb->nlinear + 1, int);
 	mb->linear_output = Realloc(mb->linear_output, mb->nlinear + 1, Output_tp *);
 	sprintf(default_tag, "default tag for linear %d", (int) (10000 * GMRFLib_uniform()));
-	mb->linear_tag[mb->nlinear] = (secname ? strdup(secname) : strdup(default_tag));
+	mb->linear_tag[mb->nlinear] = (secname ? Strdup(secname) : Strdup(default_tag));
 	mb->linear_dir[mb->nlinear] = Strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), Strdup(mb->linear_tag[mb->nlinear])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->linear_dir[mb->nlinear]);
@@ -18259,8 +18259,9 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 			mb->ai_par->fp_hyperparam = NULL;
 		} else {
 			static FILE *fp = NULL;
-
-			fp = fopen(filename, "w");
+			char *fnm = NULL;
+			GMRFLib_sprintf(&fnm, "%s/%s", mb->dir, filename);
+			fp = fopen(fnm, "w");
 			if (!fp) {
 				GMRFLib_sprintf(&msg, "%s: fail to open file[%s]", __GMRFLib_FuncName, filename);
 			}

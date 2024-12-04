@@ -1074,7 +1074,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
-
 #undef FREE_ALL
 }
 
@@ -1887,6 +1886,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	} else {
 		design = ai_par->int_design;
 	}
+
+	if (0)
+		GMRFLib_design_print(stdout, design);
 
 	if (design->nexperiments > 1 && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 		f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
@@ -4744,7 +4746,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.2f sec/iter] cyclic[%s]\n",
 					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0),
-					(flag_cyclic ? strdup("Yes") : strdup("No")));
+					(flag_cyclic ? Strdup("Yes") : Strdup("No")));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {

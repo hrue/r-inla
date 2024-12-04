@@ -106,7 +106,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	(*preopt)->covariate = covariate;
 	(*preopt)->prior_precision = prior_precision;
 
-	SHOW_TIME("setup1");
+	SHOW_TIME("setup-1");
 
 	/*
 	 * Our first job, is to go through the model and compute all interactions etc that are defined through the \eta-model. 
@@ -130,6 +130,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		idx_map_beta[nbeta] = offset;
 	}
 	N = offset;					       /* N is the size of the latent (no predictors) */
+
+	SHOW_TIME("setup-2");
 
 	/*
 	 * If we have cross-terms, make sure to mark these cross-terms as neigbours; just fill them with zero's.
@@ -159,8 +161,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		}
 	}
 
+	
 	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
 	GMRFLib_ged_free(ged);
+
+	SHOW_TIME("latent graph");
+
 	// not needed as its only one option
 	// (*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) *preopt;
@@ -252,6 +258,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		(*preopt)->latent_constr = NULL;
 	}
 
+	SHOW_TIME("latent constr");
+
 	(*preopt)->idx_map_f = idx_map_f;
 	(*preopt)->idx_map_beta = idx_map_beta;
 	(*preopt)->what_type = Calloc(N, GMRFLib_preopt_type_tp);
@@ -272,7 +280,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		}
 	}
 
-	SHOW_TIME("setup2");
+	SHOW_TIME("whattype");
 
 	// build up structure for the likelihood part
 
@@ -369,6 +377,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		}
 	}
 
+	SHOW_TIME("begin pA_...");
 	if (pA_fnm) {
 		pA = GMRFLib_read_fmesher_file(pA_fnm, (long int) 0, -1);
 		assert(pA);
@@ -561,8 +570,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			GMRFLib_idx_free(pAA_pattern[i]);
 		}
 		Free(pAA_pattern);
-		SHOW_TIME("End pA... ");
 	}
+	SHOW_TIME("End pA... ");
+
 	// setup dimensions, see pre-opt.h for the details
 	if (pA_fnm) {
 		(*preopt)->mpred = nrow;
@@ -579,11 +589,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	if (debug) {
-		P((*preopt)->mpred);
-		P((*preopt)->npred);
-		P((*preopt)->mnpred);
-		P((*preopt)->Npred);
-		P((*preopt)->n);
+		printf("\t\tmpred = %1d\n\t\tnpred = %1d\n\t\tmnpred = %1d\n\t\tNpred = %1d\n\t\tn = %1d\n", 
+		(*preopt)->mpred, (*preopt)->npred, (*preopt)->mnpred, (*preopt)->Npred, (*preopt)->n);
 	}
 	// we have to create AtA from "At" & "A". the matrix 'AtA' is for the likelihood only and is either "At %*% A", or "pAAt %*% pAA",
 	// depending if "pA" is there or not
@@ -602,7 +609,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		gen_len_At = (*preopt)->n;
 	}
 
-	SHOW_TIME("admin1");
+	SHOW_TIME("admin-1");
 
 	GMRFLib_graph_tp *g = NULL;
 	ged = NULL;
@@ -619,12 +626,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
-	SHOW_TIME("build graph part 1");
+	SHOW_TIME("like graph-1");
 
 	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
-	SHOW_TIME("build graph part 2");
+	SHOW_TIME("like graph-2");
 
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (int i = 0; i < g->n; i++) {
@@ -685,7 +692,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 1);
 		}
 	}
-	SHOW_TIME("sort AtA_idxval");
+	SHOW_TIME("nprune AtA_idxval");
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
@@ -721,7 +728,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			homedir = getpwuid(getuid())->pw_dir;
 		}
 		if (!homedir) {
-			homedir = strdup("./");
+			homedir = Strdup("./");
 		}
 		char *fnm = NULL;
 		GMRFLib_sprintf(&fnm, "%s/INLA-graph-pid%1d-count%1d.txt", homedir, (int) getpid(), ++count);
@@ -764,7 +771,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-	SHOW_TIME("admin2");
+	SHOW_TIME("admin-2");
 #undef  SHOW_TIME
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -1472,11 +1479,12 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp *preopt)
 			Free(preopt->like_c);
 			Free(preopt->total_b);
 
-			for (int i = 0; i < preopt->preopt_graph->n; i++) {
-				Free(preopt->preopt_graph_latent_is_nb[i]);
-				Free(preopt->preopt_graph_like_is_nb[i]);
+			if (preopt->preopt_graph_latent_is_nb) {
+				for (int i = 0; i < preopt->preopt_graph->n; i++) {
+					Free(preopt->preopt_graph_latent_is_nb[i]);
+				}
+				Free(preopt->preopt_graph_latent_is_nb);
 			}
-			Free(preopt->preopt_graph_latent_is_nb);
 			Free(preopt->preopt_graph_like_is_nb);
 			Free(preopt->mode_x);
 

@@ -409,12 +409,12 @@ int GMRFLib_io_write(GMRFLib_io_tp *io, const void *buf, size_t len)
 	return GMRFLib_SUCCESS;
 }
 
-intmax_t GMRFLib_io_file_size(const char *filename) 
+intmax_t GMRFLib_io_file_size(const char *filename)
 {
 	if (!filename) {
 		return (0);
 	}
-	
+
 	struct stat buffer;
 	int status;
 

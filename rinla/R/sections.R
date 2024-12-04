@@ -1048,7 +1048,7 @@ inla.parse.Bmatrix.test <- function() {
         cat("diff.log.dens = ", inla.spec$diff.logdens, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$print.joint.hyper)) {
-        cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = "", file = file, append = TRUE)
+        cat("fp.hyperparam = joint.dat\n", sep = "", file = file, append = TRUE)
     }
 
     if (is.null(inla.spec$tolerance) || is.na(inla.spec$tolerance)) {

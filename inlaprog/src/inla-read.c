@@ -171,7 +171,7 @@ char *inla_read_lineno(int lineno, const char *filename)
 	assert(fp);
 	assert(siz > 0);
 
-	char *line = Calloc(siz + 1, char);	
+	char *line = Calloc(siz + 1, char);
 	int count = 0;
 	while (1) {
 		int ret = fscanf(fp, "%s\n", line);

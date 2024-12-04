@@ -6657,7 +6657,7 @@ int main(int argc, char **argv)
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 	int model_n_is_set = 0;
-	
+
 	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
@@ -7176,7 +7176,7 @@ int main(int argc, char **argv)
 
 			GMRFLib_model_idx = (model_n_is_set ? k : 0);
 			arg = (model_n_is_set ? optind : optind + k);
-				
+
 			if (verbose) {
 				printf("\ncwd[%s]\n", cwd);
 				printf("Process file/directory[%s] model[%1d/%1d/] threads[%1d] max.threads[%1d] blas_threads_force[%1d]",
@@ -7193,14 +7193,14 @@ int main(int argc, char **argv)
 				int ret = chdir(cwd);
 				assert(ret == 0);
 			}
-			
+
 			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
 			char *model_ini = NULL;
 			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
 				model_ini = argv[arg];
 			} else {
 				if (my_dir_exists(argv[arg]) == INLA_OK) {
-					char *new = strdup("Model.ini");
+					char *new = Strdup("Model.ini");
 					model_ini = new;
 					if (verbose) {
 						printf("Change directory to [%s]\n", argv[arg]);
@@ -7468,7 +7468,7 @@ int inla_tp_free(inla_tp *mb)
 	Free(mb->loglikelihood_arg);
 	Free(mb->d);
 	Free(mb->family_idx);
-	if (mb->transform_funcs) {
+	if (mb->transform_funcs && mb->preopt) {
 		for (int i = 0; i < mb->preopt->mnpred; i++) {
 			Free(mb->transform_funcs[i]);
 		}
@@ -7479,7 +7479,7 @@ int inla_tp_free(inla_tp *mb)
 	Free(mb->predictor_invlinkfunc_covariates);
 	Free(mb->predictor_family);
 	Free(mb->fl);
-	
+
 	GMRFLib_preopt_free(mb->preopt);
 
 	for (int i = 0; i < mb->nds; i++) {
