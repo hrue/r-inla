@@ -234,12 +234,19 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 	}
 }
 
-GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len, int num_threads)
 {
 	if (n > 0) {
 		GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
-		for (int i = 0; i < n; i++) {
-			GMRFLib_idxval_create_x(&(a[i]), len);
+		if (num_threads > 0) {
+#pragma omp parallel for num_threads(num_threads)
+			for (int i = 0; i < n; i++) {
+				GMRFLib_idxval_create_x(&(a[i]), len);
+			}
+		} else {
+			for (int i = 0; i < n; i++) {
+				GMRFLib_idxval_create_x(&(a[i]), len);
+			}
 		}
 		return a;
 	} else {

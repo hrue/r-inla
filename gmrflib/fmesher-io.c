@@ -305,7 +305,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			}
 		}
 
-		GMRFLib_matrix_add_graph_and_hash(M);
+		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
 
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
@@ -480,7 +480,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	return (0);
 }
 
-int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 {
 	/*
 	 * add further info if this is a sparse matrix: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the
@@ -490,7 +490,10 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, j, k;
+	if (nt <= 0) {
+		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+	}
+
 	int nhold = 0, *hold = NULL, offset = 0;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
 
@@ -498,7 +501,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 	g->nbs = Calloc(g->n, int *);
 	g->nnbs = Calloc(g->n, int);
 
-	for (k = 0; k < M->elems; k++) {
+	for (int k = 0; k < M->elems; k++) {
 		if (M->i[k] != M->j[k]) {
 			g->nnbs[M->i[k]]++;
 		}
@@ -507,7 +510,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 	nhold = M->elems;
 	hold = Calloc(nhold, int);
 	offset = 0;
-	for (k = 0; k < M->nrow; k++) {
+	for (int k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
 			g->nbs[k] = NULL;
 		} else {
@@ -517,14 +520,14 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 	}
 	assert(offset <= nhold);
 
-	for (k = 0; k < M->nrow; k++) {
+	for (int k = 0; k < M->nrow; k++) {
 		g->nnbs[k] = 0;				       /* will use this array for counting and build it again */
 	}
 
-	for (k = 0; k < M->elems; k++) {
+	for (int k = 0; k < M->elems; k++) {
 		if (M->i[k] != M->j[k]) {
-			i = M->i[k];
-			j = M->j[k];
+			int i = M->i[k];
+			int j = M->j[k];
 			g->nbs[i][g->nnbs[i]] = j;
 			g->nnbs[i]++;
 		}
@@ -542,34 +545,53 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 	} else {
 		M->htable_column_order = 1;
 	}
+
 	if (M->htable_column_order) {
-		/*
-		 *   need to count, as we cannot use g->nnbs
-		 */
+		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
-		for (k = 0; k < M->elems; k++) {
+		for (int k = 0; k < M->elems; k++) {
 			if (M->i[k] != M->j[k]) {
 				nnbs_r[M->j[k]]++;
 			}
 		}
 
 		M->htable = Calloc(M->ncol, map_id *);
-		for (k = 0; k < M->ncol; k++) {
+		for (int k = 0; k < M->ncol; k++) {
 			M->htable[k] = Calloc(1, map_id);
 			map_id_init_hint(M->htable[k], nnbs_r[k] + 1);
 		}
-		for (k = 0; k < M->elems; k++) {
+		for (int k = 0; k < M->elems; k++) {
 			map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
 		}
 		Free(nnbs_r);
 	} else {
 		M->htable = Calloc(M->nrow, map_id *);
-		for (k = 0; k < M->nrow; k++) {
+#pragma omp parallel for num_threads(nt)
+		for (int k = 0; k < M->nrow; k++) {
 			M->htable[k] = Calloc(1, map_id);
 			map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
 		}
-		for (k = 0; k < M->elems; k++) {
-			map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+
+		if (nt == 1) {
+			for (int k = 0; k < M->elems; k++) {
+				map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+			}
+		} else {
+			int lim[nt+1];
+			lim[0] = 0;
+			for(int k = 1; k < nt + 1; k++) {
+				lim[k] = (M->nrow * k) / nt;
+			}
+#pragma omp parallel for num_threads(nt)
+			for(int kk = 0; kk < nt; kk++) {
+				int cut_low = lim[kk];
+				int cut_high = lim[kk+1];
+				for (int k = 0; k < M->elems; k++) {
+					if (cut_low <= M->i[k] && M->i[k] < cut_high) {
+						map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+					}
+				}
+			}
 		}
 	}
 
@@ -849,7 +871,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		}
 	}
 
-	GMRFLib_matrix_add_graph_and_hash(N);
+	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
 
 	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
@@ -859,11 +881,14 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 	return N;
 }
 
-int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol)
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol, int nt)
 {
-	int nelm = 0, i, j, jj, k;
-
-	for (i = 0; i < nrow; i++) {
+	if (nt <= 0) {
+		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+	}
+			     
+	int nelm = 0; 
+	for (int i = 0; i < nrow; i++) {
 		nelm += idxval[i]->n;
 	}
 	*M = Calloc(1, GMRFLib_matrix_tp);
@@ -874,15 +899,34 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 	(*M)->j = Calloc(nelm, int);
 	(*M)->values = Calloc(nelm, double);
 
-	for (i = k = 0; i < nrow; i++) {
-		for (jj = 0; jj < idxval[i]->n; jj++, k++) {
-			j = idxval[i]->idx[jj];
-			(*M)->i[k] = i;
-			(*M)->j[k] = j;
-			(*M)->values[k] = idxval[i]->val[jj];
+	if (nt == 1) {
+		for (int i = 0, k = 0; i < nrow; i++) {
+			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
+				int j = idxval[i]->idx[jj];
+				(*M)->i[k] = i;
+				(*M)->j[k] = j;
+				(*M)->values[k] = idxval[i]->val[jj];
+			}
 		}
+	} else {
+		int *kk = Calloc(nrow, int);
+		for (int i = 1; i < nrow; i++) {
+			kk[i] = kk[i-1] + idxval[i-1]->n;
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < nrow; i++) {
+			int k = kk[i];
+			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
+				int j = idxval[i]->idx[jj];
+				(*M)->i[k] = i;
+				(*M)->j[k] = j;
+				(*M)->values[k] = idxval[i]->val[jj];
+			}
+		}
+		Free(kk);
 	}
-	GMRFLib_matrix_add_graph_and_hash(*M);
+
+	GMRFLib_matrix_add_graph_and_hash(*M, nt);
 
 	return GMRFLib_SUCCESS;
 }

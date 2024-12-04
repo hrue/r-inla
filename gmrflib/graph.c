@@ -42,7 +42,7 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
-#define NUM_THREADS_GRAPH(graph_) ((graph_)->n > 1024 ? 2 : 1)
+#define NUM_THREADS_GRAPH(graph_) ((graph_)->n > 1024 ? 4 : 1)
 
 int GMRFLib_graph_init_store(void)
 {
