@@ -28,6 +28,9 @@
  *
  */
 
+#include <limits.h>
+#include <math.h>
+#include <strings.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -42,7 +45,11 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
-#define NUM_THREADS_GRAPH(graph_) ((graph_)->n > 1024 ? 4 : 1)
+#define NUM_THREADS_GRAPH(graph_) IMIN(GMRFLib_OPENMP_NUM_THREADS_LEVEL(), \
+				       (graph_->n <= 1E2 ? 1 :		\
+					(graph_->n < 1E3 ? 2 :		\
+					 (graph_->n < 1E4 ? 4 :		\
+					  (graph_->n < 1E4 ? 8 : GMRFLib_MAX_THREADS())))))
 
 int GMRFLib_graph_init_store(void)
 {
@@ -708,18 +715,40 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
 		}
 	}
+
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
-	for (int i = 0, k = 0; i < n; i++) {
-		row2col[k++] = Q(i, i, 0);
-		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
-			int j = graph->snbs[i][jj];
-			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
-			row2col[k++] = Q(i, j, kk);
+
+	int nt = NUM_THREADS_GRAPH(graph);
+	if (nt == 1) {
+		for (int i = 0, k = 0; i < n; i++) {
+			row2col[k++] = Q(i, i, 0);
+			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
+				int j = graph->snbs[i][jj];
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				row2col[k++] = Q(i, j, kk);
+			}
 		}
+	} else {
+		int *idx = Calloc(n, int);
+		for (int i = 1; i < n; i++) {
+			int off = 1 + graph->snnbs[i-1];
+			idx[i] = idx[i-1] + off;
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = idx[i];
+			row2col[k++] = Q(i, i, 0);
+			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
+				int j = graph->snbs[i][jj];
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				row2col[k++] = Q(i, j, kk);
+			}
+		}
+		Free(idx);
 	}
 	graph->row2col = row2col;
-
 #undef Q
+
 	return GMRFLib_SUCCESS;
 }
 
