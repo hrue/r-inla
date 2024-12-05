@@ -566,21 +566,21 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			map_id_init_hint(M->htable[k], nnbs_r[k] + 1);
 		}
 		Free(nnbs_r);
-		
+
 		if (nt == 1) {
 			for (int k = 0; k < M->elems; k++) {
 				map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
 			}
 		} else {
-			int lim[nt+1];
+			int lim[nt + 1];
 			lim[0] = 0;
-			for(int k = 1; k < nt + 1; k++) {
+			for (int k = 1; k < nt + 1; k++) {
 				lim[k] = (M->ncol * k) / nt;
 			}
 #pragma omp parallel for num_threads(nt)
-			for(int kk = 0; kk < nt; kk++) {
+			for (int kk = 0; kk < nt; kk++) {
 				int cut_low = lim[kk];
-				int cut_high = lim[kk+1];
+				int cut_high = lim[kk + 1];
 				for (int k = 0; k < M->elems; k++) {
 					if (cut_low <= M->j[k] && M->j[k] < cut_high) {
 						map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
@@ -601,15 +601,15 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 				map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
 			}
 		} else {
-			int lim[nt+1];
+			int lim[nt + 1];
 			lim[0] = 0;
-			for(int k = 1; k < nt + 1; k++) {
+			for (int k = 1; k < nt + 1; k++) {
 				lim[k] = (M->nrow * k) / nt;
 			}
 #pragma omp parallel for num_threads(nt)
-			for(int kk = 0; kk < nt; kk++) {
+			for (int kk = 0; kk < nt; kk++) {
 				int cut_low = lim[kk];
-				int cut_high = lim[kk+1];
+				int cut_high = lim[kk + 1];
 				for (int k = 0; k < M->elems; k++) {
 					if (cut_low <= M->i[k] && M->i[k] < cut_high) {
 						map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
@@ -910,8 +910,8 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 	if (nt <= 0) {
 		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
 	}
-			     
-	int nelm = 0; 
+
+	int nelm = 0;
 	for (int i = 0; i < nrow; i++) {
 		nelm += idxval[i]->n;
 	}
@@ -935,7 +935,7 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 	} else {
 		int *kk = Calloc(nrow, int);
 		for (int i = 1; i < nrow; i++) {
-			kk[i] = kk[i-1] + idxval[i-1]->n;
+			kk[i] = kk[i - 1] + idxval[i - 1]->n;
 		}
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nrow; i++) {

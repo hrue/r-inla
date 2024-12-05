@@ -570,29 +570,29 @@ int *GMRFLib_bsearch(int key, int n, int *array)
 
 int GMRFLib_graph_is_nb_ORIG(int node, int nnode, GMRFLib_graph_tp *graph)
 {
-        int imin, imax;
-        if (node < nnode) {
-                imin = node;
-                imax = nnode;
-        } else {
-                imin = nnode;
-                imax = node;
-        }
+	int imin, imax;
+	if (node < nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
 
-        int m = graph->lnnbs[imin];
-        if (m) {
-                int *nb = graph->lnbs[imin];
-                if (imax <= nb[m - 1]) {
-                        return (GMRFLib_bsearch(imax, m, nb) != NULL);
-                }
-        }
+	int m = graph->lnnbs[imin];
+	if (m) {
+		int *nb = graph->lnbs[imin];
+		if (imax <= nb[m - 1]) {
+			return (GMRFLib_bsearch(imax, m, nb) != NULL);
+		}
+	}
 
-        return 0;
+	return 0;
 }
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
-        if (node < nnode) {
+	if (node < nnode) {
 		if (graph->lnnbs[node] <= graph->lnnbs[nnode]) {
 			int m = graph->lnnbs[node];
 			if (m) {
@@ -620,7 +620,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 		}
 	}
 
-        return 0;
+	return 0;
 }
 
 int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
@@ -1049,10 +1049,10 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	} else {
 		int *arr = Calloc(n, int);
 		for (int i = 1; i < n; i++) {
-			arr[i] = arr[i-1] + g->nnbs[i-1];
+			arr[i] = arr[i - 1] + g->nnbs[i - 1];
 		}
 #pragma omp parallel for num_threads(NUM_THREADS_GRAPH(g))
-		for (int i = 0;  i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			if (g->nnbs[i]) {
 				hold_idx = arr[i];
 				g->nbs[i] = &hold[hold_idx];

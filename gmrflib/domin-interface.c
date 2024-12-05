@@ -739,7 +739,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	char first_entry = 1;
 	int replace_from = -1;
-	int replace_to = 2*n;
+	int replace_to = 2 * n;
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < 2 * n + 1; ii++) {
