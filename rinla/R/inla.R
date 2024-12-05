@@ -2747,6 +2747,9 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                   "MIMALLOC_ARENA_EAGER_COMMIT",
                   "MIMALLOC_PURGE_DELAY",
                   "MIMALLOC_PURGE_DECOMMITS",
+                  "MIMALLOC_SHOW_STATS", 
+                  "MIMALLOC_VERBOSE", 
+                  "MIMALLOC_SHOW_ERRORS", 
                   "MALLOC_CONF",
                   "TSAN_OPTIONS")
     ## save current values
@@ -2757,6 +2760,9 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         MIMALLOC_ARENA_EAGER_COMMIT = 1,
         MIMALLOC_PURGE_DELAY = -1,
         MIMALLOC_PURGE_DECOMMITS = 0,
+        MIMALLOC_SHOW_STATS = 0, 
+        MIMALLOC_VERBOSE = 0, 
+        MIMALLOC_SHOW_ERRORS = 0, 
         MALLOC_CONF = "abort_conf:true,metadata_thp:always", 
         TSAN_OPTIONS = "ignore_noninstrumented_modules=1"
     )
