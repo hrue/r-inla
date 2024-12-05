@@ -741,7 +741,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 1);
 		}
 	}
-	SHOW_TIME("nprune AtA_idxval");
+	SHOW_TIME("prune AtA_idxval");
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;

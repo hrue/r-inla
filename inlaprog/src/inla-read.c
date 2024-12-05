@@ -165,11 +165,13 @@ char *inla_read_lineno(int lineno, const char *filename)
 {
 	// return lineno from filename
 	FILE *fp = fopen(filename, "r");
-	intmax_t siz = GMRFLib_io_file_size(filename);
 
+	// this call is very expensive...
+	// intmax_t siz = GMRFLib_io_file_size(filename);
+
+	size_t siz = 4096;
 	assert(lineno >= 0);
 	assert(fp);
-	assert(siz > 0);
 
 	char *line = Calloc(siz + 1, char);
 	int count = 0;

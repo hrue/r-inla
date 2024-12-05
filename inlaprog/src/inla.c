@@ -241,8 +241,11 @@ double inla_interpolate_mode(double *x, double *y)
 {
 	// give 3 values (x,y), return the mode. truncate at the boundary
 
-	double xm = (y[0] * x[1] * x[1] - y[0] * x[2] * x[2] - y[1] * x[0] * x[0] + y[1] * x[2] * x[2] + y[2] * x[0] * x[0] - y[2] * x[1] * x[1]) /
-	    (y[0] * x[1] - y[0] * x[2] - y[1] * x[0] + y[1] * x[2] + y[2] * x[0] - x[1] * y[2]) / 0.2e1;
+	double x0sqr = SQR(x[0]);
+	double x1sqr = SQR(x[1]);
+	double x2sqr = SQR(x[2]);
+	double xm = 0.5 * ((y[0] - y[2]) * x1sqr + (y[1] - y[0]) * x2sqr + (y[2] - y[1]) * x0sqr) /
+		(y[0] * (x[1] - x[2]) + (x[2] - x[0]) * y[1] + y[2] * (x[0] - x[1]));
 
 	double xmin = DMIN(x[0], DMIN(x[1], x[2]));
 	double xmax = DMAX(x[0], DMAX(x[1], x[2]));

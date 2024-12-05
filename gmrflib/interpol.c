@@ -471,9 +471,7 @@ int GMRFLib_spline_free(GMRFLib_spline_tp *s)
 	if (s) {
 		gsl_spline_free(s->spline);
 		if (s->accel) {
-			int n = (s->cache == GMRFLib_INTPOL_CACHE_LEVEL12 ? GMRFLib_CACHE_LEN() :
-				 (s->cache == GMRFLib_INTPOL_CACHE_LEVEL1 ? GMRFLib_CACHE_LEN_LEVEL1_ONLY() : 1));
-			for (int i = 0; i < n; i++) {
+			for (int i = 0; i < s->cache_len; i++) {
 				if (s->accel[i])
 					gsl_interp_accel_free(s->accel[i]);
 			}
