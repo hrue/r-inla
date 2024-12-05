@@ -370,7 +370,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		GMRFLib_idxval_free(ivs[k]);
 	}
 
-
 	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N, nt);
 	SHOW_TIME("A_idxval");
 
@@ -770,6 +769,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	g_arr[1] = (*preopt)->like_graph;
 	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
 
+	SHOW_TIME("admin-2");
+
 #if !defined(WINDOWS)
 	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {
 		static int count = 0;
@@ -821,7 +822,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-	SHOW_TIME("admin-2");
+	SHOW_TIME("admin-3");
 #undef  SHOW_TIME
 
 	GMRFLib_LEAVE_ROUTINE;

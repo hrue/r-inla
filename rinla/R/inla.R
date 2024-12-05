@@ -2114,22 +2114,23 @@
         do.call("Sys.setenv", as.list(vars))
     }
 
-    ## write the list of environment variables set, so they can be reset if needed
-    env <- Sys.getenv()
-    env.n <- names(env)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS)", env.n)
-    env.list <- env[idx]
-    file.env <- paste0(inla.dir, "/environment")
-    cat(file = file.env)
-    for (i in seq_along(env.list)) {
-        cat("export ", names(env.list[i]), "='", env.list[i], "'\n", sep = "", file = file.env, append = TRUE)
-    }
-
     timeout <- inla.getOption("inla.timeout")
     timeout <- if (!is.numeric(timeout) || timeout < 0) 0 else ceiling(timeout)
     timeout.used <- Sys.time()
     
     env <- inla.run.environment.set()
+
+    ## write the list of environment variables set, so they can be reset if needed
+    eenv <- Sys.getenv()
+    eenv.n <- names(eenv)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC|MALLOC_|TSAN_)", eenv.n)
+    eenv.list <- eenv[idx]
+    file.eenv <- paste0(inla.dir, "/environment")
+    cat(file = file.eenv)
+    for (i in seq_along(eenv.list)) {
+        cat("export ", names(eenv.list[i]), "='", eenv.list[i], "'\n", sep = "", file = file.eenv, append = TRUE)
+    }
+
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
