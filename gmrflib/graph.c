@@ -48,7 +48,6 @@ int GMRFLib_graph_init_store(void)
 {
 	GMRFLib_ENTER_ROUTINE;
 	graph_store_debug = GMRFLib_DEBUG_IF_TRUE();
-
 	if (graph_store_use) {
 		if (graph_store_must_init) {
 			map_strvp_init_hint(&graph_store, 128);
@@ -645,7 +644,6 @@ int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 {
-
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
@@ -688,7 +686,6 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 {
@@ -1004,10 +1001,11 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int 
 
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *graph_old)
 {
-	int m, i, n, *hold = NULL, hold_idx;
+	int m, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
+
 	if (!graph_old) {
 		*graph_new = NULL;
 		GMRFLib_LEAVE_ROUTINE;
@@ -1040,13 +1038,30 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	hold = Calloc(IMAX(1, m), int);
 	g->nbs = Calloc(n, int *);
 
-	for (i = hold_idx = 0; i < n; i++) {
-		if (g->nnbs[i]) {
-			g->nbs[i] = &hold[hold_idx];
-			Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
-			hold_idx += g->nnbs[i];
+	if (0) {
+		for (int i = hold_idx = 0; i < n; i++) {
+			if (g->nnbs[i]) {
+				g->nbs[i] = &hold[hold_idx];
+				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+				hold_idx += g->nnbs[i];
+			}
 		}
+	} else {
+		int *arr = Calloc(n, int);
+		for (int i = 1; i < n; i++) {
+			arr[i] = arr[i-1] + g->nnbs[i-1];
+		}
+#pragma omp parallel for num_threads(NUM_THREADS_GRAPH(g))
+		for (int i = 0;  i < n; i++) {
+			if (g->nnbs[i]) {
+				hold_idx = arr[i];
+				g->nbs[i] = &hold[hold_idx];
+				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+			}
+		}
+		Free(arr);
 	}
+
 
 	*graph_new = g;
 	GMRFLib_graph_prepare(g);
@@ -1105,9 +1120,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 */
 		int nneig, nn = 0, n_neig_tot = 0, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
 
-		GMRFLib_ENTER_ROUTINE;
 		if (!graph) {
-			GMRFLib_LEAVE_ROUTINE;
 			return GMRFLib_SUCCESS;
 		}
 
@@ -1120,8 +1133,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 			if (node_map) {
 				*node_map = nmap;
 			}
-			GMRFLib_LEAVE_ROUTINE;
-
 			return GMRFLib_SUCCESS;
 		}
 
@@ -1142,7 +1153,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		(*subgraph)->n = nn;
 
 		if (!((*subgraph)->n)) {
-			GMRFLib_LEAVE_ROUTINE;
 			if (node_map) {
 				*node_map = nmap;
 			}
@@ -1230,7 +1240,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		}
 		Free(sg_iidx);
 
-		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 }
