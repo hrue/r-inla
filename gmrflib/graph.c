@@ -624,7 +624,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
         return 0;
 }
 
-int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
+int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
 {
 	/*
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,

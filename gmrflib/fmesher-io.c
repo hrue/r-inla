@@ -547,6 +547,10 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	}
 
 	if (M->htable_column_order) {
+
+		FIXME("THIS CODE NEEDS TO BE VERIFIED. The serial version is ok,  but the OMP one needs to be checked.");
+		assert(0 == 1);
+
 		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
 		for (int k = 0; k < M->elems; k++) {
@@ -556,14 +560,34 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 		}
 
 		M->htable = Calloc(M->ncol, map_id *);
+#pragma omp parallel for num_threads(nt)
 		for (int k = 0; k < M->ncol; k++) {
 			M->htable[k] = Calloc(1, map_id);
 			map_id_init_hint(M->htable[k], nnbs_r[k] + 1);
 		}
-		for (int k = 0; k < M->elems; k++) {
-			map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
-		}
 		Free(nnbs_r);
+		
+		if (nt == 1) {
+			for (int k = 0; k < M->elems; k++) {
+				map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
+			}
+		} else {
+			int lim[nt+1];
+			lim[0] = 0;
+			for(int k = 1; k < nt + 1; k++) {
+				lim[k] = (M->ncol * k) / nt;
+			}
+#pragma omp parallel for num_threads(nt)
+			for(int kk = 0; kk < nt; kk++) {
+				int cut_low = lim[kk];
+				int cut_high = lim[kk+1];
+				for (int k = 0; k < M->elems; k++) {
+					if (cut_low <= M->j[k] && M->j[k] < cut_high) {
+						map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
+					}
+				}
+			}
+		}
 	} else {
 		M->htable = Calloc(M->nrow, map_id *);
 #pragma omp parallel for num_threads(nt)
