@@ -62,10 +62,9 @@ typedef struct {
 	GMRFLib_intpol_transform_tp trans;
 	GMRFLib_intpol_cache_tp cache;
 	int cache_len;
-	int cache_elm_len;
 	double xmin;
 	double xmax;
-	int *accel;
+	gsl_interp_accel **accel;
 	gsl_spline *spline;
 } GMRFLib_spline_tp;
 

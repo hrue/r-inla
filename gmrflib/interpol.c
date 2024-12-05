@@ -111,11 +111,10 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		assert(0 == 1);
 	}
 
-	// len in int's
-	assert(sizeof(gsl_interp_accel) <= (size_t) GMRFLib_CACHELINESIZE);
-	s->cache_elm_len = (int) GMRFLib_CACHELINESIZE_NI;
 	if (s->cache_len > 0) {
-		s->accel = Calloc(s->cache_len * s->cache_elm_len, int);
+		// not GMRFLib_INTPOL_CACHE_NONE
+		s->accel = Calloc(s->cache_len, gsl_interp_accel *);
+		s->accel[0] = gsl_interp_accel_alloc();	       /* rest will be created if needed */
 	} else {
 		s->accel = NULL;
 	}
@@ -181,8 +180,16 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	}
 
 	gsl_interp_accel *acc = NULL;
-	if (s->accel && tnum < s->cache_len) {
-		acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
+			if (!(s->accel[tnum])) {
+#pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
+			}
+			acc = s->accel[tnum];
+		}
 	}
 
 	val = gsl_spline_eval(s->spline, xx, acc);
@@ -259,15 +266,19 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	}
 
 	gsl_interp_accel *acc = NULL;
-
-	P(tnum);
-	P(s->cache_len);
-	
-	if (s->accel && tnum < s->cache_len) {
-		acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
+			if (!(s->accel[tnum])) {
+#pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
+			}
+			acc = s->accel[tnum];
+		}
 	} else {
-		acc = (gsl_interp_accel *) gsl_interp_accel_alloc();
-		gsl_interp_accel_reset(acc);
+		// use temporary cache since we evaluate 'n' at the time
+		acc = gsl_interp_accel_alloc();
 	}
 
 	for (int i = 0; i < n; i++) {
@@ -307,8 +318,16 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	}
 
 	gsl_interp_accel *acc = NULL;
-	if (s->accel && tnum < s->cache_len) {
-		acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+	if (s->accel) {
+		if (tnum >= 0 && tnum < s->cache_len) {
+			if (!(s->accel[tnum])) {
+#pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
+				if (!(s->accel[tnum])) {
+					s->accel[tnum] = gsl_interp_accel_alloc();
+				}
+			}
+			acc = s->accel[tnum];
+		}
 	}
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_NONE) {
@@ -352,8 +371,16 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (s->accel && tnum < s->cache_len) {
-			acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
+				if (!(s->accel[tnum])) {
+#pragma omp critical (Name_7db308fb16056e07320f9aa74e5445c74a6f298f)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
+				}
+				acc = s->accel[tnum];
+			}
 		}
 		val = gsl_spline_eval_deriv2(s->spline, x, acc);
 	}
@@ -384,8 +411,16 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (s->accel && tnum < s->cache_len) {
-			acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
+				if (!(s->accel[tnum])) {
+#pragma omp critical (Name_8c1f6a9b1676b904f0235f5d9f3817343bf0b5d3)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
+				}
+				acc = s->accel[tnum];
+			}
 		}
 		val = gsl_spline_eval_deriv(s->spline, x, acc);
 	}
@@ -415,8 +450,16 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
-		if (s->accel && tnum < s->cache_len) {
-			acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
+		if (s->accel) {
+			if (tnum >= 0 && tnum < s->cache_len) {
+				if (!(s->accel[tnum])) {
+#pragma omp critical (Name_6c1aed3d698e547929f98757e8a8e32e2adc4b68)
+					if (!(s->accel[tnum])) {
+						s->accel[tnum] = gsl_interp_accel_alloc();
+					}
+				}
+				acc = s->accel[tnum];
+			}
 		}
 		val = gsl_spline_eval_deriv2(s->spline, x, acc);
 	}
@@ -427,7 +470,14 @@ int GMRFLib_spline_free(GMRFLib_spline_tp *s)
 {
 	if (s) {
 		gsl_spline_free(s->spline);
-		Free(s->accel);
+		if (s->accel) {
+			for (int i = 0; i < s->cache_len; i++) {
+				if (s->accel[i]) {
+					gsl_interp_accel_free(s->accel[i]);
+				}
+			}
+			Free(s->accel);
+		}
 		Free(s);
 	}
 
