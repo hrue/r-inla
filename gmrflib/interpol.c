@@ -259,11 +259,15 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	}
 
 	gsl_interp_accel *acc = NULL;
+
+	P(tnum);
+	P(s->cache_len);
+	
 	if (s->accel && tnum < s->cache_len) {
 		acc = (gsl_interp_accel *) (s->accel + tnum * s->cache_elm_len);
 	} else {
-		// use temporary cache since we evaluate 'n' at the time
-		acc = gsl_interp_accel_alloc();
+		acc = (gsl_interp_accel *) gsl_interp_accel_alloc();
+		gsl_interp_accel_reset(acc);
 	}
 
 	for (int i = 0; i < n; i++) {
