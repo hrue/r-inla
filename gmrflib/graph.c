@@ -1030,7 +1030,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int 
 
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *graph_old)
 {
-	int m, n, *hold = NULL, hold_idx;
+	int m, n, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
@@ -1068,7 +1068,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	g->nbs = Calloc(n, int *);
 
 	if (0) {
-		for (int i = hold_idx = 0; i < n; i++) {
+		for (int i = 0, hold_idx = 0; i < n; i++) {
 			if (g->nnbs[i]) {
 				g->nbs[i] = &hold[hold_idx];
 				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
@@ -1083,7 +1083,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 #pragma omp parallel for num_threads(NUM_THREADS_GRAPH(g))
 		for (int i = 0; i < n; i++) {
 			if (g->nnbs[i]) {
-				hold_idx = arr[i];
+				int hold_idx = arr[i];
 				g->nbs[i] = &hold[hold_idx];
 				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
 			}
