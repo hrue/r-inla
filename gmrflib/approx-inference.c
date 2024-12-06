@@ -6954,7 +6954,7 @@ double GMRFLib_prior_mean_func_eval(int thread_id, GMRFLib_prior_mean_tp *prior_
 int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp **prior_mean)
 {
 	if (prior_mean) {
-#pragma parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL())
+#pragma omp parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL())
 		for (int i = 0; i < n; i++) {
 			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
 		}
