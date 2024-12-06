@@ -1,3 +1,8 @@
+# INLA 24.12.06
+* Fixed an issue in estimation of the Hessian
+* Fixed an issue in the 'gev' link
+* Code improvements targeted for larger models
+
 # INLA 24.12.01
 * Code improvements
 
