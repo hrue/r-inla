@@ -655,8 +655,6 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 		return GMRFLib_SUCCESS;
 	}
 
-	double tref = -GMRFLib_timer();
-	
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 
@@ -718,9 +716,6 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 	graph->colptr = colptr;
 	graph->rowidx = rowidx;
 
-	tref += GMRFLib_timer();
-	P(tref);
-	
 	return GMRFLib_SUCCESS;
 }
 
