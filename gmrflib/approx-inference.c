@@ -1200,6 +1200,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	izs = Calloc(dens_max, double *);
 	x_mode = Calloc(graph->n, double);
 
+
+	double treference = GMRFLib_timer();
+
 	if (gcpo) {
 		(*gcpo) = Calloc(1, GMRFLib_gcpo_tp);
 		(*gcpo)->n = preopt->Npred;
@@ -1216,11 +1219,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*cpo)->value = Calloc(preopt->Npred, double *);
 		(*cpo)->pit_value = Calloc(preopt->Npred, double *);
 		(*cpo)->failure = Calloc(preopt->Npred, double *);
-	}
-	if (po) {
-		(*po) = Calloc(1, GMRFLib_ai_po_tp);
-		(*po)->n = preopt->Npred;
-		(*po)->value = Calloc(preopt->Npred, double *);
 	}
 
 	if (GMRFLib_ai_INLA_userfunc0) {
@@ -1261,6 +1259,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 	if (po) {
+		(*po) = Calloc(1, GMRFLib_ai_po_tp);
+		(*po)->n = preopt->Npred;
+		(*po)->value = Calloc(preopt->Npred, double *);
+
 		po_theta = Calloc(preopt->Npred, double *);    /* po-value conditioned on theta */
 		po2_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
 		po3_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
@@ -1284,6 +1286,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			deviance_theta[j] = Calloc(dens_max, double *);
 		}
 	}
+
+	P(GMRFLib_timer() - treference)
 
 	if (timer) {
 		timer[0] = GMRFLib_timer() - timer[0];	       /* preparation */
