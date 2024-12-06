@@ -655,6 +655,8 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 		return GMRFLib_SUCCESS;
 	}
 
+	double tref = -GMRFLib_timer();
+	
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 
@@ -666,24 +668,49 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 	int *rowptr = Calloc(graph->n + 1, int);
 	int *colidx = Calloc(N, int);
 
+	// work
+	int nt = NUM_THREADS_GRAPH(graph);
+	
 	colptr[0] = 0;
-	for (int i = 0, k = 0; i < n; i++) {
-		rowidx[k] = i;
-		k++;
-		Memcpy(&(rowidx[k]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
-		k += graph->snnbs[i];
-		colptr[i + 1] = colptr[i] + graph->snnbs[i] + 1;
+	if (nt == 1) {
+		for (int i = 0; i < n; i++) {
+			int k = colptr[i];
+			rowidx[k] = i;
+			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			colptr[i + 1] = colptr[i] + 1 + graph->snnbs[i];
+		}
+	} else {
+		for (int i = 0; i < n; i++) {
+			rowidx[colptr[i]] = i;
+			colptr[i + 1] = colptr[i] + 1 + graph->snnbs[i];
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = colptr[i];
+			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+		}
 	}
-
+	
 	rowptr[0] = 0;
-	for (int i = 0, k = 0; i < n; i++) {
-		colidx[k] = i;
-		k++;
-		Memcpy(&(colidx[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-		k += graph->lnnbs[i];
-		rowptr[i + 1] = rowptr[i] + graph->lnnbs[i] + 1;
+	if (nt == 1) {
+		for (int i = 0; i < n; i++) {
+			int k = rowptr[i];
+			colidx[k] = i;
+			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			rowptr[i + 1] = rowptr[i] + 1 + graph->lnnbs[i];
+		}
+	} else {
+		for (int i = 0; i < n; i++) {
+			colidx[rowptr[i]] = i;
+			rowptr[i + 1] = rowptr[i] + 1 + graph->lnnbs[i];
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = rowptr[i];
+			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+		}
 	}
-
+	
 	graph->n_ptr = graph->n + 1;
 	graph->n_idx = N;
 	graph->rowptr = rowptr;
@@ -691,6 +718,9 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 	graph->colptr = colptr;
 	graph->rowidx = rowidx;
 
+	tref += GMRFLib_timer();
+	P(tref);
+	
 	return GMRFLib_SUCCESS;
 }
 
