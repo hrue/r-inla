@@ -84,6 +84,7 @@
     reordering <- match.arg(reordering)
 
     inla.set.environment()
+    env <- inla.run.environment.set()
     out.file <- inla.tempfile(tmpdir = t.dir)
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         s <- system(paste(
@@ -100,7 +101,8 @@
     } else {
         stop("\n\tNot supported architecture.")
     }
-
+    inla.run.environment.unset(env)
+    
     Qinv <- inla.read.fmesher.file(out.file)
     unlink(t.dir, recursive = TRUE)
 

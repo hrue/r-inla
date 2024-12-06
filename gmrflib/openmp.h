@@ -110,6 +110,8 @@ typedef struct {
 	int max_threads_inner;
 	// when this is TRUE, then do PARDISO is parallel if the function call is serial
 	int adaptive;
+	// default schedule
+	omp_sched_t schedule;
 	// optimal number of threads for likelihood computations
 	int likelihood_nt;
 } GMRFLib_openmp_tp;
@@ -132,6 +134,12 @@ typedef struct {
 #define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())
 #define GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()     ((omp_get_num_threads() == 1) && (omp_get_level() == 1))
 #define GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() (omp_in_parallel() == 1)
+
+#define GMRFLib_OPENMP_IN_OUTER() (omp_get_level() == 0)
+#define GMRFLib_OPENMP_IN_INNER() (omp_get_level() == 1)
+
+#define GMRFLib_OPENMP_NUM_THREADS_LEVEL() (GMRFLib_OPENMP_IN_OUTER() ? GMRFLib_openmp->max_threads_outer : \
+					    GMRFLib_openmp->max_threads_inner)
 
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);

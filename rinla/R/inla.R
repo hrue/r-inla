@@ -1023,7 +1023,7 @@
     inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
     results.dir <- paste(inla.dir, "/results.files", sep = "")
-
+ 
     if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
         if (inla.anyMultibyteUTF8Characters(inla.dir)) {
             stop(paste0("*** Failed to create directory [", inla.dir, "]\n", 
@@ -1039,6 +1039,7 @@
 
     inla.dir.create(inla.dir)
     inla.dir.create(data.dir)
+
     ## create the .file.ini and make the problem.section
     file.ini <- paste(inla.dir, "/Model.ini", sep = "")
     file.log <- paste(inla.dir, "/Logfile.txt", sep = "")
@@ -1171,11 +1172,24 @@
     if (is.null(offset)) {
         offset <- 0
     }
-    if (length(offset) == 1L) {
-        offset <- rep(offset, offset.len)
+    n.models <- 1
+    if (inla.enabled.INLAjoint.features() && is.matrix(offset)) {
+        n.models <- ncol(offset)
     }
-    if (length(offset) != offset.len) {
-        stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+    if (inla.enabled.INLAjoint.features() && is.matrix(offset)) {
+        if (length(offset) == 1L) {
+            offset <- matrix(rep(offset, n.models * offset.len), offset.len, n.models)
+        }
+        if (nrow(offset) != offset.len) {
+            stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+        }
+    } else {
+        if (length(offset) == 1L) {
+            offset <- rep(offset, offset.len)
+        }
+        if (length(offset) != offset.len) {
+            stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+        }
     }
     if (length(offset.formula) != offset.formula.len) {
         stop(paste("Length of 'offset(...)' in the formula is wrong:", length(offset.formula), "!=", offset.formula.len))
@@ -1269,14 +1283,32 @@
     stopifnot(!is.null(offset.formula) && !is.null(offset)) ## must be zeros if not used. this makes it easier
     offset.formula[is.na(offset.formula)] <- 0
     offset[is.na(offset)] <- 0
-    if (!is.null(control.predictor$A)) {
-        off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset), offset.formula))
+
+    file.offset <- c()
+    if (n.models == 1) {
+        if (!is.null(control.predictor$A)) {
+            off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset), offset.formula))
+        } else {
+            off <- cbind(indN, offset + offset.formula)
+        }
+        file.offset <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
+        file.offset <- gsub(data.dir, "$inladatadir", file.offset, fixed = TRUE)
     } else {
-        off <- cbind(indN, offset + offset.formula)
+        for(m in 1:n.models) {
+            if (!is.null(control.predictor$A)) {
+                off <- cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset[, m]), offset.formula))
+            } else {
+                off <- cbind(indN, offset[, m] + offset.formula)
+            }
+            file.offset.tmp <- inla.tempfile(tmpdir = data.dir)
+            inla.write.fmesher.file(as.matrix(off), filename = file.offset.tmp, debug = debug)
+            file.offset <- c(file.offset, gsub(data.dir, "$inladatadir", file.offset.tmp, fixed = TRUE))
+        }
+        file.out <- inla.tempfile(tmpdir = data.dir)
+        writeLines(file.offset, file.out)
+        file.offset <- gsub(data.dir, "$inladatadir", file.out, fixed = TRUE)
     }
-    file.offset <- inla.tempfile(tmpdir = data.dir)
-    inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
-    file.offset <- gsub(data.dir, "$inladatadir", file.offset, fixed = TRUE)
 
     if (!is.null(cont.predictor$link)) {
         not.na <- which(!is.na(cont.predictor$link))
@@ -2082,21 +2114,23 @@
         do.call("Sys.setenv", as.list(vars))
     }
 
-    ## write the list of environment variables set, so they can be reset if needed
-    env <- Sys.getenv()
-    env.n <- names(env)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS)", env.n)
-    env.list <- env[idx]
-    file.env <- paste0(inla.dir, "/environment")
-    cat(file = file.env)
-    for (i in seq_along(env.list)) {
-        cat("export ", names(env.list[i]), "='", env.list[i], "'\n", sep = "", file = file.env, append = TRUE)
-    }
-
     timeout <- inla.getOption("inla.timeout")
     timeout <- if (!is.numeric(timeout) || timeout < 0) 0 else ceiling(timeout)
     timeout.used <- Sys.time()
     
+    env <- inla.run.environment.set()
+
+    ## write the list of environment variables set, so they can be reset if needed
+    eenv <- Sys.getenv()
+    eenv.n <- names(eenv)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC|MALLOC_|TSAN_)", eenv.n)
+    eenv.list <- eenv[idx]
+    file.eenv <- paste0(inla.dir, "/environment")
+    cat(file = file.eenv)
+    for (i in seq_along(eenv.list)) {
+        cat("export ", names(eenv.list[i]), "='", eenv.list[i], "'\n", sep = "", file = file.eenv, append = TRUE)
+    }
+
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
@@ -2122,12 +2156,6 @@
                 inla.inlaprogram.timeout(timeout.used, timeout)
             } else if (inla.os("windows")) {
                 if (!remote && !submit) {
-                    ## need to set these variables here 
-                    Sys.setenv(
-                        MIMALLOC_ARENA_EAGER_COMMIT = 1,
-                        MIMALLOC_PURGE_DELAY = -1,
-                        MIMALLOC_PURGE_DECOMMITS = 0
-                    )
                     if (verbose) {
                         echoc <- try(system2(inla.call,
                                              args = paste(all.args, shQuote(file.ini)),
@@ -2138,14 +2166,6 @@
                                              stdout = file.log, stderr = file.log2,
                                              wait = TRUE, timeout = timeout))
                     }
-                    ## and unset them here 
-                    Sys.unsetenv(
-                        c(
-                            "MIMALLOC_ARENA_EAGER_COMMIT",
-                            "MIMALLOC_PURGE_DELAY",
-                            "MIMALLOC_PURGE_DECOMMITS"
-                        )
-                    )
                     timeout.used <- Sys.time() - timeout.used
                     inla.inlaprogram.timeout(timeout.used, timeout)
                     if (echoc != 0L) {
@@ -2177,7 +2197,7 @@
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
             if (!submit) {
-                ret <- tryCatch(inla.collect.results(results.dir,
+                ret <- tryCatch(inla.collect.results(inla.dir,
                                                      only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
                                                      silent = silent),
                                 error = function(e) {
@@ -2274,6 +2294,9 @@
         ret <- list()
         class(ret) <- "inla"
     }
+
+    ## set environment values back to user-state
+    inla.run.environment.unset(env)
 
     ## if we just write model-files, we can exit here
     if (nchar(inla.call) == 0) {
@@ -2715,7 +2738,50 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return (invisible())
 }
 
-`inla.run.many` <- function(working.directory = NULL,
+`inla.run.environment.set` <- function() {
+    ## we like to control OMP_ / malloc-lib-variables ourself
+    env.vars <- c("OMP_NUM_THREADS",
+                  "OMP_SCHEDULE",
+                  "OMP_MAX_ACTIVE_LEVELS",
+                  "OMP_SCHEDULE", 
+                  "MIMALLOC_ARENA_EAGER_COMMIT",
+                  "MIMALLOC_PURGE_DELAY",
+                  "MIMALLOC_PURGE_DECOMMITS",
+                  "MIMALLOC_SHOW_STATS", 
+                  "MIMALLOC_VERBOSE", 
+                  "MIMALLOC_SHOW_ERRORS", 
+                  "MALLOC_CONF",
+                  "TSAN_OPTIONS")
+    ## save current values
+    env.vars.value <- Sys.getenv(env.vars)
+    ## unset and then set defaults
+    Sys.unsetenv(env.vars)
+    Sys.setenv(
+        MIMALLOC_ARENA_EAGER_COMMIT = 1,
+        MIMALLOC_PURGE_DELAY = -1,
+        MIMALLOC_PURGE_DECOMMITS = 0,
+        MIMALLOC_SHOW_STATS = 0, 
+        MIMALLOC_VERBOSE = 0, 
+        MIMALLOC_SHOW_ERRORS = 0, 
+        MALLOC_CONF = "abort_conf:true,metadata_thp:always", 
+        TSAN_OPTIONS = "ignore_noninstrumented_modules=1"
+    )
+    return (list(vars = env.vars, values = env.vars.value))
+}
+
+`inla.run.environment.unset` <- function(env) {
+    ## set environment values back to user-state
+    for(i in seq_along(env$vars)) {
+        if (nchar(env$values[i]) > 0) {
+            a <- list(env$values[i])
+            names(a) <- env$vars[i]
+            do.call(Sys.setenv, args = a)
+        }
+    }
+}
+
+`inla.run.many` <- function(n.models = 1,
+                            working.directory = NULL,
                             verbose = inla.getOption("verbose"),
                             num.threads = inla.getOption("num.threads"),
                             cleanup = FALSE)
@@ -2727,11 +2793,12 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     file.log <- inla.tempfile()
     file.log2 <- inla.tempfile()
     verbose.arg <- if (verbose) "-v" else ""
-    all.args <- paste0(verbose.arg, " -Pcompact -t", inla.getOption('num.threads'))
+    all.args <- paste0(verbose.arg, " -Pcompact -t", num.threads, " -d", n.models)
     models <- dir(working.directory, full.names = TRUE)
-    mfiles <- paste(shQuote(models), collapse = " ")
+    mfiles <- shQuote(models)
     timeout.used <- Sys.time()
 
+    env <- inla.run.environment.set()
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
@@ -2745,12 +2812,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
             timeout.used <- Sys.time() - timeout.used
             inla.inlaprogram.timeout(timeout.used, timeout)
         } else if (inla.os("windows")) {
-            ## need to set these variables here 
-            Sys.setenv(
-                MIMALLOC_ARENA_EAGER_COMMIT = 1,
-                MIMALLOC_PURGE_DELAY = -1,
-                MIMALLOC_PURGE_DECOMMITS = 0
-            )
             if (verbose) {
                 echoc <- try(system2(inla.call,
                                      args = paste(all.args, mfiles),
@@ -2761,14 +2822,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                                      stdout = file.log, stderr = file.log2,
                                      wait = TRUE, timeout = timeout))
             }
-            ## and unset them here 
-            Sys.unsetenv(
-                c(
-                    "MIMALLOC_ARENA_EAGER_COMMIT",
-                    "MIMALLOC_PURGE_DELAY",
-                    "MIMALLOC_PURGE_DECOMMITS"
-                )
-            )
             timeout.used <- Sys.time() - timeout.used
             inla.inlaprogram.timeout(timeout.used, timeout)
             if (echoc != 0L) {
@@ -2786,23 +2839,39 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                        class = "inlaCrashError")
     })
 
+    ## set environment values back to user-state
+    inla.run.environment.unset(env)
+
     if (inherits(try_catch_result, "error")) {
         stop(try_catch_result)
     }
 
+    models <- list.files(paste0(working.directory, "/inla.model"), full.names = TRUE, pattern="results.files-.*")
+
+    if (length(models) != n.models) {
+        stop(paste("n.models=", n.models,
+                   ",  which do not corresponds to the number of fitted models", length(models)))
+    }
+
     res <- rep(list(list()), length(models))
-    for(i in seq_along(models)) {
-        res[[i]] <- inla.collect.results(models[i])
-        if (!verbose && (i == 1)) {
-            if (file.exists(file.log)) res[[i]]$logfile <- readLines(file.log)
-            if (file.exists(file.log2)) res[[i]]$logfile2 <- readLines(file.log2)
+    
+    if (inla.os("windows")) {
+        for(i in seq_along(models)) {
+            res[[i]] <- inla.collect.results(models[i])
         }
+    } else {
+        res <- parallel::mclapply(seq_along(models),
+                                  function(i) inla.collect.results(models[i]))
+    }
+    if (!verbose) {
+        if (file.exists(file.log)) res[[1]]$logfile <- readLines(file.log)
+        if (file.exists(file.log2)) res[[1]]$logfile2 <- readLines(file.log2)
     }
     unlink(file.log)
     unlink(file.log2)
     if (cleanup) {
         unlink(working.directory, recursive = TRUE)
     }
- 
-   return (res)
+    
+    return (res)
 }

@@ -711,12 +711,9 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		npm = k;
 
 		if (GMRFLib_save_memory) {
-			// no cache
 			density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_NONE);
 		} else {
-			// level1 only cache
 			density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL1);
-			// density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, GMRFLib_INTPOL_CACHE_LEVEL1);
 		}
 		density->P = NULL;
 	}
@@ -1659,10 +1656,9 @@ int GMRFLib_mkld(double *mkld, GMRFLib_density_tp *density, GMRFLib_density_tp *
 	 */
 	if (density && ddensity) {
 		double m1 = density->user_mean, m2 = ddensity->user_mean, cg1 = density->user_stdev, cg2 = ddensity->user_stdev;
-
-		*mkld = -(0.2e1 * log(cg1) * pow(cg2, 0.2e1) - 0.2e1 * log(cg2) * pow(cg2, 0.2e1) - (double) (m2 * m2)
-			  + (double) (2 * m1 * m2) - (double) (m1 * m1)) * pow(cg2, -0.2e1) / 0.2e1
-		    + (-pow(cg2, 0.2e1) + pow(cg1, 0.2e1)) * pow(cg2, -0.2e1) / 0.2e1;
+		double cg22 = SQR(cg2);
+		*mkld = -(2.0 * log(cg1/cg2) * cg22 - SQR(m2) + (2.0 * m1 * m2) - SQR(m1)) * (1.0/cg22) / 2.0
+			+ (-cg22 + SQR(cg1)) / cg22 / 2.0;
 	} else {
 		*mkld = 0.0;
 	}

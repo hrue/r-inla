@@ -100,7 +100,9 @@
 #' use of legacy INLA methods with fmesher package replacements.
 #' When set to "default" (default), "soft", "warn", or "stop", indicates the
 #' minimum warning level used when `fmesher.evolution.warn` is `TRUE`.}
-#' }
+#' 
+#' \item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
+#'}
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
@@ -121,7 +123,7 @@ NULL
         list(
             inla.arg = NULL,
             fmesher.arg = "",
-            num.threads = paste0(parallel::detectCores(all.tests = TRUE, logical = FALSE), ":1"),
+            num.threads = paste0(max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE))), ":1"),
             smtp = "default",
             safe = TRUE, 
             keep = FALSE,
@@ -140,7 +142,8 @@ NULL
             malloc.lib = "mi", 
             fmesher.evolution = 2L,
             fmesher.evolution.warn = FALSE,
-            fmesher.evolution.verbosity = "default"
+            fmesher.evolution.verbosity = "default",
+            INLAjoint.features = FALSE
         )
     )
 }
@@ -172,7 +175,8 @@ NULL
                                  "malloc.lib",
                                  "fmesher.evolution",
                                  "fmesher.evolution.warn",
-                                 "fmesher.evolution.verbosity"
+                                 "fmesher.evolution.verbosity",
+                                 "INLAjoint.features"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -265,7 +269,8 @@ NULL
                                           "malloc.lib",
                                           "fmesher.evolution",
                                           "fmesher.evolution.warn",
-                                          "fmesher.evolution.verbosity"
+                                          "fmesher.evolution.verbosity",
+                                          "INLAjoint.features"
                                       ), value) {
         envir <- inla.get.inlaEnv()
         option <- match.arg(option, several.ok = FALSE)
@@ -329,4 +334,10 @@ NULL
     }
 
     return(invisible())
+}
+
+
+## useful function
+`inla.enabled.INLAjoint.features` <- function() {
+    return (as.logical(inla.getOption('INLAjoint.features')))
 }

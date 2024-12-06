@@ -364,8 +364,8 @@ This defines a graph with four nodes, where node 1 has 2 neighbours 3
 and 4, node 2 as 0 neighbours, node 3 has 1 neighbour 1, and node 4
 has 1 neighbour 1, and the graph looks like this (requires `Rgraphviz` and `graph`)
 ```{r,plot=TRUE,fig.width=2,fig.align='center'}
-if (requireNamespace("Rgraphviz") && requireNamespace("graph")) {
-  g = inla.read.graph("4 1 2 3 4 2 0 3 1 1 4 1 1")
+g = inla.read.graph("4 1 2 3 4 2 0 3 1 1 4 1 1")
+if (FALSE && requireNamespace("Rgraphviz") && requireNamespace("graph")) {
   tryCatch(
     plot(g),
     error = function(e) {

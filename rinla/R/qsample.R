@@ -204,6 +204,7 @@
     }
 
     inla.set.environment()
+    env <- inla.run.environment.set()
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         if (.debug) {
             print(paste(
@@ -234,6 +235,7 @@
         stop("\n\tNot supported architecture.")
     }
 
+    inla.run.environment.unset(env)
     fp <- file(rng.file, "rb")
     siz <- file.info(rng.file)$size
     rng.state <- readBin(fp, raw(), siz)

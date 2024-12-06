@@ -642,10 +642,11 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			int iii;					\
 			_Pragma("omp critical (Name_2e8e2833326725fba5e90f00121fa2f4837da9e0)")	\
 			{						\
-				printf("Estimate Hessian x=[");		\
+				printf("[%1d] Estimate Hessian x=[", omp_get_thread_num()); \
 				for(iii=0; iii<G.nhyper; iii++)		\
 					printf(" %.4f", xx[iii]);	\
 				printf("] idx=%d step=%.4f F1 = %.8f\n", idx, step, result); \
+				fflush(stdout);				\
 			}						\
 		}							\
 		if (x_store) {						\
@@ -672,6 +673,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				for(iii=0; iii<G.nhyper; iii++)		\
 					printf(" %.4f", xx[iii]);	\
 				printf("] idx=%d %d step=%.4f %.4f F2 = %.8f\n", idx, iidx, step, sstep, result); \
+				fflush(stdout);				\
 			}						\
 		}							\
 		Free(xx);						\
@@ -735,11 +737,31 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	double *early_local_hyper = Calloc(n, double);
 	double early_local_value = NAN;
 
+	char first_entry = 1;
+	int replace_from = -1;
+	int replace_to = 2 * n;
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < 2 * n + 1; ii++) {
+
+		// make sure i=2*n is always in the first round, so we swap first index with 2*n
+		if (first_entry) {
+#pragma omp critical (Name_66725a3e0e4eaee907aad6da6fedf36f9a47acb2)
+			if (first_entry) {
+				replace_from = order[ii];
+				first_entry = 0;
+			}
+		}
+
 		int i = order[ii], j;
 		int thread_id = omp_get_thread_num();
 		GMRFLib_ai_store_tp *ais = NULL;
+
+		if (i == replace_from) {
+			i = replace_to;
+		} else if (i == replace_to) {
+			i = replace_from;
+		}
 
 		if (EARLY_STOP_ENABLED) {
 			continue;
@@ -778,8 +800,11 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			F1(fm1[j], j, -h, xx_hold[i]);
 			ff = fm1[j];
 		} else {
-			F1(f0, 0, 0.0, xx_hold[i]);
-			ff = f0;
+			j = 0;
+			double f0_local;
+			F1(f0_local, j, 0.0, xx_hold[i]);
+			ff = f0_local;
+			f0 = f0_local;
 		}
 
 		if (CHECK_FOR_EARLY_STOP) {

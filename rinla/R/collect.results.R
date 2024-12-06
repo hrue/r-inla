@@ -36,17 +36,23 @@
              silent = inla.getOption("silent")
              )
 {
-
-    if (is.na(file.info(results.dir)$isdir) ||
-        !file.info(results.dir)$isdir) {
-        stop(paste("This is not a directory: ", results.dir, "\n"))
-    }
+    ##    if (!inla.is.dir(results.dir)) {
+    ##        stop(paste("This is not a directory: ", results.dir, "\n"))
+    ##    }
 
     filename <- paste0(results.dir, "/.ok")
     res.ok <- file.exists(filename)
     if (!res.ok) {
         ## try this one instead
         results.dir.new <- paste0(results.dir, "/results.files")
+        count <- 0
+        results.dir.orig <- results.dir.new
+        if (!inla.is.dir(results.dir.new)) {
+            results.dir.new <- paste0(results.dir.orig, "-", count)
+            count <- count + 1
+            if (count > 10^6) stop("TO MANY results.dir")
+        }
+
         filename <- paste0(results.dir.new, "/.ok")
         res.ok <- file.exists(filename)
         if (res.ok) {

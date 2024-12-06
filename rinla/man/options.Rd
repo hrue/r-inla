@@ -13,7 +13,7 @@ inla.getOption(
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
     "inla.mode", "malloc.lib", "fmesher.evolution", "fmesher.evolution.warn",
-    "fmesher.evolution.verbosity")
+    "fmesher.evolution.verbosity", "INLAjoint.features")
 )
 
 inla.setOption(...)
@@ -113,6 +113,8 @@ severity to show warnings about deprecated
 use of legacy INLA methods with fmesher package replacements.
 When set to "default" (default), "soft", "warn", or "stop", indicates the
 minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
+
+\item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
 }}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}

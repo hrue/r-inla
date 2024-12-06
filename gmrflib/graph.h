@@ -249,8 +249,8 @@ int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, 
 		     void *Qfunc_arg);
 
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
-void *GMRFLib_bsearch(int key, int n, int *array);
-void *GMRFLib_bsearch2(int key, int n, int *array, int *guess);
+int *GMRFLib_bsearch(int key, int n, int *array);
+int *GMRFLib_bsearch2(int key, int n, int *array, int *guess);
 
 __END_DECLS
 #endif

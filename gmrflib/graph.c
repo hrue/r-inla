@@ -28,6 +28,9 @@
  *
  */
 
+#include <limits.h>
+#include <math.h>
+#include <strings.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -42,13 +45,16 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
-#define NUM_THREADS_GRAPH(graph_) ((graph_)->n > 1024 ? 2 : 1)
+#define NUM_THREADS_GRAPH(graph_) IMIN(GMRFLib_OPENMP_NUM_THREADS_LEVEL(), \
+				       (graph_->n <= 1E2 ? 1 :		\
+					(graph_->n < 1E3 ? 2 :		\
+					 (graph_->n < 1E4 ? 4 :		\
+					  (graph_->n < 1E4 ? 8 : GMRFLib_MAX_THREADS())))))
 
 int GMRFLib_graph_init_store(void)
 {
 	GMRFLib_ENTER_ROUTINE;
 	graph_store_debug = GMRFLib_DEBUG_IF_TRUE();
-
 	if (graph_store_use) {
 		if (graph_store_must_init) {
 			map_strvp_init_hint(&graph_store, 128);
@@ -519,7 +525,7 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
-void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
+int *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 {
 	int mid, top, val, *piv = NULL, *base = array;
 	int low = 0;
@@ -548,20 +554,20 @@ void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 	return NULL;
 }
 
-void *GMRFLib_bsearch(int key, int n, int *array)
+int *GMRFLib_bsearch(int key, int n, int *array)
 {
-	int mid, top, val, *piv = NULL, *base = array;
-	mid = top = n;
+	int mid = n;
+	int top = n;
 
 	while (mid) {
 		mid = top / 2;
-		piv = base + mid;
-		val = key - *piv;
+		int *piv = array + mid;
+		int val = key - *piv;
 		if (val == 0) {
 			return piv;
 		}
 		if (val > 0) {
-			base = piv;
+			array = piv;
 		}
 		top -= mid;
 	}
@@ -569,14 +575,13 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 	return NULL;
 }
 
-int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
+int GMRFLib_graph_is_nb_ORIG(int node, int nnode, GMRFLib_graph_tp *graph)
 {
 	int imin, imax;
 	if (node < nnode) {
 		imin = node;
 		imax = nnode;
 	} else {
-		assert(node != nnode);
 		imin = nnode;
 		imax = node;
 	}
@@ -584,14 +589,48 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 	int m = graph->lnnbs[imin];
 	if (m) {
 		int *nb = graph->lnbs[imin];
-		if (nnode <= nb[m - 1]) {
+		if (imax <= nb[m - 1]) {
 			return (GMRFLib_bsearch(imax, m, nb) != NULL);
 		}
 	}
+
 	return 0;
 }
 
-int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
+int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
+{
+	if (node < nnode) {
+		if (graph->lnnbs[node] <= graph->lnnbs[nnode]) {
+			int m = graph->lnnbs[node];
+			if (m) {
+				int *nb = graph->lnbs[node];
+				if (nnode <= nb[m - 1]) {
+					return (GMRFLib_bsearch(nnode, m, nb) != NULL);
+				}
+			}
+			return 0;
+		} else {
+			int m = graph->snnbs[nnode];
+			if (m) {
+				int *nb = graph->snbs[nnode];
+				if (node >= nb[0]) {
+					return (GMRFLib_bsearch(node, m, nb) != NULL);
+				}
+			}
+			return 0;
+		}
+	} else {
+		if (node != nnode) {
+			return (GMRFLib_graph_is_nb(nnode, node, graph));
+		} else {
+			return 0;
+		}
+	}
+
+	return 0;
+}
+
+int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
 {
 	/*
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
@@ -612,7 +651,6 @@ int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 {
-
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
@@ -628,24 +666,49 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 	int *rowptr = Calloc(graph->n + 1, int);
 	int *colidx = Calloc(N, int);
 
+	// work
+	int nt = NUM_THREADS_GRAPH(graph);
+	
 	colptr[0] = 0;
-	for (int i = 0, k = 0; i < n; i++) {
-		rowidx[k] = i;
-		k++;
-		Memcpy(&(rowidx[k]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
-		k += graph->snnbs[i];
-		colptr[i + 1] = colptr[i] + graph->snnbs[i] + 1;
+	if (nt == 1) {
+		for (int i = 0; i < n; i++) {
+			int k = colptr[i];
+			rowidx[k] = i;
+			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			colptr[i + 1] = colptr[i] + 1 + graph->snnbs[i];
+		}
+	} else {
+		for (int i = 0; i < n; i++) {
+			rowidx[colptr[i]] = i;
+			colptr[i + 1] = colptr[i] + 1 + graph->snnbs[i];
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = colptr[i];
+			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+		}
 	}
-
+	
 	rowptr[0] = 0;
-	for (int i = 0, k = 0; i < n; i++) {
-		colidx[k] = i;
-		k++;
-		Memcpy(&(colidx[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-		k += graph->lnnbs[i];
-		rowptr[i + 1] = rowptr[i] + graph->lnnbs[i] + 1;
+	if (nt == 1) {
+		for (int i = 0; i < n; i++) {
+			int k = rowptr[i];
+			colidx[k] = i;
+			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			rowptr[i + 1] = rowptr[i] + 1 + graph->lnnbs[i];
+		}
+	} else {
+		for (int i = 0; i < n; i++) {
+			colidx[rowptr[i]] = i;
+			rowptr[i + 1] = rowptr[i] + 1 + graph->lnnbs[i];
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = rowptr[i];
+			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+		}
 	}
-
+	
 	graph->n_ptr = graph->n + 1;
 	graph->n_idx = N;
 	graph->rowptr = rowptr;
@@ -655,7 +718,6 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 {
@@ -678,18 +740,40 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
 		}
 	}
+
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
-	for (int i = 0, k = 0; i < n; i++) {
-		row2col[k++] = Q(i, i, 0);
-		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
-			int j = graph->snbs[i][jj];
-			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
-			row2col[k++] = Q(i, j, kk);
+
+	int nt = NUM_THREADS_GRAPH(graph);
+	if (nt == 1) {
+		for (int i = 0, k = 0; i < n; i++) {
+			row2col[k++] = Q(i, i, 0);
+			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
+				int j = graph->snbs[i][jj];
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				row2col[k++] = Q(i, j, kk);
+			}
 		}
+	} else {
+		int *idx = Calloc(n, int);
+		for (int i = 1; i < n; i++) {
+			int off = 1 + graph->snnbs[i-1];
+			idx[i] = idx[i-1] + off;
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < n; i++) {
+			int k = idx[i];
+			row2col[k++] = Q(i, i, 0);
+			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
+				int j = graph->snbs[i][jj];
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				row2col[k++] = Q(i, j, kk);
+			}
+		}
+		Free(idx);
 	}
 	graph->row2col = row2col;
-
 #undef Q
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -971,10 +1055,11 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int 
 
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *graph_old)
 {
-	int m, i, n, *hold = NULL, hold_idx;
+	int m, n, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
+
 	if (!graph_old) {
 		*graph_new = NULL;
 		GMRFLib_LEAVE_ROUTINE;
@@ -1007,13 +1092,30 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	hold = Calloc(IMAX(1, m), int);
 	g->nbs = Calloc(n, int *);
 
-	for (i = hold_idx = 0; i < n; i++) {
-		if (g->nnbs[i]) {
-			g->nbs[i] = &hold[hold_idx];
-			Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
-			hold_idx += g->nnbs[i];
+	if (0) {
+		for (int i = 0, hold_idx = 0; i < n; i++) {
+			if (g->nnbs[i]) {
+				g->nbs[i] = &hold[hold_idx];
+				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+				hold_idx += g->nnbs[i];
+			}
 		}
+	} else {
+		int *arr = Calloc(n, int);
+		for (int i = 1; i < n; i++) {
+			arr[i] = arr[i - 1] + g->nnbs[i - 1];
+		}
+#pragma omp parallel for num_threads(NUM_THREADS_GRAPH(g))
+		for (int i = 0; i < n; i++) {
+			if (g->nnbs[i]) {
+				int hold_idx = arr[i];
+				g->nbs[i] = &hold[hold_idx];
+				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+			}
+		}
+		Free(arr);
 	}
+
 
 	*graph_new = g;
 	GMRFLib_graph_prepare(g);
@@ -1072,9 +1174,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		 */
 		int nneig, nn = 0, n_neig_tot = 0, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
 
-		GMRFLib_ENTER_ROUTINE;
 		if (!graph) {
-			GMRFLib_LEAVE_ROUTINE;
 			return GMRFLib_SUCCESS;
 		}
 
@@ -1087,8 +1187,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 			if (node_map) {
 				*node_map = nmap;
 			}
-			GMRFLib_LEAVE_ROUTINE;
-
 			return GMRFLib_SUCCESS;
 		}
 
@@ -1109,7 +1207,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		(*subgraph)->n = nn;
 
 		if (!((*subgraph)->n)) {
-			GMRFLib_LEAVE_ROUTINE;
 			if (node_map) {
 				*node_map = nmap;
 			}
@@ -1197,7 +1294,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		}
 		Free(sg_iidx);
 
-		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 }

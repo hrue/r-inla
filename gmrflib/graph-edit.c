@@ -104,9 +104,15 @@ int GMRFLib_ged_insert_graph(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int a
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int at_i_node, int at_j_node)
 {
 	if (graph) {
+		assert(at_i_node <= at_j_node);
+		// place this node first, so we get the memory set. otherwise, we cannot do the parallel loop.
+		// note that parallel loop only work in _ged_add(..,i,j) and i <= j
+		GMRFLib_ged_add(ged, graph->n - 1 + at_i_node, graph->n - 1 + at_j_node);
+		int nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+#pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < graph->n; i++) {
 			int ii = i + at_i_node;
-			GMRFLib_ged_add(ged, i + at_i_node, i + at_j_node);
+			GMRFLib_ged_add(ged, ii, i + at_j_node);
 			for (int jj = 0; jj < graph->nnbs[i]; jj++) {
 				int j = graph->nbs[i][jj];
 				int jjj = j + at_j_node;
@@ -129,6 +135,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
+	int nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
 	for (int i = 0; i < n; i++) {
 		for (map_ii_storage * p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {
 			if (p->key > i) {
@@ -155,7 +162,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 			nbs[i] = NULL;					\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	GMRFLib_graph_mk_empty(&g);

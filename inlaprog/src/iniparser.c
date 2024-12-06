@@ -519,9 +519,10 @@ dictionary *iniparser_load(const char *ininame)
 		// if (!(lineno % 1000)) printf("lineno %d\n", lineno);
 
 		where = strskp(lin);			       /* Skip leading spaces */
-		if (*where == ';' || *where == '#' || *where == 0)
+		if (*where == ';' || *where == '#' || *where == 0) {
+			Free(lin);
 			continue;			       /* Comment lines */
-		else {
+		} else {
 			if (sscanf(where, INIPARSER_SECSEP "%[^" INIPARSER_SECSEP "]" INIPARSER_SECSEP, sec) == 1) {
 				/*
 				 * Valid section name 
@@ -565,5 +566,7 @@ dictionary *iniparser_load(const char *ininame)
  */
 void iniparser_freedict(dictionary *d)
 {
-	dictionary_del(d);
+	if (d) {
+		dictionary_del(d);
+	}
 }

@@ -132,15 +132,11 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	}
 	ndata = nx / ncol_true;
 	if (xx) {
-		*xx = Calloc(n, double);
-		for (i = 0; i < n; i++) {
-			(*xx)[i] = default_value;
-		}
+		*xx = Malloc(n, double);
+		GMRFLib_fill(n, default_value, *xx);
 	} else {
-		*ix = Calloc(n, int);
-		for (i = 0; i < n; i++) {
-			(*ix)[i] = (int) default_value;
-		}
+		*ix = Malloc(n, int);
+		GMRFLib_ifill(n, (int) default_value, *ix);
 	}
 
 	for (i = j = 0; i < nx; i += ncol_true, j++) {
@@ -163,6 +159,36 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 
 	Free(x);
 	return INLA_OK;
+}
+
+char *inla_read_lineno(int lineno, const char *filename)
+{
+	// return lineno from filename
+	FILE *fp = fopen(filename, "r");
+
+	// this call is very expensive...
+	// intmax_t siz = GMRFLib_io_file_size(filename);
+
+	size_t siz = 4096;
+	assert(lineno >= 0);
+	assert(fp);
+
+	char *line = Calloc(siz + 1, char);
+	int count = 0;
+	while (1) {
+		int ret = fscanf(fp, "%s\n", line);
+		assert(ret != EOF);
+		if (count == lineno) {
+			break;
+		}
+		count++;
+	}
+	fclose(fp);
+
+	char *ret = Strdup(line);
+	Free(line);
+
+	return (ret);
 }
 
 int inla_sread_str_int(char **tag, int *i, const char *str)

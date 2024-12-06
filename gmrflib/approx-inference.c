@@ -1074,7 +1074,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
-
 #undef FREE_ALL
 }
 
@@ -1201,6 +1200,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	izs = Calloc(dens_max, double *);
 	x_mode = Calloc(graph->n, double);
 
+
+	double treference = GMRFLib_timer();
+
 	if (gcpo) {
 		(*gcpo) = Calloc(1, GMRFLib_gcpo_tp);
 		(*gcpo)->n = preopt->Npred;
@@ -1217,11 +1219,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*cpo)->value = Calloc(preopt->Npred, double *);
 		(*cpo)->pit_value = Calloc(preopt->Npred, double *);
 		(*cpo)->failure = Calloc(preopt->Npred, double *);
-	}
-	if (po) {
-		(*po) = Calloc(1, GMRFLib_ai_po_tp);
-		(*po)->n = preopt->Npred;
-		(*po)->value = Calloc(preopt->Npred, double *);
 	}
 
 	if (GMRFLib_ai_INLA_userfunc0) {
@@ -1262,6 +1259,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 	if (po) {
+		(*po) = Calloc(1, GMRFLib_ai_po_tp);
+		(*po)->n = preopt->Npred;
+		(*po)->value = Calloc(preopt->Npred, double *);
+
 		po_theta = Calloc(preopt->Npred, double *);    /* po-value conditioned on theta */
 		po2_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
 		po3_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
@@ -1285,6 +1286,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			deviance_theta[j] = Calloc(dens_max, double *);
 		}
 	}
+
+	P(GMRFLib_timer() - treference)
 
 	if (timer) {
 		timer[0] = GMRFLib_timer() - timer[0];	       /* preparation */
@@ -1888,6 +1891,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		design = ai_par->int_design;
 	}
 
+	if (0)
+		GMRFLib_design_print(stdout, design);
+
 	if (design->nexperiments > 1 && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 		f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
 		w = 1.0 / ((design->nexperiments - 1.0) * (1.0 + exp(-0.5 * SQR(f)) * (SQR(f) / nhyper - 1.0)));
@@ -2227,6 +2233,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			Free(cpodens_moments);
 			Free(gcpodens_moments);
 		}
+		Free(lpred_mode);
 		Free(mean_corrected);
 		Free(c_corrected);
 	}
@@ -3024,6 +3031,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	Free(userfunc_values);
 	Free(weights);
 	Free(z);
+	Free(lpred);
+
 	if (cpo_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
 			int j = i;
@@ -3326,7 +3335,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		double *isd = Calloc(mnpred, double);
-		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets));
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets), GMRFLib_openmp->max_threads_outer);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -4741,7 +4750,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.2f sec/iter] cyclic[%s]\n",
 					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0),
-					(flag_cyclic ? strdup("Yes") : strdup("No")));
+					(flag_cyclic ? Strdup("Yes") : Strdup("No")));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -6945,11 +6954,12 @@ double GMRFLib_prior_mean_func_eval(int thread_id, GMRFLib_prior_mean_tp *prior_
 int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp **prior_mean)
 {
 	if (prior_mean) {
+#pragma parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL())
 		for (int i = 0; i < n; i++) {
 			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
 		}
 	} else {
-		Memset(pmean, 0, n * sizeof(double));
+		GMRFLib_fill(n, 0.0, pmean);
 	}
 	return GMRFLib_SUCCESS;
 }

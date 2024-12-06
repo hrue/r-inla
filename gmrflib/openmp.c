@@ -75,8 +75,9 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner)
 
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp)
 {
-	GMRFLib_DEBUG_INIT();
+	GMRFLib_ENTER_ROUTINE;
 
+	int debug = GMRFLib_DEBUG_IF_TRUE();
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS();
 	int strategy = GMRFLib_openmp->strategy;
@@ -90,7 +91,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	// this check is done once only
 	if (GMRFLib_pardiso_ok < 0) {
 		GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
-		if (GMRFLib_DEBUG_IF_TRUE()) {
+		if (debug) {
 			printf("%s:%1d: pardiso-library installed and working? [%s]\n", __FILE__, __LINE__, (GMRFLib_pardiso_ok ? "YES" : "NO"));
 		}
 	}
@@ -102,7 +103,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	if (GMRFLib_pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-		if (GMRFLib_DEBUG_IF_TRUE()) {
+		if (debug) {
 			printf("%s:%1d: Switch to strategy [%s]\n", __FILE__, __LINE__, GMRFLib_OPENMP_STRATEGY_NAME(strategy));
 		}
 	}
@@ -427,10 +428,9 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	omp_sched_t kind;
 	int chunk_size;
-
 	omp_get_schedule(&kind, &chunk_size);
-	if (kind != omp_sched_static) {
-		omp_set_schedule(omp_sched_static, 0);
+	if (kind != GMRFLib_openmp->schedule) {
+		omp_set_schedule(GMRFLib_openmp->schedule, 0);
 	}
 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
@@ -440,12 +440,13 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
 
-	if (GMRFLib_DEBUG_IF_TRUE()) {
+	if (debug) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] blas.num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_MAX_THREADS(), nt, blas_num_threads, GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
