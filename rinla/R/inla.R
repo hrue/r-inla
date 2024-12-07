@@ -1022,7 +1022,8 @@
     ## Create a directory where to store data and results
     inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
-    results.dir <- paste(inla.dir, "/results.files", sep = "")
+    k <- nchar(INLA:::inla.num(0))
+    results.dir <- paste(inla.dir, paste0("/results.files-%", k, ".", k, "d"), sep = "")
  
     if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
         if (inla.anyMultibyteUTF8Characters(inla.dir)) {
@@ -2846,8 +2847,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         stop(try_catch_result)
     }
 
-    models <- list.files(paste0(working.directory, "/inla.model"), full.names = TRUE, pattern="results.files-.*")
-
+    models <- list.files(paste0(working.directory, "/inla.model"), full.names = TRUE, pattern="results.files-[0-9]+")
     if (length(models) != n.models) {
         stop(paste("n.models=", n.models,
                    ",  which do not corresponds to the number of fitted models", length(models)))
