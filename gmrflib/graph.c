@@ -2082,7 +2082,6 @@ int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph
 		GMRFLib_ged_insert_graph(ged, graph_array[i], 0);
 	}
 	GMRFLib_ged_build(union_graph, ged);
-	GMRFLib_graph_prepare(*union_graph);
 	GMRFLib_ged_free(ged);
 
 	return GMRFLib_SUCCESS;
