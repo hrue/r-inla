@@ -2082,7 +2082,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph
 	// this will setup the dimension right, less 'realloc'
 	int m = 0;
 	for (int i = 0; i < n_graphs; i++) {
-		m += graph_array[i]->n;
+		m = IMAX(m, graph_array[i]->n);
 	}
 	GMRFLib_ged_add(ged, m-1, m-1);
 	
