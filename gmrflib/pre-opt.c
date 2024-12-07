@@ -373,7 +373,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("A_idxval");
 
 	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N, nt);
-	SHOW_TIME("A_idxval to matrix");
+	SHOW_TIME("A_idxval - matrix");
 
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt);
