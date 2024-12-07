@@ -1022,7 +1022,7 @@
     ## Create a directory where to store data and results
     inla.dir <- normalizePath(inla.dir, mustWork = FALSE)
     data.dir <- paste(inla.dir, "/data.files", sep = "")
-    k <- nchar(INLA:::inla.num(0))
+    k <- nchar(inla.num(0))
     results.dir <- paste(inla.dir, paste0("/results.files-%", k, ".", k, "d"), sep = "")
  
     if (is.null(inla.dir.create(inla.dir, StopOnError=FALSE))) {
@@ -2787,8 +2787,10 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                             num.threads = inla.getOption("num.threads"),
                             cleanup = FALSE)
 {
-    stopifnot(!is.null(working.directory))
     inla.call <- inla.getOption('inla.call')
+    stopifnot(inla.call != "remote")
+
+    stopifnot(!is.null(working.directory))
     silent <- inla.getOption('silent')
     timeout <- inla.getOption('inla.timeout')
     file.log <- inla.tempfile()

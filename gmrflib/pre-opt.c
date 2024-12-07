@@ -270,7 +270,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	if (debug_detailed) {
-		printf("\tnpred %1d nf %1d nbeta %1d\n", npred, nf, nbeta);
+		printf("\tnpred %1d nf = %1d nbeta = %1d\n", npred, nf, nbeta);
 		for (int i = 0; i < npred; i++) {
 			printf("data %1d\n", i);
 			for (int j = 0; j < nf; j++) {
@@ -692,10 +692,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[2];
+		int guess[2] = {0, 0};
 		int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
-		guess[0] = guess[1] = 0;
 
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];

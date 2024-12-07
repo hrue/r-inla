@@ -2095,7 +2095,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_complete(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
+int GMRFLib_graph_complete____NOT_IN_USE(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * return a new graph that is complete: if i~j but j!~i, then add j~i 
