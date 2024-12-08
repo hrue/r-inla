@@ -87,5 +87,5 @@ if [ $verbose == 1 ]; then
    } 1>&2
 fi
 
-ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cfm - results.files 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
+ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cfm - results.files-* 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
 

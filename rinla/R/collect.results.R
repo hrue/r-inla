@@ -48,7 +48,7 @@
         count <- 0
         results.dir.orig <- results.dir.new
         if (!inla.is.dir(results.dir.new)) {
-            results.dir.new <- paste0(results.dir.orig, "-", count)
+            results.dir.new <- paste0(results.dir.orig, "-", inla.num(count))
             count <- count + 1
             if (count > 10^6) stop("TO MANY results.dir")
         }

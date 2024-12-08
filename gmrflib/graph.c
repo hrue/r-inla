@@ -2078,17 +2078,24 @@ int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph
 {
 	GMRFLib_ged_tp *ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
+
+	// this will setup the dimension right, less 'realloc'
+	int m = 0;
+	for (int i = 0; i < n_graphs; i++) {
+		m = IMAX(m, graph_array[i]->n);
+	}
+	GMRFLib_ged_add(ged, m-1, m-1);
+	
 	for (int i = 0; i < n_graphs; i++) {
 		GMRFLib_ged_insert_graph(ged, graph_array[i], 0);
 	}
 	GMRFLib_ged_build(union_graph, ged);
-	GMRFLib_graph_prepare(*union_graph);
 	GMRFLib_ged_free(ged);
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_complete(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
+int GMRFLib_graph_complete____NOT_IN_USE(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * return a new graph that is complete: if i~j but j!~i, then add j~i 

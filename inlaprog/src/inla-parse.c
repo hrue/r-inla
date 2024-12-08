@@ -503,7 +503,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 	accept_argument = (strcmp(tmp, tmpp) == 0 ? 0 : 1);
 	if (!accept_argument) {
 		char *ctmp = NULL;
-		GMRFLib_sprintf(&ctmp, "%s-%s", mb->dir, "%1d");
+		GMRFLib_sprintf(&ctmp, "%s-%s", mb->dir, "%10.10d");
 		mb->dir = ctmp;
 		accept_argument = 1;
 	}

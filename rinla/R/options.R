@@ -318,11 +318,14 @@ NULL
     } else {
         arg <- match.arg(arg, c("default", "compiler", "je", "tc", "mi"), several.ok = FALSE)
         if (arg != "default" && arg != "compiler") {
-            if (length(grep(paste0("lib", arg, "malloc"),
-                            dir(paste0(dirname(inla.call.builtin()),"/malloc")))) == 0) {
-                ## warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
-                ## "Use malloc.lib='default'"))
-                inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
+            avail <- dir(paste0(dirname(inla.call.builtin()),"/malloc"), full.names = TRUE)
+            idx <- grep(paste0("lib", arg, "malloc"), avail)
+            if (length(idx) == 0 || length(idx) > 1) {
+                if (FALSE) {
+                    warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
+                                   "Use malloc.lib='default'"))
+                }
+                inla.setOption.core(malloc.lib = "default")
             }
         }
     }

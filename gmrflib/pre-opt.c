@@ -270,7 +270,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	if (debug_detailed) {
-		printf("\tnpred %1d nf %1d nbeta %1d\n", npred, nf, nbeta);
+		printf("\tnpred %1d nf = %1d nbeta = %1d\n", npred, nf, nbeta);
 		for (int i = 0; i < npred; i++) {
 			printf("data %1d\n", i);
 			for (int j = 0; j < nf; j++) {
@@ -370,8 +370,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		GMRFLib_idxval_free(ivs[k]);
 	}
 
-	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N, nt);
 	SHOW_TIME("A_idxval");
+
+	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N, nt);
+	SHOW_TIME("A_idxval - matrix");
 
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt);
@@ -679,6 +681,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
+
 	SHOW_TIME("like graph-2");
 
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
@@ -689,10 +692,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[2];
+		int guess[2] = {0, 0};
 		int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
-		guess[0] = guess[1] = 0;
 
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
@@ -710,6 +712,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
+
 	SHOW_TIME("AtA_idxval");
 
 	if (debug_detailed) {
@@ -734,6 +737,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
+
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < g->n; i++) {
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
@@ -767,9 +771,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	GMRFLib_graph_tp *g_arr[2];
 	g_arr[0] = (*preopt)->latent_graph;
 	g_arr[1] = (*preopt)->like_graph;
-	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
 
 	SHOW_TIME("admin-2");
+
+	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
+
+	SHOW_TIME("graph-union");
 
 #if !defined(WINDOWS)
 	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {

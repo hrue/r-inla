@@ -7,7 +7,7 @@
     return(floor(log10(max(abs(x)))) + 1L)
 }
 
-`inla.num` <- function(x, width = if (length(x) > 1L) inla.numlen(x) else 8L, digits = max(4L, width)) {
+`inla.num` <- function(x, width = if (length(x) > 1L) inla.numlen(x) else 10L, digits = max(4L, width)) {
     ## format numbers using preceeding zeros.
     return(formatC(x, format = "g", width = width, flag = "0", digits = digits))
 }
