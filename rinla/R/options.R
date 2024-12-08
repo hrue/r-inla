@@ -325,7 +325,7 @@ NULL
                     warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
                                    "Use malloc.lib='default'"))
                 }
-                inla.setOption.core(malloc.lib, "default")
+                inla.setOption.core("malloc.lib", "default")
             }
         }
     }
