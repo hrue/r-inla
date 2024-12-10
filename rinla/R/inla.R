@@ -59,7 +59,8 @@
 #' likelihood with either `NA`'s or indices indexing the scaling
 #' coefficients. `NA` or a index less or equal to 0 means no scaling. The
 #' priors and properties of the scaling coefficients are set in
-#' `control.lp.scale`
+#' `control.lp.scale`. Note that only the non-offset part of the
+#' linear predictor is scaled. This is an EXPERIMENTAL option.
 #' @param link.covariates A vector or matrix with covariates for link functions
 #' @param verbose Boolean indicating if the `inla`-program should run in a
 #' verbose mode (default `inla.getOption("verbose")`)
