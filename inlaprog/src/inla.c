@@ -7203,8 +7203,7 @@ int main(int argc, char **argv)
 				model_ini = argv[arg];
 			} else {
 				if (my_dir_exists(argv[arg]) == INLA_OK) {
-					char *new = Strdup("Model.ini");
-					model_ini = new;
+					model_ini = Strdup("Model.ini");
 					if (verbose) {
 						printf("Change directory to [%s]\n", argv[arg]);
 					}

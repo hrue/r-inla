@@ -1410,6 +1410,7 @@ int GMRFLib_debug_functions(const char *name)
 					val = 1;
 				} else {
 					int len = s2 - s + 1;
+					assert(len >= 0);
 					ss = Calloc(len + 1, char);
 					ss[len] = '\0';
 					strncpy(ss, s, len - 1);
@@ -1506,6 +1507,7 @@ int GMRFLib_trace_functions(const char *name)
 					val = 1;
 				} else {
 					int len = s2 - s + 1;
+					assert(len >= 0);
 					ss = Calloc(len + 1, char);
 					ss[len] = '\0';
 					strncpy(ss, s, len - 1);
