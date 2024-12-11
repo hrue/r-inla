@@ -1,3 +1,6 @@
+# INLA 24.12.11
+* Make 'lp_scale' work on the lin.predictor except the offset
+
 # INLA 24.12.09
 * More code optimization for larger models
 

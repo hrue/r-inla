@@ -112,7 +112,8 @@ argument is required.}
 likelihood with either \code{NA}'s or indices indexing the scaling
 coefficients. \code{NA} or a index less or equal to 0 means no scaling. The
 priors and properties of the scaling coefficients are set in
-\code{control.lp.scale}}
+\code{control.lp.scale}. Note that only the non-offset part of the
+linear predictor is scaled. This is an EXPERIMENTAL option.}
 
 \item{link.covariates}{A vector or matrix with covariates for link functions}
 

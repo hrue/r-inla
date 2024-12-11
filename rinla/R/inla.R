@@ -59,7 +59,8 @@
 #' likelihood with either `NA`'s or indices indexing the scaling
 #' coefficients. `NA` or a index less or equal to 0 means no scaling. The
 #' priors and properties of the scaling coefficients are set in
-#' `control.lp.scale`
+#' `control.lp.scale`. Note that only the non-offset part of the
+#' linear predictor is scaled. This is an EXPERIMENTAL option.
 #' @param link.covariates A vector or matrix with covariates for link functions
 #' @param verbose Boolean indicating if the `inla`-program should run in a
 #' verbose mode (default `inla.getOption("verbose")`)
@@ -2124,7 +2125,7 @@
     ## write the list of environment variables set, so they can be reset if needed
     eenv <- Sys.getenv()
     eenv.n <- names(eenv)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC|MALLOC_|TSAN_)", eenv.n)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC|MALLOC_)", eenv.n)
     eenv.list <- eenv[idx]
     file.eenv <- paste0(inla.dir, "/environment")
     cat(file = file.eenv)
@@ -2751,8 +2752,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                   "MIMALLOC_SHOW_STATS", 
                   "MIMALLOC_VERBOSE", 
                   "MIMALLOC_SHOW_ERRORS", 
-                  "MALLOC_CONF",
-                  "TSAN_OPTIONS")
+                  "MALLOC_CONF")
     ## save current values
     env.vars.value <- Sys.getenv(env.vars)
     ## unset and then set defaults
@@ -2764,8 +2764,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         MIMALLOC_SHOW_STATS = 0, 
         MIMALLOC_VERBOSE = 0, 
         MIMALLOC_SHOW_ERRORS = 0, 
-        MALLOC_CONF = "abort_conf:true,metadata_thp:always", 
-        TSAN_OPTIONS = "ignore_noninstrumented_modules=1"
+        MALLOC_CONF = "abort_conf:true,metadata_thp:always"
     )
     return (list(vars = env.vars, values = env.vars.value))
 }
