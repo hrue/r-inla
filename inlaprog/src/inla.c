@@ -163,8 +163,8 @@ int R_load_INLA = 0;
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
 	}								\
 	double _lp_scale = 1.0;						\
-	if (ds->lp_scale && ds->lp_scale[idx] >= 0) {					\
-		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][thread_id][0]; \
+	if (ds->lp_scale && ds->lp_scale[idx] >= 0) {			\
+		_lp_scale = ds->lp_scale_beta[ds->lp_scale[idx]][thread_id][0]; \
 	}
 
 

@@ -18715,12 +18715,10 @@ int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	ds->lp_scale_in_use = Calloc(INLA_LP_SCALE_MAX, int);
+	GMRFLib_ifill(INLA_LP_SCALE_MAX, 0, ds->lp_scale_in_use);
 
-	for (i = 0; i < INLA_LP_SCALE_MAX; i++) {
-		ds->lp_scale_in_use[i] = 0;
-	}
 	for (i = 0; i < mb->predictor_ndata; i++) {
-		if ((k = (int) ds->lp_scale[i]) >= 0) {
+		if ((k = ds->lp_scale[i]) >= 0) {
 			ds->lp_scale_in_use[k] = 1;
 			GMRFLib_ASSERT(k < INLA_LP_SCALE_MAX, GMRFLib_EPARAMETER);
 		}

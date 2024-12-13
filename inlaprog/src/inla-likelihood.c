@@ -627,15 +627,22 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		assert(nw == mb->predictor_ndata);
 	}
 
-	double *lp_scale = NULL;
+	double *lp_scale_d = NULL;			       /* I need a tmp one to be double */
 	int n_lp_scale = 0;
-	inla_read_data_all(&lp_scale, &n_lp_scale, ds->lp_scale_file.name, NULL);
+	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
 		assert(n_lp_scale == mb->predictor_ndata);
 	}
-	for (i = 0; i < n_lp_scale; i++) {
-		lp_scale[i] = (int) (lp_scale[i] - 1.0);
+	int *lp_scale = Calloc(mb->predictor_ndata, int);
+#pragma omp simd
+	for (int i3 = 0; i3 < n_lp_scale; i3++) {
+		if (ISNAN(lp_scale_d[i3])) {
+			lp_scale[i3] = -1;
+		} else {
+			lp_scale[i3] = (int) lp_scale_d[i3] - 1;
+		}
 	}
+	Free(lp_scale_d);
 	mb->data_sections[0].lp_scale = lp_scale;
 
 	for (i = j = 0; i < n; i += idiv, j++) {

@@ -983,10 +983,10 @@ typedef struct {
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
 
-	double *lp_scale;				       /* index vector */
 	double ***lp_scale_beta;
-	int *lp_scale_nfixed;
+	int *lp_scale;					       /* index vector */
 	int *lp_scale_in_use;
+	int *lp_scale_nfixed;
 	Prior_tp *lp_scale_nprior;
 
 	/*
