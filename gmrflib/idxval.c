@@ -1004,32 +1004,34 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		treff[k] /= (double) ntimes;
 	}
 
-	for (k = 1; k < 2; k++) {
-		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
-			P(ABS(value[k] - value[0]));
-			P(k);
-			P(value[0]);
-			P(value[1]);
+	if (GMRFLib_testit_debug) {
+		for (k = 1; k < 2; k++) {
+			if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
+				P(ABS(value[k] - value[0]));
+				P(k);
+				P(value[0]);
+				P(value[1]);
 
-			printf("n %d\n", h->n);
-			for (i = 0; i < h->n; i++) {
-				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
-			}
-			printf("ng %d\n", h->g_n);
-			if (0) {
-				for (g = 0; g < h->g_n; g++) {
-					printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-					for (i = 0; i < IABS(h->g_len[g]); i++) {
-						printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+				printf("n %d\n", h->n);
+				for (i = 0; i < h->n; i++) {
+					printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
+				}
+				printf("ng %d\n", h->g_n);
+				if (0) {
+					for (g = 0; g < h->g_n; g++) {
+						printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
+						for (i = 0; i < IABS(h->g_len[g]); i++) {
+							printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+						}
 					}
 				}
-			}
 
-			P(ABS(value[k] - value[0]));
-			P(k);
-			P(value[0]);
-			P(value[1]);
-			assert(0 == 1);
+				P(ABS(value[k] - value[0]));
+				P(k);
+				P(value[0]);
+				P(value[1]);
+				assert(0 == 1);
+			}
 		}
 	}
 
