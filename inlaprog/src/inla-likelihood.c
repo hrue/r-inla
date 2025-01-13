@@ -629,19 +629,23 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	double *lp_scale_d = NULL;			       /* I need a tmp one to be double */
 	int n_lp_scale = 0;
+	int *lp_scale = Calloc(mb->predictor_ndata, int);
+
 	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
 		assert(n_lp_scale == mb->predictor_ndata);
-	}
-	int *lp_scale = Calloc(mb->predictor_ndata, int);
 #pragma omp simd
-	for (int i3 = 0; i3 < n_lp_scale; i3++) {
-		if (ISNAN(lp_scale_d[i3])) {
-			lp_scale[i3] = -1;
-		} else {
-			lp_scale[i3] = (int) lp_scale_d[i3] - 1;
+		for (int i3 = 0; i3 < n_lp_scale; i3++) {
+			if (ISNAN(lp_scale_d[i3])) {
+				lp_scale[i3] = -1;
+			} else {
+				lp_scale[i3] = (int) lp_scale_d[i3] - 1;
+			}
 		}
+	} else {
+		GMRFLib_ifill(mb->predictor_ndata, -1, lp_scale);
 	}
+
 	Free(lp_scale_d);
 	mb->data_sections[0].lp_scale = lp_scale;
 
