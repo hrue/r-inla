@@ -18,8 +18,8 @@ inla.spde2.pcmatern(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}} or
-\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
+\item{mesh}{The mesh to build the model on, as an \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}},
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}, or  \code{\link[fmesher:fm_mesh_3d]{fmesher::fm_mesh_3d()}} object.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha <= 2}
 supported, for \eqn{\nu=\alpha-d/2>0}.}
