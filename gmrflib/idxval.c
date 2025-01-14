@@ -368,6 +368,7 @@ int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n, int nt)
 {
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		if (a[i] && a[i]->n > 1) {				\
 			QSORT_FUN((void *) a[i]->idx, (size_t) a[i]->n, sizeof(int), GMRFLib_icmp); \
 		}							\
@@ -399,6 +400,7 @@ int GMRFLib_idx_nuniq(GMRFLib_idx_tp **a, int n, int nt)
 {
 #define CODE_BLOCK				\
 	for (int i = 0; i < n; i++) {		\
+		CODE_BLOCK_INIT();		\
 		GMRFLib_idx_uniq(a[i]);		\
 	}
 
@@ -432,6 +434,7 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
+		CODE_BLOCK_INIT();			\
 		GMRFLib_idxval_prune(a[i]);		\
 	}
 
@@ -1128,6 +1131,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 	}
 #define CODE_BLOCK							\
 	for(int k = 0; k < n; k++) {					\
+		CODE_BLOCK_INIT();					\
 		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare, accumulate); \
 	}
 

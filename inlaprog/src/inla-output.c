@@ -1538,6 +1538,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_INIT();			\
 				double dm = 0.0, ds = 0.0;		\
 				if (density[i]) {			\
 					inla_integrate_func(&dm, &ds, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
@@ -1573,6 +1574,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_INIT();			\
 				int off = 0;				\
 				int nn = mm;				\
 				int nn_new;				\

@@ -531,7 +531,7 @@ typedef enum {
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
 
-#define CODE_BLOCK_WORK_PTR(i_work_) (work__[(nt__ == 1 ? 0 : omp_get_thread_num())] + (size_t) (i_work_) * len_work__)
+#define CODE_BLOCK_WORK_PTR(i_work_) (work__[(nt__ == 1 ? 0 : t_num__)] + (size_t) (i_work_) * len_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
@@ -540,9 +540,24 @@ typedef enum {
 #define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
+#define CODE_BLOCK_INIT() \
+	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
+	if (need_work__)						\
+		if (!work__[t_num__] && len_work__ && n_work__)		\
+			work__[t_num__] = Malloc(len_work__ * n_work__, double)
+
+#define CODE_BLOCK_INIT_X(work_tp_) \
+	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
+	if (need_work__)						\
+		if (!work__[t_num__] && len_work__ && n_work__)		\
+			work__[t_num__] = Malloc(len_work__ * n_work__, double); \
+	if (!work_t__[t_num__])						\
+		work_t__[t_num__] = Malloc(1, work_tp_)
 
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -551,7 +566,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\
@@ -571,6 +586,8 @@ typedef enum {
 
 #define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -579,7 +596,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\
@@ -599,6 +616,8 @@ typedef enum {
 
 #define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -607,7 +626,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) { \
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\
@@ -627,6 +646,8 @@ typedef enum {
 
 #define RUN_CODE_BLOCK_STATIC(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -635,7 +656,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) { \
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\
@@ -658,6 +679,8 @@ typedef enum {
 
 #define RUN_CODE_BLOCK_X(thread_max_, n_work_, len_work_, work_tp_)	\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -666,12 +689,12 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		work_tp_ ** work_t__ = Calloc(nt__, work_tp_ *);	\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work_t__[i_] = Calloc(1, work_tp_);		\
 		}							\
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\
@@ -696,6 +719,8 @@ typedef enum {
 
 #define RUN_CODE_BLOCK_PLAIN(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
+		int need_work__ = (n_work_ * len_work_ > 0);		\
+		assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -704,7 +729,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		for (int i_ = 0; i_ < nt__; i_++) { \
+		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
 			work__[i_] = Calloc(len_work__ * n_work__, double); \
 			assert(work__[i_]);				\
 		}							\

@@ -143,6 +143,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	} else {
 #define CODE_BLOCK							\
 		for (int sn = 0; sn < L->n_sn; sn++) {			\
+			CODE_BLOCK_INIT();				\
 			int *Lss = L->sn_struct[sn];			\
 			int Lsize = L->sn_size[sn];			\
 			int Lup_size = L->sn_up_size[sn];		\
@@ -174,6 +175,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 #define CODE_BLOCK							\
 	for (int sn = 0; sn < L->n_sn; sn++) {				\
+		CODE_BLOCK_INIT();					\
 		int *Lss = L->sn_struct[sn];				\
 		int Lsbl = L->sn_blocks_ld[sn];				\
 		int Lsize = L->sn_size[sn];				\
@@ -853,6 +855,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
+			CODE_BLOCK_INIT();				\
 			int ic = ic_idx[i];				\
 			double val = Qfunc(thread_id, i, i, NULL, Qfunc_arg);	\
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
@@ -1871,6 +1874,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		int m = LL->rowptr[i + 1] - LL->rowptr[i];		\
 		int j = LL->rowptr[i];					\
 		my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \

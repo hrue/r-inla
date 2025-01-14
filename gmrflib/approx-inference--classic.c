@@ -4796,6 +4796,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 
 #define CODE_BLOCK						\
 		for (int ii = 0; ii < d_idx->n; ii++) {		\
+			CODE_BLOCK_INIT();			\
 			int i = d_idx->idx[ii];			\
 			if (density) {					\
 				GMRFLib_ai_vb_prepare(thread_id, vb_coof[i], i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
@@ -4847,6 +4848,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 
 #define CODE_BLOCK							\
 		for (int j = 0; j < vb_idx->n; j++) {			\
+			CODE_BLOCK_INIT();				\
 			double *col = CODE_BLOCK_WORK_PTR(0);		\
 			double *res = CODE_BLOCK_WORK_PTR(1);		\
 			assert(col);					\

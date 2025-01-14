@@ -5272,7 +5272,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		}
 	}
 
-	if (mb->data_sections[0].lp_scale) {
+	if (mb->data_sections[0].lp_scale && mb->data_sections[0].lp_scale_in_use) {
 		for (int k = 0; k < INLA_LP_SCALE_MAX; k++) {
 			if (mb->data_sections[0].lp_scale_in_use[k]) {
 				if (_NOT_FIXED(data_sections[0].lp_scale_nfixed[k])) {

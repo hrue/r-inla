@@ -768,6 +768,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
+			CODE_BLOCK_INIT();				\
 			int idx = d_idx->idx[i_];			\
 			double ccmin = cmin;				\
 			double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
@@ -926,6 +927,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 #define CODE_BLOCK							\
 			for (int i = 0; i < d_idx->n; i++) {		\
+				CODE_BLOCK_INIT();			\
 				int idx = d_idx->idx[i], three = 3;	\
 				double bloc, cloc;			\
 				GMRFLib_2order_approx(thread_id,	\
@@ -3366,6 +3368,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
+			CODE_BLOCK_INIT();				\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
 			int node = selection->idx[ii];			\
 									\
@@ -3646,6 +3649,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
+		CODE_BLOCK_INIT();					\
 		int node = node_idx->idx[inode];			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
@@ -3752,6 +3756,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 #define CODE_BLOCK							\
 	for(int i = 0; i < d_idx->n; i++) {				\
+		CODE_BLOCK_INIT();					\
 		int nnode = d_idx->idx[i];				\
 		double xx = lpred_mode[nnode];				\
 		GMRFLib_2order_approx(thread_id, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
@@ -3831,6 +3836,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 #define CODE_BLOCK							\
 	for(int inode = 0; inode < node_idx2->n; inode++) {		\
+		CODE_BLOCK_INIT_X(local_storage_tp);			\
 		int node = node_idx2->idx[inode];			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int ng = gcpo[node]->idxs->n;				\
@@ -4499,6 +4505,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
+		CODE_BLOCK_INIT();					\
 		CODE_BLOCK_WORK_ZERO(0);				\
 		int j = vb_idx->idx[jj];				\
 		double *b = CODE_BLOCK_WORK_PTR(0);			\
@@ -4566,6 +4573,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
+			CODE_BLOCK_INIT();				\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
 			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
@@ -4598,6 +4606,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		if (update_MM) {
 #define CODE_BLOCK	{						\
+				CODE_BLOCK_INIT();			\
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
 				if (nt__ > 1) {				\
 					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, nt__); \
@@ -5024,6 +5033,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
+			CODE_BLOCK_INIT();				\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
 			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
@@ -5068,6 +5078,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
+			CODE_BLOCK_INIT();				\
 			int i = vb_idx->idx[ii];			\
 			double *cov_latent_i = CODE_BLOCK_WORK_PTR(0);	\
 			double *b_i = CODE_BLOCK_WORK_PTR(1);		\
@@ -5097,6 +5108,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
+			CODE_BLOCK_INIT();				\
 			if (enable_tref_a) {				\
 				tref_a[3] -= GMRFLib_timer();		\
 			}						\
@@ -6397,6 +6409,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 		if (GMRFLib_taucs_sort_L && L) {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_INIT();			\
 				int m = L->colptr[i + 1] - L->colptr[i]; \
 				int j = L->colptr[i];			\
 				my_sort2_id(L->rowind + j, (double *) L->values.d + j, m); \
@@ -6411,6 +6424,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 					taucs_crs_matrix *LL = ai_store->problem->sub_sm_fact.TAUCS_LL;
 #define CODE_BLOCK							\
 					for (int i = 0; i < n; i++) {	\
+						CODE_BLOCK_INIT();	\
 						int m = LL->rowptr[i + 1] - LL->rowptr[i]; \
 						int j = LL->rowptr[i];	\
 						my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \
