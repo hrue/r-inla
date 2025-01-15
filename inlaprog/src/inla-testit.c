@@ -3799,9 +3799,34 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			assert(ISZERO(err));
 		}
-		printf("plain:  %.4f  Fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		int *iy = Calloc(2 * n, int);
+		int *iyy = iy + n;
+
+		double treff[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			int ia = (int) (INT_MAX * GMRFLib_uniform());
+			treff[0] -= GMRFLib_timer();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				iy[j] = ia;
+			}
+			treff[0] += GMRFLib_timer();
+
+			treff[1] -= GMRFLib_timer();
+			GMRFLib_ifill(n, ia, iyy);
+			treff[1] += GMRFLib_timer();
+
+			int err = 0;
+			for (int j = 0; j < n; j++) {
+				err = IMAX(err, IABS(iy[j] - iyy[j]));
+			}
+			assert(err == 0);
+		}
+		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
 	}
 		break;
 
