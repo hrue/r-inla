@@ -37,6 +37,9 @@
 #ifndef __GMRFLibP_H__
 #define __GMRFLibP_H__
 
+#define _GNU_SOURCE 1
+#include <features.h> 
+
 #include <assert.h>
 #include <stddef.h>
 #include <math.h>
@@ -44,6 +47,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <numa.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -466,6 +470,7 @@ typedef enum {
 #define MOD(i,n)  (((i)+(n))%(n))
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 #define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.16f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define Pint(x)     if (1) { printf("[%s:%1d] " #x " = [ %d ]\n",__FILE__, __LINE__,(int)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.16f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.16f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }

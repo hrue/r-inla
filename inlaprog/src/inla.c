@@ -31,6 +31,11 @@
 #define GITCOMMIT "devel"
 #endif
 
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
+#include <features.h> 
+
 #if defined(__sun__)
 #include <stdlib.h>
 #endif

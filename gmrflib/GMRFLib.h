@@ -48,6 +48,12 @@
 #endif
 
 __BEGIN_DECLS
+
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
+#include <features.h> 
+
 #define GMRFLib_VERSION_MAJOR    "3"
 #define GMRFLib_VERSION_MINOR    "0"
 #define GMRFLib_VERSION_REVISION "0-snapshot"
@@ -57,7 +63,6 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
-
 
 /* 
  *  include files we need from GSL
@@ -142,6 +147,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/matern.h"
 #include "GMRFLib/moments.h"
 #include "GMRFLib/sn-g.h"
+#include "GMRFLib/my-numa.h"
 
 #if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);

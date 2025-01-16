@@ -4938,6 +4938,31 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 157:
+	{
+
+		Pint(numa_available());
+		Pint(numa_max_possible_node());
+		Pint(numa_num_possible_nodes());
+		Pint(numa_max_node());
+		Pint(numa_num_configured_nodes());
+		Pint(numa_num_configured_cpus());
+		Pint(numa_num_task_cpus());
+		Pint(numa_num_task_nodes());
+
+#pragma omp parallel for
+		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+			int c = -1, n = -1;
+			GMRFLib_numa_get(&c, &n);
+#pragma omp critical 
+			{
+				printf("thread %1d belongs to cpu %d at numa %d\n",
+				       omp_get_thread_num(), c, n);
+			}
+		}
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
