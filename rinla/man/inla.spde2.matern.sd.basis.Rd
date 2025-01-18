@@ -15,7 +15,8 @@ inla.spde2.matern.sd.basis(
 )
 }
 \arguments{
-\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} object.}
+\item{mesh}{An \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}},  \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}, or
+\code{\link[fmesher:fm_mesh_3d]{fmesher::fm_mesh_3d()}} object.}
 
 \item{B.sd}{Desired basis for log-standard deviations.}
 
