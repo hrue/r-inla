@@ -1,3 +1,6 @@
+INLA::inla.setOption(fmesher.evolution.warn = TRUE)
+INLA::inla.setOption(fmesher.evolution.verbosity = "stop")
+
 ## Redo the Leuk-example using continuous domain frailty
 library(INLA)
 
