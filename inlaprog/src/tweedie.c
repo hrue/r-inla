@@ -1,33 +1,3 @@
-
-/* tweedie.c
- * 
- * Copyright (C) 2021-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <math.h>
 #include <strings.h>
 #include <stdlib.h>
@@ -39,9 +9,9 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "tweedie.h"
 
-// the 'dtweedie'-code is inspired from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
-// <actuary_zhang@hotmail.com>, but got largly rewritten to incorporate caching and interpolation and other optimization
-// features. This to optimize it to how its used within the INLA context.
+// the 'dtweedie'-code is inspired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but got largly
+// rewritten to incorporate caching and interpolation and other optimization features. This to optimize it to how its used within the INLA
+// context.
 
 #define TWEEDIE_DROP 40.0
 #define TWEEDIE_INCRE 1.2

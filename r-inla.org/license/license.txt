@@ -1,6 +1,6 @@
-Most of the code is made available under the GNU General Public
-License, including R-INLA, the inla-program and GMRFLib. Some external
-libraries has different licenses as described below.
+Most of the code is made available under the MIT License, including
+R-INLA, the inla-program and GMRFLib. Some external libraries has
+licenses as described below.
 
 
 

@@ -1,8 +1,3 @@
-
-/* 
-   Made minor changes to adapt it to GMRFLib. April/2007/HRue
-*/
-
 /*
  * Copyright (c) 2005 Steven G. Johnson
  *

@@ -1,35 +1,3 @@
-
-/* bfgs3.c
- *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL 
- */
-
-/* multimin/vector_bfgs2.c
- * 
- * Copyright (C) 2007 Brian Gough
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- */
-
-/* vector_bfgs2.c -- Fletcher's implementation of the BFGS method,
-   from R.Fletcher, "Practical Method's of Optimization", Second
-   Edition, ISBN 0471915475.  Algorithms 2.6.2 and 2.6.4. */
-
-/* Thanks to Alan Irwin irwin@beluga.phys.uvic.ca. for suggesting this
-   algorithm and providing sample fortran benchmarks */
-
 #include <assert.h>
 #include <errno.h>
 #include <stddef.h>
