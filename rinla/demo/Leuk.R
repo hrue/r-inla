@@ -30,4 +30,4 @@ ggplot() + theme_minimal() +
 
 #plot(result)
 
-## P.S.: check the SPDE approach for continuous domain spatial frailty
+## P.S.: check the demo/LeukSPDE.R for continuous domain spatial frailty
