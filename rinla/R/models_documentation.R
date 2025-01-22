@@ -14441,6 +14441,68 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'obeta'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The ordered Beta likelihood}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}
+#'               \item{pdf = }{\verb{obeta}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61101}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{output.name = }{\verb{precision-parameter for the obeta observations}}
+#'             \item{output.name.intern = }{\verb{intern precision-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61102}}
+#'             \item{name = }{\verb{offset location}}
+#'             \item{short.name = }{\verb{loc}}
+#'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
+#'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61103}}
+#'             \item{name = }{\verb{offset width}}
+#'             \item{short.name = }{\verb{width}}
+#'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
+#'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'betabinomial'.}{
 #'          \describe{
 #'           \item{Properties:}{

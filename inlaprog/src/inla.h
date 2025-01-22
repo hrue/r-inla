@@ -204,7 +204,7 @@ typedef enum {
 	L_IID_LOGITBETA,
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
-	REMOVED___L_TEST_BINOMIAL_1,
+	L_TEST_BINOMIAL_1__REMOVED,
 	L_SIMPLEX,
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2____NO_LONGER_IN_USE,
@@ -264,6 +264,7 @@ typedef enum {
 	L_EXPPOWER,
 	L_BINOMIALMIX,
 	L_EGP,
+	L_OBETA, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -527,11 +528,16 @@ typedef struct {
 	double *bc_mean;
 
 	/*
-	 *  Beta
+	 *  Beta/oBeta
 	 */
+	double **beta_precision_intern;
 	double *beta_weight;
+	double **obeta_precision_intern;
 	double beta_censor_value;
-
+	double *obeta_weight;
+	double **obeta_offset_loc;
+	double **obeta_offset_width;
+	
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
 	 */
@@ -623,11 +629,6 @@ typedef struct {
 	 */
 	double **betabinomial_overdispersion_intern;
 	double *betabinomialnb_scale;
-
-	/*
-	 * the precision parameter for the beta, \phi = exp(theta)
-	 */
-	double **beta_precision_intern;
 
 	/*
 	 * Skew-Normal
@@ -2304,6 +2305,8 @@ int loglikelihood_npoisson(int thread_id, double *logll, double *x, int m, int i
 int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			    char **arg_str);
+int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			void *arg, char **UNUSED(arg_str));
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

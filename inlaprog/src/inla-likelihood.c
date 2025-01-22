@@ -305,6 +305,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_OBETA:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.obeta_weight = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	case L_BETABINOMIALNA:
 	{
 		idiv = 4;
@@ -6835,6 +6842,73 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 		}
 	}
 
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+		       void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+#define ISONE(x_) ISZERO((x_) - 1.0)
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double w = ds->data_observations.obeta_weight[idx];
+	double phi = map_exp_forward(ds->data_observations.obeta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
+	double loc = ds->data_observations.obeta_offset_loc[thread_id][0];
+	double width = map_exp_forward(ds->data_observations.obeta_offset_width[thread_id][0], MAP_FORWARD, NULL);
+	double k1 = loc - width, k2 = loc + width;
+
+	LINK_INIT;
+	if (m > 0) {
+		if (ISZERO(y)) {
+			for (int i = 0; i < m; i++) {
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				logll[i] = LOG_1mp(low);
+			}
+		} else if (ISONE(y)) {
+			for (int i = 0; i < m; i++) {
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				logll[i] = LOG_p(high);
+			}
+		} else {
+			double ly = LOG_p(y);
+			double l1my = LOG_1mp(y);
+			for (int i = 0; i < m; i++) {
+				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				double a = mu * phi;
+				double b = -mu * phi + phi;
+				double lbeta =  ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) :  gsl_sf_lnbeta(a, b));
+				logll[i] = log(low - high) - lbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+			}
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		if (ISZERO(y)) {
+			for (int i = 0; i < -m; i++) {
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				logll[i] = 1.0 - low;
+			}
+		} else if (ISONE(y)) {
+			GMRFLib_fill(-m, 1.0, logll);
+		} else {
+			for (int i = 0; i < -m; i++) {
+				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				double a = mu * phi;
+				double b = -mu * phi + phi;
+				logll[i] = (1.0 - low) + (low - high) * gsl_cdf_beta_P(yy, a, b);
+			}
+		}
+	}
+
+#undef ISONE
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
