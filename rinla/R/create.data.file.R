@@ -92,6 +92,7 @@
                                 "gamma",
                                 "mgamma",
                                 "beta",
+                                "obeta", 
                                 "tweedie",
                                 "fmri"))) {
         if (is.null(scale)) {

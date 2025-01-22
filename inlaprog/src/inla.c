@@ -2100,6 +2100,26 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_OBETA:
+			{
+				if (!ds->data_fixed0) {
+					double precision_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &precision_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double loc = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &loc);
+					count++;
+				}
+				if (!ds->data_fixed2) {
+					double lwidth = theta[count];
+					val += PRIOR_EVAL(ds->data_prior2, &lwidth);
+					count++;
+				}
+			}
+				break;
+
 			case L_BETABINOMIAL:
 			case L_BETABINOMIALNA:
 			{
