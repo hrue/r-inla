@@ -1,5 +1,6 @@
 data(Leuk)
 
+## graph file
 g <- system.file("demodata/Leuk.graph", package="INLA")
 
 ## model formula
@@ -18,15 +19,15 @@ if(FALSE) {## old code for the map
   source(system.file("demodata/Leuk-map.R", package="INLA"))
   Leuk.map(result$summary.random$district$mean)
   
-} else { ## use the new sf map
-  
-  library(ggplot2)
-  ggplot() + theme_minimal() + 
-    geom_sf(aes(fill = result$summary.random$district$mean), 
-            data = NEmap)
+} 
 
-}
+## use the new sf map
+library(ggplot2)
+ggplot() + theme_minimal() + 
+  geom_sf(aes(fill = result$summary.random$district$mean), 
+          data = NEmap) +
+    labs(fill = "log frailty")
 
 #plot(result)
 
-## P.S.: check the SPDE approach for continuous domain spatial frailty
+## Note: check the demo/LeukSPDE.R for continuous spatial domain frailty
