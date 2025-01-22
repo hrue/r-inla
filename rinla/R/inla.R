@@ -570,7 +570,7 @@
             data = c(as.list(cph$data), cph$data.list),
             contrasts = contrasts,
             quantiles = quantiles,
-            E = cph$E,
+            E = cph$E..coxph,
             offset = if (is.null(offset)) NULL else offset[cph$data$expand..coxph], 
             scale = if (is.null(scale)) NULL else scale[cph$data$expand..coxph], 
             weights = if (is.null(weights)) NULL else weights[cph$data$expand..coxph], 
