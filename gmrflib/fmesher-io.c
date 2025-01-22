@@ -490,7 +490,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	}
 	assert(offset <= nhold);
 
-	GMRFLib_ifill(M->nrow, 0, g->nnbs); // will use this array for counting and build it again 
+	GMRFLib_ifill(M->nrow, 0, g->nnbs);		       // will use this array for counting and build it again 
 	for (int k = 0; k < M->elems; k++) {
 		if (M->i[k] != M->j[k]) {
 			int i = M->i[k];

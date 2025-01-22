@@ -1,3 +1,4 @@
+
 /*
 
 Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)

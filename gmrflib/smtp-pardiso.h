@@ -1,3 +1,4 @@
+
 /*!
   \file smtp-band.h
   \brief GMRFLib interface to the band-solver in the LAPACK library

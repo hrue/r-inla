@@ -1,3 +1,4 @@
+
 /*!
   \file version.h
   \brief Typedefs for \ref version.c

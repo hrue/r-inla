@@ -662,7 +662,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[2] = {0, 0};
+		int guess[2] = { 0, 0 };
 		int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
 
@@ -707,7 +707,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
-
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < g->n; i++) {
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);

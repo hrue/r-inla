@@ -1,3 +1,4 @@
+
 /*!
   \file utils.h
   \brief Typedefs for \ref utils.c

@@ -1,3 +1,4 @@
+
 /*! 
   \file timer.h
   \brief Typedefs and defines for the timer-utility in GMRFLib.
