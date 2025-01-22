@@ -1,33 +1,3 @@
-
-/* utils.c
- * 
- * Copyright (C) 2006-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <limits.h>
 #include <time.h>
 #include <stdlib.h>
@@ -1608,18 +1578,6 @@ int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp *vmatrix, int free_content)
  * Based on descriptions in Sedgewick "Algorithms in C"
  *
  * Copyright (C) 1999  Thomas Walter
- *
- * 18 February 2000: Modified for GSL by Brian Gough
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3, or (at your option) any
- * later version.
- *
- * This source is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
  */
 
 void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int N, int k)
@@ -2101,9 +2059,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2123,15 +2081,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

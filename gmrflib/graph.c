@@ -1,33 +1,3 @@
-
-/* graph.c
- * 
- * Copyright (C) 2001-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <limits.h>
 #include <math.h>
 #include <strings.h>
@@ -668,13 +638,13 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 
 	// work
 	int nt = NUM_THREADS_GRAPH(graph);
-	
+
 	colptr[0] = 0;
 	if (nt == 1) {
 		for (int i = 0; i < n; i++) {
 			int k = colptr[i];
 			rowidx[k] = i;
-			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			Memcpy(&(rowidx[k + 1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
 			colptr[i + 1] = colptr[i] + 1 + graph->snnbs[i];
 		}
 	} else {
@@ -685,16 +655,16 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < n; i++) {
 			int k = colptr[i];
-			Memcpy(&(rowidx[k+1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			Memcpy(&(rowidx[k + 1]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
 		}
 	}
-	
+
 	rowptr[0] = 0;
 	if (nt == 1) {
 		for (int i = 0; i < n; i++) {
 			int k = rowptr[i];
 			colidx[k] = i;
-			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			Memcpy(&(colidx[k + 1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
 			rowptr[i + 1] = rowptr[i] + 1 + graph->lnnbs[i];
 		}
 	} else {
@@ -705,10 +675,10 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < n; i++) {
 			int k = rowptr[i];
-			Memcpy(&(colidx[k+1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			Memcpy(&(colidx[k + 1]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
 		}
 	}
-	
+
 	graph->n_ptr = graph->n + 1;
 	graph->n_idx = N;
 	graph->rowptr = rowptr;
@@ -740,7 +710,6 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
 		}
 	}
-
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 
 	int nt = NUM_THREADS_GRAPH(graph);
@@ -756,8 +725,8 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 	} else {
 		int *idx = Calloc(n, int);
 		for (int i = 1; i < n; i++) {
-			int off = 1 + graph->snnbs[i-1];
-			idx[i] = idx[i-1] + off;
+			int off = 1 + graph->snnbs[i - 1];
+			idx[i] = idx[i - 1] + off;
 		}
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < n; i++) {
@@ -2089,8 +2058,8 @@ int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph
 	for (int i = 0; i < n_graphs; i++) {
 		m = IMAX(m, graph_array[i]->n);
 	}
-	GMRFLib_ged_add(ged, m-1, m-1);
-	
+	GMRFLib_ged_add(ged, m - 1, m - 1);
+
 	for (int i = 0; i < n_graphs; i++) {
 		GMRFLib_ged_insert_graph(ged, graph_array[i], 0);
 	}

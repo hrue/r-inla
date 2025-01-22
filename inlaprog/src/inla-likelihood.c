@@ -1,33 +1,3 @@
-
-/* inla-likelihood.c
- * 
- * Copyright (C) 2007-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-
 double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *UNUSED(loglfunc), double *x_vec, void *arg)
 {
 	inla_tp *a = (inla_tp *) arg;
@@ -5873,9 +5843,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6847,12 +6817,11 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 }
 
 int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		       void *arg, char **UNUSED(arg_str))
+			void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-
 #define ISONE(x_) ISZERO((x_) - 1.0)
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
@@ -6883,7 +6852,7 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
 				double a = mu * phi;
 				double b = -mu * phi + phi;
-				double lbeta =  ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) :  gsl_sf_lnbeta(a, b));
+				double lbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : gsl_sf_lnbeta(a, b));
 				logll[i] = log(low - high) - lbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 			}
 		}
