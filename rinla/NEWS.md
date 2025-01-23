@@ -1,3 +1,8 @@
+# INLA 25.01.23
+* New experimental family: obeta
+* Fixed an issue with family=coxph
+* Code maintenance
+
 # INLA 24.12.11
 * Make 'lp_scale' work on the lin.predictor except the offset
 
