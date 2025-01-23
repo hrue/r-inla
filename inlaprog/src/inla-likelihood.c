@@ -1,33 +1,3 @@
-
-/* inla-likelihood.c
- * 
- * Copyright (C) 2007-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-
 double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *UNUSED(loglfunc), double *x_vec, void *arg)
 {
 	inla_tp *a = (inla_tp *) arg;
@@ -302,6 +272,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.beta_weight = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
+	case L_OBETA:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.obeta_weight = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -627,15 +604,26 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		assert(nw == mb->predictor_ndata);
 	}
 
-	double *lp_scale = NULL;
+	double *lp_scale_d = NULL;			       /* I need a tmp one to be double */
 	int n_lp_scale = 0;
-	inla_read_data_all(&lp_scale, &n_lp_scale, ds->lp_scale_file.name, NULL);
+	int *lp_scale = Calloc(mb->predictor_ndata, int);
+
+	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
 		assert(n_lp_scale == mb->predictor_ndata);
+#pragma omp simd
+		for (int i3 = 0; i3 < n_lp_scale; i3++) {
+			if (ISNAN(lp_scale_d[i3])) {
+				lp_scale[i3] = -1;
+			} else {
+				lp_scale[i3] = (int) lp_scale_d[i3] - 1;
+			}
+		}
+	} else {
+		GMRFLib_ifill(mb->predictor_ndata, -1, lp_scale);
 	}
-	for (i = 0; i < n_lp_scale; i++) {
-		lp_scale[i] = (int) (lp_scale[i] - 1.0);
-	}
+
+	Free(lp_scale_d);
 	mb->data_sections[0].lp_scale = lp_scale;
 
 	for (i = j = 0; i < n; i += idiv, j++) {
@@ -5855,9 +5843,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6824,6 +6812,72 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 		}
 	}
 
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+#define ISONE(x_) ISZERO((x_) - 1.0)
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double w = ds->data_observations.obeta_weight[idx];
+	double phi = map_exp_forward(ds->data_observations.obeta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
+	double loc = ds->data_observations.obeta_offset_loc[thread_id][0];
+	double width = map_exp_forward(ds->data_observations.obeta_offset_width[thread_id][0], MAP_FORWARD, NULL);
+	double k1 = loc - width, k2 = loc + width;
+
+	LINK_INIT;
+	if (m > 0) {
+		if (ISZERO(y)) {
+			for (int i = 0; i < m; i++) {
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				logll[i] = LOG_1mp(low);
+			}
+		} else if (ISONE(y)) {
+			for (int i = 0; i < m; i++) {
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				logll[i] = LOG_p(high);
+			}
+		} else {
+			double ly = LOG_p(y);
+			double l1my = LOG_1mp(y);
+			for (int i = 0; i < m; i++) {
+				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				double a = mu * phi;
+				double b = -mu * phi + phi;
+				double lbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : gsl_sf_lnbeta(a, b));
+				logll[i] = log(low - high) - lbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+			}
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		if (ISZERO(y)) {
+			for (int i = 0; i < -m; i++) {
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				logll[i] = 1.0 - low;
+			}
+		} else if (ISONE(y)) {
+			GMRFLib_fill(-m, 1.0, logll);
+		} else {
+			for (int i = 0; i < -m; i++) {
+				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
+				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
+				double a = mu * phi;
+				double b = -mu * phi + phi;
+				logll[i] = (1.0 - low) + (low - high) * gsl_cdf_beta_P(yy, a, b);
+			}
+		}
+	}
+
+#undef ISONE
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }

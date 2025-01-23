@@ -11967,6 +11967,56 @@
                     pdf = "beta"
                 ),
 
+                obeta = list(
+                    doc = "The ordered Beta likelihood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 61101,
+                            name = "precision parameter",
+                            short.name = "phi",
+                            output.name = "precision-parameter for the obeta observations",
+                            output.name.intern = "intern precision-parameter for the obeta observations",
+                            initial = log(10),
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.1),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ), 
+                        theta2 = list(
+                            hyperid = 61102,
+                            name = "offset location",
+                            short.name = "loc",
+                            output.name = "offset location-parameter for the obeta observations",
+                            output.name = "intern offset location-parameter for the obeta observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ), 
+                        theta3 = list(
+                            hyperid = 61103,
+                            name = "offset width",
+                            short.name = "width",
+                            output.name = "offset width-parameter for the obeta observations",
+                            output.name = "intern offset width-parameter for the obeta observations",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 1),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog"),
+                    pdf = "obeta"
+                ),
+
                 betabinomial = list(
                     doc = "The Beta-Binomial likelihood",
                     hyper = list(

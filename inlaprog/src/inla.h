@@ -1,33 +1,3 @@
-
-/* inla.h
- * 
- * Copyright (C) 2007-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
 #ifndef __INLA_H__
 #define __INLA_H__
 
@@ -204,7 +174,7 @@ typedef enum {
 	L_IID_LOGITBETA,
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
-	REMOVED___L_TEST_BINOMIAL_1,
+	L_TEST_BINOMIAL_1__REMOVED,
 	L_SIMPLEX,
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2____NO_LONGER_IN_USE,
@@ -264,6 +234,7 @@ typedef enum {
 	L_EXPPOWER,
 	L_BINOMIALMIX,
 	L_EGP,
+	L_OBETA,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -527,10 +498,15 @@ typedef struct {
 	double *bc_mean;
 
 	/*
-	 *  Beta
+	 *  Beta/oBeta
 	 */
+	double **beta_precision_intern;
 	double *beta_weight;
+	double **obeta_precision_intern;
 	double beta_censor_value;
+	double *obeta_weight;
+	double **obeta_offset_loc;
+	double **obeta_offset_width;
 
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
@@ -623,11 +599,6 @@ typedef struct {
 	 */
 	double **betabinomial_overdispersion_intern;
 	double *betabinomialnb_scale;
-
-	/*
-	 * the precision parameter for the beta, \phi = exp(theta)
-	 */
-	double **beta_precision_intern;
 
 	/*
 	 * Skew-Normal
@@ -983,10 +954,10 @@ typedef struct {
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
 
-	double *lp_scale;				       /* index vector */
 	double ***lp_scale_beta;
-	int *lp_scale_nfixed;
+	int *lp_scale;					       /* index vector */
 	int *lp_scale_in_use;
+	int *lp_scale_nfixed;
 	Prior_tp *lp_scale_nprior;
 
 	/*
@@ -2291,7 +2262,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2304,6 +2275,8 @@ int loglikelihood_npoisson(int thread_id, double *logll, double *x, int m, int i
 int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			    char **arg_str);
+int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			void *arg, char **UNUSED(arg_str));
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

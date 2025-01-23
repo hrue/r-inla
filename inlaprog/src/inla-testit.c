@@ -1,32 +1,3 @@
-
-/* inla-testit.c
- * 
- * Copyright (C) 2007-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <limits.h>
 #include <assert.h>
 #include <stddef.h>
@@ -3799,9 +3770,34 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			assert(ISZERO(err));
 		}
-		printf("plain:  %.4f  Fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		int *iy = Calloc(2 * n, int);
+		int *iyy = iy + n;
+
+		double treff[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			int ia = (int) (INT_MAX * GMRFLib_uniform());
+			treff[0] -= GMRFLib_timer();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				iy[j] = ia;
+			}
+			treff[0] += GMRFLib_timer();
+
+			treff[1] -= GMRFLib_timer();
+			GMRFLib_ifill(n, ia, iyy);
+			treff[1] += GMRFLib_timer();
+
+			int err = 0;
+			for (int j = 0; j < n; j++) {
+				err = IMAX(err, IABS(iy[j] - iyy[j]));
+			}
+			assert(err == 0);
+		}
+		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
 	}
 		break;
 

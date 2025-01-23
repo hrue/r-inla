@@ -1,33 +1,3 @@
-
-/* idxval.c
- * 
- * Copyright (C) 2022-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <assert.h>
 #include <float.h>
 #include <signal.h>
@@ -1004,32 +974,34 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		treff[k] /= (double) ntimes;
 	}
 
-	for (k = 1; k < 2; k++) {
-		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
-			P(ABS(value[k] - value[0]));
-			P(k);
-			P(value[0]);
-			P(value[1]);
+	if (GMRFLib_testit_debug) {
+		for (k = 1; k < 2; k++) {
+			if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
+				P(ABS(value[k] - value[0]));
+				P(k);
+				P(value[0]);
+				P(value[1]);
 
-			printf("n %d\n", h->n);
-			for (i = 0; i < h->n; i++) {
-				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
-			}
-			printf("ng %d\n", h->g_n);
-			if (0) {
-				for (g = 0; g < h->g_n; g++) {
-					printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-					for (i = 0; i < IABS(h->g_len[g]); i++) {
-						printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+				printf("n %d\n", h->n);
+				for (i = 0; i < h->n; i++) {
+					printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
+				}
+				printf("ng %d\n", h->g_n);
+				if (0) {
+					for (g = 0; g < h->g_n; g++) {
+						printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
+						for (i = 0; i < IABS(h->g_len[g]); i++) {
+							printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+						}
 					}
 				}
-			}
 
-			P(ABS(value[k] - value[0]));
-			P(k);
-			P(value[0]);
-			P(value[1]);
-			assert(0 == 1);
+				P(ABS(value[k] - value[0]));
+				P(k);
+				P(value[0]);
+				P(value[1]);
+				assert(0 == 1);
+			}
 		}
 	}
 
@@ -1325,7 +1297,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

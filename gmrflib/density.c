@@ -1,33 +1,3 @@
-
-/* density.c
- * 
- * Copyright (C) 2006-2024 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
 #include <stddef.h>
 #include <float.h>
 #include <math.h>
@@ -1657,8 +1627,7 @@ int GMRFLib_mkld(double *mkld, GMRFLib_density_tp *density, GMRFLib_density_tp *
 	if (density && ddensity) {
 		double m1 = density->user_mean, m2 = ddensity->user_mean, cg1 = density->user_stdev, cg2 = ddensity->user_stdev;
 		double cg22 = SQR(cg2);
-		*mkld = -(2.0 * log(cg1/cg2) * cg22 - SQR(m2) + (2.0 * m1 * m2) - SQR(m1)) * (1.0/cg22) / 2.0
-			+ (-cg22 + SQR(cg1)) / cg22 / 2.0;
+		*mkld = -(2.0 * log(cg1 / cg2) * cg22 - SQR(m2) + (2.0 * m1 * m2) - SQR(m1)) * (1.0 / cg22) / 2.0 + (-cg22 + SQR(cg1)) / cg22 / 2.0;
 	} else {
 		*mkld = 0.0;
 	}
