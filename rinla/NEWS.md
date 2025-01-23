@@ -1,4 +1,5 @@
 # INLA 25.01.23
+* New license: MIT
 * New experimental family: obeta
 * Fixed an issue with family=coxph
 * Code maintenance
