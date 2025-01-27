@@ -2,7 +2,11 @@
 #define __GMRFLibP_H__
 
 #define _GNU_SOURCE 1
+
+#if defined(__linux__)
 #include <features.h> 
+#include <numa.h>
+#endif
 
 #include <assert.h>
 #include <stddef.h>
@@ -11,7 +15,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <numa.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
