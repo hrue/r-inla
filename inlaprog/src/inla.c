@@ -5,7 +5,10 @@
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE 1
 #endif
+
+#if defined(__linux__)
 #include <features.h> 
+#endif
 
 #if defined(__sun__)
 #include <stdlib.h>
