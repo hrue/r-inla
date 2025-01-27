@@ -2764,7 +2764,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         MIMALLOC_SHOW_STATS = 0, 
         MIMALLOC_VERBOSE = 0, 
         MIMALLOC_SHOW_ERRORS = 0, 
-        MALLOC_CONF = "abort_conf:true,metadata_thp:always"
+        MALLOC_CONF = "abort_conf:true,metadata_thp:always,dirty_decay_ms:-1,percpu_arena:percpu"
     )
     return (list(vars = env.vars, values = env.vars.value))
 }
