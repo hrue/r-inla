@@ -4911,7 +4911,7 @@ int testit(int argc, char **argv)
 
 	case 157:
 	{
-
+#if defined(__linux__)
 		Pint(numa_available());
 		Pint(numa_max_possible_node());
 		Pint(numa_num_possible_nodes());
@@ -4931,6 +4931,7 @@ int testit(int argc, char **argv)
 				       omp_get_thread_num(), c, n);
 			}
 		}
+#endif
 	}
 		break;
 
