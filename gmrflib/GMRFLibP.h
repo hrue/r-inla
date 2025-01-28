@@ -516,15 +516,15 @@ typedef enum {
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
 	if (need_work__)						\
 		if (!work__[t_num__] && len_work__ && n_work__)		\
-			work__[t_num__] = Malloc(len_work__ * n_work__, double)
+			work__[t_num__] = Calloc(len_work__ * n_work__, double)
 
 #define CODE_BLOCK_INIT_X(work_tp_) \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
 	if (need_work__)						\
 		if (!work__[t_num__] && len_work__ && n_work__)		\
-			work__[t_num__] = Malloc(len_work__ * n_work__, double); \
+			work__[t_num__] = Calloc(len_work__ * n_work__, double); \
 	if (!work_t__[t_num__])						\
-		work_t__[t_num__] = Malloc(1, work_tp_)
+		work_t__[t_num__] = Calloc(1, work_tp_)
 
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
@@ -538,10 +538,6 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
@@ -568,10 +564,6 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
@@ -598,10 +590,6 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
@@ -628,10 +616,6 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
@@ -661,15 +645,8 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		work_tp_ ** work_t__ = Calloc(nt__, work_tp_ *);	\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work_t__[i_] = Calloc(1, work_tp_);		\
-		}							\
-									\
+		assert(work_t__);					\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
@@ -701,10 +678,6 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		if (0) for (int i_ = 0; i_ < nt__; i_++) {		\
-			work__[i_] = Calloc(len_work__ * n_work__, double); \
-			assert(work__[i_]);				\
-		}							\
 		assert(work__);						\
 									\
 		CODE_BLOCK;						\

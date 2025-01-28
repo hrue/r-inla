@@ -3777,7 +3777,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 // need this for the CODE_BLOCK..._x
 #define CODE_BLOCK_WORK_TP_FREE(p_)			\
-	if (1) {					\
+	if (p_) {					\
 		gsl_matrix_free((p_)->B);		\
 		gsl_matrix_free((p_)->Bt);		\
 		gsl_matrix_free((p_)->BtHB);		\
@@ -3807,8 +3807,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #define CODE_BLOCK							\
 	for(int inode = 0; inode < node_idx2->n; inode++) {		\
 		CODE_BLOCK_INIT_X(local_storage_tp);			\
-		int node = node_idx2->idx[inode];			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
+		int node = node_idx2->idx[inode];			\
 		int ng = gcpo[node]->idxs->n;				\
 		local_storage_tp *lstore = CODE_BLOCK_WORK_TP_PTR();	\
 		if (lstore->B == NULL) {				\
@@ -3854,7 +3854,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		lstore->zb->size = (size_t) ng;				\
 		lstore->zmean->size = (size_t) ng;			\
 		lstore->ztmp->size = (size_t) ng;			\
-									\
 		int *idxs = gcpo[node]->idxs->idx;			\
 		size_t idx_node = gcpo[node]->idx_node;			\
 		double bb_idx_node = NAN, cc_idx_node = NAN;		\
