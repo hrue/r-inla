@@ -16,9 +16,7 @@
 #endif
 
 __BEGIN_DECLS
-
 #include "GMRFLib/GMRFLibP.h"
-
 void GMRFLib_numa_get(int *cpu, int *numa);
 
 __END_DECLS

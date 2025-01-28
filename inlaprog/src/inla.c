@@ -7,7 +7,7 @@
 #endif
 
 #if defined(__linux__)
-#include <features.h> 
+#include <features.h>
 #endif
 
 #if defined(__sun__)

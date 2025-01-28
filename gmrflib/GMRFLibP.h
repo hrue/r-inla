@@ -4,7 +4,7 @@
 #define _GNU_SOURCE 1
 
 #if defined(__linux__)
-#include <features.h> 
+#include <features.h>
 #include <numa.h>
 #endif
 

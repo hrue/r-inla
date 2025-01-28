@@ -4925,10 +4925,9 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			int c = -1, n = -1;
 			GMRFLib_numa_get(&c, &n);
-#pragma omp critical 
+#pragma omp critical
 			{
-				printf("thread %1d belongs to cpu %d at numa %d\n",
-				       omp_get_thread_num(), c, n);
+				printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
 			}
 		}
 #endif
