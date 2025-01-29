@@ -15,13 +15,13 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 
 int GMRFLib_numa(void) 
 {
-	return (numa_available() ? 1 : 0);
+	return (numa_available() > -1 ? 1 : 0);
 }
 
 int GMRFLib_numa_nodes(void) 
 {
-	if (numa_available()) {
-		return (numa_max_possible_node());
+	if (GMRFLib_numa()) {
+		return (numa_num_configured_nodes());
 	} else {
 		return 0;
 	}
