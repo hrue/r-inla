@@ -514,15 +514,13 @@ typedef enum {
 
 #define CODE_BLOCK_INIT() \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
-	if (need_work__)						\
-		if (!work__[t_num__] && len_work__ && n_work__)		\
-			work__[t_num__] = Calloc(len_work__ * n_work__, double)
+	if (need_work__ && !work__[t_num__] && len_work__ && n_work__) \
+		work__[t_num__] = Calloc(len_work__ * n_work__, double)
 
 #define CODE_BLOCK_INIT_X(work_tp_) \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
-	if (need_work__)						\
-		if (!work__[t_num__] && len_work__ && n_work__)		\
-			work__[t_num__] = Calloc(len_work__ * n_work__, double); \
+	if (need_work__ && !work__[t_num__] && len_work__ && n_work__)		\
+		work__[t_num__] = Calloc(len_work__ * n_work__, double); \
 	if (!work_t__[t_num__])						\
 		work_t__[t_num__] = Calloc(1, work_tp_)
 
@@ -646,6 +644,7 @@ typedef enum {
 									\
 		work_tp_ ** work_t__ = Calloc(nt__, work_tp_ *);	\
 		assert(work_t__);					\
+									\
 		double ** work__ = Calloc(nt__, double *);		\
 		assert(work__);						\
 									\
