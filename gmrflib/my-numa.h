@@ -18,6 +18,8 @@
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
 void GMRFLib_numa_get(int *cpu, int *numa);
+int GMRFLib_numa_nodes(void);
+int GMRFLib_numa(void);
 
 __END_DECLS
 #endif

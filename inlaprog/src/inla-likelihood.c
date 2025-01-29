@@ -9,10 +9,11 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 {
 	double prec_high = 1.0E4, prec_low = 1.0 / prec_high, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
-	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], arr_old[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
-	int niter, niter_min = 5, niter_max = 100, stencil = 5;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3] = {0.0, 0.0, 0.0}, arr_old[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
+	int niter, niter_min = 5, niter_max = 100, stencil = 5, cache_idx = 0;
 	const int debug = 0;
 
+	GMRFLib_CACHE_SET_ID(cache_idx);
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
 	x = xnew = xsol = 0.0;
 	for (niter = 0; niter < niter_max; niter++) {
@@ -20,7 +21,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		prec = exp(log_prec_high * (1.0 - w) + log_prec_low * w);
 
 		Memcpy(arr_old, arr, sizeof(arr));
-		GMRFLib_2order_taylor(thread_id, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		GMRFLib_2order_taylor(thread_id, cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		if (ISNAN(arr[0]) || ISINF(arr[0])) {
 			Memcpy(arr, arr_old, sizeof(arr));
 			break;

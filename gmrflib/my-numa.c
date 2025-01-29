@@ -12,7 +12,23 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 	if (numa)
 		*numa = n;
 }
+
+int GMRFLib_numa(void) 
+{
+	return (numa_available() ? 1 : 0);
+}
+
+int GMRFLib_numa_nodes(void) 
+{
+	if (numa_available()) {
+		return (numa_max_possible_node());
+	} else {
+		return 0;
+	}
+}
+
 #else
+
 void GMRFLib_numa_get(int *cpu, int *numa)
 {
 	if (cpu)
@@ -20,4 +36,15 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 	if (numa)
 		*numa = 0;
 }
+
+int GMRFLib_numa(void) 
+{
+	return 0;
+}
+
+int GMRFLib_numa_nodes(void) 
+{
+	return 0;
+}
+
 #endif

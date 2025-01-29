@@ -628,7 +628,7 @@ typedef enum {
 		Free(work__);						\
         }
 
-#define CODE_BLOCK_WORK_TP_PTR() work_t__[(nt__ == 1 ? 0 : omp_get_thread_num())]
+#define CODE_BLOCK_WORK_TP_PTR() work_t__[(nt__ == 1 ? 0 : t_num__)]
 // CODE_BLOCK_WORK_TP_FREE(ptr_) needs to be defined
 
 #define RUN_CODE_BLOCK_X(thread_max_, n_work_, len_work_, work_tp_)	\

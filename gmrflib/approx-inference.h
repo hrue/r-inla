@@ -1146,9 +1146,12 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
 			  void *loglFunc_arg, double *x_vec);
-int GMRFLib_ai_vb_prepare_mean(int thread_id,
+int GMRFLib_ai_vb_prepare_mean_OLD(int thread_id,
 			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
+int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx, 
+			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
+				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
 int GMRFLib_ai_vb_prepare_variance(int thread_id,
 				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
