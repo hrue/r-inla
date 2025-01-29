@@ -6679,7 +6679,7 @@ int main(int argc, char **argv)
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_taucs_sort_L = 0;
-	GMRFLib_have_numa = GMRFLib_numa();
+	GMRFLib_numa_is_available = GMRFLib_numa();
 	
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */

@@ -142,6 +142,6 @@ int GMRFLib_intern_flag = 0;
 int GMRFLib_cachelinesize = 64;
 int GMRFLib_model_idx = 0;
 int GMRFLib_model_n = 1;
-int GMRFLib_have_numa = 0;
+int GMRFLib_numa_is_available = 0;
 
 char *GMRFLib_tmpdir = NULL;
