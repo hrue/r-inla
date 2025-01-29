@@ -4270,6 +4270,72 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_ai_vb_prepare_mean_NEW(int thread_id,
+			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
+			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
+{
+	// compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
+	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
+
+	// Normal kernel: deriv: ... * (x-m)/s^2
+	// dderiv: ... * ((x-m)^2 - s^2)/s^4
+	// GMRFLib_density_type_tp type;
+
+	if (ISZERO(d)) {
+		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
+		return GMRFLib_SUCCESS;
+	}
+
+	static double lwork[4][GMRFLib_INT_GHQ_POINTS];
+	double *xp = lwork[0];
+	double *wp = lwork[1];
+	double *wxp = lwork[2];
+	double *wxp2 = lwork[3];
+	static char init_done = 0;
+	
+	if (!init_done) {
+#pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
+		{
+			if (!init_done) {
+				double *wtmp = NULL, *xtmp = NULL;
+				GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
+				Memcpy(lwork[0], xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
+				Memcpy(lwork[1], wtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
+				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
+					lwork[2][i] = wtmp[i] * xtmp[i];
+					lwork[3][i] = wtmp[i] * (SQR(xtmp[i]) - 1.0);
+				}
+				init_done = 1;
+			}
+		}
+	}
+
+	double *x_user = NULL, *loglik = NULL;
+	if (workspace) {
+		x_user = workspace;
+	} else {
+		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+	}
+	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
+	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+
+	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
+	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp);
+	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp2);
+
+	// coofs->coofs[0] = -d * A;
+	coofs->coofs[0] = NAN;
+	coofs->coofs[1] = -d * B * s_inv;
+	coofs->coofs[2] = -d * C * s2_inv;
+
+	if (!workspace) {
+		Free(x_user);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, int idx, double d,
 				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
@@ -4540,6 +4606,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		// I know I compute the mean twice for iter=0, but then the timing gets right
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
 
+		static double tref = 0.0;
+		static double tref_n = 0.0;
+		tref -= GMRFLib_timer();
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			CODE_BLOCK_INIT();				\
@@ -4560,6 +4630,40 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
+
+		tref += GMRFLib_timer();
+		tref_n++;
+		P(tref/tref_n * 1.0E6);
+
+
+		static double tref2 = 0.0;
+		static double tref2_n = 0.0;
+		tref2 -= GMRFLib_timer();
+
+#define CODE_BLOCK							\
+		for (int ii = 0; ii < d_idx->n; ii++) {			\
+			CODE_BLOCK_INIT();				\
+			int i = d_idx->idx[ii];				\
+			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
+			GMRFLib_ai_vb_prepare_mean_NEW(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
+			if (debug) {					\
+				fprintf(fp, "[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
+					pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
+			}						\
+			BB[i] = vb_coof.coofs[1];			\
+			CC[i] = vb_coof.coofs[2];			\
+			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
+				if (0) printf("idx %d CC <= 0, or BB or CC is NAN\n", i); \
+				BB[i] = CC[i] = 0.0;			\
+			}						\
+		}
+
+		RUN_CODE_BLOCK(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
+#undef CODE_BLOCK
+
+		tref2 += GMRFLib_timer();
+		tref2_n++;
+		P(tref2/tref2_n * 1.0E6);
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
 #pragma omp simd
