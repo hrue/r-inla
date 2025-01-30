@@ -47,6 +47,7 @@ export PARDISOLICMESSAGE=1
 export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:/usr/lib:/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    export OMP_DISPLAY_ENV=true
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
@@ -84,3 +85,4 @@ if [ ! -z ${INLA_DEBUG+x} ]; then
 fi
 
 exec "$DIR/$prog" "$@"
+

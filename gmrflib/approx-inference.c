@@ -3756,6 +3756,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	}
 
 	typedef struct {
+		int cache_idx;
+		
 		gsl_matrix *B;
 		gsl_matrix *Bt;
 		gsl_matrix *BtHB;
@@ -3817,6 +3819,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #define CODE_BLOCK							\
 	for(int inode = 0; inode < node_idx2->n; inode++) {		\
 		CODE_BLOCK_INIT_X(local_storage_tp);			\
+		int cache_idx = CODE_BLOCK_WORK_TP_PTR()->cache_idx;	\
+		if (cache_idx == 0) {					\
+			GMRFLib_CACHE_SET_ID(cache_idx);		\
+			CODE_BLOCK_WORK_TP_PTR()->cache_idx= 1 + cache_idx; \
+		} else {						\
+			cache_idx--;					\
+		}							\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int node = node_idx2->idx[inode];			\
 		int ng = gcpo[node]->idxs->n;				\
@@ -4058,7 +4067,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						int nnode = idxs[i];	\
 						double ll_a = 0.0, ll_b = 0.0, ll_c = 0.0; \
 						double xx = gsl_vector_get(xstar, i); \
-						int cache_idx = 0;	/* FIXME LATER */ \
 						GMRFLib_2order_approx(thread_id, cache_idx, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
 								      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 						gsl_vector_set(b, i, ll_b); \
