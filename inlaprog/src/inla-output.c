@@ -185,7 +185,11 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 
 int inla_output(inla_tp *mb)
 {
-	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
+#define SETNUM(out_) nout = IMIN(out_, GMRFLib_MAX_THREADS()); \
+	nin = IMAX(1, IMIN(GMRFLib_MAX_THREADS(), (1 + GMRFLib_MAX_THREADS()) / nout)); \
+	GMRFLib_openmp_implement_strategy_special(nout, nin)
+
+	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0, nout = -1, nin = -1;
 	assert(mb);
 
 	/*
@@ -222,7 +226,35 @@ int inla_output(inla_tp *mb)
 	local_verbose = 0;
 
 	// do this here so they can be parallized in '_output_detail'
-	if (1) {
+
+	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
+		SETNUM(2);
+#pragma omp parallel for num_threads(2)
+		for (int ii = 0; ii < 2; ii++)  {
+			if (ii == 0) {
+				int offset = offsets[0];
+				inla_output_detail(mb->dir, &(mb->density[offset]),
+						   NULL, mb->predictor_n + mb->predictor_m, 1,
+						   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor,
+						   NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
+				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
+						 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
+			}
+
+			if (ii == 1) {
+				char *sdir = NULL, *newtag = NULL;
+				int offset = offsets[0];
+				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
+				GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
+				inla_output_detail(mb->dir, &(mb->density[offset]),
+						   NULL, mb->predictor_n + mb->predictor_m, 1,
+						   mb->predictor_output, sdir, mb->output->return_marginals_predictor,
+						   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
+				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
+			}
+		}
+	} else {
+		SETNUM(GMRFLib_MAX_THREADS());
 		int offset = offsets[0];
 		inla_output_detail(mb->dir, &(mb->density[offset]),
 				   NULL, mb->predictor_n + mb->predictor_m, 1,
@@ -231,32 +263,25 @@ int inla_output(inla_tp *mb)
 		inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
 				 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
 	}
+	
 
-	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
-		char *sdir = NULL, *newtag = NULL;
-		int offset = offsets[0];
-		GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
-		GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
-		inla_output_detail(mb->dir, &(mb->density[offset]),
-				   NULL, mb->predictor_n + mb->predictor_m, 1,
-				   mb->predictor_output, sdir, mb->output->return_marginals_predictor,
-				   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
-		inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
+	if (mb->nf) {
+		SETNUM(mb->nf);
+#pragma omp parallel for num_threads(mb->nf)
+		for (int ii = 0; ii < mb->nf; ii++) {
+			int offset = offsets[ii + 1];
+			inla_output_detail(mb->dir, &(mb->density[offset]),
+					   mb->f_locations[ii],
+					   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii],
+					   mb->f_dir[ii], mb->output->return_marginals,
+					   NULL, NULL, NULL, mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
+			inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
+			inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
+		}
 	}
-
-#pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
-	for (int ii = 0; ii < mb->nf; ii++) {
-		int offset = offsets[ii + 1];
-		inla_output_detail(mb->dir, &(mb->density[offset]),
-				   mb->f_locations[ii],
-				   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii],
-				   mb->f_dir[ii], mb->output->return_marginals,
-				   NULL, NULL, NULL, mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
-		inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
-		inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
-	}
-
-#pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
+	
+	SETNUM(6);
+#pragma omp parallel for num_threads(nout)
 	for (int k = 3; k < 9; k++) {
 		int ii;
 		if (k == 3) {
@@ -430,16 +455,16 @@ int inla_output(inla_tp *mb)
 		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	}
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-	for (int i = 0; i < 2; i++) {
-		if (i == 0 && mb->density) {
-			for (int ii = 0; ii < N; ii++) {
-				GMRFLib_free_density(mb->density[ii]);
-			}
-			Free(mb->density);
+	if (mb->density) {
+		SETNUM(1);
+#pragma omp parallel for num_threads(nout)
+		for (int ii = 0; ii < N; ii++) {
+			GMRFLib_free_density(mb->density[ii]);
 		}
+		Free(mb->density);
 	}
 
+#undef SETNUM
 	return INLA_OK;
 }
 
@@ -1440,7 +1465,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 #define _MAP_INCREASING(_idx) (func ? func(0.0, MAP_INCREASING, func_arg) : \
 			       (tfunc ? tfunc[_idx]->func(thread_id, 0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
-#define GMRFLib_MAX_THREADS_LOCAL() (n > 1024 ? GMRFLib_MAX_THREADS() : 2)
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1527,7 +1551,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			if (GMRFLib_OPENMP_IN_SERIAL()) {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, 0, 0);
+			} else {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+			}
 #undef CODE_BLOCK
 
 			Dclose_r();
@@ -1601,7 +1629,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
+			if (GMRFLib_OPENMP_IN_SERIAL()) {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, 3, mm);
+			} else {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 3, mm);
+			}
 #undef CODE_BLOCK
 			Dclose_r();
 			Free(nndir);
@@ -1778,7 +1810,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 #undef _FUNC
 #undef _FUNC_ARG
 #undef _TFUNC
-#undef GMRFLib_MAX_THREADS_LOCAL
 
 	GMRFLib_LEAVE_ROUTINE;
 
