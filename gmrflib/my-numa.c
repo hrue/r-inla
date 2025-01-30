@@ -15,7 +15,8 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 
 int GMRFLib_numa(void) 
 {
-	return (numa_available() > -1 ? 1 : 0);
+	return ((numa_available() > -1) && (numa_num_configured_nodes() > 1)
+		? 1 : 0);
 }
 
 int GMRFLib_numa_nodes(void) 

@@ -294,10 +294,10 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
 		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
 		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
-		if (GMRFLib_have_numa) {
+		if (GMRFLib_numa_is_available) {
 			printf("\t\tNumber of NUMA nodes[%1d]\n", GMRFLib_numa_nodes());
 		} else {
-			printf("\t\tNo NUMA nodes\n");
+			printf("\t\tNUMA not available or one NUMA node\n");
 		}
 		char a = -1;
 		signed char b = -1;
