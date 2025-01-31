@@ -5,7 +5,9 @@
 
 #if defined(__linux__)
 #include <features.h>
+#if defined(INLA_WITH_NUMA)
 #include <numa.h>
+#endif
 #endif
 
 #include <assert.h>

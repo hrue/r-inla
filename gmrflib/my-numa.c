@@ -1,7 +1,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#if defined(__linux__)
+#if defined(INLA_WITH_NUMA) && defined(__linux__)
 #include <sched.h>
 void GMRFLib_numa_get(int *cpu, int *numa)
 {

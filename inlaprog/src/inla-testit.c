@@ -4931,7 +4931,7 @@ int testit(int argc, char **argv)
 
 	case 157:
 	{
-#if defined(__linux__)
+#if defined(INLA_WITH_NUMA) && defined(__linux__)
 		Pint(numa_available());
 		Pint(numa_max_possible_node());
 		Pint(numa_num_possible_nodes());
@@ -4940,7 +4940,6 @@ int testit(int argc, char **argv)
 		Pint(numa_num_configured_cpus());
 		Pint(numa_num_task_cpus());
 		Pint(numa_num_task_nodes());
-
 #pragma omp parallel for
 		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			int c = -1, n = -1;
@@ -4950,7 +4949,9 @@ int testit(int argc, char **argv)
 				printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
 			}
 		}
-#endif
+#else
+		printf("\n\tNUMA support is not included in this build.\n");
+#endif		
 	}
 		break;
 
