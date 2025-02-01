@@ -4317,12 +4317,10 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
 	}
 
 	int cache_idx = 0;
-	if (GMRFLib_numa_is_available) {
-		if (lcache_idx >= 0) {
-			cache_idx = lcache_idx;
-		} else {
-			GMRFLib_CACHE_SET_ID(cache_idx);
-		}
+	if (lcache_idx >= 0) {
+		cache_idx = lcache_idx;
+	} else {
+		GMRFLib_CACHE_SET_ID(cache_idx);
 	}
 	
 	if (!lwork[cache_idx]) {
