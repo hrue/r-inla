@@ -139,7 +139,7 @@ NULL
             inla.timeout = 0, 
             fmesher.timeout = 0,
             inla.mode = "compact",
-            malloc.lib = "mi", 
+            malloc.lib = "je", 
             fmesher.evolution = 2L,
             fmesher.evolution.warn = FALSE,
             fmesher.evolution.verbosity = "default",
