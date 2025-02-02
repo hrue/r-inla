@@ -877,7 +877,9 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
 	}
 
+	double time_chol = -GMRFLib_timer();
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
+	time_chol += GMRFLib_timer();
 	if (retval) {
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
@@ -890,6 +892,28 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	(*L)->flags = flags & ~TAUCS_SYMMETRIC;		       /* fixes a bug in ver 2.0 av TAUCS */
 	taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
 
+	if (GMRFLib_opt_sort_L > 0) {
+#define CODE_BLOCK							\
+		for (int i = 0; i <  (*L)->n; i++) {			\
+			CODE_BLOCK_INIT();				\
+			int m = (*L)->colptr[i + 1] - (*L)->colptr[i];	\
+			int j = (*L)->colptr[i];			\
+			my_sort2_id((*L)->rowind + j, (double *) (*L)->values.d + j, m); \
+		} 
+
+		// it is 'quick', if taking less than 1seconds, then so this serial
+		if (time_chol < 1.0) {
+			RUN_CODE_BLOCK(1, 0, 0);
+		} else {
+			if (GMRFLib_OPENMP_IN_SERIAL()) {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, 0, 0);
+			} else {
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+			}
+		}
+#undef CODE_BLOCK
+	}
+	
 	/*
 	 * some last info 
 	 */

@@ -258,11 +258,16 @@
             #' @param globalconstr Add a global constraint (see `?f` and argument
             #' `extraconstr`). Note that a global constraint does NOT
             #' correct the normalisation constant.
+            #' (EXPERIMENTAL OPTION)
             globalconstr = list(A = NULL, e = NULL),
 
             #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).
             #' (EXPERIMENTAL OPTION: DO NOT USE)
-            opt.solve = FALSE
+            opt.solve = FALSE, 
+
+            #' @param opt.sort.L Store sorted `L` to optimize linear solves (TAUCS only).
+            #' Option `opt.solve` will also set `opt.sort.L`. 
+            opt.sort.L = TRUE
         ) {
             ctrl_object(as.list(environment()), "expert", check = FALSE)
         }

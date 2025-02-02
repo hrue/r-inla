@@ -81,12 +81,10 @@ if [ -n "${INLA_DEBUG}" ]; then
 fi
 
 nc=""
-if [ XX"${INLA_NUMACTL_ARG}" != "XX" ]; then
-    nc="numactl"
-    if $(which $nc >/dev/null 2>&1); then
-	nc="$nc ${INLA_NUMACTL_ARG} "
-    else 
-	nc=""
+if [ -n "$INLA_NUMACTL_ARG" ]; then
+    ncp=$(type --path numactl)
+    if [ -n "$ncp" ]; then
+	nc="$ncp ${INLA_NUMACTL_ARG} "
     fi
 fi
 exec $nc "$DIR/$prog" "$@"

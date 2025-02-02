@@ -12,7 +12,8 @@ control.expert(
   jp = NULL,
   dot.product.gain = FALSE,
   globalconstr = list(A = NULL, e = NULL),
-  opt.solve = FALSE
+  opt.solve = FALSE,
+  opt.sort.L = FALSE
 )
 
 inla.set.control.expert.default(...)
@@ -34,9 +35,14 @@ optimizing dot-products? (Default \code{FALSE})}
 
 \item{globalconstr}{Add a global constraint (see \code{?f} and argument
 \code{extraconstr}). Note that a global constraint does NOT
-correct the normalisation constant.}
+correct the normalisation constant.
+(EXPERIMENTAL OPTION)}
 
 \item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
+(EXPERIMENTAL OPTION: DO NOT USE)}
+
+\item{opt.sort.L}{Store \code{L} ensuring sorted indices to optimize linear solves (TAUCS only).
+Option \code{opt.solve} will also set \code{opt.sort.L}.
 (EXPERIMENTAL OPTION: DO NOT USE)}
 
 \item{...}{Named arguments passed on to the main function}

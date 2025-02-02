@@ -5529,6 +5529,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
+	// without constraints, do not sort L before we get to the second part
+	if (!(preopt->latent_constr && preopt->latent_constr->nc >= 4)) {
+		GMRFLib_opt_sort_L *= -1;
+	}
+
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
@@ -5640,9 +5645,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
 		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
-		if (!strcasecmp("taucs", mb->smtp)) {
-			printf("\tsort L..................... [%s]\n", (GMRFLib_taucs_sort_L ? "yes" : "no"));
-		}
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
@@ -6678,7 +6680,8 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_gaussian_data = 1;
-	GMRFLib_taucs_sort_L = 1;
+	GMRFLib_opt_sort_L = 0;
+	GMRFLib_opt_solve = 0;
 	GMRFLib_numa_is_available = GMRFLib_numa();
 	
 	GMRFLib_init_constr_store();

@@ -18968,13 +18968,15 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tMeasure dot.product.gain=[%s]\n", (dot_product_gain ? "Yes" : "No"));
 	}
 
+	GMRFLib_opt_sort_L = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SORT.L"), 0);
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	if (GMRFLib_opt_solve) {
-		// need this to make opt_solve_work
-		GMRFLib_taucs_sort_L = 1;
+		GMRFLib_opt_sort_L = 1;
 	}
+
 	if (mb->verbose) {
-		printf("\t\t\tOptimise linear solve=[%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
+		printf("\t\t\tSort indices in L     = [%s]\n", (GMRFLib_opt_sort_L ? "Yes" : "No"));
+		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 	}
 
 	/*
