@@ -6683,7 +6683,7 @@ int main(int argc, char **argv)
 	GMRFLib_opt_sort_L = 0;
 	GMRFLib_opt_solve = 0;
 	GMRFLib_numa_is_available = GMRFLib_numa();
-	
+
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */

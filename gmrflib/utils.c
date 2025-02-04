@@ -1839,22 +1839,22 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 	}
 }
 
-void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work) 
+void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work)
 {
 	// this does not go that well: see test 160
 
-	for(int i = 0; i < n; i++) {
-		int j = 2*i;
+	for (int i = 0; i < n; i++) {
+		int j = 2 * i;
 		int *ip = (int *) (work + j);
 		double *dp = (work + j + 1);
-		*ip =  ix[i];
-		*dp =  x[i];
+		*ip = ix[i];
+		*dp = x[i];
 	}
 
 	QSORT_FUN((void *) work, (size_t) n, (size_t) (2 * sizeof(double)), GMRFLib_icmp);
 
-	for(int i = 0; i < n; i++) {
-		int j = 2*i;
+	for (int i = 0; i < n; i++) {
+		int j = 2 * i;
 		int *ip = (int *) (work + j);
 		double *dp = (work + j + 1);
 		ix[i] = *ip;
@@ -1869,7 +1869,8 @@ void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 
 void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED(work))
 {
-	if (n <= 1) return;
+	if (n <= 1)
+		return;
 
 	// do not precheck if using insertionSort
 	if (n < GMRFLib_sort2_id_cut_off) {
@@ -1885,7 +1886,8 @@ void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED
 
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 {
-	if (n <= 1) return;
+	if (n <= 1)
+		return;
 
 	if (n < GMRFLib_sort2_dd_cut_off) {
 		my_insertionSort_dd(ix, x, n);
@@ -2104,9 +2106,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2126,15 +2128,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2174,16 +2176,16 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 
 
 // easier interface to sort ints and doubles, increasingly
-void GMRFLib_sort_i(int *ix, int n) 
+void GMRFLib_sort_i(int *ix, int n)
 {
-	return QSORT_FUN((void *)ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+	return QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
 }
-void GMRFLib_sort_d(double *x, int n) 
+void GMRFLib_sort_d(double *x, int n)
 {
 	if (n <= 32L) {
 		my_insertionSort_d(x, n);
 	} else {
-		QSORT_FUN((void *)x, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		QSORT_FUN((void *) x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 	}
 }
 

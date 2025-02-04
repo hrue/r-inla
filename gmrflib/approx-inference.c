@@ -2153,12 +2153,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			ll_info = Calloc(3 * preopt->Npred, double);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int j = 0; j < preopt->Npred; j++) {
-				int jj = 3 * j, cache_idx = omp_get_thread_num(); 
+				int jj = 3 * j, cache_idx = omp_get_thread_num();
 				double local_aa;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, cache_idx, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
-							      lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len,
-							      &ai_par->stencil);
+					GMRFLib_2order_taylor(thread_id, cache_idx, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]),
+							      &(ll_info[jj + 2]), d[j], lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg,
+							      &ai_par->step_len, &ai_par->stencil);
 				} else {
 					ll_info[jj] = ll_info[jj + 1] = ll_info[jj + 2] = NAN;
 				}
@@ -3757,7 +3757,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	typedef struct {
 		int cache_idx;
-		
+
 		gsl_matrix *B;
 		gsl_matrix *Bt;
 		gsl_matrix *BtHB;
@@ -4227,8 +4227,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 }
 
 int GMRFLib_ai_vb_prepare_mean_OLD(int thread_id,
-			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
+				   GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
+				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
 	// compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
 	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
@@ -4290,7 +4290,7 @@ int GMRFLib_ai_vb_prepare_mean_OLD(int thread_id,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx, 
+int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
 			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
 {
@@ -4322,7 +4322,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
 	} else {
 		GMRFLib_CACHE_SET_ID(cache_idx);
 	}
-	
+
 	if (!lwork[cache_idx]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
 		if (!lwork[cache_idx]) {
@@ -4338,7 +4338,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
 		}
 	}
 
-	double *xp = lwork[cache_idx]; 
+	double *xp = lwork[cache_idx];
 	double *wxp = lwork[cache_idx] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
 	double *wxp2 = lwork[cache_idx] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
 

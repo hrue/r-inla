@@ -230,7 +230,7 @@ int inla_output(inla_tp *mb)
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
 		SETNUM(2);
 #pragma omp parallel for num_threads(2)
-		for (int ii = 0; ii < 2; ii++)  {
+		for (int ii = 0; ii < 2; ii++) {
 			if (ii == 0) {
 				int offset = offsets[0];
 				inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -263,7 +263,7 @@ int inla_output(inla_tp *mb)
 		inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
 				 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
 	}
-	
+
 
 	if (mb->nf) {
 		SETNUM(mb->nf);
@@ -279,7 +279,7 @@ int inla_output(inla_tp *mb)
 			inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
 		}
 	}
-	
+
 	SETNUM(6);
 #pragma omp parallel for num_threads(nout)
 	for (int k = 3; k < 9; k++) {
@@ -463,7 +463,6 @@ int inla_output(inla_tp *mb)
 		}
 		Free(mb->density);
 	}
-
 #undef SETNUM
 	return INLA_OK;
 }

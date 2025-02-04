@@ -13,13 +13,13 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 		*numa = n;
 }
 
-int GMRFLib_numa(void) 
+int GMRFLib_numa(void)
 {
 	return ((numa_available() > -1) && (numa_num_configured_nodes() > 1)
 		? 1 : 0);
 }
 
-int GMRFLib_numa_nodes(void) 
+int GMRFLib_numa_nodes(void)
 {
 	if (GMRFLib_numa()) {
 		return (numa_num_configured_nodes());
@@ -38,12 +38,12 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 		*numa = 0;
 }
 
-int GMRFLib_numa(void) 
+int GMRFLib_numa(void)
 {
 	return 0;
 }
 
-int GMRFLib_numa_nodes(void) 
+int GMRFLib_numa_nodes(void)
 {
 	return 0;
 }

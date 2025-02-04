@@ -43,8 +43,8 @@ int GMRFLib_2order_taylor(int thread_id, int lcache_idx, double *a, double *b, d
 	if (ISZERO(d)) {
 		f0 = df = ddf = 0.0;
 	} else {
-		GMRFLib_2order_approx_core(thread_id, lcache_idx, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg, step_len,
-					   stencil);
+		GMRFLib_2order_approx_core(thread_id, lcache_idx, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg,
+					   step_len, stencil);
 	}
 
 	*a = f0;
@@ -120,7 +120,8 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 		give_warning_c = 0;
 	}
 
-	GMRFLib_2order_approx_core(thread_id, lcache_idx, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
+	GMRFLib_2order_approx_core(thread_id, lcache_idx, &f0, &df, &ddf, (dd ? &dddf : NULL), x0, idx, x_vec, loglFunc, loglFunc_arg, step_len,
+				   stencil);
 	if (INVALID(ddf)) {
 		if (give_warning_c == 0) {
 			fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", idx);
@@ -170,19 +171,17 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 }
 
 int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
-					   double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
+			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
 
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
 
-	typedef struct 
-	{
+	typedef struct {
 		double **wf;
-	}
-		wf_tp;
-	
+	} wf_tp;
+
 	static wf_tp **lwork = NULL;
 	if (!lwork) {
 #pragma omp critical (Name_009f5f31299b4b554b667873ad6c4c874bfc9a77)
@@ -197,7 +196,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 	} else {
 		GMRFLib_CACHE_SET_ID(cache_idx);
 	}
-	
+
 	if (!lwork[cache_idx]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
 		if (!lwork[cache_idx]) {
@@ -265,7 +264,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					double *ww= Calloc(3 * wlength, double);
+					double *ww = Calloc(3 * wlength, double);
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
 					ww[3] = 0.666666666666666666666667;
@@ -326,7 +325,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
 				if (!(w->wf[stenc])) {
-					double *ww= Calloc(3 * wlength, double);
+					double *ww = Calloc(3 * wlength, double);
 					ww[0] = -0.0166666666666666666666667;
 					ww[1] = 0.15;
 					ww[2] = -0.75;
@@ -392,11 +391,11 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			}
 
 			int n = 9, nn = 4, wlength = 16;
-			
+
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_2c6105c438980fcf3a3f8311ae71780a45886796)
 				if (!(w->wf[stenc])) {
-					double *ww= Calloc(4 * wlength, double);
+					double *ww = Calloc(4 * wlength, double);
 					ww[0] = 0.00357142857142857142857143;
 					ww[1] = -0.0380952380952380952380952;
 					ww[2] = 0.20;

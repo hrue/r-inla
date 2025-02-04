@@ -899,7 +899,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 			int m = (*L)->colptr[i + 1] - (*L)->colptr[i];	\
 			int j = (*L)->colptr[i];			\
 			my_sort2_id((*L)->rowind + j, (double *) (*L)->values.d + j, m); \
-		} 
+		}
 
 		// it is 'quick', if taking less than 0.5seconds, then so this serial
 		if (time_chol < 1.0) {
@@ -913,7 +913,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		}
 #undef CODE_BLOCK
 	}
-	
+
 	/*
 	 * some last info 
 	 */

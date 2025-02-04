@@ -4952,7 +4952,7 @@ int testit(int argc, char **argv)
 		}
 #else
 		printf("\n\tNUMA support is not included in this build.\n");
-#endif		
+#endif
 	}
 		break;
 
@@ -4995,7 +4995,7 @@ int testit(int argc, char **argv)
 
 		}
 
-		printf("integer insertsort %.4f  QSORT %.4f\n",  tref/(tref+tref2), tref2/(tref+tref2));
+		printf("integer insertsort %.4f  QSORT %.4f\n", tref / (tref + tref2), tref2 / (tref + tref2));
 
 		double *x = Calloc(n, double);
 		tref = 0.0;
@@ -5021,7 +5021,7 @@ int testit(int argc, char **argv)
 
 		}
 
-		printf("double insertsort %.4f  QSORT %.4f\n",  tref/(tref+tref2), tref2/(tref+tref2));
+		printf("double insertsort %.4f  QSORT %.4f\n", tref / (tref + tref2), tref2 / (tref + tref2));
 	}
 		break;
 
@@ -5053,7 +5053,7 @@ int testit(int argc, char **argv)
 		}
 
 		double tref2 = 0.0;
-		double *work = Calloc(2*n, double);
+		double *work = Calloc(2 * n, double);
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
 				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
