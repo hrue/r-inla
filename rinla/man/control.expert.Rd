@@ -13,7 +13,7 @@ control.expert(
   dot.product.gain = FALSE,
   globalconstr = list(A = NULL, e = NULL),
   opt.solve = FALSE,
-  opt.sort.L = FALSE
+  opt.sort.L = -1
 )
 
 inla.set.control.expert.default(...)
@@ -41,9 +41,10 @@ correct the normalisation constant.
 \item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
 (EXPERIMENTAL OPTION: DO NOT USE)}
 
-\item{opt.sort.L}{Store \code{L} ensuring sorted indices to optimize linear solves (TAUCS only).
-Option \code{opt.solve} will also set \code{opt.sort.L}.
-(EXPERIMENTAL OPTION: DO NOT USE)}
+\item{opt.sort.L}{Store sorted \code{L} to optimize linear solves (TAUCS only).
+Option \code{opt.solve} will also set \code{opt.sort.L}. Using \code{-1} restrict this
+to the integration part of the code only. Using \code{TRUE} or \code{1} will enable
+this all the time.}
 
 \item{...}{Named arguments passed on to the main function}
 }

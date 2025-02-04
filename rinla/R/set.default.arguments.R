@@ -266,8 +266,10 @@
             opt.solve = FALSE, 
 
             #' @param opt.sort.L Store sorted `L` to optimize linear solves (TAUCS only).
-            #' Option `opt.solve` will also set `opt.sort.L`. 
-            opt.sort.L = TRUE
+            #' Option `opt.solve` will also set `opt.sort.L`. Using `-1` restrict this
+            #' to the integration part of the code only. Using `TRUE` or `1` will enable
+            #' this all the time.
+            opt.sort.L = -1
         ) {
             ctrl_object(as.list(environment()), "expert", check = FALSE)
         }
