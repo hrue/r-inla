@@ -1,3 +1,4 @@
+#include <values.h>
 #include <limits.h>
 #include <assert.h>
 #include <stddef.h>
@@ -4960,6 +4961,117 @@ int testit(int argc, char **argv)
 		double xi = atof(args[0]);
 		double intercept = atof(args[1]);
 		link_gev_test(xi, intercept);
+	}
+		break;
+
+	case 159:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int *ix = Calloc(n, int);
+
+		double tref = 0.0;
+		double tref2 = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) ((2 * n) * GMRFLib_uniform());
+			}
+
+			tref -= GMRFLib_timer();
+			my_insertionSort_i(ix, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+
+			tref2 -= GMRFLib_timer();
+			QSORT_FUN(ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref2 += GMRFLib_timer();
+
+		}
+
+		printf("integer insertsort %.4f  QSORT %.4f\n",  tref/(tref+tref2), tref2/(tref+tref2));
+
+		double *x = Calloc(n, double);
+		tref = 0.0;
+		tref2 = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref -= GMRFLib_timer();
+			my_insertionSort_d(x, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (x[j] < x[j - 1]);
+			}
+			assert(errors == 0);
+
+			tref2 -= GMRFLib_timer();
+			QSORT_FUN(x, (size_t) n, sizeof(int), GMRFLib_dcmp);
+			tref2 += GMRFLib_timer();
+
+		}
+
+		printf("double insertsort %.4f  QSORT %.4f\n",  tref/(tref+tref2), tref2/(tref+tref2));
+	}
+		break;
+
+	case 160:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int *ix = Calloc(n, int);
+		double *x = Calloc(n, double);
+
+		double tref = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref -= GMRFLib_timer();
+			my_sort2_id(ix, x, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+		}
+
+		double tref2 = 0.0;
+		double *work = Calloc(2*n, double);
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref2 -= GMRFLib_timer();
+			my_sort2_id_work(ix, x, n, (double *) work);
+			tref2 += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+		}
+
+		printf("sort2 %g sort2_work %g\n", tref / (tref + tref2), tref2 / (tref + tref2));
 	}
 		break;
 

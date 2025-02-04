@@ -513,15 +513,7 @@ int GMRFLib_dcmp(const void *a, const void *b)
 {
 	const double *da = (const double *) a;
 	const double *db = (const double *) b;
-
-	if (*da > *db) {
-		return 1;
-	}
-	if (*da < *db) {
-		return -1;
-	}
-
-	return 0;
+	return (*da > *db ? 1 : (*da < *db ? -1 : 0));
 }
 
 int GMRFLib_dcmp_r(const void *a, const void *b)
@@ -1784,6 +1776,32 @@ void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n
 	}
 }
 
+void my_insertionSort_i(int *__restrict iarr, int n)
+{
+	for (int i = 1; i < n; i++) {
+		int key = iarr[i];
+		int j = i - 1;
+		while (j >= 0 && iarr[j] > key) {
+			iarr[j + 1] = iarr[j];
+			j--;
+		}
+		iarr[j + 1] = key;
+	}
+}
+
+void my_insertionSort_d(double *__restrict iarr, int n)
+{
+	for (int i = 1; i < n; i++) {
+		double key = iarr[i];
+		int j = i - 1;
+		while (j >= 0 && iarr[j] > key) {
+			iarr[j + 1] = iarr[j];
+			j--;
+		}
+		iarr[j + 1] = key;
+	}
+}
+
 void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n)
 {
 	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
@@ -1818,6 +1836,29 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 		} else {
 			gsl_sort2_ii(ix, x, n);
 		}
+	}
+}
+
+void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work) 
+{
+	// this does not go that well: see test 160
+
+	for(int i = 0; i < n; i++) {
+		int j = 2*i;
+		int *ip = (int *) (work + j);
+		double *dp = (work + j + 1);
+		*ip =  ix[i];
+		*dp =  x[i];
+	}
+
+	QSORT_FUN((void *) work, (size_t) n, (size_t) (2 * sizeof(double)), GMRFLib_icmp);
+
+	for(int i = 0; i < n; i++) {
+		int j = 2*i;
+		int *ip = (int *) (work + j);
+		double *dp = (work + j + 1);
+		ix[i] = *ip;
+		x[i] = *dp;
 	}
 }
 
@@ -2130,6 +2171,22 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 	}
 	Free(xy);
 }
+
+
+// easier interface to sort ints and doubles, increasingly
+void GMRFLib_sort_i(int *ix, int n) 
+{
+	return QSORT_FUN((void *)ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+}
+void GMRFLib_sort_d(double *x, int n) 
+{
+	if (n <= 32L) {
+		my_insertionSort_d(x, n);
+	} else {
+		QSORT_FUN((void *)x, (size_t) n, sizeof(double), GMRFLib_dcmp);
+	}
+}
+
 
 // 
 double GMRFLib_cdfnorm_inv(double p)
