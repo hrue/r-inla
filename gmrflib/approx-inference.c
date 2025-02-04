@@ -6481,42 +6481,8 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 		int n = ai_store->problem->n;
 
 		taucs_ccs_matrix *L = ai_store->problem->sub_sm_fact.TAUCS_L;
-		if (GMRFLib_opt_sort_L && L) {
-#define CODE_BLOCK							\
-			for (int i = 0; i < n; i++) {			\
-				CODE_BLOCK_INIT();			\
-				int m = L->colptr[i + 1] - L->colptr[i]; \
-				int j = L->colptr[i];			\
-				my_sort2_id(L->rowind + j, (double *) L->values.d + j, m); \
-			}
-
-			if (GMRFLib_OPENMP_IN_SERIAL()) {
-				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, 0, 0);
-			} else {
-				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
-			}
-#undef CODE_BLOCK
-
-			if (GMRFLib_opt_solve) {
-				if (!(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
-					ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
-					taucs_crs_matrix *LL = ai_store->problem->sub_sm_fact.TAUCS_LL;
-#define CODE_BLOCK							\
-					for (int i = 0; i < n; i++) {	\
-						CODE_BLOCK_INIT();	\
-						int m = LL->rowptr[i + 1] - LL->rowptr[i]; \
-						int j = LL->rowptr[i];	\
-						my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \
-					}
-
-					if (GMRFLib_OPENMP_IN_SERIAL()) {
-						RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, 0, 0);
-					} else {
-						RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
-					}
-#undef CODE_BLOCK
-				}
-			}
+		if (L && GMRFLib_opt_solve && !(ai_store->problem->sub_sm_fact.TAUCS_LL)) {
+			ai_store->problem->sub_sm_fact.TAUCS_LL = GMRFLib_ccs2crs(ai_store->problem->sub_sm_fact.TAUCS_L);
 		}
 
 		GMRFLib_Qinv(ai_store->problem);

@@ -94,7 +94,6 @@ extern int GMRFLib_gaussian_data;
 
 extern int GMRFLib_testit_mode;
 extern int GMRFLib_testit_debug;
-extern int GMRFLib_opt_sort_L;
 extern int GMRFLib_opt_solve;
 
 extern int GMRFLib_intern_flag;
