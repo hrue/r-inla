@@ -1828,26 +1828,30 @@ void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 
 void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED(work))
 {
-	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
-		return;
+	if (n <= 1) return;
 
+	// do not precheck if using insertionSort
 	if (n < GMRFLib_sort2_id_cut_off) {
 		my_insertionSort_id(ix, x, n);
 	} else {
-		gsl_sort2_id(ix, x, n);
+		if (!GMRFLib_is_sorted_iinc(n, ix)) {
+			gsl_sort2_id(ix, x, n);
+		}
 	}
+
 	return;
 }
 
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 {
-	if (n <= 1 || GMRFLib_is_sorted_dinc(n, ix))
-		return;
+	if (n <= 1) return;
 
 	if (n < GMRFLib_sort2_dd_cut_off) {
 		my_insertionSort_dd(ix, x, n);
 	} else {
-		gsl_sort2_dd(ix, x, n);
+		if (!GMRFLib_is_sorted_dinc(n, ix)) {
+			gsl_sort2_dd(ix, x, n);
+		}
 	}
 }
 

@@ -67,7 +67,7 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
 	interpol.h pre-opt.h cores.h fsort.h sn-g.h sn-g-tables.h my-numa.h
 
-HEADERS1 = fsort/fluxsort.c fsort/fluxsort.h fsort/quadsort.c fsort/quadsort.h
+HEADERS1 = fsort/fluxsort.c fsort/fluxsort.h fsort/quadsort.c fsort/quadsort.h 
 
 EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-blockupdate.c examples/example-graph1.c \
