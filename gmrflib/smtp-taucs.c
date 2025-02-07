@@ -49,6 +49,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
 	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
+	
+	static double tref = 0.0;
+	static double trefn = 0.0;
 
 	int n = L->n;
 	if (n == 0) {
@@ -137,6 +140,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(*cache)->rowind = Malloc(nnz, int);
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 
+		tref -= GMRFLib_timer();
+		
 		int *s = Malloc(nnz, int);
 		for (int j = 0; j < nnz; j++) {
 			s[j] = j;
@@ -165,6 +170,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		}
 		(*cache)->sort2 = idx2;
 		Free(s);
+
+		tref += GMRFLib_timer();
+		trefn++;
+		FIXME("INIT CACHE");
+		P(tref);
+		P(tref/trefn);
 	}
 
 #define CODE_BLOCK							\
@@ -201,6 +212,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 #undef CODE_BLOCK
 
 	if (do_sort_idx && cache && (*cache)->sort2) {
+
+		tref -= GMRFLib_timer();
+
 		double *work = Malloc(nnz, double);
 		int *iwork = (int *) work;		       /* use same storage */
 
@@ -219,6 +233,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 			C->values.d[jj[j]] = work[ss[j]];
 		}
 		Free(work);
+
+		tref += GMRFLib_timer();
+		trefn++;
+		FIXME("USING CACHE");
+		P(tref);
+		P(tref/trefn);
 	}
 
 	if (!cache) {
