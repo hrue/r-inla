@@ -145,22 +145,18 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(*cache)->rowind = Malloc(nnz, int);
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 
-		int *itmp = Malloc(lmax, int);
-		(*cache)->sort_idx = Calloc(nnz, int);
+		(*cache)->sort_idx = Malloc(nnz, int);
+		for (int j = 0; j < nnz; j++) {
+			(*cache)->sort_idx[j] = j;
+		}
 
 		for (int i = 0; i < C->n; i++) {			
 			int m = C->colptr[i + 1] - C->colptr[i];	
-			if (m) {
-				int j = C->colptr[i];			
-				int *s = (*cache)->sort_idx + j;
-				for(int k = 0; k < m; k++) {
-					s[k] = k;
-				}
-				Memcpy(itmp, C->rowind + j, m * sizeof(int));
-				my_sort2_ii(itmp, s, m);
-			}
+			int j = C->colptr[i];			
+			my_sort2_ii((*cache)->rowind + j, (*cache)->sort_idx + j, m);
 		}
-		Free(itmp);
+		// as we need (*cache)->rowind to be unsorted
+		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 	}
 
 #define CODE_BLOCK							\
@@ -197,34 +193,52 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 #undef CODE_BLOCK
 
 	if (cache && (*cache)->sort_idx) {
-		size_t lalloc = GMRFLib_align((size_t) lmax,  sizeof(double));
-		double *dtmp = Malloc(2*lalloc, double);
-		int *itmp = (int *) (dtmp + lalloc);
 
-		for (int i = 0; i < C->n; i++) {			
-			int m = C->colptr[i + 1] - C->colptr[i];	
-			int j = C->colptr[i];			
-
-			double *d = C->values.d + j;
-			int *ind = C->rowind + j;
-			int *s = (*cache)->sort_idx + j;
-
-			Memcpy(dtmp, d, m * sizeof(double));
-			Memcpy(itmp, ind, m * sizeof(int));
-
-			for(int k = 0; k < m; k++) {
-				d[k] = dtmp[s[k]];
-				ind[k] = itmp[s[k]];
+		if (1) {
+			double *work = Malloc(nnz, double);
+			int *iwork = (int *) work;
+			int *s = (*cache)->sort_idx;
+			
+			Memcpy(iwork, C->rowind, nnz * sizeof(int));
+			for(int j = 0; j < nnz; j++) {
+				C->rowind[j] = iwork[s[j]];
 			}
-				
-			if (0) {
-				assert(GMRFLib_is_sorted_iinc(m, ind));
+
+			Memcpy(work, C->values.d, nnz * sizeof(double));
+			for(int j = 0; j < nnz; j++) {
+				C->values.d[j] = work[s[j]];
+			}
+			Free(work);
+		} else {
+			size_t lalloc = GMRFLib_align((size_t) lmax,  sizeof(double));
+			double *dtmp = Malloc(2*lalloc, double);
+			int *itmp = (int *) (dtmp + lalloc);
+
+			for (int i = 0; i < C->n; i++) {			
+				int m = C->colptr[i + 1] - C->colptr[i];	
+				int j = C->colptr[i];			
+
+				double *d = C->values.d + j;
+				int *ind = C->rowind + j;
+				int *s = (*cache)->sort_idx + j;
+
+				Memcpy(dtmp, d, m * sizeof(double));
+				Memcpy(itmp, ind, m * sizeof(int));
+
 				for(int k = 0; k < m; k++) {
-					printf("i[%1d] rowind[%1d] = %1d d = %g\n", i, k, ind[k], d[k]);
+					d[k] = dtmp[s[k]];
+					ind[k] = itmp[s[k]];
+				}
+				
+				if (0) {
+					assert(GMRFLib_is_sorted_iinc(m, ind));
+					for(int k = 0; k < m; k++) {
+						printf("i[%1d] rowind[%1d] = %1d d = %g\n", i, k, ind[k], d[k]);
+					}
 				}
 			}
+			Free(dtmp);
 		}
-		Free(dtmp);
 	}
 
 	if (!cache) {
