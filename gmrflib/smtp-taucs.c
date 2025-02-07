@@ -49,7 +49,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
 	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
-	
 	static double tref = 0.0;
 	static double trefn = 0.0;
 
