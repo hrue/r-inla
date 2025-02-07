@@ -216,23 +216,29 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		tref -= GMRFLib_timer();
 
 		double *work = Malloc(nnz, double);
-		int *iwork = (int *) work;		       /* use same storage */
+		int *iwork = Malloc(nnz, int);
 
-		Memcpy(iwork, C->rowind, nnz * sizeof(int));
 		int nn = (*cache)->sort2->n;
 		int *jj = (*cache)->sort2->idx[0];
 		int *ss = (*cache)->sort2->idx[1];
-#pragma omp simd
-		for (int j = 0; j < nn; j++) {
-			C->rowind[jj[j]] = iwork[ss[j]];
-		}
+		Memcpy(iwork, C->rowind, nnz * sizeof(int));
 
-		Memcpy(work, C->values.d, nnz * sizeof(double));
-#pragma omp simd
-		for (int j = 0; j < nn; j++) {
-			C->values.d[jj[j]] = work[ss[j]];
+#pragma omp parallel for num_threads(2) 
+		for (int k = 0; k < 2; k++) {
+			if (k == 0) {
+				Memcpy(iwork, C->rowind, nnz * sizeof(int));
+				for (int j = 0; j < nn; j++) {
+					C->rowind[jj[j]] = iwork[ss[j]];
+				}
+			} else if (k == 1) {
+				Memcpy(work, C->values.d, nnz * sizeof(double));
+				for (int j = 0; j < nn; j++) {
+					C->values.d[jj[j]] = work[ss[j]];
+				}
+			}
 		}
 		Free(work);
+		Free(iwork);
 
 		tref += GMRFLib_timer();
 		trefn++;
