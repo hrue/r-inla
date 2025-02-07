@@ -20,12 +20,14 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 		nc->n = cache->n;
 		nc->nnz = cache->nnz;
 		if (nc->n && cache->len) {
-			nc->len = Calloc(nc->n, int);
+			nc->len = Malloc(nc->n, int);
 			Memcpy(nc->len, cache->len, nc->n * sizeof(int));
 		}
 		if (nc->nnz && cache->rowind) {
-			nc->rowind = Calloc(nc->nnz, int);
+			nc->rowind = Malloc(nc->nnz, int);
+			nc->sort_idx = Malloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
+			Memcpy(nc->sort_idx, cache->sort_idx, nc->nnz * sizeof(int));
 		}
 		return nc;
 	}
@@ -37,6 +39,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	if (cache) {
 		Free(cache->len);
 		Free(cache->rowind);
+		Free(cache->sort_idx);
 		Free(cache);
 	}
 }
@@ -103,6 +106,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
 	}
 
+	int lmax = 0;
+	for (int i = 0; i < C->n; i++) {			
+		int m = C->colptr[i + 1] - C->colptr[i];
+		lmax = IMAX(lmax, m);
+	}
+
 	if (cache && (*cache)->rowind) {
 		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
 	} else {
@@ -132,10 +141,26 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 		RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
-		if (cache) {
-			(*cache)->rowind = Calloc(nnz, int);
-			Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
+
+		(*cache)->rowind = Malloc(nnz, int);
+		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
+
+		int *itmp = Malloc(lmax, int);
+		(*cache)->sort_idx = Calloc(nnz, int);
+
+		for (int i = 0; i < C->n; i++) {			
+			int m = C->colptr[i + 1] - C->colptr[i];	
+			if (m) {
+				int j = C->colptr[i];			
+				int *s = (*cache)->sort_idx + j;
+				for(int k = 0; k < m; k++) {
+					s[k] = k;
+				}
+				Memcpy(itmp, C->rowind + j, m * sizeof(int));
+				my_sort2_ii(itmp, s, m);
+			}
 		}
+		Free(itmp);
 	}
 
 #define CODE_BLOCK							\
@@ -170,6 +195,37 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
+
+	if (cache && (*cache)->sort_idx) {
+		size_t lalloc = GMRFLib_align((size_t) lmax,  sizeof(double));
+		double *dtmp = Malloc(2*lalloc, double);
+		int *itmp = (int *) (dtmp + lalloc);
+
+		for (int i = 0; i < C->n; i++) {			
+			int m = C->colptr[i + 1] - C->colptr[i];	
+			int j = C->colptr[i];			
+
+			double *d = C->values.d + j;
+			int *ind = C->rowind + j;
+			int *s = (*cache)->sort_idx + j;
+
+			Memcpy(dtmp, d, m * sizeof(double));
+			Memcpy(itmp, ind, m * sizeof(int));
+
+			for(int k = 0; k < m; k++) {
+				d[k] = dtmp[s[k]];
+				ind[k] = itmp[s[k]];
+			}
+				
+			if (0) {
+				assert(GMRFLib_is_sorted_iinc(m, ind));
+				for(int k = 0; k < m; k++) {
+					printf("i[%1d] rowind[%1d] = %1d d = %g\n", i, k, ind[k], d[k]);
+				}
+			}
+		}
+		Free(dtmp);
+	}
 
 	if (!cache) {
 		Free(len);

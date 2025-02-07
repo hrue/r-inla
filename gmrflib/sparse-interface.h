@@ -97,6 +97,7 @@ typedef struct {
 	int nnz;
 	int *len;
 	int *rowind;
+	int *sort_idx;
 } GMRFLib_taucs_cache_tp;
 
 
