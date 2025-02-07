@@ -25,9 +25,8 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 		}
 		if (nc->nnz && cache->rowind) {
 			nc->rowind = Malloc(nc->nnz, int);
-			nc->sort_idx = Malloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
-			Memcpy(nc->sort_idx, cache->sort_idx, nc->nnz * sizeof(int));
+			nc->sort2 = GMRFLib_idx2_duplicate(cache->sort2);
 		}
 		return nc;
 	}
@@ -39,7 +38,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	if (cache) {
 		Free(cache->len);
 		Free(cache->rowind);
-		Free(cache->sort_idx);
+		GMRFLib_idx2_free(cache->sort2);
 		Free(cache);
 	}
 }
@@ -49,6 +48,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_ENTER_ROUTINE;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
+	int do_sort_idx = 0;				       /* = 0 will turn off sorting */
+	
 	int n = L->n;
 	if (n == 0) {
 		return NULL;
@@ -106,12 +107,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
 	}
 
-	int lmax = 0;
-	for (int i = 0; i < C->n; i++) {			
-		int m = C->colptr[i + 1] - C->colptr[i];
-		lmax = IMAX(lmax, m);
-	}
-
 	if (cache && (*cache)->rowind) {
 		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
 	} else {
@@ -145,18 +140,32 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(*cache)->rowind = Malloc(nnz, int);
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 
-		(*cache)->sort_idx = Malloc(nnz, int);
+		int *s = Malloc(nnz, int);
 		for (int j = 0; j < nnz; j++) {
-			(*cache)->sort_idx[j] = j;
+			s[j] = j;
 		}
-
 		for (int i = 0; i < C->n; i++) {			
 			int m = C->colptr[i + 1] - C->colptr[i];	
 			int j = C->colptr[i];			
-			my_sort2_ii((*cache)->rowind + j, (*cache)->sort_idx + j, m);
+			my_sort2_ii((*cache)->rowind + j, s + j, m);
 		}
-		// as we need (*cache)->rowind to be unsorted
+
+		// as we need (*cache)->rowind to be unsorted, we need to copy it again
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
+		
+		int nchange = 0;
+		for(int j = 0; j < nnz; j++) {
+			nchange += (s[j] != j);
+		}
+		GMRFLib_idx2_tp *idx2 = NULL;
+		GMRFLib_idx2_create_x(&idx2, nchange);
+		for(int j = 0; j < nnz; j++) {
+			if (s[j] != j) {
+				GMRFLib_idx2_add(&idx2, j, s[j]);
+			}
+		}
+		(*cache)->sort2 = idx2;
+		Free(s);
 	}
 
 #define CODE_BLOCK							\
@@ -192,55 +201,27 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
-	if (cache && (*cache)->sort_idx) {
+	if (do_sort_idx && cache && (*cache)->sort2) {
+		double *work = Malloc(nnz, double);
+		int *iwork = (int *) work;		       /* use same storage */
 
-		if (1) {
-			double *work = Malloc(nnz, double);
-			int *iwork = (int *) work;
-			int *s = (*cache)->sort_idx;
-			
-			Memcpy(iwork, C->rowind, nnz * sizeof(int));
-			for(int j = 0; j < nnz; j++) {
-				C->rowind[j] = iwork[s[j]];
-			}
-
-			Memcpy(work, C->values.d, nnz * sizeof(double));
-			for(int j = 0; j < nnz; j++) {
-				C->values.d[j] = work[s[j]];
-			}
-			Free(work);
-		} else {
-			size_t lalloc = GMRFLib_align((size_t) lmax,  sizeof(double));
-			double *dtmp = Malloc(2*lalloc, double);
-			int *itmp = (int *) (dtmp + lalloc);
-
-			for (int i = 0; i < C->n; i++) {			
-				int m = C->colptr[i + 1] - C->colptr[i];	
-				int j = C->colptr[i];			
-
-				double *d = C->values.d + j;
-				int *ind = C->rowind + j;
-				int *s = (*cache)->sort_idx + j;
-
-				Memcpy(dtmp, d, m * sizeof(double));
-				Memcpy(itmp, ind, m * sizeof(int));
-
-				for(int k = 0; k < m; k++) {
-					d[k] = dtmp[s[k]];
-					ind[k] = itmp[s[k]];
-				}
-				
-				if (0) {
-					assert(GMRFLib_is_sorted_iinc(m, ind));
-					for(int k = 0; k < m; k++) {
-						printf("i[%1d] rowind[%1d] = %1d d = %g\n", i, k, ind[k], d[k]);
-					}
-				}
-			}
-			Free(dtmp);
+		Memcpy(iwork, C->rowind, nnz * sizeof(int));
+		int nn = (*cache)->sort2->n;
+		int *jj = (*cache)->sort2->idx[0];
+		int *ss = (*cache)->sort2->idx[1];
+#pragma omp simd
+		for(int j = 0; j < nn; j++) {
+			C->rowind[jj[j]] = iwork[ss[j]];
 		}
-	}
 
+		Memcpy(work, C->values.d, nnz * sizeof(double));
+#pragma omp simd
+		for(int j = 0; j < nn; j++) {
+			C->values.d[jj[j]] = work[ss[j]];
+		}
+		Free(work);
+	}
+	
 	if (!cache) {
 		Free(len);
 	}

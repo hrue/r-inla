@@ -1216,12 +1216,27 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
+	if (!h) return NULL;
 	GMRFLib_idx_tp *nnew = NULL;
-	GMRFLib_idx_create_x(&nnew, (h ? IMAX(1, h->n) : 1));
-	if (h && h->n > 0) {
+	GMRFLib_idx_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
 		GMRFLib_idx_nadd(&nnew, h->n, h->idx);
 	}
 
+	return nnew;
+}
+
+GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp *h)
+{
+	if (!h) return NULL;
+	GMRFLib_idx2_tp *nnew = NULL;
+	GMRFLib_idx2_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
+		Memcpy(nnew->idx[0], h->idx[0], h->n * sizeof(int));
+		Memcpy(nnew->idx[1], h->idx[1], h->n * sizeof(int));
+		nnew->n = h->n;
+	}
+		
 	return nnew;
 }
 

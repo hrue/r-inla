@@ -159,6 +159,7 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp * h);
+GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp * h);
 
 __END_DECLS
 #endif
