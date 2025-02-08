@@ -401,17 +401,30 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	ai_store->Npred = Npred;
 
 	static int *nnr_step_factor_first_time_only = NULL;
-	if (!nnr_step_factor_first_time_only) {
-#pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
-		{
-			if (!nnr_step_factor_first_time_only) {
-				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN(), int);
-				for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-					nnr_step_factor_first_time_only[i] = 1;
-				}
+	static int model_idx = -1;
+
+	// need to reset it for each new model 
+	if (GMRFLib_model_n > 0) {
+		if (model_idx != GMRFLib_model_idx) {
+#pragma omp critical (Name_364001f392b4ebd1cd29c7e6fbfae3fe83dc5d04) 
+			if (model_idx != GMRFLib_model_idx) {
+				Free(nnr_step_factor_first_time_only);
+				nnr_step_factor_first_time_only = NULL;
+				model_idx = GMRFLib_model_idx;
 			}
 		}
 	}
+
+	if (!nnr_step_factor_first_time_only) {
+#pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
+		if (!nnr_step_factor_first_time_only) {
+			nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN(), int);
+			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+				nnr_step_factor_first_time_only[i] = 1;
+			}
+		}
+	}
+
 	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
@@ -700,6 +713,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	if (optpar && optpar->fp)
 		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
 	int iter, itmax = optpar->max_iter;
+
 	/*
 	 * these tricks are currently disabled 
 	 */
@@ -4666,6 +4680,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		RUN_CODE_BLOCK_X(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
 #undef CODE_BLOCK
 #undef CODE_BLOCK_WORK_TP_FREE
+
+		if (0) {
+			for (int ii = 0; ii < d_idx->n; ii++) {	
+				int i = d_idx->idx[ii];		
+				printf("i %d BB %g CC %g\n", i, BB[i], CC[i]);
+			}
+		}
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
 #pragma omp simd
