@@ -305,8 +305,16 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		char a = -1;
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
-		printf("\t\tBUFSIZ is %1d\n", BUFSIZ);
-		printf("\t\tCACHE_LINE_SIZE is %1d bytes\n", GMRFLib_cachelinesize);
+		printf("\t\t'short int' is %1zu bytes\n", sizeof(short int));
+		printf("\t\t'int' is %1zu bytes\n", sizeof(int));
+		printf("\t\t'size_t' is %1zu bytes\n", sizeof(size_t));
+		printf("\t\t'long int' is %1zu bytes\n", sizeof(long int));
+		printf("\t\t'long long' is %1zu bytes\n", sizeof(long long));
+		printf("\t\t'float' is %1zu bytes\n", sizeof(float));
+		printf("\t\t'double' is %1zu bytes\n", sizeof(double));
+		printf("\t\t'long double' is %1zu bytes\n", sizeof(long double));
+		printf("\t\tBUFSIZ is %1zu bytes\n", (size_t) BUFSIZ);
+		printf("\t\tCACHE_LINE_SIZE is %1zu bytes\n", (size_t) GMRFLib_cachelinesize);
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);

@@ -1,4 +1,4 @@
-# INLA 25.02.08
+# INLA 25.02.09
 * Better memory management / first touch
 * Code optimisation
 * Fixed a minor issue with many-model-runs
