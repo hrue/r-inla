@@ -204,13 +204,13 @@ typedef int CMPFUNC(const void *a, const void *b);
 //////////////////////////////////////////////////////////
 
 
-#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
-#define VAR long double
-#define FUNC(NAME) NAME##128
-#include "GMRFLib/fsort/fluxsort.c"
-#undef VAR
-#undef FUNC
-#endif
+// #if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
+// #define VAR long double
+// #define FUNC(NAME) NAME##128
+// #include "GMRFLib/fsort/fluxsort.c"
+// #undef VAR
+// #undef FUNC
+// #endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -247,11 +247,11 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 		fluxsort64(array, nmemb, cmp);
 		break;
 
-#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
-	case 16: 
-		fluxsort128(array, nmemb, cmp);
-		break;
-#endif
+// #if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
+// 	case 16: 
+// 		fluxsort128(array, nmemb, cmp);
+// 		break;
+// #endif
 		
 	default:
 		qsort(array, nmemb, size, cmp);
@@ -311,9 +311,10 @@ void fluxsort_size(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	case 8:
 		fluxsort64(pti, nmemb, cmp);
 		break;
-	case 16:
-		fluxsort128(pti, nmemb, cmp);
-		break;
+// 	case 16:
+//		fluxsort128(pti, nmemb, cmp);
+//		break;
+
 	default:
 		assert(0 == 1);
 	}
