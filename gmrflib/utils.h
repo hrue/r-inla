@@ -123,10 +123,16 @@ void gsl_sort2_ii(int *data1, int *data2, const int n);
 void my_insertionSort_dd(double *iarr, double *darr, int n);
 void my_insertionSort_id(int *iarr, double *darr, int n);
 void my_insertionSort_ii(int *iarr, int *darr, int n);
+void my_insertionSort_i(int *__restrict iarr, int n);
+void my_insertionSort_d(double *__restrict iarr, int n);
 void my_sort2_dd(double *ix, double *x, int n);
 void my_sort2_id(int *ix, double *x, int n);
 void my_sort2_id_x(int *ix, double *x, int n, void *work);
 void my_sort2_ii(int *ix, int *x, int n);
+void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work);
+
+void GMRFLib_sort_i(int *ix, int n);
+void GMRFLib_sort_d(double *ix, int n);
 
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));

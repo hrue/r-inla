@@ -1,3 +1,4 @@
+#include <values.h>
 #include <limits.h>
 #include <assert.h>
 #include <stddef.h>
@@ -1023,25 +1024,45 @@ int testit(int argc, char **argv)
 		double a, b, c, dd, x0 = 2.0;
 		int stencil;
 		int thread_id = 0;
+		int cache_idx = 0;
 
+		stencil = 3;
+		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 5;
-		GMRFLib_2order_taylor(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 7;
-		GMRFLib_2order_taylor(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 9;
-		GMRFLib_2order_taylor(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 
+		printf("\n");
 		stencil = 5;
-		GMRFLib_2order_approx(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 7;
-		GMRFLib_2order_approx(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 9;
-		GMRFLib_2order_approx(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+
+		printf("\n");
+		dd = 0.0;
+		stencil = 3;
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 5;
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 7;
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 9;
+		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 	}
 		break;
@@ -3864,7 +3885,7 @@ int testit(int argc, char **argv)
 		printf("post mean %.12f prec %.12f\n", post_mean, post_prec);
 
 		GMRFLib_vb_coofs_tp mm;
-		GMRFLib_ai_vb_prepare_mean(0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec), NULL);
+		GMRFLib_ai_vb_prepare_mean(0, 0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec), NULL);
 
 		double ee = exp(post_mean + 0.5 * s2);
 		printf("d mu      : numeric1 %.16f  true %.16f  err %.16f\n", tmp[0], -(y - ee), -(y - ee) - tmp[0]);
@@ -4790,7 +4811,7 @@ int testit(int argc, char **argv)
 	{
 		double aa, bb, cc, dd;
 		for (int stencil = 3; stencil <= 9; stencil += 2) {
-			GMRFLib_2order_approx(0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
+			GMRFLib_2order_approx(0, 0, &aa, &bb, &cc, &dd, 1.0, 0.0, 0, NULL, loglikelihood_testit3, NULL, NULL, &stencil, NULL);
 			printf("stencil %d err0[%.16g] err1[%.16g] err2[%.16g] err3[%.16g]\n", stencil, aa - 1.0, bb - 1.0, cc + 1.0, dd - 1.0);
 		}
 	}
@@ -4906,6 +4927,151 @@ int testit(int argc, char **argv)
 		double xi = atof(args[0]);
 		double intercept = atof(args[1]);
 		link_gev_test(xi, intercept);
+	}
+		break;
+
+	case 157:
+	{
+#if defined(INLA_WITH_NUMA) && defined(__linux__)
+		Pint(numa_available());
+		Pint(numa_max_possible_node());
+		Pint(numa_num_possible_nodes());
+		Pint(numa_max_node());
+		Pint(numa_num_configured_nodes());
+		Pint(numa_num_configured_cpus());
+		Pint(numa_num_task_cpus());
+		Pint(numa_num_task_nodes());
+#pragma omp parallel for
+		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+			int c = -1, n = -1;
+			GMRFLib_numa_get(&c, &n);
+#pragma omp critical
+			{
+				printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
+			}
+		}
+#else
+		printf("\n\tNUMA support is not included in this build.\n");
+#endif
+	}
+		break;
+
+	case 158:
+	{
+		double xi = atof(args[0]);
+		double intercept = atof(args[1]);
+		link_gev_test(xi, intercept);
+	}
+		break;
+
+	case 159:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int *ix = Calloc(n, int);
+
+		double tref = 0.0;
+		double tref2 = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) ((2 * n) * GMRFLib_uniform());
+			}
+
+			tref -= GMRFLib_timer();
+			my_insertionSort_i(ix, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+
+			tref2 -= GMRFLib_timer();
+			QSORT_FUN(ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+			tref2 += GMRFLib_timer();
+
+		}
+
+		printf("integer insertsort %.4f  QSORT %.4f\n", tref / (tref + tref2), tref2 / (tref + tref2));
+
+		double *x = Calloc(n, double);
+		tref = 0.0;
+		tref2 = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref -= GMRFLib_timer();
+			my_insertionSort_d(x, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (x[j] < x[j - 1]);
+			}
+			assert(errors == 0);
+
+			tref2 -= GMRFLib_timer();
+			QSORT_FUN(x, (size_t) n, sizeof(int), GMRFLib_dcmp);
+			tref2 += GMRFLib_timer();
+
+		}
+
+		printf("double insertsort %.4f  QSORT %.4f\n", tref / (tref + tref2), tref2 / (tref + tref2));
+	}
+		break;
+
+	case 160:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int *ix = Calloc(n, int);
+		double *x = Calloc(n, double);
+
+		double tref = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref -= GMRFLib_timer();
+			my_sort2_id(ix, x, n);
+			tref += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+		}
+
+		double tref2 = 0.0;
+		double *work = Calloc(2 * n, double);
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				x[j] = GMRFLib_uniform();
+			}
+
+			tref2 -= GMRFLib_timer();
+			my_sort2_id_work(ix, x, n, (double *) work);
+			tref2 += GMRFLib_timer();
+
+			int errors = 0;
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
+			}
+			assert(errors == 0);
+		}
+
+		printf("sort2 %g sort2_work %g\n", tref / (tref + tref2), tref2 / (tref + tref2));
 	}
 		break;
 

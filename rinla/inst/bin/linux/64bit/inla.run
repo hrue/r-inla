@@ -56,6 +56,7 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 fi
 
 if [ -n "${INLA_DEBUG}" ]; then
+    export OMP_DISPLAY_ENV=true
     for var in $(set | grep ^INLA_); do
 	echo "*** $0 *** $var"
     done
@@ -79,4 +80,12 @@ if [ -n "${INLA_DEBUG}" ]; then
     echo " *** $0 *** exec $DIR/$prog $@"
 fi
 
-exec "$DIR/$prog" "$@"
+nc=""
+if [ -n "$INLA_NUMACTL_ARG" ]; then
+    ncp=$(type --path numactl)
+    if [ -n "$ncp" ]; then
+	nc="$ncp ${INLA_NUMACTL_ARG} "
+    fi
+fi
+exec $nc "$DIR/$prog" "$@"
+

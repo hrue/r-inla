@@ -1117,6 +1117,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
+		CODE_BLOCK_INIT();					\
 		if (A[i]) {						\
 			GMRFLib_idxval_tp *elm = A[i];			\
 			GMRFLib_dot_product_INLINE(bnew[i], elm, blike); \
@@ -1172,6 +1173,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			double *pred_offset = pred + offset;
 #define CODE_BLOCK							\
 			for (int j = 0; j < 2; j++) {			\
+				CODE_BLOCK_INIT();			\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
@@ -1235,6 +1237,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// pred_offset[i] = GMRFLib_dot_product(elm, latent); 
 #define CODE_BLOCK							\
 			for (int i = 0; i < preopt->npred; i++) {	\
+				CODE_BLOCK_INIT();			\
 				if (preopt->A_idxval[i]) {		\
 					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
 					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
@@ -1298,6 +1301,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				// mean[i] = GMRFLib_dot_product(elm, mm); 
 #define CODE_BLOCK							\
 				for (int i = 0; i < mpred; i++) {	\
+					CODE_BLOCK_INIT();		\
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
 					GMRFLib_dot_product_INLINE(mean[i], elm, mm); \
 				}
@@ -1310,6 +1314,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK							\
 			for (int i = 0; i < mpred; i++) {		\
+				CODE_BLOCK_INIT();			\
 				double m = 0.0, var = 0.0, *cov = NULL;	\
 				int k, j, kk, jj;			\
 				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
@@ -1356,6 +1361,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			// mean_offset[i] += GMRFLib_dot_product(elm, mm); 
 #define CODE_BLOCK							\
 			for (int i = 0; i < npred; i++) {		\
+				CODE_BLOCK_INIT();			\
 				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
 				GMRFLib_dot_product_INLINE_ADDTO(mean_offset[i], elm, mm); \
 			}
@@ -1371,6 +1377,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < npred; i++) {			\
+			CODE_BLOCK_INIT();				\
 			double m = 0.0, var = 0.0, zero = 0.0, *cov = NULL; \
 			int k, j, kk, jj;				\
 			GMRFLib_idxval_tp *elm = preopt->A_idxval[i];	\

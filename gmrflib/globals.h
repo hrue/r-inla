@@ -94,7 +94,6 @@ extern int GMRFLib_gaussian_data;
 
 extern int GMRFLib_testit_mode;
 extern int GMRFLib_testit_debug;
-extern int GMRFLib_taucs_sort_L;
 extern int GMRFLib_opt_solve;
 
 extern int GMRFLib_intern_flag;
@@ -102,6 +101,8 @@ extern int GMRFLib_cachelinesize;
 
 extern int GMRFLib_model_idx;
 extern int GMRFLib_model_n;
+
+extern int GMRFLib_numa_is_available;
 
 extern char *GMRFLib_tmpdir;
 #endif

@@ -259,6 +259,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		if (graph->lnnbs[i]) {					\
 			int k = k_arr[i];				\
 			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
@@ -319,6 +320,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		if (ISNAN(val)) {
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
+				CODE_BLOCK_INIT();			\
 				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) { \
 					int j = M->s->ja[k];		\
 					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
@@ -330,6 +332,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		} else {
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
+				CODE_BLOCK_INIT();			\
 				int k = M->s->ia[i];			\
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
@@ -745,6 +748,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp *store,
 
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
+		CODE_BLOCK_INIT();				\
 		int k = j * n;					\
 		for (int i = 0; i < n; i++) {			\
 			x[k + i] = xx[k + permutation[i]];	\
@@ -940,6 +944,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
+		CODE_BLOCK_INIT();					\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int idum = 0;						\
 		int tnum = omp_get_thread_num();			\
@@ -1056,6 +1061,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
+			CODE_BLOCK_INIT();				\
 			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
 				double value = 0.0;			\
 				int j = Qinv[i]->contents[k].key;	\

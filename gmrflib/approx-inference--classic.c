@@ -521,7 +521,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 					i = ai_store->d_idx->idx[ii];
 					ai_store->correction_idx[ai_store->nidx++] = i;
 					double aa, bb, cc;
-					GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &dd, d[i], fixed_mode[i] + deldif, i,
+					GMRFLib_2order_approx(thread_id, 0, &aa, &bb, &cc, &dd, d[i], fixed_mode[i] + deldif, i,
 							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
 					ai_store->derivative3[i] = dd;
 					ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
@@ -530,10 +530,10 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 						// have to redo this later if this gets serious
 						double d3[2];
 						double s = 1.0 / (2.0 * deldif);
-						GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
+						GMRFLib_2order_approx(thread_id, 0, &aa, &bb, &cc, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
 								      fixed_mode, loglFunc, loglFunc_arg,
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);
-						GMRFLib_2order_approx(thread_id, &aa, &bb, &cc, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
+						GMRFLib_2order_approx(thread_id, 0, &aa, &bb, &cc, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
 								      fixed_mode, loglFunc, loglFunc_arg,
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);
 						ai_store->derivative4[i] = (d3[1] - d3[0]) * s;
@@ -4766,6 +4766,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 
 #define CODE_BLOCK						\
 		for (int ii = 0; ii < d_idx->n; ii++) {		\
+			CODE_BLOCK_INIT();			\
 			int i = d_idx->idx[ii];			\
 			if (density) {					\
 				GMRFLib_ai_vb_prepare(thread_id, vb_coof[i], i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
@@ -4817,6 +4818,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 
 #define CODE_BLOCK							\
 		for (int j = 0; j < vb_idx->n; j++) {			\
+			CODE_BLOCK_INIT();				\
 			double *col = CODE_BLOCK_WORK_PTR(0);		\
 			double *res = CODE_BLOCK_WORK_PTR(1);		\
 			assert(col);					\

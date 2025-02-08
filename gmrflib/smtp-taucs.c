@@ -20,12 +20,15 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 		nc->n = cache->n;
 		nc->nnz = cache->nnz;
 		if (nc->n && cache->len) {
-			nc->len = Calloc(nc->n, int);
+			nc->len = Malloc(nc->n, int);
 			Memcpy(nc->len, cache->len, nc->n * sizeof(int));
 		}
 		if (nc->nnz && cache->rowind) {
-			nc->rowind = Calloc(nc->nnz, int);
+			nc->rowind = Malloc(nc->nnz, int);
+			nc->rowind_sorted = Malloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
+			Memcpy(nc->rowind_sorted, cache->rowind_sorted, nc->nnz * sizeof(int));
+			nc->sort2 = GMRFLib_idx2_duplicate(cache->sort2);
 		}
 		return nc;
 	}
@@ -37,6 +40,8 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	if (cache) {
 		Free(cache->len);
 		Free(cache->rowind);
+		Free(cache->rowind_sorted);
+		GMRFLib_idx2_free(cache->sort2);
 		Free(cache);
 	}
 }
@@ -45,6 +50,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 {
 	GMRFLib_ENTER_ROUTINE;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+
+	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
 
 	int n = L->n;
 	if (n == 0) {
@@ -61,12 +68,10 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 			int Lsize = L->sn_size[sn];
 			int Lup_size = L->sn_up_size[sn];
 			int *Lss = L->sn_struct[sn];
-
 			for (int jp = 0; jp < Lsize; jp++) {
 				int j = Lss[jp];
 				int *len_j = len + j;
 				*len_j = 0;
-
 				for (int ip = jp; ip < Lsize; ip++) {
 					int i = Lss[ip];
 					if (i >= j) {
@@ -74,7 +79,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 						nnz++;
 					}
 				}
-
 				for (int ip = Lsize; ip < Lup_size; ip++) {
 					int i = Lss[ip];
 					if (i >= j) {
@@ -103,11 +107,10 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
 	}
 
-	if (cache && (*cache)->rowind) {
-		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
-	} else {
+	if (!(cache && (*cache)->rowind)) {
 #define CODE_BLOCK							\
 		for (int sn = 0; sn < L->n_sn; sn++) {			\
+			CODE_BLOCK_INIT();				\
 			int *Lss = L->sn_struct[sn];			\
 			int Lsize = L->sn_size[sn];			\
 			int Lup_size = L->sn_up_size[sn];		\
@@ -131,14 +134,43 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 		RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
-		if (cache) {
-			(*cache)->rowind = Calloc(nnz, int);
-			Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
+
+		(*cache)->rowind_sorted = Malloc(nnz, int);
+		Memcpy((*cache)->rowind_sorted, C->rowind, nnz * sizeof(int));
+
+		int *s = Malloc(nnz, int);
+		for (int j = 0; j < nnz; j++) {
+			s[j] = j;
 		}
+
+		// do not do this in parallel, maybe to much false-sharing
+		for (int i = 0; i < C->n; i++) {
+			int m = C->colptr[i + 1] - C->colptr[i];
+			int j = C->colptr[i];
+			my_sort2_ii((*cache)->rowind_sorted + j, s + j, m);
+		}
+
+		(*cache)->rowind = Malloc(nnz, int);
+		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
+
+		int nchange = 0;
+		for (int j = 0; j < nnz; j++) {
+			nchange += (s[j] != j);
+		}
+		GMRFLib_idx2_tp *idx2 = NULL;
+		GMRFLib_idx2_create_x(&idx2, nchange);
+		for (int j = 0; j < nnz; j++) {
+			if (s[j] != j) {
+				GMRFLib_idx2_add(&idx2, j, s[j]);
+			}
+		}
+		(*cache)->sort2 = idx2;
+		Free(s);
 	}
 
 #define CODE_BLOCK							\
 	for (int sn = 0; sn < L->n_sn; sn++) {				\
+		CODE_BLOCK_INIT();					\
 		int *Lss = L->sn_struct[sn];				\
 		int Lsbl = L->sn_blocks_ld[sn];				\
 		int Lsize = L->sn_size[sn];				\
@@ -168,6 +200,23 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
+
+	if (do_sort_idx && cache && (*cache)->sort2) {
+		double *work = Malloc(nnz, double);
+		int nn = (*cache)->sort2->n;
+		int *jj = (*cache)->sort2->idx[0];
+		int *ss = (*cache)->sort2->idx[1];
+
+		Memcpy(C->rowind, (*cache)->rowind_sorted, nnz * sizeof(int));
+		Memcpy(work, C->values.d, nnz * sizeof(double));
+
+		for (int j = 0; j < nn; j++) {
+			C->values.d[jj[j]] = work[ss[j]];
+		}
+		Free(work);
+	} else {
+		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
+	}
 
 	if (!cache) {
 		Free(len);
@@ -818,6 +867,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
+			CODE_BLOCK_INIT();				\
 			int ic = ic_idx[i];				\
 			double val = Qfunc(thread_id, i, i, NULL, Qfunc_arg);	\
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
@@ -874,7 +924,9 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
 	}
 
+	double time_chol = -GMRFLib_timer();
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
+	time_chol += GMRFLib_timer();
 	if (retval) {
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
@@ -1836,6 +1888,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		int m = LL->rowptr[i + 1] - LL->rowptr[i];		\
 		int j = LL->rowptr[i];					\
 		my_sort2_id(LL->colind + j, (double *) LL->values.d + j, m); \

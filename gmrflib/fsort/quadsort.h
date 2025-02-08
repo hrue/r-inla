@@ -282,7 +282,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-/*
+
 // 128 reflects the name, though the actual size of a long double is 64, 80,
 // 96, or 128 bits, depending on platform.
 
@@ -293,7 +293,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 #undef VAR
 #undef FUNC
 #endif
-*/
+
 
 ///////////////////////////////////////////////////////////
 //┌─────────────────────────────────────────────────────┐//

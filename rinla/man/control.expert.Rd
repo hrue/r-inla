@@ -34,7 +34,8 @@ optimizing dot-products? (Default \code{FALSE})}
 
 \item{globalconstr}{Add a global constraint (see \code{?f} and argument
 \code{extraconstr}). Note that a global constraint does NOT
-correct the normalisation constant.}
+correct the normalisation constant.
+(EXPERIMENTAL OPTION)}
 
 \item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
 (EXPERIMENTAL OPTION: DO NOT USE)}

@@ -136,12 +136,11 @@ int GMRFLib_write_state = 0;
 int GMRFLib_gaussian_data = 0;
 int GMRFLib_testit_mode = 0;
 int GMRFLib_testit_debug = 0;
-int GMRFLib_taucs_sort_L = 0;
 int GMRFLib_opt_solve = 0;
 int GMRFLib_intern_flag = 0;
 int GMRFLib_cachelinesize = 64;
-
 int GMRFLib_model_idx = 0;
 int GMRFLib_model_n = 1;
+int GMRFLib_numa_is_available = 0;
 
 char *GMRFLib_tmpdir = NULL;

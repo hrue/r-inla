@@ -329,7 +329,7 @@ int GMRFLib_str_nprune(GMRFLib_str_tp **a, int n)
 int GMRFLib_idx_sort(GMRFLib_idx_tp *hold)
 {
 	if (hold) {
-		QSORT_FUN((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
+		GMRFLib_sort_i(hold->idx, hold->n);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -338,8 +338,9 @@ int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n, int nt)
 {
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		if (a[i] && a[i]->n > 1) {				\
-			QSORT_FUN((void *) a[i]->idx, (size_t) a[i]->n, sizeof(int), GMRFLib_icmp); \
+			GMRFLib_sort_i(a[i]->idx, a[i]->n);		\
 		}							\
 	}
 
@@ -369,6 +370,7 @@ int GMRFLib_idx_nuniq(GMRFLib_idx_tp **a, int n, int nt)
 {
 #define CODE_BLOCK				\
 	for (int i = 0; i < n; i++) {		\
+		CODE_BLOCK_INIT();		\
 		GMRFLib_idx_uniq(a[i]);		\
 	}
 
@@ -402,6 +404,7 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
+		CODE_BLOCK_INIT();			\
 		GMRFLib_idxval_prune(a[i]);		\
 	}
 
@@ -1098,6 +1101,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 	}
 #define CODE_BLOCK							\
 	for(int k = 0; k < n; k++) {					\
+		CODE_BLOCK_INIT();					\
 		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare, accumulate); \
 	}
 
@@ -1212,10 +1216,27 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
+	if (!h)
+		return NULL;
 	GMRFLib_idx_tp *nnew = NULL;
-	GMRFLib_idx_create_x(&nnew, (h ? IMAX(1, h->n) : 1));
-	if (h && h->n > 0) {
+	GMRFLib_idx_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
 		GMRFLib_idx_nadd(&nnew, h->n, h->idx);
+	}
+
+	return nnew;
+}
+
+GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp *h)
+{
+	if (!h)
+		return NULL;
+	GMRFLib_idx2_tp *nnew = NULL;
+	GMRFLib_idx2_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
+		Memcpy(nnew->idx[0], h->idx[0], h->n * sizeof(int));
+		Memcpy(nnew->idx[1], h->idx[1], h->n * sizeof(int));
+		nnew->n = h->n;
 	}
 
 	return nnew;
@@ -1297,7 +1318,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

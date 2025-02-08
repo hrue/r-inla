@@ -258,6 +258,7 @@
             #' @param globalconstr Add a global constraint (see `?f` and argument
             #' `extraconstr`). Note that a global constraint does NOT
             #' correct the normalisation constant.
+            #' (EXPERIMENTAL OPTION)
             globalconstr = list(A = NULL, e = NULL),
 
             #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).

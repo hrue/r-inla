@@ -181,6 +181,9 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 	if (GMRFLib_model_n > 1) {
 		tmp = inla_read_lineno(GMRFLib_model_idx, tmp);
 		tmp = dictionary_replace_variables(mb->ini, tmp);
+		if (mb->verbose) {
+			printf("\t\tRead mode from line %1d of %1d [%s]\n",  GMRFLib_model_idx, GMRFLib_model_n, tmp);
+		}
 	}
 
 	/*
@@ -294,7 +297,11 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
 		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
 		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
-
+		if (GMRFLib_numa_is_available) {
+			printf("\t\tNumber of NUMA nodes[%1d]\n", GMRFLib_numa_nodes());
+		} else {
+			printf("\t\tNUMA not available or one NUMA node\n");
+		}
 		char a = -1;
 		signed char b = -1;
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
@@ -18965,8 +18972,9 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
+
 	if (mb->verbose) {
-		printf("\t\t\tOptimise linear solve=[%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
+		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 	}
 
 	/*

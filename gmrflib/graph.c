@@ -784,6 +784,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp *graph)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
 		int k = graph->nnbs[i];					\
 		for (int jj = 0; jj < graph->nnbs[i]; jj++) {		\
 			int j = graph->nbs[i][jj];			\
@@ -829,6 +830,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp *graph)
 	}
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
+		CODE_BLOCK_INIT();					\
 		if (graph->nnbs[i]) {					\
 			int k = 0;					\
 			for (int j = 1; j < graph->nnbs[i]; j++) {	\
@@ -858,6 +860,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp *graph)
 	}
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
+		CODE_BLOCK_INIT();					\
 		if (graph->nnbs[i]) {					\
 			GMRFLib_qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp); \
 		}							\
@@ -1391,6 +1394,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			}
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
+				CODE_BLOCK_INIT();			\
 				double sum = (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				int *j_a = graph->nbs[i];		\
 				for (int jj = 0; jj < graph->nnbs[i]; jj++) { \
@@ -1430,6 +1434,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			char *used = Calloc(max_t, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
+				CODE_BLOCK_INIT();			\
 				double *r = NULL, *local_values = NULL, xi = x[i]; \
 				int *j_a = graph->lnbs[i];		\
 				/* may run in serial */			\

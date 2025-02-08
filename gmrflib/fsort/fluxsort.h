@@ -192,8 +192,6 @@ typedef int CMPFUNC(const void *a, const void *b);
 #undef VAR
 #undef FUNC
 
-
-
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
 //│  ▄██┐  ██████┐  █████┐    ██████┐ ██████┐████████┐ │//
@@ -205,7 +203,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-/*
+
 #if (DBL_MANT_DIG < LDBL_MANT_DIG)
 #define VAR long double
 #define FUNC(NAME) NAME##128
@@ -213,7 +211,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 #undef VAR
 #undef FUNC
 #endif
-*/
+
 
 //////////////////////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────────────────────┐//
@@ -248,6 +246,11 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	case sizeof(long long):
 		fluxsort64(array, nmemb, cmp);
 		break;
+
+	case sizeof(long double):
+		fluxsort128(array, nmemb, cmp);
+		break;
+
 	default:
 		qsort(array, nmemb, size, cmp);
 	}
@@ -305,10 +308,14 @@ void fluxsort_size(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	case 8:
 		fluxsort64(pti, nmemb, cmp);
 		break;
+	case 16:
+		fluxsort128(pti, nmemb, cmp);
+		break;
+	default:
+		assert(0 == 1);
 	}
 
 	pts = (char *) malloc(nmemb * size);
-
 	assert(pts != NULL);
 
 	for (index = 0; index < nmemb; index++) {

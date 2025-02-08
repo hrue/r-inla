@@ -19,7 +19,12 @@ __BEGIN_DECLS
 /*
  */
 void fluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
-#define QSORT_FUN fluxsort
+void quadsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
+void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
+
+//#define QSORT_FUN quadsort
+//#define QSORT_FUN fluxsort
+#define QSORT_FUN quadfluxsort
 //#define QSORT_FUN qsort
 
 __END_DECLS

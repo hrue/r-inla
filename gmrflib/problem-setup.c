@@ -170,6 +170,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 	// value = GMRFLib_dot_product(constr->idxval[i], B + j * n); 
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
+		CODE_BLOCK_INIT();					\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k];	\
 		double value = 0.0;					\
 		GMRFLib_dot_product_INLINE(value, constr->idxval[i], (B + j * n)); \
@@ -238,6 +239,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
+		CODE_BLOCK_INIT();					\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, jf, je, jlen; \
 		double value;						\
 		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);	\
@@ -282,6 +284,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
 	// res[i] = GMRFLib_dot_product(constr->idxval[i], x);
 #define CODE_BLOCK							\
 	for (int i = 0; i < nc; i++) {					\
+		CODE_BLOCK_INIT();					\
 		GMRFLib_dot_product_INLINE(res[i], constr->idxval[i], x); \
 	}
 
@@ -340,6 +343,7 @@ int GMRFLib_Qsolves(double *x, double *b, int nrhs, GMRFLib_problem_tp *problem)
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < nrhs; i++) {			\
+			CODE_BLOCK_INIT();				\
 			int offset = i * n;				\
 			double t_vector[nc];				\
 			GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph); \

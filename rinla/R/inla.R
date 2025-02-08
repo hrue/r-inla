@@ -2125,7 +2125,7 @@
     ## write the list of environment variables set, so they can be reset if needed
     eenv <- Sys.getenv()
     eenv.n <- names(eenv)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC|MALLOC_)", eenv.n)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC_|MALLOC_CONF|TSAN_OPTIONS)", eenv.n)
     eenv.list <- eenv[idx]
     file.eenv <- paste0(inla.dir, "/environment")
     cat(file = file.eenv)
@@ -2752,7 +2752,8 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                   "MIMALLOC_SHOW_STATS", 
                   "MIMALLOC_VERBOSE", 
                   "MIMALLOC_SHOW_ERRORS", 
-                  "MALLOC_CONF")
+                  "MALLOC_CONF",
+                  "TSAN_OPTIONS")
     ## save current values
     env.vars.value <- Sys.getenv(env.vars)
     ## unset and then set defaults
@@ -2764,7 +2765,8 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         MIMALLOC_SHOW_STATS = 0, 
         MIMALLOC_VERBOSE = 0, 
         MIMALLOC_SHOW_ERRORS = 0, 
-        MALLOC_CONF = "abort_conf:true,metadata_thp:always"
+        MALLOC_CONF = "abort_conf:true,metadata_thp:always,dirty_decay_ms:-1,percpu_arena:percpu",
+        TSAN_OPTIONS = "ignore_noninstrumented_modules=1" 
     )
     return (list(vars = env.vars, values = env.vars.value))
 }
