@@ -336,21 +336,26 @@ void quadsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	}
 
 	switch (size) {
-	case sizeof(char):
+	case 1: 
 		quadsort8(array, nmemb, cmp);
 		return;
 
-	case sizeof(short):
+	case 2: 
 		quadsort16(array, nmemb, cmp);
 		return;
 
-	case sizeof(int):
+	case 4: 
 		quadsort32(array, nmemb, cmp);
 		return;
 
-	case sizeof(long long):
+	case 8: 
 		quadsort64(array, nmemb, cmp);
 		return;
+
+	case 64: 
+		quadsort128(array, nmemb, cmp);
+		return;
+
 	default:
 		qsort(array, nmemb, size, cmp);
 		return;
