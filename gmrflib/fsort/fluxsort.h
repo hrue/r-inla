@@ -204,7 +204,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 //////////////////////////////////////////////////////////
 
 
-#if (DBL_MANT_DIG < LDBL_MANT_DIG)
+#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
 #define VAR long double
 #define FUNC(NAME) NAME##128
 #include "GMRFLib/fsort/fluxsort.c"
@@ -247,10 +247,12 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 		fluxsort64(array, nmemb, cmp);
 		break;
 
+#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
 	case 16: 
 		fluxsort128(array, nmemb, cmp);
 		break;
-
+#endif
+		
 	default:
 		qsort(array, nmemb, size, cmp);
 	} 
