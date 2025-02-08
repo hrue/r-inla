@@ -10,7 +10,7 @@
 
 void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *))
 {
-	if(nmemb <= 64L) {
+	if (nmemb <= 64L) {
 		quadsort(array, nmemb, size, cmp);
 	} else {
 		fluxsort(array, nmemb, size, cmp);

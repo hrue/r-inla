@@ -209,7 +209,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		int *ss = (*cache)->sort2->idx[1];
 		Memcpy(iwork, C->rowind, nnz * sizeof(int));
 
-#pragma omp parallel for num_threads(2) 
+#pragma omp parallel for num_threads(2)
 		for (int k = 0; k < 2; k++) {
 			if (k == 0) {
 				Memcpy(iwork, C->rowind, nnz * sizeof(int));
