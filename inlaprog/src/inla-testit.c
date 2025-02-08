@@ -1,4 +1,3 @@
-#include <values.h>
 #include <limits.h>
 #include <assert.h>
 #include <stddef.h>
@@ -5037,7 +5036,7 @@ int testit(int argc, char **argv)
 		double tref = 0.0;
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				ix[j] = (int) (GMRFLib_uniform() * INT_MAX);
 				x[j] = GMRFLib_uniform();
 			}
 
@@ -5056,7 +5055,7 @@ int testit(int argc, char **argv)
 		double *work = Calloc(2 * n, double);
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				ix[j] = (int) (GMRFLib_uniform() * MAXINT);
+				ix[j] = (int) (GMRFLib_uniform() * INT_MAX);
 				x[j] = GMRFLib_uniform();
 			}
 
