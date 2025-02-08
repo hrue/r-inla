@@ -1,3 +1,8 @@
+# INLA 25.02.08
+* Better memory management / first touch
+* Code optimisation
+* Fixed a minor issue with many-model-runs
+
 # INLA 25.01.23
 * New license: MIT
 * New experimental family: obeta
