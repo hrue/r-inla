@@ -562,7 +562,6 @@
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## This is not supported yet.
         stopifnot(is.null(control.predictor$A))
-
         cph <- inla.coxph(formula, data, control.hazard, debug = debug)
         result <- inla(
             cph$formula,
@@ -570,7 +569,7 @@
             data = c(as.list(cph$data), cph$data.list),
             contrasts = contrasts,
             quantiles = quantiles,
-            E = cph$E..coxph,
+            E = cph$E,
             offset = if (is.null(offset)) NULL else offset[cph$data$expand..coxph], 
             scale = if (is.null(scale)) NULL else scale[cph$data$expand..coxph], 
             weights = if (is.null(weights)) NULL else weights[cph$data$expand..coxph], 
