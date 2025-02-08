@@ -230,30 +230,55 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 		return;
 	}
 
-	switch (size) {
-	case sizeof(char):
-		fluxsort8(array, nmemb, cmp);
-		break;
+	if (sizeof(long long) == sizeof(long double) && sizeof(long double) == sizeof(double)) {
+		// this happens for Apple M..
+		switch (size) {
+		case sizeof(char):
+			fluxsort8(array, nmemb, cmp);
+			break;
 
-	case sizeof(short):
-		fluxsort16(array, nmemb, cmp);
-		break;
+		case sizeof(short):
+			fluxsort16(array, nmemb, cmp);
+			break;
 
-	case sizeof(int):
-		fluxsort32(array, nmemb, cmp);
-		break;
+		case sizeof(int):
+			fluxsort32(array, nmemb, cmp);
+			break;
 
-	case sizeof(long long):
-		fluxsort64(array, nmemb, cmp);
-		break;
+		case sizeof(double):
+			fluxsort64(array, nmemb, cmp);
+			break;
 
-	case sizeof(long double):
-		fluxsort128(array, nmemb, cmp);
-		break;
+		default:
+			qsort(array, nmemb, size, cmp);
+		} 
+	} else {
+		switch (size) {
+		case sizeof(char):
+			fluxsort8(array, nmemb, cmp);
+			break;
 
-	default:
-		qsort(array, nmemb, size, cmp);
+		case sizeof(short):
+			fluxsort16(array, nmemb, cmp);
+			break;
+
+		case sizeof(int):
+			fluxsort32(array, nmemb, cmp);
+			break;
+
+		case sizeof(double):
+			fluxsort64(array, nmemb, cmp);
+			break;
+
+		case sizeof(long double):
+			fluxsort128(array, nmemb, cmp);
+			break;
+
+		default:
+			qsort(array, nmemb, size, cmp);
+		}
 	}
+	
 	return;
 }
 
