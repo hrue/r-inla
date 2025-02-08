@@ -286,7 +286,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 // 128 reflects the name, though the actual size of a long double is 64, 80,
 // 96, or 128 bits, depending on platform.
 
-#if (DBL_MANT_DIG < LDBL_MANT_DIG)
+#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
 #define VAR long double
 #define FUNC(NAME) NAME##128
 #include "GMRFLib/fsort/quadsort.c"
@@ -352,10 +352,12 @@ void quadsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 		quadsort64(array, nmemb, cmp);
 		return;
 
+#if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
 	case 64: 
 		quadsort128(array, nmemb, cmp);
 		return;
-
+#endif
+		
 	default:
 		qsort(array, nmemb, size, cmp);
 		return;
