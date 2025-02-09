@@ -271,8 +271,7 @@
 {
     set.warn <- function(a, b) {
         ## family="coxph" produce 'fake' warnings
-        if (length(grep("expand[.][.]coxph", b)) == 0 &&
-            length(grep("^[$] cph E$", b)) == 0) {
+        if (length(grep("(expand|E|weights|scale|offset|lp[.]scale)([.][.]coxph)?", b)) == 0) {
             warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
                            "  This might be an error and you are requested to check this out.\n",
                            "  Move on with default values...\n"),
@@ -562,20 +561,48 @@
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## This is not supported yet.
         stopifnot(is.null(control.predictor$A))
+
         cph <- inla.coxph(formula, data, control.hazard, debug = debug)
+        cph.data = c(as.list(cph$data), cph$data.list)
+        E..coxph <- offset..coxph <- scale..coxph <- weights..coxph <- lp.scale..coxph <- NULL
+
+        if (!is.null(offset) && is.vector('offset')) {
+            cph.data$offset..coxph <- offset[cph$data$expand..coxph]
+        } else {
+            cph.data$offset..coxph <- NULL
+        }
+        
+        if (!is.null(scale) && is.vector('scale')) {
+            cph.data$scale..coxph <- scale[cph$data$expand..coxph]
+        } else {
+            cph.data$scale..coxph <- NULL
+        }
+
+        if (!is.null(weights) && is.vector('weights')) {
+            cph.data$weights..coxph <- weights[cph$data$expand..coxph]
+        } else {
+            cph.data$weights..coxph <- NULL
+        }
+
+        if (!is.null(lp.scale) && is.vector('lp.scale')) {
+            cph.data$lp.scale..coxph <- lp.scale[cph$data$expand..coxph]
+        } else {
+            cph.data$lp.scale..coxph <- NULL
+        }
+
         result <- inla(
             cph$formula,
+            data = cph.data, 
             family = cph$family,
-            data = c(as.list(cph$data), cph$data.list),
             contrasts = contrasts,
             quantiles = quantiles,
-            E = cph$E,
-            offset = if (is.null(offset)) NULL else offset[cph$data$expand..coxph], 
-            scale = if (is.null(scale)) NULL else scale[cph$data$expand..coxph], 
-            weights = if (is.null(weights)) NULL else weights[cph$data$expand..coxph], 
+            E = E..coxph, 
+            offset = offset..coxph, 
+            scale = scale..coxph,
+            weights = weights..coxph, 
             Ntrials = NULL, # Not used for the poisson
             strata = NULL, # Not used for the poisson
-            lp.scale = if (is.null(lp.scale)) NULL else lp.scale[cph$data$expand..coxph], 
+            lp.scale = lp.scale..coxph, 
             lincomb = lincomb,
             selection = selection,
             verbose = verbose,
@@ -1170,7 +1197,7 @@
 
     offset.len <- inla.ifelse(MPredictor > 0, MPredictor, NPredictor)
     offset.formula.len <- NPredictor
-    if (is.null(offset)) {
+    if (is.null(offset) || is.function(offset)) {
         offset <- 0
     }
     n.models <- 1
