@@ -181,3 +181,8 @@
 
     return(ret)
 }
+
+`inla.formula.has.offset` <- function(gf) {
+    tf <- terms.formula(gf, specials = c("f"), data = NULL)
+    return (length(attr(tf, "offset")) > 0)
+}

@@ -86,6 +86,24 @@ rr = inla(formula,
         data = df.joint,
         E = df.joint$E..coxph)
 
+
+## A check that automatic and manual approach gives the same result
+data(Leuk)
+## add some random stuff for testing. Note that variables needs to
+## be in 'data' as they are expanded
+Leuk$off <- runif(nrow(Leuk), min = -0.5, max = 0.5)
+Leuk$off.form <- runif(nrow(Leuk), min = -0.5, max = 0.5)
+Leuk$w <- runif(nrow(Leuk), min = 0.5, max = 1.0)
+formula <- inla.surv(time, cens) ~ sex + age +
+    wbc + tpi + offset(off.form)
+r <- inla(formula, family = "coxph", data = Leuk,
+          offset = off, weights = w)
+cph <- inla.coxph(formula = formula, data = Leuk)
+cph.data = c(as.list(cph$data), cph$data.list)
+rr <- inla(cph$formula, family = cph$family,  data = cph.data, 
+           E = cph$E, offset = off, weights = w)
+print(cbind(r$mlik, rr$mlik, r$mlik - rr$mlik))
+
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}
