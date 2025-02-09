@@ -1,3 +1,6 @@
+# INLA 25.02.10
+* Fix for variable-parsing in family 'coxph'. Updated doc
+
 # INLA 25.02.09
 * Better memory management / first touch
 * Code optimisation
