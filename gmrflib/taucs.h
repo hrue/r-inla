@@ -283,9 +283,6 @@ typedef struct {
 	union {
 		void *v;
 		taucs_double *d;
-		taucs_single *s;
-		taucs_dcomplex *z;
-		taucs_scomplex *c;
 	} values;
 
 } taucs_ccs_matrix;
@@ -303,9 +300,6 @@ typedef struct {
 	union {
 		void *v;
 		taucs_double *d;
-		taucs_single *s;
-		taucs_dcomplex *z;
-		taucs_scomplex *c;
 	} values;
 
 } taucs_crs_matrix;
@@ -314,10 +308,6 @@ typedef struct {
 	int type;
 	int nmatrices;
 	void *type_specific;
-
-	/*
-	 * the following may change! do not rely on them. 
-	 */
 	double nreads, nwrites, bytes_read, bytes_written, read_time, write_time;
 } taucs_io_handle;
 
@@ -328,32 +318,6 @@ typedef struct {
 #include "taucs_private.h"
 #undef taucs_datatype
 #undef taucs_dtl
-
-#define taucs_datatype taucs_single
-#define taucs_dtl(X) taucs_s##X
-#include "taucs_private.h"
-#undef taucs_datatype
-#undef taucs_dtl
-
-#define taucs_datatype taucs_dcomplex
-#define taucs_dtl(X) taucs_z##X
-#include "taucs_private.h"
-#undef taucs_datatype
-#undef taucs_dtl
-
-#define taucs_datatype taucs_scomplex
-#define taucs_dtl(X) taucs_c##X
-#include "taucs_private.h"
-#undef taucs_datatype
-#undef taucs_dtl
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
-/* now define the data type for the file that we compile now */
 
 #ifdef TAUCS_CORE_DOUBLE
 #define TAUCS_CORE
@@ -366,60 +330,6 @@ typedef taucs_double taucs_datatype;
 #define taucs_iszero(x) ((x) == 0.0)
 #endif
 
-#ifdef  TAUCS_CORE_SINGLE
-#define TAUCS_CORE
-#define TAUCS_CORE_REAL
-#define TAUCS_CORE_DATATYPE TAUCS_SINGLE
-typedef taucs_single taucs_datatype;
-
-#define taucs_dtl(X) taucs_s##X
-#define taucs_values values.s
-#define taucs_iszero(x) ((x) == 0.0f)
-#endif
-
-#ifdef  TAUCS_CORE_DCOMPLEX
-#define TAUCS_CORE
-#define TAUCS_CORE_COMPLEX
-#define TAUCS_CORE_DATATYPE TAUCS_DCOMPLEX
-typedef taucs_dcomplex taucs_datatype;
-
-#define taucs_dtl(X) taucs_z##X
-#define taucs_values values.z
-#define taucs_iszero(x) (taucs_re(x) == 0.0 && taucs_im(x) == 0.0)
-#endif
-
-#ifdef  TAUCS_CORE_SCOMPLEX
-#define TAUCS_CORE
-#define TAUCS_CORE_COMPLEX
-#define TAUCS_CORE_DATATYPE TAUCS_SCOMPLEX
-typedef taucs_scomplex taucs_datatype;
-
-#define taucs_dtl(X) taucs_c##X
-#define taucs_values values.c
-#define taucs_iszero(x) (taucs_re(x) == 0.0f && taucs_im(x) == 0.0f)
-#endif
-
-#ifdef TAUCS_CORE_REAL
-#endif
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
-#ifdef OSTYPE_irix
-#include <ieeefp.h>
-
-#define isinf(x) (!finite((x)) && !isnan((x)))
-#endif
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
 #ifndef max
 #define max(x,y) ( ((x) > (y)) ? (x) : (y) )
 #endif
@@ -428,17 +338,6 @@ typedef taucs_scomplex taucs_datatype;
 #define min(x,y) ( ((x) < (y)) ? (x) : (y) )
 #endif
 
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
-/* 
-   routines for testing memory allocation.
-   Mostly useful for testing programs
-   that hunt for memory leaks.
-*/
 
 double taucs_allocation_amount();
 int taucs_allocation_count();
@@ -447,11 +346,6 @@ void taucs_allocation_assert_clean();
 void taucs_allocation_mark_clean();
 void taucs_allocation_induce_failure(int i);
 
-/* 
-   these are meant to allow allocation 
-   and more importantly, deallocation,
-   within the testing programs.
-*/
 
 #include <stdlib.h>
 

@@ -40,6 +40,7 @@ CXXFLAGS  = $(INCL) $(STDCXX) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\"
 LD      = $(CC)
 INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
+LIBTAUCS = taucs/libtaucs.a
 
 RM    = rm -f
 RMR   = rm -rf
@@ -88,10 +89,14 @@ ALL = $(LIBNAME) $(MAKEFILESIN)
 
 all : $(ALL)
 
-##$(LIBNAME): $(LIBNAME)($(LIBOBJ))
-##	ranlib $@
+## in the case we use g++ for gcc
 $(LIBNAME) : $(LIBOBJ)
-	$(AR) cr $(LIBNAME) $(LIBOBJ)
+ifeq ($(CC), $(CXX))
+	$(MAKE) -C taucs CC="gcc" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
+else
+	$(MAKE) -C taucs CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
+endif
+	$(AR) cr $(LIBNAME) $(LIBOBJ) taucs/libtaucs.a
 ##	ranlib $@
 
 # !!! Do not change! /FL
@@ -157,6 +162,7 @@ install: $(ALL)
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m$$mode $(LIBNAME) $(PREFIX)/lib; \
+	 $(INSTALL) -m$$mode $(LIBTAUCS) $(PREFIX)/lib; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/GMRFLib; \
 	 for header in $(HEADERS); do \
 		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
@@ -185,7 +191,7 @@ uninstall:
 	-for ex     in $(EXAMPLES); do $(RM) $(PREFIX)/doc/GMRFLib/$$ex; done
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
-clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN)
+clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN); $(MAKE) -C taucs clean
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt
