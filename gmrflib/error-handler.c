@@ -66,7 +66,7 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	/*
 	 * this is the default error-handler 
 	 */
-	fprintf(stderr, "\n\n\tGitId: %s\n", GITCOMMIT);
+	fprintf(stderr, "\n\n\tGitId: %s\n", __GMRFLib_STRINGIFY(GITCOMMIT));
 	if (reason) {
 		fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);
 	}
