@@ -14,7 +14,7 @@ FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer 
 LD = $(CXX)
 INLA_OS = $(shell uname)
 
-# The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)
+# The path to the external libraries: metis, lapack, blas and zlib, often the same as $(PREFIX)
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
