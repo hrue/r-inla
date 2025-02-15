@@ -6958,7 +6958,7 @@ int loglikelihood_betabinomial(int thread_id, double *__restrict logll, double *
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				printf("\n*** Warning ***  Version [%s]", GITCOMMIT);
+				printf("\n*** Warning ***  Version [%s]", __GMRFLib_STRINGIFY(GITCOMMIT));
 				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}

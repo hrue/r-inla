@@ -6696,7 +6696,7 @@ int main(int argc, char **argv)
 	 */
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
-			printf("INLA[%s] IS ALIVE\n", GITCOMMIT);
+			printf("INLA[%s] IS ALIVE\n", __GMRFLib_STRINGIFY(GITCOMMIT));
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -6729,7 +6729,7 @@ int main(int argc, char **argv)
 
 		case 'V':
 		{
-			printf("This program has version:\n\t%s\nand is linked with ", GITCOMMIT);
+			printf("This program has version:\n\t%s\nand is linked with ", __GMRFLib_STRINGIFY(GITCOMMIT));
 			GMRFLib_version(stdout);
 			_BUGS;
 			exit(EXIT_SUCCESS);
@@ -7109,7 +7109,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", GITCOMMIT);
+		fprintf(stdout, "\n\t%s\n", __GMRFLib_STRINGIFY(GITCOMMIT));
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);

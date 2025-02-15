@@ -30,7 +30,7 @@ IEXTLIBS = -I$(LEXTPREFIX)/include -I/usr/include/suitesparse
 
 SHELL   = /bin/sh
 
-GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
+GITCOMMIT:= $(shell git log --pretty=format:"%H-%cd" | head -n1 | tr '[ -]' '_')
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
