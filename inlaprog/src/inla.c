@@ -6729,8 +6729,7 @@ int main(int argc, char **argv)
 
 		case 'V':
 		{
-			printf("This program has version:\n\t%s\nand is linked with ", __GMRFLib_symbol_to_string(GITCOMMIT));
-			GMRFLib_version(stdout);
+			printf("This program has version: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}

@@ -7,19 +7,6 @@
 
 int GMRFLib_version(FILE *fp)
 {
-	const char *GitIDs[] = {
-#include "GitID.all"
-		NULL
-	};
-	int i = 0;
-
-	fp = (fp ? fp : stdout);
-
-	fprintf(fp, "GMRFLib %s\n", GMRFLib_VERSION);
-	while (GitIDs[i]) {
-		fprintf(fp, "\t%s\n", GitIDs[i]);
-		i++;
-	}
-
+	fprintf((fp ? fp : stdout), "%s\n", GMRFLib_VERSION);
 	return GMRFLib_SUCCESS;
 }
