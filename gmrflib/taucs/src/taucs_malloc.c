@@ -13,7 +13,7 @@
 #undef realloc
 #undef free
 
-int taucs_printf(const char *fmt, ...) 
+int taucs_printf(const char *UNUSED(fmt), ...) 
 {
 	return 0;
 }
