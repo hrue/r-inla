@@ -795,6 +795,9 @@ typedef enum {
 #endif
 #endif
 
+#define __GMRFLib_symbol_to_string(x_) __GMRFLib_symbol_to_string2(x_)
+#define __GMRFLib_symbol_to_string2(x_) #x_
+
 
 __END_DECLS
 #endif

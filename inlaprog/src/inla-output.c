@@ -1270,7 +1270,7 @@ int inla_output_gitid(const char *dir)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	fprintf(fp, "GITCOMMIT [%s]\n", __GMRFLib_STRINGIFY(GITCOMMIT));
+	fprintf(fp, "GITCOMMIT [%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 	fclose(fp);
 	Free(nndir);
 
