@@ -13,7 +13,7 @@
   preprendend by an environment variable \c GMRFLib_PATH. The initial value is set to the \c PREFIX
   variable in the installation.
 */
-const char GMRFLib_path[] = GMRFLib_PATH;
+const char GMRFLib_path[] = "PATH NOT IN USE";
 
 /*!
   \brief Define the sparse solver for the sparse-matrix computations.

@@ -30,7 +30,7 @@ IEXTLIBS = -I$(LEXTPREFIX)/include -I/usr/include/suitesparse
 
 SHELL   = /bin/sh
 
-INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+INCL    = -I.. -I$(PREFIX)/include
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
 CFLAGS  = $(INCL) $(STDC) $(FLAGS) $(IEXTLIBS) 
