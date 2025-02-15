@@ -1,5 +1,5 @@
-#ifndef GITCOMMIT
-#define GITCOMMIT "devel"
+#if !defined(GITCOMMIT)
+#define GITCOMMIT devel
 #endif
 
 #if !defined(_GNU_SOURCE)
