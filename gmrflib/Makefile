@@ -94,7 +94,7 @@ ifeq ($(CC), $(CXX))
 else
 	$(MAKE) -C taucs CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
 endif
-	$(AR) cr $(LIBNAME) $(LIBOBJ) taucs/libtaucs.a
+	$(AR) cr $(LIBNAME) $(LIBOBJ)
 ##	ranlib $@
 
 # !!! Do not change! /FL

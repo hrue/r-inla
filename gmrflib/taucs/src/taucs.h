@@ -25,9 +25,9 @@ __BEGIN_DECLS
 #include <assert.h>
 #include <stddef.h>
 #include <time.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
 #include <omp.h>
+#if __has_include(<malloc.h>)
+#include <malloc.h> 
 #endif
 
 

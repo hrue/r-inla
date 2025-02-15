@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <stdint.h>
+#if __has_include(<malloc.h>)
+#include <malloc.h> 
+#endif
 #include "taucs.h"
 
 #undef malloc

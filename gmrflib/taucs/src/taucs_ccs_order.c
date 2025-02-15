@@ -10,8 +10,8 @@
 #ifdef TAUCS_CORE_GENERAL
 
 #include <limits.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
+#if __has_include(<malloc.h>)
+#include <malloc.h> 
 #endif
 #include <stdio.h>
 #include <stdlib.h>
