@@ -30,7 +30,7 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 SHELL   = /bin/sh
 
-GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
+GITCOMMIT:= $(shell git log --pretty=format:"%H-%cd" | head -n1 | tr ' ' '-')
 
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
