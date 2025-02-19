@@ -182,7 +182,7 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		tmp = inla_read_lineno(GMRFLib_model_idx, tmp);
 		tmp = dictionary_replace_variables(mb->ini, tmp);
 		if (mb->verbose) {
-			printf("\t\tRead mode from line %1d of %1d [%s]\n",  GMRFLib_model_idx, GMRFLib_model_n, tmp);
+			printf("\t\tRead mode from line %1d of %1d [%s]\n", GMRFLib_model_idx, GMRFLib_model_n, tmp);
 		}
 	}
 

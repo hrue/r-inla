@@ -1,10 +1,10 @@
-T comes with no warranty whatsoever and is distributed under the
+TAUCS comes with no warranty whatsoever and is distributed under the
 GNU LGPL (Library or Lesser GNU Public Library). The license is
 available in www.gnu.org. Alternatively, you can also elect to use
-T under the following -style license, which is simpler to
+TAUCS under the following UMFPACK-style license, which is simpler to
 understand than the LGPL:
 
-T Version 1.0, November 29, 2001. Copyright (c) 2001 by Sivan
+TAUCS Version 1.0, November 29, 2001. Copyright (c) 2001 by Sivan
 Toledo, Tel-Aviv Univesity, stoledo@tau.ac.il. All Rights Reserved.
 
 TAUCS License: Your use or distribution of TAUCS or any derivative
@@ -17,7 +17,7 @@ License, and the Availability of the original version is retained on
 all copies. User documentation of any code that uses this code or any
 derivative code must cite the Copyright, this License, the
 Availability note, and "Used by permission." If this code or any
-derivative code is accessible from within M, then typing "help
+derivative code is accessible from within MATLAB, then typing "help
 taucs" must cite the Copyright, and "type taucs" must also cite this
 License and the Availability note. Permission to modify the code and
 to distribute modiﬁed code is granted, provided the Copyright, this

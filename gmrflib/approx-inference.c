@@ -406,7 +406,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	// need to reset it for each new model 
 	if (GMRFLib_model_n > 0) {
 		if (model_idx != GMRFLib_model_idx) {
-#pragma omp critical (Name_364001f392b4ebd1cd29c7e6fbfae3fe83dc5d04) 
+#pragma omp critical (Name_364001f392b4ebd1cd29c7e6fbfae3fe83dc5d04)
 			if (model_idx != GMRFLib_model_idx) {
 				Free(nnr_step_factor_first_time_only);
 				nnr_step_factor_first_time_only = NULL;
@@ -4682,8 +4682,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK_WORK_TP_FREE
 
 		if (0) {
-			for (int ii = 0; ii < d_idx->n; ii++) {	
-				int i = d_idx->idx[ii];		
+			for (int ii = 0; ii < d_idx->n; ii++) {
+				int i = d_idx->idx[ii];
 				printf("i %d BB %g CC %g\n", i, BB[i], CC[i]);
 			}
 		}

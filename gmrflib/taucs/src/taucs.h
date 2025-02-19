@@ -1,12 +1,3 @@
-
-/*********************************************************/
-
-/* TAUCS                                                 */
-
-/* Author: Sivan Toledo                                  */
-
-/*********************************************************/
-
 #if !defined(TAUCS_TAUCS_H)
 #define TAUCS_TAUCS_H
 
@@ -16,8 +7,8 @@
 #define __BEGIN_DECLS extern "C" {
 #define __END_DECLS }
 #else
-#define __BEGIN_DECLS                                          /* empty */
-#define __END_DECLS                                            /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -27,10 +18,8 @@ __BEGIN_DECLS
 #include <time.h>
 #include <omp.h>
 #if __has_include(<malloc.h>)
-#include <malloc.h> 
+#include <malloc.h>
 #endif
-
-
 #ifdef __GNUC__
 //#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #define UNUSED(x) x __attribute__((__unused__))
@@ -38,8 +27,6 @@ __BEGIN_DECLS
 //#define UNUSED(x) UNUSED_ ## x
 #define UNUSED(x) x
 #endif
-
-
 #define TAUCS_CONFIG_DREAL
 #define TAUCS_CONFIG_BASE
 #define TAUCS_CONFIG_METIS
@@ -48,8 +35,6 @@ __BEGIN_DECLS
 #define TAUCS_CONFIG_GENMMD
 #define TAUCS_CONFIG_ORDERING
 #define TAUCS_CONFIG_LLT
-
-
 #if __GNUC__ > 7
 typedef size_t fortran_charlen_t;
 #else
@@ -59,55 +44,29 @@ typedef int fortran_charlen_t;
 #define F_ONE (fortran_charlen_t)1
 #endif
 
+#ifdef __GNUC__
+#define POSSIBLY_UNUSED_FUNCTION(x) __attribute__((__unused__)) x
+#else
+#define POSSIBLY_UNUSED_FUNCTION(x) x
+#endif
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMAX)(int a, int b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#define DMAX(a_, b_) fmax(a_, b_)
+#define DMIN(a_, b_) fmin(a_, b_)
+
 static double UNUSED(taucs_zero_real_const) = 0.0;
 static double UNUSED(taucs_one_real_const) = 1.0;
 static double UNUSED(taucs_minusone_real_const) = -1.0;
-
-/*********************************************************/
-
-/* Cilk-related stuff                                    */
-
-/*********************************************************/
-
-#ifdef TAUCS_CORE_CILK
-#ifdef TAUCS_CILK
-#else
-
-/* We are compiling a Cilk source, but with a C compiler */
-#define cilk
-#define spawn
-#define sync
-#define inlet
-#define Self 0
-#define Cilk_active_size 1
-
-#define taucs_cilk
-#define taucs_spawn
-#define taucs_sync
-#define taucs_inlet
-#define taucs_Self 0
-#define taucs_Cilk_active_size 1
-#endif
-#else							       /* not CORE_CILK */
-#define taucs_cilk
-#define taucs_spawn
-#define taucs_sync
-#define taucs_inlet
-#define taucs_Self 0
-#define taucs_Cilk_active_size 1
-#endif
-
-/*********************************************************/
-
-/* other stuff                                           */
-
-/*********************************************************/
 
 #define TAUCS_DOUBLE_IN_BUILD
 
 #define TAUCS_BLAS_UNDERSCORE 1
 
-#if   defined(TAUCS_BLAS_UNDERSCORE)
+#if defined(TAUCS_BLAS_UNDERSCORE)
 #define taucs_blas_name(x) (x##_)
 #elif defined(TAUCS_BLAS_NOUNDERSCORE)
 #define taucs_blas_name(x) (x)
@@ -125,11 +84,8 @@ static double UNUSED(taucs_minusone_real_const) = -1.0;
 #define TAUCS_ERROR_INDEFINITE             -4
 #define TAUCS_ERROR_MAXDEPTH               -5
 
-#define TAUCS_INT       1024
+
 #define TAUCS_DOUBLE    2048
-#define TAUCS_SINGLE    4096
-#define TAUCS_DCOMPLEX  8192
-#define TAUCS_SCOMPLEX 16384
 
 #define TAUCS_LOWER      1
 #define TAUCS_UPPER      2
@@ -145,7 +101,7 @@ static double UNUSED(taucs_minusone_real_const) = -1.0;
 #define TAUCS_VARIANT_SNMF 1
 #define TAUCS_VARIANT_SNLL 2
 
-typedef double taucs_double;
+#define taucs_dtl(X) taucs_d##X
 
 #if defined(TAUCS_CORE_DOUBLE) || defined(TAUCS_CORE_GENERAL)
 
@@ -173,36 +129,11 @@ typedef struct {
 	int m;						       /* rows; don't use if symmetric */
 	int flags;
 	int *colptr;					       /* pointers to where columns begin in rowind and values. */
-	/*
-	 * 0-based. Length is (n+1). 
-	 */
 	int *rowind;					       /* row indices */
-
-	union {
-		void *v;
-		taucs_double *d;
-	} values;
-
+	double *values;
 } taucs_ccs_matrix;
 
-typedef struct {
-	int type;
-	int nmatrices;
-	void *type_specific;
-
-	/*
-	 * the following may change! do not rely on them. 
-	 */
-	double nreads, nwrites, bytes_read, bytes_written, read_time, write_time;
-} taucs_io_handle;
-
-#define taucs_datatype taucs_double
-#define taucs_real_datatype taucs_double
-#define taucs_dtl(X) taucs_d##X
 #include "taucs_private.h"
-#undef taucs_real_datatype
-#undef taucs_datatype
-#undef taucs_dtl
 
 
 /*********************************************************/
@@ -218,28 +149,12 @@ typedef struct {
 
 #ifdef TAUCS_CORE_DOUBLE
 #define TAUCS_CORE
-#define TAUCS_CORE_REAL
-#define TAUCS_CORE_DATATYPE TAUCS_DOUBLE
-typedef taucs_double taucs_datatype;
-
 #define taucs_dtl(X) taucs_d##X
-#define taucs_values values.d
 #define taucs_iszero(x) ((x) == 0.0)
-typedef double taucs_real_datatype;			       /* omer: this is the datatype of the real and imaginary part of the
-							        * datatype */
 #endif
 
 #ifdef TAUCS_CORE_GENERAL
 #define TAUCS_CORE
-#define TAUCS_CORE_DATATYPE TAUCS_DOUBLE
-typedef taucs_double taucs_datatype;
-typedef double taucs_real_datatype;
-#endif
-
-
-#ifndef TAUCS_CORE_DATATYPE
-typedef taucs_double taucs_datatype;
-typedef double taucs_real_datatype;
 #endif
 
 #define taucs_add(x,y) ((x)+(y))
@@ -330,7 +245,7 @@ void taucs_free_stub(void *ptr);
 /*********************************************************/
 
 /* externs */
-extern int dreadhb_(char *, int *, int *, int *, int *, int *, taucs_double *);
+extern int dreadhb_(char *, int *, int *, int *, int *, int *, double *);
 
 extern int amdexa_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern int amdtru_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
@@ -384,26 +299,16 @@ extern int finite(double);
 extern int isinf(double);
 #endif
 
-extern int taucs_potrf(char *, int *, taucs_datatype *, int *, int *,
-		       fortran_charlen_t);
+extern int taucs_potrf(char *, int *, double *, int *, int *, fortran_charlen_t);
 extern int taucs_trsm(char *, char *, char *, char *,
-		      int *, int *, taucs_datatype *, taucs_datatype *, int *, taucs_datatype *, int *,
-		      fortran_charlen_t,
-		      fortran_charlen_t,
-		      fortran_charlen_t,
-		      fortran_charlen_t);
+		      int *, int *, double *, double *, int *, double *, int *,
+		      fortran_charlen_t, fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
 extern int taucs_gemm(char *, char *, int *, int *, int *,
-		      taucs_datatype *, taucs_datatype *, int *, taucs_datatype *, int *,
-		      taucs_datatype *, taucs_datatype *, int *,
-		      fortran_charlen_t,
-		      fortran_charlen_t);
-extern int taucs_herk(char *, char *,
-		      int *, int *, taucs_real_datatype *, taucs_datatype *, int *, taucs_real_datatype *, taucs_datatype *, int *,
-		      fortran_charlen_t,
-		      fortran_charlen_t);
-		      
+		      double *, double *, int *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
+extern int taucs_herk(char *, char *, int *, int *, double *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
 
-taucs_double taucs_blas_name(dnrm2) (int *, taucs_double *, int *);
+
+double taucs_blas_name(dnrm2) (int *, double *, int *);
 
 
 __END_DECLS

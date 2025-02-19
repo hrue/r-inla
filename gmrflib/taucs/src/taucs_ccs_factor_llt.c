@@ -18,7 +18,7 @@ typedef struct {
 	int *indices;
 	int *bitmap;
 
-	taucs_datatype *values;
+	double *values;
 } spa;
 
 #ifndef TAUCS_CORE_GENERAL
@@ -40,7 +40,7 @@ static spa *spa_create(int n)
 
 	s->indices = (int *) taucs_malloc(n * sizeof(int));
 	s->bitmap = (int *) taucs_malloc(n * sizeof(int));
-	s->values = (taucs_datatype *) taucs_malloc(n * sizeof(taucs_datatype));
+	s->values = (double *) taucs_malloc(n * sizeof(double));
 
 	if (!(s->indices) || !(s->values) || !(s->bitmap)) {
 		taucs_printf("chol: cannot create spa\n");
@@ -59,7 +59,7 @@ static spa *spa_create(int n)
 	return s;
 }
 
-static void spa_free(spa * s)
+static void spa_free(spa *s)
 {
 	if (!s)
 		return;
@@ -70,17 +70,17 @@ static void spa_free(spa * s)
 	taucs_free(s);
 }
 
-static void spa_set(spa * s, taucs_ccs_matrix * A, int j)
+static void spa_set(spa *s, taucs_ccs_matrix *A, int j)
 {
 	int i, ip, next;
-	taucs_datatype Aij;
+	double Aij;
 
 	assert(j < A->n);
 
 	next = 0;
 	for (ip = (A->colptr)[j]; ip < (A->colptr)[j + 1]; ip++) {
 		i = (A->rowind)[ip];
-		Aij = (A->taucs_values)[ip];
+		Aij = (A->values)[ip];
 
 		assert(i >= j);				       /* A must be lower */
 
@@ -93,10 +93,10 @@ static void spa_set(spa * s, taucs_ccs_matrix * A, int j)
 	s->length = next;
 }
 
-static void spa_scale_add(spa * s, int j, taucs_ccs_matrix * A, int k, taucs_datatype alpha)
+static void spa_scale_add(spa *s, int j, taucs_ccs_matrix *A, int k, double alpha)
 {
 	int i, ip;
-	taucs_datatype Aik;
+	double Aik;
 
 	assert(k < A->n);
 
@@ -109,7 +109,7 @@ static void spa_scale_add(spa * s, int j, taucs_ccs_matrix * A, int k, taucs_dat
 		i = (A->rowind)[ip];
 		if (i < j)
 			continue;
-		Aik = (A->taucs_values)[ip];
+		Aik = (A->values)[ip];
 
 		if ((s->bitmap)[i] < j) {
 			/*
@@ -142,7 +142,7 @@ static void spa_scale_add(spa * s, int j, taucs_ccs_matrix * A, int k, taucs_dat
 static int *rowlist;
 static int *rowlist_next;
 static int *rowlist_colind;
-static taucs_datatype *rowlist_values;
+static double *rowlist_values;
 
 static int rowlist_freelist;
 static int rowlist_size;
@@ -158,7 +158,7 @@ static int rowlist_create(int n)
 	rowlist = (int *) taucs_malloc(n * sizeof(int));
 	rowlist_next = (int *) taucs_malloc(rowlist_size * sizeof(int));
 	rowlist_colind = (int *) taucs_malloc(rowlist_size * sizeof(int));
-	rowlist_values = (taucs_datatype *) taucs_malloc(rowlist_size * sizeof(taucs_datatype));
+	rowlist_values = (double *) taucs_malloc(rowlist_size * sizeof(double));
 
 	if (!rowlist || !rowlist_next | !rowlist_colind || !rowlist_values) {
 		taucs_free(rowlist);
@@ -194,12 +194,12 @@ static void rowlist_free()
 
 /* static void rowlist_freerow(int i){} */
 
-static int rowlist_add(int i, int j, taucs_datatype v)
+static int rowlist_add(int i, int j, double v)
 {
 	int l;
 	int *new_next;
 	int *new_colind;
-	taucs_datatype *new_values;
+	double *new_values;
 
 	if (rowlist_freelist == -1) {
 		int inc = rowlist_next_expansion;
@@ -217,8 +217,8 @@ static int rowlist_add(int i, int j, taucs_datatype v)
 			return -1;
 		rowlist_colind = new_colind;
 
-		new_values = (taucs_datatype *)
-		    taucs_realloc(rowlist_values, (rowlist_size + inc) * sizeof(taucs_datatype));
+		new_values = (double *)
+		    taucs_realloc(rowlist_values, (rowlist_size + inc) * sizeof(double));
 		if (!new_values)
 			return -1;
 		rowlist_values = new_values;
@@ -258,7 +258,7 @@ static int rowlist_getcolind(int l)
 	return rowlist_colind[l];
 }
 
-static taucs_datatype rowlist_getvalue(int l)
+static double rowlist_getvalue(int l)
 {
 	return rowlist_values[l];
 }
@@ -279,11 +279,11 @@ static taucs_datatype rowlist_getvalue(int l)
 
 taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double droptol, int modified) {
 	int i, j, k, l, n, ip, next, Lnnz;
-	taucs_datatype Lkj, pivot, v;
+	double Lkj, pivot, v;
 	double norm;
 	spa *s;
 	taucs_ccs_matrix *L;
-	taucs_datatype *dropped;
+	double *dropped;
 	double flops = 0.0;
 
 	if (!(A->flags & TAUCS_SYMMETRIC) && !(A->flags & TAUCS_HERMITIAN)) {
@@ -312,7 +312,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 	s = spa_create(n);
 	i = rowlist_create(n);
 
-	dropped = (taucs_datatype *) taucs_malloc(n * sizeof(taucs_datatype));
+	dropped = (double *) taucs_malloc(n * sizeof(double));
 
 	if (!s || i == -1 || !dropped) {
 		taucs_ccs_free(L);
@@ -345,8 +345,8 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 
 		if (next + (s->length) > Lnnz) {
 			int *rowind;
-			taucs_datatype *values;
-			int inc = max((int) floor(1.25 * (double) Lnnz), max(8192, s->length));
+			double *values;
+			int inc = IMAX((int) floor(1.25 * (double) Lnnz), IMAX(8192, s->length));
 
 			Lnnz += inc;
 
@@ -360,7 +360,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 			}
 			L->rowind = rowind;
 
-			values = (taucs_datatype *) taucs_realloc(L->taucs_values, Lnnz * sizeof(taucs_datatype));
+			values = (double *) taucs_realloc(L->values, Lnnz * sizeof(double));
 			if (!values) {
 				taucs_free(dropped);
 				spa_free(s);
@@ -368,7 +368,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 				taucs_ccs_free(L);
 				return NULL;
 			}
-			L->taucs_values = values;
+			L->values = values;
 		}
 
 		(L->colptr)[j] = next;
@@ -413,8 +413,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 
 		if (taucs_re(pivot) == 0.0 && taucs_im(pivot) == 0.0) {
 			taucs_printf("taucs_ccs_factor_llt: zero pivot in column %d\n", j);
-			taucs_printf("taucs_ccs_factor_llt: Ajj in spa = %lg dropped[j] = %lg Aj_nnz=%d\n",
-				     (s->values)[j], dropped[j], Aj_nnz);
+			taucs_printf("taucs_ccs_factor_llt: Ajj in spa = %lg dropped[j] = %lg Aj_nnz=%d\n", (s->values)[j], dropped[j], Aj_nnz);
 		} else if (taucs_abs(pivot) < 1e-12) {
 			taucs_printf("taucs_ccs_factor_llt: small pivot in column %d (%le)\n", j, pivot);
 		}
@@ -439,7 +438,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 				v = taucs_div(v, pivot);
 
 				(L->rowind)[next] = i;
-				(L->taucs_values)[next] = v;
+				(L->values)[next] = v;
 				next++;
 				if (rowlist_add(i, j, v) == -1) {
 					taucs_free(dropped);
@@ -470,7 +469,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 				v = taucs_div(v, pivot);
 
 				(L->rowind)[next] = i;
-				(L->taucs_values)[next] = v;
+				(L->values)[next] = v;
 				next++;
 				if (rowlist_add(i, j, v) == -1) {
 					taucs_free(dropped);
@@ -516,7 +515,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt) (taucs_ccs_matrix * A, double dropto
 
 taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p) {
 	int i, j, k, l, n, ip, next, Lnnz;
-	taucs_datatype Lkj, pivot, v;
+	double Lkj, pivot, v;
 	spa *s;
 	taucs_ccs_matrix *L;
 	double flops = 0.0;
@@ -568,15 +567,9 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 
 		if (next + (s->length) > Lnnz) {
 			int *rowind;
-			taucs_datatype *values;
-			int inc = max((int) floor(1.25 * (double) Lnnz), max(8192, s->length));
-
-			/*
-			 * int inc = max( 8192, s->length );
-			 */
-
+			double *values;
+			int inc = IMAX((int) floor(1.25 * (double) Lnnz), IMAX(8192, s->length));
 			Lnnz += inc;
-
 			rowind = (int *) taucs_realloc(L->rowind, Lnnz * sizeof(int));
 			if (!rowind) {
 				spa_free(s);
@@ -586,25 +579,25 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 			}
 			L->rowind = rowind;
 
-			values = (taucs_datatype *) taucs_realloc(L->taucs_values, Lnnz * sizeof(taucs_datatype));
+			values = (double *) taucs_realloc(L->values, Lnnz * sizeof(double));
 			if (!values) {
 				spa_free(s);
 				rowlist_free();
 				taucs_ccs_free(L);
 				return NULL;
 			}
-			L->taucs_values = values;
+			L->values = values;
 
 			/*
-			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (taucs_datatype*)
-			 * taucs_realloc( L->taucs_values, Lnnz * sizeof(taucs_datatype) ); assert( rowind && values ); L->rowind = 
-			 * rowind; L->taucs_values = values; 
+			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (double*)
+			 * taucs_realloc( L->values, Lnnz * sizeof(double) ); assert( rowind && values ); L->rowind = 
+			 * rowind; L->values = values; 
 			 */
 		}
 
 		(L->colptr)[j] = next;
 
-		//Aj_nnz = (A->colptr)[j + 1] - (A->colptr)[j];
+		// Aj_nnz = (A->colptr)[j + 1] - (A->colptr)[j];
 
 		pivot = taucs_sqrt((s->values)[j]);
 
@@ -628,7 +621,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 				v = taucs_div(v, pivot);
 
 				(L->rowind)[next] = i;
-				(L->taucs_values)[next] = v;
+				(L->values)[next] = v;
 				next++;
 				rowlist_add(i, j, v);
 				break;
@@ -648,7 +641,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 			v = taucs_div(v, pivot);
 
 			(L->rowind)[next] = i;
-			(L->taucs_values)[next] = v;
+			(L->values)[next] = v;
 			next++;
 			rowlist_add(i, j, v);
 		}
@@ -682,13 +675,8 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 
 		if (next + (s->length) > Lnnz) {
 			int *rowind;
-			taucs_datatype *values;
-			int inc = max((int) floor(1.25 * (double) Lnnz), max(8192, s->length));
-
-			/*
-			 * int inc = max( 8192, s->length );
-			 */
-
+			double *values;
+			int inc = IMAX((int) floor(1.25 * (double) Lnnz), IMAX(8192, s->length));
 			Lnnz += inc;
 
 			rowind = (int *) taucs_realloc(L->rowind, Lnnz * sizeof(int));
@@ -700,25 +688,25 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 			}
 			L->rowind = rowind;
 
-			values = (taucs_datatype *) taucs_realloc(L->taucs_values, Lnnz * sizeof(taucs_datatype));
+			values = (double *) taucs_realloc(L->values, Lnnz * sizeof(double));
 			if (!values) {
 				spa_free(s);
 				rowlist_free();
 				taucs_ccs_free(L);
 				return NULL;
 			}
-			L->taucs_values = values;
+			L->values = values;
 
 			/*
-			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (taucs_datatype*)
-			 * taucs_realloc( L->taucs_values, Lnnz * sizeof(taucs_datatype) ); assert( rowind && values ); L->rowind = 
-			 * rowind; L->taucs_values = values; 
+			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (double*)
+			 * taucs_realloc( L->values, Lnnz * sizeof(double) ); assert( rowind && values ); L->rowind = 
+			 * rowind; L->values = values; 
 			 */
 		}
 
 		(L->colptr)[j] = next;
 
-		//Aj_nnz = (A->colptr)[j + 1] - (A->colptr)[j];
+		// Aj_nnz = (A->colptr)[j + 1] - (A->colptr)[j];
 
 		/*
 		 * we want Lii to be first in the compressed column 
@@ -729,7 +717,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 
 			if (i == j) {
 				(L->rowind)[next] = i;
-				(L->taucs_values)[next] = v;
+				(L->values)[next] = v;
 				next++;
 				rowlist_add(i, j, v);
 				break;
@@ -743,7 +731,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 			if (i == j)
 				continue;
 			(L->rowind)[next] = i;
-			(L->taucs_values)[next] = v;
+			(L->values)[next] = v;
 			next++;
 			rowlist_add(i, j, v);
 		}
@@ -782,7 +770,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_llt_partial) (taucs_ccs_matrix * A, int p
 
 taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 	int i, j, k, l, n, ip, next, Lnnz;
-	taucs_datatype Lkj, pivot, v, Dkk;
+	double Lkj, pivot, v, Dkk;
 	spa *s;
 	taucs_ccs_matrix *L;
 	double flops = 0.0;
@@ -816,7 +804,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 		for (l = rowlist_getfirst(j); l != -1; l = rowlist_getnext(l)) {
 			k = rowlist_getcolind(l);
 			Lkj = rowlist_getvalue(l);
-			Dkk = (L->taucs_values)[(L->colptr)[k]];
+			Dkk = (L->values)[(L->colptr)[k]];
 			/*
 			 * spa_scale_add(s,j,L,k,-Lkj*Dkk);
 			 *//*
@@ -836,13 +824,8 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 
 		if (next + (s->length) > Lnnz) {
 			int *rowind;
-			taucs_datatype *values;
-			int inc = max((int) floor(1.25 * (double) Lnnz), max(8192, s->length));
-
-			/*
-			 * int inc = max( 8192, s->length );
-			 */
-
+			double *values;
+			int inc = IMAX((int) floor(1.25 * (double) Lnnz), IMAX(8192, s->length));
 			Lnnz += inc;
 
 			rowind = (int *) taucs_realloc(L->rowind, Lnnz * sizeof(int));
@@ -854,19 +837,19 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 			}
 			L->rowind = rowind;
 
-			values = (taucs_datatype *) taucs_realloc(L->taucs_values, Lnnz * sizeof(taucs_datatype));
+			values = (double *) taucs_realloc(L->values, Lnnz * sizeof(double));
 			if (!values) {
 				spa_free(s);
 				rowlist_free();
 				taucs_ccs_free(L);
 				return NULL;
 			}
-			L->taucs_values = values;
+			L->values = values;
 
 			/*
-			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (taucs_datatype*)
-			 * taucs_realloc( L->taucs_values, Lnnz * sizeof(taucs_datatype) ); assert( rowind && values ); L->rowind = 
-			 * rowind; L->taucs_values = values; 
+			 * rowind = (int*) taucs_realloc( L->rowind, Lnnz * sizeof(int) ); values = (double*)
+			 * taucs_realloc( L->values, Lnnz * sizeof(double) ); assert( rowind && values ); L->rowind = 
+			 * rowind; L->values = values; 
 			 */
 		}
 
@@ -903,7 +886,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 				 */
 
 				(L->rowind)[next] = i;
-				(L->taucs_values)[next] = pivot;	/* we put D on the diagonal */
+				(L->values)[next] = pivot;     /* we put D on the diagonal */
 				next++;
 				if (rowlist_add(i, j, v) == -1) {
 					spa_free(s);
@@ -928,7 +911,7 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 			v = taucs_div(v, pivot);
 
 			(L->rowind)[next] = i;
-			(L->taucs_values)[next] = v;
+			(L->values)[next] = v;
 			next++;
 			if (rowlist_add(i, j, v) == -1) {
 				spa_free(s);
@@ -941,7 +924,6 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 		(L->colptr)[j + 1] = next;
 		{
 			double Lj_nnz = (double) ((L->colptr)[j + 1] - (L->colptr)[j]);
-
 			flops += 2.0 * Lj_nnz * Lj_nnz;
 		}
 
@@ -969,83 +951,26 @@ taucs_ccs_matrix *taucs_dtl(ccs_factor_ldlt) (taucs_ccs_matrix * A) {
 /*********************************************************/
 
 #ifdef TAUCS_CORE_GENERAL
-taucs_ccs_matrix *taucs_ccs_factor_llt(taucs_ccs_matrix * A, double droptol, int modified)
+taucs_ccs_matrix *taucs_ccs_factor_llt(taucs_ccs_matrix *A, double droptol, int modified)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt(A, droptol, modified);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt(A, droptol, modified);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt(A, droptol, modified);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt(A, droptol, modified);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-taucs_ccs_matrix *taucs_ccs_factor_llt_partial(taucs_ccs_matrix * A, int p)
+taucs_ccs_matrix *taucs_ccs_factor_llt_partial(taucs_ccs_matrix *A, int p)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt_partial(A, p);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt_partial(A, p);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt_partial(A, p);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt_partial(A, p);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-taucs_ccs_matrix *taucs_ccs_factor_ldlt(taucs_ccs_matrix * A)
+taucs_ccs_matrix *taucs_ccs_factor_ldlt(taucs_ccs_matrix *A)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_ldlt(A);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_ldlt(A);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_ldlt(A);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_ldlt(A);
-#endif
-
 	assert(0);
 	return NULL;
 }

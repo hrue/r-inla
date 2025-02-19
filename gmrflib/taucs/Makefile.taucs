@@ -35,18 +35,10 @@ $(DIROBJ)taucs_ccs_base.o: $(DIRSRC)taucs_ccs_base.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_base.c -o $(DIROBJ)taucs_ccs_base.o
 $(DIROBJ)taucs_ccs_base_D.o: $(DIRSRC)taucs_ccs_base.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_base.c -o $(DIROBJ)taucs_ccs_base_D.o
-$(DIROBJ)taucs_vec_base.o: $(DIRSRC)taucs_vec_base.c $(INCS) $(STDDEPS)
-	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_vec_base.c -o $(DIROBJ)taucs_vec_base.o
-$(DIROBJ)taucs_vec_base_D.o: $(DIRSRC)taucs_vec_base.c $(INCS) $(STDDEPS)
-	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_vec_base.c -o $(DIROBJ)taucs_vec_base_D.o
 $(DIROBJ)taucs_ccs_ops.o: $(DIRSRC)taucs_ccs_ops.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_ops.c -o $(DIROBJ)taucs_ccs_ops.o
 $(DIROBJ)taucs_ccs_ops_D.o: $(DIRSRC)taucs_ccs_ops.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_ops.c -o $(DIROBJ)taucs_ccs_ops_D.o
-$(DIROBJ)taucs_ccs_io.o: $(DIRSRC)taucs_ccs_io.c $(INCS) $(STDDEPS)
-	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_io.c -o $(DIROBJ)taucs_ccs_io.o
-$(DIROBJ)taucs_ccs_io_D.o: $(DIRSRC)taucs_ccs_io.c $(INCS) $(STDDEPS)
-	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_io.c -o $(DIROBJ)taucs_ccs_io_D.o
 $(DIROBJ)taucs_ccs_order.o: $(DIRSRC)taucs_ccs_order.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_order.c -o $(DIROBJ)taucs_ccs_order.o
 $(DIROBJ)taucs_ccs_factor_llt.o: $(DIRSRC)taucs_ccs_factor_llt.c $(INCS) $(STDDEPS)

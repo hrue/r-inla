@@ -32,5 +32,3 @@ double taucs_get_nan()
 	return nan;
 }
 #endif
-
-

@@ -16,13 +16,6 @@
 #define TAUCS_CORE_CILK
 #include "taucs.h"
 
-#ifndef TAUCS_CORE_GENERAL
-#define taucs_cilk_potrf taucs_potrf
-#define taucs_cilk_gemm  taucs_gemm
-#define taucs_cilk_trsm  taucs_trsm
-#define taucs_cilk_herk  taucs_herk
-#endif
-
 #define FALSE 0
 #define TRUE  1
 
@@ -38,9 +31,9 @@ typedef struct {
 	int *sn_vertices;
 	int *up_vertices;
 
-	taucs_datatype *f1;
-	taucs_datatype *f2;
-	taucs_datatype *u;
+	double *f1;
+	double *f2;
+	double *u;
 
 } supernodal_frontal_matrix;
 
@@ -64,10 +57,10 @@ typedef struct {
 	int **sn_struct;				       /* row structure of supernodes */
 
 	int *sn_blocks_ld;				       /* lda of supernode blocks */
-	taucs_datatype **sn_blocks;			       /* supernode blocks */
+	double **sn_blocks;				       /* supernode blocks */
 
 	int *up_blocks_ld;				       /* lda of update blocks */
-	taucs_datatype **up_blocks;			       /* update blocks */
+	double **up_blocks;				       /* update blocks */
 } supernodal_factor_matrix;
 
 #ifdef TAUCS_CORE_GENERAL
@@ -122,22 +115,7 @@ static supernodal_factor_matrix *multifrontal_supernodal_create()
 	if (!L)
 		return NULL;
 
-#ifdef TAUCS_CORE_SINGLE
-	L->flags = TAUCS_SINGLE;
-#endif
-
-#ifdef TAUCS_CORE_DOUBLE
 	L->flags = TAUCS_DOUBLE;
-#endif
-
-#ifdef TAUCS_CORE_SCOMPLEX
-	L->flags = TAUCS_SCOMPLEX;
-#endif
-
-#ifdef TAUCS_CORE_DCOMPLEX
-	L->flags = TAUCS_DCOMPLEX;
-#endif
-
 	L->uplo = 'l';
 	L->n = -1;					       /* unused */
 
@@ -156,7 +134,7 @@ static supernodal_factor_matrix *multifrontal_supernodal_create()
 }
 
 void taucs_dtl(supernodal_factor_free) (void *vL) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	int sn;
 
 	if (!L)
@@ -191,7 +169,7 @@ void taucs_dtl(supernodal_factor_free) (void *vL) {
 }
 
 void taucs_dtl(supernodal_factor_free_numeric) (void *vL) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	int sn;
 
 	for (sn = 0; sn < L->n_sn; sn++) {
@@ -203,11 +181,11 @@ void taucs_dtl(supernodal_factor_free_numeric) (void *vL) {
 }
 
 taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	taucs_ccs_matrix *C;
 	int n, nnz;
 	int i, j, ip, jp, sn, next;
-	taucs_datatype v;
+	double v;
 	int *len;
 
 	n = L->n;
@@ -253,22 +231,7 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 		taucs_free(len);
 		return NULL;
 	}
-#ifdef TAUCS_CORE_SINGLE
-	C->flags = TAUCS_SINGLE;
-#endif
-
-#ifdef TAUCS_CORE_DOUBLE
 	C->flags = TAUCS_DOUBLE;
-#endif
-
-#ifdef TAUCS_CORE_SCOMPLEX
-	C->flags = TAUCS_SCOMPLEX;
-#endif
-
-#ifdef TAUCS_CORE_DCOMPLEX
-	C->flags = TAUCS_DCOMPLEX;
-#endif
-
 	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
 
 	(C->colptr)[0] = 0;
@@ -285,10 +248,10 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 
 			/*
 			 * memcpy((C->rowind) + next, ((L->sn_struct)[sn]) + jp, ((L->sn_up_size)[sn] - jp) * sizeof(int));
-			 * memcpy((C->taucs_values) + next, ((L->sn_blocks)[sn]) + (jp*(L->sn_blocks_ld)[sn] + jp),
-			 * ((L->sn_size)[sn] - jp) * sizeof(taucs_datatype)); next += ((L->sn_size)[sn] - jp);
-			 * memcpy((C->taucs_values) + next, ((L->up_blocks)[sn]) + jp*(L->up_blocks_ld)[sn], ((L->sn_up_size)[sn] - 
-			 * (L->sn_size)[sn]) * sizeof(taucs_datatype)); 
+			 * memcpy(C->values + next, ((L->sn_blocks)[sn]) + (jp*(L->sn_blocks_ld)[sn] + jp),
+			 * ((L->sn_size)[sn] - jp) * sizeof(double)); next += ((L->sn_size)[sn] - jp);
+			 * memcpy(C->values + next, ((L->up_blocks)[sn]) + jp*(L->up_blocks_ld)[sn], ((L->sn_up_size)[sn] - 
+			 * (L->sn_size)[sn]) * sizeof(double)); 
 			 */
 
 			for (ip = jp; ip < (L->sn_size)[sn]; ip++) {
@@ -302,7 +265,7 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 				 */
 
 				(C->rowind)[next] = i;
-				(C->taucs_values)[next] = v;
+				C->values[next] = v;
 				next++;
 			}
 			for (ip = (L->sn_size)[sn]; ip < (L->sn_up_size)[sn]; ip++) {
@@ -316,7 +279,7 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 				 */
 
 				(C->rowind)[next] = i;
-				(C->taucs_values)[next] = v;
+				C->values[next] = v;
 				next++;
 			}
 		}
@@ -327,13 +290,13 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 
 /* just get the diagonal of a supernodal factor, for Penny */
 
-taucs_datatype *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+double *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	int j, ip, jp, sn;				       /* i,next omer */
-	taucs_datatype v;
-	taucs_datatype *diag;
+	double v;
+	double *diag;
 
-	diag = (taucs_datatype *) taucs_malloc((L->n) * sizeof(taucs_datatype));
+	diag = (double *) taucs_malloc((L->n) * sizeof(double));
 	if (!diag)
 		return NULL;
 
@@ -385,15 +348,15 @@ static supernodal_frontal_matrix *supernodal_frontal_create(int *UNUSED(firstcol
 	tmp->SFM_F1 = tmp->SFM_F2 = tmp->SFM_U = NULL;
 
 	if (tmp->sn_size) {
-		tmp->SFM_F1 = (taucs_datatype *) taucs_calloc((tmp->sn_size) * (tmp->sn_size), sizeof(taucs_datatype));
+		tmp->SFM_F1 = (double *) taucs_calloc((tmp->sn_size) * (tmp->sn_size), sizeof(double));
 	}
 
 	if (tmp->sn_size && tmp->up_size) {
-		tmp->SFM_F2 = (taucs_datatype *) taucs_calloc((tmp->up_size) * (tmp->sn_size), sizeof(taucs_datatype));
+		tmp->SFM_F2 = (double *) taucs_calloc((tmp->up_size) * (tmp->sn_size), sizeof(double));
 	}
 
 	if (tmp->up_size) {
-		tmp->SFM_U = (taucs_datatype *) taucs_calloc((tmp->up_size) * (tmp->up_size), sizeof(taucs_datatype));
+		tmp->SFM_U = (double *) taucs_calloc((tmp->up_size) * (tmp->up_size), sizeof(double));
 	}
 
 	if ((tmp->SFM_F1 == NULL && tmp->sn_size)
@@ -410,7 +373,7 @@ static supernodal_frontal_matrix *supernodal_frontal_create(int *UNUSED(firstcol
 	return tmp;
 }
 
-static void supernodal_frontal_free(supernodal_frontal_matrix * to_del)
+static void supernodal_frontal_free(supernodal_frontal_matrix *to_del)
 {
 	/*
 	 * SFM_F1 and SFM_F2 are moved to the factor, but this function may be called before they are moved. 
@@ -430,16 +393,14 @@ static void supernodal_frontal_free(supernodal_frontal_matrix * to_del)
 
 /*************************************************************/
 
-cilk static int
+static int
 multifrontal_supernodal_front_factor(int sn,
 				     int *firstcol_in_supernode,
-				     int sn_size,
-				     taucs_ccs_matrix * A,
-				     supernodal_frontal_matrix * mtr, int *bitmap, supernodal_factor_matrix * snL)
+				     int sn_size, taucs_ccs_matrix *A, supernodal_frontal_matrix *mtr, int *bitmap, supernodal_factor_matrix *snL)
 {
 	int i, j;
 	int *ind;
-	taucs_datatype *re;
+	double *re;
 	int INFO;
 
 	/*
@@ -456,7 +417,7 @@ multifrontal_supernodal_front_factor(int sn,
 
 	for (j = 0; j < (mtr->sn_size); j++) {
 		ind = &(A->rowind[A->colptr[*(firstcol_in_supernode + j)]]);
-		re = &(A->taucs_values[A->colptr[*(firstcol_in_supernode + j)]]);
+		re = &(A->values[A->colptr[*(firstcol_in_supernode + j)]]);
 		for (i = 0; i < A->colptr[*(firstcol_in_supernode + j) + 1]
 		     - A->colptr[*(firstcol_in_supernode + j)]; i++) {
 			if (bitmap[ind[i]] < mtr->sn_size)
@@ -479,9 +440,7 @@ multifrontal_supernodal_front_factor(int sn,
 		/*
 		 * taucs_potrf ("L", &(mtr->sn_size), mtr->SFM_F1,&(mtr->sn_size), &INFO); 
 		 */
-		spawn taucs_cilk_potrf("L", &(mtr->sn_size), mtr->SFM_F1, &(mtr->sn_size), &INFO, F_ONE);
-
-		sync;
+		taucs_potrf("L", &(mtr->sn_size), mtr->SFM_F1, &(mtr->sn_size), &INFO, F_ONE);
 	}
 
 	if (INFO) {
@@ -496,17 +455,12 @@ multifrontal_supernodal_front_factor(int sn,
 	 */
 	if (mtr->up_size && mtr->sn_size) {
 
-		spawn taucs_cilk_trsm("R",
-				      "L",
-				      "C",
-				      "N",
-				      &(mtr->up_size), &(mtr->sn_size),
-				      &taucs_one_const, mtr->SFM_F1, &(mtr->sn_size), mtr->SFM_F2, &(mtr->up_size), F_ONE, F_ONE, F_ONE, F_ONE);
-		sync;
-		/*
-		 * taucs_trsm ("Right", "Lower", "Conjugate", "No unit diagonal", &(mtr->up_size),&(mtr->sn_size),
-		 * &taucs_one_const, mtr->SFM_F1,&(mtr->sn_size), mtr->SFM_F2,&(mtr->up_size)); 
-		 */
+		taucs_trsm("R",
+			   "L",
+			   "C",
+			   "N",
+			   &(mtr->up_size), &(mtr->sn_size),
+			   &taucs_one_const, mtr->SFM_F1, &(mtr->sn_size), mtr->SFM_F2, &(mtr->up_size), F_ONE, F_ONE, F_ONE, F_ONE);
 	}
 
 	(snL->sn_blocks)[sn] = mtr->SFM_F1;
@@ -522,12 +476,11 @@ multifrontal_supernodal_front_factor(int sn,
 	 * computation of updated part of frontal matrix 
 	 */
 	if (mtr->up_size && mtr->sn_size) {
-		spawn taucs_cilk_herk("L",
-				      "N",
-				      &(mtr->up_size), &(mtr->sn_size),
-				      &taucs_minusone_real_const,
-				      mtr->SFM_F2, &(mtr->up_size), &taucs_one_real_const, mtr->SFM_U, &(mtr->up_size), F_ONE, F_ONE);
-		sync;
+		taucs_herk("L",
+			   "N",
+			   &(mtr->up_size), &(mtr->sn_size),
+			   &taucs_minusone_real_const,
+			   mtr->SFM_F2, &(mtr->up_size), &taucs_one_real_const, mtr->SFM_U, &(mtr->up_size), F_ONE, F_ONE);
 	}
 
 	mtr->SFM_F1 = NULL;				       /* so we don't free twice */
@@ -538,13 +491,12 @@ multifrontal_supernodal_front_factor(int sn,
 
 
 
-static void
-multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr, supernodal_frontal_matrix * my_mtr, int *bitmap)
+static void multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix *parent_mtr, supernodal_frontal_matrix *my_mtr, int *bitmap)
 {
 	// cleaner code but nothing new
-	
+
 	int j, i, parent_i;
-	taucs_datatype v;
+	double v;
 
 	/*
 	 * extend add operation for update matrix 
@@ -556,7 +508,7 @@ multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr,
 	double *F1 = parent_mtr->SFM_F1;
 	double *F2 = parent_mtr->SFM_F2;
 	double *U = parent_mtr->SFM_U;
-	
+
 	for (i = 0; i < parent_mtr->sn_size; i++)
 		bitmap[parent_mtr->sn_vertices[i]] = i;
 
@@ -577,12 +529,12 @@ multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr,
 			double *FF22 = F2 + off_ii;
 			double *U1 = U + up_size * (parent_jj - sn_size);
 			double *U2 = U + off_ii;
-			
+
 			if (smaller) {
 				for (i = j; i < my_mtr->up_size; i++) {
 					v = vv[i];
 					parent_i = bitmap[my_mtr->up_vertices[i]];
-				
+
 					if (parent_jj > parent_i) {
 						if (parent_i < sn_size) {
 							FF11[sn_size * parent_i] += v;
@@ -604,7 +556,7 @@ multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr,
 				for (i = j; i < my_mtr->up_size; i++) {
 					v = vv[i];
 					parent_i = bitmap[my_mtr->up_vertices[i]];
-				
+
 					if (parent_jj > parent_i) {
 						if (parent_i < sn_size) {
 							FF22[up_size * parent_i] += v;
@@ -634,11 +586,11 @@ multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr,
 			double *FF22 = F2 + off_ii;
 			double *U1 = U + up_size * (parent_jj - sn_size);
 			double *U2 = U + off_ii;
-			
+
 			for (i = j; i < my_mtr->up_size; i++) {
 				v = vv[i];
 				parent_i = bitmap[my_mtr->up_vertices[i]];
-				
+
 				if (parent_jj > parent_i) {
 					if (parent_i < sn_size) {
 						if (smaller) {
@@ -672,12 +624,6 @@ multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix * parent_mtr,
 
 
 #endif							       /* #ifndef TAUCS_CORE_GENERAL */
-
-/*************************************************************/
-
-/* symbolic elimination                                      */
-
-/*************************************************************/
 
 #ifdef TAUCS_CORE_GENERAL
 
@@ -786,7 +732,7 @@ int taucs_ccs_etree_liu(taucs_ccs_matrix * A, int *parent, int *l_colcount, int 
 
 static int
 recursive_symbolic_elimination(int j,
-			       taucs_ccs_matrix * A,
+			       taucs_ccs_matrix *A,
 			       int first_child[],
 			       int next_child[],
 			       int *n_sn,
@@ -1233,8 +1179,8 @@ recursive_amalgamate_supernodes(int sn,
 
 /*************************************************************/
 
-static void extend_add_wrapper(supernodal_frontal_matrix * child_matrix,
-			       supernodal_frontal_matrix ** my_matrix_ptr,
+static void extend_add_wrapper(supernodal_frontal_matrix *child_matrix,
+			       supernodal_frontal_matrix **my_matrix_ptr,
 			       int is_root, int *v, int sn_size, int sn_up_size, int *rowind, int *bitmap, int *fail)
 {
 
@@ -1262,15 +1208,14 @@ static void extend_add_wrapper(supernodal_frontal_matrix * child_matrix,
 	supernodal_frontal_free(child_matrix);
 }
 
-cilk static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(int sn,	/* this supernode */
-										    int is_root,	/* is v the root? */
+static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(int sn,	/* this supernode */
+									       int is_root,	/* is v the root? */
 #if 1
-										    int **bitmaps,
+									       int **bitmaps,
 #else
-										    int *bitmap,
+									       int *bitmap,
 #endif
-										    taucs_ccs_matrix * A,
-										    supernodal_factor_matrix * snL, int *fail)
+									       taucs_ccs_matrix *A, supernodal_factor_matrix *snL, int *fail)
 {
 	supernodal_frontal_matrix *my_matrix = NULL;
 
@@ -1311,24 +1256,21 @@ cilk static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_
 
 		ret_matrix = recursive_multifrontal_supernodal_factor_llt(child, FALSE, bitmaps, A, snL, fail);
 		if (!is_root)
-			extend_add_wrapper(ret_matrix,
-					   &my_matrix,
-					   is_root, v, sn_size, snL->sn_up_size[sn], snL->sn_struct[sn], bitmaps[Self], fail);
+			extend_add_wrapper(ret_matrix, &my_matrix, is_root, v, sn_size, snL->sn_up_size[sn], snL->sn_struct[sn], bitmaps[0], fail);
 		else
 			/*
 			 * Gil fixed a bug 21/12/2005: snL->sn_up_size[sn] was read, this element was not allocated (and it is not used in the
 			 * subroutine).
 			 */
-			extend_add_wrapper(ret_matrix, &my_matrix, is_root, NULL, 0, 0, 0, bitmaps[Self], fail);
+			extend_add_wrapper(ret_matrix, &my_matrix, is_root, NULL, 0, 0, 0, bitmaps[0], fail);
 
 		if (*fail) {
-			//if (my_matrix)
-				// this produce a mem-error, so I comment this one out. hrue/jan/25/2009
-				//supernodal_frontal_free(my_matrix);
+			// if (my_matrix)
+			// this produce a mem-error, so I comment this one out. hrue/jan/25/2009
+			// supernodal_frontal_free(my_matrix);
 			return NULL;
 		}
 	}
-	sync;
 
 	/*
 	 * in case we have no children, we allocate now 
@@ -1343,15 +1285,7 @@ cilk static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_
 
 	if (!is_root) {
 		int rc;
-
-		rc = spawn multifrontal_supernodal_front_factor(sn, v, sn_size, A, my_matrix,
-#if 1
-								bitmaps[Self],
-#else
-								bitmap,
-#endif
-								snL);
-		sync;
+		rc = multifrontal_supernodal_front_factor(sn, v, sn_size, A, my_matrix, bitmaps[0], snL);
 		if (rc) {
 			/*
 			 * nonpositive pivot 
@@ -1364,24 +1298,20 @@ cilk static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_
 	return my_matrix;
 }
 
-cilk void *taucs_dtl(ccs_factor_llt_mf) (taucs_ccs_matrix * A) {
+void *taucs_dtl(ccs_factor_llt_mf) (taucs_ccs_matrix * A) {
 	void *p;
-
-	p = spawn taucs_dtl(ccs_factor_llt_mf_maxdepth) (A, 0);
-	sync;
-
+	p = taucs_dtl(ccs_factor_llt_mf_maxdepth) (A, 0);
 	return p;
 }
 
-cilk static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* this supernode */
-								     int UNUSED(is_root),	/* is v the root? */
-								     taucs_ccs_matrix * A,
-								     supernodal_factor_matrix * snL, int *fail)
+static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* this supernode */
+								int UNUSED(is_root),	/* is v the root? */
+								taucs_ccs_matrix *A, supernodal_factor_matrix *snL, int *fail)
 {
 	int **maps;
 	int i, j;
 
-	maps = (int **) taucs_malloc(Cilk_active_size * sizeof(int *));
+	maps = (int **) taucs_malloc(sizeof(int *));
 	if (!maps) {
 		taucs_supernodal_factor_free(snL);
 		assert(0);
@@ -1391,7 +1321,7 @@ cilk static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/
 		 */
 	}
 
-	for (i = 0; i < Cilk_active_size; i++) {
+	for (i = 0; i < 1; i++) {
 		maps[i] = (int *) taucs_malloc((A->n + 1) * sizeof(int));
 		if (!maps[i]) {
 			for (j = 0; j < i; j++)
@@ -1406,22 +1336,17 @@ cilk static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/
 		}
 	}
 
-	spawn recursive_multifrontal_supernodal_factor_llt(n_sn, TRUE, maps, A, snL, fail);
-	sync;
+	recursive_multifrontal_supernodal_factor_llt(n_sn, TRUE, maps, A, snL, fail);
 
-	for (i = 0; i < Cilk_active_size; i++)
+	for (i = 0; i < 1; i++)
 		taucs_free(maps[i]);
 	taucs_free(maps);
 
 }
 
-cilk void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_depth) {
-	supernodal_factor_matrix *L;
+void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_depth) {
+	supernodal_factor_matrix * L;
 
-#if 1
-#else
-	int *map;
-#endif
 	int fail;
 	double wtime, ctime;
 
@@ -1448,31 +1373,14 @@ cilk void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_
 	ctime = taucs_ctime() - ctime;
 	taucs_printf("\t\tSymbolic Analysis            = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 
-#if 1
-#else
-	map = (int *) taucs_malloc((A->n + 1) * sizeof(int));
-	if (!map) {
-		taucs_supernodal_factor_free(L);
-		return NULL;
-	}
-#endif
-
 	wtime = taucs_wtime();
 	ctime = taucs_ctime();
 
 	fail = FALSE;
-	spawn recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
-
-	sync;
-
+	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
 	wtime = taucs_wtime() - wtime;
 	ctime = taucs_ctime() - ctime;
 	taucs_printf("\t\tSupernodal Multifrontal LL^T = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
-
-#if 1
-#else
-	taucs_free(map);
-#endif
 
 	if (fail) {
 		taucs_supernodal_factor_free(L);
@@ -1493,7 +1401,7 @@ void *taucs_dtl(ccs_factor_llt_symbolic) (taucs_ccs_matrix * A) {
 }
 
 void *taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (taucs_ccs_matrix * A, int max_depth) {
-	supernodal_factor_matrix *L;
+	supernodal_factor_matrix * L;
 	int fail;
 	double wtime, ctime;
 
@@ -1523,13 +1431,13 @@ void *taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (taucs_ccs_matrix * A, int max
 	return L;
 }
 
-cilk int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-	//int *map;
+int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
+	// int *map;
 	int fail;
 	double wtime, ctime;
 
-	//map = (int *) taucs_malloc((A->n + 1) * sizeof(int));
+	// map = (int *) taucs_malloc((A->n + 1) * sizeof(int));
 
 	wtime = taucs_wtime();
 	ctime = taucs_ctime();
@@ -1538,19 +1446,13 @@ cilk int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
 	 * XXX: sivan, we don't need map 
 	 */
 	fail = FALSE;
-	spawn recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
-
-	sync;
-	/*
-	 * recursive_multifrontal_supernodal_factor_llt((L->n_sn), TRUE, map, A,L,&fail); 
-	 */
-
+	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
 	wtime = taucs_wtime() - wtime;
 	ctime = taucs_ctime() - ctime;
 	taucs_printf("\t\tSupernodal Multifrontal LL^T = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 
-	//taucs_free(map);
-	
+	// taucs_free(map);
+
 	if (fail) {
 		taucs_supernodal_factor_free_numeric(L);
 		return -1;
@@ -1566,9 +1468,7 @@ cilk int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
 /*************************************************************/
 
 static void
-recursive_leftlooking_supernodal_update(int J, int K,
-					int bitmap[],
-					taucs_datatype * dense_update_matrix, taucs_ccs_matrix * A, supernodal_factor_matrix * L)
+recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dense_update_matrix, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
 {
 	int i, j, ir;
 	int child;
@@ -1677,10 +1577,8 @@ recursive_leftlooking_supernodal_update(int J, int K,
 
 				L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
 						(bitmap[L->sn_struct[K][first_row + ir]] - 1)] =
-				    taucs_sub(L->
-					      sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
-							   (bitmap[L->sn_struct[K][first_row + ir]] - 1)],
-					      dense_update_matrix[j * LDC + ir]);
+				    taucs_sub(L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
+							      (bitmap[L->sn_struct[K][first_row + ir]] - 1)], dense_update_matrix[j * LDC + ir]);
 
 				/*
 				 * taucs_printf("sn_block: L[%d,%d] =
@@ -1698,10 +1596,8 @@ recursive_leftlooking_supernodal_update(int J, int K,
 
 				L->up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
 						(bitmap[L->sn_struct[K][ir + first_row]] - 1)] =
-				    taucs_sub(L->
-					      up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
-							   (bitmap[L->sn_struct[K][ir + first_row]] - 1)],
-					      dense_update_matrix[j * LDC + ir]);
+				    taucs_sub(L->up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
+							      (bitmap[L->sn_struct[K][ir + first_row]] - 1)], dense_update_matrix[j * LDC + ir]);
 
 				/*
 				 * taucs_printf("up_block: L[%d,%d] =
@@ -1724,11 +1620,11 @@ recursive_leftlooking_supernodal_update(int J, int K,
 
 }
 
-static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_matrix * A, supernodal_factor_matrix * L)
+static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
 {
 	int ip, jp;
 	int *ind;
-	taucs_datatype *re;
+	double *re;
 	int INFO;
 
 	int sn_size = (L->sn_size)[sn];
@@ -1742,7 +1638,7 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 
 	for (jp = 0; jp < sn_size; jp++) {
 		ind = &(A->rowind[A->colptr[(L->sn_struct)[sn][jp]]]);
-		re = &(A->taucs_values[A->colptr[(L->sn_struct)[sn][jp]]]);
+		re = &(A->values[A->colptr[(L->sn_struct)[sn][jp]]]);
 		for (ip = 0; ip < A->colptr[(L->sn_struct)[sn][jp] + 1]
 		     - A->colptr[(L->sn_struct)[sn][jp]]; ip++) {
 			if (bitmap[ind[ip]] < sn_size)
@@ -1788,31 +1684,30 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 
 static int recursive_leftlooking_supernodal_factor_llt(int sn, /* this supernode */
 						       int is_root,	/* is v the root? */
-						       int *bitmap, int *indmap, taucs_ccs_matrix * A, supernodal_factor_matrix * L)
+						       int *bitmap, int *indmap, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
 {
 	int child;
 	int *first_child = L->first_child;
 	int *next_child = L->next_child;
-	taucs_datatype *dense_update_matrix = NULL;
+	double *dense_update_matrix = NULL;
 
-//	if (!is_root)
-//		sn_size = L->sn_size[sn];
-//	else
-//		sn_size = -1;
+//      if (!is_root)
+//              sn_size = L->sn_size[sn];
+//      else
+//              sn_size = -1;
 
 	if (!is_root) {
 		(L->sn_blocks)[sn] = (L->up_blocks)[sn] = NULL;
 		if (L->sn_size[sn]) {
-			(L->sn_blocks)[sn] = (taucs_datatype *) taucs_calloc(((L->sn_size)[sn]) * ((L->sn_size)[sn]),
-									     sizeof(taucs_datatype));
+			(L->sn_blocks)[sn] = (double *) taucs_calloc(((L->sn_size)[sn]) * ((L->sn_size)[sn]), sizeof(double));
 			if (!((L->sn_blocks)[sn]))
 				return -1;		       /* the caller will free L */
 		}
 		(L->sn_blocks_ld)[sn] = (L->sn_size)[sn];
 
 		if (((L->sn_up_size)[sn] - (L->sn_size)[sn]) && (L->sn_size)[sn]) {
-			(L->up_blocks)[sn] = (taucs_datatype *) taucs_calloc(((L->sn_up_size)[sn] - (L->sn_size)[sn])
-									     * ((L->sn_size)[sn]), sizeof(taucs_datatype));
+			(L->up_blocks)[sn] = (double *) taucs_calloc(((L->sn_up_size)[sn] - (L->sn_size)[sn])
+								     * ((L->sn_size)[sn]), sizeof(double));
 			if (!((L->up_blocks)[sn]))
 				return -1;		       /* the caller will free L */
 		}
@@ -1828,8 +1723,7 @@ static int recursive_leftlooking_supernodal_factor_llt(int sn, /* this supernode
 
 		if (!is_root) {
 			if (!dense_update_matrix) {
-				dense_update_matrix =
-				    (taucs_datatype *) taucs_calloc((L->sn_up_size)[sn] * (L->sn_size)[sn], sizeof(taucs_datatype));
+				dense_update_matrix = (double *) taucs_calloc((L->sn_up_size)[sn] * (L->sn_size)[sn], sizeof(double));
 				if (!dense_update_matrix)
 					return -1;	       /* caller will free L */
 			}
@@ -1882,7 +1776,7 @@ void *taucs_dtl(ccs_factor_llt_ll) (taucs_ccs_matrix * A) {
 }
 
 void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth) {
-	supernodal_factor_matrix *L;
+	supernodal_factor_matrix * L;
 	int *map;
 	int *map2;
 	double wtime, ctime;
@@ -1943,17 +1837,16 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 					 int is_root,	       /* is v the root? */
 					 int *first_child, int *next_child,
 					 int **sn_struct, int *sn_sizes, int *sn_up_sizes,
-					 int *sn_blocks_ld, taucs_datatype * sn_blocks[],
-					 int *up_blocks_ld, taucs_datatype * up_blocks[],
-					 taucs_datatype x[], taucs_datatype b[], taucs_datatype t[])
+					 int *sn_blocks_ld, double *sn_blocks[],
+					 int *up_blocks_ld, double *up_blocks[], double x[], double b[], double t[])
 {
 	int child;
 	int sn_size;					       /* number of rows/columns in the supernode */
 	int up_size;					       /* number of rows that this supernode updates */
 	int ione = 1;
 
-	taucs_datatype *xdense;
-	taucs_datatype *bdense;
+	double *xdense;
+	double *bdense;
 	double flops;
 	int i;						       /* ip,j,jp omer */
 
@@ -1961,8 +1854,7 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 		recursive_supernodal_solve_l(child,
 					     FALSE,
 					     first_child, next_child,
-					     sn_struct, sn_sizes, sn_up_sizes,
-					     sn_blocks_ld, sn_blocks, up_blocks_ld, up_blocks, x, b, t);
+					     sn_struct, sn_sizes, sn_up_sizes, sn_blocks_ld, sn_blocks, up_blocks_ld, up_blocks, x, b, t);
 	}
 
 	if (!is_root) {
@@ -1986,14 +1878,14 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 				   "L",
 				   "N",
 				   "N",
-				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), xdense, &sn_size, F_ONE, F_ONE, F_ONE, F_ONE);
+				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), xdense, &sn_size, F_ONE, F_ONE, F_ONE,
+				   F_ONE);
 
 			if (up_size > 0 && sn_size > 0) {
 				taucs_gemm("N", "N",
 					   &up_size, &ione, &sn_size,
 					   &taucs_one_const,
-					   up_blocks[sn], &(up_blocks_ld[sn]),
-					   xdense, &sn_size, &taucs_zero_const, bdense, &up_size, F_ONE, F_ONE);
+					   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &sn_size, &taucs_zero_const, bdense, &up_size, F_ONE, F_ONE);
 			}
 
 			for (i = 0; i < sn_size; i++)
@@ -2004,56 +1896,7 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 				 */
 				b[sn_struct[sn][sn_size + i]] = taucs_sub(b[sn_struct[sn][sn_size + i]], bdense[i]);
 
-#if 1
 		}
-#else
-		} else if (sn_size > SOLVE_DENSE_CUTOFF) {
-
-			xdense = t;
-			bdense = t + sn_size;
-
-			for (i = 0; i < sn_size; i++)
-				xdense[i] = b[sn_struct[sn][i]];
-			for (i = 0; i < up_size; i++)
-				bdense[i] = 0.0;
-
-			for (jp = 0; jp < sn_size; jp++) {
-				xdense[jp] = xdense[jp] / sn_blocks[sn][sn_blocks_ld[sn] * jp + jp];
-
-				for (ip = jp + 1; ip < sn_size; ip++) {
-					xdense[ip] -= xdense[jp] * sn_blocks[sn][sn_blocks_ld[sn] * jp + ip];
-				}
-			}
-
-			for (jp = 0; jp < sn_size; jp++) {
-				for (ip = 0; ip < up_size; ip++) {
-					bdense[ip] += xdense[jp] * up_blocks[sn][up_blocks_ld[sn] * jp + ip];
-				}
-			}
-
-			for (i = 0; i < sn_size; i++)
-				x[sn_struct[sn][i]] = xdense[i];
-			for (i = 0; i < up_size; i++)
-				b[sn_struct[sn][sn_size + i]] -= bdense[i];
-
-		} else {
-
-			for (jp = 0; jp < sn_size; jp++) {
-				j = sn_struct[sn][jp];
-				x[j] = b[j] / sn_blocks[sn][sn_blocks_ld[sn] * jp + jp];
-				for (ip = jp + 1; ip < sn_size; ip++) {
-					i = sn_struct[sn][ip];
-					b[i] -= x[j] * sn_blocks[sn][sn_blocks_ld[sn] * jp + ip];
-				}
-
-				for (ip = 0; ip < up_size; ip++) {
-					i = sn_struct[sn][sn_size + ip];
-					b[i] -= x[j] * up_blocks[sn][up_blocks_ld[sn] * jp + ip];
-				}
-			}
-
-		}
-#endif
 	}
 }
 
@@ -2061,17 +1904,16 @@ static void recursive_supernodal_solve_lt(int sn,	       /* this supernode */
 					  int is_root,	       /* is v the root? */
 					  int *first_child, int *next_child,
 					  int **sn_struct, int *sn_sizes, int *sn_up_sizes,
-					  int *sn_blocks_ld, taucs_datatype * sn_blocks[],
-					  int *up_blocks_ld, taucs_datatype * up_blocks[],
-					  taucs_datatype x[], taucs_datatype b[], taucs_datatype t[])
+					  int *sn_blocks_ld, double *sn_blocks[],
+					  int *up_blocks_ld, double *up_blocks[], double x[], double b[], double t[])
 {
 	int child;
 	int sn_size;					       /* number of rows/columns in the supernode */
 	int up_size;					       /* number of rows that this supernode updates */
 	int ione = 1;
 
-	taucs_datatype *xdense;
-	taucs_datatype *bdense;
+	double *xdense;
+	double *bdense;
 	double flops;
 	int i;						       /* ip,j,jp omer */
 
@@ -2097,88 +1939,38 @@ static void recursive_supernodal_solve_lt(int sn,	       /* this supernode */
 				taucs_gemm("C", "N",
 					   &sn_size, &ione, &up_size,
 					   &taucs_minusone_const,
-					   up_blocks[sn], &(up_blocks_ld[sn]),
-					   xdense, &up_size, &taucs_one_const, bdense, &sn_size, F_ONE, F_ONE);
+					   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &up_size, &taucs_one_const, bdense, &sn_size, F_ONE, F_ONE);
 
 			taucs_trsm("L",
 				   "L",
 				   "C",
 				   "N",
-				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), bdense, &sn_size, F_ONE, F_ONE, F_ONE, F_ONE);
+				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), bdense, &sn_size, F_ONE, F_ONE, F_ONE,
+				   F_ONE);
 
 			for (i = 0; i < sn_size; i++)
 				x[sn_struct[sn][i]] = bdense[i];
-#if 1
 		}
-#else
-		} else if (sn_size > SOLVE_DENSE_CUTOFF) {
-
-			bdense = t;
-			xdense = t + sn_size;
-
-			for (i = 0; i < sn_size; i++)
-				bdense[i] = b[sn_struct[sn][i]];
-			for (i = 0; i < up_size; i++)
-				xdense[i] = x[sn_struct[sn][sn_size + i]];
-
-			for (ip = sn_size - 1; ip >= 0; ip--) {
-				for (jp = 0; jp < up_size; jp++) {
-					bdense[ip] -= xdense[jp] * up_blocks[sn][up_blocks_ld[sn] * ip + jp];
-				}
-			}
-
-			for (ip = sn_size - 1; ip >= 0; ip--) {
-				for (jp = sn_size - 1; jp > ip; jp--) {
-					bdense[ip] -= bdense[jp] * sn_blocks[sn][sn_blocks_ld[sn] * ip + jp];
-				}
-				bdense[ip] = bdense[ip] / sn_blocks[sn][sn_blocks_ld[sn] * ip + ip];
-			}
-
-			for (i = 0; i < sn_size; i++)
-				x[sn_struct[sn][i]] = bdense[i];
-
-		} else {
-
-			for (ip = sn_size - 1; ip >= 0; ip--) {
-				i = sn_struct[sn][ip];
-
-				for (jp = 0; jp < up_size; jp++) {
-					j = sn_struct[sn][sn_size + jp];
-					b[i] -= x[j] * up_blocks[sn][up_blocks_ld[sn] * ip + jp];
-				}
-
-				for (jp = sn_size - 1; jp > ip; jp--) {
-					j = sn_struct[sn][jp];
-					b[i] -= x[j] * sn_blocks[sn][sn_blocks_ld[sn] * ip + jp];
-				}
-				x[i] = b[i] / sn_blocks[sn][sn_blocks_ld[sn] * ip + ip];
-
-			}
-
-		}
-#endif
-
 	}
 
 	for (child = first_child[sn]; child != -1; child = next_child[child]) {
 		recursive_supernodal_solve_lt(child,
 					      FALSE,
 					      first_child, next_child,
-					      sn_struct, sn_sizes, sn_up_sizes,
-					      sn_blocks_ld, sn_blocks, up_blocks_ld, up_blocks, x, b, t);
+					      sn_struct, sn_sizes, sn_up_sizes, sn_blocks_ld, sn_blocks, up_blocks_ld, up_blocks, x, b, t);
 	}
 }
 
 int taucs_dtl(supernodal_solve_llt) (void *vL, void *vx, void *vb) {
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-	taucs_datatype *x = (taucs_datatype *) vx;
-	taucs_datatype *b = (taucs_datatype *) vb;
-	taucs_datatype *y;
-	taucs_datatype *t;				       /* temporary vector */
+	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
+	double *x = (double *) vx;
+	double *b = (double *) vb;
+	double *y;
+	double *t;					       /* temporary vector */
 	int i;
 
-	y = (taucs_datatype *) taucs_malloc((L->n) * sizeof(taucs_datatype));
-	t = (taucs_datatype *) taucs_malloc((L->n) * sizeof(taucs_datatype));
+	y = (double *) taucs_malloc((L->n) * sizeof(double));
+	t = (double *) taucs_malloc((L->n) * sizeof(double));
 	if (!y || !t) {
 		taucs_free(y);
 		taucs_free(t);
@@ -2214,348 +2006,106 @@ int taucs_dtl(supernodal_solve_llt) (void *vL, void *vx, void *vb) {
 
 #ifdef TAUCS_CORE_GENERAL
 
-cilk void *taucs_ccs_factor_llt_mf_maxdepth(taucs_ccs_matrix * A, int max_depth)
+void *taucs_ccs_factor_llt_mf_maxdepth(taucs_ccs_matrix *A, int max_depth)
 {
 	void *p = NULL;
 
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
-		p = spawn taucs_dccs_factor_llt_mf_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		p = spawn taucs_sccs_factor_llt_mf_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		p = spawn taucs_zccs_factor_llt_mf_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		p = spawn taucs_cccs_factor_llt_mf_maxdepth(A, max_depth);
-#endif
-
-	sync;
+		p = taucs_dccs_factor_llt_mf_maxdepth(A, max_depth);
 	return p;
 }
 
-void *taucs_ccs_factor_llt_ll_maxdepth(taucs_ccs_matrix * A, int max_depth)
+void *taucs_ccs_factor_llt_ll_maxdepth(taucs_ccs_matrix *A, int max_depth)
 {
 
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt_ll_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt_ll_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt_ll_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt_ll_maxdepth(A, max_depth);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-void *taucs_ccs_factor_llt_symbolic_maxdepth(taucs_ccs_matrix * A, int max_depth)
+void *taucs_ccs_factor_llt_symbolic_maxdepth(taucs_ccs_matrix *A, int max_depth)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt_symbolic_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt_symbolic_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt_symbolic_maxdepth(A, max_depth);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt_symbolic_maxdepth(A, max_depth);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-cilk void *taucs_ccs_factor_llt_mf(taucs_ccs_matrix * A)
+void *taucs_ccs_factor_llt_mf(taucs_ccs_matrix *A)
 {
 	void *p = NULL;
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
-		p = spawn taucs_dccs_factor_llt_mf(A);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		p = spawn taucs_sccs_factor_llt_mf(A);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		p = spawn taucs_zccs_factor_llt_mf(A);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		p = spawn taucs_cccs_factor_llt_mf(A);
-#endif
-
-	sync;
+		p = taucs_dccs_factor_llt_mf(A);
 	return p;
 }
 
-void *taucs_ccs_factor_llt_ll(taucs_ccs_matrix * A)
+void *taucs_ccs_factor_llt_ll(taucs_ccs_matrix *A)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt_ll(A);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt_ll(A);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt_ll(A);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt_ll(A);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-void *taucs_ccs_factor_llt_symbolic(taucs_ccs_matrix * A)
+void *taucs_ccs_factor_llt_symbolic(taucs_ccs_matrix *A)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
 		return taucs_dccs_factor_llt_symbolic(A);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		return taucs_sccs_factor_llt_symbolic(A);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_factor_llt_symbolic(A);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_factor_llt_symbolic(A);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-cilk int taucs_ccs_factor_llt_numeric(taucs_ccs_matrix * A, void *L)
+int taucs_ccs_factor_llt_numeric(taucs_ccs_matrix *A, void *L)
 {
 	int rc = TAUCS_ERROR;
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (A->flags & TAUCS_DOUBLE)
-		rc = spawn taucs_dccs_factor_llt_numeric(A, L);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (A->flags & TAUCS_SINGLE)
-		rc = spawn taucs_sccs_factor_llt_numeric(A, L);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_DCOMPLEX)
-		rc = spawn taucs_zccs_factor_llt_numeric(A, L);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (A->flags & TAUCS_SCOMPLEX)
-		rc = spawn taucs_cccs_factor_llt_numeric(A, L);
-#endif
-
-	sync;
+		rc = taucs_dccs_factor_llt_numeric(A, L);
 	return rc;
 }
 
 int taucs_supernodal_solve_llt(void *L, void *x, void *b)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE)
 		return taucs_dsupernodal_solve_llt(L, x, b);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SINGLE)
-		return taucs_ssupernodal_solve_llt(L, x, b);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DCOMPLEX)
-		return taucs_zsupernodal_solve_llt(L, x, b);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SCOMPLEX)
-		return taucs_csupernodal_solve_llt(L, x, b);
-#endif
-
 	assert(0);
 	return -1;
 }
 
 void taucs_supernodal_factor_free(void *L)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE) {
 		taucs_dsupernodal_factor_free(L);
 		return;
 	}
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SINGLE) {
-		taucs_ssupernodal_factor_free(L);
-		return;
-	}
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DCOMPLEX) {
-		taucs_zsupernodal_factor_free(L);
-		return;
-	}
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SCOMPLEX) {
-		taucs_csupernodal_factor_free(L);
-		return;
-	}
-#endif
-
 	assert(0);
 }
 
 void taucs_supernodal_factor_free_numeric(void *L)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE) {
 		taucs_dsupernodal_factor_free_numeric(L);
-		return;
 	}
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SINGLE) {
-		taucs_ssupernodal_factor_free_numeric(L);
-		return;
-	}
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DCOMPLEX) {
-		taucs_zsupernodal_factor_free_numeric(L);
-		return;
-	}
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SCOMPLEX) {
-		taucs_csupernodal_factor_free_numeric(L);
-		return;
-	}
-#endif
-
 	assert(0);
 }
 
 taucs_ccs_matrix *taucs_supernodal_factor_to_ccs(void *L)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE)
 		return taucs_dsupernodal_factor_to_ccs(L);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SINGLE)
-		return taucs_ssupernodal_factor_to_ccs(L);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DCOMPLEX)
-		return taucs_zsupernodal_factor_to_ccs(L);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SCOMPLEX)
-		return taucs_csupernodal_factor_to_ccs(L);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
 void *taucs_supernodal_factor_get_diag(void *L)
 {
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE)
 		return taucs_dsupernodal_factor_get_diag(L);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SINGLE)
-		return taucs_ssupernodal_factor_get_diag(L);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DCOMPLEX)
-		return taucs_zsupernodal_factor_get_diag(L);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (((supernodal_factor_matrix *) L)->flags & TAUCS_SCOMPLEX)
-		return taucs_csupernodal_factor_get_diag(L);
-#endif
-
 	assert(0);
 	return NULL;
 }
 
-int taucs_ccs_etree(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz)
+int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz)
 {
 	int *prev_p;
 
@@ -2824,8 +2374,7 @@ int taucs_ccs_etree(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_r
 			}
 			if (parent[jp] != n) {
 				if (!(ipostorder[parent[jp]] > ipostorder[jp])) {
-					printf("jp %d parent %d (ipo_j %d ipo_parent %d\n",
-					       jp, parent[jp], ipostorder[jp], ipostorder[parent[jp]]);
+					printf("jp %d parent %d (ipo_j %d ipo_parent %d\n", jp, parent[jp], ipostorder[jp], ipostorder[parent[jp]]);
 				}
 				assert(ipostorder[parent[jp]] > ipostorder[jp]);
 				ordered_uf_union(uf, jp, parent[jp]);
@@ -2874,7 +2423,7 @@ int taucs_ccs_etree(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_r
 	return 0;
 }
 
-int taucs_ccs_etree_liu(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz)
+int taucs_ccs_etree_liu(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz)
 {
 	int n = A->n;
 	int i, j, k, ip, kp;				       /* jp omer */
@@ -3036,7 +2585,7 @@ int taucs_ccs_etree_liu(taucs_ccs_matrix * A, int *parent, int *l_colcount, int 
 	return 0;
 }
 
-int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order, int max_depth)
+int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, int max_depth)
 {
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 	int *first_child;
@@ -3055,12 +2604,12 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 	 * use calloc so we can deallocate unallocated entries 
 	 */
 	L->sn_struct = (int **) taucs_calloc((A->n), sizeof(int *));
-	L->sn_size = (int *) taucs_calloc((A->n + 1),  sizeof(int));
-	L->sn_up_size = (int *) taucs_calloc((A->n + 1),  sizeof(int));
-	L->first_child = (int *) taucs_calloc((A->n + 1),  sizeof(int));
-	L->next_child = (int *) taucs_calloc((A->n + 1),  sizeof(int));
+	L->sn_size = (int *) taucs_calloc((A->n + 1), sizeof(int));
+	L->sn_up_size = (int *) taucs_calloc((A->n + 1), sizeof(int));
+	L->first_child = (int *) taucs_calloc((A->n + 1), sizeof(int));
+	L->next_child = (int *) taucs_calloc((A->n + 1), sizeof(int));
 
-	column_to_sn_map = (int *) taucs_calloc((A->n + 1),  sizeof(int));
+	column_to_sn_map = (int *) taucs_calloc((A->n + 1), sizeof(int));
 	map = (int *) taucs_calloc((A->n + 1), sizeof(int));
 	first_child = (int *) taucs_calloc((A->n + 1), sizeof(int));
 	next_child = (int *) taucs_calloc((A->n + 1), sizeof(int));
@@ -3068,8 +2617,7 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 	rowind = (int *) taucs_calloc((A->n), sizeof(int));
 
 	if (!(L->sn_struct) || !(L->sn_size) || !(L->sn_up_size) ||
-	    !(L->first_child) || !(L->next_child) || !column_to_sn_map
-	    || !map || !first_child || !next_child || !rowind || !parent) {
+	    !(L->first_child) || !(L->next_child) || !column_to_sn_map || !map || !first_child || !next_child || !rowind || !parent) {
 		taucs_free(parent);
 		taucs_free(rowind);
 		taucs_free(next_child);
@@ -3281,13 +2829,13 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 		    +3 * (L->n_sn) * sizeof(int)	       /* etree */
 		    +4 * (L->n_sn) * sizeof(int)	       /* block sizes, lda */
 		    +1 * (L->n_sn) * sizeof(int *)	       /* row/col indices */
-		    +3 * (L->n_sn) * sizeof(taucs_datatype *)  /* actual blocks */
+		    +3 * (L->n_sn) * sizeof(double *)	       /* actual blocks */
 		    ;
 
 		for (sn = 0; sn < (L->n_sn); sn++) {
 			bytes += (L->sn_up_size)[sn] * sizeof(int);
-			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(taucs_datatype);
-			max_front_size = max(max_front_size, (double) (L->sn_up_size)[sn]);
+			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(double);
+			max_front_size = DMAX(max_front_size, (double) (L->sn_up_size)[sn]);
 
 			for (i = 0, colnnz = (L->sn_up_size)[sn]; i < (L->sn_size)[sn]; i++, colnnz--) {
 				/*
@@ -3301,11 +2849,10 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 				nnz += (double) (colnnz);
 			}
 		}
-		taucs_printf("\t\tSymbolic Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n",
-			     nnz, flops, (float) bytes);
+		taucs_printf("\t\tSymbolic Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n", nnz, flops, (float) bytes);
 		taucs_printf("\t\t         Maximum front size = %.2e bytes (%.2e bytes packed)\n",
-			     ((double) sizeof(taucs_datatype)) * max_front_size * max_front_size,
-			     ((double) sizeof(taucs_datatype)) * max_front_size * (max_front_size + 1.0) / 2.0);
+			     ((double) sizeof(double)) * max_front_size * max_front_size,
+			     ((double) sizeof(double)) * max_front_size * (max_front_size + 1.0) / 2.0);
 	}
 
 	for (j = 0; j < (A->n); j++)
@@ -3314,8 +2861,7 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 		(void) recursive_amalgamate_supernodes((L->n_sn) - 1,
 						       &(L->n_sn),
 						       L->sn_size, L->sn_up_size, L->sn_struct,
-						       L->first_child, L->next_child,
-						       rowind, column_to_sn_map, map, do_order, ipostorder);
+						       L->first_child, L->next_child, rowind, column_to_sn_map, map, do_order, ipostorder);
 
 	{
 		double nnz = 0.0;
@@ -3328,12 +2874,12 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 		    +3 * (L->n_sn) * sizeof(int)	       /* etree */
 		    +4 * (L->n_sn) * sizeof(int)	       /* block sizes, lda */
 		    +1 * (L->n_sn) * sizeof(int *)	       /* row/col indices */
-		    +3 * (L->n_sn) * sizeof(taucs_datatype *)  /* actual blocks */
+		    +3 * (L->n_sn) * sizeof(double *)	       /* actual blocks */
 		    ;
 
 		for (sn = 0; sn < (L->n_sn); sn++) {
 			bytes += (L->sn_up_size)[sn] * sizeof(int);
-			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(taucs_datatype);
+			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(double);
 
 			for (i = 0, colnnz = (L->sn_up_size)[sn]; i < (L->sn_size)[sn]; i++, colnnz--) {
 				/*
@@ -3347,8 +2893,7 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 				nnz += (double) (colnnz);
 			}
 		}
-		taucs_printf("\t\tRelaxed  Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n",
-			     nnz, flops, (float) bytes);
+		taucs_printf("\t\tRelaxed  Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n", nnz, flops, (float) bytes);
 	}
 
 	/*
@@ -3363,10 +2908,10 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix * A, void *vL, int do_order,
 	taucs_free(first_child);
 
 	L->sn_blocks_ld = (int *) taucs_calloc((L->n_sn), sizeof(int));
-	L->sn_blocks = (taucs_datatype **) taucs_calloc((L->n_sn), sizeof(taucs_datatype *));	/* so we can free before allocation */
+	L->sn_blocks = (double **) taucs_calloc((L->n_sn), sizeof(double *));	/* so we can free before allocation */
 
 	L->up_blocks_ld = (int *) taucs_calloc((L->n_sn), sizeof(int));
-	L->up_blocks = (taucs_datatype **) taucs_calloc((L->n_sn), sizeof(taucs_datatype *));
+	L->up_blocks = (double **) taucs_calloc((L->n_sn), sizeof(double *));
 
 	if (!(L->sn_blocks_ld)
 	    || !(L->sn_blocks_ld)

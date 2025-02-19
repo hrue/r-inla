@@ -20,14 +20,14 @@
 /*********************************************************/
 
 #ifndef TAUCS_CORE_GENERAL
-int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) {
-	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+int taucs_dtl(ccs_solve_llt) (void *vL, double *x, double *b) {
+	taucs_ccs_matrix * L = (taucs_ccs_matrix *) vL;
 
 	int n;
 	int i, j;
 	int ip, jp;
-	taucs_datatype Aij, Ajj, Aii;
-	taucs_datatype *y;
+	double Aij, Ajj, Aii;
+	double *y;
 
 	if (!(L->flags & TAUCS_TRIANGULAR)) {
 		taucs_printf("taucs_ccs_solve_llt: factor matrix must be triangular\n");
@@ -40,7 +40,7 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 
 	n = L->n;
 
-	y = (taucs_datatype *) taucs_malloc(n * sizeof(taucs_datatype));
+	y = (double *) taucs_malloc(n * sizeof(double));
 	if (!y)
 		return -1;
 
@@ -59,11 +59,11 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 		ip = (L->colptr)[j];
 		i = (L->rowind)[ip];
 		assert(i == j);
-		Ajj = (L->taucs_values)[ip];
+		Ajj = L->values[ip];
 
 		/*
 		 * for (ip = (L->colptr)[j]; ip < (L->colptr)[j+1]; ip++) { i = (L->rowind)[ip]; if (i==j) { Ajj =
-		 * (L->taucs_values)[ip]; break; } } 
+		 * L->values[ip]; break; } } 
 		 */
 
 		/*
@@ -73,7 +73,7 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 
 		for (ip = (L->colptr)[j] + 1; ip < (L->colptr)[j + 1]; ip++) {
 			i = (L->rowind)[ip];
-			Aij = (L->taucs_values)[ip];
+			Aij = L->values[ip];
 			/*
 			 * x[i] -= y[j]*Aij;
 			 */
@@ -82,7 +82,7 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 
 		/*
 		 * for (ip = (L->colptr)[j]; ip < (L->colptr)[j+1]; ip++) { i = (L->rowind)[ip]; if (i != j) { Aij =
-		 * (L->taucs_values)[ip]; x[i] -= y[j]*Aij; } } 
+		 * L->values[ip]; x[i] -= y[j]*Aij; } } 
 		 */
 	}
 
@@ -94,7 +94,7 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 
 		for (jp = (L->colptr)[i] + 1; jp < (L->colptr)[i + 1]; jp++) {
 			j = (L->rowind)[jp];
-			Aij = taucs_conj((L->taucs_values)[jp]);
+			Aij = taucs_conj(L->values[jp]);
 			/*
 			 * y[i] -= x[j]*Aij;
 			 */
@@ -102,16 +102,16 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 		}
 		/*
 		 * for (jp = (L->colptr)[i]; jp < (L->colptr)[i+1]; jp++) { j = (L->rowind)[jp]; if (i != j) { Aij =
-		 * (L->taucs_values)[jp]; y[i] -= x[j]*Aij; } } 
+		 * L->values[jp]; y[i] -= x[j]*Aij; } } 
 		 */
 
 		jp = (L->colptr)[i];
 		j = (L->rowind)[jp];
-		Aii = (L->taucs_values)[jp];
+		Aii = L->values[jp];
 
 		/*
 		 * for (jp = (L->colptr)[i]; jp < (L->colptr)[i+1]; jp++) { j = (L->rowind)[jp]; if (i==j) { Aii =
-		 * (L->taucs_values)[jp]; break; } } 
+		 * L->values[jp]; break; } } 
 		 */
 
 		/*
@@ -133,15 +133,15 @@ int taucs_dtl(ccs_solve_llt) (void *vL, taucs_datatype * x, taucs_datatype * b) 
 
 /*********************************************************/
 
-int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b) {
-	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+int taucs_dtl(ccs_solve_ldlt) (void *vL, double *x, double *b) {
+	taucs_ccs_matrix * L = (taucs_ccs_matrix *) vL;
 
 	int n;
 	int i, j;
 	int ip, jp;
-	taucs_datatype Ajj = taucs_zero_const;		       /* just to suppress the warning */
-	taucs_datatype Aij = taucs_zero_const;		       /* just to suppress the warning */
-	taucs_datatype *y;
+	double Ajj = taucs_zero_const;			       /* just to suppress the warning */
+	double Aij = taucs_zero_const;			       /* just to suppress the warning */
+	double *y;
 
 	/*
 	 * taucs_printf("taucs_ccs_solve_ldlt: starting\n"); 
@@ -158,7 +158,7 @@ int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b)
 
 	n = L->n;
 
-	y = (taucs_datatype *) taucs_malloc(n * sizeof(taucs_datatype));
+	y = (double *) taucs_malloc(n * sizeof(double));
 	if (!y)
 		return -1;
 
@@ -175,38 +175,10 @@ int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b)
 
 	for (j = 0; j < n; j++) {
 
-#if 0
-		/*
-		 * we put diagonal elements first 
-		 */
-		ip = (L->colptr)[j];
-		i = (L->rowind)[ip];
-		assert(i == j);
-		/*
-		 * Ajj = 1.0;
-		 */
-		Ajj = taucs_one;
-
-		/*
-		 * y[j] = x[j] / Ajj;
-		 */
-		y[j] = taucs_div(x[j], Ajj);
-#else
 		y[j] = x[j];
-#endif
-
-		if (taucs_isnan(y[j]) || taucs_isinf(y[j])) {
-			taucs_printf("taucs_ccs_solve_ldlt: inf/nan in column %d (L); %e+%ei / %e+%ei\n",
-				     j, taucs_re(x[j]), taucs_im(x[j]), taucs_re(Ajj), taucs_im(Ajj));
-		}
-
-		/*
-		 * printf("A(%d,%d) = %lg; y[%d] = %lg\n",j,j,Ajj,i,y[i]);
-		 */
-
 		for (ip = (L->colptr)[j] + 1; ip < (L->colptr)[j + 1]; ip++) {
 			i = (L->rowind)[ip];
-			Aij = (L->taucs_values)[ip];
+			Aij = L->values[ip];
 
 			/*
 			 * x[i] -= y[j]*Aij;
@@ -227,7 +199,7 @@ int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b)
 		ip = (L->colptr)[j];
 		i = (L->rowind)[ip];
 		assert(i == j);
-		Ajj = (L->taucs_values)[ip];
+		Ajj = L->values[ip];
 
 		/*
 		 * y[j] = y[j] / Ajj; 
@@ -248,37 +220,15 @@ int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b)
 		for (jp = (L->colptr)[i] + 1; jp < (L->colptr)[i + 1]; jp++) {
 			j = (L->rowind)[jp];
 			/*
-			 * Aij = (L->taucs_values)[jp]; 
+			 * Aij = L->values[jp]; 
 			 */
-			Aij = taucs_conj((L->taucs_values)[jp]);
+			Aij = taucs_conj(L->values[jp]);
 			/*
 			 * y[i] -= x[j]*Aij;
 			 */
 			y[i] = taucs_sub(y[i], taucs_mul(x[j], Aij));
 		}
-
-#if 0
-		jp = (L->colptr)[i];
-		j = (L->rowind)[jp];
-		/*
-		 * Aii = 1.0;
-		 */
-		Aii = taucs_one;
-
-		/*
-		 * x[i] = y[i] / Aii;
-		 */
-		x[i] = taucs_div(y[i], Aii);
-#else
 		x[i] = y[i];
-#endif
-
-		if (taucs_isnan(x[i]) || taucs_isinf(x[i]))
-			taucs_printf("symccs_solve_ldlt: inf/nan in row %d (LT)\n", i);
-
-		/*
-		 * printf("A(%d,%d) = %lg; x[%d] = %lg\n",i,i,Aii,i,x[i]); 
-		 */
 	}
 
 	taucs_free(y);
@@ -289,73 +239,11 @@ int taucs_dtl(ccs_solve_ldlt) (void *vL, taucs_datatype * x, taucs_datatype * b)
 #endif							       /* #ifndef TAUCS_CORE_GENERAL */
 
 #ifdef TAUCS_CORE_GENERAL
-int
-taucs_ccs_solve_schur(taucs_ccs_matrix * L,
-		      taucs_ccs_matrix * schur_comp,
-		      int (*schur_precond_fn) (void *, void *x, void *b),
-		      void *schur_precond_args, int maxits, double convratio, void *x, void *b)
-{
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
-	if (L->flags & TAUCS_DOUBLE)
-		return taucs_dccs_solve_schur(L,
-					      schur_comp,
-					      schur_precond_fn,
-					      schur_precond_args, maxits, convratio, (taucs_double *) x, (taucs_double *) b);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (L->flags & TAUCS_SINGLE)
-		return taucs_sccs_solve_schur(L,
-					      schur_comp,
-					      schur_precond_fn,
-					      schur_precond_args, maxits, convratio, (taucs_single *) x, (taucs_single *) b);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_solve_schur(L,
-					      schur_comp,
-					      schur_precond_fn,
-					      schur_precond_args, maxits, convratio, (taucs_dcomplex *) x, (taucs_dcomplex *) b);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_solve_schur(L,
-					      schur_comp,
-					      schur_precond_fn,
-					      schur_precond_args, maxits, convratio, (taucs_scomplex *) x, (taucs_scomplex *) b);
-#endif
-
-	assert(0);
-	return -1;
-}
-
 int taucs_ccs_solve_llt(void *vL, void *x, void *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (L->flags & TAUCS_DOUBLE)
-		return taucs_dccs_solve_llt(L, (taucs_double *) x, (taucs_double *) b);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (L->flags & TAUCS_SINGLE)
-		return taucs_sccs_solve_llt(L, (taucs_single *) x, (taucs_single *) b);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_solve_llt(L, (taucs_dcomplex *) x, (taucs_dcomplex *) b);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_solve_llt(L, (taucs_scomplex *) x, (taucs_scomplex *) b);
-#endif
-
+		return taucs_dccs_solve_llt(L, (double *) x, (double *) b);
 	assert(0);
 	return -1;
 }
@@ -363,38 +251,10 @@ int taucs_ccs_solve_llt(void *vL, void *x, void *b)
 int taucs_ccs_solve_ldlt(void *vL, void *x, void *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
-
-#ifdef TAUCS_DOUBLE_IN_BUILD
 	if (L->flags & TAUCS_DOUBLE)
-		return taucs_dccs_solve_ldlt(L, (taucs_double *) x, (taucs_double *) b);
-#endif
-
-#ifdef TAUCS_SINGLE_IN_BUILD
-	if (L->flags & TAUCS_SINGLE)
-		return taucs_sccs_solve_ldlt(L, (taucs_single *) x, (taucs_single *) b);
-#endif
-
-#ifdef TAUCS_DCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_DCOMPLEX)
-		return taucs_zccs_solve_ldlt(L, (taucs_dcomplex *) x, (taucs_dcomplex *) b);
-#endif
-
-#ifdef TAUCS_SCOMPLEX_IN_BUILD
-	if (L->flags & TAUCS_SCOMPLEX)
-		return taucs_cccs_solve_ldlt(L, (taucs_scomplex *) x, (taucs_scomplex *) b);
-#endif
-
-	/*
-	 * omer
-	 */
+		return taucs_dccs_solve_ldlt(L, (double *) x, (double *) b);
 	assert(0);
 	return -1;
 
 }
 #endif							       /* TAUCS_CORE_GENERAL */
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/

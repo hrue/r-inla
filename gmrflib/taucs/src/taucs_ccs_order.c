@@ -11,7 +11,7 @@
 
 #include <limits.h>
 #if __has_include(<malloc.h>)
-#include <malloc.h> 
+#include <malloc.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,10 +28,12 @@
 
 #include "../external/colamd.h"
 
-int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w);
-int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w);
+int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
+		 int ncmpa, int *w);
+int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
+		    int ncmpa, int *w);
 
-static void taucs_ccs_colamd(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNUSED(which))
+static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 #ifndef TAUCS_CONFIG_COLAMD
 	taucs_printf("taucs_ccs_colamd: COLAMD routines not linked.\n");
@@ -43,7 +45,7 @@ static void taucs_ccs_colamd(taucs_ccs_matrix * m, int **perm, int **invperm, ch
 	int Alen = 0;
 	int *A = NULL;
 	int *p = NULL;
-	int *ip =  NULL;
+	int *ip = NULL;
 	int k, nnz;
 	int i;
 
@@ -64,7 +66,8 @@ static void taucs_ccs_colamd(taucs_ccs_matrix * m, int **perm, int **invperm, ch
 	assert(p && ip);
 
 	Alen = colamd_recommended(nnz, m->m, m->n);
-	if (Alen >= 0) A = taucs_malloc(Alen * sizeof(int));
+	if (Alen >= 0)
+		A = taucs_malloc(Alen * sizeof(int));
 	assert(A);
 	assert(A);
 	colamd_set_defaults(knobs);
@@ -99,7 +102,7 @@ static void taucs_ccs_colamd(taucs_ccs_matrix * m, int **perm, int **invperm, ch
 
 /*********************************************************/
 
-static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
+static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
 #ifndef TAUCS_CONFIG_AMD
 	taucs_printf("taucs_ccs_amd: AMD routines not linked.\n");
@@ -145,7 +148,7 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 	n = m->n;
 	nnz = (m->colptr)[n];
 
-	pe = (int *) taucs_malloc((n+1) * sizeof(int));
+	pe = (int *) taucs_malloc((n + 1) * sizeof(int));
 	degree = (int *) taucs_malloc(n * sizeof(int));
 	nv = (int *) taucs_malloc(n * sizeof(int));
 	next = (int *) taucs_malloc(n * sizeof(int));
@@ -185,7 +188,7 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 
 	int offset;
 
-	if (!strcmp(which, "amdc") || !strcmp(which, "amdbarc")){
+	if (!strcmp(which, "amdc") || !strcmp(which, "amdbarc")) {
 		offset = 0;				       /* C */
 	} else {
 		offset = 1;				       /* Fortran */
@@ -222,7 +225,7 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 	for (i = 0; i < n; i++)
 		degree[i] = pe[i] - offset;
 
-	
+
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			i = (m->rowind)[ip];
@@ -290,7 +293,7 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 
 /*********************************************************/
 
-static void taucs_ccs_genmmd(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNUSED(which))
+static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 #ifndef TAUCS_CONFIG_GENMMD
 	taucs_printf("taucs_ccs_genmmd: GENMMD routines not linked.\n");
@@ -346,10 +349,10 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix * m, int **perm, int **invperm, ch
 	 * from SuperLU. Sivan 
 	 */
 
-	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= 
-							        * min-degree + DELTA. */
-	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= 
-							        * min-degree + DELTA. */
+	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= min-degree +
+							        * DELTA. */
+	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= min-degree +
+							        * DELTA. */
 	/*
 	 * maxint = 2147483648;
 	 *//*
@@ -482,7 +485,7 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix * m, int **perm, int **invperm, ch
 
 /*********************************************************/
 
-static void taucs_ccs_treeorder(taucs_ccs_matrix * m, int **perm, int **invperm)
+static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 {
 	int n, nnz, i, j, ip, k, p, nleaves;
 	int *adjptr;
@@ -698,7 +701,7 @@ void METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 #endif
 
-static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNUSED(which))
+static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 4
 #ifndef TAUCS_CONFIG_METIS
@@ -798,7 +801,7 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 	options_flag[3] = 1;				       /* two-side refinement */
 	options_flag[4] = 0;				       /* no debug */
 	options_flag[5] = 1;				       /* default */
-	options_flag[6] = 0; 				       /* THIS IS SLOW if non-zero. global nodes */
+	options_flag[6] = 0;				       /* THIS IS SLOW if non-zero. global nodes */
 	options_flag[7] = 3;				       /* number of separators */
 
 #if defined(NO_PARDISO_LIB)
@@ -806,7 +809,7 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 #else
 	METIS51PARDISO_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
 #endif
-	
+
 	taucs_free(xadj);
 	taucs_free(adj);
 #endif
@@ -858,16 +861,15 @@ static void taucs_ccs_randomperm(int n, int **perm, int **invperm)
 
 /*********************************************************/
 
-void taucs_ccs_order(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
+void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
 	if (!strcmp(which, "mmd") || !strcmp(which, "amd") || !strcmp(which, "md") || !strcmp(which, "amdbar") ||
 	    !strcmp(which, "amdc") || !strcmp(which, "amdbarc"))
 		taucs_ccs_amd(m, perm, invperm, which);
-	else if (!strcmp(which, "metis"))
-	{
+	else if (!strcmp(which, "metis")) {
 #if defined(USE_METIS4)
 		taucs_ccs_metis(m, perm, invperm, which);
-#else 
+#else
 		taucs_ccs_metis5(m, perm, invperm, which);
 #endif
 	} else if (!strcmp(which, "genmmd"))
