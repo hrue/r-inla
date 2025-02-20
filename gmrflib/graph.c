@@ -246,21 +246,14 @@ int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp *graph)
 	/*
 	 * write graph to file filename in the format so it can be read by 'read_graph' 
 	 */
-
-	FILE *fp = NULL;
-
-	if (!filename) {
-		return GMRFLib_SUCCESS;
-	}
-	if (!graph) {
+	if (!filename || !graph) {
 		return GMRFLib_SUCCESS;
 	}
 
-	fp = fopen(filename, "w");
+	FILE *fp = fopen(filename, "w");
 	if (!fp) {
 		GMRFLib_ERROR(GMRFLib_EOPENFILE);
 	}
-
 	GMRFLib_graph_write2(fp, graph);
 	fclose(fp);
 

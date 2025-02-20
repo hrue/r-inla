@@ -876,21 +876,27 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		Free(ic_idx);
 	}
 
-	// write matrix to file
-	if (0) {
+	static int dump_Q = -1;
+	if (dump_Q < 0) {
+#pragma omp critical (Name_29d46bdd6abbbf3b1bd5098a4281a9dd165fe114)
+		if (dump_Q < 0) {
+			dump_Q = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
+		}
+	}
+
+	if (dump_Q > 0) {
+		// write matrix to file
 #pragma omp critical (Name_e9854d763a7a40f3e47e8b55bd2e61a67241870d)
 		{
 			taucs_crs_matrix *QQ = GMRFLib_ccs2crs(Q);
-
 			char *filename = NULL;
 			int nz = n + graph->nnz / 2;
 			GMRFLib_sprintf(&filename, "./inla_Qmatrix_XXXXXX");
 			int fd = mkstemp(filename);
 			close(fd);
-			FILE *fp = fopen(filename, "wb");
 
-			double dn = (double) QQ->n;
-			double dnz = (double) nz;
+			FILE *fp = fopen(filename, "wb");
+			double dn = (double) QQ->n, dnz = (double) nz;
 			fwrite((void *) &dn, sizeof(double), (size_t) 1, fp);
 			fwrite((void *) &dnz, sizeof(double), (size_t) 1, fp);
 
@@ -909,7 +915,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			fclose(fp);
 			Free(itmp);
 			taucs_crs_free(QQ);
-			printf("write file [%s]\n", filename);
+			fprintf(stderr, "\n\t*** write Q-matrix to file [%s]\n", filename);
 		}
 	}
 
