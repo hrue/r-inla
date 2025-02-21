@@ -315,7 +315,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 {
 #define DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
-			LL->name = (type *)Calloc((len), type);		\
+			LL->name = (type *)Malloc((len), type);		\
 			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
@@ -533,9 +533,9 @@ taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix *LL)
 
 	L = Calloc(1, taucs_crs_matrix);
 	L->flags = LL->flags;
-	L->rowptr = Calloc(n + 1, int);
-	L->colind = Calloc(nnz, int);
-	L->values = Calloc(nnz, double);
+	L->rowptr = Malloc(n + 1, int);
+	L->colind = Malloc(nnz, int);
+	L->values = Malloc(nnz, double);
 
 	Memcpy(LL->rowptr, L->rowptr, (n + 1) * sizeof(int));
 	Memcpy(LL->colind, L->colind, nnz * sizeof(int));
@@ -604,7 +604,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 	if (simple) {
 		int *imap = NULL;
 		if (graph->n >= 0)
-			imap = Calloc(graph->n, int);
+			imap = Malloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
@@ -625,7 +625,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		/*
 		 * yes we have global nodes, make a new graph with these removed. 
 		 */
-		fixed = Calloc(graph->n, char);
+		fixed = Malloc(graph->n, char);
 		for (i = 0; i < graph->n; i++) {
 			fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 		}
@@ -743,7 +743,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 * doit like this to maintain the MEMCHECK facility of GMRFLib 
 		 */
 		free(perm);
-		perm = Calloc(graph->n, int);		       /* yes, need graph->n. */
+		perm = Malloc(graph->n, int);		       /* yes, need graph->n. */
 		Memcpy(perm, iperm, n * sizeof(int));
 		free(iperm);
 		iperm = perm;
@@ -767,8 +767,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 */
 		ns = subgraph->n;
 		n = graph->n;
-		iperm_new = Calloc(graph->n, int);
-
+		iperm_new = Malloc(graph->n, int);
 		for (i = 0; i < ns; i++) {
 			iperm_new[iperm[i]] = i;
 		}
@@ -778,8 +777,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 * given highest node-number. 
 		 */
 		int ng = n - ns;
-		int *node = Calloc(ng, int);
-		int *nnbs = Calloc(ng, int);
+		int *node = Malloc(ng, int);
+		int *nnbs = Malloc(ng, int);
 
 		for (i = 0, j = 0; i < n; i++) {
 			if (fixed[i]) {
@@ -844,7 +843,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
 		GMRFLib_pack(n + graph->nnz / 2, arg->Q->a, graph->row2col, Q->values);
 	} else {
-		int *ic_idx = Calloc(n, int);
+		int *ic_idx = Malloc(n, int);
 		for (int i = 0, ic = 0; i < n; i++) {
 			Q->rowind[ic] = i;
 			ic_idx[i] = ic;
@@ -899,7 +898,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			fwrite((void *) &dn, sizeof(double), (size_t) 1, fp);
 			fwrite((void *) &dnz, sizeof(double), (size_t) 1, fp);
 
-			int *itmp = Calloc(nz, int);
+			int *itmp = Malloc(nz, int);
 			for (int i = 0; i < nz; i++) {
 				itmp[i] = QQ->colind[i] + 1;
 			}
@@ -1028,10 +1027,10 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
+	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1104,10 +1103,10 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
+	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	if (!remapped) {
@@ -1149,10 +1148,10 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
+	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	if (!remapped) {
@@ -1198,7 +1197,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	if (n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
 	double *y = work;
@@ -1301,7 +1300,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	for (int i = 0, m = 0; i < n; m += nnbs[i], i++) {
 		nbs[i] = work_nnbs + m;
 	}
-	Memset(nnbs, 0, n * sizeof(int));
+	GMRFLib_ifill(n, 0, nnbs);
 
 	for (int j = 0; j < n; j++) {
 		for (int jp = L->colptr[j]; jp < L->colptr[j + 1]; jp++) {	/* including the diagonal */
@@ -1315,7 +1314,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	/*
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
-	Qinv_L = Calloc(n, map_id *);
+	Qinv_L = Malloc(n, map_id *);
 #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
 		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
@@ -1323,7 +1322,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
 	}
 
-	double *Zj = Calloc(n, double);
+	double *Zj = Malloc(n, double);
 	double *d = L->values;
 	for (int j = n - 1; j >= 0; j--) {
 		// store those indices that are used and set only those to zero 
@@ -1347,14 +1346,14 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	}
 
 	// compute the mapping 
-	inv_remap = Calloc(n, int);
+	inv_remap = Malloc(n, int);
 	for (int k = 0; k < n; k++) {
 		inv_remap[problem->sub_sm_fact.remap[k]] = k;
 	}
 
 	// its good to remove as then we do not need to correct that many for constraints
 	int *rremove = nnbsQ;
-	Memset(rremove, 0, n * sizeof(int));
+	GMRFLib_ifill(n, 0, rremove);
 	for (int i = 0; i < n; i++) {
 		int iii = inv_remap[i];
 		int nrremove = 0;
@@ -1405,7 +1404,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * compute the mapping for lookup using GMRFLib_Qinv_get(). here, the user lookup using a global index, which is then
 	 * transformed to the reordered sub_graph. 
 	 */
-	problem->sub_inverse->mapping = Calloc(n, int);
+	problem->sub_inverse->mapping = Malloc(n, int);
 	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
 
 	Free(inv_remap);
@@ -1727,10 +1726,10 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	if (n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
+	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
 
 	double *y = work;
 	if (n > 0) {
@@ -1878,9 +1877,9 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	int n = L->n;
 	int nnz = L->colptr[n];
 
-	LL->rowptr = Calloc(n + 1, int);
-	LL->colind = Calloc(nnz, int);
-	LL->values = Calloc(nnz, double);
+	LL->rowptr = Malloc(n + 1, int);
+	LL->colind = Malloc(nnz, int);
+	LL->values = Malloc(nnz, double);
 
 	// number of elements pr column
 	int *clen = Calloc(n, int);
@@ -1894,13 +1893,14 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 		}
 	}
 
+	LL->rowptr[0] = 0;
 	for (int i = 1; i <= n; i++) {
 		LL->rowptr[i] = LL->rowptr[i - 1] + clen[i - 1];
 	}
 
 	// reuse storage with a different name
 	int *rowidx = clen;
-	Memset(rowidx, 0, n * sizeof(int));
+	GMRFLib_ifill(n, 0, rowidx);
 
 	for (int j = 0; j < n; j++) {
 		int ip = L->colptr[j];

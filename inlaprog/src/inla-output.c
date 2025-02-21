@@ -1948,7 +1948,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
 
-			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len), 0);
+			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len), 0, 0);
 			for (i = 0; i < len; i++) {
 				glen = buffer[offset++];
 				for (j = 0; j < glen; j++) {
