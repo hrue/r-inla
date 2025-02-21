@@ -76,6 +76,7 @@ typedef struct {
 
 #define taucs_dtl(X) taucs_d##X
 #include "taucs_privateP.h"
+#include "amdP.h"
 
 #define TAUCS_CORE
 #define TAUCS_CORE_REAL

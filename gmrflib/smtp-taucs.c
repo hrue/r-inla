@@ -8,7 +8,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-#include "amd.h"
 #include "metis.h"
 
 #define TIME_FUNCTIONS 0
