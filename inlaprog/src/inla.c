@@ -7108,7 +7108,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stdout, "\nVersion [%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);
