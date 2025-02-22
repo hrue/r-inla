@@ -1117,8 +1117,10 @@ int testit(int argc, char **argv)
 			y = GMRFLib_uniform();
 
 			printf("a %f b %f y %f", a, b, y);
-			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 1));
-			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta) (y, a, b, 0, 1));
+			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 0));
+			printf("  GSL pbeta %f ", gsl_cdf_beta_P(y, a, b));
+			printf("  1-pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 0, 0));
+			printf("  GSL qbeta %f\n", gsl_cdf_beta_Q(y, a, b));
 		}
 	}
 		break;

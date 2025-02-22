@@ -5844,9 +5844,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6757,7 +6757,7 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 	double y = ds->data_observations.y[idx];
 	double w = ds->data_observations.beta_weight[idx];
 	double phi = map_exp_forward(ds->data_observations.beta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
-	double a, b, mu, lbeta;
+	double a, b, mu, llbeta;
 	double censor_value = ds->data_observations.beta_censor_value;
 	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
 
@@ -6767,25 +6767,23 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 			mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			a = mu * phi;
 			b = -mu * phi + phi;
-			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb,
-			// 1)'. If y is close to 1 then 'a'
-			// is
-			// tiny, do similarly
+			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is
+			// close to 1 then 'a' is tiny, do similarly
 			if (DMIN(a, b) < INLA_REAL_SMALL) {
-				lbeta = -log(DMIN(a, b));
+				llbeta = -log(DMIN(a, b));
 			} else {
-				lbeta = gsl_sf_lnbeta(a, b);
+				llbeta = MATHLIB_FUN(lbeta) (a, b);
 			}
 
 			if (no_censoring) {
 				// in most cases, we'll be here
-				logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
+				logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
 			} else {
 				// if we have censoring, we have to be more careful
 				if (y <= censor_value) {
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 1);
 				} else if (y < 1.0 - censor_value) {
-					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
+					logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
 				} else {
 					logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 				}
@@ -6798,13 +6796,13 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 			a = mu * phi;
 			b = -mu * phi + phi;
 			if (no_censoring) {
-				logll[i] = gsl_cdf_beta_P(yy, a, b);
+				logll[i] = MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 			} else {
 				if (yy <= censor_value) {
 					// use the expected prob instead
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 0) / 2.0;
 				} else if (yy < 1.0 - censor_value) {
-					logll[i] = gsl_cdf_beta_P(yy, a, b);
+					logll[i] = MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 				} else {
 					// ... and also here
 					logll[i] = 1.0 - MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 0) / 2.0;
@@ -6853,8 +6851,8 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
 				double a = mu * phi;
 				double b = -mu * phi + phi;
-				double lbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : gsl_sf_lnbeta(a, b));
-				logll[i] = log(low - high) - lbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+				double llbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
+				logll[i] = log(low - high) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 			}
 		}
 	} else {
@@ -6873,7 +6871,7 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
 				double a = mu * phi;
 				double b = -mu * phi + phi;
-				logll[i] = (1.0 - low) + (low - high) * gsl_cdf_beta_P(yy, a, b);
+				logll[i] = (1.0 - low) + (low - high) * MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 			}
 		}
 	}

@@ -201,7 +201,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
 		if (!lwork[cache_idx]) {
 			wf_tp *w = Calloc(1, wf_tp);
-			w->wf = Calloc(10, double *);
+			w->wf = Calloc(10, double *);	       /* Must initialize to 0 */
 			lwork[cache_idx] = w;
 		}
 	}
