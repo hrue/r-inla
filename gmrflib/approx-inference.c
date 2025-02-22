@@ -3574,10 +3574,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int max_ng = -1;
 	int corr_hyper = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
-	double zero = 0.0;
 	// double spd_eps = GSL_SQRT_DBL_EPSILON;
 	double diag_eps = GSL_ROOT4_DBL_EPSILON;
 	double diag_scale = 1.0 + diag_eps;
+	double cmin = DBL_EPSILON;
 
 	if (gcpo_param->verbose || detailed_output) {
 		printf("enter _gcpo with...\n");
@@ -3753,7 +3753,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		int nnode = d_idx->idx[i];				\
 		double xx = lpred_mode[nnode];				\
 		GMRFLib_2order_approx(thread_id, cache_idx, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
-				      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
+				      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &cmin); \
 	}
 
 	RUN_CODE_BLOCK_X(GMRFLib_MAX_THREADS(), 0, 0, int);
@@ -3996,7 +3996,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_ghq(&xx, &weights, np);			\
 			double *xp = CODE_BLOCK_WORK_PTR(2);		\
 			double *loglik = CODE_BLOCK_WORK_PTR(3);	\
-									\
 			double val = 0.0;				\
 			double loc_prec, loc_mean, loc_sd;		\
 			double ll_prec = cc_idx_node;			\
@@ -4082,7 +4081,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						double ll_a = 0.0, ll_b = 0.0, ll_c = 0.0; \
 						double xx = gsl_vector_get(xstar, i); \
 						GMRFLib_2order_approx(thread_id, cache_idx, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
-								      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
+								      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &cmin); \
 						gsl_vector_set(b, i, ll_b); \
 						gsl_matrix_set(C, i, i, ll_c); \
 						lla += ll_a + xx * (ll_b - 0.5 * xx * ll_c); \
