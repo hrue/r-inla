@@ -75,8 +75,8 @@ typedef struct {
 } taucs_crs_matrix;
 
 #define taucs_dtl(X) taucs_d##X
-#include "taucs_privateP.h"
-#include "amdP.h"
+#include "GMRFLib/taucs_privateP.h"
+#include "GMRFLib/amdP.h"
 
 #define TAUCS_CORE
 #define TAUCS_CORE_REAL
