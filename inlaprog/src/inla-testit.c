@@ -5076,6 +5076,51 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 161:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		if (m <= 0) m = n;
+		P(n);
+		P(m);
+
+		double tref[2] = {0, 0};
+		double dummy = 0.0;
+		for (int i = 0; i < n; i++) {
+
+			tref[0] -= GMRFLib_timer();
+			double *x = Malloc(m, double);
+			if (1) {
+				x[0] = x[m-1] = 1;
+			} else {
+#pragma omp simd
+				for (int j = 0; j < m; j++) {
+					x[j] = j;
+				}
+			}
+			dummy += x[0] + x[m-1];
+			Free(x);
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
+			double *xx = Calloc(m, double);
+			if (1) {
+				xx[0] = xx[m-1] = 1;
+			} else {
+#pragma omp simd
+				for (int j = 0; j < m; j++) {
+					xx[j] = j; 
+				}
+			}
+			dummy += xx[0] + xx[m-1];
+			Free(xx);
+			tref[1] += GMRFLib_timer();
+		}
+		P(dummy);
+		printf("malloc %g calloc %g\n",
+		       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
