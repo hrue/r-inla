@@ -101,7 +101,7 @@ int GMRFLib_idxval_create_x(GMRFLib_idxval_tp **hold, int len, int zero)
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 	(*hold)->iaddto = 0;
-
+	(*hold)->zero = zero;
 	return GMRFLib_SUCCESS;
 }
 
@@ -276,7 +276,7 @@ int GMRFLib_val_printf(FILE *fp, GMRFLib_val_tp *hold, const char *msg)
 int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
+		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d zero=%1d\n", msg, hold->n, hold->n_alloc, hold->iaddto, hold->zero);
 		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
 		}
@@ -300,7 +300,7 @@ int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 int GMRFLib_idxval_info_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
-		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);
+		fprintf(fp, "[%s] n=%1d nalloc=%1d iaddto=%1d zero=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto, hold->zero);
 		if (hold->g_n) {
 			for (int g = 0; g < hold->g_n; g++) {
 				fprintf(fp, "\tgroup %1d/%1d: len=%1d one=%s\n", g, hold->g_n, hold->g_len[g],
@@ -1244,6 +1244,8 @@ GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp *h)
 
 int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 {
+	// This function is no longer in use
+	
 	// check if any indices are the same, if so return 1, else return 0.
 	// ASSUME IDX1 and IDX2 are SORTED!
 
@@ -1282,6 +1284,8 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 
 int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2)
 {
+	// this function is no longer in use
+
 	if (idx1 == NULL || idx2 == NULL) {
 		return 0;
 	}
@@ -1309,7 +1313,6 @@ int GMRFLib_str_add(GMRFLib_str_tp **hold, char *s)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 
 int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int *idx_match)
@@ -1368,9 +1371,15 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp **hold, int idx, double val)
 		GMRFLib_idxval_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
+		int m = (*hold)->n_alloc; 
+		int inc = IDX_ALLOC_INCREASE;
+		(*hold)->n_alloc += inc;
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
 		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+		if ((*hold)->zero) {
+			GMRFLib_ifill(inc, 0, (*hold)->idx + m);
+			GMRFLib_fill(inc, 0.0, (*hold)->val + m);
+		}
 	}
 	(*hold)->idx[(*hold)->n] = idx;
 	(*hold)->val[(*hold)->n] = val;
@@ -1381,12 +1390,12 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp **hold, int idx, double val)
 
 int GMRFLib_idxval_addto(GMRFLib_idxval_tp **hold, int idx, double val)
 {
-	// if idx exists before, add val to value , otherwise just 'add'.
+	// if idx exists before, add val to value, otherwise just 'add'.
 	// if there are two entries of 'idx', then only the first is used.
 	// OOOPS: the creation must be zero-initialized
 
 	if (*hold == NULL) {
-		GMRFLib_idxval_create(hold);
+		GMRFLib_idxval_create_x(hold, IDX_ALLOC_INITIAL, 1);
 	}
 
 	if ((*hold)->n > 0) {

@@ -62,6 +62,7 @@ typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
+	int zero;
 	int g_n;					       /* number of groups with sequential indices */
 	int g_n_mem;
 	int *idx;
