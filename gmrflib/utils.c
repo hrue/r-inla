@@ -1,16 +1,16 @@
-#include <limits.h>
-#include <time.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -2278,5 +2278,11 @@ size_t GMRFLib_align_simple(size_t n, size_t size)
 		fprintf(stderr, "\nADD CODE HERE\n");
 		assert(0 == 1);
 	}
-
 }
+
+int GMRFLib_is_aligned(void *ptr) 
+{
+	return (((intptr_t)ptr & 0xF) == 0);
+	//size_t alignment = 16L;
+	//return ((uintptr_t)ptr % alignment) == 0; 
+} 

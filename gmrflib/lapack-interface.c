@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -1427,28 +1428,33 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 
 void GMRFLib_fill(int n, double a, double *x)
 {
-	if (n > 0) {
-		if (ISZERO(a)) {
-			memset((void *) x, 0, (size_t) (n * sizeof(double)));
-		} else {
-			int len0 = BUFSIZ / sizeof(double);
-			if (n < 2 * len0) {
-#pragma omp simd
-				for (int i = 0; i < n; i++) {
-					x[i] = a;
-				}
-			} else {
-#pragma omp simd
-				for (int i = 0; i < len0; i++) {
-					x[i] = a;
-				}
+	if (n <= 0)
+		return;
 
-				int offset = len0;
-				while (offset < n) {
-					int len = IMIN(len0, n - offset);
-					memcpy((void *) (x + offset), (void *) x, (size_t) (len * sizeof(double)));
-					offset += len;
-				}
+	if (ISZERO(a)) {
+		memset((void *) x, 0, (size_t) (n * sizeof(double)));
+	} else {
+		if (!GMRFLib_is_aligned((void *) x)) {
+			if (n > 1 && GMRFLib_is_aligned((void *) (x + 1))) {
+				*x = a;
+				n--;
+				x++;
+			}
+		}
+
+		const int len0 = (16L / sizeof(double)) * 16L;
+		int nn = IMIN(n, len0);
+#pragma omp simd
+		for (int i = 0; i < nn; i++) {
+			x[i] = a;
+		}
+
+		if (n > len0) {
+			int offset = len0;
+			while (offset < n) {
+				int len = IMIN(offset, n - offset);
+				memcpy((void *) (x + offset), (void *) x, (size_t) (len * sizeof(double)));
+				offset += len;
 			}
 		}
 	}
@@ -1456,29 +1462,40 @@ void GMRFLib_fill(int n, double a, double *x)
 
 void GMRFLib_ifill(int n, int ia, int *ix)
 {
-	if (n > 0) {
-		if (ISZERO(ia)) {
-			memset((void *) ix, 0, (size_t) (n * sizeof(int)));
-		} else {
-			int len0 = BUFSIZ / sizeof(int);
-			if (n < 2 * len0) {
-#pragma omp simd
-				for (int i = 0; i < n; i++) {
-					ix[i] = ia;
-				}
-			} else {
-#pragma omp simd
-				for (int i = 0; i < len0; i++) {
-					ix[i] = ia;
-				}
+	if (n <= 0)
+		return;
 
-				int offset = len0;
-				while (offset < n) {
-					int len = IMIN(len0, n - offset);
-					memcpy((void *) (ix + offset), (void *) ix, (size_t) (len * sizeof(int)));
-					offset += len;
-				}
+	if (ISZERO(ia)) {
+		memset((void *) ix, 0, (size_t) (n * sizeof(int)));
+	} else {
+		if (!GMRFLib_is_aligned((void *) ix)) {
+			if (n > 1 && GMRFLib_is_aligned((void *) (ix + 1))) {
+				*ix = ia;
+				ix++;
+				n--;
+			} else if (n > 2 && GMRFLib_is_aligned((void *) (ix + 2))) {
+				*ix = *(ix + 1) = ia;
+				ix += 2;
+				n -= 2;
+			} else if (n > 3 && GMRFLib_is_aligned((void *) (ix + 3))) {
+				*ix = *(ix + 1) = *(ix + 2) = ia;
+				ix += 3;
+				n -= 3;
 			}
+		}
+
+		const int len0 = (16L / sizeof(int)) * 16L;
+		int nn = IMIN(n, len0);
+#pragma omp simd
+		for (int i = 0; i < nn; i++) {
+			ix[i] = ia;
+		}
+
+		int offset = len0;
+		while (offset < n) {
+			int len = IMIN(offset, n - offset);
+			memcpy((void *) (ix + offset), (void *) ix, (size_t) (len * sizeof(int)));
+			offset += len;
 		}
 	}
 }

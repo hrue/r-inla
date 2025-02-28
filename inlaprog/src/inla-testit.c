@@ -3767,13 +3767,17 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
-
+		int k = atoi(args[2]);
+		int ex = 4;
 		P(n);
 		P(m);
+		P(k);
 
-		double *y = Calloc(2 * n, double);
-		double *yy = y + n;
-
+		double *y = Malloc(n+ex, double);
+		double *yy = Malloc(n+ex, double);
+		y += k;
+		yy += k;
+		
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			double a = GMRFLib_uniform();
@@ -3795,9 +3799,14 @@ int testit(int argc, char **argv)
 			assert(ISZERO(err));
 		}
 		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P(tref[0]);
+		P(tref[1]);
+		
 
-		int *iy = Calloc(2 * n, int);
-		int *iyy = iy + n;
+		int *iy = Malloc(n+ex, int);
+		int *iyy = Malloc(n+ex, int);
+		iy += k;
+		iyy += k;
 
 		double treff[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
@@ -3820,6 +3829,8 @@ int testit(int argc, char **argv)
 			assert(err == 0);
 		}
 		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
+		P(treff[0]);
+		P(treff[1]);
 	}
 		break;
 
