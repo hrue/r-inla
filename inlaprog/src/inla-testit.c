@@ -3773,11 +3773,11 @@ int testit(int argc, char **argv)
 		P(m);
 		P(k);
 
-		double *y = Malloc(n+ex, double);
-		double *yy = Malloc(n+ex, double);
+		double *y = Malloc(n + ex, double);
+		double *yy = Malloc(n + ex, double);
 		y += k;
 		yy += k;
-		
+
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			double a = GMRFLib_uniform();
@@ -3801,10 +3801,10 @@ int testit(int argc, char **argv)
 		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 		P(tref[0]);
 		P(tref[1]);
-		
 
-		int *iy = Malloc(n+ex, int);
-		int *iyy = Malloc(n+ex, int);
+
+		int *iy = Malloc(n + ex, int);
+		int *iyy = Malloc(n + ex, int);
 		iy += k;
 		iyy += k;
 
@@ -5091,44 +5091,44 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
-		if (m <= 0) m = n;
+		if (m <= 0)
+			m = n;
 		P(n);
 		P(m);
 
-		double tref[2] = {0, 0};
+		double tref[2] = { 0, 0 };
 		double dummy = 0.0;
 		for (int i = 0; i < n; i++) {
 
 			tref[0] -= GMRFLib_timer();
 			double *x = Malloc(m, double);
 			if (1) {
-				x[0] = x[m-1] = 1;
+				x[0] = x[m - 1] = 1;
 			} else {
 #pragma omp simd
 				for (int j = 0; j < m; j++) {
 					x[j] = j;
 				}
 			}
-			dummy += x[0] + x[m-1];
+			dummy += x[0] + x[m - 1];
 			Free(x);
 			tref[0] += GMRFLib_timer();
 			tref[1] -= GMRFLib_timer();
 			double *xx = Calloc(m, double);
 			if (1) {
-				xx[0] = xx[m-1] = 1;
+				xx[0] = xx[m - 1] = 1;
 			} else {
 #pragma omp simd
 				for (int j = 0; j < m; j++) {
-					xx[j] = j; 
+					xx[j] = j;
 				}
 			}
-			dummy += xx[0] + xx[m-1];
+			dummy += xx[0] + xx[m - 1];
 			Free(xx);
 			tref[1] += GMRFLib_timer();
 		}
 		P(dummy);
-		printf("malloc %g calloc %g\n",
-		       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("malloc %g calloc %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 

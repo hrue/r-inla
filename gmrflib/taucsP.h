@@ -14,7 +14,7 @@
 #endif
 
 __BEGIN_DECLS
-
+//
 #define TAUCS_DOUBLE    2048
 #define TAUCS_LOWER      1
 #define TAUCS_UPPER      2
@@ -22,7 +22,6 @@ __BEGIN_DECLS
 #define TAUCS_SYMMETRIC  8
 #define TAUCS_HERMITIAN  16
 #define TAUCS_PATTERN    32
-
 #define taucs_add(x,y) ((x)+(y))
 #define taucs_sub(x,y) ((x)-(y))
 #define taucs_mul(x,y) ((x)*(y))
@@ -31,13 +30,11 @@ __BEGIN_DECLS
 #define taucs_conj(x)  (x)
 #define taucs_abs(x)   (fabs(x))
 #define taucs_sqrt(x)  (sqrt(x))
-
 #define taucs_im(x)   0.0
 #define taucs_re(x)   (x)
 #define taucs_minusone -1.0
 #define taucs_one     1.0
 #define taucs_zero    0.0
-
 extern double taucs_dzero_const;
 extern double taucs_done_const;
 extern double taucs_dminusone_const;
@@ -66,8 +63,8 @@ typedef struct {
 } taucs_ccs_matrix;
 
 typedef struct {
-	int n;	
-	int m;	
+	int n;
+	int m;
 	int flags;
 	int *rowptr;
 	int *colind;
@@ -98,9 +95,9 @@ typedef struct {
 	int *sn_up_size;				       /* size of subdiagonal update blocks */
 	int **sn_struct;				       /* row structure of supernodes */
 	int *sn_blocks_ld;				       /* lda of supernode blocks */
-	double **sn_blocks;			       /* supernode blocks */
+	double **sn_blocks;				       /* supernode blocks */
 	int *up_blocks_ld;				       /* lda of update blocks */
-	double **up_blocks;			       /* update blocks */
+	double **up_blocks;				       /* update blocks */
 } supernodal_factor_matrix;
 
 __END_DECLS

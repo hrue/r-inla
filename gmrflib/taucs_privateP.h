@@ -20,7 +20,7 @@
 #endif
 
 __BEGIN_DECLS
-
+//
 extern double taucs_dtl(zero_const);
 extern double taucs_dtl(one_const);
 
@@ -44,7 +44,7 @@ void taucs_ccs_split(taucs_ccs_matrix * A, taucs_ccs_matrix ** L, taucs_ccs_matr
 taucs_ccs_matrix *taucs_dtl(ccs_permute_symmetrically) (taucs_ccs_matrix * A, int *perm, int *invperm);
 taucs_ccs_matrix *taucs_ccs_permute_symmetrically(taucs_ccs_matrix * A, int *perm, int *invperm);
 
-void taucs_dtl(ccs_times_vec) (taucs_ccs_matrix * m, double * X, double * B);
+void taucs_dtl(ccs_times_vec) (taucs_ccs_matrix * m, double *X, double *B);
 void taucs_ccs_times_vec(taucs_ccs_matrix * m, void *X, void *B);
 
 
@@ -62,9 +62,9 @@ taucs_ccs_matrix *taucs_ccs_factor_ldlt(taucs_ccs_matrix * A);
 taucs_ccs_matrix *taucs_dtl(ccs_factor_xxt) (taucs_ccs_matrix * A);
 
 int taucs_ccs_solve_llt(void *L, void *x, void *b);
-int taucs_dtl(ccs_solve_llt) (void *L, double * x, double * b);
+int taucs_dtl(ccs_solve_llt) (void *L, double *x, double *b);
 int taucs_ccs_solve_ldlt(void *L, void *x, void *b);
-int taucs_dtl(ccs_solve_ldlt) (void *L, double * x, double * b);
+int taucs_dtl(ccs_solve_ldlt) (void *L, double *x, double *b);
 
 taucs_ccs_matrix *taucs_ccs_generate_mesh2d(int n, char *which);
 taucs_ccs_matrix *taucs_ccs_generate_mesh2d_negative(int n);

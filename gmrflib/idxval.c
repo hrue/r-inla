@@ -1245,7 +1245,7 @@ GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp *h)
 int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 {
 	// This function is no longer in use
-	
+
 	// check if any indices are the same, if so return 1, else return 0.
 	// ASSUME IDX1 and IDX2 are SORTED!
 
@@ -1321,7 +1321,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1371,7 +1371,7 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp **hold, int idx, double val)
 		GMRFLib_idxval_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		int m = (*hold)->n_alloc; 
+		int m = (*hold)->n_alloc;
 		int inc = IDX_ALLOC_INCREASE;
 		(*hold)->n_alloc += inc;
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
