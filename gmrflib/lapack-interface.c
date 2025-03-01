@@ -1434,6 +1434,7 @@ void GMRFLib_fill(int n, double a, double *x)
 	if (ISZERO(a)) {
 		memset((void *) x, 0, (size_t) (n * sizeof(double)));
 	} else {
+		// needed
 		if (!GMRFLib_is_aligned((void *) x)) {
 			if (n > 1 && GMRFLib_is_aligned((void *) (x + 1))) {
 				*x = a;
@@ -1468,6 +1469,7 @@ void GMRFLib_ifill(int n, int ia, int *ix)
 	if (ISZERO(ia)) {
 		memset((void *) ix, 0, (size_t) (n * sizeof(int)));
 	} else {
+		// needed?
 		if (!GMRFLib_is_aligned((void *) ix)) {
 			if (n > 1 && GMRFLib_is_aligned((void *) (ix + 1))) {
 				*ix = ia;
