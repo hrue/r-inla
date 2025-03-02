@@ -10,7 +10,7 @@
 #define C_LEN 10
 #define P_MIN 1.0E-12
 #define XI_MIN 1.0E-8
-#define DERIV_H 1.0E-5
+#define DERIV_H 0.5E-4
 #define _log_pfrechet(y_) (-pow(DMAX(0.0, (y_) * l_xi[3] + l_xi[0]), -1.0/xi))
 #define _qfrechet(p_) ((pow(-log(p_), -xi) - l_xi[0]) * l_xi[4])
 
@@ -166,10 +166,10 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 					((inla_log_pgev(arg, xi, l_xi) - inla_log_pgev(arg - DERIV_H, xi, l_xi)) / DERIV_H));
 			} else if (arg - DERIV_H <= c[C_LOW]) {
 				return (inla_pgev(arg, xi, l_xi) *
-					((inla_log_pgev(arg, xi + DERIV_H, l_xi) - inla_log_pgev(arg, xi, l_xi)) / DERIV_H));
+					((inla_log_pgev(arg + DERIV_H, xi, l_xi) - inla_log_pgev(arg, xi, l_xi)) / DERIV_H));
 			} else {
 				return (inla_pgev(arg, xi, l_xi) *
-					((inla_log_pgev(arg, xi + DERIV_H, l_xi) - inla_log_pgev(arg - DERIV_H, xi, l_xi)) / (2.0 * DERIV_H)));
+					((inla_log_pgev(arg + DERIV_H, xi, l_xi) - inla_log_pgev(arg - DERIV_H, xi, l_xi)) / (2.0 * DERIV_H)));
 			}
 
 		case MAP_INCREASING:
@@ -192,10 +192,10 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 					((inla_log_pcgev(arg, xi, l_xi) - inla_log_pcgev(arg - DERIV_H, xi, l_xi)) / DERIV_H));
 			} else if (arg - DERIV_H < c[C_LOW]) {
 				return (inla_pcgev(arg, xi, l_xi) *
-					((inla_log_pcgev(arg, xi + DERIV_H, l_xi) - inla_log_pcgev(arg, xi, l_xi)) / DERIV_H));
+					((inla_log_pcgev(arg + DERIV_H, xi, l_xi) - inla_log_pcgev(arg, xi, l_xi)) / DERIV_H));
 			} else {
 				return (inla_pcgev(arg, xi, l_xi) *
-					((inla_log_pcgev(arg, xi + DERIV_H, l_xi) - inla_log_pcgev(arg - DERIV_H, xi, l_xi)) / (2.0 * DERIV_H)));
+					((inla_log_pcgev(arg + DERIV_H, xi, l_xi) - inla_log_pcgev(arg - DERIV_H, xi, l_xi)) / (2.0 * DERIV_H)));
 			}
 
 		case MAP_INCREASING:
@@ -232,10 +232,11 @@ void link_gev_test(double xi, double intercept)
 	printf("intercept_intern %.12g\n", intercept_intern);
 
 	for (double y = -3.0; y <= 3.0; y += 0.01) {
-		printf("\ty = %.12g pgev = %.12g %.12g cgev = %.12g %.12g\n", y,
-		       link_gev_core(0, y, MAP_FORWARD, (void *) param, 1),
+		printf("\tx = %.12g pgev,deriv = %.12g %.12g cgev,deriv = %.12g %.12g\n", y,
+		       link_gev_core(0, y, MAP_FORWARD, (void *) param, 1), 
 		       link_gev_core(0, y, MAP_DFORWARD, (void *) param, 1),
-		       link_gev_core(0, y, MAP_FORWARD, (void *) param, -1), link_gev_core(0, y, MAP_DFORWARD, (void *) param, -1));
+		       link_gev_core(0, y, MAP_FORWARD, (void *) param, -1),
+		       link_gev_core(0, y, MAP_DFORWARD, (void *) param, -1));
 	}
 }
 
