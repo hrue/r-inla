@@ -9020,7 +9020,7 @@
                         theta2 = list(
                             hyperid = 49032,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "linksnintercept",
@@ -9034,8 +9034,8 @@
                     pdf = "linksn"
                 ),
 
-                gev = list(
-                    doc = "GEV link",
+                gevit = list(
+                    doc = "GEVIT link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49033,
@@ -9051,7 +9051,7 @@
                         theta2 = list(
                             hyperid = 49034,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "normal",
@@ -9060,11 +9060,11 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    pdf = "gev"
+                    pdf = "gevit"
                 ),
 
-                cgev = list(
-                    doc = "Complement GEV link",
+                cgevit = list(
+                    doc = "Complement GEVIT link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49035,
@@ -9080,7 +9080,7 @@
                         theta2 = list(
                             hyperid = 49036,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "normal",
@@ -9089,7 +9089,7 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    pdf = "cgev"
+                    pdf = "gevit"
                 ),
 
                 powerlogit = list(
@@ -9109,7 +9109,7 @@
                         theta2 = list(
                             hyperid = 49132,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "logitbeta",
@@ -10756,7 +10756,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
                              "ccloglog", "loglog", "log", "sslogit", "logitoffset", "quantile",
-                             "pquantile", "robit", "sn", "powerlogit", "gev", "cgev"),
+                             "pquantile", "robit", "sn", "powerlogit", "gevit", "cgevit"),
                     pdf = "binomial"
                 ),
 
@@ -10767,7 +10767,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                             "powerlogit", "gev", "cgev"),
+                             "powerlogit", "gevit", "cgevit"),
                     pdf = "binomial"
                 ),
 

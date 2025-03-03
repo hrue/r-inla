@@ -10894,7 +10894,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{hyperid = }{\verb{49032}}
 \item{name = }{\verb{intercept}}
-\item{short.name = }{\verb{intercept}}
+\item{short.name = }{\verb{p0}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{linksnintercept}}
@@ -10905,12 +10905,12 @@ Number of hyperparmeters is 2.
 }
 }
 }
-\item{Model 'gev'.}{
+\item{Model 'gevit'.}{
 \describe{
 \item{Properties:}{
 \describe{
-\item{doc = }{\verb{GEV link}}
-\item{pdf = }{\verb{gev}}
+\item{doc = }{\verb{GEVIT link}}
+\item{pdf = }{\verb{gevit}}
 }
 }
 }
@@ -10933,7 +10933,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{hyperid = }{\verb{49034}}
 \item{name = }{\verb{intercept}}
-\item{short.name = }{\verb{intercept}}
+\item{short.name = }{\verb{p0}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
@@ -10944,12 +10944,12 @@ Number of hyperparmeters is 2.
 }
 }
 }
-\item{Model 'cgev'.}{
+\item{Model 'cgevit'.}{
 \describe{
 \item{Properties:}{
 \describe{
-\item{doc = }{\verb{Complement GEV link}}
-\item{pdf = }{\verb{cgev}}
+\item{doc = }{\verb{Complement GEVIT link}}
+\item{pdf = }{\verb{gevit}}
 }
 }
 }
@@ -10972,7 +10972,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{hyperid = }{\verb{49036}}
 \item{name = }{\verb{intercept}}
-\item{short.name = }{\verb{intercept}}
+\item{short.name = }{\verb{p0}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
@@ -11011,7 +11011,7 @@ Number of hyperparmeters is 2.
 \describe{
 \item{hyperid = }{\verb{49132}}
 \item{name = }{\verb{intercept}}
-\item{short.name = }{\verb{intercept}}
+\item{short.name = }{\verb{p0}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{logitbeta}}
@@ -13001,7 +13001,7 @@ Number of hyperparmeters is 51.
 \item{doc = }{\verb{The Binomial likelihood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
-\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
+\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
 \item{pdf = }{\verb{binomial}}
 }
 }
@@ -13015,7 +13015,7 @@ Number of hyperparmeters is 0.
 \item{doc = }{\verb{The Binomial likelihood (experimental version)}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
-\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
+\item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
 \item{pdf = }{\verb{binomial}}
 }
 }

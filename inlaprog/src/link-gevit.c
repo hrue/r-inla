@@ -1,6 +1,6 @@
 #include "inla.h"
 #include "rmath.h"
-#include "link-gev.h"
+#include "link-gevit.h"
 
 #define C_XI 5
 #define C_LOW 6

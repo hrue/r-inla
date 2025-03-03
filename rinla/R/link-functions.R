@@ -274,7 +274,7 @@ NULL
 
 #' @rdname link-functions
 #' @export
-`inla.link.gev` = function(x, tail = 0.1, inverse = FALSE) {
+`inla.link.gevit` = function(x, tail = 0.1, inverse = FALSE) {
     if(tail == 0.0) tail <- 1E-08
     stopifnot(abs(tail) <= 0.5)
     if (!inverse) {
@@ -313,24 +313,24 @@ NULL
 
 #' @rdname link-functions
 #' @export
-`inla.link.invgev` = function(x, tail = 0.1, inverse = FALSE) {
-    return (inla.link.gev(x, tail = tail, inverse = !inverse))
+`inla.link.invgevit` = function(x, tail = 0.1, inverse = FALSE) {
+    return (inla.link.gevit(x, tail = tail, inverse = !inverse))
 }
 
 #' @rdname link-functions
 #' @export
-`inla.link.cgev` = function(x, tail = 0.1, inverse = FALSE) {
+`inla.link.cgevit` = function(x, tail = 0.1, inverse = FALSE) {
     if (!inverse) {
-        return (inla.link.gev(1-x, tail = tail, inverse = inverse))
+        return (inla.link.gevit(1-x, tail = tail, inverse = inverse))
     } else {
-        return (1-inla.link.gev(x, tail = tail, inverse = inverse))
+        return (1-inla.link.gevit(x, tail = tail, inverse = inverse))
     }
 }
 
 #' @rdname link-functions
 #' @export
-`inla.link.invcgev` = function(x, tail = 0.1, inverse = FALSE) {
-    return (inla.link.cgev(x, tail = tail, inverse = !inverse))
+`inla.link.invcgevit` = function(x, tail = 0.1, inverse = FALSE) {
+    return (inla.link.cgevit(x, tail = tail, inverse = !inverse))
 }
 
 ## These are the invalid ones

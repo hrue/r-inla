@@ -8419,12 +8419,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_SN;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
-	} else if (!strcasecmp(ds->link_model, "GEV")) {
-		ds->link_id = LINK_GEV;
+	} else if (!strcasecmp(ds->link_model, "GEVIT")) {
+		ds->link_id = LINK_GEVIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_gev;
-	} else if (!strcasecmp(ds->link_model, "CGEV")) {
-		ds->link_id = LINK_CGEV;
+	} else if (!strcasecmp(ds->link_model, "CGEVIT")) {
+		ds->link_id = LINK_CGEVIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_cgev;
 	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
@@ -8952,10 +8952,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case LINK_GEV:
-	case LINK_CGEV:
+	case LINK_GEVIT:
+	case LINK_CGEVIT:
 	{
-		char *name = (ds->link_id == LINK_GEV ? Strdup("gev") : Strdup("cgev"));
+		char *name = (ds->link_id == LINK_GEVIT ? Strdup("gevit") : Strdup("cgevit"));
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
@@ -8998,7 +8998,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			if (ds->link_id == LINK_GEV) {
+			if (ds->link_id == LINK_GEVIT) {
 				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev tail_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev tail", mb->ds);
 			} else {
@@ -9058,12 +9058,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-			if (ds->link_id == LINK_GEV) {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev intercept_intern", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev intercept", mb->ds);
+			if (ds->link_id == LINK_GEVIT) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("gev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("gev p0", mb->ds);
 			} else {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev intercept_intern", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev intercept", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("cgev p0", mb->ds);
 			}
 
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
