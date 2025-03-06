@@ -7709,11 +7709,60 @@ int loglikelihood_gompertz(int thread_id, double *__restrict logll, double *__re
 	return GMRFLib_SUCCESS;
 }
 
+double dgompertz_helper(double y, double a) 
+{
+	double b = y * a;
+	if (ABS(b) < 0.1)  {
+		return y + b / 2.0 * (1.0 + b / 3.0 * (1.0 + b / 4.0 * (1.0 + b / 5.0 * (1.0 + b / 6.0 * (1.0 + b / 7.0 * (1.0 + b / 8.0 * (1.0 + b / 9.0 * (1.0 + b / 10.0))))))));
+	} else {
+		return (exp(b) - 1.0) / a;
+	}
+}
+
+int loglikelihood_dgompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int i;
+	double y, alpha, mu;
+
+	y = ds->data_observations.y[idx];
+	// yes, use the same mapping as weibull
+	alpha = ds->data_observations.alpha_intern[thread_id][0];
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_gompertzsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
 			       void *arg, char **arg_str)
 {
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz, arg_str));
+}
+
+int loglikelihood_dgompertzsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, char **arg_str)
+{
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_dgompertz, arg_str));
 }
 
 int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,

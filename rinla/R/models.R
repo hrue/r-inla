@@ -15769,7 +15769,34 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "gompertz"
-                ) 
+                ),
+
+                dgompertzsurv = list(
+                    doc = "destructive gompertz (survival) distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 107101,
+                            name = "shape",
+                            short.name = "alpha",
+                            output.name.intern = "alpha_intern for dGompertz", 
+                            output.name = "alpha parameter for dGompertz", 
+                            initial = -1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 1),
+                            ## the 'sc' constant is defined in inla.h, and must be the same.
+                            ## I know, this is hard-coded for the moment. Should be a generic
+                            ## way of doing this...
+                            to.theta = function(x, sc = 0.1) x / sc,
+                            from.theta = function(x, sc = 0.1) sc * x
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log", "neglog"),
+                    pdf = "dgompertz"
+                )
             )
     )
 }
