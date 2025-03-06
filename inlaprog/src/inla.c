@@ -72,7 +72,7 @@
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
-#include "link-gev.h"
+#include "link-gevit.h"
 #include "cgeneric.h"
 
 #define PREVIEW (10)
@@ -2663,8 +2663,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
-			case LINK_GEV:
-			case LINK_CGEV:
+			case LINK_GEVIT:
+			case LINK_CGEVIT:
 			{
 				if (!ds->link_fixed[0]) {
 					double tail_intern = theta[count];

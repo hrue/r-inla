@@ -30,8 +30,10 @@
 \alias{inla.link.invqpoisson}
 \alias{inla.link.sn}
 \alias{inla.link.invsn}
-\alias{inla.link.gev}
-\alias{inla.link.invgev}
+\alias{inla.link.gevit}
+\alias{inla.link.invgevit}
+\alias{inla.link.cgevit}
+\alias{inla.link.invcgevit}
 \alias{inla.link.invalid}
 \alias{inla.link.invinvalid}
 \title{Link functions in INLA}
@@ -90,9 +92,13 @@ inla.link.sn(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 
 inla.link.invsn(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 
-inla.link.gev(x, tail = 0.1, inverse = FALSE)
+inla.link.gevit(x, tail = 0.1, inverse = FALSE)
 
-inla.link.invgev(x, tail = 0.1, inverse = FALSE)
+inla.link.invgevit(x, tail = 0.1, inverse = FALSE)
+
+inla.link.cgevit(x, tail = 0.1, inverse = FALSE)
+
+inla.link.invcgevit(x, tail = 0.1, inverse = FALSE)
 
 inla.link.invalid(x, inverse = FALSE)
 

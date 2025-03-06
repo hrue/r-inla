@@ -1,5 +1,5 @@
-#ifndef __INLA_LINK_GEV_H__
-#define __INLA_LINK_GEV_H__
+#ifndef __INLA_LINK_GEVIT_H__
+#define __INLA_LINK_GEVIT_H__
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS

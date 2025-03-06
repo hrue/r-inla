@@ -388,8 +388,8 @@ typedef enum {
 	LINK_LOGa,
 	LINK_POWER_LOGIT,
 	LINK_CCLOGLOG,
-	LINK_GEV,
-	LINK_CGEV,
+	LINK_GEVIT,
+	LINK_CGEVIT,
 	LINK_QEXPPOWER
 } inla_component_tp;
 
