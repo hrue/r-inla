@@ -11608,7 +11608,7 @@
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ),
-                       theta3 = list(
+                        theta3 = list(
                             hyperid = 58202,
                             name = "beta3",
                             short.name = "beta3",
@@ -13092,7 +13092,7 @@
                             short.name = "prec",
                             output.name = "precision for skew-normal observations", 
                             output.name.intern = "log precision for skew-normal observations",
-                             initial = 4,
+                            initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.00005),
@@ -13129,7 +13129,7 @@
                             short.name = "prec",
                             output.name = "precision for GEV observations", 
                             output.name.intern = "log precision for GEV observations", 
-                             initial = 4,
+                            initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.00005),
@@ -14073,7 +14073,7 @@
                             short.name = "prob",
                             output.name = "zero-probability parameter for zero-inflated poisson_0",
                             output.name.intern = "intern zero-probability parameter for zero-inflated poisson_0",
-                             initial = -1,
+                            initial = -1,
                             fixed = FALSE,
                             prior = "gaussian",
                             param = c(-1, 0.2),
@@ -15769,7 +15769,31 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "gompertz"
-                ) 
+                ),
+
+                dgompertzsurv = list(
+                    doc = "destructive gompertz (survival) distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 108101,
+                            name = "shape",
+                            short.name = "alpha",
+                            output.name.intern = "alpha_intern for dGompertz", 
+                            output.name = "alpha parameter for dGompertz", 
+                            initial = -1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log", "neglog"),
+                    pdf = "dgompertz"
+                )
             )
     )
 }

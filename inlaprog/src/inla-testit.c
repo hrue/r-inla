@@ -5132,6 +5132,17 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 162:
+	{
+		double y = atof(args[0]);
+		P(y);
+
+		for(double a = -1.00001; a <= 1.0;  a += 0.0001) {
+			printf("a %.12f expr %.12f series %.12f\n", a, dgompertz_helper(y, a),  (exp(a*y)-1.0)/a);
+		}
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

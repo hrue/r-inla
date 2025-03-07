@@ -2395,6 +2395,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_DGOMPERTZSURV:
+			{
+				if (!ds->data_fixed) {
+					double alpha_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
+					count++;
+				}
+			}
+				break;
+
 			case L_ZEROINFLATEDPOISSON0:
 			case L_ZEROINFLATEDPOISSON1:
 			case L_ZEROINFLATEDCENPOISSON0:

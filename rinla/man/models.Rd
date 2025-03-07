@@ -19137,6 +19137,38 @@ Number of hyperparmeters is 11.
 }
 }
 }
+\item{Model 'dgompertzsurv'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{\verb{destructive gompertz (survival) distribution}}
+\item{experimental = }{\verb{TRUE}}
+\item{survival = }{\verb{TRUE}}
+\item{discrete = }{\verb{FALSE}}
+\item{link = }{\verb{default log neglog}}
+\item{pdf = }{\verb{dgompertz}}
+}
+}
+}
+Number of hyperparmeters is 1.
+\describe{
+\item{Hyperparameter 'theta'}{
+\describe{
+\item{hyperid = }{\verb{108101}}
+\item{name = }{\verb{shape}}
+\item{short.name = }{\verb{alpha}}
+\item{output.name.intern = }{\verb{alpha_intern for dGompertz}}
+\item{output.name = }{\verb{alpha parameter for dGompertz}}
+\item{initial = }{\verb{-1}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 10}}
+\item{to.theta = }{\verb{function(x) x}}
+\item{from.theta = }{\verb{function(x) x}}
+}
+}
+}
+}
 }
 }
 

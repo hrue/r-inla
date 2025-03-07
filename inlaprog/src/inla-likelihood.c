@@ -335,6 +335,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_WEIBULLSURV:
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
+	case L_DGOMPERTZSURV:
 	{
 		ds->data_observations.weight_gaussian = NULL;
 		ds->data_observations.fmri_scale = NULL;
@@ -5844,9 +5845,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -7675,33 +7676,75 @@ int loglikelihood_weibullsurv(int thread_id, double *__restrict logll, double *_
 int loglikelihood_gompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			   void *arg, char **UNUSED(arg_str))
 {
-	/*
-	 * y ~ gompertz
-	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int i;
-	double y, alpha, mu;
 
-	y = ds->data_observations.y[idx];
-	// yes, use the same mapping as weibull
-	alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	double y = ds->data_observations.y[idx];
+	double alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
 			// if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
-		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			// logll[i] = 1.0 - exp(-mu * (exp(alpha * yy) - 1.0) / alpha);
 			logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+double dgompertz_helper(double y, double a)
+{
+	double b = y * a;
+	if (ABS(b) > 0.1) {
+		// target expression
+		return y * (exp(b) - 1.0) / b;
+	} else {
+		// series expansion around a=0
+		//return y * (1.0 + b / 2.0 * (1.0 + b / 3.0 * (1.0 + b / 4.0 * (1.0 + b / 5.0 * 1.0...))))
+
+		double val = 1.0;
+		for(int order = 15; order >= 2; order--) {
+			val = 1.0 + val * b / order;
+		}
+		return y * val;
+	}
+}
+
+int loglikelihood_dgompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double alpha = ds->data_observations.alpha_intern[thread_id][0];
+
+	LINK_INIT;
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			//logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+			logll[i] = log(mu) + alpha * y - mu * dgompertz_helper(y, alpha);
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			//logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+			logll[i] = ONE_mexp(-mu * dgompertz_helper(yy, alpha));
 		}
 	}
 
@@ -7714,6 +7757,13 @@ int loglikelihood_gompertzsurv(int thread_id, double *__restrict logll, double *
 {
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz, arg_str));
+}
+
+int loglikelihood_dgompertzsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				void *arg, char **arg_str)
+{
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_dgompertz, arg_str));
 }
 
 int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
