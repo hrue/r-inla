@@ -79,11 +79,9 @@ inla.pc.dvminf <- function(k, u, alpha, lambda, log = FALSE) {
                               log((I0+I2)/(2*I0)-I1^2/I0^2),
                               -log(2) - 2*log(k) + 1/(2*k) + 5/(8*k^2) + 59/(48*k^3) + 203/(64*k^4) + 12743/(1280*k^5))
     log.jac <- -log(2) - log.distance + log.jac.partial
-    if (log) {
-        return(log.dens.exp + log.jac)
-    } else {
-        return(exp(log.dens.exp) * exp(log.jac))
-    }
+
+    ldens <- log.dens.exp + log.jac
+    return (if (log) ldens else exp(ldens))
 }
 
 #' @rdname pc-vminf

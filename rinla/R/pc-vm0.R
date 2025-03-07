@@ -100,11 +100,8 @@ inla.pc.dvm0 <- function(k, u, alpha, lambda, log = FALSE) {
             log.dens.exp <- dexp(distance, rate = lambda, log = TRUE)
             log.jac <- -log(2) - log(distance) + log.jac.partial
             
-            if (log) {
-                return(log.dens.exp + log.jac)
-            } else {
-                return(exp(log.dens.exp) * exp(log.jac))
-            }
+            ldens <- log.dens.exp + log.jac
+            return (if (log) ldens else exp(ldens))
         }
     }
     f_vec <- Vectorize(f_single)
@@ -151,4 +148,3 @@ inla.pc.pvm0 <- function(q, u, alpha, lambda, log = FALSE) {
     p <- pexp(distance, rate = lambda, log.p = log)
     return(p)
 }
-
