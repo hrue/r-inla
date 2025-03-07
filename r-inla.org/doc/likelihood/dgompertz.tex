@@ -1,0 +1,71 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{ifpdf}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\begin{document}
+\section*{dGompertz}
+
+\subsection*{Parametrisation}
+
+The Gompertz distribution with cure fraction has log ``survial function''
+\begin{displaymath}
+    \log S(y) = -\frac{\mu}{\alpha}\left(\exp(\alpha y) -1\right)
+\end{displaymath}
+for response $y\ge 0$, $\mu>0$. The ``cummulative distribution
+function'' and the ``density'' then follows as
+\begin{displaymath}
+    F(y) = 1 - \exp\left[ -\frac{\mu}{\alpha}\left(\exp(\alpha y)
+        -1\right) \right]
+\end{displaymath}
+and
+\begin{displaymath}
+    f(y) = \mu \exp\left[ \alpha y -\frac{\mu}{\alpha}\left(\exp(\alpha y)
+        -1\right) \right].
+\end{displaymath}
+Note that $\alpha$ is allowed to be negative making to allow for a
+cure fraction, hence $\lim_{y\rightarrow\infty} F(y) < 1$ for
+$\alpha<0$.
+
+\subsection*{Link-function}
+The parameter $\mu$ is linked to the linear predictor $\eta$ as:
+\[
+    \mu = \exp(\eta)
+\]
+
+\subsection*{Hyperparameters}
+
+The shape parameter $\alpha$ is represented as
+\begin{displaymath}
+    \alpha = \theta
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="dgompertzsurv"} for survival models
+\item Required arguments: $y$ (to be given in a format by using
+    $\texttt{inla.surv()}$ for survival models )
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/dgompertzsurv.tex}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+case%%
+\verbatiminput{example-dgompertz.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
