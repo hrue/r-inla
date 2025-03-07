@@ -5143,6 +5143,54 @@ int testit(int argc, char **argv)
 	}
 	break;
 	
+	case 163:
+	{
+		/*
+		  > besselI(x = seq(0.5,2.0,by=0.1), nu = 0, expon.scaled = TRUE)
+
+		  0.6450352704 0.5993272031 0.5593055265 0.5241489419 0.4931629661 0.4657596076 0.4414403775 0.4197820789 0.4004249127
+		  0.3830625154 0.3674336091 0.3533149977 0.3405156880 0.3288719497 0.3182431629 0.3085083226
+		*/		  
+		for(double x = 0.5; x <= 2.0;  x += 0.1) {
+			printf("x %.12f besselI(kappa,nu = 0,expon.scaled = TRUE) %.12f %.12f\n", x,
+			       gsl_sf_bessel_I0_scaled(x), MATHLIB_FUN(bessel_i)(x, 0.0, 2.0));
+		}
+	}
+	break;
+
+	case 164: 
+	{
+
+		for(double x = 1.0; ; x *= 10.0) {
+			printf("x %.12f log(besselI) = %.12f\n", x,  log(gsl_sf_bessel_I0_scaled(x)));
+		}
+	}
+	break;
+
+	case 165: 
+	{
+		/*
+		  > log(besselI(c(1,6),nu=0))
+
+		  0.23591435850717853984 4.20818512507597741745
+
+		  > log(besselI(c(1,6),nu=1))
+
+		  -0.57064798749083123219 4.11646373265194398527
+
+		  > log(besselI(c(1,6),nu=2))
+
+		  -1.9969574859357672736  3.8456074109918989556
+		*/
+		  
+		for(double x = 1.0; x <= 10; x += 5.0) {
+			printf("x %.12f log(besselI0) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(0, x)) + x);
+			printf("x %.12f log(besselI1) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(1, x)) + x);
+			printf("x %.12f log(besselI2) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(2, x)) + x);
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
