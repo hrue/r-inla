@@ -15793,6 +15793,30 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "dgompertz"
+                ),
+
+                vm = list(
+                    doc = "von Mises circular distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 109101,
+                            name = "precision",
+                            short.name = "prec",
+                            output.name.intern = "prec_intern for vm", 
+                            output.name = "precision parameter for vm", 
+                            initial = 2,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x), 
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "circular", "identity"),
+                    pdf = "vm"
                 )
             )
     )

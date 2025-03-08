@@ -94,7 +94,8 @@
                                 "beta",
                                 "obeta", 
                                 "tweedie",
-                                "fmri"))) {
+                                "fmri",
+                                "vm"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }

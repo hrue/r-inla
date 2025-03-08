@@ -5191,6 +5191,17 @@ int testit(int argc, char **argv)
 	}
 	break;
 
+	case 166: 
+	{
+		for(double x = -1.0; x <= 1.0;  x += 0.1) {
+			printf("x = %.12f inv.link = %.12f  link = %.12f  ABS(link(inv.link(x)) - x) = %.12g\n",
+			       x, link_circular(0, x, MAP_FORWARD, NULL, NULL),
+			       link_circular(0, x, MAP_BACKWARD, NULL, NULL),
+			       ABS(link_circular(0, link_circular(0, x, MAP_FORWARD, NULL, NULL), MAP_BACKWARD, NULL, NULL) - x));
+		}
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

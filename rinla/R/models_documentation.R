@@ -19150,6 +19150,38 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'vm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{von Mises circular distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default circular identity}}
+#'               \item{pdf = }{\verb{vm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{109101}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name.intern = }{\verb{prec_intern for vm}}
+#'             \item{output.name = }{\verb{precision parameter for vm}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'      }
 #' @section 'prior':
 #'

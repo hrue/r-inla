@@ -236,6 +236,7 @@ typedef enum {
 	L_EGP,
 	L_OBETA,
 	L_DGOMPERTZSURV,
+	L_VM, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -390,7 +391,8 @@ typedef enum {
 	LINK_CCLOGLOG,
 	LINK_GEVIT,
 	LINK_CGEVIT,
-	LINK_QEXPPOWER
+	LINK_QEXPPOWER,
+	LINK_CIRCULAR
 } inla_component_tp;
 
 typedef enum {
@@ -823,6 +825,10 @@ typedef struct {
 	double **egp_intern_tail;			       /* xi */
 	double **egp_intern_shape;			       /* kappa */
 	double *egp_tail_interval;			       /* interval for the 'xi' */
+
+	// vm
+	double **vm_lprec;
+	double *vm_scale;
 } Data_tp;
 
 typedef struct {
@@ -1871,6 +1877,7 @@ double link_bgev(int thread_id, double x, map_arg_tp typ, void *param, double *c
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_circular(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -2308,6 +2315,7 @@ int loglikelihood_testit3(int thread_id, double *logll, double *x, int m, int id
 int loglikelihood_tpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
 			   char **arg_str);
 int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_vm(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_weibullsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

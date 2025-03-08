@@ -2569,6 +2569,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_FL:
 				break;
 
+			case L_VM:
+			{
+				if (!ds->data_fixed) {
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			}
+				break;
+
+
 			default:
 				break;
 			}
