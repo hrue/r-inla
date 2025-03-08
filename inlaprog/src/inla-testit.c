@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(INLA_WITH_TESTIT)
+
 int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
 			 void *UNUSED(arg), char **UNUSED(arg_str))
 {
@@ -102,7 +104,9 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 {
 	return (i == j ? 100.0 : -1.0);
 }
+#endif
 
+#if defined(INLA_WITH_TESTIT)
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -5216,3 +5220,15 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
+
+#else
+
+int testit(int UNUSED(argc), char **UNUSED(argv)) 
+{
+	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
+	return 0;
+}
+
+#endif
+
+
