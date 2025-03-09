@@ -160,9 +160,21 @@
 /* ------------------------------------------------------------------------- */
 /* integer type for AMD: int or UF_long */
 /* ------------------------------------------------------------------------- */
-
 /* define UF_long */
-#include "UFconfig.h"
+//#include "UFconfig.h"
+#ifndef UF_long
+#ifdef _WIN64
+#define UF_long __int64
+#define UF_long_max _I64_MAX
+#define UF_long_idd "I64d"
+#else
+#define UF_long long
+#define UF_long_max LONG_MAX
+#define UF_long_idd "ld"
+#endif
+#define UF_long_id "%" UF_long_idd
+#endif
+
 
 #if defined (DLONG) || defined (ZLONG)
 
