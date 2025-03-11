@@ -15,8 +15,8 @@ export INLA_MAC_PORT=3333
 export INLA_MAC_ARM64=${INLA_MAC_ARM64-"rueh@kw-18302.kaust.edu.sa"}
 export INLA_MAC_ARM64_PORT=${INLA_MAC_ARM64_PORT-"22"}
 
-export INLA_MAC=rueh@localhost
-export INLA_MAC_PORT=4444
+export INLA_MAC_ARM64=rueh@localhost
+export INLA_MAC_ARM64_PORT=4444
 
 export INLA_LINUX=hrue@localhost
 export INLA_LINUX_PORT=2222
