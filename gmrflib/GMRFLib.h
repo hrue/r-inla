@@ -78,7 +78,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/dot.h"
 #include "GMRFLib/timer.h"
 #include "GMRFLib/io.h"
-#include "GMRFLib/taucs.h"
+#include "GMRFLib/taucsP.h"
 #include "GMRFLib/random.h"
 #include "GMRFLib/graph.h"
 #include "GMRFLib/seasonal.h"

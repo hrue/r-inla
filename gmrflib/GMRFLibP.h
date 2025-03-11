@@ -96,7 +96,7 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 #if 1
 #define DMAX(a_, b_) fmax(a_, b_)
 #define DMIN(a_, b_) fmin(a_, b_)
-#else							       // if 1
+#else
 #pragma omp declare simd
 static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
 	return ((a) > (b) ? (a) : (b));
@@ -106,7 +106,7 @@ static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
 static double POSSIBLY_UNUSED_FUNCTION(DMIN) (double a, double b) {
 	return ((a) < (b) ? (a) : (b));
 }
-#endif							       // if 1
+#endif
 
 #pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
@@ -376,6 +376,16 @@ typedef enum {
 	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int); \
 	assert(icalloc_work_)
 
+#define Malloc_init(n_, m_)						\
+	size_t malloc_m_ = (m_);					\
+	size_t malloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_ND;		\
+	size_t malloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
+	size_t malloc_len_ = (size_t)((n_) + malloc_m_ * malloc_mem_align_ * malloc_l1_cacheline_); \
+	size_t malloc_offset_ = 0;					\
+	size_t malloc_m_count_ = 0;					\
+	double *malloc_work_ = Malloc(IMAX(1, malloc_len_), double);	\
+	assert(malloc_work_)
+
 #define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
 	calloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
@@ -388,6 +398,12 @@ typedef enum {
 	icalloc_m_count_++;						\
 	iCalloc_check()
 
+#define Malloc_get(_n)							\
+	malloc_work_ + malloc_offset_;					\
+	malloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
+	malloc_m_count_++;						\
+	Malloc_check()
+
 #define Calloc_check()							\
 	if (!(calloc_offset_ <= calloc_len_)) { P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_); \
 	if (!(calloc_m_count_ <= calloc_m_)) { P(calloc_m_); P(calloc_m_count_); }; assert(calloc_m_count_ <= calloc_m_)
@@ -396,8 +412,13 @@ typedef enum {
 	if (!(icalloc_offset_ <= icalloc_len_)) { P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_); \
 	if (!(icalloc_m_count_ <= icalloc_m_)) { P(icalloc_m_); P(icalloc_m_count_); }; assert(icalloc_m_count_ <= icalloc_m_)
 
+#define Malloc_check()							\
+	if (!(malloc_offset_ <= malloc_len_)) { P(malloc_offset_); P(malloc_len_); }; assert(malloc_offset_ <= malloc_len_); \
+	if (!(malloc_m_count_ <= malloc_m_)) { P(malloc_m_); P(malloc_m_count_); }; assert(malloc_m_count_ <= malloc_m_)
+
 #define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_);}
 #define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
+#define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_);}
 
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
@@ -794,6 +815,9 @@ typedef enum {
 #endif
 #endif
 #endif
+
+#define __GMRFLib_symbol_to_string(x_) __GMRFLib_symbol_to_string2(x_)
+#define __GMRFLib_symbol_to_string2(x_) #x_
 
 
 __END_DECLS

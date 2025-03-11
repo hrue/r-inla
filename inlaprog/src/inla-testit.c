@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(INLA_WITH_TESTIT)
+
 int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
 			 void *UNUSED(arg), char **UNUSED(arg_str))
 {
@@ -102,7 +104,9 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 {
 	return (i == j ? 100.0 : -1.0);
 }
+#endif
 
+#if defined(INLA_WITH_TESTIT)
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -1117,8 +1121,10 @@ int testit(int argc, char **argv)
 			y = GMRFLib_uniform();
 
 			printf("a %f b %f y %f", a, b, y);
-			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 1));
-			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta) (y, a, b, 0, 1));
+			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 0));
+			printf("  GSL pbeta %f ", gsl_cdf_beta_P(y, a, b));
+			printf("  1-pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 0, 0));
+			printf("  GSL qbeta %f\n", gsl_cdf_beta_Q(y, a, b));
 		}
 	}
 		break;
@@ -3765,12 +3771,16 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
-
+		int k = atoi(args[2]);
+		int ex = 4;
 		P(n);
 		P(m);
+		P(k);
 
-		double *y = Calloc(2 * n, double);
-		double *yy = y + n;
+		double *y = Malloc(n + ex, double);
+		double *yy = Malloc(n + ex, double);
+		y += k;
+		yy += k;
 
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
@@ -3793,9 +3803,14 @@ int testit(int argc, char **argv)
 			assert(ISZERO(err));
 		}
 		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P(tref[0]);
+		P(tref[1]);
 
-		int *iy = Calloc(2 * n, int);
-		int *iyy = iy + n;
+
+		int *iy = Malloc(n + ex, int);
+		int *iyy = Malloc(n + ex, int);
+		iy += k;
+		iyy += k;
 
 		double treff[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
@@ -3818,6 +3833,8 @@ int testit(int argc, char **argv)
 			assert(err == 0);
 		}
 		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
+		P(treff[0]);
+		P(treff[1]);
 	}
 		break;
 
@@ -5074,6 +5091,121 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 161:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		if (m <= 0)
+			m = n;
+		P(n);
+		P(m);
+
+		double tref[2] = { 0, 0 };
+		double dummy = 0.0;
+		for (int i = 0; i < n; i++) {
+
+			tref[0] -= GMRFLib_timer();
+			double *x = Malloc(m, double);
+			if (1) {
+				x[0] = x[m - 1] = 1;
+			} else {
+#pragma omp simd
+				for (int j = 0; j < m; j++) {
+					x[j] = j;
+				}
+			}
+			dummy += x[0] + x[m - 1];
+			Free(x);
+			tref[0] += GMRFLib_timer();
+			tref[1] -= GMRFLib_timer();
+			double *xx = Calloc(m, double);
+			if (1) {
+				xx[0] = xx[m - 1] = 1;
+			} else {
+#pragma omp simd
+				for (int j = 0; j < m; j++) {
+					xx[j] = j;
+				}
+			}
+			dummy += xx[0] + xx[m - 1];
+			Free(xx);
+			tref[1] += GMRFLib_timer();
+		}
+		P(dummy);
+		printf("malloc %g calloc %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 162:
+	{
+		double y = atof(args[0]);
+		P(y);
+
+		for(double a = -1.00001; a <= 1.0;  a += 0.0001) {
+			printf("a %.12f expr %.12f series %.12f\n", a, dgompertz_helper(y, a),  (exp(a*y)-1.0)/a);
+		}
+	}
+	break;
+	
+	case 163:
+	{
+		/*
+		  > besselI(x = seq(0.5,2.0,by=0.1), nu = 0, expon.scaled = TRUE)
+
+		  0.6450352704 0.5993272031 0.5593055265 0.5241489419 0.4931629661 0.4657596076 0.4414403775 0.4197820789 0.4004249127
+		  0.3830625154 0.3674336091 0.3533149977 0.3405156880 0.3288719497 0.3182431629 0.3085083226
+		*/		  
+		for(double x = 0.5; x <= 2.0;  x += 0.1) {
+			printf("x %.12f besselI(kappa,nu = 0,expon.scaled = TRUE) %.12f %.12f\n", x,
+			       gsl_sf_bessel_I0_scaled(x), MATHLIB_FUN(bessel_i)(x, 0.0, 2.0));
+		}
+	}
+	break;
+
+	case 164: 
+	{
+
+		for(double x = 1.0; ; x *= 10.0) {
+			printf("x %.12f log(besselI) = %.12f\n", x,  log(gsl_sf_bessel_I0_scaled(x)));
+		}
+	}
+	break;
+
+	case 165: 
+	{
+		/*
+		  > log(besselI(c(1,6),nu=0))
+
+		  0.23591435850717853984 4.20818512507597741745
+
+		  > log(besselI(c(1,6),nu=1))
+
+		  -0.57064798749083123219 4.11646373265194398527
+
+		  > log(besselI(c(1,6),nu=2))
+
+		  -1.9969574859357672736  3.8456074109918989556
+		*/
+		  
+		for(double x = 1.0; x <= 10; x += 5.0) {
+			printf("x %.12f log(besselI0) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(0, x)) + x);
+			printf("x %.12f log(besselI1) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(1, x)) + x);
+			printf("x %.12f log(besselI2) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(2, x)) + x);
+		}
+	}
+	break;
+
+	case 166: 
+	{
+		for(double x = -1.0; x <= 1.0;  x += 0.1) {
+			printf("x = %.12f inv.link = %.12f  link = %.12f  ABS(link(inv.link(x)) - x) = %.12g\n",
+			       x, link_circular(0, x, MAP_FORWARD, NULL, NULL),
+			       link_circular(0, x, MAP_BACKWARD, NULL, NULL),
+			       ABS(link_circular(0, link_circular(0, x, MAP_FORWARD, NULL, NULL), MAP_BACKWARD, NULL, NULL) - x));
+		}
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -5088,3 +5220,13 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
+
+#else
+
+int testit(int UNUSED(argc), char **UNUSED(argv)) 
+{
+	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
+	return 0;
+}
+
+#endif

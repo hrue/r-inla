@@ -159,6 +159,8 @@ Collate:
     'pc-prec.R'
     'pc-sn.R'
     'pc-t.R'
+    'pc-vm0.R'
+    'pc-vminf.R'
     'pin.R'
     'plot.R'
     'posterior.sample.R'

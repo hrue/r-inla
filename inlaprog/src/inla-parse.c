@@ -182,7 +182,7 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		tmp = inla_read_lineno(GMRFLib_model_idx, tmp);
 		tmp = dictionary_replace_variables(mb->ini, tmp);
 		if (mb->verbose) {
-			printf("\t\tRead mode from line %1d of %1d [%s]\n",  GMRFLib_model_idx, GMRFLib_model_n, tmp);
+			printf("\t\tRead mode from line %1d of %1d [%s]\n", GMRFLib_model_idx, GMRFLib_model_n, tmp);
 		}
 	}
 
@@ -1062,6 +1062,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GOMPERTZSURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gompertzsurv;
 		ds->data_id = L_GOMPERTZSURV;
+	} else if (!strcasecmp(ds->data_likelihood, "DGOMPERTZSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_dgompertzsurv;
+		ds->data_id = L_DGOMPERTZSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
@@ -1111,6 +1114,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_occupancy;
 		ds->data_id = L_OCCUPANCY;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "VM")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_vm;
+		ds->data_id = L_VM;
+		discrete_data = 0;
 	} else {
 		FIXME("FOUND");
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
@@ -2054,7 +2061,20 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-
+	case L_VM:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.vm_scale[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: VM scale[%1d] = %g is void\n", secname, i,
+							ds->data_observations.vm_scale[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+	break;
+	
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
 	case L_MGAMMASURV:
@@ -2065,6 +2085,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case L_LOGNORMALSURV:
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
+	case L_DGOMPERTZSURV:
 	{
 		switch (ds->data_id) {
 		case L_WEIBULLSURV:
@@ -2086,6 +2107,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 			break;
 		}
+		break;
+
 		default:
 			break;
 		}
@@ -7493,6 +7516,54 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+
+	case L_DGOMPERTZSURV:
+	{
+		double initial_value = 0.0;
+
+		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
+		}
+		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for dGompertz-surv", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for dGompertz-surv", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+		break;
+
 	case L_POISSON_SPECIAL1:
 	{
 		double initial_value = -1.0;
@@ -8338,6 +8409,50 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case L_VM:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
+		}
+		HYPER_NEW(ds->data_observations.vm_lprec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.vm_lprec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for von von Mises observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for von Mises observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.vm_lprec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+		break;
+
 	default:
 		/*
 		 * nothing to do 
@@ -8419,18 +8534,22 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_SN;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
-	} else if (!strcasecmp(ds->link_model, "GEV")) {
-		ds->link_id = LINK_GEV;
+	} else if (!strcasecmp(ds->link_model, "GEVIT")) {
+		ds->link_id = LINK_GEVIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_gev;
-	} else if (!strcasecmp(ds->link_model, "CGEV")) {
-		ds->link_id = LINK_CGEV;
+	} else if (!strcasecmp(ds->link_model, "CGEVIT")) {
+		ds->link_id = LINK_CGEVIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_cgev;
 	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
 		ds->link_id = LINK_POWER_LOGIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_power_logit;
+	} else if (!strcasecmp(ds->link_model, "CIRCULAR")) {
+		ds->link_id = LINK_CIRCULAR;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_circular;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -8602,6 +8721,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
+	case LINK_CIRCULAR:
 		break;
 
 	case LINK_LOGa:
@@ -8612,7 +8732,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_QPOISSON:
 	{
@@ -8623,7 +8743,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_QBINOMIAL:
 	{
@@ -8635,7 +8755,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_QWEIBULL:
 	{
@@ -8648,7 +8768,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_QGAMMA:
 	{
@@ -8661,7 +8781,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_QEXPPOWER:
 	{
@@ -8675,7 +8795,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-		break;
+	break;
 
 	case LINK_SSLOGIT:
 	{
@@ -8772,7 +8892,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_ROBIT:
 	{
@@ -8831,7 +8951,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_SN:
 	{
@@ -8950,12 +9070,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
-	case LINK_GEV:
-	case LINK_CGEV:
+	case LINK_GEVIT:
+	case LINK_CGEVIT:
 	{
-		char *name = (ds->link_id == LINK_GEV ? Strdup("gev") : Strdup("cgev"));
+		char *name = (ds->link_id == LINK_GEVIT ? Strdup("gevit") : Strdup("cgevit"));
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
@@ -8998,7 +9118,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			if (ds->link_id == LINK_GEV) {
+			if (ds->link_id == LINK_GEVIT) {
 				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev tail_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev tail", mb->ds);
 			} else {
@@ -9058,12 +9178,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-			if (ds->link_id == LINK_GEV) {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Link gev intercept_intern", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link gev intercept", mb->ds);
+			if (ds->link_id == LINK_GEVIT) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("gev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("gev p0", mb->ds);
 			} else {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Link cgev intercept_intern", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link cgev intercept", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev intercept_intern", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("cgev p0", mb->ds);
 			}
 
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
@@ -9083,7 +9203,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_POWER_LOGIT:
 	{
@@ -9197,7 +9317,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_LOGOFFSET:
 	{
@@ -9256,7 +9376,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_LOGITOFFSET:
 	{
@@ -9315,7 +9435,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_TEST1:
 	{
@@ -9373,7 +9493,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_SPECIAL2:
 	{
@@ -9431,7 +9551,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_SPECIAL1:
 	{
@@ -9599,13 +9719,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(EXIT_FAILURE);
 		}
 	}
-		break;
+	break;
 
 	default:
 	{
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-		break;
+	break;
 	}
 
 	/*
@@ -9767,6 +9887,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->loglikelihood = (ds->mix_id == MIX_LOGGAMMA ? loglikelihood_mix_loggamma : loglikelihood_mix_mloggamma);
 		}
 			break;
+
 
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);

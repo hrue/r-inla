@@ -94,7 +94,8 @@
                                 "beta",
                                 "obeta", 
                                 "tweedie",
-                                "fmri"))) {
+                                "fmri",
+                                "vm"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -355,7 +356,8 @@
 
     } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", 
                                      "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
-                                     "gammasurv", "mgammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
+                                     "gammasurv", "mgammasurv", "gammajwsurv", "fmrisurv",
+                                     "gompertzsurv", "dgompertzsurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
             my.stop("This should not happen.")
         }

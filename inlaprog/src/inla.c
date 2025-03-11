@@ -1,5 +1,5 @@
-#ifndef GITCOMMIT
-#define GITCOMMIT "devel"
+#if !defined(GITCOMMIT)
+#define GITCOMMIT devel
 #endif
 
 #if !defined(_GNU_SOURCE)
@@ -72,7 +72,7 @@
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
-#include "link-gev.h"
+#include "link-gevit.h"
 #include "cgeneric.h"
 
 #define PREVIEW (10)
@@ -2395,6 +2395,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_DGOMPERTZSURV:
+			{
+				if (!ds->data_fixed) {
+					double alpha_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
+					count++;
+				}
+			}
+				break;
+
 			case L_ZEROINFLATEDPOISSON0:
 			case L_ZEROINFLATEDPOISSON1:
 			case L_ZEROINFLATEDCENPOISSON0:
@@ -2559,6 +2569,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_FL:
 				break;
 
+			case L_VM:
+			{
+				if (!ds->data_fixed) {
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			}
+				break;
+
+
 			default:
 				break;
 			}
@@ -2653,8 +2674,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
-			case LINK_GEV:
-			case LINK_CGEV:
+			case LINK_GEVIT:
+			case LINK_CGEVIT:
 			{
 				if (!ds->link_fixed[0]) {
 					double tail_intern = theta[count];
@@ -6696,7 +6717,7 @@ int main(int argc, char **argv)
 	 */
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
-			printf("INLA[%s] IS ALIVE\n", GITCOMMIT);
+			printf("INLA[%s] IS ALIVE\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -6729,8 +6750,7 @@ int main(int argc, char **argv)
 
 		case 'V':
 		{
-			printf("This program has version:\n\t%s\nand is linked with ", GITCOMMIT);
-			GMRFLib_version(stdout);
+			printf("This program has version: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 			_BUGS;
 			exit(EXIT_SUCCESS);
 		}
@@ -7109,7 +7129,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", GITCOMMIT);
+		fprintf(stdout, "\nVersion [%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);

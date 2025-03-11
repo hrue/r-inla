@@ -257,7 +257,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	// build up structure for the likelihood part
 
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
-	A_idxval = GMRFLib_idxval_ncreate_x(npred, IMAX(1, nf + nbeta), nt);
+	A_idxval = GMRFLib_idxval_ncreate_x(npred, IMAX(1, nf + nbeta), nt, 1);
 
 	if (debug) {
 		printf("\t\tmax_threads_outer %1d\n", GMRFLib_openmp->max_threads_outer);
@@ -267,7 +267,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	GMRFLib_idxval_tp **ivs = Calloc(nt, GMRFLib_idxval_tp *);
-	ivs = GMRFLib_idxval_ncreate_x(nt, nbeta + nf, nt);
+	ivs = GMRFLib_idxval_ncreate_x(nt, nbeta + nf, nt, 1);
 
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < npred; i++) {
@@ -346,7 +346,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("A_idxval - matrix");
 
 	// need also At_.. below, if (pA)
-	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt);
+	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt, 1);
 	if (0) {
 		// OLD code
 		for (int i = 0; i < npred; i++) {
@@ -491,7 +491,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			Free(crow);
 		}
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
-		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
+		pAA_idxval = GMRFLib_idxval_ncreate_x(nrow, -1, nt, 1);
 
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nrow; i++) {
@@ -747,22 +747,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	SHOW_TIME("graph-union");
 
-#if !defined(WINDOWS)
-	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {
-		static int count = 0;
-		char *homedir = getenv("HOME");
-		if (!homedir) {
-			homedir = getpwuid(getuid())->pw_dir;
+	static int write_graph = -1;
+	if (write_graph < 0) {
+#pragma omp critical (Name_31e81e1b3b565490a6c6d611d9de4707f32faca3)
+		if (write_graph < 0) {
+			int res = (getenv("INLA_INTERNAL_DUMP_GRAPH") ? 1 : 0);
+			write_graph = res;
 		}
-		if (!homedir) {
-			homedir = Strdup("./");
-		}
-		char *fnm = NULL;
-		GMRFLib_sprintf(&fnm, "%s/INLA-graph-pid%1d-count%1d.txt", homedir, (int) getpid(), ++count);
-		GMRFLib_graph_write(fnm, (*preopt)->preopt_graph);
-		fprintf(stderr, "\n\t*** write graph to file [%s]\n", fnm);
 	}
-#endif
+
+	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {
+		char *filename = NULL;
+		GMRFLib_sprintf(&filename, "./inla_graph_XXXXXX");
+		int fd = mkstemp(filename);
+		close(fd);
+		GMRFLib_graph_write(filename, (*preopt)->preopt_graph);
+		fprintf(stderr, "\n\t*** write graph to file [%s]\n", filename);
+	}
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;

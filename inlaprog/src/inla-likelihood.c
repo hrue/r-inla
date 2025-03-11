@@ -335,6 +335,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_WEIBULLSURV:
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
+	case L_DGOMPERTZSURV:
 	{
 		ds->data_observations.weight_gaussian = NULL;
 		ds->data_observations.fmri_scale = NULL;
@@ -581,6 +582,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		for (i = 0; i < na; i++) {
 			a[i] = Calloc(mb->predictor_ndata, double);
 		}
+	}
+		break;
+
+	case L_VM:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.vm_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -1028,9 +1036,9 @@ int loglikelihood_exppower(int thread_id, double *__restrict logll, double *__re
 
 	lcache_t *lc = llcache[cidx];
 	if (lc->beta != beta) {
-		lc->beta = beta;
 		lc->lgamma1 = my_gsl_sf_lngamma(1.0 / beta);
 		lc->lgamma3 = my_gsl_sf_lngamma(3.0 / beta);
+		lc->beta = beta;
 	}
 	double alpha = sigma * exp(0.5 * (lc->lgamma1 - lc->lgamma3));
 	double ialpha = 1.0 / alpha;
@@ -6757,7 +6765,7 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 	double y = ds->data_observations.y[idx];
 	double w = ds->data_observations.beta_weight[idx];
 	double phi = map_exp_forward(ds->data_observations.beta_precision_intern[thread_id][0], MAP_FORWARD, NULL) * w;
-	double a, b, mu, lbeta;
+	double a, b, mu, llbeta;
 	double censor_value = ds->data_observations.beta_censor_value;
 	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
 
@@ -6767,25 +6775,23 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 			mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			a = mu * phi;
 			b = -mu * phi + phi;
-			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb,
-			// 1)'. If y is close to 1 then 'a'
-			// is
-			// tiny, do similarly
+			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is
+			// close to 1 then 'a' is tiny, do similarly
 			if (DMIN(a, b) < INLA_REAL_SMALL) {
-				lbeta = -log(DMIN(a, b));
+				llbeta = -log(DMIN(a, b));
 			} else {
-				lbeta = gsl_sf_lnbeta(a, b);
+				llbeta = MATHLIB_FUN(lbeta) (a, b);
 			}
 
 			if (no_censoring) {
 				// in most cases, we'll be here
-				logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
+				logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
 			} else {
 				// if we have censoring, we have to be more careful
 				if (y <= censor_value) {
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 1);
 				} else if (y < 1.0 - censor_value) {
-					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
+					logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
 				} else {
 					logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 				}
@@ -6798,13 +6804,13 @@ int loglikelihood_beta(int thread_id, double *__restrict logll, double *__restri
 			a = mu * phi;
 			b = -mu * phi + phi;
 			if (no_censoring) {
-				logll[i] = gsl_cdf_beta_P(yy, a, b);
+				logll[i] = MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 			} else {
 				if (yy <= censor_value) {
 					// use the expected prob instead
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 0) / 2.0;
 				} else if (yy < 1.0 - censor_value) {
-					logll[i] = gsl_cdf_beta_P(yy, a, b);
+					logll[i] = MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 				} else {
 					// ... and also here
 					logll[i] = 1.0 - MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 0) / 2.0;
@@ -6853,8 +6859,8 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
 				double a = mu * phi;
 				double b = -mu * phi + phi;
-				double lbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : gsl_sf_lnbeta(a, b));
-				logll[i] = log(low - high) - lbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+				double llbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
+				logll[i] = log(low - high) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 			}
 		}
 	} else {
@@ -6873,7 +6879,7 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
 				double a = mu * phi;
 				double b = -mu * phi + phi;
-				logll[i] = (1.0 - low) + (low - high) * gsl_cdf_beta_P(yy, a, b);
+				logll[i] = (1.0 - low) + (low - high) * MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
 			}
 		}
 	}
@@ -6958,7 +6964,7 @@ int loglikelihood_betabinomial(int thread_id, double *__restrict logll, double *
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				printf("\n*** Warning ***  Version [%s]", GITCOMMIT);
+				printf("\n*** Warning ***  Version [%s]", __GMRFLib_symbol_to_string(GITCOMMIT));
 				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
@@ -7677,33 +7683,75 @@ int loglikelihood_weibullsurv(int thread_id, double *__restrict logll, double *_
 int loglikelihood_gompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			   void *arg, char **UNUSED(arg_str))
 {
-	/*
-	 * y ~ gompertz
-	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int i;
-	double y, alpha, mu;
 
-	y = ds->data_observations.y[idx];
-	// yes, use the same mapping as weibull
-	alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
+	double y = ds->data_observations.y[idx];
+	double alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
 			// if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
-		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			// logll[i] = 1.0 - exp(-mu * (exp(alpha * yy) - 1.0) / alpha);
 			logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+double dgompertz_helper(double y, double a)
+{
+	double b = y * a;
+	if (ABS(b) > 0.1) {
+		// target expression
+		return y * (exp(b) - 1.0) / b;
+	} else {
+		// series expansion around a=0
+		//return y * (1.0 + b / 2.0 * (1.0 + b / 3.0 * (1.0 + b / 4.0 * (1.0 + b / 5.0 * 1.0...))))
+
+		double val = 1.0;
+		for(int order = 15; order >= 2; order--) {
+			val = 1.0 + val * b / order;
+		}
+		return y * val;
+	}
+}
+
+int loglikelihood_dgompertz(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double alpha = ds->data_observations.alpha_intern[thread_id][0];
+
+	LINK_INIT;
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			//logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+			logll[i] = log(mu) + alpha * y - mu * dgompertz_helper(y, alpha);
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			//logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+			logll[i] = ONE_mexp(-mu * dgompertz_helper(yy, alpha));
 		}
 	}
 
@@ -7716,6 +7764,13 @@ int loglikelihood_gompertzsurv(int thread_id, double *__restrict logll, double *
 {
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz, arg_str));
+}
+
+int loglikelihood_dgompertzsurv(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+				void *arg, char **arg_str)
+{
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_dgompertz, arg_str));
 }
 
 int loglikelihood_loglogistic(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
@@ -7926,6 +7981,65 @@ int loglikelihood_fmri(int thread_id, double *__restrict logll, double *__restri
 		}
 
 	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_vm(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
+		     void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double s = ds->data_observations.vm_scale[idx]; 
+	double lprec = ds->data_observations.vm_lprec[thread_id][0] + log(s);
+	double prec = map_precision_forward(lprec, NULL, NULL);
+
+	LINK_INIT;
+
+	typedef struct {
+		double lprec;
+		double c;
+	} lcache_t;
+
+	static lcache_t **llcache = NULL;
+	if (!llcache) {
+#pragma omp critical (Name_9a792f43e082023e6a38905564adf8598082df7f)
+		if (!llcache) {
+			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+		}
+	}
+
+	int cidx = 0;
+	GMRFLib_CACHE_SET_ID(cidx);
+	if (!llcache[cidx]) {
+#pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
+		if (!llcache[cidx]) {
+			llcache[cidx] = Calloc(1, lcache_t);
+		}
+	}
+
+	lcache_t *lc = llcache[cidx];
+	if (lc->lprec != lprec) {
+		lc->c = - (1.8378770664093453391 + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
+		lc->lprec = lprec;
+	}
+
+#define PREDICTOR_INVERSE_LINK_XX(yy_, xx_, off_)			\
+	ds->predictor_invlinkfunc(thread_id, yy_ - (off_ + _lp_scale * (xx_)), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+	
+	if (m > 0) {
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			logll[i] = lc->c + prec * cos(y - mu);
+		}
+	} else {
+		GMRFLib_fill(-m, 0.0, logll);
+	}
+#undef PREDICTOR_INVERSE_LINK_XX
 
 	LINK_END;
 	return GMRFLib_SUCCESS;

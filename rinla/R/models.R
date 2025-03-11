@@ -9020,7 +9020,7 @@
                         theta2 = list(
                             hyperid = 49032,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "linksnintercept",
@@ -9034,8 +9034,8 @@
                     pdf = "linksn"
                 ),
 
-                gev = list(
-                    doc = "GEV link",
+                gevit = list(
+                    doc = "GEVIT link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49033,
@@ -9051,7 +9051,7 @@
                         theta2 = list(
                             hyperid = 49034,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "normal",
@@ -9060,11 +9060,11 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    pdf = "gev"
+                    pdf = "gevit"
                 ),
 
-                cgev = list(
-                    doc = "Complement GEV link",
+                cgevit = list(
+                    doc = "Complement GEVIT link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49035,
@@ -9080,7 +9080,7 @@
                         theta2 = list(
                             hyperid = 49036,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "normal",
@@ -9089,7 +9089,7 @@
                             from.theta = function(x) 1 / (1 + exp(-x))
                         )
                     ),
-                    pdf = "cgev"
+                    pdf = "gevit"
                 ),
 
                 powerlogit = list(
@@ -9109,7 +9109,7 @@
                         theta2 = list(
                             hyperid = 49132,
                             name = "intercept",
-                            short.name = "intercept",
+                            short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
                             prior = "logitbeta",
@@ -10756,7 +10756,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog",
                              "ccloglog", "loglog", "log", "sslogit", "logitoffset", "quantile",
-                             "pquantile", "robit", "sn", "powerlogit", "gev", "cgev"),
+                             "pquantile", "robit", "sn", "powerlogit", "gevit", "cgevit"),
                     pdf = "binomial"
                 ),
 
@@ -10767,7 +10767,7 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog",
                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                             "powerlogit", "gev", "cgev"),
+                             "powerlogit", "gevit", "cgevit"),
                     pdf = "binomial"
                 ),
 
@@ -11608,7 +11608,7 @@
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ),
-                       theta3 = list(
+                        theta3 = list(
                             hyperid = 58202,
                             name = "beta3",
                             short.name = "beta3",
@@ -13092,7 +13092,7 @@
                             short.name = "prec",
                             output.name = "precision for skew-normal observations", 
                             output.name.intern = "log precision for skew-normal observations",
-                             initial = 4,
+                            initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.00005),
@@ -13129,7 +13129,7 @@
                             short.name = "prec",
                             output.name = "precision for GEV observations", 
                             output.name.intern = "log precision for GEV observations", 
-                             initial = 4,
+                            initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.00005),
@@ -14073,7 +14073,7 @@
                             short.name = "prob",
                             output.name = "zero-probability parameter for zero-inflated poisson_0",
                             output.name.intern = "intern zero-probability parameter for zero-inflated poisson_0",
-                             initial = -1,
+                            initial = -1,
                             fixed = FALSE,
                             prior = "gaussian",
                             param = c(-1, 0.2),
@@ -15769,7 +15769,55 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "gompertz"
-                ) 
+                ),
+
+                dgompertzsurv = list(
+                    doc = "destructive gompertz (survival) distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 108101,
+                            name = "shape",
+                            short.name = "alpha",
+                            output.name.intern = "alpha_intern for dGompertz", 
+                            output.name = "alpha parameter for dGompertz", 
+                            initial = -1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log", "neglog"),
+                    pdf = "dgompertz"
+                ),
+
+                vm = list(
+                    doc = "von Mises circular distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 109101,
+                            name = "precision",
+                            short.name = "prec",
+                            output.name.intern = "prec_intern for vm", 
+                            output.name = "precision parameter for vm", 
+                            initial = 2,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x), 
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "circular", "identity"),
+                    pdf = "vm"
+                )
             )
     )
 }

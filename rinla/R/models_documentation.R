@@ -10884,7 +10884,7 @@
 #'              \describe{
 #'             \item{hyperid = }{\verb{49032}}
 #'             \item{name = }{\verb{intercept}}
-#'             \item{short.name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{linksnintercept}}
@@ -10895,12 +10895,12 @@
 #'           }
 #'          }
 #'        }
-#'       \item{Model 'gev'.}{
+#'       \item{Model 'gevit'.}{
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{GEV link}}
-#'               \item{pdf = }{\verb{gev}}
+#'               \item{doc = }{\verb{GEVIT link}}
+#'               \item{pdf = }{\verb{gevit}}
 #'              }
 #'            }
 #'          }
@@ -10923,7 +10923,7 @@
 #'              \describe{
 #'             \item{hyperid = }{\verb{49034}}
 #'             \item{name = }{\verb{intercept}}
-#'             \item{short.name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{normal}}
@@ -10934,12 +10934,12 @@
 #'           }
 #'          }
 #'        }
-#'       \item{Model 'cgev'.}{
+#'       \item{Model 'cgevit'.}{
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{Complement GEV link}}
-#'               \item{pdf = }{\verb{cgev}}
+#'               \item{doc = }{\verb{Complement GEVIT link}}
+#'               \item{pdf = }{\verb{gevit}}
 #'              }
 #'            }
 #'          }
@@ -10962,7 +10962,7 @@
 #'              \describe{
 #'             \item{hyperid = }{\verb{49036}}
 #'             \item{name = }{\verb{intercept}}
-#'             \item{short.name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{normal}}
@@ -11001,7 +11001,7 @@
 #'              \describe{
 #'             \item{hyperid = }{\verb{49132}}
 #'             \item{name = }{\verb{intercept}}
-#'             \item{short.name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{logitbeta}}
@@ -12982,7 +12982,7 @@
 #'               \item{doc = }{\verb{The Binomial likelihood}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
-#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
 #'               \item{pdf = }{\verb{binomial}}
 #'              }
 #'            }
@@ -12996,7 +12996,7 @@
 #'               \item{doc = }{\verb{The Binomial likelihood (experimental version)}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{TRUE}}
-#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gev cgev}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
 #'               \item{pdf = }{\verb{binomial}}
 #'              }
 #'            }
@@ -19114,6 +19114,70 @@
 #'             \item{param = }{\verb{0 100}}
 #'             \item{to.theta = }{\verb{function(x) x}}
 #'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'dgompertzsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{destructive gompertz (survival) distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{dgompertz}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{108101}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for dGompertz}}
+#'             \item{output.name = }{\verb{alpha parameter for dGompertz}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'vm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{von Mises circular distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default circular identity}}
+#'               \item{pdf = }{\verb{vm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{109101}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name.intern = }{\verb{prec_intern for vm}}
+#'             \item{output.name = }{\verb{precision parameter for vm}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
 #'             }
 #'           }
 #'          }

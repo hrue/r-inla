@@ -30,16 +30,15 @@ IEXTLIBS = -I$(LEXTPREFIX)/include -I/usr/include/suitesparse
 
 SHELL   = /bin/sh
 
-GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
-
-INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+INCL    = -I.. -I$(PREFIX)/include
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
-CFLAGS  = $(INCL) $(STDC) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
-CXXFLAGS  = $(INCL) $(STDCXX) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
+CFLAGS  = $(INCL) $(STDC) $(FLAGS) $(IEXTLIBS) 
+CXXFLAGS  = $(INCL) $(STDCXX) $(FLAGS) $(IEXTLIBS) 
 LD      = $(CC)
 INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
+LIBTAUCS = taucs/libtaucs.a
 
 RM    = rm -f
 RMR   = rm -rf
@@ -59,9 +58,9 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
-	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
-	bitmap.h hashP.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h io.h moments.h \
+	smtp-band.h smtp-taucsP.h sparse-interface.h rw.h \
+	bitmap.h hashP.h taucsP.h taucs_private.h ghq.h \
+	tabulate-Qfunc.h io.h moments.h amdP.h \
 	approx-inference.h density.h utils.h simd.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
@@ -88,9 +87,13 @@ ALL = $(LIBNAME) $(MAKEFILESIN)
 
 all : $(ALL)
 
-##$(LIBNAME): $(LIBNAME)($(LIBOBJ))
-##	ranlib $@
+## in the case we use g++ for gcc
 $(LIBNAME) : $(LIBOBJ)
+ifeq ($(CC), $(CXX))
+	$(MAKE) -C taucs CC="gcc" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
+else
+	$(MAKE) -C taucs CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
+endif
 	$(AR) cr $(LIBNAME) $(LIBOBJ)
 ##	ranlib $@
 
@@ -157,6 +160,7 @@ install: $(ALL)
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m$$mode $(LIBNAME) $(PREFIX)/lib; \
+	 $(INSTALL) -m$$mode $(LIBTAUCS) $(PREFIX)/lib; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/GMRFLib; \
 	 for header in $(HEADERS); do \
 		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
@@ -185,7 +189,7 @@ uninstall:
 	-for ex     in $(EXAMPLES); do $(RM) $(PREFIX)/doc/GMRFLib/$$ex; done
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
-clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN)
+clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN); $(MAKE) -C taucs clean
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt

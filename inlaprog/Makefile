@@ -14,12 +14,12 @@ FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer 
 LD = $(CXX)
 INLA_OS = $(shell uname)
 
-# The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)
+# The path to the external libraries: metis, lapack, blas and zlib, often the same as $(PREFIX)
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
-EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib 
-EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran -lcrypto
+EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -ltaucs -L$(LEXTPREFIX)/lib 
+EXTLIBS2 = -lgsl -lmetis -llapack -lblas -lgslcblas -lmuparser -lz -lgfortran -lcrypto
 EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 ################################################################################
@@ -30,19 +30,17 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 SHELL   = /bin/sh
 
-GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
-
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
-CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DGITCOMMIT="\"${GITCOMMIT}\""
+CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/spde.o \
 	src/spde2.o src/spde3.o src/eval.o src/ar.o src/bessel.o src/pc-priors.o \
 	src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o \
-	src/tweedie.o src/pc-powerlink.o src/link-gev.o src/cgeneric.o src/libpardiso.o
+	src/tweedie.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/libpardiso.o
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)

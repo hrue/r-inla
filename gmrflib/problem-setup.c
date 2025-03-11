@@ -1859,7 +1859,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 
 		for (i = 0, ic = 0; i < n; i++) {
 			Q->rowind[ic] = i;
-			Q->values.d[ic] = 1.0;
+			Q->values[ic] = 1.0;
 			ic++;
 			ne = 1;
 
@@ -1869,7 +1869,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 					break;
 				}
 				Q->rowind[ic] = j;
-				Q->values.d[ic] = 1.0;
+				Q->values[ic] = 1.0;
 				ic++;
 				ne++;
 			}

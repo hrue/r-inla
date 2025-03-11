@@ -1,0 +1,20 @@
+OBJ = amd/src/amd_1.o \
+    amd/src/amd_2.o \
+    amd/src/amd_aat.o \
+    amd/src/amdbar.o \
+    amd/src/amd_control.o \
+    amd/src/amd_defaults.o \
+    amd/src/amd_dump.o \
+    amd/src/amd.o \
+    amd/src/amd_global.o \
+    amd/src/amd_info.o \
+    amd/src/amd_order.o \
+    amd/src/amd_postorder.o \
+    amd/src/amd_post_tree.o \
+    amd/src/amd_preprocess.o \
+    amd/src/amd_valid.o
+
+all : $(OBJ)
+
+clean :; rm -rf amd/src/*.o
+.PHONY: clean

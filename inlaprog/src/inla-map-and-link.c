@@ -2056,6 +2056,24 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	return 0.0;
 }
 
+double link_circular(int UNUSED(thread_id), double x, map_arg_tp typ, void *UNUSED(param), double *UNUSED(cov))
+{
+	switch (typ) {
+	case MAP_FORWARD:
+		return 2.0 * M_PI * (1.0 / (1.0 + exp(-x)) - 0.5);
+	case MAP_BACKWARD:
+		return log((M_PI + x) / (M_PI - x));
+	case MAP_DFORWARD:
+		double ex = exp(-x);
+		return 2.0 * M_PI * ex / SQR(1.0 + ex);
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+	return 0.0;
+}
+
 double inla_boxcox_core(double y, double lambda)
 {
 	// simplify(subs(O=0,series((x^lam-1)/lam, lam=0, 10)));
