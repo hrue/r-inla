@@ -99,8 +99,6 @@ libtaucs_content = \
   $(DIROBJ)taucs_timer.o \
   $(DIROBJ)taucs_ccs_base.o \
   $(DIROBJ)taucs_ccs_base_D.o \
-  $(DIROBJ)taucs_vec_base.o \
-  $(DIROBJ)taucs_vec_base_D.o \
   $(DIROBJ)taucs_ccs_ops.o \
   $(DIROBJ)taucs_ccs_ops_D.o \
   $(DIROBJ)taucs_ccs_order.o \
