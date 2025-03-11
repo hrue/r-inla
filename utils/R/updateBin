@@ -21,12 +21,12 @@ for m in 64; do
 	for f in $(ssh -x -p $INLA_MAC_PORT $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x -p $INLA_MAC_PORT" -auvL $INLA_MAC:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-program=/usr/local/bin/rsync -auvL $INLA_MAC:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_MAC_PORT" -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-program=/usr/local/bin/rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
     for f in $DIR/lib*malloc.*; do 
@@ -40,12 +40,12 @@ for m in Something; do
 	for f in $(ssh -x -p $INLA_MAC_ARM64_PORT $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL $INLA_MAC_ARM64:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" --rsync-program=/usr/local/bin/rsync -auvL $INLA_MAC_ARM64:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL --rsync-program=/usr/local/bin/rsync $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
     for f in $DIR/lib*malloc.*; do 
 	test -f "$f" && mv -f -v "$f"  $DIR/malloc
