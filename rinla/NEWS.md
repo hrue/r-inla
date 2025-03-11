@@ -1,3 +1,8 @@
+# INLA 25.03.11
+* New likelihoods (experimantal) 'vm' and 'dgompertz'
+* Minor naming-changes in (experimental) gev-link function
+* Various code improvements and cleanup
+
 # INLA 25.02.10
 * Fix for variable-parsing in family 'coxph'. Updated doc
 
