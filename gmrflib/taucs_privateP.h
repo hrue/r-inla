@@ -1,6 +1,6 @@
 
 /*!
-  \file taucs_private.h
+  \file taucs_privateP.h
   \brief Private typedefs and defines for the TAUCS library version 2.0
 
   This file is included to make GMRFLib compile without refering to the TAUCS library,  
