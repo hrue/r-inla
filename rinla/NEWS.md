@@ -1,4 +1,4 @@
-# INLA 25.03.11
+# INLA 25.03.13
 * New likelihoods (experimantal) 'vm' and 'dgompertz'
 * Minor naming-changes in (experimental) gev-link function
 * Various code improvements and cleanup
