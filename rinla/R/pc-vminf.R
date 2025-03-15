@@ -7,9 +7,9 @@
 #' The statement `Prob(2*pi/(1+k) > u) = alpha` is used to determine `lambda` unless `lambda` is
 #' given. Either `lambda` must be given, or `u` AND `alpha`.
 #' 
-#' @details Due to limitations in handling extreme values for special functions, the output of
-#'     these functions may exhibit bias when the input parameter values are either excessively
-#'     large or very close to zero.
+#' @details
+#' Due to R's limitations in handling extreme values, the output of these functions may exhibit
+#' bias when the input parameter values are either excessively large or very close to zero.
 #' 
 #' @aliases inla.pc.vminf pc.vminf pc.rvminf inla.pc.rvminf pc.dvminf 
 #' inla.pc.dvminf pc.pvminf inla.pc.pvminf pc.qvminf inla.pc.qvminf
@@ -64,24 +64,28 @@ inla.pc.dvminf <- function(k, u, alpha, lambda, log = FALSE) {
         warning("log(k) exceeds log(.Machine$double.xmax); k is too large.")
     }
     lambda <- inla.pc.vminf.lambda(u, alpha, lambda)
-    I0 <- besselI(x=k,nu=0)
-    I1 <- besselI(x=k,nu=1)
-    I2 <- besselI(x=k,nu=2)
-    log.distance.asympt <- -log(2)/2 - log(k)/2 + 1/(8*k) + 7/(64*k^2) + 1/(6*k^3) + 715/(2048*k^4)+293/(320*k^5)
-    distance <- ifelse(k<=700,
-                       sqrt(1-I1/I0),
+    I0.exp <- besselI(x=k,nu=0,expon.scaled = TRUE)
+    I1.exp <- besselI(x=k,nu=1,expon.scaled = TRUE)
+    I2.exp <- besselI(x=k,nu=2,expon.scaled = TRUE)
+    log.distance.asympt <- -log(2)/2 - log(k)/2 + 1/(8*k) + 7/(64*k^2) + 
+        1/(6*k^3) + 715/(2048*k^4)+293/(320*k^5)
+    distance <- ifelse(k<=1e+5,
+                       sqrt(1-I1.exp/I0.exp),
                        exp(log.distance.asympt))
-    log.distance <- ifelse(k<=700,
+    log.distance <- ifelse(k<=1e+5,
                            log(distance),
                            log.distance.asympt)
     log.dens.exp <- dexp(distance, rate = lambda, log = TRUE)
-    log.jac.partial <- ifelse(k<=350,
-                              log((I0+I2)/(2*I0)-I1^2/I0^2),
-                              -log(2) - 2*log(k) + 1/(2*k) + 5/(8*k^2) + 59/(48*k^3) + 203/(64*k^4) + 12743/(1280*k^5))
+    log.jac.partial <- ifelse(k<=1e+5,
+                              log((I0.exp+I2.exp)/(2*I0.exp)-I1.exp^2/I0.exp^2),
+                              -log(2) - 2*log(k) + 1/(2*k) + 5/(8*k^2) + 
+                              59/(48*k^3) + 203/(64*k^4) + 12743/(1280*k^5))
     log.jac <- -log(2) - log.distance + log.jac.partial
-
-    ldens <- log.dens.exp + log.jac
-    return (if (log) ldens else exp(ldens))
+    if (log) {
+        return(log.dens.exp + log.jac)
+    } else {
+        return(exp(log.dens.exp) * exp(log.jac))
+    }
 }
 
 #' @rdname pc-vminf
@@ -112,11 +116,12 @@ inla.pc.qvminf <- function(p, u, alpha, lambda, len = 2048L) {
 #' @export
 inla.pc.pvminf <- function(q, u, alpha, lambda, log=FALSE) {
     lambda <- inla.pc.vminf.lambda(u, alpha, lambda)
-    I0 <- besselI(x=q,nu=0)
-    I1 <- besselI(x=q,nu=1)
-    distance <- ifelse(q<=700,
-                       sqrt(1-I1/I0),
-                       sqrt(1/(2*q) + 1/(8*q^2) + 1/(8*q^3) + 25/(128*q^4) + 13/(32*q^5)))
+    I0.exp <- besselI(x=q,nu=0,expon.scaled = TRUE)
+    I1.exp <- besselI(x=q,nu=1,expon.scaled = TRUE)
+    distance <- ifelse(q<=1e+5,
+                       sqrt(1-I1.exp/I0.exp),
+                       sqrt(1/(2*q) + 1/(8*q^2) + 1/(8*q^3) + 
+                            25/(128*q^4) + 13/(32*q^5)))
     if (log) {
         return(-lambda*distance)
     } else {
