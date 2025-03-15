@@ -7,9 +7,9 @@
 #' `lambda` unless `lambda` is given.  Either `lambda` must be
 #' given, or `u` AND `alpha`.
 #' 
-#' @details
-#' Due to R's limitations in handling extreme values, the output of these functions may exhibit
-#' bias when the input parameter values are either excessively large or very close to zero.
+#' @details Due to limitations in handling extreme values for special functions, the output of
+#'     these functions may exhibit bias when the input parameter values are either excessively
+#'     large or very close to zero.
 #' 
 #' @aliases inla.pc.vm0 pc.vm0 pc.rvm0 inla.pc.rvm0 pc.dvm0 
 #' inla.pc.dvm0 pc.pvm0 inla.pc.pvm0 pc.qvm0 inla.pc.qvm0

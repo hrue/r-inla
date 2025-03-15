@@ -7,9 +7,9 @@
 #' The statement `Prob(2*pi/(1+k) > u) = alpha` is used to determine `lambda` unless `lambda` is
 #' given. Either `lambda` must be given, or `u` AND `alpha`.
 #' 
-#' @details
-#' Due to R's limitations in handling extreme values, the output of these functions may exhibit
-#' bias when the input parameter values are either excessively large or very close to zero.
+#' @details Due to limitations in handling extreme values for special functions, the output of
+#'     these functions may exhibit bias when the input parameter values are either excessively
+#'     large or very close to zero.
 #' 
 #' @aliases inla.pc.vminf pc.vminf pc.rvminf inla.pc.rvminf pc.dvminf 
 #' inla.pc.dvminf pc.pvminf inla.pc.pvminf pc.qvminf inla.pc.qvminf
