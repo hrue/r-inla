@@ -2612,6 +2612,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
 			case LINK_QEXPPOWER:
+			case LINK_CIRCULAR: 
 				break;
 
 			case LINK_LOGOFFSET:
