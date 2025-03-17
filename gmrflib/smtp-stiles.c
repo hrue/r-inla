@@ -20,5 +20,5 @@ int GMRFLib_stiles_set_param(int verbose, int debug)
 		stiles_ctl.debug = debug;
 	}
 	//printf("\n\nstiles set verbose=%1d debug=%1d\n\n", verbose, debug);
-	returm GMRFLib_SUCCESS;
+	return GMRFLib_SUCCESS;
 }
