@@ -18954,6 +18954,36 @@ int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec)
 	return INLA_OK;
 }
 
+int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
+{
+	/*
+	 * parse section = STILES
+	 */
+	char *secname = NULL;
+	int verbose, debug;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_stiles...\n");
+	}
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	if (mb->verbose) {
+		printf("\t\tverbose[%1d]\n", verbose);
+	}
+
+	debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	if (mb->verbose) {
+		printf("\t\tdebug[%1d]\n", debug);
+	}
+	GMRFLib_stiles_set_param(verbose, debug);
+
+	return INLA_OK;
+}
+
 int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
