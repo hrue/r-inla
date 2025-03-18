@@ -1853,7 +1853,7 @@ double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
 double exp_taylor(double x, double x0, int order);
-double extra(int thread_id, double *theta, int ntheta, void *argument);
+double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_ptr_tp **stiles_graphs);
 double iid_mfunc(int idx, void *arg);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_cdf_normal(double x);
