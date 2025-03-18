@@ -6096,7 +6096,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 	if (1) GMRFLib_stiles_get_graphs((void *)mb);
 
-
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
