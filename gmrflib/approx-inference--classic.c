@@ -2798,7 +2798,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 		GMRFLib_ai_marginal_hyperparam(thread_id, &tmp_logdens, x, bnew, c, mean, d, NULL,
 					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
-		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg);
+		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg, NULL);
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);

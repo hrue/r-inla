@@ -22,3 +22,11 @@ int GMRFLib_stiles_set_param(int verbose, int debug)
 	//printf("\n\nstiles set verbose=%1d debug=%1d\n\n", verbose, debug);
 	return GMRFLib_SUCCESS;
 }
+
+GMRFLib_ptr_tp *GMRFLib_stiles_get_graphs(void *mb) 
+{
+	// need to call it in the inla_ parts as need need access to inla_tp, which
+	// is a mess to make available here
+	GMRFLib_ptr_tp *inla_stiles_get_graphs(void *);
+	return inla_stiles_get_graphs(mb);
+}

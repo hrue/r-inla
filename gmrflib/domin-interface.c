@@ -298,7 +298,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local->Qfunc),
 				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt, G.d_idx);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
-	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg);
+	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg, NULL);
 
 	if (tabQfunc_local) {
 		GMRFLib_free_tabulate_Qfunc(tabQfunc_local);
