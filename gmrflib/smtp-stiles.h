@@ -25,8 +25,6 @@ typedef struct
 	GMRFLib_stiles_ctl_tp;
 
 int GMRFLib_stiles_set_param(int verbose, int debug);
-GMRFLib_ptr_tp *GMRFLib_stiles_get_graphs(void *mb);
-
 
 __END_DECLS
 #endif

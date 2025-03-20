@@ -708,7 +708,7 @@ typedef struct {
  *\brief A template computing all terms in <b>(GMRF-35)</b> which are constant with respect to \f$\mbox{\boldmath$x$}\f$ but
  * depend on \f$ \mbox{\boldmath$\theta$}\f$.
  */
-typedef double GMRFLib_ai_log_extra_tp(int thread_id, double *hyperparam, int nhyper, void *arg, GMRFLib_ptr_tp **stiles_graphs);
+typedef double GMRFLib_ai_log_extra_tp(int thread_id, double *hyperparam, int nhyper, void *arg);
 
 typedef struct {
 	int nhyper;

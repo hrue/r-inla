@@ -1853,7 +1853,7 @@ double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
 double exp_taylor(double x, double x0, int order);
-double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_ptr_tp **stiles_graphs);
+double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_cdf_normal(double x);
@@ -2381,8 +2381,6 @@ int UTIL_countLogicalCores(void);
 
 int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
-
-GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mb);
 
 /* 
 ***
