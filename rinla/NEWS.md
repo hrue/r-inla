@@ -1,3 +1,8 @@
+# INLA 25.03.24
+* Updated family 'mv'
+* Updated code for pc-priors for 'vm'
+* Code development work
+
 # INLA 25.03.13
 * New likelihoods (experimantal) 'vm' and 'dgompertz'
 * Minor naming-changes in (experimental) gev-link function
