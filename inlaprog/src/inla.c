@@ -494,6 +494,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 
 	/*
+	 * type = STILES
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "STILES")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[STILES]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_stiles(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * type = LPSCALE
 	 */
 	for (sec = 0; sec < nsec; sec++) {
@@ -2612,6 +2629,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
 			case LINK_QEXPPOWER:
+			case LINK_CIRCULAR: 
 				break;
 
 			case LINK_LOGOFFSET:

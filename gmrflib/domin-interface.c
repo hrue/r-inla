@@ -328,6 +328,38 @@ int GMRFLib_opt_f_intern(int thread_id,
 #pragma omp atomic
 	fncall_timing.num_fncall++;
 
+	// allow to set INLA_INTERNAL_MAX_FNCALLS, if reached, then exit
+	if (1) {
+		static int check_for_exit = 1;
+		static int max_fncalls = 0;
+
+		// do check first as otherwise we get memerrors in libasan
+		if (max_fncalls && (fncall_timing.num_fncall >= max_fncalls)) {
+#pragma omp critical (Name_a8223b8560b2af9a9e60da72c5e46a9412439b79)
+			{
+				FILE *fp = (G.ai_par->fp_log ? G.ai_par->fp_log : stdout);
+				fprintf(fp, "\n\n *** call exit(0) due to INLA_INTERNAL_MAX_FNCALLS=%1d\n", max_fncalls);
+				fprintf(fp, " *** num_fncall = %1d  time.pr.fncall =  %.4fs\n",
+					fncall_timing.num_fncall, fncall_timing.time_used / fncall_timing.num_fncall);
+				fprintf(fp, "\n\n");
+				exit(0);
+			}
+		}
+
+		if (check_for_exit) {
+#pragma omp critical (Name_a38699a291079526a8d63683d419e9686e8f68b8)
+			if (check_for_exit) {
+				char *e = getenv("INLA_INTERNAL_MAX_FNCALLS");
+				if (GMRFLib_is_int(e, &max_fncalls)) {
+					max_fncalls = IMAX(0, max_fncalls);
+					FILE *fp = (G.ai_par->fp_log ? G.ai_par->fp_log : stdout);
+					fprintf(fp, "\n\n *** read INLA_INTERNAL_MAX_FNCALLS=%1d\n\n", max_fncalls);
+				}
+				check_for_exit = 0;
+			}
+		}
+	}
+	
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
 

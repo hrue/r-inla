@@ -3,8 +3,9 @@
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC prior for the
 #' precision in the Gaussian distribution.
 #' 
-#' The statement `Prob(2*pi/(1+k) > u) = alpha` is used to determine `lambda` unless `lambda` is
-#' given. Either `lambda` must be given, or `u` AND `alpha`.
+#' The statement `Prob(2*pi/(1+k) > u) = alpha` is used to determine
+#' `lambda` unless `lambda` is given.  Either `lambda` must be
+#' given, or `u` AND `alpha`.
 #' 
 #' @details Due to limitations in handling extreme values for special functions, the output of
 #'     these functions may exhibit bias when the input parameter values are either excessively
@@ -43,9 +44,9 @@ inla.pc.vm0.lambda <- function(u, alpha, lambda) {
     if (missing(lambda)) {
         stopifnot(!missing(u) && !missing(alpha))
         k <- 2*pi/u - 1
-        I0 <- besselI(x=k,nu=0)
-        I1 <- besselI(x=k,nu=1)
-        lambda <- -log(1-alpha) / sqrt(k*I1/I0-log(I0))
+        I0 <- besselI(x=k,nu=0, expon.scaled = TRUE)
+        I1 <- besselI(x=k,nu=1, expon.scaled = TRUE)
+        lambda <- -log(1-alpha) / sqrt(k*I1/I0-(log(I0) + k))
     }
     return(lambda)
 }
@@ -62,51 +63,70 @@ inla.pc.dvm0 <- function(k, u, alpha, lambda, log = FALSE) {
     if (any(log(k) > .Machine$double.xmax)) {
         warning("log(k) exceeds log(.Machine$double.xmax); k is too large.")
     }
+    
     lambda <- inla.pc.vm0.lambda(u, alpha, lambda)
-    f_single <- function(kk) {
-        if (kk < 1e-4) {
-            dens <- lambda/2 - lambda^2 * kk/4 +
-                (-9 * lambda/64 + lambda^3/16) * kk^2 +
-                (12 * lambda^2/128 - lambda^4/96) * kk^3 +
-                (1195 * lambda/36864 + 3 * lambda^3/512 + lambda^5/768) * kk^4 +
-                (-79 * lambda^2/6144 - lambda^6/7680) * kk^5 # Here I remain to 5 order first for you to check
-            if (log) {
-                return(log(dens))
-            } else {
-                return(dens)
-            }
-        } else {
-                                        # For k >= 1e-4
-            I0 <- besselI(x = kk, nu = 0)
-            I1 <- besselI(x = kk, nu = 1)
-            I2 <- besselI(x = kk, nu = 2)
-            
-            dis.square <- if (kk <= 700) {
-                              kk * I1 / I0 - log(I0)
-                          } else {
-                              -1/2 + kk - (kk - 1/2 * log(2*pi)) +
-                                  log(kk)/2 - 1/(4*kk) - 3/(16*kk^2) -
-                                      25/(96*kk^3) - 65/(128*kk^4) - 3219/(2560*kk^5)
-                          }
-            
-            log.jac.partial <- if (kk <= 350) {
-                                   log(kk * (I0 + I2)/(2 * I0) - kk * I1^2/I0^2)
-                               } else {
-                                   -log(2) - log(kk) + 1/(2*kk) + 5/(8*kk^2) +
-                                       59/(48*kk^3) + 203/(64*kk^4) + 12743/(1280*kk^5)
-                               }
-            
-            distance <- sqrt(dis.square)
-            log.dens.exp <- dexp(distance, rate = lambda, log = TRUE)
-            log.jac <- -log(2) - log(distance) + log.jac.partial
-            
-            ldens <- log.dens.exp + log.jac
-            return (if (log) ldens else exp(ldens))
-        }
+    dens <- numeric(length(k))
+    
+                                        # Case 1: k < 1e-4
+    idx_small <- k < 1e-4
+    if (any(idx_small)) {
+        k_small <- k[idx_small]
+        dens_small <- lambda/2 - lambda^2 * k_small/4 +
+            (-9 * lambda/64 + lambda^3/16) * k_small^2 +
+            (12 * lambda^2/128 - lambda^4/96) * k_small^3 +
+            (1195 * lambda/36864 + 3 * lambda^3/512 + lambda^5/768) * k_small^4 +
+            (-79 * lambda^2/6144 - lambda^6/7680) * k_small^5
+        dens[idx_small] <- if (log) {
+                               log(dens_small)
+                           } else {
+                               dens_small
+                           }
     }
-    f_vec <- Vectorize(f_single)
-    return(f_vec(k))
+    
+                                        # Case 2: k >= 1e-4
+    idx_large <- !idx_small
+    if (any(idx_large)) {
+        kk <- k[idx_large]
+        I0.exp <- besselI(x = kk, nu = 0, expon.scaled = TRUE)
+        I1.exp <- besselI(x = kk, nu = 1, expon.scaled = TRUE)
+        I2.exp <- besselI(x = kk, nu = 2, expon.scaled = TRUE)
+
+        idx_mid <- kk <= 1e+5
+        idx_high <- !idx_mid
+        
+        dis.square <- numeric(length(kk))
+        log.jac.partial <- numeric(length(kk))
+        
+        if (any(idx_mid)) {
+            kk_mid <- kk[idx_mid]
+            dis.square[idx_mid] <- kk_mid * I1.exp[idx_mid] / I0.exp[idx_mid] - kk_mid - log(I0.exp[idx_mid])
+            log.jac.partial[idx_mid] <- log(kk_mid) + 
+                log(( (I0.exp[idx_mid] + I2.exp[idx_mid]) / (2 * I0.exp[idx_mid]) - I1.exp[idx_mid]^2 / I0.exp[idx_mid]^2 ))
+        }
+        if (any(idx_high)) {
+            kk_high <- kk[idx_high]
+            dis.square[idx_high] <- -1/2 + kk_high - (kk_high - 1/2 * log(2*pi)) +
+                log(kk_high)/2 - 1/(4 * kk_high) - 3/(16 * kk_high^2) -
+                25/(96 * kk_high^3) - 65/(128 * kk_high^4) - 3219/(2560 * kk_high^5)
+            log.jac.partial[idx_high] <- -log(2) - log(kk_high) + 1/(2 * kk_high) + 
+                5/(8 * kk_high^2) + 59/(48 * kk_high^3) + 203/(64 * kk_high^4) + 12743/(1280 * kk_high^5)
+        }
+        
+        distance <- sqrt(dis.square)
+        log.dens.exp <- dexp(distance, rate = lambda, log = TRUE)
+        log.jac <- -log(2) - log(distance) + log.jac.partial
+        
+        dens_large <- if (log) {
+                          log.dens.exp + log.jac
+                      } else {
+                          exp(log.dens.exp) * exp(log.jac)
+                      }
+        dens[idx_large] <- dens_large
+    }
+    return(dens)
 }
+
+
 
 #' @rdname pc-vm0
 #' @export
@@ -139,12 +159,14 @@ inla.pc.pvm0 <- function(q, u, alpha, lambda, log = FALSE) {
         warning("log(q) exceeds log(.Machine$double.xmax); q is too large.")
     }
     lambda <- inla.pc.vm0.lambda(u, alpha, lambda)
-    I0 <- besselI(x=q,nu=0)
-    I1 <- besselI(x=q,nu=1)
-    dis.square <- ifelse(q <= 700,
-                         q*I1/I0-log(I0),
-                         -1/2 + q - (q - 1/2*log(2*pi)) + log(q)/2 - 1/(4*q) - 3/(16*q^2) - 25/(96*q^3) - 65/(128*q^4) - 3219/(2560*q^5) )  # Here I remain to 5 order first for you to check
-    distance <- sqrt(dis.square) # It is very hard to get the asympt behavior of distance and log-distance, so I tried for square of distance
-    p <- pexp(distance, rate = lambda, log.p = log)
+    I0.exp <- besselI(x=q,nu=0,expon.scaled = TRUE)
+    I1.exp <- besselI(x=q,nu=1,expon.scaled = TRUE)
+    dis.square <- ifelse(q <= 1e+5,
+                         q*I1.exp/I0.exp-q-log(I0.exp),
+                         -1/2 + q - (q - 1/2*log(2*pi)) + log(q)/2 - 1/(4*q) - 
+                         3/(16*q^2) - 25/(96*q^3) - 65/(128*q^4) - 
+                         3219/(2560*q^5))
+    p <- pexp(sqrt(dis.square), rate = lambda, log.p = log)
     return(p)
 }
+

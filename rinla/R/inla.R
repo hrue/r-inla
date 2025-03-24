@@ -85,6 +85,7 @@
 #' @param control.update See `?control.update`
 #' @param control.lp.scale See `?control.lp.scale`
 #' @param control.pardiso See `?control.pardiso`
+#' @param control.stiles See `?control.stiles`
 #' @param only.hyperparam If `TRUE`, then only the hyperparameters are
 #' computed.
 #' @param inla.call The path to, or the name of, the `inla`-program. This
@@ -257,6 +258,7 @@
                    control.update = list(),
                    control.lp.scale = list(),
                    control.pardiso = list(),
+                   control.stiles = list(),
                    only.hyperparam = FALSE,
                    inla.call = inla.getOption("inla.call"),
                    inla.arg = inla.getOption("inla.arg"),
@@ -365,6 +367,7 @@
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
             control.pardiso = control.pardiso, 
+            control.stiles = control.stiles, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 
@@ -406,6 +409,7 @@
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
             control.pardiso = control.pardiso, 
+            control.stiles = control.stiles, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 
@@ -511,6 +515,7 @@
     control.update <- ctrl_object(control.update, "update", data)
     control.lp.scale <- ctrl_object(control.lp.scale, "lp_scale", data)
     control.pardiso <- ctrl_object(control.pardiso, "pardiso", data)
+    control.stiles <- ctrl_object(control.stiles, "stiles", data)
 
     n.family <- length(family)
     for (i in 1:n.family) {
@@ -618,6 +623,7 @@
             control.update = control.update,
             control.lp.scale = control.lp.scale,
             control.pardiso = control.pardiso,
+            control.stiles = control.stiles,
             only.hyperparam = only.hyperparam,
             inla.call = inla.call,
             inla.arg = inla.arg,
@@ -1115,6 +1121,7 @@
     mf$control.update <- NULL
     mf$control.lp.scale <- NULL
     mf$control.pardiso <- NULL
+    mf$control.stiles <- NULL
     mf$control.inla <- NULL
     mf$control.fixed <- NULL
     mf$control.lincomb <- NULL
@@ -2072,9 +2079,11 @@
     inla.lp.scale.section(file = file.ini, data.dir = data.dir, contr = cont.lp.scale,
                           write.hyper = !is.null(lp.scale))
 
-    ## create pardiso section
+    ## create pardiso/stiles sections
     cont.pardiso <- ctrl_update(control.pardiso)
     inla.pardiso.section(file = file.ini, data.dir = data.dir, contr = cont.pardiso)
+    cont.stiles <- ctrl_update(control.stiles)
+    inla.stiles.section(file = file.ini, data.dir = data.dir, contr = cont.stiles)
 
     ## now, do the job
     if (debug) {
@@ -2499,6 +2508,7 @@
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
             control.pardiso = control.pardiso, 
+            control.stiles = control.stiles, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 

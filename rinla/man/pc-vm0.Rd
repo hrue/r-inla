@@ -51,8 +51,9 @@ Functions to evaluate, sample, compute quantiles and percentiles of the PC prior
 precision in the Gaussian distribution.
 }
 \details{
-The statement \code{Prob(2*pi/(1+k) > u) = alpha} is used to determine \code{lambda} unless \code{lambda} is
-given. Either \code{lambda} must be given, or \code{u} AND \code{alpha}.
+The statement \code{Prob(2*pi/(1+k) > u) = alpha} is used to determine
+\code{lambda} unless \code{lambda} is given.  Either \code{lambda} must be
+given, or \code{u} AND \code{alpha}.
 
 Due to limitations in handling extreme values for special functions, the output of
 these functions may exhibit bias when the input parameter values are either excessively

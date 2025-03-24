@@ -2146,6 +2146,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec);
 
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);

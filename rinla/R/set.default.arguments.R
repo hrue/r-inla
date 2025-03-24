@@ -445,6 +445,23 @@ control.gcpo <-
         ctrl_object(as.list(environment()), "pardiso", check = FALSE)
     }
 
+#' @title control.stiles
+#' @inherit control.update params description seealso
+#' @details Extra options controlling the sTiles library
+#' @family control
+#' @export
+`control.stiles` <-
+    function(
+            #' @param verbose Show detailed output (default FALSE)
+            verbose = FALSE,
+
+            #' @param debug Show internal debug output (default FALSE)
+            debug = FALSE
+    ) {
+        ctrl_object(as.list(environment()), "stiles", check = FALSE)
+    }
+
+
 #' @title control.bgev
 #' @inherit control.update params description seealso
 #' @family control
@@ -1139,6 +1156,10 @@ control.vb <- function(
 #' @rdname control.pardiso
 #' @export
 `inla.set.control.pardiso.default` <- function(...) { control.pardiso(...) }
+
+#' @rdname control.stiles
+#' @export
+`inla.set.control.stiles.default` <- function(...) { control.stiles(...) }
 
 #' @rdname control.bgev
 #' @export

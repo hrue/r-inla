@@ -98,6 +98,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/distributions.h"
 #include "GMRFLib/smtp-band.h"
 #include "GMRFLib/smtp-taucs.h"
+#include "GMRFLib/smtp-stiles.h"
 #include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
 #include "GMRFLib/ghq.h"
 #include "GMRFLib/design.h"

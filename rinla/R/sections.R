@@ -1572,7 +1572,7 @@ inla.parse.Bmatrix.test <- function() {
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")
     }
-    smtp <- match.arg(tolower(smtp), c("band", "taucs", "pardiso", "default"))
+    smtp <- match.arg(tolower(smtp), c("band", "taucs", "pardiso", "stiles", "default"))
     cat("smtp = ", smtp, "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(openmp.strategy) || !(is.character(openmp.strategy) && (nchar(openmp.strategy) > 0))) {
@@ -1823,11 +1823,18 @@ inla.parse.Bmatrix.test <- function() {
 `inla.pardiso.section` <- function(file, data.dir, contr) {
     cat("\n", inla.secsep("INLA.pardiso"), "\n", sep = "", file = file, append = TRUE)
     cat("type = pardiso\n", sep = " ", file = file, append = TRUE)
-
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("debug = ", if (contr$debug) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("parallel.reordering = ", if (contr$parallel.reordering) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("nrhs = ", contr$nrhs, "\n", sep = " ", file = file, append = TRUE)
+    cat("\n", sep = " ", file = file, append = TRUE)
+}
+
+`inla.stiles.section` <- function(file, data.dir, contr) {
+    cat("\n", inla.secsep("INLA.stiles"), "\n", sep = "", file = file, append = TRUE)
+    cat("type = stiles\n", sep = " ", file = file, append = TRUE)
+    cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
+    cat("debug = ", if (contr$debug) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
