@@ -30,6 +30,7 @@ update-build-yourself :;
 
 www :;
 	$(MAKE) update-r-inla.org
+	~/p/inla/r-inla/utils/R/versions
 	-rsync -auv --delete www/. ~/www/www.inla/. 
 
 md5 :; ./www/make-md5
