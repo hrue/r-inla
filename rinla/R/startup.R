@@ -44,13 +44,23 @@ inla.print.version <- function() {
                 )
             )
         }
-        packageStartupMessage(hello)
-        if (!inla.os("windows") && inla.os.is.32bit()) {
-            warning(paste0(
-                "INLA_", version,
-                ": 32bit binaries are no longer supported!"
-            ))
+
+        opts <- options()
+        options(timeout = 3)
+        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS"), silent = TRUE)
+        if (!inherits(vers, "try-error") && length(vers) == 2) {
+            stable <- vers[1]
+            testing <- vers[2]
+            current <- getNamespaceVersion("INLA")
+            if (!(current == stable || current == testing)) {
+                hello <- paste0(hello, "\n",
+                                paste0(" - Consider upgrading to testing[",  testing,
+                                       "] or stable[", stable, "] version"))
+            }
         }
+        options(opts)
+
+        packageStartupMessage(hello)
     }
 }
 
