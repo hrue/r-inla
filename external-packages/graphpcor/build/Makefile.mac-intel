@@ -1,0 +1,10 @@
+CFLAGS = -framework Accelerate $(FLAGS) $(RINC) -O3 -mtune=generic -fopenmp  -fpic -I.
+LDFLAGS = -framework Accelerate 
+TARGET = libgraphpcor.so
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+
+$(TARGET) : $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp -lm
+
+ clean :; rm -f $(TARGET) $(OBJ)
+
