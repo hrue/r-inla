@@ -1,5 +1,5 @@
-CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
-LDFLAGS = 
+CFLAGS = $(FLAGS) $(INC) -O3 -mtune=generic -fopenmp  -fpic -I.
+LDFLAGS = $(LIB)
 TARGET = libgraphpcor.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 

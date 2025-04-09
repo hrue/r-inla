@@ -1,5 +1,5 @@
-CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp  -fpic -I.
-LDFLAGS = -framework Accelerate
+CFLAGS = -framework Accelerate $(FLAGS) $(INC) -O3 -mtune=native -fopenmp  -fpic -I.
+LDFLAGS = -framework Accelerate $(LIB)
 TARGET = libgraphpcor.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
