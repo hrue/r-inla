@@ -4,7 +4,7 @@ TARGET = libgraphpcor.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 $(TARGET) : $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp -lm
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp -lltdl -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
