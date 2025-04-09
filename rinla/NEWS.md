@@ -1,3 +1,7 @@
+# INLA 25.04.09
+* Add new external package: graphpcor
+* Added info about new releases
+
 # INLA 25.03.24
 * Updated family 'mv'
 * Updated code for pc-priors for 'vm'
