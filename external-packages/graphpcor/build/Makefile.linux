@@ -1,5 +1,5 @@
 CFLAGS = $(FLAGS) $(RINC) -O3 -mtune=generic -fopenmp  -fpic -I.
-LDFLAGS = 
+LDFLAGS = $(LLIB)
 TARGET = libgraphpcor.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
