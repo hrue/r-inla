@@ -47,7 +47,8 @@ inla.print.version <- function() {
 
         opts <- options()
         options(timeout = 3)
-        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS"), silent = TRUE)
+        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
+                              n = 2, encoding = "UTF-8"), silent = TRUE)
         if (!inherits(vers, "try-error") && length(vers) == 2) {
             stable <- vers[1]
             testing <- vers[2]
