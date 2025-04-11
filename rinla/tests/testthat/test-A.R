@@ -88,6 +88,6 @@ test_that("Case 4", {
             offset = off, 
             control.compute=list(cpo=T),
             control.family = list(initial = log(1/s^2), fixed=TRUE))
-    expect_true(all(abs((Eta - off) - r$summary.linear.predictor[1:m,"mean"]) < sqrt(s)))
+    expect_true(all(abs(Eta - r$summary.linear.predictor[1:m,"mean"]) < sqrt(s)))
     expect_true(all(abs(eta - r$summary.linear.predictor[m+1:n,"mean"]) < sqrt(s)))
 })
