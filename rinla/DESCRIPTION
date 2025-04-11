@@ -43,6 +43,7 @@ Suggests:
     fastGHQuad,
     fields,
     ggplot2,
+    ggpubr,
     gsl,
     graph,
     gridExtra,
