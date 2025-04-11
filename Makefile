@@ -19,6 +19,7 @@ all:; \
 doc-links:
 	@echo "Building documentation links from r-inla.org to rinla."
 	@for dir in prior latent likelihood link; do \
+	  rm rinla/inst/documentation/$$dir/*.pdf ; \
 	  find "r-inla.org/doc/$$dir" -name \*.tex | \
 	        grep -v "old-stuff" | \
 		sed "s!r-inla.org/doc/\(.*\)\.tex!ln -sf ../../../../r-inla.org/doc/\1.pdf rinla/inst/documentation/\1.pdf!" | sh -e ;\
