@@ -1,7 +1,9 @@
 #' Compute connected mesh subsets
 #'
-#' Compute subsets of vertices and triangles in an inla.mesh object that are
-#' connected by edges.
+#' `r lifecycle::badge("deprecated")` Compute subsets of vertices and triangles in an inla.mesh object that are
+#' connected by edges. This function is deprecated from INLA `25.4.10` when
+#' fmesher version `0.3.0.9005` or later is installed, which has
+#' `fm_mesh_components()`.
 #'
 #'
 #' @return A list with elements `vertex` and `triangle`, vectors of
@@ -11,14 +13,14 @@
 #' \item{nV}{The number of vertices in the component.}
 #' \item{nT}{The number of triangles in the component.}
 #' \item{area}{The surface area associated with the component.
-#' Component lables are not comparable across
+#' Component labels are not comparable across
 #' different meshes, but some ordering stability is guaranteed by initiating
 #' each component from the lowest numbered triangle whenever a new component is
 #' initiated.}
 #'
 #' @param mesh An `inla.mesh` object
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso [inla.mesh.2d()], [inla.mesh.create()]
+#' @seealso [fmesher::fm_mesh_2d()], [fmesher::fm_rcdt_2d()]
 #' @examples
 #'
 #' # Construct two simple meshes:
@@ -34,17 +36,23 @@
 #' conn1$info
 #' # Two disconnected components
 #' conn2$info
-#'
-#' # Extract the subset mesh for the largest component:
-#' # (Note: some information is lost, such as fixed segments,
-#' # and boundary edge labels.)
-#' maxi <- conn2$info$component[which.max(conn2$info$area)]
-#' mesh3 <- inla.mesh.create(
-#'     loc = mesh2$loc,
-#'     tv = mesh2$graph$tv[conn2$triangle == maxi, , drop = FALSE]
-#' )
 #' @export
 inla.mesh.components <- function(mesh) {
+    if (utils::packageVersion("fmesher") >= "0.3.0.9005") {
+        fmesher_deprecate(
+            "warn",
+            2L,
+            when = "25.04.10",
+            what = "inla.mesh.components()",
+            with = "fmesher::fm_mesh_components()",
+            details = paste0("Use the `fmesher` function instead, ",
+                             "from `fmesher` version `0.3.0.9005`.")
+        )
+        return(eval(parse(
+            text = paste0("fmesher::fm_mesh_components(mesh = mesh)")
+        )))
+    }
+    
     vertex <- integer(mesh$n)
     Nt <- nrow(mesh$graph$tv)
     triangle <- integer(Nt)

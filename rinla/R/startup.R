@@ -46,16 +46,27 @@ inla.print.version <- function() {
         }
 
         opts <- options()
-        options(timeout = 3)
-        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS"), silent = TRUE)
-        if (!inherits(vers, "try-error") && length(vers) == 2) {
+        options(timeout = 2)
+        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
+                              n = 4, encoding = "UTF-8"), silent = TRUE)
+        if (!inherits(vers, "try-error") && length(vers) == 4) {
             stable <- vers[1]
             testing <- vers[2]
+            major <- vers[3]
+            minor <- vers[4]
+            minor <- strsplit(minor, "[.]")[[1]][1]
             current <- getNamespaceVersion("INLA")
-            if (!(current == stable || current == testing)) {
+            if (TRUE || !(current == stable || current == testing)) {
+                majo <- R.Version()$major
+                mino <- strsplit(R.Version()$minor, "[.]")[[1]][1]
+                if (majo != major || mino != minor) {
+                    rstr <- paste0(" (requires R-", major, ".", minor, ")")
+                } else {
+                    rstr <- "."
+                }
                 hello <- paste0(hello, "\n",
-                                paste0(" - Consider upgrading to testing[",  testing,
-                                       "] or stable[", stable, "] version"))
+                                paste0(" - Consider upgrading R-INLA to testing[",  testing,
+                                       "] or stable[", stable, "] version", rstr))
             }
         }
         options(opts)

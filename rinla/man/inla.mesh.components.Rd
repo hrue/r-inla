@@ -17,14 +17,16 @@ integer labels for which connected component they belong, and \code{info}, a
 \item{nV}{The number of vertices in the component.}
 \item{nT}{The number of triangles in the component.}
 \item{area}{The surface area associated with the component.
-Component lables are not comparable across
+Component labels are not comparable across
 different meshes, but some ordering stability is guaranteed by initiating
 each component from the lowest numbered triangle whenever a new component is
 initiated.}
 }
 \description{
-Compute subsets of vertices and triangles in an inla.mesh object that are
-connected by edges.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Compute subsets of vertices and triangles in an inla.mesh object that are
+connected by edges. This function is deprecated from INLA \verb{25.4.10} when
+fmesher version \verb{0.3.0.9005} or later is installed, which has
+\code{fm_mesh_components()}.
 }
 \examples{
 
@@ -41,18 +43,9 @@ conn2 <- inla.mesh.components(mesh2)
 conn1$info
 # Two disconnected components
 conn2$info
-
-# Extract the subset mesh for the largest component:
-# (Note: some information is lost, such as fixed segments,
-# and boundary edge labels.)
-maxi <- conn2$info$component[which.max(conn2$info$area)]
-mesh3 <- inla.mesh.create(
-    loc = mesh2$loc,
-    tv = mesh2$graph$tv[conn2$triangle == maxi, , drop = FALSE]
-)
 }
 \seealso{
-\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}}
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

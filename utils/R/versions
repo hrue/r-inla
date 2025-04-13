@@ -6,6 +6,7 @@ test -f $f && mv -f $f $f.OLD
 {
     ls -lt ~/p/inla/www/R/testing/bin/windows/contrib/4.4/ | grep INLA_ | head -n1 | awk '{$0=$NF;gsub("INLA_",""); gsub(".zip","");print}'
     ls -lt ~/p/inla/www/R/stable/bin/windows/contrib/4.4/  | grep INLA_ | head -n1 | awk '{$0=$NF;gsub("INLA_",""); gsub(".zip","");print}'
+    Rscript --vanilla -e 's=R.Version(); cat(s$major,"\n"); cat(s$minor, "\n")'
 } | sort > $f
 
 
