@@ -357,6 +357,7 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
 inla.CRS <- function(..., args = NULL) {
     fmesher_deprecate(
         "soft",
+        1L,
         when = "2023.06.06",
         what = "inla.CRS()",
         with = "fmesher::fm_CRS()"

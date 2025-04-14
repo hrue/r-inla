@@ -21,16 +21,16 @@ sessions.  More detailed assessment tools are in \code{\link[=meshbuilder]{meshb
 }
 \examples{
 
-bnd <- inla.mesh.segment(cbind(
+bnd <- fm_segm(cbind(
     c(0, 10, 10, 0, 0),
     c(0, 0, 10, 10, 0)
-), bnd = TRUE)
-mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
+), is.bnd = TRUE)
+mesh <- fm_mesh_2d_inla(boundary = bnd, max.edge = 1)
 out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
 
 }
 \seealso{
-inla.mesh.2d, inla.mesh.create, meshbuilder
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d()}}, meshbuilder
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

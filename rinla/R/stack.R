@@ -424,14 +424,15 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #' @keywords fmesher
 #' @examples
 #'
+#' library(fmesher)
 #' n <- 200
 #' loc <- matrix(runif(n * 2), n, 2)
-#' mesh <- inla.mesh.2d(
+#' mesh <- fm_mesh_2d(
 #'     loc.domain = loc,
 #'     max.edge = c(0.05, 0.2)
 #' )
-#' proj.obs <- inla.mesh.projector(mesh, loc = loc)
-#' proj.pred <- inla.mesh.projector(mesh, loc = mesh$loc)
+#' proj.obs <- fm_evaluator(mesh, loc = loc)
+#' proj.pred <- fm_evaluator(mesh, loc = mesh$loc)
 #' spde <- inla.spde2.pcmatern(mesh,
 #'     prior.range = c(0.01, 0.01),
 #'     prior.sigma = c(10, 0.01)
@@ -439,7 +440,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #'
 #' covar <- rnorm(n)
 #' field <- inla.qsample(n = 1, Q = inla.spde.precision(spde, theta = log(c(0.5, 1))))[, 1]
-#' y <- 2 * covar + inla.mesh.project(proj.obs, field)
+#' y <- 2 * covar + fm_evaluate(proj.obs, field)
 #'
 #' A.obs <- inla.spde.make.A(mesh, loc = loc)
 #' A.pred <- inla.spde.make.A(mesh, loc = proj.pred$loc)
@@ -490,30 +491,30 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #'     )
 #' )
 #'
-#' field.pred <- inla.mesh.project(
+#' field.pred <- fm_evaluate(
 #'     proj.pred,
 #'     result2$summary.fitted.values[inla.stack.index(stack, "pred")$data, "mean"]
 #' )
-#' field.pred.sd <- inla.mesh.project(
+#' field.pred.sd <- fm_evaluate(
 #'     proj.pred,
 #'     result2$summary.fitted.values[inla.stack.index(stack, "pred")$data, "sd"]
 #' )
 #'
 #' plot(field, field.pred, main = "True vs predicted field")
 #' abline(0, 1)
-#' image(inla.mesh.project(mesh,
+#' image(fm_evaluate(mesh,
 #'     field = field,
 #'     dims = c(200, 200)
 #' ),
 #' main = "True field"
 #' )
-#' image(inla.mesh.project(mesh,
+#' image(fm_evaluate(mesh,
 #'     field = field.pred,
 #'     dims = c(200, 200)
 #' ),
 #' main = "Posterior field mean"
 #' )
-#' image(inla.mesh.project(mesh,
+#' image(fm_evaluate(mesh,
 #'     field = field.pred.sd,
 #'     dims = c(200, 200)
 #' ),
@@ -567,10 +568,10 @@ inla.stack.sum <- function(data, A, effects, responses = NULL,
             nrow(x),
             inla.ifelse(
                 inherits(x, "inla.mdata"),
-                stop("inla.mdata objects must be given as 'response' input"),
+                stop("inla.mdata objects must be given as 'responses' input"),
                 inla.ifelse(
                     inherits(x, "inla.surv"),
-                    stop("inla.surv objects must be given as 'response' input"),
+                    stop("inla.surv objects must be given as 'responses' input"),
                     inla.ifelse(
                         is.data.frame(x),
                         rep(nrow(x), ncol(x)),

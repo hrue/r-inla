@@ -1265,6 +1265,7 @@ print.summary.inla.mesh <- function(x, ...) {
 inla.mesh.project <- function(...) {
   fmesher_deprecate(
     "warn",
+    2L,
     "23.06.07",
     "inla.mesh.project()",
     "fmesher::fm_evaluate()"
@@ -1277,6 +1278,7 @@ inla.mesh.project <- function(...) {
 inla.mesh.projector <- function(...) {
   fmesher_deprecate(
     "warn",
+    2L,
     "23.06.07",
     "inla.mesh.projector()",
     "fmesher::fm_evaluator()"
