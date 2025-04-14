@@ -1,3 +1,7 @@
+# INLA 25.04.14
+* Fixed an namespace error in the barrier models
+* Refer inla.mesh.components to fmesher, from fmesher 0.3.0.9005
+
 # INLA 25.04.09
 * Add new external package: graphpcor
 * Added info about new releases
