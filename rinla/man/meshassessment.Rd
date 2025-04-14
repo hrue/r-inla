@@ -21,6 +21,7 @@ sessions.  More detailed assessment tools are in \code{\link[=meshbuilder]{meshb
 }
 \examples{
 
+library(fmesher)
 bnd <- fm_segm(cbind(
     c(0, 10, 10, 0, 0),
     c(0, 0, 10, 10, 0)

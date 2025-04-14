@@ -32,6 +32,7 @@ fmesher version \verb{0.3.0.9005} or later is installed, which has
 \examples{
 
 # Construct two simple meshes:
+library(fmesher)
 loc <- matrix(c(0, 1, 0, 1), 2, 2)
 mesh1 <- fm_mesh_2d(loc = loc, max.edge = 0.1)
 bnd <- fm_nonconvex_hull_inla(loc, 0.3)
