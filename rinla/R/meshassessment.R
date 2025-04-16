@@ -29,14 +29,15 @@
 #' @param alpha numeric; A valid `inla.spde2.pcmatern` `alpha` parameter
 #' @param dims 2-numeric; the grid size
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso inla.mesh.2d, inla.mesh.create, meshbuilder
+#' @seealso [fmesher::fm_mesh_2d()], [fmesher::fm_rcdt_2d()], meshbuilder
 #' @examples
 #'
-#' bnd <- inla.mesh.segment(cbind(
+#' library(fmesher)
+#' bnd <- fm_segm(cbind(
 #'     c(0, 10, 10, 0, 0),
 #'     c(0, 0, 10, 10, 0)
-#' ), bnd = TRUE)
-#' mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
+#' ), is.bnd = TRUE)
+#' mesh <- fm_mesh_2d_inla(boundary = bnd, max.edge = 1)
 #' out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
 #' 
 #' @rdname meshassessment
@@ -61,12 +62,13 @@ inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
             as.vector(sparseMatrix(i = i, j = rep(1, length(i)), x = val)) /
                 as.vector(sparseMatrix(i = i, j = rep(1, length(i)), x = num))
 
-        proj_len <- as.vector(proj$proj$A %*% avg_len)
-        proj_len[!proj$proj$ok] <- NA
+        b <- fmesher::fm_basis(proj, full = TRUE)
+        proj_len <- as.vector(b$A %*% avg_len)
+        proj_len[!b$ok] <- NA
         proj_len
     }
     mesh.proj <- function(mesh, dims) {
-        INLA::inla.mesh.projector(mesh, dims = dims)
+        fm_evaluator(mesh, dims = dims)
     }
     mesh.spde <- function(mesh, alpha) {
         INLA::inla.spde2.pcmatern(mesh,
@@ -82,23 +84,25 @@ inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
         INLA::inla.qinv(Q, reordering = INLA::inla.reorderings())
     }
     mesh.sd <- function(proj, S) {
-        v <- Matrix::rowSums(proj$proj$A * (proj$proj$A %*% S))
-        v[!proj$proj$ok] <- NA
+        b <- fmesher::fm_basis(proj, full = TRUE)
+        v <- Matrix::rowSums(b$A * (b$A %*% S))
+        v[!b$ok] <- NA
         matrix(v^0.5, length(proj$x), length(proj$y))
     }
     mesh.sd.deviation.approx <- function(proj, S, sd0) {
-        val <- proj$proj$A %*% (
-            as.vector(t(proj$proj$A[proj$proj$ok, , drop = FALSE]) %*%
-                as.vector(sd0)[proj$proj$ok]) /
-                colSums(proj$proj$A[proj$proj$ok, , drop = FALSE]))
-        val[!proj$proj$ok] <- NA
+        b <- fmesher::fm_basis(proj, full = TRUE)
+        val <- b$A %*% (
+            as.vector(t(b$A[b$ok, , drop = FALSE]) %*%
+                as.vector(sd0)[b$ok]) /
+                colSums(b$A[b$ok, , drop = FALSE]))
+        val[!b$ok] <- NA
         matrix(
             1 + (as.vector(sd0) - val),
             length(proj$x), length(proj$y)
         )
     }
     mesh.sd.bound <- function(proj, S) {
-        INLA::inla.mesh.project(proj, field = diag(mesh.S())^0.5)
+        fmesher::fm_evaluate(proj, field = diag(mesh.S())^0.5)
     }
 
 

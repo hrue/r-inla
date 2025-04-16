@@ -1,4 +1,7 @@
 # INLA 25.04.14
+* Build to make it work with R-4.5 on linux
+
+# INLA 25.04.14
 * Fixed an namespace error in the barrier models
 * Refer inla.mesh.components to fmesher, from fmesher 0.3.0.9005
 

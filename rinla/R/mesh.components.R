@@ -1,6 +1,7 @@
 #' Compute connected mesh subsets
 #'
-#' `r lifecycle::badge("deprecated")` Compute subsets of vertices and triangles in an inla.mesh object that are
+#' `r lifecycle::badge("deprecated")` Compute subsets of vertices and triangles
+#' in an inla.mesh object that are
 #' connected by edges. This function is deprecated from INLA `25.4.10` when
 #' fmesher version `0.3.0.9005` or later is installed, which has
 #' `fm_mesh_components()`.
@@ -18,16 +19,17 @@
 #' each component from the lowest numbered triangle whenever a new component is
 #' initiated.}
 #'
-#' @param mesh An `inla.mesh` object
+#' @param mesh An `fm_mesh_2d` object
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [fmesher::fm_mesh_2d()], [fmesher::fm_rcdt_2d()]
 #' @examples
 #'
 #' # Construct two simple meshes:
+#' library(fmesher)
 #' loc <- matrix(c(0, 1, 0, 1), 2, 2)
-#' mesh1 <- inla.mesh.2d(loc = loc, max.edge = 0.1)
-#' bnd <- inla.nonconvex.hull(loc, 0.3)
-#' mesh2 <- inla.mesh.2d(boundary = bnd, max.edge = 0.1)
+#' mesh1 <- fm_mesh_2d(loc = loc, max.edge = 0.1)
+#' bnd <- fm_nonconvex_hull_inla(loc, 0.3)
+#' mesh2 <- fm_mesh_2d(boundary = bnd, max.edge = 0.1)
 #'
 #' # Compute connectivity information:
 #' conn1 <- inla.mesh.components(mesh1)

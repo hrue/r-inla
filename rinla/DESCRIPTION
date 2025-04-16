@@ -43,6 +43,7 @@ Suggests:
     fastGHQuad,
     fields,
     ggplot2,
+    ggpubr,
     gsl,
     graph,
     gridExtra,
@@ -72,7 +73,7 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 25.01.23
+Version: 25.04.10
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 StagedInstall: no
