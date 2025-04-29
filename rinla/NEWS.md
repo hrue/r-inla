@@ -1,3 +1,6 @@
+# INLA 25.04.29
+* Build with R-4.5
+
 # INLA 25.04.14
 * Build to make it work with R-4.5 on linux
 
