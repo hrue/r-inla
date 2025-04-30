@@ -33,7 +33,6 @@ Suggests:
     compositions,
     Deriv,
     Ecdat,
-    HKprocess,
     Rgraphviz,
     deldir,
     devtools,
