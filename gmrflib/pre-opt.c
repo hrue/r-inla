@@ -257,7 +257,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	// build up structure for the likelihood part
 
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
-	A_idxval = GMRFLib_idxval_ncreate_x(npred, IMAX(1, nf + nbeta), nt, 1);
+	A_idxval = GMRFLib_idxval_ncreate_x(npred, IMAX(1, nf + nbeta), nt);
 
 	if (debug) {
 		printf("\t\tmax_threads_outer %1d\n", GMRFLib_openmp->max_threads_outer);
@@ -267,7 +267,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	GMRFLib_idxval_tp **ivs = Calloc(nt, GMRFLib_idxval_tp *);
-	ivs = GMRFLib_idxval_ncreate_x(nt, nbeta + nf, nt, 1);
+	ivs = GMRFLib_idxval_ncreate_x(nt, nbeta + nf, nt);
 
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < npred; i++) {
@@ -346,7 +346,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("A_idxval - matrix");
 
 	// need also At_.. below, if (pA)
-	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt, 1);
+	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, nt);
 	if (0) {
 		// OLD code
 		for (int i = 0; i < npred; i++) {
@@ -491,7 +491,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			Free(crow);
 		}
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
-		pAA_idxval = GMRFLib_idxval_ncreate_x(nrow, -1, nt, 1);
+		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
 
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nrow; i++) {
