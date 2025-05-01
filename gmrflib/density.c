@@ -86,7 +86,7 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n, double 
 	GMRFLib_normalize(n, ww);
 
 	GMRFLib_idxval_tp *idxval = NULL;
-	GMRFLib_idxval_create_x(&idxval, nn, 0);
+	GMRFLib_idxval_create_x(&idxval, nn);
 
 	for (int i = 0; i < n; i++) {
 		if (!ISZERO(ww[i])) {

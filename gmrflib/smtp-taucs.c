@@ -537,9 +537,9 @@ taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix *LL)
 	L->colind = Malloc(nnz, int);
 	L->values = Malloc(nnz, double);
 
-	Memcpy(LL->rowptr, L->rowptr, (n + 1) * sizeof(int));
-	Memcpy(LL->colind, L->colind, nnz * sizeof(int));
-	Memcpy(LL->values, L->values, nnz * sizeof(double));
+	Memcpy(L->rowptr, LL->rowptr, (n + 1) * sizeof(int));
+	Memcpy(L->colind, LL->colind, nnz * sizeof(int));
+	Memcpy(L->values, LL->values, nnz * sizeof(double));
 
 	return L;
 }
@@ -1322,7 +1322,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
 	}
 
-	double *Zj = Malloc(n, double);
+	double *Zj = Calloc(n, double);
 	double *d = L->values;
 	for (int j = n - 1; j >= 0; j--) {
 		// store those indices that are used and set only those to zero 

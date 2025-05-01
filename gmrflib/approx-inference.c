@@ -3317,7 +3317,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		double *isd = Calloc(mnpred, double);
-		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets), GMRFLib_openmp->max_threads_outer, 0);
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets), GMRFLib_openmp->max_threads_outer);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -3491,7 +3491,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS((int) gcpo_param->num_level_sets), 0);
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS((int) gcpo_param->num_level_sets));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -3574,10 +3574,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int max_ng = -1;
 	int corr_hyper = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
+	double cmin = DBL_EPSILON;
 	// double spd_eps = GSL_SQRT_DBL_EPSILON;
 	double diag_eps = GSL_ROOT4_DBL_EPSILON;
 	double diag_scale = 1.0 + diag_eps;
-	double cmin = DBL_EPSILON;
 
 	if (gcpo_param->verbose || detailed_output) {
 		printf("enter _gcpo with...\n");
@@ -3996,6 +3996,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_ghq(&xx, &weights, np);			\
 			double *xp = CODE_BLOCK_WORK_PTR(2);		\
 			double *loglik = CODE_BLOCK_WORK_PTR(3);	\
+									\
 			double val = 0.0;				\
 			double loc_prec, loc_mean, loc_sd;		\
 			double ll_prec = cc_idx_node;			\

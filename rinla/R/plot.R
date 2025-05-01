@@ -1213,12 +1213,14 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
 
     my.pcfgnh <- function(theta, param, log = FALSE) {
         ## needed to compute the PC-prior on the fly.
-        inla.require("HKprocess", stop.on.error = TRUE)
+
+        ## REMOVE HKprocess dependency
+        ## inla.require("HKprocess", stop.on.error = TRUE)
 
         to.theta <- inla.models()$latent$fgn$hyper$theta2$to.theta
         from.theta <- inla.models()$latent$fgn$hyper$theta2$from.theta
 
-        logdet.FGN <- function(H, n) {
+        logdet.FGN.OLD <- function(H, n) {
             ans <- c()
             Hseq <- H
             for (H in Hseq) {
@@ -1228,11 +1230,26 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
             }
             return(ans)
         }
+        logdet.FGN <- function(H, n) {
+            ans <- c()
+            Hseq <- H
+            k <- 11
+            while(2^k < 2 * n) {
+                k <- k + 1
+            }
+            nn <- 2^k
+            for (H in Hseq) {
+                r <- inla.acvfFGN(H, nn / 2)
+                res <- sum(log(abs(fft(c(r, 0, rev(r[-1]))))))
+                ans <- c(ans, res / nn * n)
+            }
+            return(ans)
+        }
         d <- function(H, n) {
             return(sqrt(-logdet.FGN(H, n)))
         }
         H.intern <- seq(-10, 19, by = 0.1)
-        dist <- d(from.theta(H.intern), 100)
+        dist <- d(from.theta(H.intern), 1024)
         log.d <- log(dist / max(dist))
         res <- cbind(H.intern = H.intern, log.d = log.d)
         log.d.spline <- splinefun(res[, 1], res[, 2])
