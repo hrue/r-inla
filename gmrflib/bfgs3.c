@@ -755,6 +755,8 @@ static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf *fdf, const 
 	state->tau3 = 0.5;
 	state->order = 3;				       /* use cubic interpolation where possible */
 
+#include "bfgs-param.h"
+	
 	return GSL_SUCCESS;
 }
 
