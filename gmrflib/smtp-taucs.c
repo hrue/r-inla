@@ -1322,7 +1322,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
 	}
 
-	double *Zj = Malloc(n, double);
+	double *Zj = Calloc(n, double);
 	double *d = L->values;
 	for (int j = n - 1; j >= 0; j--) {
 		// store those indices that are used and set only those to zero 
