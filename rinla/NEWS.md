@@ -1,3 +1,7 @@
+# INLA 25.05.01
+* Fixed a regression with lincomb (thx to AZ)
+* Suggested package `HKprocess` is removed
+
 # INLA 25.04.29
 * Build with R-4.5
 
