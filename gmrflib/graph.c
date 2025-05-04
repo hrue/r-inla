@@ -1369,7 +1369,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 
 	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	assert(result);
-	GMRFLib_fill(graph->n, 0.0, result);
+	GMRFLib_dfill(graph->n, 0.0, result);
 
 	int m = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
 	Calloc_init(m + (!diag ? graph->n : 0), 2);
@@ -1543,7 +1543,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			for (int kk = 0; kk < nelm; kk++) {
 				id[kk] *= x->tda;
 			}
-			GMRFLib_fill(ncol, 0.0, dval);
+			GMRFLib_dfill(ncol, 0.0, dval);
 			for (int kk = 0; kk < nelm; kk++) {
 				double v = val[kk];
 				double *pp = x->data + id[kk];

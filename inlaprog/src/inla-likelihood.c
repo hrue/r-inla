@@ -2707,7 +2707,7 @@ int loglikelihood_rcpoisson(int thread_id, double *__restrict logll, double *__r
 			if (log_prob < lim) {
 				// event = 0
 				if (iszero) {
-					GMRFLib_fill(m, 0.0, logll);
+					GMRFLib_dfill(m, 0.0, logll);
 				} else {
 					for (int i = 0; i < m; i++) {
 						double lambda = E * PREDICTOR_INVERSE_LINK(x[i], off);
@@ -3002,7 +3002,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 	int ny = ds->data_observations.occ_ny[idx];
 
 	if (ny == 0) {
-		GMRFLib_fill(IABS(m), 0.0, logll);
+		GMRFLib_dfill(IABS(m), 0.0, logll);
 		return GMRFLib_SUCCESS;
 	}
 
@@ -3223,7 +3223,7 @@ int loglikelihood_occupancy(int thread_id, double *__restrict logll, double *__r
 			}
 		}
 	} else {
-		GMRFLib_fill(IABS(m), 0.0, logll);
+		GMRFLib_dfill(IABS(m), 0.0, logll);
 	}
 
 	LINK_END;
@@ -5852,9 +5852,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *__restrict logll, double *
 
 int loglikelihood_mix_core(int thread_id, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -6871,7 +6871,7 @@ int loglikelihood_obeta(int thread_id, double *__restrict logll, double *__restr
 				logll[i] = 1.0 - low;
 			}
 		} else if (ISONE(y)) {
-			GMRFLib_fill(-m, 1.0, logll);
+			GMRFLib_dfill(-m, 1.0, logll);
 		} else {
 			for (int i = 0; i < -m; i++) {
 				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
@@ -7410,7 +7410,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 		double *F_trunc = Calloc_get(m);
 		double *FF_trunc = Calloc_get(m);
 
-		GMRFLib_fill(m, 1.0, F_upper);
+		GMRFLib_dfill(m, 1.0, F_upper);
 		if (have_truncation) {
 			loglfun(thread_id, F_trunc, x, -m, idx, x_vec, &truncation, arg, arg_str);
 			SAFEGUARD(F_trunc);
@@ -7719,10 +7719,10 @@ double dgompertz_helper(double y, double a)
 		return y * (exp(b) - 1.0) / b;
 	} else {
 		// series expansion around a=0
-		//return y * (1.0 + b / 2.0 * (1.0 + b / 3.0 * (1.0 + b / 4.0 * (1.0 + b / 5.0 * 1.0...))))
+		// return y * (1.0 + b / 2.0 * (1.0 + b / 3.0 * (1.0 + b / 4.0 * (1.0 + b / 5.0 * 1.0...))))
 
 		double val = 1.0;
-		for(int order = 15; order >= 2; order--) {
+		for (int order = 15; order >= 2; order--) {
 			val = 1.0 + val * b / order;
 		}
 		return y * val;
@@ -7743,14 +7743,14 @@ int loglikelihood_dgompertz(int thread_id, double *__restrict logll, double *__r
 	if (m > 0) {
 		for (int i = 0; i < m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			//logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+			// logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
 			logll[i] = log(mu) + alpha * y - mu * dgompertz_helper(y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (int i = 0; i < -m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			//logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
+			// logll[i] = ONE_mexp(-mu * (exp(alpha * yy) - 1.0) / alpha);
 			logll[i] = ONE_mexp(-mu * dgompertz_helper(yy, alpha));
 		}
 	}
@@ -7994,7 +7994,7 @@ int loglikelihood_vm(int thread_id, double *__restrict logll, double *__restrict
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double s = ds->data_observations.vm_scale[idx]; 
+	double s = ds->data_observations.vm_scale[idx];
 	double lprec = ds->data_observations.vm_lprec[thread_id][0] + log(s);
 	double prec = map_precision_forward(lprec, NULL, NULL);
 
@@ -8024,20 +8024,19 @@ int loglikelihood_vm(int thread_id, double *__restrict logll, double *__restrict
 
 	lcache_t *lc = llcache[cidx];
 	if (lc->lprec != lprec) {
-		lc->c = - (1.8378770664093453391 + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
+		lc->c = -(1.8378770664093453391 + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
 		lc->lprec = lprec;
 	}
-
 #define PREDICTOR_INVERSE_LINK_XX(yy_, xx_, off_)			\
 	ds->predictor_invlinkfunc(thread_id, yy_ - (off_ + _lp_scale * (xx_)), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
-	
+
 	if (m > 0) {
 		for (int i = 0; i < m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = lc->c + prec * cos(y - mu);
 		}
 	} else {
-		GMRFLib_fill(-m, 0.0, logll);
+		GMRFLib_dfill(-m, 0.0, logll);
 	}
 #undef PREDICTOR_INVERSE_LINK_XX
 

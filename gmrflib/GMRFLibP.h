@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -725,7 +726,7 @@ typedef enum {
 	int timer_idx_ = -1;				\
 	if (timer_use_ && timer_first_)	{		\
 		timer_first_ = 0;			\
-		GMRFLib_fill(timer_n_, 0.0, timer_);	\
+		GMRFLib_dfill(timer_n_, 0.0, timer_);	\
 	}
 
 #define TIMER_CHECK							\

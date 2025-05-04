@@ -48,15 +48,18 @@ double GMRFLib_Wishart_logdens(gsl_matrix *Q, double r, gsl_matrix *R)
 	double logdens, trace, log_c;
 	size_t p, i;
 	gsl_matrix *C = NULL;
+	gsl_matrix *QQ = NULL;
 
-	p = Q->size1;
+	QQ = GMRFLib_gsl_duplicate_matrix(Q);
+	GMRFLib_gsl_ensure_spd(QQ, FLT_EPSILON, NULL);
+	p = QQ->size1;
 	C = gsl_matrix_calloc(R->size1, R->size2);
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Q, R, 0.0, C);
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, QQ, R, 0.0, C);
 	trace = 0;
 	for (i = 0; i < C->size1; i++) {
 		trace += gsl_matrix_get(C, i, i);
 	}
-	logdens = -0.5 * trace + (r - (double) p - 1.0) / 2.0 * GMRFLib_gsl_spd_logdet(Q);
+	logdens = -0.5 * trace + (r - (double) p - 1.0) / 2.0 * GMRFLib_gsl_spd_logdet(QQ);
 
 	log_c = r * (double) p / 2.0 * log(2.0) - r / 2.0 * GMRFLib_gsl_spd_logdet(R) + (double) p *((double) p - 1.0) / 4.0 * log(M_PI);
 	for (i = 1; i <= p; i++) {
@@ -65,6 +68,7 @@ double GMRFLib_Wishart_logdens(gsl_matrix *Q, double r, gsl_matrix *R)
 	logdens -= log_c;
 
 	gsl_matrix_free(C);
+	gsl_matrix_free(QQ);
 
 	return logdens;
 }

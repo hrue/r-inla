@@ -24,28 +24,34 @@ __BEGIN_DECLS
 /* 
    
  */
+// this is from smtp-stiles.h
     typedef struct {
+	int in_group;
+	int within_group;
+	int sidx;
+} GMRFLib_stiles_idx_tp;
+
+
+typedef struct {
 	double factor;
 	int degree;
 } GMRFLib_global_node_tp;
 
 typedef enum {
-
-	/**
-	 * \brief Lapack's band-solver
-	 */
 	GMRFLib_SMTP_INVALID = -1,
 	GMRFLib_SMTP_BAND = 1,
 	GMRFLib_SMTP_TAUCS = 2,
 	GMRFLib_SMTP_PARDISO = 3,
-	GMRFLib_SMTP_DEFAULT = 4
+	GMRFLib_SMTP_STILES = 4,
+	GMRFLib_SMTP_DEFAULT = 5
 } GMRFLib_smtp_tp;
 
 #define GMRFLib_SMTP_NAME(smtp)			     \
 	((smtp) == GMRFLib_SMTP_BAND ? "band" :    \
 	 ((smtp) == GMRFLib_SMTP_TAUCS ? "taucs" :	  \
 	  ((smtp) == GMRFLib_SMTP_PARDISO ? "pardiso" :		\
-	   ((smtp) == GMRFLib_SMTP_DEFAULT ? "default" : "THIS SHOULD NOT HAPPEN"))))
+	   ((smtp) == GMRFLib_SMTP_STILES ? "sTiles" :		\
+		    ((smtp) == GMRFLib_SMTP_DEFAULT ? "default" : "THIS SHOULD NOT HAPPEN")))))
 
 typedef enum {
 
@@ -67,7 +73,8 @@ typedef enum {
 	GMRFLib_REORDER_AMDC,
 	GMRFLib_REORDER_AMDBARC,
 	GMRFLib_REORDER_REVERSE_IDENTITY,
-	GMRFLib_REORDER_PARDISO
+	GMRFLib_REORDER_PARDISO,
+	GMRFLib_REORDER_STILES
 } GMRFLib_reorder_tp;
 
 /*! 
@@ -155,22 +162,29 @@ typedef struct {
 
 const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r);
 int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
-int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph);
-int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+				GMRFLib_graph_tp * graph, GMRFLib_problem_tp * problem);
+int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact,
+			     GMRFLib_graph_tp * graph);
 int GMRFLib_compute_Qinv(void *problem);
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp * gn);
-int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_problem_tp * problem);
 int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact);
 int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact);
-int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_problem_tp * problem);
 int GMRFLib_reorder_id(const char *name);
-int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
-int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
-int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
-int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph, int idx);
-int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
-int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx,
-					   int remapped);
+int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph,
+				  GMRFLib_problem_tp * problem);
+int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx,
+					  int toindx, int remapped, GMRFLib_problem_tp * problem);
+int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph,
+				    GMRFLib_problem_tp * problem, GMRFLib_stiles_idx_tp * stiles_idx);
+int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int idx,
+					    GMRFLib_problem_tp * problem);
+int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph,
+				   GMRFLib_problem_tp * problem);
+int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx,
+					   int toindx, int remapped, GMRFLib_problem_tp * problem);
 int GMRFLib_valid_smtp(int smtp);
 
 __END_DECLS

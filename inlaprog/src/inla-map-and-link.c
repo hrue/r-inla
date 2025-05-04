@@ -2059,15 +2059,27 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 double link_circular(int UNUSED(thread_id), double x, map_arg_tp typ, void *UNUSED(param), double *UNUSED(cov))
 {
 	switch (typ) {
-	case MAP_FORWARD:
+	case MAP_FORWARD: 
+	{
 		return 2.0 * M_PI * (1.0 / (1.0 + exp(-x)) - 0.5);
-	case MAP_BACKWARD:
+	}
+	break;
+	case MAP_BACKWARD: 
+	{
 		return log((M_PI + x) / (M_PI - x));
-	case MAP_DFORWARD:
+	}
+	break;
+	case MAP_DFORWARD: 
+	{
 		double ex = exp(-x);
 		return 2.0 * M_PI * ex / SQR(1.0 + ex);
-	case MAP_INCREASING:
+	}
+	break;
+	case MAP_INCREASING: 
+	{
 		return 1.0;
+	}
+	break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}

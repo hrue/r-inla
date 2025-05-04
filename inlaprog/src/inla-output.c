@@ -24,8 +24,9 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 		GMRFLib_problem_tp *p = NULL;
 		FILE *fp = NULL;
 		int thread_id = 0;
+		GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
-		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
+		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL, NULL, &local_smtp);
 		GMRFLib_bitmap_problem((const char *) fnm, p);
 		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/%s", newdir, "factorisation-information.txt");
@@ -226,7 +227,6 @@ int inla_output(inla_tp *mb)
 	local_verbose = 0;
 
 	// do this here so they can be parallized in '_output_detail'
-
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
 		SETNUM(2);
 #pragma omp parallel for num_threads(2)

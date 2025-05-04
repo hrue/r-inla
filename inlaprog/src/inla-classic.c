@@ -304,12 +304,12 @@ int inla_INLA(inla_tp *mb)
 		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			// ....
-		} else {
+		if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 		}
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO && GMRFLib_smtp != GMRFLib_SMTP_STILES) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -633,12 +633,12 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(preopt->latent_graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			// ....
-		} else {
+		if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 		}
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO && GMRFLib_smtp != GMRFLib_SMTP_STILES) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -1000,12 +1000,12 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			// ....
-		} else {
+		if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 		}
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO && GMRFLib_smtp != GMRFLib_SMTP_STILES) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));

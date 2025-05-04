@@ -9,7 +9,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(INLA_WITH_TESTIT)
+#if !defined(INLA_WITH_TESTIT)
+
+int testit(int UNUSED(argc), char **UNUSED(argv))
+{
+	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
+	return 0;
+}
+
+#else
 
 int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
 			 void *UNUSED(arg), char **UNUSED(arg_str))
@@ -100,13 +108,16 @@ int inla_testit_timer(void)
 	return 0;
 }
 
-double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *UNUSED(arg))
+double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	return (i == j ? 100.0 : -1.0);
-}
-#endif
+	if (j < 0) {
+		return NAN;
+	}
 
-#if defined(INLA_WITH_TESTIT)
+	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) arg;
+	return (i == j ? 2 * g->n : -1.0);
+}
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -1491,13 +1502,13 @@ int testit(int argc, char **argv)
 
 	case 61:
 	{
+		assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 		GMRFLib_problem_tp *problem = NULL;
 		GMRFLib_graph_tp *g = NULL;
 		GMRFLib_graph_mk_linear(&g, 5, 5, 0);
-
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL);
+		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL, NULL, NULL);
 		GMRFLib_evaluate(problem);
 		GMRFLib_Qinv(problem);
 
@@ -3771,8 +3782,8 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
-		int k = atoi(args[2]);
-		int ex = 4;
+		int k = 0;				       // atoi(args[2]);
+		int ex = 0;				       // 4;
 		P(n);
 		P(m);
 		P(k);
@@ -3793,7 +3804,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-			GMRFLib_fill(n, a, yy);
+			GMRFLib_dfill(n, a, yy);
 			tref[1] += GMRFLib_timer();
 
 			double err = 0.0;
@@ -3803,9 +3814,6 @@ int testit(int argc, char **argv)
 			assert(ISZERO(err));
 		}
 		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P(tref[0]);
-		P(tref[1]);
-
 
 		int *iy = Malloc(n + ex, int);
 		int *iyy = Malloc(n + ex, int);
@@ -3833,8 +3841,33 @@ int testit(int argc, char **argv)
 			assert(err == 0);
 		}
 		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
-		P(treff[0]);
-		P(treff[1]);
+
+		bool *by = Malloc(n + ex, bool);
+		bool *byy = Malloc(n + ex, bool);
+		iy += k;
+		iyy += k;
+
+		double trefff[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			bool ba = (GMRFLib_uniform() > 0.5 ? true : false);
+			trefff[0] -= GMRFLib_timer();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				by[j] = ba;
+			}
+			trefff[0] += GMRFLib_timer();
+
+			trefff[1] -= GMRFLib_timer();
+			GMRFLib_bfill(n, ba, byy);
+			trefff[1] += GMRFLib_timer();
+
+			int err = 0;
+			for (int j = 0; j < n; j++) {
+				err = IMAX(err, (by[j] != byy[j]));
+			}
+			assert(err == 0);
+		}
+		printf("plain:  %.4f  _bfill:  %.4f\n", trefff[0] / (trefff[0] + trefff[1]), trefff[1] / (trefff[0] + trefff[1]));
 	}
 		break;
 
@@ -5141,71 +5174,218 @@ int testit(int argc, char **argv)
 		double y = atof(args[0]);
 		P(y);
 
-		for(double a = -1.00001; a <= 1.0;  a += 0.0001) {
-			printf("a %.12f expr %.12f series %.12f\n", a, dgompertz_helper(y, a),  (exp(a*y)-1.0)/a);
+		for (double a = -1.00001; a <= 1.0; a += 0.0001) {
+			printf("a %.12f expr %.12f series %.12f\n", a, dgompertz_helper(y, a), (exp(a * y) - 1.0) / a);
 		}
 	}
-	break;
-	
+		break;
+
 	case 163:
 	{
 		/*
-		  > besselI(x = seq(0.5,2.0,by=0.1), nu = 0, expon.scaled = TRUE)
-
-		  0.6450352704 0.5993272031 0.5593055265 0.5241489419 0.4931629661 0.4657596076 0.4414403775 0.4197820789 0.4004249127
-		  0.3830625154 0.3674336091 0.3533149977 0.3405156880 0.3288719497 0.3182431629 0.3085083226
-		*/		  
-		for(double x = 0.5; x <= 2.0;  x += 0.1) {
+		 * > besselI(x = seq(0.5,2.0,by=0.1), nu = 0, expon.scaled = TRUE)
+		 * 
+		 * 0.6450352704 0.5993272031 0.5593055265 0.5241489419 0.4931629661 0.4657596076 0.4414403775 0.4197820789 0.4004249127
+		 * 0.3830625154 0.3674336091 0.3533149977 0.3405156880 0.3288719497 0.3182431629 0.3085083226 
+		 */
+		for (double x = 0.5; x <= 2.0; x += 0.1) {
 			printf("x %.12f besselI(kappa,nu = 0,expon.scaled = TRUE) %.12f %.12f\n", x,
-			       gsl_sf_bessel_I0_scaled(x), MATHLIB_FUN(bessel_i)(x, 0.0, 2.0));
+			       gsl_sf_bessel_I0_scaled(x), MATHLIB_FUN(bessel_i) (x, 0.0, 2.0));
 		}
 	}
-	break;
+		break;
 
-	case 164: 
+	case 164:
 	{
 
-		for(double x = 1.0; ; x *= 10.0) {
-			printf("x %.12f log(besselI) = %.12f\n", x,  log(gsl_sf_bessel_I0_scaled(x)));
+		for (double x = 1.0;; x *= 10.0) {
+			printf("x %.12f log(besselI) = %.12f\n", x, log(gsl_sf_bessel_I0_scaled(x)));
 		}
 	}
-	break;
+		break;
 
-	case 165: 
+	case 165:
 	{
 		/*
-		  > log(besselI(c(1,6),nu=0))
+		 * > log(besselI(c(1,6),nu=0))
+		 * 
+		 * 0.23591435850717853984 4.20818512507597741745
+		 * 
+		 * > log(besselI(c(1,6),nu=1))
+		 * 
+		 * -0.57064798749083123219 4.11646373265194398527
+		 * 
+		 * > log(besselI(c(1,6),nu=2))
+		 * 
+		 * -1.9969574859357672736 3.8456074109918989556 
+		 */
 
-		  0.23591435850717853984 4.20818512507597741745
-
-		  > log(besselI(c(1,6),nu=1))
-
-		  -0.57064798749083123219 4.11646373265194398527
-
-		  > log(besselI(c(1,6),nu=2))
-
-		  -1.9969574859357672736  3.8456074109918989556
-		*/
-		  
-		for(double x = 1.0; x <= 10; x += 5.0) {
-			printf("x %.12f log(besselI0) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(0, x)) + x);
-			printf("x %.12f log(besselI1) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(1, x)) + x);
-			printf("x %.12f log(besselI2) = %.12f\n", x,  log(gsl_sf_bessel_In_scaled(2, x)) + x);
+		for (double x = 1.0; x <= 10; x += 5.0) {
+			printf("x %.12f log(besselI0) = %.12f\n", x, log(gsl_sf_bessel_In_scaled(0, x)) + x);
+			printf("x %.12f log(besselI1) = %.12f\n", x, log(gsl_sf_bessel_In_scaled(1, x)) + x);
+			printf("x %.12f log(besselI2) = %.12f\n", x, log(gsl_sf_bessel_In_scaled(2, x)) + x);
 		}
 	}
-	break;
+		break;
 
-	case 166: 
+	case 166:
 	{
-		for(double x = -1.0; x <= 1.0;  x += 0.1) {
+		for (double x = -1.0; x <= 1.0; x += 0.1) {
 			printf("x = %.12f inv.link = %.12f  link = %.12f  ABS(link(inv.link(x)) - x) = %.12g\n",
 			       x, link_circular(0, x, MAP_FORWARD, NULL, NULL),
 			       link_circular(0, x, MAP_BACKWARD, NULL, NULL),
 			       ABS(link_circular(0, link_circular(0, x, MAP_FORWARD, NULL, NULL), MAP_BACKWARD, NULL, NULL) - x));
 		}
 	}
-	break;
-	
+		break;
+
+	case 167:
+	{
+		int GMRFLib_stiles_test(void);
+		GMRFLib_stiles_test();
+	}
+		break;
+
+	case 168:
+	{
+		int GMRFLib_stiles_test2(void);
+		GMRFLib_stiles_test2();
+	}
+		break;
+
+	case 169:
+	{
+		int GMRFLib_stiles_test3(void);
+		GMRFLib_stiles_test3();
+	}
+		break;
+
+	case 170:
+	{
+		printf("n.times n.rhs graph.name [opt.solve]\n");
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		char *graph_name = args[2];
+		GMRFLib_opt_solve = (nargs >= 4 ? atoi(args[3]) : 0);
+		GMRFLib_graph_tp *graph = NULL;
+		GMRFLib_graph_read(&graph, graph_name);
+		int N = graph->n;
+		P(N);
+		P(GMRFLib_opt_solve);
+
+		GMRFLib_problem_tp *problem = NULL;
+		int thread_id = 0;
+		GMRFLib_smtp_tp smtp = GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
+
+		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph, NULL, NULL, (GMRFLib_smtp_tp *) &smtp);
+
+		double *x = Malloc(N * m, double);
+		double *b = Malloc(N * m, double);
+		double *sol0 = Malloc(N * m, double);
+		double *sol1 = Malloc(N * m, double);
+		double *sol2 = Malloc(N * m, double);
+		double *sol3 = Malloc(N * m, double);
+		double *w = Malloc(N * m, double);
+
+		for (int i = 0; i < N * m; i++) {
+			b[i] = GMRFLib_uniform() - 0.5;
+		}
+		Memcpy(x, b, N * m * sizeof(double));
+
+		double tref[] = { 0, 0, 0, 0 };
+		tref[0] = -GMRFLib_timer();
+		for (int iter = 0; iter < n; iter++) {
+			for (int i = 0; i < m; i++) {
+				int offset = i * graph->n;
+				GMRFLib_solve_llt_sparse_matrix_TAUCS(x + offset,
+								      (&((*problem).sub_sm_fact))->TAUCS_L,
+								      (&((*problem).sub_sm_fact))->TAUCS_LL,
+								      graph, (&((*problem).sub_sm_fact))->remap, w + offset);
+			}
+		}
+		tref[0] += GMRFLib_timer();
+
+		Memcpy(sol0, x, N * m * sizeof(double));
+		Memcpy(x, b, N * m * sizeof(double));
+
+		tref[1] = -GMRFLib_timer();
+		for (int iter = 0; iter < n; iter++) {
+			GMRFLib_solve_llt_sparse_matrix2_TAUCS(x, (&((*problem).sub_sm_fact))->TAUCS_L,
+							       graph, (&((*problem).sub_sm_fact))->remap, m, w);
+		}
+		tref[1] += GMRFLib_timer();
+
+		Memcpy(sol1, x, N * m * sizeof(double));
+		Memcpy(x, b, N * m * sizeof(double));
+
+		GMRFLib_free_problem(problem);
+		problem = NULL;
+
+		smtp = GMRFLib_smtp = GMRFLib_SMTP_STILES;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
+		GMRFLib_idxptr_tp *ptr = NULL;
+		GMRFLib_idxptr_add(&ptr, graph);
+		GMRFLib_idx_tp *iptr = NULL;
+		GMRFLib_idx_add(&iptr, m);
+		GMRFLib_stiles_setup_tp setup = { ptr, iptr };
+		GMRFLib_stiles_setup(&setup);
+
+#pragma omp parallel for num_threads(1)
+		for (int iter = 0; iter < 1; iter++) {
+			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+			GMRFLib_stiles_set_idx(&stiles_idx, 1);
+			GMRFLib_stiles_bind(&stiles_idx);
+			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph,
+					     NULL, &stiles_idx, (GMRFLib_smtp_tp *) &smtp);
+		}
+		GMRFLib_stiles_print(stdout);
+
+		tref[2] = -GMRFLib_timer();
+#pragma omp parallel for num_threads(1)
+		for (int iter = 0; iter < n; iter++) {
+			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+			GMRFLib_stiles_set_idx(&stiles_idx, 1);
+
+			for (int i = 0; i < m; i++) {
+				int offset = i * graph->n;
+				GMRFLib_stiles_solve_LLT(&stiles_idx, x + offset);
+			}
+		}
+		tref[2] += GMRFLib_timer();
+		Memcpy(sol2, x, N * m * sizeof(double));
+		Memcpy(x, b, N * m * sizeof(double));
+
+		tref[3] = -GMRFLib_timer();
+#pragma omp parallel for num_threads(1)
+		for (int iter = 0; iter < n; iter++) {
+			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+			GMRFLib_stiles_set_idx(&stiles_idx, m);
+			GMRFLib_stiles_solve_LLT(&stiles_idx, x);
+		}
+		tref[3] += GMRFLib_timer();
+
+		Memcpy(sol3, x, N * m * sizeof(double));
+
+		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", tref[0] / m);
+		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", tref[1] / m);
+		printf("STILES  pr rhs x 1E6  %.6f sec\n", tref[2] / m);
+		printf("STILES2 pr rhs x 1E6  %.6f sec\n", tref[3] / m);
+
+
+		double err[] = { 0.0, 0.0, 0.0, 0.0 };
+		for (int i = 0; i < N * m; i++) {
+			err[1] += SQR(sol0[i] - sol1[i]);
+			err[2] += SQR(sol0[i] - sol2[i]);
+			err[3] += SQR(sol0[i] - sol3[i]);
+		}
+		printf("\n");
+		P(sqrt(err[1] / (double) (N * m)));
+		P(sqrt(err[2] / (double) (N * m)));
+		P(sqrt(err[3] / (double) (N * m)));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -5220,13 +5400,4 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
-
-#else
-
-int testit(int UNUSED(argc), char **UNUSED(argv)) 
-{
-	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
-	return 0;
-}
-
 #endif

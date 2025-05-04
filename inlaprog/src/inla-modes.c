@@ -32,13 +32,28 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_reorder = GMRFLib_REORDER_STILES;
 	} else {
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	int thread_id = 0;
 	assert(omp_get_thread_num() == 0);
-	GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, constr);
+
+	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
+		stiles_idx->in_group = 0;
+		stiles_idx->within_group = 0;
+		GMRFLib_idxptr_tp *graphs = NULL;
+		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
+		GMRFLib_stiles_setup(&setup);
+		GMRFLib_stiles_bind(stiles_idx);
+	}
+
+	GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, constr, stiles_idx, NULL);
 	GMRFLib_Qinv(problem);
 
 	/*
@@ -102,6 +117,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_reorder = GMRFLib_REORDER_STILES;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
 		if (GMRFLib_reorder == GMRFLib_REORDER_DEFAULT) {
 			GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
@@ -112,17 +129,27 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 	int thread_id = 0;
 	assert(omp_get_thread_num() == 0);
-	GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL);
+
+	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
+		stiles_idx->in_group = 0;
+		stiles_idx->within_group = 0;
+		GMRFLib_idxptr_tp *graphs = NULL;
+		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
+		GMRFLib_stiles_setup(&setup);
+		GMRFLib_stiles_bind(stiles_idx);
+	}
+	GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, stiles_idx, NULL);
 	assert(problem->n == B->nrow);
 
 	if (!strcasecmp(method, "solve")) {
-		GMRFLib_solve_llt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+		GMRFLib_solve_llt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph, problem, NULL);
 	} else if (!strcasecmp(method, "forward")) {
-		assert(GMRFLib_smtp != GMRFLib_SMTP_PARDISO);
-		GMRFLib_solve_l_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+		GMRFLib_solve_l_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph, problem);
 	} else if (!strcasecmp(method, "backward")) {
-		assert(GMRFLib_smtp != GMRFLib_SMTP_PARDISO);
-		GMRFLib_solve_lt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+		GMRFLib_solve_lt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph, problem);
 	} else {
 		assert(0 == 1);
 	}
@@ -214,6 +241,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_reorder = GMRFLib_REORDER_STILES;
 	} else {
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
@@ -229,7 +258,20 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	int thread_id = 0;
 	assert(omp_get_thread_num() == 0);
-	GMRFLib_init_problem(thread_id, &problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, constr);
+
+	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
+		stiles_idx->in_group = 0;
+		stiles_idx->within_group = 0;
+		GMRFLib_idxptr_tp *graphs = NULL;
+		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
+		GMRFLib_stiles_setup(&setup);
+		GMRFLib_stiles_bind(stiles_idx);
+	}
+	GMRFLib_init_problem(thread_id, &problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, constr,
+			     stiles_idx, NULL);
 
 	if (verbose) {
 		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_timer() - t_ref);
@@ -249,7 +291,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO)) {
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_STILES)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);

@@ -891,13 +891,15 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
-	GMRFLib_fill(graph->n, eps, c);
+	GMRFLib_dfill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr, NULL, &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1020,13 +1022,15 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
-	GMRFLib_fill(graph->n, eps, c);
+	GMRFLib_dfill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr, NULL, &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1129,9 +1133,12 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr, NULL,
+					 &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {

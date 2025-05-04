@@ -236,7 +236,7 @@ typedef enum {
 	L_EGP,
 	L_OBETA,
 	L_DGOMPERTZSURV,
-	L_VM, 
+	L_VM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1853,7 +1853,7 @@ double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
 double exp_taylor(double x, double x0, int order);
-double extra(int thread_id, double *theta, int ntheta, void *argument);
+double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp * setup);
 double iid_mfunc(int idx, void *arg);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_cdf_normal(double x);
@@ -2146,7 +2146,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec);
-int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec);
+int inla_parse_stiles(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec);
 
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
@@ -2273,7 +2273,7 @@ int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m,
 int loglikelihood_mgamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mgammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2381,6 +2381,8 @@ int UTIL_countLogicalCores(void);
 
 int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
+
+GMRFLib_idxptr_tp *inla_stiles_get_graphs(void *mbv);
 
 /* 
 ***

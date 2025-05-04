@@ -1345,7 +1345,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 	// y[i] = a * x[i] + b
 
 	if (1) {
-		GMRFLib_fill(n, b, y);
+		GMRFLib_dfill(n, b, y);
 		GMRFLib_daxpy(n, a, x, y);
 	} else {
 		const int roll = 4L;
@@ -1411,7 +1411,7 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 		s1 += a[iidx[1]];
 		s2 += a[iidx[2]];
 		s3 += a[iidx[3]];
-		
+
 		s0 += a[iidx[4]];
 		s1 += a[iidx[5]];
 		s2 += a[iidx[6]];
@@ -1447,7 +1447,7 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 		}							\
 	}
 
-void GMRFLib_fill(int n, double a, double *x)
+void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double);
 }
@@ -1455,6 +1455,11 @@ void GMRFLib_fill(int n, double a, double *x)
 void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int);
+}
+
+void GMRFLib_bfill(int n, bool a, bool *x)
+{
+	FILL_CORE(bool);
 }
 #undef FILL_CORE
 

@@ -21,6 +21,8 @@ __BEGIN_DECLS
 #if defined(INLA_WITH_ARMPL)
 #include "armpl_sparse.h"
 #endif
+//
+//
     typedef struct {
 	int n;
 	int n_alloc;
@@ -44,6 +46,12 @@ typedef struct {
 	int n_alloc;
 	double *val;
 } GMRFLib_val_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	void **ptr;
+} GMRFLib_idxptr_tp;
 
 typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
@@ -147,6 +155,12 @@ int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxptr_add(GMRFLib_idxptr_tp ** hold, void *ptr);
+int GMRFLib_idxptr_create(GMRFLib_idxptr_tp ** hold);
+int GMRFLib_idxptr_free(GMRFLib_idxptr_tp * hold);
+int GMRFLib_idxptr_nprune(GMRFLib_idxptr_tp ** a, int n);
+int GMRFLib_idxptr_prune(GMRFLib_idxptr_tp * hold);
+int GMRFLib_idxptr_printf(FILE * fp, GMRFLib_idxptr_tp * hold, const char *msg);
 int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s);
 int GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
 int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match);
@@ -157,6 +171,7 @@ int GMRFLib_val_free(GMRFLib_val_tp * hold);
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
+
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp * h);
 GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp * h);

@@ -513,6 +513,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		 * 
 		 * the expression below is not correct if mean != 0, so then we need a term -1/2 mu*(Q+C)mu as well. so therefore the if (mean==NULL) test. 
 		 */
+		assert(n > 0);
 		Memset(problem->sample, 0, n * sizeof(double));
 		GMRFLib_evaluate(problem);
 
@@ -524,8 +525,8 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		 */
 		Memcpy(problem->sample, problem->mean_constr, n * sizeof(double));
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));
-		GMRFLib_ai_log_posterior(thread_id, &ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
-					 constr);
+		GMRFLib_ai_log_posterior(thread_id, &ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, graph,
+					 Qfunc, Qfunc_arg, constr);
 
 		*logdens = ldens - problem->sub_logdens;
 	}
@@ -642,6 +643,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	// this is implicitely assumed
 	assert(mean == NULL);
 	assert(x);
+
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_set_idx(&stiles_idx, 1);
+		GMRFLib_stiles_bind(&stiles_idx);
+	}
 
 	/*
 	 * This is copy of the original routine but with optional arguments 
@@ -807,7 +814,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
+			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and
+			// level=0.
 			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS_LIKE();
 			RUN_CODE_BLOCK_X(nt, 0, 0, int);
 			omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
@@ -841,7 +849,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		 * I thought this was quicker without store, as there is just reuse and no copy... but not.  I free lproblem below and set it to NULL, so
 		 * it will always be lproblem = NULL 
 		 */
-
 		if (!lproblem) {
 			if (preopt) {
 				assert((void *) preopt == (void *) Qfunc_arg);
@@ -849,12 +856,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			// GMRFLib_printf_Qfunc2(stdout, graph, Qfunc, Qfunc_arg);
 
 			int ret;
-			ret = GMRFLib_init_problem_store(thread_id, &lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr, store);
+			ret =
+			    GMRFLib_init_problem_store(thread_id, &lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg,
+						       constr, store, &stiles_idx, NULL);
 			if (ret != GMRFLib_SUCCESS) {
 				catch_error = 1;
 			}
 		} else {
-			GMRFLib_init_problem_store(thread_id, &lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr, store);
+			GMRFLib_init_problem_store(thread_id, &lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr,
+						   store, &stiles_idx, NULL);
 		}
 
 		if (catch_error) {
@@ -921,7 +931,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 
 			if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-				// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and level=0.
+				// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode 
+				// 
+				// and level=0.
 				int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
 				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
 				omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
@@ -1002,11 +1014,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 							x[i] = 0.0;
 						}
 					}
-					retval = GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d, fl,
-											       loglFunc, loglFunc_arg,
-											       graph, Qfunc, Qfunc_arg, constr,
-											       &new_optpar, blockupdate_par, store,
-											       aa, bb, cc, cmin, b_strategy, 2, preopt, d_idx);
+					retval =
+					    GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
+											  fl, loglFunc, loglFunc_arg, graph, Qfunc,
+											  Qfunc_arg, constr, &new_optpar,
+											  blockupdate_par, store, aa, bb, cc, cmin,
+											  b_strategy, 2, preopt, d_idx);
 					if (stop && retval == GMRFLib_SUCCESS) {
 						break;
 					}
@@ -1310,7 +1323,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				int retval;
 				int fd_save = ai_par->gradient_forward_finite_difference;
 				if (ai_par->optimise_smart) {
-					// I'm not sure this is a good idea, as its f()'s are slower with more threads unless for huge models.
+					// I'm not sure this is a good idea, as its f()'s are slower with more threads unless for
+					// huge models.
 					// So I turn this off (and revert back to old behavious) until I know more.
 					if (1 || GMRFLib_openmp->max_threads_outer < nhyper * 2) {
 						ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
@@ -1487,7 +1501,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 						fprintf(stderr, "***\n");
 						fprintf(stderr, "\n\n");
 						break;
-						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter,
+						// GMRFLib_EMISC);
 					}
 				}
 			}
@@ -1709,6 +1724,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 				GMRFLib_ai_store_tp *s = NULL;
 
+				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					GMRFLib_stiles_set_idx(&stiles_idx, 1);
+					GMRFLib_stiles_bind(&stiles_idx);
+				}
+
 				zz = Calloc(nhyper, double);
 				ttheta = Calloc(nhyper, double);
 				Memset(zz, 0, nhyper * sizeof(double));
@@ -1720,6 +1741,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					s = ais[thread_id];
 				} else {
 					s = ai_store;	       /* the common one */
+				}
+
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					if (!(s->problem->stiles_idx)) {
+						s->problem->stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
+					}
+					Memcpy(s->problem->stiles_idx, &stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
 				}
 
 				zz[k] = step;
@@ -1777,6 +1805,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				Free(zz);
 				Free(ttheta);
+			}
+
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				GMRFLib_stiles_unbind_group(0);
 			}
 		}
 
@@ -1887,7 +1919,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 
 	if (nlin) {
-		// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then become
+		// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then
+		// become
 		// negative, and we do not support that. revert this change after the next parallel loop
 		for (int i = 0; i < nlin; i++) {
 			for (int j = 0; j < Alin[i]->n; j++) {
@@ -1910,7 +1943,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
-	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
+	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of
+	// threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve.
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
 
@@ -1924,6 +1958,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
+
+		GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_stiles_set_idx(&stiles_idx, 1);
+			GMRFLib_stiles_bind(&stiles_idx);
+		}
 
 		double *z_local = NULL, *theta_local = NULL, log_dens_orig;
 		GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -1941,6 +1981,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			ai_store_id = ai_store;		       /* the common one */
 		}
 		assert(ai_store_id);
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			Memcpy(ai_store_id->problem->stiles_idx, &stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
+		}
 
 		z_local = Calloc(nhyper, double);
 		theta_local = Calloc(nhyper, double);
@@ -2053,10 +2097,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 
 		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN || ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
-			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count,
-							  c, d, prior_mean, ai_par, ai_store_id, graph,
-							  (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-							  loglFunc, loglFunc_arg, preopt, d_idx);
+			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count, c, d, prior_mean, ai_par, ai_store_id, graph,
+							  (tabQfunc ? tabQfunc->Qfunc : Qfunc),
+							  (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg, preopt, d_idx);
 		}
 
 		double *c_corrected = NULL;
@@ -2064,8 +2107,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			c_corrected = Calloc(graph->n, double);
 			GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
 							      c, d, ai_par, ai_store_id, graph,
-							      (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-							      loglFunc, loglFunc_arg, preopt, c_corrected, d_idx);
+							      (tabQfunc ? tabQfunc->Qfunc : Qfunc),
+							      (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg,
+							      preopt, c_corrected, d_idx);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -2088,10 +2132,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (gcpo) {
 			if (misc_output->configs_preopt) {
 				gcpodens_moments = Calloc(3 * preopt->Npred, double);
-				GMRFLib_fill(3 * preopt->Npred, NAN, gcpodens_moments);
+				GMRFLib_dfill(3 * preopt->Npred, NAN, gcpodens_moments);
 			}
-			gcpo_theta[dens_count] = GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups,
-							      d, loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
+			gcpo_theta[dens_count] =
+			    GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
+					 loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
 		}
 
 		if (GMRFLib_ai_INLA_userfunc0) {
@@ -2106,7 +2151,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *cpodens_moments = NULL;
 		if (misc_output->configs_preopt && cpo) {
 			cpodens_moments = Calloc(3 * preopt->Npred, double);
-			GMRFLib_fill(3 * preopt->Npred, NAN, cpodens_moments);
+			GMRFLib_dfill(3 * preopt->Npred, NAN, cpodens_moments);
 		}
 
 		if (cpo || dic || po) {
@@ -2132,21 +2177,22 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					}
 					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(thread_id,
 												   &cpo_theta[i][dens_count],
-												   &pit_theta[i][dens_count], i, cpodens,
-												   d[i], loglFunc, loglFunc_arg, lpred_mean);
+												   &pit_theta[i][dens_count], i,
+												   cpodens, d[i], loglFunc,
+												   loglFunc_arg, lpred_mean);
 					if (cpodens && GMRFLib_getbit(cpodens->flags, DENSITY_FLAGS_FAILURE)) {
 						failure_theta[i][dens_count] = 1.0;
 					}
 					GMRFLib_free_density(cpodens);
 				}
 				if (dic) {
-					deviance_theta[i][dens_count] = GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i],
-												 loglFunc, loglFunc_arg, lpred_mean);
+					deviance_theta[i][dens_count] =
+					    GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
 				}
 				if (po) {
 					GMRFLib_ai_po_integrate(thread_id, &po_theta[i][dens_count], &po2_theta[i][dens_count],
-								&po3_theta[i][dens_count], i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg,
-								lpred_mean);
+								&po3_theta[i][dens_count], i, lpred[i][dens_count], d[i], loglFunc,
+								loglFunc_arg, lpred_mean);
 				}
 			}
 		}
@@ -2171,8 +2217,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double local_aa;
 				if (d[j]) {
 					GMRFLib_2order_taylor(thread_id, cache_idx, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]),
-							      &(ll_info[jj + 2]), d[j], lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg,
-							      &ai_par->step_len, &ai_par->stencil);
+							      &(ll_info[jj + 2]), d[j], lpred_mode[j], j, lpred_mode, loglFunc,
+							      loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
 				} else {
 					ll_info[jj] = ll_info[jj + 1] = ll_info[jj + 2] = NAN;
 				}
@@ -2181,9 +2227,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		int free_if_not_configs = 1;
 		if (misc_output->configs_preopt) {
-			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
-						       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str,
-						       ll_info, lpred_mean, lpred_variance, c_corrected);
+			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig,
+						       ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg,
+						       cpodens_moments, gcpodens_moments, arg_str, ll_info, lpred_mean,
+						       lpred_variance, c_corrected);
 			free_if_not_configs = 0;
 		}
 
@@ -2218,6 +2265,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		Free(lpred_mode);
 		Free(mean_corrected);
 		Free(c_corrected);
+	}
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_unbind_group(0);
 	}
 
 	if (place_save) {
@@ -2428,7 +2479,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			for (int jjj = 0; jjj < dens_max; jjj++) {
 				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
 				// prevent the corrections to be to large for robustness. exp(-15)=3.1E-07..
-				// gcpo_theta[jjj][j]->marg_theta_correction = DMAX(-15.0, gcpo_theta[jjj][j]->marg_theta_correction);
+				// gcpo_theta[jjj][j]->marg_theta_correction = DMAX(-15.0,
+				// gcpo_theta[jjj][j]->marg_theta_correction);
 				// P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
 			}
 
@@ -2634,11 +2686,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *deviance_e_sat = Calloc(ndev, double);
 		double *sign = Calloc(ndev, double);
 
-		GMRFLib_fill(ndev, NAN, e_deviance);
-		GMRFLib_fill(ndev, NAN, e_deviance_sat);
-		GMRFLib_fill(ndev, NAN, deviance_e);
-		GMRFLib_fill(ndev, NAN, deviance_e_sat);
-		GMRFLib_fill(ndev, NAN, sign);
+		GMRFLib_dfill(ndev, NAN, e_deviance);
+		GMRFLib_dfill(ndev, NAN, e_deviance_sat);
+		GMRFLib_dfill(ndev, NAN, deviance_e);
+		GMRFLib_dfill(ndev, NAN, deviance_e_sat);
+		GMRFLib_dfill(ndev, NAN, sign);
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat)
 		for (int j = 0; j < d_idx->n; j++) {
@@ -2676,7 +2728,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			mean_deviance += md;
 			mean_deviance_sat += md_sat;
 
-			// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to the
+			// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to
+			// the
 			// real data doing the comparison there. But this information is not available at this level
 			double sig = 0.0;
 			if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
@@ -2849,8 +2902,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 						for (int kk = 0; kk < nhyper; kk++) {
 							fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
 						}
-						fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
-							probs->val[kkk]);
+						fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n",
+							hyper_ldens[k] + log_dens_mode + log_jacobian, probs->val[kkk]);
 					}
 				}
 			}
@@ -3163,7 +3216,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 	GMRFLib_ENTER_ROUTINE;
 
-	TIMER_INIT(0, 10);
+	TIMER_INIT(1, 1);
 
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
@@ -3173,7 +3226,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 	if (!(gcpo_param->weights) || (gcpo_param->weights && gcpo_param->len_weights < Npred)) {
 		double *w = Calloc(Npred, double);
-		GMRFLib_fill(Npred, 1.0, w);
+		GMRFLib_dfill(Npred, 1.0, w);
 		if (gcpo_param->weights) {
 			// use those who already are defined
 			Memcpy(w, gcpo_param->weights, gcpo_param->len_weights * sizeof(double));
@@ -3214,8 +3267,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			double big = 1.0 / GSL_DBL_EPSILON;
 
-			GMRFLib_fill(nn, 1.0, mask);
-			GMRFLib_fill(nn, 0.0, diag);
+			GMRFLib_dfill(nn, 1.0, mask);
+			GMRFLib_dfill(nn, 0.0, diag);
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);
@@ -3236,8 +3289,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int j = 0; j < gcpo_param->remove->n; j++) {
 					if (!visited[j]) {
 						err++;
-						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
-						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+						printf
+						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
+						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3270,8 +3324,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int j = 0; j < gcpo_param->keep->n; j++) {
 					if (!visited[j]) {
 						err++;
-						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
-						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
+						printf
+						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
+						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3298,8 +3353,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			for (int i = 0; i < nn; i++) {
 				c[i] = gcpo_param->prior_diagonal;
 			}
+
+			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				GMRFLib_stiles_set_idx(&stiles_idx, 1);
+				GMRFLib_stiles_bind(&stiles_idx);
+			}
+
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
-					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr);
+					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg,
+					     preopt->latent_constr, &stiles_idx, NULL);
 			local_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 			local_ai_store->problem = problem;
 			preopt->gcpo_mask = NULL;	       /* set it back */
@@ -3313,6 +3376,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		} else {
 			assert(gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR);
 			build_ai_store = ai_store;
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
+				GMRFLib_stiles_set_idx(&stiles_idx, 1);
+				GMRFLib_stiles_bind(&stiles_idx);
+				if (build_ai_store->problem->stiles_idx) {
+					assert(build_ai_store->problem->stiles_idx->in_group == stiles_idx.in_group);
+					assert(build_ai_store->problem->stiles_idx->within_group == stiles_idx.within_group);
+					Memcpy(build_ai_store->problem->stiles_idx, &stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
+				}
+			}
 		}
 		assert(build_ai_store != NULL);
 
@@ -3351,15 +3424,41 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(selection);
 
+		int nt_outer = -1;
+		int nt_inner = -1;
+		int serial = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())? 1 : 0);
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			if (serial) {
+				nt_outer = GMRFLib_openmp->max_threads_outer;
+				nt_inner = GMRFLib_openmp->max_threads_inner;
+				assert(nt_inner);	       /* remove warning... */
+				assert(nt_outer);	       /* remove warning... */
+			} else {
+				GMRFLib_ASSERT_RETVAL(!serial, GMRFLib_ESNH, NULL);
+			}
+		} else {
+			nt_inner = 1;
+		}
+
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
+									\
+			int node = selection->idx[ii];			\
+			if (gcpo_param->num_level_sets == -1.0) {	\
+				GMRFLib_idxval_add(&(groups[node]), node, 1.0);	\
+				continue;				\
+			}						\
+									\
 			CODE_BLOCK_INIT();				\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
-			int node = selection->idx[ii];			\
 									\
-			if (gcpo_param->num_level_sets == -1.0) {	\
-				GMRFLib_idxval_add(&(groups[node]), node, 1.0); \
-				continue;				\
+			GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0 };	\
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {	\
+		                GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
+				GMRFLib_stiles_bind(&stiles_idx);	\
+				assert(stiles_idx.in_group == GMRFLib_stiles_get_offset_copy()); \
+				assert(stiles_idx.within_group == omp_get_thread_num()); \
 			}						\
 									\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
@@ -3370,7 +3469,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
 			GMRFLib_unpack(v->n, v->val, a, v->idx);	\
-			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
+			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1, &stiles_idx); \
 									\
 			double eps = 1.0E-4 * min_sd / isd[node];	\
 			_Pragma("omp simd")				\
@@ -3378,6 +3477,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0; \
 				}					\
 									\
+			_Pragma("omp parallel for num_threads(nt_inner) schedule(static)") \
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
 				double sum = 0.0;			\
@@ -3476,7 +3576,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			if (0) GMRFLib_idxval_printf(stdout, groups[node], "after adding friends"); \
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			RUN_CODE_BLOCK(nt_outer, 5, N);
+		} else {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
+		}
 #undef CODE_BLOCK
 
 		GMRFLib_idx_free(selection);
@@ -3487,7 +3591,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 
-		// if the number of given groups are to short compared to Npred, then pad with empty groups. if its longer, then that is an error.
+		// if the number of given groups are to short compared to Npred, then pad with empty groups. if its longer, then
+		// that is an error.
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
@@ -3617,6 +3722,19 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	TIMER_CHECK;
 
+	if (!(groups->missing))
+		for (int node = 0; node < Npred; node++) {
+			// this case does not need to be computed
+			if (groups->missing[node]->n == 1 && groups->missing[node]->idx[0][0] == node && groups->missing[node]->idx[1][0] == node) {
+				if (gcpo_param->verbose || detailed_output) {
+					printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+				}
+				skip[node] = 1;
+			}
+			if (groups->missing[node]->n > 0) {
+				GMRFLib_idx_add(&node_idx, node);
+			}
+		}
 	for (int node = 0; node < Npred; node++) {
 		// this case does not need to be computed
 		if (groups->missing[node]->n == 1 && groups->missing[node]->idx[0][0] == node && groups->missing[node]->idx[1][0] == node) {
@@ -3632,6 +3750,23 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	TIMER_CHECK;
 
+	int nt_outer = -1;
+	int nt_inner = -1;
+	int serial = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())? 1 : 0);
+	int use_stiles = (GMRFLib_smtp == GMRFLib_SMTP_STILES ? 1 : 0);
+
+	if (use_stiles) {
+		if (serial) {
+			nt_outer = GMRFLib_openmp->max_threads_outer;
+			nt_inner = GMRFLib_openmp->max_threads_inner;
+		} else {
+			nt_outer = 1;
+			nt_inner = GMRFLib_openmp->max_threads_inner;
+		}
+	}
+	assert(nt_outer);
+	assert(nt_inner);
+
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		CODE_BLOCK_INIT();					\
@@ -3640,6 +3775,18 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 									\
+		GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0};		\
+		if (use_stiles) {					\
+			if (serial) {					\
+				GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
+				GMRFLib_stiles_bind(&stiles_idx);	\
+			} else {					\
+				GMRFLib_stiles_set_idx(&stiles_idx, 1); \
+				GMRFLib_stiles_bind(&stiles_idx);	\
+				assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group); \
+				assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group); \
+			}						\
+		}							\
 		if (gcpo_param->verbose || detailed_output) {		\
 			if (skip[node]) {				\
 				printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
@@ -3676,7 +3823,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					assert(!skip[node]);		\
 					GMRFLib_idxval_tp *v = A_idx(node); \
 					GMRFLib_unpack(v->n, v->val, a, v->idx); \
-					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
+					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1, &stiles_idx); \
 					need_Sa = 0;			\
 				}					\
 				GMRFLib_idxval_tp *v = A_idx(nnode);	\
@@ -3693,7 +3840,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	}
 
 	if (node_idx) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
+		if (use_stiles) {
+			RUN_CODE_BLOCK(nt_outer, 2, N);
+		} else {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
+		}
 	}
 #undef CODE_BLOCK
 
@@ -3707,8 +3858,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		{
 			for (int node = 0; node < Npred; node++) {
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
-					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
-					       (int) gcpo[node]->idx_node);
+					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node,
+					       (int) gcpo[node]->cov_mat->size1, (int) gcpo[node]->idx_node);
 					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, Strdup("nodes in this group"));
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
@@ -4463,6 +4614,7 @@ int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp ***density,	// 
 		// nothing to do here
 		return GMRFLib_SUCCESS;
 	} else {
+		assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 		return GMRFLib_ai_vb_correct_mean_std(thread_id, density, dens_count, dens_local,
 						      c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg);
 	}
@@ -4493,7 +4645,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
-	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
+	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation 
+	// 
+	// is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
 	int keep_MM = 1;
 
@@ -4523,7 +4677,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if required */
+	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if its not there already */
 
 	double *sd = Calloc_get(graph->n);
 	for (int i = 0; i < graph->n; i++) {
@@ -4588,47 +4742,49 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	assert(hessian_update > 0);
 
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
-#define CODE_BLOCK							\
-	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		CODE_BLOCK_INIT();					\
-		CODE_BLOCK_WORK_ZERO(0);				\
-		int j = vb_idx->idx[jj];				\
-		double *b = CODE_BLOCK_WORK_PTR(0);			\
-		double *cov = CODE_BLOCK_WORK_PTR(1);			\
-		b[j] = 1.0;						\
-		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
-		for (int i = 0; i < graph->n; i++) {			\
-			gsl_matrix_set(M, i, jj, cov[i]);		\
-		}							\
-	}
-	RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
-#undef CODE_BLOCK
 
-	if (0) {
-		// runs slower...
-		double *b = Calloc(vb_idx->n * graph->n, double);
-		double *cov = Calloc(vb_idx->n * graph->n, double);
-
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp ==  GMRFLib_SMTP_TAUCS || 
+	    (GMRFLib_OPENMP_IN_INNER() && GMRFLib_openmp->max_threads_inner == 1)) {
+		// do many rhs at the same time
+		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */
 		for (int jj = 0; jj < vb_idx->n; jj++) {
-			int j = vb_idx->idx[jj];
 			double *b_ = b + jj * graph->n;
+			int j = vb_idx->idx[jj];
 			b_[j] = 1.0;
 		}
-		GMRFLib_Qsolves(cov, b, vb_idx->n, ai_store->problem);
-		Free(b);
+		GMRFLib_Qsolves(b, vb_idx->n, ai_store->problem);
 
+		double *cov = b;
 		M = gsl_matrix_alloc(graph->n, vb_idx->n);
+#pragma omp parallel for num_threads(2)
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *cov_ = cov + jj * graph->n;
 			for (int i = 0; i < graph->n; i++) {
 				gsl_matrix_set(M, i, jj, cov_[i]);
 			}
 		}
-		Free(cov);
+		Free(b);
+	} else {
+#define CODE_BLOCK							\
+		for (int jj = 0; jj < vb_idx->n; jj++) {		\
+			CODE_BLOCK_INIT();				\
+			CODE_BLOCK_WORK_ZERO(0);			\
+			int j = vb_idx->idx[jj];			\
+			double *b = CODE_BLOCK_WORK_PTR(0);		\
+			double *cov = CODE_BLOCK_WORK_PTR(1);		\
+			b[j] = 1.0;					\
+			GMRFLib_Qsolve(cov, b, ai_store->problem, j, NULL); \
+			for (int i = 0; i < graph->n; i++) {		\
+				gsl_matrix_set(M, i, jj, cov[i]);	\
+			}						\
+		}
+
+		RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
+#undef CODE_BLOCK
 	}
 
 	double dxs[niter];
-	GMRFLib_fill(niter, 0.0, dxs);
+	GMRFLib_dfill(niter, 0.0, dxs);
 
 	for (int iter = 0; iter < niter + 1; iter++) {
 		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] > dxs[iter - 2])) || !keep_MM);
@@ -4781,7 +4937,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		int diverge = 0;
 		if (iter >= 3) {
 			// 'diverge' is defined as increasing three times in a row
-			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2]) && (dxs[iter - 2] > dxs[iter - 3]));
+			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2])
+				   && (dxs[iter - 2] > dxs[iter - 3]));
 		}
 
 		GMRFLib_daddto(graph->n, dx, x_mean);
@@ -4797,8 +4954,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
 				if (delta_is_NAN) {
-					fprintf(stderr, "\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n", thread_id,
-						delta_is_NAN - 1);
+					fprintf(stderr,
+						"\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+						thread_id, delta_is_NAN - 1);
 				}
 				if (diverge) {
 					fprintf(stderr,
@@ -4806,7 +4964,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 						thread_id);
 				}
 				if (max_corr_flag) {
-					fprintf(stderr, "\n\n\t***[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+					fprintf(stderr,
+						"\n\n\t***[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 						thread_id, max_correction, ai_par->vb_emergency);
 					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
 						ai_par->vb_emergency);
@@ -4816,7 +4975,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 				if (fp != stderr) {
 					if (delta_is_NAN) {
-						fprintf(fp, "\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+						fprintf(fp,
+							"\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
 							thread_id, delta_is_NAN - 1);
 					}
 					if (diverge) {
@@ -4825,7 +4985,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 							thread_id);
 					}
 					if (max_corr_flag) {
-						fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+						fprintf(fp,
+							"\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 							max_correction, ai_par->vb_emergency);
 						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
 							ai_par->vb_emergency);
@@ -4922,6 +5083,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_ENTER_ROUTINE;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+
 	static double tref_a[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	static double count_tref_a = 0.0;		       /* only for testing */
 	const int enable_tref_a = 0;			       /* only for testing */
@@ -5006,7 +5169,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		sd_orig[i] = sd_prev[i] = sqrt(*GMRFLib_Qinv_get(ai_store->problem, i, i));
 	}
 
-	// the gradient of variance wrt theta (additive) is -var()^2, which sugguests c_like = 1/var()^2, but it seems a little to much. we add
+	// the gradient of variance wrt theta (additive) is -var()^2, which sugguests c_like = 1/var()^2, but it seems a little to
+	// much. we add
 	// a scaleing depending on the marginal stdev and normalize them to unit geometric mean.
 	double csum = 0.0;
 	for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -5069,13 +5233,14 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			// then we can use this one that is already computed
 			problem = ai_store->problem;
 		} else {
-			// with iter==1 we know we used ai_store->problem, which should not be free'd, so we need to wait until iter>1
+			// with iter==1 we know we used ai_store->problem, which should not be free'd, so we need to wait until
+			// iter>1
 			if (iter > 1) {
 				GMRFLib_free_problem(problem);
 			}
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			int retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg,
-							  ai_store->problem->sub_constr);
+							  ai_store->problem->sub_constr, &stiles_idx, NULL);
 			if (retval != GMRFLib_SUCCESS) {
 				P(retval);
 				problem = NULL;
@@ -5105,7 +5270,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				{
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
 						tn, iter, niter, GMRFLib_timer() - tref);
-					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n",
+					fprintf(fp,
+						"\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n",
 						(int) vb_idx->n, grad_err, diff_sigma_max, (pass ? "PASS" : "FAIL"));
 					if (pass) {
 						for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -5165,7 +5331,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			int _j = j_;					\
 			Memset(b_, 0, graph->n * sizeof(double));	\
 			b_[_j] = 1.0;					\
-			GMRFLib_Qsolve(cov_latent_, b_, problem, _j);	\
+			GMRFLib_Qsolve(cov_latent_, b_, problem, _j, NULL);	\
 		}
 
 		if (enable_tref_a) {
@@ -5530,8 +5696,8 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp *problem, double *mean_corrected,
 				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean, double *lpred_variance,
-				   double *c_corrected)
+				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean,
+				   double *lpred_variance, double *c_corrected)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -5622,7 +5788,8 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 	GMRFLib_graph_tp *g = NULL;
 
 	// TODO This should be changed: The code below to store Q and Qprior, is a little sloppy, as we do not use the (i,j) arrays
-	// mo->configs_preopt[id]->iprior etc, but we just store the matrices in a vector, in the same order as the indices were stored.
+	// mo->configs_preopt[id]->iprior etc, but we just store the matrices in a vector, in the same order as the indices were
+	// stored.
 
 	Q = Calloc(mo->configs_preopt[id]->nz, double);
 	g = preopt->preopt_graph;
@@ -5705,12 +5872,12 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 
 	assert(ai_store);
 	GMRFLib_problem_tp *problem = ai_store->problem;
-	int *remap = problem->sub_sm_fact.remap;
+	int *remap = NULL;
 	int n, nc = 0, one = 1;
 	GMRFLib_density_tp **d = NULL;
 
-	// yes, disable this with PARDISO as PARDISO do not have this feaure
-	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
+	// yes, disable this with PARDISO or STILES, as there is no such feaure
+	int disable_opt = (problem->sub_sm_fact.smtp == GMRFLib_SMTP_PARDISO || problem->sub_sm_fact.smtp == GMRFLib_SMTP_STILES ? 1 : 0);
 
 	typedef struct {
 		double *v;
@@ -5719,7 +5886,8 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 	} cross_tp;
 	cross_tp *cross_store = NULL;
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+	if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS ||
+	    problem->sub_sm_fact.smtp == GMRFLib_SMTP_BAND || problem->sub_sm_fact.smtp == GMRFLib_SMTP_STILES) {
 		remap = problem->sub_sm_fact.remap;
 	} else {
 		remap = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm;
@@ -5742,9 +5910,15 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		cross_store = Calloc(nlin, cross_tp);
 	}
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+	int nt;
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		FIXME("sTiles:  IMPROVE THIS LATER");
+		nt = 1;
+	} else {
+		nt = GMRFLib_openmp->max_threads_inner;
+	}
+#pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < nlin; i++) {
-
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
 		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight;
 
@@ -5808,7 +5982,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		for (int j = 0; j < Alin[i]->n; j++) {
 			vv[remap[Alin[i]->idx[j]]] = (double) Alin[i]->weight[j];
 		}
-		GMRFLib_solve_l_sparse_matrix_special(vv, &(problem->sub_sm_fact), problem->sub_graph, from_idx, from_idx + len - 1, 1);
+		GMRFLib_solve_l_sparse_matrix_special(vv, &(problem->sub_sm_fact), problem->sub_graph, from_idx, from_idx + len - 1, 1, problem);
 		v = Calloc(len, double);
 		Memcpy(v, vv + from_idx, len * sizeof(double));
 		Free(vv);
@@ -6172,7 +6346,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double *mask = Calloc_get(np);
 		double *ell = Calloc_get(np);
 
-		GMRFLib_fill(np, 1.0, mask);
+		GMRFLib_dfill(np, 1.0, mask);
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
@@ -6294,8 +6468,8 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	return fail;
 }
 
-double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *density, double d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
-				 double *x_vec)
+double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *density, double d, GMRFLib_logl_tp *loglFunc,
+				 void *loglFunc_arg, double *x_vec)
 {
 	/*
 	 * compute the integral of -2*loglikelihood * density(x), wrt x. also return the saturated one
@@ -6588,6 +6762,8 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 	// if (idx == 0 && nhyper == 1) 
 	// sd = std_stdev_theta[idx];
 	// GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, hyper_count, hyper_z, hyper_ldens, theta_mode[idx], sd, 
+	// 
+	// 
 	// 
 	// GMRFLib_TRUE);
 	// 
@@ -7039,7 +7215,7 @@ int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_me
 			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
 		}
 	} else {
-		GMRFLib_fill(n, 0.0, pmean);
+		GMRFLib_dfill(n, 0.0, pmean);
 	}
 	return GMRFLib_SUCCESS;
 }

@@ -64,6 +64,7 @@ int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_find_value(double *array, int len, int direction, double value);
+int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);

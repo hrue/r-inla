@@ -214,7 +214,7 @@ int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla
 
 	return INLA_OK;
 }
-int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *prefix)
+int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const char *prefix)
 {
 	int n, i, j;
 	inla_spde_tp *model = NULL;
@@ -314,29 +314,6 @@ int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *pref
 	model->n = model->graph->n;
 	*smodel = model;
 	func_smodel = model;				       /* store it also here */
-
-	if (0) {
-		FILE *fp = NULL;
-
-		FIXME("write graph to file spde-graph.dat");
-		fp = fopen("spde-graph.dat", "w");
-		GMRFLib_printf_graph(fp, model->graph);
-		fclose(fp);
-	}
-
-	if (0) {
-		int k;
-		for (k = 1; k < 8; k++) {
-			GMRFLib_problem_tp *problem = NULL;
-			GMRFLib_reorder = (GMRFLib_reorder_tp) k;
-			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL);
-			char *nm = NULL;
-			GMRFLib_sprintf(&nm, "Qspde%1d", k);
-			GMRFLib_bitmap_problem(nm, problem);
-			GMRFLib_free_problem(problem);
-		}
-	}
 
 	return INLA_OK;
 }

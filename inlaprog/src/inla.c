@@ -1367,10 +1367,21 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
-double extra(int thread_id, double *theta, int ntheta, void *argument)
+double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp *setup)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
 	const int debug = 0;
+
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+	if (!setup && GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_set_idx(&stiles_idx, 1);
+	}
+
+	int theta_free = 0;
+	if (!theta && ntheta > 0) {
+		theta = Calloc(ntheta, double);
+		theta_free = 1;
+	}
 
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
@@ -1572,6 +1583,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	 */
 
 	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			FIXME("classic mode is not yet supported with sTiles:  switch TAUCS");
+			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+		}
+
 		if (!mb->predictor_fixed) {
 			log_precision = theta[count];
 			count++;
@@ -2629,7 +2646,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
 			case LINK_QEXPPOWER:
-			case LINK_CIRCULAR: 
+			case LINK_CIRCULAR:
 				break;
 
 			case LINK_LOGOFFSET:
@@ -3049,56 +3066,71 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			/*
 			 * do a check for numerical not pos def matrix here, as its so close to being singular 
 			 */
-			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(spde->graph->n, double);
-
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < spde->graph->n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, spde->graph);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    spde->graph, spde->Qfunc, spde->Qfunc_arg, mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					for (ii = 0; ii < spde->graph->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Malloc(spde->graph->n, double);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < spde->graph->n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    spde->graph, spde->Qfunc, spde->Qfunc_arg, mb->f_constr_orig[i], store,
+									    &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < spde->graph->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				GMRFLib_free_problem(problem);
 			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
-
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
-
 			if (nT) {
 				spde->Tmodel->theta_extra[thread_id] = NULL;
 			}
@@ -3106,10 +3138,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				spde->Kmodel->theta_extra[thread_id] = NULL;
 			}
 
-			GMRFLib_free_problem(problem);
 			Free(Tpar);
 			Free(Kpar);
 		}
+
 			break;
 
 		case F_SPDE2:
@@ -3150,77 +3182,91 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			 */
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(spde2->graph->n, double);
 
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < spde2->graph->n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, spde2->graph);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					for (ii = 0; ii < spde2->graph->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(spde2->graph->n, double);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < spde2->graph->n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i],
+									    store, &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < spde2->graph->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
+				Free(cc_add);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+				GMRFLib_set_error_handler(old_handler);
+
+				/*
+				 * this is a multivariate prior...  'count_ref' is the 'first theta'
+				 */
+				if (!mb->mode_fixed) {
+					if (mb->f_prior[i][0].id == P_PC_MATERN) {
+						/*
+						 *  This is a special case: the pc_matern prior. pass NAN for fixed values and the prior will do the correct thing.
+						 */
+						double local_theta[2];
+						int local_count = 0;
+
+						local_theta[0] = (_NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
+						local_theta[1] = (_NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
+						assert(local_count == spde2->ntheta_used);
+						val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
+					} else {
+						// the mvnorm prior, defined on the _USED_ thetas!
+						val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+					}
+				}
+				GMRFLib_free_problem(problem);
 			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
-
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
-
-			/*
-			 * this is a multivariate prior...  'count_ref' is the 'first theta'
-			 */
-			if (!mb->mode_fixed) {
-				if (mb->f_prior[i][0].id == P_PC_MATERN) {
-					/*
-					 *  This is a special case: the pc_matern prior. pass NAN for fixed values and the prior will do the correct thing.
-					 */
-					double local_theta[2];
-					int local_count = 0;
-
-					local_theta[0] = (_NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
-					local_theta[1] = (_NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
-					assert(local_count == spde2->ntheta_used);
-					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
-				} else {
-					// the mvnorm prior, defined on the _USED_ thetas!
-					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
-				}
-			}
-
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3251,63 +3297,78 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			 */
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(spde3->graph->n, double);
 
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < spde3->graph->n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, spde3->graph);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					for (ii = 0; ii < spde3->graph->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(spde3->graph->n, double);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < spde3->graph->n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, mb->f_constr_orig[i],
+									    store, &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < spde3->graph->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
+				Free(cc_add);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				/*
+				 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+				 */
+				if (!mb->mode_fixed) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+				}
+
+				GMRFLib_free_problem(problem);
+				GMRFLib_set_error_handler(old_handler);
 			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
-
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
-
-			/*
-			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
-			 */
-			if (!mb->mode_fixed) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
-			}
-
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3483,65 +3544,82 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(n, double);
 
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval =
-				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
+				if (mb->f_diag[i]) {
 					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					for (ii = 0; ii < arg->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					for (ii = 0; ii < n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
 				}
-					break;
 
-				case GMRFLib_SUCCESS:
-				{
-					ok = 1;
-				}
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval =
+					    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+								       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store,
+								       &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < arg->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+					}
+						break;
+
+					case GMRFLib_SUCCESS:
+					{
+						ok = 1;
+					}
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
-			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
 
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
-			if (_NOT_FIXED(f_fixed[i][0])) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				if (_NOT_FIXED(f_fixed[i][0])) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				}
+				if (_NOT_FIXED(f_fixed[i][1])) {
+					val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
+				}
+
+				GMRFLib_free_problem(problem);
 			}
-			if (_NOT_FIXED(f_fixed[i][1])) {
-				val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
-			}
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3575,63 +3653,80 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			 */
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(n, double);
 
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval =
-				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
+				if (mb->f_diag[i]) {
 					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					for (ii = 0; ii < arg->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					for (ii = 0; ii < n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval =
+					    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+								       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store,
+								       &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < arg->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
-			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
 
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
-			if (_NOT_FIXED(f_fixed[i][0])) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				if (_NOT_FIXED(f_fixed[i][0])) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				}
+				if (_NOT_FIXED(f_fixed[i][1])) {
+					val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
+				}
+
+				GMRFLib_free_problem(problem);
 			}
-			if (_NOT_FIXED(f_fixed[i][1])) {
-				val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
-			}
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3650,66 +3745,80 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(arg->n + arg->m, double);
 
-			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
-
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < arg->n + arg->m; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval =
-				    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					/*
-					 * only need to add for the z-part; the last m components.
-					 */
-					for (ii = arg->n; ii < arg->n + arg->m; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(arg->n + arg->m, double);
+				assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < arg->n + arg->m; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval =
+					    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+								       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store,
+								       &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						/*
+						 * only need to add for the z-part; the last m components.
+						 */
+						for (ii = arg->n; ii < arg->n + arg->m; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				if (_NOT_FIXED(f_fixed[i][0])) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				}
+
+				GMRFLib_free_problem(problem);
 			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
-
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
-
-			if (_NOT_FIXED(f_fixed[i][0])) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-			}
-
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3733,69 +3842,82 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(a->n, double);
 
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < a->n; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i],
-								    store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-
-					/*
-					 * only need to add for the z-part; the last m components.
-					 */
-					for (ii = 0; ii < a->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(a->n, double);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < a->n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a,
+									    mb->f_constr_orig[i], store, &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						/*
+						 * only need to add for the z-part; the last m components.
+						 */
+						for (ii = 0; ii < a->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				for (k = 0; k < GENERIC3_MAXTHETA; k++) {
+					if (_NOT_FIXED(f_fixed[i][k])) {
+						log_precision = a->log_prec[k][0][0];
+						val += PRIOR_EVAL(mb->f_prior[i][k], &log_precision);
+					}
+				}
+
+				GMRFLib_free_problem(problem);
 			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
 
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
-
-			for (k = 0; k < GENERIC3_MAXTHETA; k++) {
-				if (_NOT_FIXED(f_fixed[i][k])) {
-					log_precision = a->log_prec[k][0][0];
-					val += PRIOR_EVAL(mb->f_prior[i][k], &log_precision);
-				}
-			}
-
-			/*
-			 * Free 'a' 
-			 */
 			for (k = 0; k < GENERIC3_MAXTHETA; k++) {
 				for (kk = 0; kk < GMRFLib_MAX_THREADS(); kk++) {
 					Free(a->log_prec[k][kk]);
@@ -3804,7 +3926,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 			Free(a->log_prec);
 			Free(a);
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -3830,64 +3951,79 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(arg->n + arg->m, double);
 
-			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
-
-			if (mb->f_diag[i]) {
-				int ii;
-				for (ii = 0; ii < arg->n + arg->m; ii++) {
-					cc_add[ii] = mb->f_diag[i];
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
-			}
-
-			while (!ok) {
-				retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-								    mb->f_graph_orig[i],
-								    mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store);
-				switch (retval) {
-				case GMRFLib_EPOSDEF:
-				{
-					int ii;
-					double eps = GSL_SQRT_DBL_EPSILON;
-					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
-						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(arg->n + arg->m, double);
+				assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+				if (mb->f_diag[i]) {
+					for (int ii = 0; ii < arg->n + arg->m; ii++) {
+						cc_add[ii] = mb->f_diag[i];
 					}
-					break;
 				}
 
-				case GMRFLib_SUCCESS:
-					ok = 1;
-					break;
-
-				default:
-					/*
-					 * some other error 
-					 */
-					GMRFLib_set_error_handler(old_handler);
-					abort();
-					break;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
-				if (++num_try >= num_try_max) {
-					FIXME("This should not happen. Contact developers...");
-					abort();
+				while (!ok) {
+					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+									    mb->f_graph_orig[i],
+									    mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i],
+									    store, &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+						for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
 				}
-			}
-			Free(cc_add);
-			GMRFLib_set_error_handler(old_handler);
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
 
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
-			if (_NOT_FIXED(f_fixed[i][0])) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				if (_NOT_FIXED(f_fixed[i][0])) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+				}
+				if (_NOT_FIXED(f_fixed[i][1])) {
+					val += PRIOR_EVAL(mb->f_prior[i][1], &logit_rho);
+				}
+
+				GMRFLib_free_problem(problem);
 			}
-			if (_NOT_FIXED(f_fixed[i][1])) {
-				val += PRIOR_EVAL(mb->f_prior[i][1], &logit_rho);
-			}
-			GMRFLib_free_problem(problem);
 		}
 			break;
 
@@ -4073,52 +4209,68 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 				GMRFLib_problem_tp *problem = NULL;
-				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-				double *cc_add = Calloc(n, double);
 
-				if (mb->f_diag[i]) {
-					for (jj = 0; jj < n; jj++) {
-						cc_add[jj] = mb->f_diag[i];
+				if (setup) {
+					GMRFLib_graph_tp *gtmp = NULL;
+					GMRFLib_graph_duplicate(&gtmp, def->graph);
+					GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+					if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+						GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 					}
-				}
-
-				while (!ok) {
-					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
-					switch (retval) {
-					case GMRFLib_EPOSDEF:
-					{
-						double eps = GSL_SQRT_DBL_EPSILON;
+					gtmp = NULL;
+				} else {
+					GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+					double *cc_add = Calloc(n, double);
+					if (mb->f_diag[i]) {
 						for (jj = 0; jj < n; jj++) {
-							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+							cc_add[jj] = mb->f_diag[i];
 						}
-						break;
 					}
 
-					case GMRFLib_SUCCESS:
-						ok = 1;
-						break;
-
-					default:
-						/*
-						 * some other error 
-						 */
-						GMRFLib_set_error_handler(old_handler);
-						assert(0 == 1);
-						abort();
+					if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+						stiles_idx.in_group++;
+						GMRFLib_stiles_bind(&stiles_idx);
 					}
 
-					if (++num_try >= num_try_max) {
-						FIXME("This should not happen. Contact developers...");
-						abort();
+					while (!ok) {
+						retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+										    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i],
+										    store, &stiles_idx, NULL);
+						switch (retval) {
+						case GMRFLib_EPOSDEF:
+						{
+							double eps = GSL_SQRT_DBL_EPSILON;
+							for (jj = 0; jj < n; jj++) {
+								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+							}
+							break;
+						}
+
+						case GMRFLib_SUCCESS:
+							ok = 1;
+							break;
+
+						default:
+							/*
+							 * some other error 
+							 */
+							GMRFLib_set_error_handler(old_handler);
+							assert(0 == 1);
+							abort();
+						}
+
+						if (++num_try >= num_try_max) {
+							FIXME("This should not happen. Contact developers...");
+							abort();
+						}
 					}
+					Free(cc_add);
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_evaluate(problem);
+					log_norm_const = problem->sub_logdens;
+
+					GMRFLib_free_problem(problem);
 				}
-				Free(cc_add);
-				GMRFLib_set_error_handler(old_handler);
-				GMRFLib_evaluate(problem);
-				log_norm_const = problem->sub_logdens;
-
-				GMRFLib_free_problem(problem);
 				GMRFLib_free_tabulate_Qfunc(Qf);
 				Free(xx_out);
 			}
@@ -4154,7 +4306,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_C_GENERIC:
 		{
 			int n_out, nn_out, ii, nt = 0, all_fixed = 0;
-
 			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_cgeneric_tp *def = NULL;
 			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
@@ -4244,52 +4395,68 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 				GMRFLib_problem_tp *problem = NULL;
-				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-				double *cc_add = Calloc(n, double);
 
-				if (mb->f_diag[i]) {
-					for (jj = 0; jj < n; jj++) {
-						cc_add[jj] = mb->f_diag[i];
+				if (setup) {
+					GMRFLib_graph_tp *gtmp = NULL;
+					GMRFLib_graph_duplicate(&gtmp, def->graph);
+					GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+					if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+						GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 					}
-				}
-
-				while (!ok) {
-					retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
-									    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i], store);
-					switch (retval) {
-					case GMRFLib_EPOSDEF:
-					{
-						double eps = GSL_SQRT_DBL_EPSILON;
+					gtmp = NULL;
+				} else {
+					GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+					double *cc_add = Calloc(n, double);
+					if (mb->f_diag[i]) {
 						for (jj = 0; jj < n; jj++) {
-							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+							cc_add[jj] = mb->f_diag[i];
 						}
-						break;
 					}
 
-					case GMRFLib_SUCCESS:
-						ok = 1;
-						break;
-
-					default:
-						/*
-						 * some other error 
-						 */
-						GMRFLib_set_error_handler(old_handler);
-						assert(0 == 1);
-						abort();
+					if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+						stiles_idx.in_group++;
+						GMRFLib_stiles_bind(&stiles_idx);
 					}
 
-					if (++num_try >= num_try_max) {
-						FIXME("This should not happen. Contact developers...");
-						abort();
+					while (!ok) {
+						retval = GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL,
+										    def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i],
+										    store, &stiles_idx, NULL);
+						switch (retval) {
+						case GMRFLib_EPOSDEF:
+						{
+							double eps = GSL_SQRT_DBL_EPSILON;
+							for (jj = 0; jj < n; jj++) {
+								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+							}
+							break;
+						}
+
+						case GMRFLib_SUCCESS:
+							ok = 1;
+							break;
+
+						default:
+							/*
+							 * some other error 
+							 */
+							GMRFLib_set_error_handler(old_handler);
+							assert(0 == 1);
+							abort();
+						}
+
+						if (++num_try >= num_try_max) {
+							FIXME("This should not happen. Contact developers...");
+							abort();
+						}
 					}
+					Free(cc_add);
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_evaluate(problem);
+					log_norm_const = problem->sub_logdens;
+
+					GMRFLib_free_problem(problem);
 				}
-				Free(cc_add);
-				GMRFLib_set_error_handler(old_handler);
-				GMRFLib_evaluate(problem);
-				log_norm_const = problem->sub_logdens;
-
-				GMRFLib_free_problem(problem);
 				GMRFLib_free_tabulate_Qfunc(Qf);
 				Free(xx_out);
 			}
@@ -4730,6 +4897,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			L = gsl_matrix_calloc(dim, dim);
 			Q = gsl_matrix_calloc(dim, dim);
 			inla_wishartk_build_Q(dim, theta_vec, Q, L);
+			GMRFLib_gsl_ensure_spd(Q, FLT_EPSILON, NULL);
 			logdet = GMRFLib_gsl_spd_logdet(Q);
 			gsl_matrix_free(Q);
 			gsl_matrix_free(L);
@@ -4921,20 +5089,38 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-						   (void *) h->matern2ddef, mb->f_constr_orig[i], store);
-			if (debug) {
-				P(h->precision);
-				P(h->range);
-				P(h->problem->sub_logdens);
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
+				}
+				gtmp = NULL;
+			} else {
+
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
+				}
+
+				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
+							   mb->f_Qfunc_orig[i], (void *) h->matern2ddef, mb->f_constr_orig[i], store, &stiles_idx,
+							   NULL);
+				if (debug) {
+					P(h->precision);
+					P(h->range);
+					P(h->problem->sub_logdens);
+				}
+				val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				GMRFLib_free_problem(h->problem);
 			}
-			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
 			Free(h->c);
 			HYPER_FREE(h->matern2ddef->log_prec_omp);
 			HYPER_FREE(h->matern2ddef->log_range_omp);
 			Free(h->matern2ddef);
-			GMRFLib_free_problem(h->problem);
 			Free(h);
 		}
 			break;
@@ -5085,17 +5271,33 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-						   (void *) h->def, mb->f_constr_orig[i], store);
-			if (debug) {
-				P(h->log_prec[thread_id][0]);
-				P(h->log_diag[thread_id][0]);
-				P(h->problem->sub_logdens);
-			}
-			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
+				}
+				gtmp = NULL;
+			} else {
 
-			GMRFLib_free_problem(h->problem);
-			h->problem = NULL;
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
+				}
+
+				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
+							   mb->f_Qfunc_orig[i], (void *) h->def, mb->f_constr_orig[i], store, &stiles_idx, NULL);
+				if (debug) {
+					P(h->log_prec[thread_id][0]);
+					P(h->log_diag[thread_id][0]);
+					P(h->problem->sub_logdens);
+				}
+				val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				GMRFLib_free_problem(h->problem);
+				h->problem = NULL;
+			}
 		}
 			break;
 
@@ -5183,13 +5385,28 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			_SET_GROUP_RHO(2);
 
-			GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-						   (void *) h->def, mb->f_constr_orig[i], store);
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
+				}
+				gtmp = NULL;
+			} else {
 
-			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+					GMRFLib_stiles_bind(&stiles_idx);
+				}
 
-			GMRFLib_free_problem(h->problem);
-			h->problem = NULL;
+				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
+							   mb->f_Qfunc_orig[i], (void *) h->def, mb->f_constr_orig[i], store, &stiles_idx, NULL);
+				val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				GMRFLib_free_problem(h->problem);
+				h->problem = NULL;
+			}
 		}
 			break;
 
@@ -5334,6 +5551,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	}
 #undef _SET_GROUP_RHO
 #undef _NOT_FIXED
+
+	if (theta_free) {
+		Free(theta);
+	}
+
 	return val;
 }
 
@@ -5733,12 +5955,12 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(preopt->latent_graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			// ....
-		} else {
+		if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 		}
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO && GMRFLib_smtp != GMRFLib_SMTP_STILES) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -5915,10 +6137,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 		}
 
-		int iter_max = 10;
+		int iter_max = 5;
 		double norm_initial = 0.0;
 		double *d = bb;				       /* use the same space for both */
-		for (int iter = 0; iter < iter_max; iter++) {
+		for (int iter = 0; iter <= iter_max; iter++) {
 			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
 			GMRFLib_preopt_predictor(eta, x, preopt);
@@ -5945,6 +6167,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				if ((norm_initial - norm) / norm_initial < 0.05)
 					break;
 			}
+
 			norm_initial = norm;
 		}
 
@@ -6017,6 +6240,16 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_idx_free(d_idx);
 	}
 #endif
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
+		GMRFLib_stiles_setup(setup);
+	}
+	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
+		// need global variable
+		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
+		GMRFLib_stiles_free_setup(setup);
+	}
 
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
@@ -6503,9 +6736,11 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 				c[i] = eps;
 			}
 
+			GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 			while (!ok) {
 				retval =
-				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, constr);
+				    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, constr,
+							 NULL, &local_smtp);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -6679,7 +6914,7 @@ int main(int argc, char **argv)
 	printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
 	printf("\t\t-h\t: Print (this) help.\n")
 
-#define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
+#define _BUGS_intern(fp) fprintf(fp, "Report issues/bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, arg, ntt[2] = { 0, 0 }, err;
 #if !defined(WINDOWS)
@@ -6855,6 +7090,9 @@ int main(int argc, char **argv)
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 			} else if (!strcasecmp(optarg, "band")) {
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
+			} else if (!strcasecmp(optarg, "stiles")) {
+				GMRFLib_smtp = GMRFLib_SMTP_STILES;
+				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
 			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
@@ -7034,6 +7272,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		if (GMRFLib_openmp->adaptive) {
+			FIXME("set ->adaptive = FALSE due to sTiles");
+			GMRFLib_openmp->adaptive = FALSE;
+		}
+	}
+
 #if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
@@ -7133,6 +7378,10 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_TESTIT:
 	{
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			fprintf(stdout, "\nsmtp = sTiles outer = %1d inner %1d\n",
+				GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		}
 		testit(argc - optind, &(argv[optind]));
 		exit(EXIT_SUCCESS);
 	}
@@ -7147,14 +7396,11 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\nVersion [%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-	}
-	if (verbose) {
+		fprintf(stdout, "\nVersion......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stdout, "Build-time...[%s]\n", __TIMESTAMP__);
 		_BUGS_intern(stdout);
 	}
-	if (verbose && G.reorder >= 0) {
-		printf("Set reordering to id=[%d] and name=[%s]\n", G.reorder, GMRFLib_reorder_name(G.reorder));
-	}
+
 	if (optind >= argc) {
 		fprintf(stderr, "\n*** Error: Expected argument after options.\n");
 		_USAGE;
@@ -7568,4 +7814,36 @@ int inla_tp_free(inla_tp *mb)
 	Free(mb);
 
 	return 0;
+}
+
+
+GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
+{
+	// easier to have this function here, although its more natural to call it as GMRFLib_stiles_get_graphs(mb)
+	inla_tp *mb = (inla_tp *) mbv;
+	GMRFLib_idxptr_tp *ptrs = NULL;
+	GMRFLib_idx_tp *iptrs = NULL;
+	GMRFLib_idxptr_add(&ptrs, mb->preopt->preopt_graph);
+	if (mb->preopt->latent_constr && mb->preopt->latent_constr->nc) {
+		GMRFLib_idx_add(&iptrs, mb->preopt->latent_constr->nc);
+	} else {
+		GMRFLib_idx_create(&iptrs);
+	}
+
+	// this is for vb correction for the mean
+	int k = 0;
+	for (int i = 0; i < mb->preopt->latent_graph->n; i++) {
+		if (mb->ai_par->vb_nodes_mean[i]) {
+			k++;
+		}
+	}
+	GMRFLib_idx_add(&iptrs, k);
+
+	GMRFLib_stiles_setup_tp *setup = Calloc(1, GMRFLib_stiles_setup_tp);
+	setup->graphs = ptrs;
+	setup->nrhss = iptrs;
+	(void) extra(0, NULL, mb->ntheta, mb, setup);
+	GMRFLib_max_nrhs = GMRFLib_imax_value(setup->nrhss->idx, setup->nrhss->n, NULL);
+
+	return setup;
 }
