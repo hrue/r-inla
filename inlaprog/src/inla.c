@@ -7824,26 +7824,28 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 	GMRFLib_idxptr_tp *ptrs = NULL;
 	GMRFLib_idx_tp *iptrs = NULL;
 	GMRFLib_idxptr_add(&ptrs, mb->preopt->preopt_graph);
+	GMRFLib_idx_add(&iptrs, 1);
 	if (mb->preopt->latent_constr && mb->preopt->latent_constr->nc) {
 		GMRFLib_idx_add(&iptrs, mb->preopt->latent_constr->nc);
-	} else {
-		GMRFLib_idx_create(&iptrs);
 	}
 
-	// this is for vb correction for the mean
-	int k = 0;
-	for (int i = 0; i < mb->preopt->latent_graph->n; i++) {
-		if (mb->ai_par->vb_nodes_mean[i]) {
-			k++;
+	if (mb->ai_par->vb_nodes_mean) {
+		// this is for vb correction for the mean. variance correction is different
+		int k = 0;
+		for (int i = 0; i < mb->preopt->latent_graph->n; i++) {
+			if (mb->ai_par->vb_nodes_mean[i]) {
+				k++;
+			}
 		}
+		GMRFLib_idx_add(&iptrs, k);
 	}
-	GMRFLib_idx_add(&iptrs, k);
-
+	
 	GMRFLib_stiles_setup_tp *setup = Calloc(1, GMRFLib_stiles_setup_tp);
 	setup->graphs = ptrs;
 	setup->nrhss = iptrs;
 	(void) extra(0, NULL, mb->ntheta, mb, setup);
 	GMRFLib_max_nrhs = GMRFLib_imax_value(setup->nrhss->idx, setup->nrhss->n, NULL);
+	GMRFLib_idx_printf(stdout, setup->nrhss, "NRHSS");
 
 	return setup;
 }
