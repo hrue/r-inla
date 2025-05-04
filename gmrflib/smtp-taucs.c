@@ -1074,7 +1074,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			GMRFLib_convert_to_mapped(work + offset, rhs + offset, graph, remap);
 		}
 	}
-	
+
 	GMRFLib_my_taucs_dccs_solve_llt2(L, work, nrhs, rhs);
 
 	if (nrhs <= GMRFLib_max_nrhs) {
@@ -1087,7 +1087,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
 		}
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1569,7 +1569,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 
 	if (1) {
 		jfirst = n;
-		for(int j = 0; j < n; j++) {
+		for (int j = 0; j < n; j++) {
 			double *xx = x + j;
 			int found = 0;
 			for (int k = 0; k < nrhs; k++) {
@@ -1583,7 +1583,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 				break;
 			}
 		}
-	} 
+	}
 
 	if (jfirst == n) {
 		GMRFLib_dfill(n * nrhs, 0.0, x);

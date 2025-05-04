@@ -4743,7 +4743,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp ==  GMRFLib_SMTP_TAUCS || 
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS ||
 	    (GMRFLib_OPENMP_IN_INNER() && GMRFLib_openmp->max_threads_inner == 1)) {
 		// do many rhs at the same time
 		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */

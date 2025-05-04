@@ -16,9 +16,7 @@
 __BEGIN_DECLS
 //
 #include "stiles.h"
-
-
-typedef struct {
+    typedef struct {
 	int verbose;
 	int tile_size;
 } GMRFLib_stiles_ctl_tp;
@@ -84,7 +82,7 @@ int GMRFLib_stiles_verbose();
 void *GMRFLib_stiles_get_store_ptr(void);
 void GMRFLib_stiles_Qinv(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp * stiles_idx);
-void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp *setup);
+void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp * setup);
 void GMRFLib_stiles_print(FILE * fp);
 void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp * stiles_idx, FILE * fp);
 void GMRFLib_stiles_quit(void);

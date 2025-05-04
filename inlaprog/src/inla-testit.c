@@ -5278,7 +5278,8 @@ int testit(int argc, char **argv)
 		GMRFLib_smtp_tp smtp = GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
 
-		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph, NULL, NULL, (GMRFLib_smtp_tp *) &smtp);
+		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph, NULL, NULL,
+				     (GMRFLib_smtp_tp *) & smtp);
 
 		double *x = Malloc(N * m, double);
 		double *b = Malloc(N * m, double);
@@ -5337,7 +5338,7 @@ int testit(int argc, char **argv)
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
 			GMRFLib_stiles_bind(&stiles_idx);
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph,
-					     NULL, &stiles_idx, (GMRFLib_smtp_tp *) &smtp);
+					     NULL, &stiles_idx, (GMRFLib_smtp_tp *) & smtp);
 		}
 		GMRFLib_stiles_print(stdout);
 

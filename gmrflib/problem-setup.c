@@ -296,7 +296,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
 
 int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp *constr)
 {
-	// compute 'res = A %*% x'  for many x's
+	// compute 'res = A %*% x' for many x's
 
 	int nc = constr->nc;
 	int nt = 0;
@@ -310,11 +310,11 @@ int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp *
 	}
 
 #pragma omp parallel for num_threads(nt) collapse(2)
-	for(int k = 0; k < m; k++ ) {				
-		for (int i = 0; i < nc; i++) {			
-			int offset_res = k * nc;			
-			int offset_x = k * n;				
-			GMRFLib_dot_product_INLINE(res[i + offset_res], constr->idxval[i], x + offset_x); 
+	for (int k = 0; k < m; k++) {
+		for (int i = 0; i < nc; i++) {
+			int offset_res = k * nc;
+			int offset_x = k * n;
+			GMRFLib_dot_product_INLINE(res[i + offset_res], constr->idxval[i], x + offset_x);
 		}
 	}
 
@@ -365,12 +365,12 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;
 		double alpha = -1.0, beta = 1.0;
-		
+
 		if (1) {
 			// runs better for many rhs's
 			double t_vector[nc * nrhs];
 			GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
-			dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE); 
+			dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
 		} else {
 			// this is the old code
 #define CODE_BLOCK							\
@@ -543,13 +543,13 @@ int GMRFLib_init_problem_store(int thread_id,
 		Memcpy(rr, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
 		Free((*problem)->sub_sm_fact.remap);
 		(*problem)->sub_sm_fact.remap = rr;
-		
+
 		// add replications of remap to make it faster to reorder many vectors
 		int *iptr = (*problem)->sub_sm_fact.remap;
 		for (int j = 1; j < GMRFLib_max_nrhs; j++) {
 			int offset = j * sub_n;
-			for(int i = 0; i < sub_n; i++) {
-				iptr[offset + i] =  iptr[i] + offset;
+			for (int i = 0; i < sub_n; i++) {
+				iptr[offset + i] = iptr[i] + offset;
 			}
 		}
 

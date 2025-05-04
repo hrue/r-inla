@@ -19000,7 +19000,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	// for backward compatability (remove later, May 2025)
 	debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
 	assert(debug == 0);
-	
+
 	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
 	if (mb->verbose) {
 		printf("\t\t[%1d]\n", tile_size);
