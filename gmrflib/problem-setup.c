@@ -539,7 +539,6 @@ int GMRFLib_init_problem_store(int thread_id,
 		 */
 		GMRFLib_EWRAP1(GMRFLib_compute_reordering(&((*problem)->sub_sm_fact), (*problem)->sub_graph, NULL));
 
-		P(GMRFLib_max_nrhs);
 		int *rr = Calloc(sub_n * GMRFLib_max_nrhs, int);
 		Memcpy(rr, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
 		Free((*problem)->sub_sm_fact.remap);

@@ -7845,7 +7845,7 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 	setup->nrhss = iptrs;
 	(void) extra(0, NULL, mb->ntheta, mb, setup);
 	GMRFLib_max_nrhs = GMRFLib_imax_value(setup->nrhss->idx, setup->nrhss->n, NULL);
-	GMRFLib_idx_printf(stdout, setup->nrhss, "NRHSS");
+	// GMRFLib_idx_printf(stdout, setup->nrhss, "NRHSS");
 
 	return setup;
 }
