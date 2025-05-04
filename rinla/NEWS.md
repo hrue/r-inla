@@ -1,3 +1,6 @@
+# INLA 24.05.04
+* Improved hyperpar optimization, more stable
+
 # INLA 25.05.01
 * Fixed a regression with lincomb (thx to AZ)
 * Suggested package `HKprocess` is removed
