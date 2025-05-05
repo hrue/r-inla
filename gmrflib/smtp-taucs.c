@@ -10,8 +10,6 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "metis.h"
 
-#define TIME_FUNCTIONS 0
-
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
@@ -1487,10 +1485,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	if (n == 0) {
 		return 0;
 	}
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
 
 	assert(w);
 	double *y = w;
@@ -1498,10 +1492,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	double *d = L->values;
 	int *colptr = L->colptr;
 	int *rowind = L->rowind;
-
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
 
 	int jfirst = GMRFLib_find_nonzero(x, n, 1);
 	if (jfirst < 0) {
@@ -1521,11 +1511,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		}
 	}
 
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
-
 	for (int i = n - 1; i >= 0; i--) {
 		int jp = colptr[i];
 		int jp1 = jp + 1;
@@ -1533,13 +1518,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
-
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count++;
-	printf("solve_llt:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
 
 	return 0;
 }
@@ -1552,36 +1530,24 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	if (n <= 0 || nrhs <= 0) {
 		return 0;
 	}
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
-
 	double *work = w;
 	int ione = 1;
 
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
-
 	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
 	int jfirst = 0;
-
-	if (1) {
-		jfirst = n;
-		for (int j = 0; j < n; j++) {
-			double *xx = x + j;
-			int found = 0;
-			for (int k = 0; k < nrhs; k++) {
-				if (!ISZERO(xx[k * n])) {
-					found = 1;
-					jfirst = j;
-					break;
-				}
-			}
-			if (found) {
+	jfirst = n;
+	for (int j = 0; j < n; j++) {
+		double *xx = x + j;
+		int found = 0;
+		for (int k = 0; k < nrhs; k++) {
+			if (!ISZERO(xx[k * n])) {
+				found = 1;
+				jfirst = j;
 				break;
 			}
+		}
+		if (found) {
+			break;
 		}
 	}
 
@@ -1596,7 +1562,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double *ww = work + j * n;
 		dcopy_(&n, ww, &ione, xx, &nrhs);
 	}
-
+	
 	double *y = work;
 	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
 	for (int j = jfirst; j < n; j++) {
@@ -1618,11 +1584,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 			GMRFLib_daxpy(nrhs, Aij, yy, xx);
 		}
 	}
-
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
 
 	for (int i = n - 1; i >= 0; i--) {
 		double sum[nrhs];
@@ -1655,13 +1616,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		dcopy_(&n, ww, &nrhs, xx, &ione);
 	}
 
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count += nrhs;
-	printf("solve_llt2:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
-
 	return 0;
 }
 
@@ -1673,11 +1627,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	taucs_crs_matrix *LL = (taucs_crs_matrix *) vLL;
 	int n = L->n;
 
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
-
 	if (n == 0) {
 		return 0;
 	}
@@ -1688,10 +1637,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	int *rowptr = LL->rowptr;
 	int *colind = LL->colind;
 
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
-
 	y[0] = x[0] / d[0];
 	for (int i = 1; i < n; i++) {
 		int m = rowptr[i + 1] - rowptr[i];
@@ -1699,11 +1644,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		double s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
-
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
 
 	d = L->values;
 	int *colptr = L->colptr;
@@ -1716,13 +1656,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
-
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count++;
-	printf("solve_llt3:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
 
 	return 0;
 }
