@@ -7608,6 +7608,7 @@ int main(int argc, char **argv)
 				fflush(stdout);
 			}
 			if (verbose) {
+				GMRFLib_remap_print(stdout);
 				printf("\nWall-clock time used on [%s]\n", model_ini);
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
