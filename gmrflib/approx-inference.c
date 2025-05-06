@@ -1325,6 +1325,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				int retval;
 				int fd_save = ai_par->gradient_forward_finite_difference;
 				if (ai_par->optimise_smart) {
+					// set _part(1)
+					GMRFLib_opt_set_smart_optim_part(1);
+
 					// I'm not sure this is a good idea, as its f()'s are slower with more threads unless for
 					// huge models.
 					// So I turn this off (and revert back to old behavious) until I know more.
@@ -1360,6 +1363,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				ai_par->gsl_epsx = gsl_epsx;
 
 				if (ai_par->optimise_smart) {
+					// move to part II
+					GMRFLib_opt_set_smart_optim_part(2);
+
 					ai_par->restart = IMAX(1, ai_par->restart);
 					ai_par->gradient_forward_finite_difference = GMRFLib_FALSE;
 					if (ai_par->fp_log) {
@@ -4746,7 +4752,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS ||
-	    (GMRFLib_OPENMP_IN_INNER() && GMRFLib_openmp->max_threads_inner == 1)) {
+		  (GMRFLib_OPENMP_IN_INNER() && GMRFLib_openmp->max_threads_inner == 1)) {
 		// do many rhs at the same time
 		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */
 		for (int jj = 0; jj < vb_idx->n; jj++) {

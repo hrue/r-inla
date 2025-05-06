@@ -41,6 +41,21 @@ static fncall_timing_tp fncall_timing = {
 
 static GMRFLib_opt_trace_tp *opt_trace = NULL;
 
+static int GMRFLib_opt_smart_optim_part = 1;
+void GMRFLib_opt_set_smart_optim_part(int part) 
+{
+	if (part <= 1) {
+		GMRFLib_opt_smart_optim_part =  1;
+	} else {
+		GMRFLib_opt_smart_optim_part =  2;
+	}
+}
+
+int GMRFLib_opt_get_smart_optim_part(void) 
+{
+	return (GMRFLib_opt_smart_optim_part);
+}
+
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 		      char *compute,
@@ -185,6 +200,7 @@ int GMRFLib_opt_exit(void)
 		Memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
 	}
 	Memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
+	GMRFLib_opt_set_smart_optim_part(1);
 
 	return GMRFLib_SUCCESS;
 }

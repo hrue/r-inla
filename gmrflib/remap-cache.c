@@ -6,7 +6,7 @@
 static map_strvp * remap_store = NULL;
 static int remap_store_use = 1;
 static int remap_store_must_init = 1;
-static int remap_store_debug = 1;
+static int remap_store_debug = 0;
 
 int GMRFLib_remap_init_store(void)
 {
@@ -61,11 +61,11 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	void **p = map_strvp_ptr(remap_store, (char *) sha);
 
 	if (remap_store_debug) {
-		sha = GMRFLib_remap_prettify_sha(sha);
+		unsigned char *ssha = GMRFLib_remap_prettify_sha((unsigned char *)strdup((const char *)sha));
 		if (p) {
-			printf("\t[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sha);
+			printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), ssha);
 		} else {
-			printf("\t[%1d]{%s} remap_store: add remap into store\n", omp_get_thread_num(), sha);
+			printf("[%1d]{%s} remap_store: add remap into store\n", omp_get_thread_num(), ssha);
 		}
 	}
 
@@ -113,20 +113,22 @@ void GMRFLib_remap_print(FILE *fp)
 {
 	// write out the cache
 	if (remap_store_use) {
+		double tsiz = 0.0;
 		fprintf(fp, "\nContents of remap_store: \n");
 		int k = 0;
 		map_strvp_storage *ptr = NULL; 
 		for (ptr = NULL ; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL ; ) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				unsigned char *sha = GMRFLib_remap_prettify_sha((unsigned char *)strdup(r->sha));
+				unsigned char *sha = GMRFLib_remap_prettify_sha((unsigned char *)strdup((const char *) r->sha));
 				fprintf(fp, "\tSlot[%1d] sha[%s] n[%1d] rhs[%1d] remap[%1d %1d %1d...]\n",
 					k, sha, r->n, r->nrhs,
 					r->remap[0], r->remap[IMIN(r->n-1, 1)], r->remap[IMIN(r->n-1, 2)]);
+				tsiz +=  (r->n * r->nrhs + 2) * sizeof(int);
 			}
 			k++;
 		}
-		fprintf(fp, "\n");
+		fprintf(fp, "\tTotal size[%.2f]Mb\n", tsiz / SQR(1024.0));
 	}
 }
 
