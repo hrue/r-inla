@@ -2286,11 +2286,11 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp *g)
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
-	GMRFLib_SHA_IUPDATE(&(g->n), 1);
-	GMRFLib_SHA_IUPDATE(&(g->nnz), 1);
-	GMRFLib_SHA_IUPDATE(g->nnbs, g->n);
+	GMRFLib_SHA_IUPDATE(&(g->n), 1, c);
+	GMRFLib_SHA_IUPDATE(&(g->nnz), 1, c);
+	GMRFLib_SHA_IUPDATE(g->nnbs, g->n, c);
 	for (int i = 0; i < g->n; i++) {
-		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
+		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i], c);
 	}
 
 	GMRFLib_SHA_Final(md, &c);

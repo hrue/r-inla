@@ -6245,11 +6245,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
 		GMRFLib_stiles_setup(setup);
 	}
-	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
-		// need global variable
-		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
-		GMRFLib_stiles_free_setup(setup);
-	}
 
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
@@ -6955,6 +6950,7 @@ int main(int argc, char **argv)
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */
+	GMRFLib_remap_init_store();
 	GMRFLib_csr_init_store();
 	GMRFLib_trace_functions(NULL);
 	GMRFLib_debug_functions(NULL);
@@ -7844,8 +7840,6 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 	setup->graphs = ptrs;
 	setup->nrhss = iptrs;
 	(void) extra(0, NULL, mb->ntheta, mb, setup);
-	GMRFLib_max_nrhs = GMRFLib_imax_value(setup->nrhss->idx, setup->nrhss->n, NULL);
-	// GMRFLib_idx_printf(stdout, setup->nrhss, "NRHSS");
 
 	return setup;
 }

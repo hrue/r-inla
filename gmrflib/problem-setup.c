@@ -528,8 +528,8 @@ int GMRFLib_init_problem_store(int thread_id,
 		/*
 		 * use the reordering in store 
 		 */
-		(*problem)->sub_sm_fact.remap = Calloc(sub_n * GMRFLib_max_nrhs, int);
-		Memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * GMRFLib_max_nrhs * sizeof(int));
+		(*problem)->sub_sm_fact.remap = Calloc(sub_n, int);
+		Memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
 		if (smtp == GMRFLib_SMTP_BAND) {
 			(*problem)->sub_sm_fact.bandwidth = store->bandwidth;
 		}
@@ -539,27 +539,13 @@ int GMRFLib_init_problem_store(int thread_id,
 		 */
 		GMRFLib_EWRAP1(GMRFLib_compute_reordering(&((*problem)->sub_sm_fact), (*problem)->sub_graph, NULL));
 
-		int *rr = Calloc(sub_n * GMRFLib_max_nrhs, int);
-		Memcpy(rr, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
-		Free((*problem)->sub_sm_fact.remap);
-		(*problem)->sub_sm_fact.remap = rr;
-
-		// add replications of remap to make it faster to reorder many vectors
-		int *iptr = (*problem)->sub_sm_fact.remap;
-		for (int j = 1; j < GMRFLib_max_nrhs; j++) {
-			int offset = j * sub_n;
-			for (int i = 0; i < sub_n; i++) {
-				iptr[offset + i] = iptr[i] + offset;
-			}
-		}
-
 		/*
 		 * store a copy, if requested 
 		 */
 		if (store_store_remap) {
 			if ((*problem)->sub_sm_fact.remap != NULL) {
-				store->remap = Calloc(sub_n * GMRFLib_max_nrhs, int);
-				Memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * GMRFLib_max_nrhs * sizeof(int));
+				store->remap = Calloc(sub_n, int);
+				Memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
 				if (smtp == GMRFLib_SMTP_BAND) {
 					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
 				}
@@ -1338,8 +1324,8 @@ int GMRFLib_constr_add_sha(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
-	GMRFLib_SHA_DUPDATE(constr->a_matrix, graph->n * constr->nc);
-	GMRFLib_SHA_DUPDATE(constr->e_vector, constr->nc);
+	GMRFLib_SHA_DUPDATE(constr->a_matrix, graph->n * constr->nc, c);
+	GMRFLib_SHA_DUPDATE(constr->e_vector, constr->nc, c);
 	GMRFLib_SHA_Final(md, &c);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 	constr->sha = md;
@@ -1698,7 +1684,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	/*
 	 * duplicate the sparse-matrix factorisation 
 	 */
-	DUPLICATE(sub_sm_fact.remap, ns * GMRFLib_max_nrhs, int, 0);
+	DUPLICATE(sub_sm_fact.remap, ns, int, 0);
 	DUPLICATE(sub_sm_fact.bchol, ns * (problem->sub_sm_fact.bandwidth + 1), double, 0);
 
 	COPY(sub_sm_fact.bandwidth);
@@ -1830,7 +1816,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 	GMRFLib_store_tp *new_store = Calloc(1, GMRFLib_store_tp);
 
 	COPY(bandwidth);
-	DUPLICATE(remap, ns * GMRFLib_max_nrhs, int, 0);
+	DUPLICATE(remap, ns, int, 0);
 
 	if (copy_ptr == GMRFLib_TRUE) {
 		/*
@@ -2083,3 +2069,4 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 	}
 	return GMRFLib_SUCCESS;
 }
+

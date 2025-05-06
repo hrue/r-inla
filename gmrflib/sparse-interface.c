@@ -495,54 +495,6 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				ntt = GMRFLib_openmp->max_threads_inner;
 			}
 
-			// we can think about doing this adaptive...
-			static int first = 0;		       /* disable this for now */
-			if (first) {
-#pragma omp critical (Name_6be4bd8db780edbe386889a3c08410a01e9915d0)
-				{
-					double tref = 0.0;
-					double sum = 0.0;
-					tref -= GMRFLib_timer();
-#pragma omp parallel for reduction(+: sum) num_threads(ntt)
-					for (int i = 0; i < ntt; i++) {
-						sum += i;
-					}
-					tref += GMRFLib_timer();
-					P(tref);
-
-					int mm = 16;
-					double *xx = Malloc(mm * graph->n, double);
-					double *w = Malloc(mm * graph->n, double);
-					GMRFLib_dfill(mm * graph->n, GMRFLib_uniform(), xx);
-					tref = -GMRFLib_timer();
-
-					GMRFLib_solve_llt_sparse_matrix2_TAUCS(xx, sm_fact->TAUCS_L, graph, sm_fact->remap, 1, w);
-					tref += GMRFLib_timer();
-					P(1);
-					P(tref);
-					GMRFLib_dfill(mm * graph->n, GMRFLib_uniform(), xx);
-					tref = -GMRFLib_timer();
-					GMRFLib_solve_llt_sparse_matrix2_TAUCS(xx, sm_fact->TAUCS_L, graph, sm_fact->remap, mm / 2, w);
-					tref += GMRFLib_timer();
-					P(mm / 2);
-					P(tref);
-
-					GMRFLib_dfill(mm * graph->n, GMRFLib_uniform(), xx);
-					tref = -GMRFLib_timer();
-					GMRFLib_solve_llt_sparse_matrix2_TAUCS(xx, sm_fact->TAUCS_L, graph, sm_fact->remap, mm, w);
-					tref += GMRFLib_timer();
-					P(mm);
-					P(tref);
-
-					double sha = 0.0;
-					for (size_t i = 0; i < strlen((char *) graph->sha); i++) {
-						sha += (int) graph->sha[i] * exp(sqrt(i));
-					}
-					printf("%g\n", sha);
-				}
-				first = 0;
-			}
-
 			int target = 12;		       /* less than this, just do serial */
 			ntt = IMIN(ntt, IMAX(1, nrhs / target));
 
@@ -567,14 +519,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 					offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
 				}
 
-				if (0) {
-					P(ntt);
-					P(nrhs);
-					for (int i = 0; i < ntt; i++) {
-						printf("%d chunk_size %d offset %d\n", i, csize[i], offset[i] / graph->n);
-					}
-				}
-#pragma omp parallel for
+#pragma omp parallel for num_threads(ntt)
 				for (int i = 0; i < ntt; i++) {
 					GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset[i], sm_fact->TAUCS_L, graph,
 									       sm_fact->remap, csize[i], work + offset[i]);

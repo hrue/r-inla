@@ -26,20 +26,20 @@ __BEGIN_DECLS
 #define GMRFLib_SHA_Update     SHA256_Update
 #define GMRFLib_SHA_Final      SHA256_Final
 #define GMRFLib_SHA_UPDATE_LEN 64L
-#define GMRFLib_SHA_UPDATE_CORE(_x, _len, _type) \
-	if ((_len) > 0 && (_x)) {					\
-		size_t len = (_len) * sizeof(_type);			\
-		size_t n = (size_t) len / GMRFLib_SHA_UPDATE_LEN;	\
-		size_t m = len - n * GMRFLib_SHA_UPDATE_LEN;		\
+#define GMRFLib_SHA_UPDATE_CORE(_x, _len, _type, _c) \
+	if ((_len) > 0) {						\
+		size_t len_ = (_len) * sizeof(_type);			\
+		size_t n_ = (size_t) len_ / GMRFLib_SHA_UPDATE_LEN;	\
+		size_t m_ = len_ - (n_) * GMRFLib_SHA_UPDATE_LEN;	\
 		unsigned char *xx = (unsigned char *) (_x);		\
-		for(size_t i_ = 0; i_ < n; i_++) {			\
-			GMRFLib_SHA_Update(&c, (const void *) (xx + i_ * GMRFLib_SHA_UPDATE_LEN), (size_t) GMRFLib_SHA_UPDATE_LEN); \
+		for(size_t i_ = 0; i_ < (n_); i_++) {			\
+			GMRFLib_SHA_Update(&(_c), (const void *) (xx + i_ * GMRFLib_SHA_UPDATE_LEN), (size_t) GMRFLib_SHA_UPDATE_LEN); \
 		}							\
-		if (m) {						\
-			GMRFLib_SHA_Update(&c, (const void *) (xx + n * GMRFLib_SHA_UPDATE_LEN), m); \
+		if (m_) {						\
+			GMRFLib_SHA_Update(&(_c), (const void *) (xx + (n_) * GMRFLib_SHA_UPDATE_LEN), m_); \
 		}							\
 	}
-#define GMRFLib_SHA_IUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, int)
-#define GMRFLib_SHA_DUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, double)
+#define GMRFLib_SHA_IUPDATE(_x, _len, _c) GMRFLib_SHA_UPDATE_CORE(_x, _len, int, _c)
+#define GMRFLib_SHA_DUPDATE(_x, _len, _c) GMRFLib_SHA_UPDATE_CORE(_x, _len, double, _c)
     __END_DECLS
 #endif

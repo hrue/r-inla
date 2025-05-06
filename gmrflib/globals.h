@@ -103,7 +103,6 @@ extern int GMRFLib_model_idx;
 extern int GMRFLib_model_n;
 
 extern int GMRFLib_numa_is_available;
-extern int GMRFLib_max_nrhs;
 
 extern char *GMRFLib_tmpdir;
 #endif

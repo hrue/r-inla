@@ -46,7 +46,7 @@ RMDIR = rmdir
 SED   = sed
 
 LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
-	GMRFLib-fortran.o optimize.o blockupdate.o \
+	GMRFLib-fortran.o optimize.o blockupdate.o remap-cache.o \
 	distributions.o globals.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o smtp-stiles.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
@@ -60,7 +60,7 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h smtp-stiles.h sparse-interface.h rw.h \
 	bitmap.h hashP.h taucsP.h taucs_privateP.h ghq.h \
-	tabulate-Qfunc.h io.h moments.h amdP.h \
+	tabulate-Qfunc.h io.h moments.h amdP.h remap-cache.h \
 	approx-inference.h density.h utils.h simd.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
