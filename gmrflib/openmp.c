@@ -69,7 +69,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		smtp_store = *smtp;
 	}
 
-	FIXME1("SWITCH TO SETTING STILES AS DEFAULT, LATER");
 	if (GMRFLib_pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 		if (debug) {
