@@ -19,17 +19,13 @@
 #endif
 
 __BEGIN_DECLS
-
 //
-
-typedef struct 
-{
+    typedef struct {
 	int n;
 	int nrhs;
 	int *remap;					       /* length n * nrhs */
 	unsigned char *sha;
-}
-	GMRFLib_remap_tp;
+} GMRFLib_remap_tp;
 
 int *GMRFLib_remap_get(int *remap, int n, int nrhs);
 int GMRFLib_remap_init_store(void);

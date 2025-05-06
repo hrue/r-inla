@@ -2069,4 +2069,3 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 	}
 	return GMRFLib_SUCCESS;
 }
-

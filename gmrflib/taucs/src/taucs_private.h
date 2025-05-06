@@ -11,9 +11,7 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS
-
-extern double taucs_dtl(zero_const);
+__BEGIN_DECLS extern double taucs_dtl(zero_const);
 extern double taucs_dtl(one_const);
 
 double taucs_dtl(add_fn) (double a, double b);

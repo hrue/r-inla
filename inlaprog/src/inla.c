@@ -7835,7 +7835,7 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 		}
 		GMRFLib_idx_add(&iptrs, k);
 	}
-	
+
 	GMRFLib_stiles_setup_tp *setup = Calloc(1, GMRFLib_stiles_setup_tp);
 	setup->graphs = ptrs;
 	setup->nrhss = iptrs;

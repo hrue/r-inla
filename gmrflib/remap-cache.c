@@ -24,7 +24,7 @@ int GMRFLib_remap_init_store(void)
 	return GMRFLib_SUCCESS;
 }
 
-unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs) 
+unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 {
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
@@ -37,7 +37,7 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 
 	return (md);
 }
-	
+
 int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 {
 	if (!remap_store_use) {
@@ -61,15 +61,15 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		GMRFLib_remap_tp *r = *((GMRFLib_remap_tp **) p);
 		return r->remap;
 	}
-	
+
 	int *re = Malloc(n * nrhs, int);
 	int *re1 = Malloc(n * nrhs, int);
 	int *re2 = Malloc(n * nrhs, int);
 
 	// two step mapping
-	for(int j = 0; j < nrhs; j++) {
+	for (int j = 0; j < nrhs; j++) {
 		int offset = j * n;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			re1[offset + i] = remap[i] + offset;
 			re2[offset + i] = i * nrhs + j;
 		}
@@ -78,7 +78,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		re[k] = re2[re1[k]];
 	}
 
-	GMRFLib_remap_tp * r = Calloc(1, GMRFLib_remap_tp);
+	GMRFLib_remap_tp *r = Calloc(1, GMRFLib_remap_tp);
 	r->sha = sha;
 	r->n = n;
 	r->nrhs = nrhs;
@@ -91,6 +91,6 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 
 	Free(re1);
 	Free(re2);
-	
+
 	return r->remap;
 }

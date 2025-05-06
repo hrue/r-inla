@@ -1058,7 +1058,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 {
 	int n = graph->n;
 	int skip_reordering = 0;
-	GMRFLib_graph_tp g = { .n =  n * nrhs };
+	GMRFLib_graph_tp g = {.n = n * nrhs };
 
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
 	if (r) {
@@ -1541,7 +1541,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 			dcopy_(&n, ww, &ione, xx, &nrhs);
 		}
 	}
-	
 	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
 	int jfirst = n;
 	for (int j = 0; j < n; j++) {
@@ -1622,7 +1621,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 			dcopy_(&n, ww, &nrhs, xx, &ione);
 		}
 	}
-	
+
 	return 0;
 }
 
