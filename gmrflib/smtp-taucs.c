@@ -1058,16 +1058,15 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 {
 	int n = graph->n;
 	int skip_reordering = 0;
-	GMRFLib_graph_tp g;
-	g.n = n * nrhs;
+	GMRFLib_graph_tp g = { .n =  n * nrhs };
 
-	assert(work);
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
-
 	if (r) {
+		// this is doing the full reordering, also the one in llt2
 		skip_reordering = 1;
 		GMRFLib_convert_to_mapped(work, rhs, &g, r);
 	} else {
+		// this is doing the first reordering, the second one is in llt2
 		skip_reordering = 0;
 		for (int j = 0; j < nrhs; j++) {
 			int offset = j * n;
@@ -1527,49 +1526,15 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
 
-	//FIXME("A");
-	//skip_reordering = 0;
-	
-	if (skip_reordering) {
-		printf("skip_reordering n %d nrhs %d\n", L->n, nrhs);
-	}
-	if (!skip_reordering) {
-		printf("!skip_reordering n %d nrhs %d\n", L->n, nrhs);
-	}
-
 	if (n <= 0 || nrhs <= 0) {
 		return 0;
 	}
+
 	double *work = w;
-	int ione = 1;
 
-	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
-	int jfirst = 0;
-
-	if (!skip_reordering) {
-		jfirst = n;
-		for (int j = 0; j < n; j++) {
-			double *xx = x + j;
-			int found = 0;
-			for (int k = 0; k < nrhs; k++) {
-				if (!ISZERO(xx[k * n])) {
-					found = 1;
-					jfirst = j;
-					break;
-				}
-			}
-			if (found) {
-				break;
-			}
-		}
-		if (jfirst == n) {
-			GMRFLib_dfill(n * nrhs, 0.0, x);
-			return 0;
-		}
-	}
-	
 	Memcpy(work, x, n * nrhs * sizeof(double));
 	if (!skip_reordering) {
+		int ione = 1;
 		for (int j = 0; j < nrhs; j++) {
 			double *xx = x + j;
 			double *ww = work + j * n;
@@ -1577,11 +1542,30 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		}
 	}
 	
-	for(int i = 0; i < n * nrhs; i++) {
-		printf("work[%1d] = %f\n", i, work[i]);
+	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
+	int jfirst = n;
+	for (int j = 0; j < n; j++) {
+		double *xx = x + j * nrhs;
+		int found = 0;
+		if (j == 0) {
+			// the first chunk we have to do 'manually'
+			for (int k = 0; k < nrhs; k++) {
+				if (!ISZERO(xx[k])) {
+					found = 1;
+					break;
+				}
+			}
+		} else {
+			// but for the remaining, we know the first nrhs's of x is zero, so we can cmp with that chunk
+			if (memcmp((const void *) xx, (const void *) x, nrhs * sizeof(double))) {
+				found = 1;
+			}
+		}
+		if (found) {
+			jfirst = j;
+			break;
+		}
 	}
-	exit(0);
-	
 
 	double *y = work;
 	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
@@ -1629,15 +1613,16 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		}
 	}
 
-	Memcpy(work, x, n * nrhs * sizeof(double));
 	if (!skip_reordering) {
+		Memcpy(work, x, n * nrhs * sizeof(double));
+		int ione = 1;
 		for (int j = 0; j < nrhs; j++) {
 			double *xx = x + j * n;
 			double *ww = work + j;
 			dcopy_(&n, ww, &nrhs, xx, &ione);
 		}
 	}
-
+	
 	return 0;
 }
 

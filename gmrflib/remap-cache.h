@@ -34,8 +34,6 @@ typedef struct
 int *GMRFLib_remap_get(int *remap, int n, int nrhs);
 int GMRFLib_remap_init_store(void);
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs);
-void icopy(int *n, int *x, int *ix, int *y, int *iy);
-
 
 __END_DECLS
 #endif

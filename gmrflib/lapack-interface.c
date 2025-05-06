@@ -1463,7 +1463,6 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 }
 #undef FILL_CORE
 
-
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]

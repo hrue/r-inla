@@ -10,8 +10,8 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static int graph_store_use = 1;
 static map_strvp graph_store;
+static int graph_store_use = 1;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
