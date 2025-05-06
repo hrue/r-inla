@@ -515,6 +515,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		 */
 		assert(n > 0);
 		Memset(problem->sample, 0, n * sizeof(double));
+		GMRFLib_dfill(n, 0.0, problem->sample);
 		GMRFLib_evaluate(problem);
 
 		double A = GMRFLib_dsum(Npred, ai_store->aa);
@@ -662,6 +663,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
 		if (free_cc) Free(cc); if (free_d_idx) GMRFLib_idx_free(d_idx);  }
 
+	assert(Npred > 0);
 	n = graph->n;
 	if (n == 0) {
 		*problem = NULL;
@@ -741,9 +743,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	for (iter = 0; iter < itmax; iter++) {
 
-		Memset(aa, 0, Npred * sizeof(double));
-		Memset(bb, 0, Npred * sizeof(double));
-		Memset(cc, 0, Npred * sizeof(double));
+		GMRFLib_dfill(Npred, 0.0, aa);
+		GMRFLib_dfill(Npred, 0.0, bb);
+		GMRFLib_dfill(Npred, 0.0, cc);
 
 		if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 			if (!free_linear_predictor) {
@@ -1615,7 +1617,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				fprintf(stderr,
 					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
-				Memset(hessian, 0, ISQR(nhyper) * sizeof(double));
+				GMRFLib_dfill(ISQR(nhyper), 0.0, hessian);
 				for (int i = 0; i < nhyper; i++)
 					hessian[i + i * nhyper] = 1.0;
 			} else {
@@ -1697,7 +1699,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 */
 
 		iz = Calloc(nhyper, int);
-		Memset(iz, 0, nhyper * sizeof(int));
+		GMRFLib_ifill(nhyper, 0, iz);
 
 		hyper_len = dens_max;
 		hyper_z = Calloc(hyper_len * nhyper, double);
@@ -1732,7 +1734,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				zz = Calloc(nhyper, double);
 				ttheta = Calloc(nhyper, double);
-				Memset(zz, 0, nhyper * sizeof(double));
+				GMRFLib_dfill(nhyper, 0.0, zz);
 
 				if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 					if (!ais[thread_id]) {
@@ -3305,7 +3307,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int i = 0; i < nn; i++) {
 					diag[i] = big;
 				}
-				Memset(mask, 0, nn * sizeof(double));
+				GMRFLib_dfill(nn, 0.0, mask);
 
 				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
 					char *tag = gcpo_param->idx_tag[j];
@@ -5329,7 +5331,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
 		if (1) {						\
 			int _j = j_;					\
-			Memset(b_, 0, graph->n * sizeof(double));	\
+			GMRFLib_dfill(graph->n, 0.0, b_);		\
 			b_[_j] = 1.0;					\
 			GMRFLib_Qsolve(cov_latent_, b_, problem, _j, NULL);	\
 		}
@@ -6171,8 +6173,9 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 		idx--;
 	} while (idx > 0 && (logdens[idx] > logdens[idx - 1]));
 
-	if (idx < *n)
+	if (idx < *n) {
 		Memset(&code[idx], 1, *n - idx);
+	}
 
 	idx = -1;
 	do {
@@ -6277,7 +6280,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	if (compute_cpo) {
 		loglFunc(thread_id, prob, xp, -np, idx, x_vec, NULL, loglFunc_arg, NULL);	/* no correction for 'd' here; should we? */
 	} else {
-		Memset(prob, 0, np * sizeof(double));
+		GMRFLib_dfill(np, 0.0, prob);
 	}
 	loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 	GMRFLib_dscale(np, d, loglik);
