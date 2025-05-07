@@ -193,12 +193,12 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
 	int mtype = S.mtype, error = 0;
-
 	assert(M);
 	pardiso_chkmatrix(&mtype, &(M->s->n), M->a, M->s->ia1, M->s->ja1, &error);
 	if (error != 0) {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
+
 	return GMRFLib_SUCCESS;
 }
 

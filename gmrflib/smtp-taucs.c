@@ -10,8 +10,6 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "metis.h"
 
-#define TIME_FUNCTIONS 0
-
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
@@ -1030,7 +1028,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
+	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1058,19 +1056,33 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
-	// same function but for many rhs.
-
 	int n = graph->n;
-	assert(work);
+	int skip_reordering = 0;
+	GMRFLib_graph_tp g = {.n = n * nrhs };
 
-	for (int j = 0; j < nrhs; j++) {
-		int offset = j * n;
-		GMRFLib_convert_to_mapped(work + offset, rhs + offset, graph, remap);
+	int *r = GMRFLib_remap_get(remap, n, nrhs);
+	if (r) {
+		// this is doing the full reordering, also the one in llt2
+		skip_reordering = 1;
+		GMRFLib_convert_to_mapped(work, rhs, &g, r);
+	} else {
+		// this is doing the first reordering, the second one is in llt2
+		skip_reordering = 0;
+		for (int j = 0; j < nrhs; j++) {
+			int offset = j * n;
+			GMRFLib_convert_to_mapped(work + offset, rhs + offset, graph, remap);
+		}
 	}
-	GMRFLib_my_taucs_dccs_solve_llt2(L, work, nrhs, rhs);
-	for (int j = 0; j < nrhs; j++) {
-		int offset = j * n;
-		GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
+
+	GMRFLib_my_taucs_dccs_solve_llt2(L, work, nrhs, rhs, skip_reordering);
+
+	if (r) {
+		GMRFLib_convert_from_mapped(rhs, work, &g, r);
+	} else {
+		for (int j = 0; j < nrhs; j++) {
+			int offset = j * n;
+			GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
+		}
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1106,7 +1118,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
+	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	if (!remapped) {
@@ -1151,7 +1163,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
+	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
 	double *b = work;
 	if (!remapped) {
@@ -1201,7 +1213,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	}
 	double *work = wwork[cache_idx];
 	double *y = work;
-	GMRFLib_fill(idx_new, 0.0, y);
+	GMRFLib_dfill(idx_new, 0.0, y);
 
 	double *d = L->values;
 	int *colptr = L->colptr;
@@ -1436,7 +1448,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 
-	GMRFLib_fill(from_idx, 0.0, x);
+	GMRFLib_dfill(from_idx, 0.0, x);
 	for (int i = from_idx; i >= to_idx; i--) {
 		int jp1 = L->colptr[i] + 1;
 		b[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values + jp1, x, L->rowind + jp1);
@@ -1472,10 +1484,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	if (n == 0) {
 		return 0;
 	}
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
 
 	assert(w);
 	double *y = w;
@@ -1484,17 +1492,13 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	int *colptr = L->colptr;
 	int *rowind = L->rowind;
 
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
-
 	int jfirst = GMRFLib_find_nonzero(x, n, 1);
 	if (jfirst < 0) {
 		// only zero's
-		GMRFLib_fill(n, 0.0, x);
+		GMRFLib_dfill(n, 0.0, x);
 		return 0;
 	} else {
-		GMRFLib_fill(jfirst, 0.0, y);
+		GMRFLib_dfill(jfirst, 0.0, y);
 	}
 
 	for (int j = jfirst; j < n; j++) {
@@ -1506,11 +1510,6 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		}
 	}
 
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
-
 	for (int i = n - 1; i >= 0; i--) {
 		int jp = colptr[i];
 		int jp1 = jp + 1;
@@ -1519,17 +1518,10 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		x[i] = y[i] * inv_Aii;
 	}
 
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count++;
-	printf("solve_llt:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
-
 	return 0;
 }
 
-int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w)
+int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w, int skip_reordering)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
@@ -1537,44 +1529,45 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	if (n <= 0 || nrhs <= 0) {
 		return 0;
 	}
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
 
 	double *work = w;
-	int ione = 1;
 
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
-
-	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
-	int jfirst = n;					       /* do not change, see below */
-	for (int k = 0; k < nrhs; k++) {
-		int jj = GMRFLib_find_nonzero(x + k * n, n, 1);
-		if (jj >= 0) {
-			jfirst = IMIN(jfirst, jj);
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	if (!skip_reordering) {
+		int ione = 1;
+		for (int j = 0; j < nrhs; j++) {
+			double *xx = x + j;
+			double *ww = work + j * n;
+			dcopy_(&n, ww, &ione, xx, &nrhs);
 		}
-		if (ISZERO(jfirst)) {
+	}
+	// check the case where the rhs contains 0's from the beginning. then we can start at the first non-zero index
+	int jfirst = n;
+	for (int j = 0; j < n; j++) {
+		double *xx = x + j * nrhs;
+		int found = 0;
+		if (j == 0) {
+			// the first chunk we have to do 'manually'
+			for (int k = 0; k < nrhs; k++) {
+				if (!ISZERO(xx[k])) {
+					found = 1;
+					break;
+				}
+			}
+		} else {
+			// but for the remaining, we know the first nrhs's of x is zero, so we can cmp with that chunk
+			if (memcmp((const void *) xx, (const void *) x, nrhs * sizeof(double))) {
+				found = 1;
+			}
+		}
+		if (found) {
+			jfirst = j;
 			break;
 		}
 	}
 
-	if (jfirst == n) {
-		GMRFLib_fill(n * nrhs, 0.0, x);
-		return 0;
-	}
-
-	Memcpy(work, x, n * nrhs * sizeof(double));
-	for (int j = 0; j < nrhs; j++) {
-		double *xx = x + j;
-		double *ww = work + j * n;
-		dcopy_(&n, ww, &ione, xx, &nrhs);
-	}
-
 	double *y = work;
-	GMRFLib_fill(nrhs * jfirst, 0.0, y);
+	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
 	for (int j = jfirst; j < n; j++) {
 		int ip = L->colptr[j];
 		int offset_j = j * nrhs;
@@ -1595,14 +1588,9 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		}
 	}
 
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
-
 	for (int i = n - 1; i >= 0; i--) {
 		double sum[nrhs];
-		GMRFLib_fill(nrhs, 0.0, sum);
+		GMRFLib_dfill(nrhs, 0.0, sum);
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			int offset_j = L->rowind[jp] * nrhs;
 			double Aij = L->values[jp];
@@ -1624,19 +1612,15 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		}
 	}
 
-	Memcpy(work, x, n * nrhs * sizeof(double));
-	for (int j = 0; j < nrhs; j++) {
-		double *xx = x + j * n;
-		double *ww = work + j;
-		dcopy_(&n, ww, &nrhs, xx, &ione);
+	if (!skip_reordering) {
+		Memcpy(work, x, n * nrhs * sizeof(double));
+		int ione = 1;
+		for (int j = 0; j < nrhs; j++) {
+			double *xx = x + j * n;
+			double *ww = work + j;
+			dcopy_(&n, ww, &nrhs, xx, &ione);
+		}
 	}
-
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count += nrhs;
-	printf("solve_llt2:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
 
 	return 0;
 }
@@ -1649,11 +1633,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	taucs_crs_matrix *LL = (taucs_crs_matrix *) vLL;
 	int n = L->n;
 
-#if TIME_FUNCTIONS
-	static double tref[] = { 0, 0 };
-	static double count = 0;
-#endif
-
 	if (n == 0) {
 		return 0;
 	}
@@ -1664,10 +1643,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	int *rowptr = LL->rowptr;
 	int *colind = LL->colind;
 
-#if TIME_FUNCTIONS
-	tref[0] -= GMRFLib_timer();
-#endif
-
 	y[0] = x[0] / d[0];
 	for (int i = 1; i < n; i++) {
 		int m = rowptr[i + 1] - rowptr[i];
@@ -1675,11 +1650,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		double s = GMRFLib_ddot_idx_mkl(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
-
-#if TIME_FUNCTIONS
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
 
 	d = L->values;
 	int *colptr = L->colptr;
@@ -1692,13 +1662,6 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
-
-#if TIME_FUNCTIONS
-	tref[1] += GMRFLib_timer();
-	count++;
-	printf("solve_llt3:  relative %.6g %.6g abs %g %g %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]),
-	       tref[0] / count, tref[1] / count, (tref[0] + tref[1]) / count);
-#endif
 
 	return 0;
 }
@@ -1729,7 +1692,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	GMRFLib_fill(wwork_len[cache_idx], 0.0, work);
+	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
 	double *y = work;
 	if (n > 0) {

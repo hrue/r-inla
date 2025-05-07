@@ -54,7 +54,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	ww = Calloc(nf, double *);
 	for (int i = 0; i < nf; i++) {
 		ww[i] = Calloc(npred, double);
-		GMRFLib_fill(npred, 1.0, ww[i]);
+		GMRFLib_dfill(npred, 1.0, ww[i]);
 	}
 	if (w) {
 		for (int i = 0; i < nf; i++) {

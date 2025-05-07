@@ -805,8 +805,10 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 		 */
 		GMRFLib_constr_tp *c = NULL;
 
+		assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
+
 		GMRFLib_duplicate_constr(&c, constr, graph);
-		GMRFLib_EWRAP1(GMRFLib_init_problem(thread_id, &pproblem, x, bbb, ccc, mean, graph, Qfunc, Qfunc_args, c));
+		GMRFLib_EWRAP1(GMRFLib_init_problem(thread_id, &pproblem, x, bbb, ccc, mean, graph, Qfunc, Qfunc_args, c, NULL, NULL));
 		if (covariances) {
 			*covariances = NULL;
 		}
@@ -856,13 +858,13 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 			 * for a one at index idx). 
 			 */
 			GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special
-				       (&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph, idx));
+				       (&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph, idx, *problem));
 		} else {
 			/*
 			 * or solve as usual 
 			 */
 			GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-				       (&((*problem)->qi_at_m[kk]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				       (&((*problem)->qi_at_m[kk]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph, *problem, NULL));
 		}
 
 		if (covariances) {
@@ -992,7 +994,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *p
 	}
 
 	c[idx] = 1.0;
-	GMRFLib_solve_llt_sparse_matrix_special(c, &(problem->sub_sm_fact), problem->sub_graph, idx);
+	GMRFLib_solve_llt_sparse_matrix_special(c, &(problem->sub_sm_fact), problem->sub_graph, idx, problem);
 
 	if (covariances) {
 		*covariances = Calloc(n, double);
@@ -1195,6 +1197,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		    GMRFLib_preopt_tp *preopt, GMRFLib_preopt_res_tp *rpreopt)
 {
 	assert(omp_get_thread_num() == 0);
+	assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 
 	/*
 	 * 
@@ -2107,6 +2110,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				if (omp_get_max_threads() > nhyper) {
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 					for (k = 0; k < 2 * nhyper; k++) {
+						assert(nhyper > 0);
 						int thread_id = omp_get_thread_num();
 						double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 						int kk, opt;
@@ -2155,6 +2159,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				} else {
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 					for (k = 0; k < nhyper; k++) {
+						assert(nhyper > 0);
 						int thread_id = omp_get_thread_num();
 						double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 						GMRFLib_ai_store_tp *s = NULL;
@@ -2798,7 +2803,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 		GMRFLib_ai_marginal_hyperparam(thread_id, &tmp_logdens, x, bnew, c, mean, d, NULL,
 					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt, d_idx);
-		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg);
+		log_dens_mode = tmp_logdens + con + log_extra(thread_id, NULL, nhyper, log_extra_arg, NULL);
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);
@@ -4711,6 +4716,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 				   GMRFLib_ai_store_tp *ai_store,
 				   GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg)
 {
+	assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 	// this could be improved similarly to _preopt
 
 	double one = 1.0, mone = -1.0, zero = 0.0;

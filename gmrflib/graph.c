@@ -10,8 +10,8 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static int graph_store_use = 1;
 static map_strvp graph_store;
+static int graph_store_use = 1;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
@@ -1369,7 +1369,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 
 	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	assert(result);
-	GMRFLib_fill(graph->n, 0.0, result);
+	GMRFLib_dfill(graph->n, 0.0, result);
 
 	int m = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
 	Calloc_init(m + (!diag ? graph->n : 0), 2);
@@ -1543,7 +1543,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			for (int kk = 0; kk < nelm; kk++) {
 				id[kk] *= x->tda;
 			}
-			GMRFLib_fill(ncol, 0.0, dval);
+			GMRFLib_dfill(ncol, 0.0, dval);
 			for (int kk = 0; kk < nelm; kk++) {
 				double v = val[kk];
 				double *pp = x->data + id[kk];
@@ -2286,11 +2286,11 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp *g)
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
-	GMRFLib_SHA_IUPDATE(&(g->n), 1);
-	GMRFLib_SHA_IUPDATE(&(g->nnz), 1);
-	GMRFLib_SHA_IUPDATE(g->nnbs, g->n);
+	GMRFLib_SHA_IUPDATE(&(g->n), 1, c);
+	GMRFLib_SHA_IUPDATE(&(g->nnz), 1, c);
+	GMRFLib_SHA_IUPDATE(g->nnbs, g->n, c);
 	for (int i = 0; i < g->n; i++) {
-		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
+		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i], c);
 	}
 
 	GMRFLib_SHA_Final(md, &c);

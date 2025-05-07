@@ -20,6 +20,8 @@ __BEGIN_DECLS
 void GMRFLib_numa_get(int *cpu, int *numa);
 int GMRFLib_numa_nodes(void);
 int GMRFLib_numa(void);
+size_t GMRFLib_get_L3_cache(void);
+size_t GMRFLib_numa_get_L3_cache(int nnode);
 
 __END_DECLS
 #endif

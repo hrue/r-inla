@@ -13,7 +13,7 @@
 
 #define NO_PARDISO_LIB						\
 	{							\
-		fprintf(stderr, "\n\n\t*** No PARDISO library is loaded. Exit.\n\n");	\
+		fprintf(stderr, "\n\n\t*** PARDISO library is not available. Exit.\n\n");	\
 		exit(1);						\
 	}
 
@@ -38,12 +38,11 @@ void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b
 void pardiso_copy_symbolic_factor_single(void *a, void *b, int *c, int *d, double *e, double *f, int *g, int *h, int *i) NO_PARDISO_LIB;
 void pardiso_delete_symbolic_factor_single(void *a, int *b, int *c) NO_PARDISO_LIB;
 
-#pragma GCC diagnostic pop
-
 int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
 
+#pragma GCC diagnostic pop
 #endif							       /* if !defined(INLA_WITH_PARDISO) */

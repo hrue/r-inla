@@ -91,15 +91,21 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	double *c = Calloc(n, double), eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_problem_tp *problem = NULL;
 
+	// this is not yet implemented
+	assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
+
 	for (i = 0; i < n; i++) {
 		c[i] = eps;
 	}
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr, NULL,
+					 &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < n; i++) {

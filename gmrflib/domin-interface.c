@@ -41,6 +41,21 @@ static fncall_timing_tp fncall_timing = {
 
 static GMRFLib_opt_trace_tp *opt_trace = NULL;
 
+static int GMRFLib_opt_smart_optim_part = 1;
+void GMRFLib_opt_set_smart_optim_part(int part) 
+{
+	if (part <= 1) {
+		GMRFLib_opt_smart_optim_part =  1;
+	} else {
+		GMRFLib_opt_smart_optim_part =  2;
+	}
+}
+
+int GMRFLib_opt_get_smart_optim_part(void) 
+{
+	return (GMRFLib_opt_smart_optim_part);
+}
+
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 		      char *compute,
@@ -185,6 +200,7 @@ int GMRFLib_opt_exit(void)
 		Memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
 	}
 	Memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
+	GMRFLib_opt_set_smart_optim_part(1);
 
 	return GMRFLib_SUCCESS;
 }
@@ -195,7 +211,7 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
+	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
@@ -209,6 +225,8 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	/*
 	 * Evaluate nx function evaluations of f for configuration x[i][0]...x[i][..], in parallel.
 	 */
+
+	GMRFLib_ENTER_ROUTINE;
 
 	int i, tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
@@ -239,6 +257,11 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 		GMRFLib_opt_f_intern(thread_id, x[i], &f[i], &local_err, ais, NULL, NULL);
 		err[i] = err[i] || local_err;
 	}
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_unbind_all();
+	}
+
 	for (i = 0; i < nx; i++) {
 		*ierr = *ierr || err[i];
 	}
@@ -253,6 +276,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	Free(err);
 	GMRFLib_opt_get_latent(G.ai_store->mode);
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -298,7 +322,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local->Qfunc),
 				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt, G.d_idx);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
-	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg);
+	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg, NULL);
 
 	if (tabQfunc_local) {
 		GMRFLib_free_tabulate_Qfunc(tabQfunc_local);
@@ -359,7 +383,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 			}
 		}
 	}
-	
+
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
 
@@ -488,6 +512,10 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Free(xx);
 		}
 
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_stiles_unbind_all();
+		}
+
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
 		 */
@@ -565,6 +593,10 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				}
 			}
 			Free(xx);
+		}
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			GMRFLib_stiles_unbind_all();
 		}
 
 		if (use_five_point) {
@@ -715,9 +747,9 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	tmax = GMRFLib_MAX_THREADS();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
-	GMRFLib_fill(n, NAN, f1);
-	GMRFLib_fill(n, NAN, fm1);
-	GMRFLib_fill(ISQR(n), 0.0, hessian);
+	GMRFLib_dfill(n, NAN, f1);
+	GMRFLib_dfill(n, NAN, fm1);
+	GMRFLib_dfill(ISQR(n), 0.0, hessian);
 
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	h *= pow(G.ai_par->stupid_search_factor, count);       /* increase h with the number of trials */
@@ -828,6 +860,10 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 	}
 	Free(order);
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_stiles_unbind_all();
+	}
 
 	if (early_stop) {
 		if (G.ai_par->fp_log)
@@ -966,6 +1002,10 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				}
 			}
 			Free(idx);
+
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				GMRFLib_stiles_unbind_all();
+			}
 		}
 #undef CHECK_FOR_EARLY_STOP
 
@@ -1076,7 +1116,17 @@ double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_opt_f(par->thread_id, x, &fx, &ierr, NULL, NULL);
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+#pragma omp parallel for num_threads(1)
+		for (int k = 0; k < 1; k++) {
+			GMRFLib_opt_f(par->thread_id, x, &fx, &ierr, NULL, NULL);
+			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+			GMRFLib_stiles_unbind(&stiles_idx);
+		}
+	} else {
+		GMRFLib_opt_f(par->thread_id, x, &fx, &ierr, NULL, NULL);
+	}
+
 	GMRFLib_opt_get_latent(G.ai_store->mode);
 	Free(x);
 

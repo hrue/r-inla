@@ -12,7 +12,6 @@
 #endif
 
 __BEGIN_DECLS
-
 #include <assert.h>
 #include <stddef.h>
 #include <time.h>
@@ -51,7 +50,7 @@ typedef int fortran_charlen_t;
 #endif
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMAX)(int a, int b) {
+static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
 }
 

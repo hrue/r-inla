@@ -109,7 +109,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction_std;
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_Q2csr(thread_id, &(arg->Q), graph, Qfunc, Qfunc_arg);
 		if (arg->Q->a[0] < 0.0 || ISNAN(arg->Q->a[0]) || ISINF(arg->Q->a[0])) {
 			P(arg->Q->a[0]);

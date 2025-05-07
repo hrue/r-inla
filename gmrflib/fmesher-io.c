@@ -786,7 +786,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		M->ncol = 1;
 		M->A = Calloc(n, double);
 
-		GMRFLib_fill(n, 1.0, M->A);
+		GMRFLib_dfill(n, 1.0, M->A);
 		M->filename = NULL;
 		M->offset = 0L;
 		M->whence = SEEK_SET;

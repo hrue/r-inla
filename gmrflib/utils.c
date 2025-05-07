@@ -466,6 +466,28 @@ int GMRFLib_find_value(double *array, int len, int direction, double value)
 	return -1;
 }
 
+int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue)
+{
+	/*
+	 * return the first/last index in iarray such that iarray[idx] == ivalue , and -1 if not there. direction > 0 : look for first. direction < 0 : look for last
+	 */
+	if (direction >= 0) {
+		for (int i = 0; i < len; i++) {
+			if (iarray[i] == ivalue)
+				return i;
+		}
+		return -1;
+	} else {
+		for (int i = len - 1; i >= 0; i--) {
+			if (iarray[i] == ivalue)
+				return i;
+		}
+		return -1;
+	}
+
+	return -1;
+}
+
 double GMRFLib_eps(double power)
 {
 	return (exp(GSL_LOG_DBL_EPSILON * power));
@@ -937,7 +959,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 		return GMRFLib_SUCCESS;
 	}
 
-	ixx = Calloc(nx, int);
+	ixx = Malloc(nx, int);
 	Memcpy(ixx, ix, nx * sizeof(int));
 	QSORT_FUN((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
 
@@ -947,7 +969,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 			j = i;
 		}
 	}
-	un = Calloc(nu, int);
+	un = Malloc(nu, int);
 
 	for (j = nu = i = 0; i < nx; i++) {
 		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
@@ -1372,9 +1394,10 @@ int GMRFLib_debug_functions(const char *name)
 					val = 1;
 				} else {
 					int len = s2 - s + 1;
+					int len1 = len + 1;    /* to avoid compiler warning */
 					assert(len >= 0);
 					ss = Calloc(len + 1, char);
-					ss[len] = '\0';
+					ss[len1 - 1] = '\0';
 					strncpy(ss, s, len - 1);
 					val = atoi(s2 + 1);
 					val = IMAX(val, 1);
@@ -2106,9 +2129,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2128,15 +2151,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

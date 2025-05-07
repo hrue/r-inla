@@ -155,9 +155,9 @@ typedef struct {
   See \ref ex_problem-setup
 */
 
-// this one is defined in smtp-pardiso.h
-//typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
 struct GMRFLib_problem_struct {
+
+	GMRFLib_stiles_idx_tp *stiles_idx;
 
 	/**
 	 *  \brief The sample (full graph)
@@ -367,12 +367,13 @@ double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int thread_id, int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem);
-int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem, int idx);
-int GMRFLib_Qsolves(double *x, double *b, int nrhs, GMRFLib_problem_tp * problem);
+int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem, int idx, GMRFLib_stiles_idx_tp * stiles_idx);
+int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp * problem);
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_eval_constr0_many(int m, double *value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const);
 int GMRFLib_fact_info_report(FILE * fp, GMRFLib_sm_fact_tp * sm_fact);
@@ -384,10 +385,12 @@ int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
 int GMRFLib_init_constr_store_logdet(void);
 int GMRFLib_init_constr_store(void);
 int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint);
+			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint,
+			 GMRFLib_stiles_idx_tp * stiles_idx, GMRFLib_smtp_tp * local_smtp);
 int GMRFLib_init_problem_store(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store);
+			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store, GMRFLib_stiles_idx_tp * stiles_idx,
+			       GMRFLib_smtp_tp * local_smtp);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
@@ -399,6 +402,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem);
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
 int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr);
+int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp * constr);
 
 __END_DECLS
 #endif

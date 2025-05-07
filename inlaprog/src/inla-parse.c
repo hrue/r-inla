@@ -295,7 +295,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tR-INLA version = [%s]\n", rinla_version);
 		printf("\t\tR-INLA build date = [%s]\n", build_date);
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
-		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
+		printf("\t\tSystem memory = [%1zu Gb]\n", (size_t) getTotalSystemMemory() / 1024);
+		printf("\t\tL3 cache = [%1zu Mb]\n", GMRFLib_get_L3_cache());
 		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
 		if (GMRFLib_numa_is_available) {
 			printf("\t\tNumber of NUMA nodes[%1d]\n", GMRFLib_numa_nodes());
@@ -373,6 +374,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(__SSSE3__)
 		printf("\t\tCompiler macro defined [__SSSE3__]\n");
 #endif
+#if defined(INLA_WITH_STILES)
+		printf("\t\tCompiled with -DINLA_WITH_STILES\n");
+#endif
 #if defined(INLA_WITH_PARDISO)
 		printf("\t\tCompiled with -DINLA_WITH_PARDISO\n");
 #endif
@@ -397,6 +401,18 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_ARMPL)
 		printf("\t\tCompiled with -DINLA_WITH_ARMPL\n");
 #endif
+#if defined(INLA_WITH_TESTIT)
+		printf("\t\tCompiled with -DINLA_WITH_TESTIT\n");
+#endif
+#if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+		printf("\t\tCompiled with -DINLA_WITH_FRAMEWORK_ACCELERATE\n");
+#endif
+#if defined(INLA_WITH_NUMA)
+		printf("\t\tCompiled with -DINLA_WITH_NUMA\n");
+#endif
+#if defined(INLA_WITH_HWLOC)
+		printf("\t\tCompiled with -DINLA_WITH_HWLOC\n");
+#endif
 	}
 
 
@@ -406,9 +422,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	if (!strcasecmp(openmp_strategy, "DEFAULT")) {
-		/*
-		 * this option means that it will be determined later on. 
-		 */
+		// this option means that it will be determined later on. 
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	} else if (!strcasecmp(openmp_strategy, "SMALL")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
@@ -442,6 +456,13 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+		} else if (!strcasecmp(smtp, "STILES")) {
+			GMRFLib_smtp = GMRFLib_SMTP_STILES;
+			mb->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
+			if (GMRFLib_openmp->adaptive) {
+				FIXME("set ->adaptive = FALSE due to sTiles");
+				GMRFLib_openmp->adaptive = FALSE;
+			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_ok < 0) {
 				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
@@ -473,6 +494,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_pardiso_set_parallel_reordering(1);
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_reorder = GMRFLib_REORDER_STILES;
 	}
 	mb->smtp = Strdup(GMRFLib_SMTP_NAME(GMRFLib_smtp));
 	if (mb->verbose) {
@@ -2066,15 +2089,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.vm_scale[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: VM scale[%1d] = %g is void\n", secname, i,
-							ds->data_observations.vm_scale[i]);
+					GMRFLib_sprintf(&msg, "%s: VM scale[%1d] = %g is void\n", secname, i, ds->data_observations.vm_scale[i]);
 					inla_error_general(msg);
 				}
 			}
 		}
 	}
-	break;
-	
+		break;
+
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
 	case L_MGAMMASURV:
@@ -2107,7 +2129,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 			break;
 		}
-		break;
+			break;
 
 		default:
 			break;
@@ -8436,7 +8458,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for von Mises observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
@@ -8732,7 +8754,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_QPOISSON:
 	{
@@ -8743,7 +8765,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_QBINOMIAL:
 	{
@@ -8755,7 +8777,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_QWEIBULL:
 	{
@@ -8768,7 +8790,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_QGAMMA:
 	{
@@ -8781,7 +8803,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_QEXPPOWER:
 	{
@@ -8795,7 +8817,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
-	break;
+		break;
 
 	case LINK_SSLOGIT:
 	{
@@ -8892,7 +8914,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_ROBIT:
 	{
@@ -8951,7 +8973,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_SN:
 	{
@@ -9070,7 +9092,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_GEVIT:
 	case LINK_CGEVIT:
@@ -9203,7 +9225,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_POWER_LOGIT:
 	{
@@ -9317,7 +9339,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_LOGOFFSET:
 	{
@@ -9376,7 +9398,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_LOGITOFFSET:
 	{
@@ -9435,7 +9457,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_TEST1:
 	{
@@ -9493,7 +9515,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_SPECIAL2:
 	{
@@ -9551,7 +9573,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_SPECIAL1:
 	{
@@ -9719,13 +9741,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(EXIT_FAILURE);
 		}
 	}
-	break;
+		break;
 
 	default:
 	{
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-	break;
+		break;
 	}
 
 	/*
@@ -18960,7 +18982,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = STILES
 	 */
 	char *secname = NULL;
-	int verbose, debug;
+	int verbose, tile_size, debug;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
@@ -18975,11 +18997,15 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
+	// for backward compatability (remove later, May 2025)
 	debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	assert(debug == 0);
+
+	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
 	if (mb->verbose) {
-		printf("\t\tdebug[%1d]\n", debug);
+		printf("\t\t[%1d]\n", tile_size);
 	}
-	GMRFLib_stiles_set_param(verbose, debug);
+	GMRFLib_stiles_set_ctl(verbose, tile_size);
 
 	return INLA_OK;
 }

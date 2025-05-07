@@ -233,10 +233,9 @@ void link_gev_test(double xi, double intercept)
 
 	for (double y = -3.0; y <= 3.0; y += 0.01) {
 		printf("\tx = %.12g pgev,deriv = %.12g %.12g cgev,deriv = %.12g %.12g\n", y,
-		       link_gev_core(0, y, MAP_FORWARD, (void *) param, 1), 
+		       link_gev_core(0, y, MAP_FORWARD, (void *) param, 1),
 		       link_gev_core(0, y, MAP_DFORWARD, (void *) param, 1),
-		       link_gev_core(0, y, MAP_FORWARD, (void *) param, -1),
-		       link_gev_core(0, y, MAP_DFORWARD, (void *) param, -1));
+		       link_gev_core(0, y, MAP_FORWARD, (void *) param, -1), link_gev_core(0, y, MAP_DFORWARD, (void *) param, -1));
 	}
 }
 

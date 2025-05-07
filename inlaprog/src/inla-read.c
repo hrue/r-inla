@@ -104,7 +104,7 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	ndata = nx / ncol_true;
 	if (xx) {
 		*xx = Malloc(n, double);
-		GMRFLib_fill(n, default_value, *xx);
+		GMRFLib_dfill(n, default_value, *xx);
 	} else {
 		*ix = Malloc(n, int);
 		GMRFLib_ifill(n, (int) default_value, *ix);
