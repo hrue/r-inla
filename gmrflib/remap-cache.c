@@ -13,13 +13,13 @@ int GMRFLib_remap_init_store(void)
 	if (remap_store_use) {
 #pragma omp critical (Name_925d0d4cc0c47ce7c7e2c91447db58147e515e4b)
 		if (remap_store_must_init) {
+			if (remap_store_debug) {
+				printf("\tremap_store: init storage\n");
+			}
 			remap_store = Calloc(1, map_strvp);
 			map_strvp_init_hint(remap_store, 64);
 			remap_store->alwaysdefault = 1;
 			remap_store_must_init = 0;
-			if (remap_store_debug) {
-				printf("\tremap_store: init storage\n");
-			}
 		}
 	}
 

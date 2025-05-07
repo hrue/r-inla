@@ -686,13 +686,9 @@ int GMRFLib_init_problem_store(int thread_id,
 			 * go further only if the constraint is still there: it might go away!!! 
 			 */
 			nc = (*problem)->sub_constr->nc;       /* shortname */
-
 			// we assume this is ok for INLA so we turn this off.
-
 			double *qi_at_m_store = NULL;	       /* possible reuse old results */
-
 			(*problem)->qi_at_m = Calloc(nc * sub_n, double);
-
 			if (qi_at_m_store == NULL) {
 				/*
 				 * compute it as usual 
@@ -783,7 +779,6 @@ int GMRFLib_init_problem_store(int thread_id,
 					yy[i] = xx[i * nc];
 				}
 			}
-
 			Free(tmp_vector);
 
 			GMRFLib_constr_tp *con = (*problem)->sub_constr;
