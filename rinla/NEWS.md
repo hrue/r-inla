@@ -1,4 +1,10 @@
-# INLA 24.05.04
+# INLA 25.05.07
+* Revise bfgs parameters into two steps corresponding to part I and II
+  in the optimization
+* Implement remap_cache for many rhs solves for TAUCS
+* Code improvement
+
+# INLA 25.05.04
 * Improved hyperpar optimization, more stable
 
 # INLA 25.05.01
