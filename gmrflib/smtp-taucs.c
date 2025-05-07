@@ -1062,7 +1062,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
 	if (r) {
-		// this is doing the full reordering, also the one in llt2
+		// this is doing the full reordering, also the one in llt2 that 'skip_reordering' handle
 		skip_reordering = 1;
 		GMRFLib_convert_to_mapped(work, rhs, &g, r);
 	} else {
