@@ -1,3 +1,6 @@
+#include <strings.h>
+#include <stdbool.h> 
+
 #if defined(INLA_WITH_STILES)
 #include "stiles.h"
 #else
