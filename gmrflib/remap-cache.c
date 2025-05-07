@@ -3,7 +3,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static map_strvp * remap_store = NULL;
+static map_strvp *remap_store = NULL;
 static int remap_store_use = 1;
 static int remap_store_must_init = 1;
 static int remap_store_debug = 0;
@@ -40,12 +40,12 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	return (md);
 }
 
-unsigned char *GMRFLib_remap_prettify_sha(unsigned char *sha) 
+unsigned char *GMRFLib_remap_prettify_sha(unsigned char *sha)
 {
-	//THIS FUNCTION OVERWRITE SHA
+	// THIS FUNCTION OVERWRITE SHA
 	// we do a non-invertible compression to make it more pretty for output (do not need to be precise)
 	int len = 'z' - 'a' + 1;
-	for(int i = 0; i < (int) strlen((const char *)sha); i++) {
+	for (int i = 0; i < (int) strlen((const char *) sha); i++) {
 		sha[i] = ((int) sha[i] % len) + 'a';
 	}
 	return sha;
@@ -61,7 +61,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	void **p = map_strvp_ptr(remap_store, (char *) sha);
 
 	if (remap_store_debug) {
-		unsigned char *ssha = GMRFLib_remap_prettify_sha((unsigned char *)strdup((const char *)sha));
+		unsigned char *ssha = GMRFLib_remap_prettify_sha((unsigned char *) strdup((const char *) sha));
 		if (p) {
 			printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), ssha);
 		} else {
@@ -109,22 +109,21 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	return r->remap;
 }
 
-void GMRFLib_remap_print(FILE *fp) 
+void GMRFLib_remap_print(FILE *fp)
 {
 	// write out the cache
 	if (remap_store_use) {
 		double tsiz = 0.0;
 		fprintf(fp, "\nContents of remap_store: \n");
 		int k = 0;
-		map_strvp_storage *ptr = NULL; 
-		for (ptr = NULL ; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL ; ) {
+		map_strvp_storage *ptr = NULL;
+		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				unsigned char *sha = GMRFLib_remap_prettify_sha((unsigned char *)strdup((const char *) r->sha));
+				unsigned char *sha = GMRFLib_remap_prettify_sha((unsigned char *) strdup((const char *) r->sha));
 				fprintf(fp, "\tSlot[%1d] sha[%s] n[%1d] rhs[%1d] remap[%1d %1d %1d...]\n",
-					k, sha, r->n, r->nrhs,
-					r->remap[0], r->remap[IMIN(r->n-1, 1)], r->remap[IMIN(r->n-1, 2)]);
-				tsiz +=  (r->n * r->nrhs + 2) * sizeof(int);
+					k, sha, r->n, r->nrhs, r->remap[0], r->remap[IMIN(r->n - 1, 1)], r->remap[IMIN(r->n - 1, 2)]);
+				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
 			}
 			k++;
 		}
@@ -132,11 +131,11 @@ void GMRFLib_remap_print(FILE *fp)
 	}
 }
 
-void GMRFLib_remap_reset(void) 
+void GMRFLib_remap_reset(void)
 {
 	if (remap_store_use) {
-		map_strvp_storage *ptr = NULL; 
-		for (ptr = NULL ; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL ; ) {
+		map_strvp_storage *ptr = NULL;
+		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
 				Free(r->remap);
@@ -149,4 +148,3 @@ void GMRFLib_remap_reset(void)
 		remap_store_must_init = 1;
 	}
 }
-
