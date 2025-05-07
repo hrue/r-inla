@@ -14,9 +14,12 @@
 #endif
 
 __BEGIN_DECLS
+
 //
-#include "stiles.h"
-    typedef struct {
+#include "no-stiles.h"
+//
+
+typedef struct {
 	int verbose;
 	int tile_size;
 } GMRFLib_stiles_ctl_tp;
@@ -89,9 +92,6 @@ void GMRFLib_stiles_quit(void);
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
-
-
-
 
 __END_DECLS
 #endif
