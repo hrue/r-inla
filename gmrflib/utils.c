@@ -1375,7 +1375,7 @@ int GMRFLib_debug_functions(const char *name)
 			not_defined = 1;
 			return 0;
 		} else {
-			char sep1[] = ",";
+			char sep1[] = ",;";
 
 			ddefs[idx] = Calloc(1, map_stri);
 			map_stri_init_hint(ddefs[idx], 128);
@@ -1413,6 +1413,10 @@ int GMRFLib_debug_functions(const char *name)
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", ss);
+					map_stri_set(ddefs[idx], nm, val);
+					GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
+					map_stri_set(ddefs[idx], nm, val);
+					GMRFLib_sprintf(&nm, "inla_%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1473,7 +1477,7 @@ int GMRFLib_trace_functions(const char *name)
 			not_defined = 1;
 			return 0;
 		} else {
-			char sep1[] = ",";
+			char sep1[] = ",;";
 
 			ddefs[idx] = Calloc(1, map_stri);
 			map_stri_init_hint(ddefs[idx], 128);
@@ -1510,6 +1514,10 @@ int GMRFLib_trace_functions(const char *name)
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", ss);
+					map_stri_set(ddefs[idx], nm, val);
+					GMRFLib_sprintf(&nm, "inla_%s", ss);
+					map_stri_set(ddefs[idx], nm, val);
+					GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
