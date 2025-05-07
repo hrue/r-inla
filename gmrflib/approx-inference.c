@@ -5017,8 +5017,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
-				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.2f sec/iter] cyclic[%s]\n",
-					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref) / (iter + 1.0),
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.3fs] cyclic[%s]\n",
+					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref),
 					(flag_cyclic ? Strdup("Yes") : Strdup("No")));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
