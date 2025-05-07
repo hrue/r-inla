@@ -1,9 +1,6 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/*!
-  \brief Compute the reordering
-*/
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_global_node_tp *gn)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -141,9 +138,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free the reordering
-*/
 int GMRFLib_free_reordering(GMRFLib_sm_fact_tp *sm_fact)
 {
 	if (sm_fact) {
@@ -153,9 +147,6 @@ int GMRFLib_free_reordering(GMRFLib_sm_fact_tp *sm_fact)
 	return GMRFLib_SUCCESS;
 }
 
-/*
-  \brief Build a sparse matrix
-*/
 int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
@@ -212,9 +203,6 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Factorise a sparse matrix
-*/
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	int ret;
@@ -269,9 +257,6 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free a factorisation of a sparse matrix
-*/
 int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 {
 	if (sm_fact) {
@@ -315,9 +300,6 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Solve \f$Lx=b\f$
-*/
 int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	/*
@@ -377,9 +359,6 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Solve \f$L^Tx=b\f$
-*/
 int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	/*
@@ -439,9 +418,6 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Solve \f$LL^Tx=b\f$  or \f$Qx=b\f$
-*/
 int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph,
 				    GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
@@ -598,9 +574,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Solve \f$L^Tx=b\f$ for indices in an interval
-*/
 int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, int findx, int toindx,
 					   int remapped, GMRFLib_problem_tp *problem)
 {
@@ -647,10 +620,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_f
 
 	return GMRFLib_SUCCESS;
 }
-
-/*!
-  \brief Solve \f$Lx=b\f$ for indices in an interval
-*/
 
 int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, int findx, int toindx,
 					  int remapped, GMRFLib_problem_tp *problem)
@@ -709,9 +678,6 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Compute the log determininant of \f$Q\f$
-*/
 int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	switch (sm_fact->smtp) {
@@ -747,10 +713,6 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp *sm_fact, GMRFLib
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Compute conditional mean and standard deviation of \f$x[i]\f$ conditioned on {\f$x[j]\f$}
-    for \f$j>i\f$
-*/
 int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -784,9 +746,6 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Produce a bitmap of the Cholesky triangle in the portable bitmap (pbm) format
-*/
 int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	switch (sm_fact->smtp) {
@@ -818,9 +777,6 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Wrapper for computing the (structural) inverse of \c Q.
-*/
 int GMRFLib_compute_Qinv(void *problem)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -859,18 +815,12 @@ int GMRFLib_compute_Qinv(void *problem)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Return \c GMRFLib_TRUE or \c GMRFLib_FALSE if smtp is valid
-*/
 int GMRFLib_valid_smtp(int smtp)
 {
 	return ((smtp == GMRFLib_SMTP_BAND || smtp == GMRFLib_SMTP_TAUCS || smtp == GMRFLib_SMTP_PARDISO
 		 || smtp == GMRFLib_SMTP_STILES) ? GMRFLib_TRUE : GMRFLib_FALSE);
 }
 
-/*! 
-  \brief Return the name of a reordering
- */
 const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 {
 	switch (r) {
@@ -910,9 +860,6 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 	return "(unknown reording)";
 }
 
-/*! 
-  \brief Return the id of the reordering from the name. 
- */
 int GMRFLib_reorder_id(const char *name)
 {
 	if (!strcasecmp(name, "default") || !strcasecmp(name, "auto"))

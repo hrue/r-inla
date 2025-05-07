@@ -741,13 +741,11 @@ static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf *fdf, const 
 	/*
 	 * Prepare the wrapper 
 	 */
-
 	prepare_wrapper(&state->wrap, fdf, state->x0, *f, state->g0, state->p, state->x_alpha, state->g_alpha);
 
 	/*
 	 * Prepare 1d minimisation parameters 
 	 */
-
 	state->rho = 0.01;
 	state->sigma = tol;
 	state->tau1 = 9;
@@ -757,6 +755,12 @@ static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf *fdf, const 
 
 	if (GMRFLib_opt_get_smart_optim_part() <= 1) {
 #include "bfgs-param.h"
+	}
+
+	if (0) {
+		printf("\n\n\n\n\n\n\n\n");
+		P(state->tau1);
+		printf("\n\n\n\n\n\n\n\n");
 	}
 
 	return GSL_SUCCESS;
