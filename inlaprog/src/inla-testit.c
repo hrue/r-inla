@@ -5394,12 +5394,11 @@ int testit(int argc, char **argv)
 			CODE_BLOCK_INIT();				\
 			double *a = CODE_BLOCK_WORK_PTR(0);		\
 			a[0] = i;					\
-			int cpu = -1;					\
-			int numa = -1;					\
-			int numa_ptr = -1;				\
+			int cpu = -1, numa = -1, numa_ptr = -1;		\
 			GMRFLib_numa_get(&cpu, &numa);			\
 			numa_ptr = GMRFLib_numa_node_of_ptr(a);		\
-			printf("thread %1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), cpu, numa, numa_ptr); \
+			printf("thread %1d/%1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), omp_get_num_threads(), \
+			       cpu, numa, numa_ptr);			\
 		}
 		
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
