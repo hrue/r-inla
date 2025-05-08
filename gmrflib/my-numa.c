@@ -41,7 +41,7 @@ int GMRFLib_numa_nodes(void)
 int GMRFLib_numa_node_of_ptr(void *ptr) 
 {
 	int numa_node = 0;
-	numa_node = (int) get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
+	get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
 	return numa_node;
 }
 
