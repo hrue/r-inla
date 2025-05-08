@@ -5387,6 +5387,26 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 171:
+	{
+#define CODE_BLOCK							\
+		for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {	\
+			CODE_BLOCK_INIT();				\
+			double *a = CODE_BLOCK_WORK_PTR(0);		\
+			a[0] = i;					\
+			int cpu = -1;					\
+			int numa = -1;					\
+			int numa_ptr = -1;				\
+			GMRFLib_numa_get(&cpu, &numa);			\
+			GMRFLib_numa_node_of_ptr(a);			\
+			printf("thread %1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), cpu, numa, numa_ptr);	\
+		}
+		
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
+#undef CODE_BLOCK
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

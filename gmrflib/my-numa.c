@@ -1,13 +1,18 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#include "my-numa.h"
+
 #if defined(INLA_WITH_NUMA)
 
 #if !defined(INLA_WITH_HWLOC)
 #define INLA_WITH_HWLOC
 #endif
 
+#include <numa.h>
+#include <numaif.h>
 #include <sched.h>
+
 void GMRFLib_numa_get(int *cpu, int *numa)
 {
 	int c = sched_getcpu();
@@ -18,7 +23,7 @@ void GMRFLib_numa_get(int *cpu, int *numa)
 		*numa = n;
 }
 
-int GMRFLib_numa(void)
+int GMRFLib_numa_have(void)
 {
 	return ((numa_available() > -1) && (numa_num_configured_nodes() > 1)
 		? 1 : 0);
@@ -26,24 +31,28 @@ int GMRFLib_numa(void)
 
 int GMRFLib_numa_nodes(void)
 {
-	if (GMRFLib_numa()) {
+	if (GMRFLib_numa_have()) {
 		return (numa_num_configured_nodes());
 	} else {
 		return 0;
 	}
 }
 
+int GMRFLib_numa_node_of_ptr(void *ptr) 
+{
+	int numa_node = 0;
+	numa_node = (int) get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
+	return numa_node;
+}
+
 #else
 
 void GMRFLib_numa_get(int *cpu, int *numa)
 {
-	if (cpu)
-		*cpu = 0;
-	if (numa)
-		*numa = 0;
+	// nothing
 }
 
-int GMRFLib_numa(void)
+int GMRFLib_numa_have(void)
 {
 	return 0;
 }
@@ -52,14 +61,21 @@ int GMRFLib_numa_nodes(void)
 {
 	return 0;
 }
+
+int GMRFLib_numa_node_of_ptr(void *ptr) 
+{
+	return 0;
+}
+
 #endif
+
 
 #if defined(INLA_WITH_HWLOC)
 #include <hwloc.h>
 
 size_t GMRFLib_get_L3_cache(void)
 {
-	// this returns the first one found, must be checked that this is what we want
+	// this returns the first one found, must be checked that this is what we want!!!!!!!!!
 	hwloc_topology_t topology;
 	size_t l3 = 0;
 
@@ -85,7 +101,7 @@ size_t GMRFLib_get_L3_cache(void)
 
 size_t GMRFLib_numa_get_L3_cache(int nnode)
 {
-	// this returns the first one found, must be checked that this is what we want
+	// this returns the first one found, must be checked that this is what we want!!!!!!!!
 	hwloc_topology_t topology;
 	hwloc_obj_t numa_node;
 	hwloc_obj_t obj = NULL;
@@ -116,7 +132,7 @@ size_t GMRFLib_get_L3_cache(void)
 	return 0;
 }
 
-size_t GMRFLib_numa_L3_cache(int nnode)
+size_t GMRFLib_numa_get_L3_cache(int nnode)
 {
 	return 0;
 }
