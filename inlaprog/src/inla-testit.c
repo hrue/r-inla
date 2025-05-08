@@ -5401,7 +5401,7 @@ int testit(int argc, char **argv)
 			       cpu, numa, numa_ptr);			\
 		}
 		
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
+		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
 #undef CODE_BLOCK
 	}
 	break;
