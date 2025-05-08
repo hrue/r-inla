@@ -5398,8 +5398,8 @@ int testit(int argc, char **argv)
 			int numa = -1;					\
 			int numa_ptr = -1;				\
 			GMRFLib_numa_get(&cpu, &numa);			\
-			GMRFLib_numa_node_of_ptr(a);			\
-			printf("thread %1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), cpu, numa, numa_ptr);	\
+			numa_ptr = GMRFLib_numa_node_of_ptr(a);		\
+			printf("thread %1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), cpu, numa, numa_ptr); \
 		}
 		
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
