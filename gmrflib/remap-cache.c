@@ -34,6 +34,9 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	GMRFLib_SHA_IUPDATE(remap, n, c);
 	GMRFLib_SHA_IUPDATE(&n, 1, c);
 	GMRFLib_SHA_IUPDATE(&nrhs, 1, c);
+	int numa_node = 0;
+	GMRFLib_numa_get(NULL, &numa_node);
+	GMRFLib_SHA_IUPDATE(&numa_node, 1, c);
 	GMRFLib_SHA_Final(md, &c);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
@@ -79,6 +82,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		return r->remap;
 	}
 
+	int numa_node = 0;
 	int *re = Malloc(n * nrhs, int);
 	int *re1 = Malloc(n * nrhs, int);
 	int *re2 = Malloc(n * nrhs, int);
@@ -99,6 +103,8 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	r->sha = sha;
 	r->n = n;
 	r->nrhs = nrhs;
+	GMRFLib_numa_get(NULL, &numa_node);
+	r->numa_node = numa_node;
 	r->remap = re;
 
 #pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
@@ -126,8 +132,8 @@ void GMRFLib_remap_print(FILE *fp)
 				unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 				Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
 				sh = GMRFLib_remap_prettify_sha(sh);
-				fprintf(fp, "\tSlot[%1d] sha[%s] n[%1d] rhs[%1d] remap[%1d %1d %1d...]\n",
-					k, sh, r->n, r->nrhs, r->remap[0], r->remap[IMIN(r->n - 1, 1)], r->remap[IMIN(r->n - 1, 2)]);
+				fprintf(fp, "\tSlot[%1d] sha[%s] n[%1d] rhs[%1d] numa.node[%1d] remap[%1d %1d %1d...]\n",
+					k, sh, r->n, r->nrhs, r->numa_node, r->remap[0], r->remap[IMIN(r->n - 1, 1)], r->remap[IMIN(r->n - 1, 2)]);
 				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
 				Free(sh);
 			}

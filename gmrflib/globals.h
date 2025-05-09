@@ -102,8 +102,6 @@ extern int GMRFLib_cachelinesize;
 extern int GMRFLib_model_idx;
 extern int GMRFLib_model_n;
 
-extern int GMRFLib_numa_is_available;
-
 extern char *GMRFLib_tmpdir;
 #endif
 __END_DECLS

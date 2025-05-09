@@ -1,6 +1,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#include <sched.h>
 #include "my-numa.h"
 
 #if defined(INLA_WITH_NUMA)
@@ -11,23 +12,13 @@
 
 #include <numa.h>
 #include <numaif.h>
-#include <sched.h>
 
+// oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
 static int numa_have = -1;
 
-void GMRFLib_numa_get(int *cpu, int *numa)
+void GMRFLib_numa_init(void) 
 {
-	// this is often the case
-	if (!GMRFLib_numa_have() && cpu == NULL && !numa) {
-		*numa = 0;
-	} else {
-		int c = sched_getcpu();
-		int n = numa_node_of_cpu(c);
-		if (cpu)
-			*cpu = c;
-		if (numa)
-			*numa = n;
-	}
+	if (numa_have < 0) GMRFLib_numa_have();
 }
 
 int GMRFLib_numa_have(void)
@@ -35,32 +26,62 @@ int GMRFLib_numa_have(void)
 	if (numa_have >= 0) {
 		return numa_have;
 	} else {
-		numa_have = ((numa_available() > -1) && (numa_num_configured_nodes() > 1) ? 1 : 0);
+		numa_have = ((numa_available() > -1) && (numa_num_configured_nodes() >= 1) ? 1 : 0);
 		return numa_have;
+	}
+}
+
+void GMRFLib_numa_get(int *cpu, int *numa_node)
+{
+	// this is often the case
+	if (numa_have == 1 && cpu == NULL && !numa_node) {
+		*numa_node = 0;
+	} else {
+		int c = sched_getcpu();
+		int n = (numa_have ? numa_node_of_cpu(c) : -1);
+		if (cpu) {
+			*cpu = c;
+		}
+		if (numa_node) {
+			*numa_node = n;
+		}
 	}
 }
 
 int GMRFLib_numa_nodes(void)
 {
-	if (GMRFLib_numa_have()) {
+	if (numa_have == 1) {
 		return (numa_num_configured_nodes());
 	} else {
-		return 0;
+		return -1;
 	}
 }
 
 int GMRFLib_numa_node_of_ptr(void *ptr) 
 {
-	int numa_node = 0;
-	get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
+	int numa_node = -1;
+	if (numa_have == 1) {
+		get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
+	}
 	return numa_node;
 }
 
 #else
 
-void GMRFLib_numa_get(int *cpu, int *numa)
+void GMRFLib_numa_init(void) 
 {
-	// nothing
+	// nothing to do
+}
+
+void GMRFLib_numa_get(int *cpu, int *numa_node)
+{
+	if (cpu) {
+		int c = sched_getcpu();
+		*cpu = c;
+	}
+	if (numa_node) {
+		*numa_node = -1;
+	}
 }
 
 int GMRFLib_numa_have(void)
@@ -70,12 +91,12 @@ int GMRFLib_numa_have(void)
 
 int GMRFLib_numa_nodes(void)
 {
-	return 0;
+	return -1;
 }
 
-int GMRFLib_numa_node_of_ptr(void *ptr) 
+int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr)) 
 {
-	return 0;
+	return -1;
 }
 
 #endif

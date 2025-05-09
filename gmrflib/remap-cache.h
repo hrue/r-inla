@@ -23,6 +23,7 @@ __BEGIN_DECLS
     typedef struct {
 	int n;
 	int nrhs;
+	int numa_node;
 	int *remap;					       /* length n * nrhs */
 	unsigned char *sha;
 } GMRFLib_remap_tp;
