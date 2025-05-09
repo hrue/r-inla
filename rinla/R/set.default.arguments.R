@@ -468,8 +468,8 @@ control.gcpo <-
 #' @export
 `control.taucs` <-
     function(
-             #' @param block.size Minimum number of rhs's in one block
-             block.size = 8
+             #' @param block.size Minimum number of rhs's in each parallel solve
+             block.size = 12
              ) {
         ctrl_object(as.list(environment()), "taucs", check = FALSE)
     }

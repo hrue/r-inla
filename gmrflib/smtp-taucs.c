@@ -1348,7 +1348,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
 	Qinv_L = Malloc(n, map_id *);
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 	for (int i = 0; i < n; i++) {
 		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
 		Qinv_L[i] = Calloc(1, map_id);
@@ -1413,7 +1413,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
 	 */
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 		for (int i = 0; i < n; i++) {
 			int inc = n;
 			int iii = inv_remap[i];
