@@ -505,8 +505,8 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
-#define GMRFLib_CACHE_SET_ID(__id)					\
+#define GMRFLib_CACHE_LEN_OLD() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
+#define GMRFLib_CACHE_SET_ID_OLD(__id)					\
 	{								\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
@@ -520,13 +520,12 @@ typedef enum {
 		}							\
 	}
 
-#define GMRFLib_NUMA_NODES() (IMAX(1, GMRFLib_numa_nodes()))
+#define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
 #define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1) * GMRFLib_NUMA_NODES())
 #define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
 	{								\
 		int numa_node = 0;					\
 		GMRFLib_numa_get(NULL, &numa_node);			\
-		numa_node = IMAX(0, numa_node);				\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		int mt = GMRFLib_MAX_THREADS();				\
@@ -541,9 +540,7 @@ typedef enum {
 		}							\
 	}
 
-// let's try with numa all over
-#undef GMRFLib_CACHE_LEN
-#undef GMRFLib_CACHE_SET_ID
+// let us try with numa all over, as the code is ok with no numa as well (then num_numa_nodes=1 and numa_node=0)
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #define GMRFLib_CACHE_SET_ID(__id) GMRFLib_CACHE_SET_ID_NUMA(__id)
 

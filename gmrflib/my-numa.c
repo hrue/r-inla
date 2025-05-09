@@ -15,6 +15,7 @@
 
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
 static int numa_have = -1;
+static int numa_nodes = -1;
 
 void GMRFLib_numa_init(void) 
 {
@@ -27,39 +28,40 @@ int GMRFLib_numa_have(void)
 		return numa_have;
 	} else {
 		numa_have = ((numa_available() > -1) && (numa_num_configured_nodes() >= 1) ? 1 : 0);
+		numa_nodes = IMAX(1, numa_num_configured_nodes());
 		return numa_have;
 	}
 }
 
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
-	// this is often the case
-	if (numa_have == 1 && cpu == NULL && !numa_node) {
-		*numa_node = 0;
-	} else {
-		int c = sched_getcpu();
-		int n = (numa_have ? numa_node_of_cpu(c) : -1);
+	if (numa_have == 0) {
 		if (cpu) {
-			*cpu = c;
+			*cpu = sched_getcpu();
 		}
 		if (numa_node) {
-			*numa_node = n;
+			*numa_node = 0;
 		}
+	} else {
+		int c = 0;
+		if (cpu || numa_node) {
+			c = sched_getcpu();
+			if (cpu) *cpu = c;
+		}
+		if (numa_node) {
+			*numa_node = numa_node_of_cpu(c);
+		} 
 	}
 }
 
 int GMRFLib_numa_nodes(void)
 {
-	if (numa_have == 1) {
-		return (numa_num_configured_nodes());
-	} else {
-		return -1;
-	}
+	return numa_nodes;
 }
 
 int GMRFLib_numa_node_of_ptr(void *ptr) 
 {
-	int numa_node = -1;
+	int numa_node = 0;
 	if (numa_have == 1) {
 		get_mempolicy(&numa_node, NULL, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
 	}
@@ -76,11 +78,10 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
-		int c = sched_getcpu();
-		*cpu = c;
+		*cpu = sched_getcpu();
 	}
 	if (numa_node) {
-		*numa_node = -1;
+		*numa_node = 0;
 	}
 }
 
@@ -91,12 +92,12 @@ int GMRFLib_numa_have(void)
 
 int GMRFLib_numa_nodes(void)
 {
-	return -1;
+	return 1;
 }
 
 int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr)) 
 {
-	return -1;
+	return 0;
 }
 
 #endif
@@ -164,7 +165,7 @@ size_t GMRFLib_get_L3_cache(void)
 	return 0;
 }
 
-size_t GMRFLib_numa_get_L3_cache(int nnode)
+size_t GMRFLib_numa_get_L3_cache(int UNUSED(nnode))
 {
 	return 0;
 }
