@@ -18982,7 +18982,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = STILES
 	 */
 	char *secname = NULL;
-	int verbose, tile_size, debug;
+	int verbose, tile_size;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
@@ -18997,15 +18997,36 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
-	// for backward compatability (remove later, May 2025)
-	debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	assert(debug == 0);
-
 	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
 	if (mb->verbose) {
-		printf("\t\t[%1d]\n", tile_size);
+		printf("\t\ttile.size[%1d]\n", tile_size);
 	}
 	GMRFLib_stiles_set_ctl(verbose, tile_size);
+
+	return INLA_OK;
+}
+
+int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
+{
+	/*
+	 * parse section = TAUCS
+	 */
+	char *secname = NULL;
+	int block_size;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_taucs...\n");
+	}
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 0);
+	if (mb->verbose) {
+		printf("\t\tblock.size[%1d]\n", block_size);
+	}
+	GMRFLib_taucs_set_ctl(block_size);
 
 	return INLA_OK;
 }

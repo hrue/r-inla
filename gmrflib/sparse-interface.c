@@ -471,9 +471,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				ntt = GMRFLib_openmp->max_threads_inner;
 			}
 
-			int target = 12;		       /* less than this, just do serial */
+			int target = IMAX(1, GMRFLib_taucs_get_ctl_ptr()->block_size);
 			ntt = IMIN(ntt, IMAX(1, nrhs / target));
-
 			int chunk_size = nrhs / ntt;	       /* integer division */
 			if (chunk_size == 0 || ntt == 1) {
 				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
@@ -495,7 +494,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 					offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
 				}
 
-#pragma omp parallel for num_threads(ntt)
+#pragma omp parallel for num_threads(ntt) schedule(static)
 				for (int i = 0; i < ntt; i++) {
 					GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset[i], sm_fact->TAUCS_L, graph,
 									       sm_fact->remap, csize[i], work + offset[i]);

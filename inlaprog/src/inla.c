@@ -511,6 +511,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 
 	/*
+	 * type = TAUCS
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "TAUCS")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[TAUCS]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_taucs(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * type = LPSCALE
 	 */
 	for (sec = 0; sec < nsec; sec++) {
