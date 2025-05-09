@@ -4964,7 +4964,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CODE_BLOCK_INIT_X(int);				\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
 			if (cache_idx == 0) {				\
-				GMRFLib_CACHE_SET_ID(cache_idx);	\
+				GMRFLib_CACHE_SET_ID_NUMA(cache_idx);	\
 				*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx; \
 			} else {					\
 				cache_idx--;				\
