@@ -13,20 +13,31 @@
 #include <numaif.h>
 #include <sched.h>
 
+static int numa_have = -1;
+
 void GMRFLib_numa_get(int *cpu, int *numa)
 {
-	int c = sched_getcpu();
-	int n = numa_node_of_cpu(c);
-	if (cpu)
-		*cpu = c;
-	if (numa)
-		*numa = n;
+	// this is often the case
+	if (!GMRFLib_numa_have() && cpu == NULL && !numa) {
+		*numa = 0;
+	} else {
+		int c = sched_getcpu();
+		int n = numa_node_of_cpu(c);
+		if (cpu)
+			*cpu = c;
+		if (numa)
+			*numa = n;
+	}
 }
 
 int GMRFLib_numa_have(void)
 {
-	return ((numa_available() > -1) && (numa_num_configured_nodes() > 1)
-		? 1 : 0);
+	if (numa_have >= 0) {
+		return numa_have;
+	} else {
+		numa_have = ((numa_available() > -1) && (numa_num_configured_nodes() > 1) ? 1 : 0);
+		return numa_have;
+	}
 }
 
 int GMRFLib_numa_nodes(void)

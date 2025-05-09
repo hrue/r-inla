@@ -541,6 +541,12 @@ typedef enum {
 		}							\
 	}
 
+// let's try with numa all over
+#undef GMRFLib_CACHE_LEN
+#undef GMRFLib_CACHE_SET_ID
+#define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
+#define GMRFLib_CACHE_SET_ID(__id) GMRFLib_CACHE_SET_ID_NUMA(__id)
+
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
