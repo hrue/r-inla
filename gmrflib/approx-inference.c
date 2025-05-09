@@ -1111,7 +1111,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
-	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
+	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref = 0.0, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer = NULL,
 	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, ***deviance_theta =
 	    NULL, **failure_theta = NULL;
@@ -1963,9 +1963,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		place_save = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy_special(outer, inner);
 	}
+
+	int *early_stop = Calloc(design->nexperiments, int);
+
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
+		tref = GMRFLib_timer();
 
 		GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -2070,6 +2074,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
+		// we can stop early some calculations as they will be pruned later in any case
+		double dif = exp(DMIN(0.0, log_dens_orig - log_dens_mode));
+		if (dif / (1.0 + dif) < 1.0 - DMAX(GMRFLib_weight_prob_one, GMRFLib_weight_prob)) {
+			early_stop[dens_count] = 1;
+		}
+			
 		for (int i = 0; i < nhyper; i++) {
 			hyper_z[dens_count * nhyper + i] = z_local[i];
 		}
@@ -2093,10 +2103,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			izs[dens_count][i] = z_local[i];
 		}
 
-		tref = GMRFLib_timer();
+		double *c_corrected = Calloc(graph->n, double);
+
+		// with early_stop, we do not need this one, but its somewhat involed to remove it as code below depends on it...
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
 			if (tfunc && tfunc[i]) {
@@ -2104,20 +2116,20 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
-		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN || ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
-			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count, c, d, prior_mean, ai_par, ai_store_id, graph,
-							  (tabQfunc ? tabQfunc->Qfunc : Qfunc),
-							  (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg, preopt, d_idx);
-		}
-
-		double *c_corrected = NULL;
-		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
-			c_corrected = Calloc(graph->n, double);
-			GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
-							      c, d, ai_par, ai_store_id, graph,
-							      (tabQfunc ? tabQfunc->Qfunc : Qfunc),
-							      (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg,
-							      preopt, c_corrected, d_idx);
+		if (!early_stop[dens_count]) {
+			if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN || ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
+				GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count, c, d, prior_mean, ai_par, ai_store_id, graph,
+								  (tabQfunc ? tabQfunc->Qfunc : Qfunc),
+								  (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg, preopt, d_idx);
+			}
+			
+			if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
+				GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
+								      c, d, ai_par, ai_store_id, graph,
+								      (tabQfunc ? tabQfunc->Qfunc : Qfunc),
+								      (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg), loglFunc, loglFunc_arg,
+								      preopt, c_corrected, d_idx);
+			}
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -2131,7 +2143,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected);
 		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int i = 0; i < preopt->mnpred; i++) {
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
@@ -2162,8 +2174,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_dfill(3 * preopt->Npred, NAN, cpodens_moments);
 		}
 
-		if (cpo || dic || po) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		if (!early_stop[dens_count] && (cpo || dic || po)) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				int i = d_idx->idx[ii];
 				if (fl[i]) {
@@ -2217,9 +2229,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 
 		double *ll_info = NULL;
-		if (misc_output->configs_preopt) {
+		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			ll_info = Calloc(3 * preopt->Npred, double);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j, cache_idx = omp_get_thread_num();
 				double local_aa;
@@ -2234,7 +2246,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 
 		int free_if_not_configs = 1;
-		if (misc_output->configs_preopt) {
+		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig,
 						       ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg,
 						       cpodens_moments, gcpodens_moments, arg_str, ll_info, lpred_mean,
@@ -2253,9 +2265,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				/*
 				 * we need to use the log_dens_orig as the other one is also included the integration weights. 
 				 */
-				fprintf(ai_par->fp_log, " ] log(rel.dens)= %6.3f, [%1d] accept, compute,",
+				fprintf(ai_par->fp_log, " ] ldens= %6.3f, [%1d] accept, compute,",
 					log_dens_orig - log_dens_mode, omp_get_thread_num());
-				fprintf(ai_par->fp_log, " %.2fs\n", tu);
+				fprintf(ai_par->fp_log, " %.2fs%s\n", tu, (early_stop[dens_count] ? " (interupt)" : ""));
 			}
 		}
 
@@ -2356,13 +2368,30 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	/*
 	 * to keep the same code as before 
 	 */
+	int nearly = 0;
+	for (int k = 0; k < design->nexperiments; k++) {
+		if (early_stop[k]) {
+			adj_weights[k] = 0;
+			nearly++;
+		}
+	}
+	Free(early_stop);
+	if (nearly) {
+		if (ai_par->fp_log) {
+#pragma omp critical (Name_4b8306c3c423d37d341e318c658d40a1ba84da71)
+			{
+				fprintf(ai_par->fp_log, "number of early stops = %1d\n", nearly);
+			}
+		}
+	}
+
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob_one);
 	GMRFLib_idxval_tp *probs_combine = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob);
 
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
 		if (ii < preopt->mnpred) {
@@ -2478,7 +2507,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*gcpo)->groups = gcpo_groups->groups;
 
 		// if theta_correction is turned off, then all correction terms are 0
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
 			for (int jjj = 1; jjj < dens_max; jjj++) {
@@ -2527,7 +2556,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	if (cpo) {
 		double *Z = Calloc(preopt->Npred, double);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double evalue, evalue2, evalue_one = 1.0;
 			int ii = j;
@@ -2636,7 +2665,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	if (po) {
 		SET_MODE;
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double evalue, evalue2, evalue3, evalue_one;
 			int ii = j;
@@ -2700,7 +2729,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		GMRFLib_dfill(ndev, NAN, deviance_e_sat);
 		GMRFLib_dfill(ndev, NAN, sign);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat) schedule(static)
 		for (int j = 0; j < d_idx->n; j++) {
 			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = d_idx->idx[j];
@@ -6085,7 +6114,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for if(nc) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for if(nc) num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int k = 0; k < klen; k++) {
 
 			int i = arr[k].i;
@@ -7219,7 +7248,7 @@ double GMRFLib_prior_mean_func_eval(int thread_id, GMRFLib_prior_mean_tp *prior_
 int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp **prior_mean)
 {
 	if (prior_mean) {
-#pragma omp parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL())
+#pragma omp parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL()) schedule(static)
 		for (int i = 0; i < n; i++) {
 			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
 		}
