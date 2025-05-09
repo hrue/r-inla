@@ -537,10 +537,10 @@ typedef enum {
 #define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
-#define CODE_BLOCK_INIT() \
+#define CODE_BLOCK_INIT()						\
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__) \
-		work__[t_num__] = Calloc(len_work__ * n_work__, double)
+		work__[t_num__] = Malloc(len_work__ * n_work__, double)
 
 #define CODE_BLOCK_INIT_X(work_tp_) \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
