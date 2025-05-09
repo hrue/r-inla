@@ -471,7 +471,11 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				ntt = GMRFLib_openmp->max_threads_inner;
 			}
 
-			int target = IMAX(1, GMRFLib_taucs_get_ctl_ptr()->block_size);
+			// default
+			int block_size = GMRFLib_taucs_get_ctl_ptr()->block_size;
+			if (block_size <= 0) block_size = 8;
+
+			int target = IMAX(1, block_size);
 			ntt = IMIN(ntt, IMAX(1, nrhs / target));
 			int chunk_size = nrhs / ntt;	       /* integer division */
 			if (chunk_size == 0 || ntt == 1) {
