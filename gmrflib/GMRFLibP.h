@@ -520,6 +520,28 @@ typedef enum {
 		}							\
 	}
 
+#define GMRFLib_NUMA_NODES() (IMAX(1, GMRFLib_numa_nodes()))
+#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1) * GMRFLib_NUMA_NODES())
+#define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
+	{								\
+		int numa_node = 0, cpu = 1;				\
+		GMRFLib_numa_get(&cpu, &numa_node);			\
+		numa_node = IMAX(0, numa_node);				\
+		int level_ = omp_get_level();				\
+		int tnum_ = omp_get_thread_num();			\
+		int mt = GMRFLib_MAX_THREADS();				\
+		int len = mt * (mt + 1);				\
+		if (level_ <= 1) {					\
+			__id =  tnum_ + numa_node * len;		\
+		} else if (level_ == 2) {				\
+			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
+			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_ + numa_node * len; \
+		} else {						\
+			assert(0 == 1);					\
+		}							\
+	}
+
+
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
 #define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
