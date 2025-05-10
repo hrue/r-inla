@@ -25,7 +25,7 @@ __BEGIN_DECLS
 	int nrhs;
 	int numa_node;
 	int *remap;					       /* length n * nrhs */
-	int nuse;
+	int count;
 	unsigned char *sha;
 } GMRFLib_remap_tp;
 

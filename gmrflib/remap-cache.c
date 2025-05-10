@@ -80,7 +80,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		Free(sha);
 		GMRFLib_remap_tp *r = *((GMRFLib_remap_tp **) p);
 #pragma omp atomic
-		r->nuse++;
+		r->count++;
 
 		return r->remap;
 	}
@@ -108,7 +108,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	r->nrhs = nrhs;
 	GMRFLib_numa_get(NULL, &numa_node);
 	r->numa_node = numa_node;
-	r->nuse = 1;
+	r->count = 1;
 	r->remap = re;
 
 #pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
@@ -136,8 +136,8 @@ void GMRFLib_remap_print(FILE *fp)
 				// unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 				// Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
 				// sh = GMRFLib_remap_prettify_sha(sh);
-				fprintf(fp, "\tSlot[%1d] n[%1d] rhs[%1d] numa.node[%1d] nuse[%1d] remap[%1d %1d %1d...]\n",
-					k, r->n, r->nrhs, r->numa_node, r->nuse, r->remap[0], r->remap[IMIN(r->n - 1, 1)],
+				fprintf(fp, "\tSlot[%1d] n[%1d] rhs[%1d] numa.node[%1d] count[%1d] remap[%1d %1d %1d...]\n",
+					k, r->n, r->nrhs, r->numa_node, r->count, r->remap[0], r->remap[IMIN(r->n - 1, 1)],
 					r->remap[IMIN(r->n - 1, 2)]);
 				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
 				// Free(sh);
