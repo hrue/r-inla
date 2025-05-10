@@ -7051,7 +7051,6 @@ int loglikelihood_tweedie(int thread_id, double *__restrict logll, double *__res
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double w = (ds->data_observations.tweedie_w ? ds->data_observations.tweedie_w[idx] : 1.0);
@@ -7062,40 +7061,15 @@ int loglikelihood_tweedie(int thread_id, double *__restrict logll, double *__res
 	phi /= w;
 	LINK_INIT;
 
-	static double **cmu = NULL;
-	static int *ncmu = NULL;
-
-	if (!cmu) {
-#pragma omp critical (Name_f541b1464beaa9132d8c3f70fc8dc2de724ab8a5)
-		{
-			if (!cmu) {
-				ncmu = Calloc(GMRFLib_CACHE_LEN(), int);
-				cmu = Calloc(GMRFLib_CACHE_LEN(), double *);
-				for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-					ncmu[i] = 8;
-					cmu[i] = Calloc(ncmu[i], double);
-				}
-			}
-		}
-	}
-
-	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
-
 	if (m > 0) {
-		if (m > ncmu[id]) {
-			ncmu[id] = m;
-			cmu[id] = Realloc(cmu[id], ncmu[id], double);
-		}
-		double *mu = cmu[id];
-
-		for (i = 0; i < m; i++) {
+		double mu[m];
+		for (int i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 		}
 		dtweedie(m, y, mu, phi, p, logll);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
-		for (i = 0; i < -m; i++) {
+		for (int i = 0; i < -m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = ptweedie(yy, mu, phi, p);
 		}
