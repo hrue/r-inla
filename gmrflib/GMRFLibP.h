@@ -544,7 +544,7 @@ typedef enum {
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #define GMRFLib_CACHE_SET_ID(__id) GMRFLib_CACHE_SET_ID_NUMA(__id)
 
-#define SET_LCACHE_IDX(idx_)				\
+#define GMRFLib_SET_LCACHE_IDX(idx_)			\
 	if (lcache_idx && *lcache_idx >= 0) {		\
 		idx_ = *lcache_idx;			\
 	} else {					\

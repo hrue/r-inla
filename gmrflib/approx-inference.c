@@ -4470,7 +4470,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	}
 
 	int cache_idx = 0;
-	SET_LCACHE_IDX(cache_idx);
+	GMRFLib_SET_LCACHE_IDX(cache_idx);
 
 	if (!lwork[cache_idx]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
@@ -4533,7 +4533,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 	}
 
 	int cache_idx = 0;
-	SET_LCACHE_IDX(cache_idx);
+	GMRFLib_SET_LCACHE_IDX(cache_idx);
 	
 	static double *wp = NULL;
 	static double *xp = NULL;

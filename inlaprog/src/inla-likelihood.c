@@ -13,7 +13,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int *lcache_idx, int id
 	int niter, niter_min = 5, niter_max = 100, stencil = 5, cache_idx = 0;
 	const int debug = 0;
 
-	SET_LCACHE_IDX(cache_idx);
+	GMRFLib_SET_LCACHE_IDX(cache_idx);
 	(void) loglfunc(thread_id, &cache_idx, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
 	x = xnew = xsol = 0.0;
 	for (niter = 0; niter < niter_max; niter++) {
@@ -1020,7 +1020,7 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 	}
 
 	int cidx = 0;
-	SET_LCACHE_IDX(cidx);
+	GMRFLib_SET_LCACHE_IDX(cidx);
 
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
@@ -3553,7 +3553,7 @@ int loglikelihood_qcontpoisson(int thread_id, int *lcache_idx, double *__restric
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], lambda, q;
 
-	SET_LCACHE_IDX(id);
+	GMRFLib_SET_LCACHE_IDX(id);
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -3970,7 +3970,7 @@ int loglikelihood_pom(int thread_id, int *lcache_idx, double *__restrict logll, 
 	}
 
 	int id = 0;
-	SET_LCACHE_IDX(id);
+	GMRFLib_SET_LCACHE_IDX(id);
 
 	if (nclasses > nclass[id]) {
 		nclass[id] = nclasses;
@@ -5446,7 +5446,7 @@ int loglikelihood_nmix(int thread_id, int *lcache_idx, double *__restrict logll,
 	}
 
 	int id = 0;
-	SET_LCACHE_IDX(id);
+	GMRFLib_SET_LCACHE_IDX(id);
 
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
@@ -5540,7 +5540,7 @@ int loglikelihood_nmixnb(int thread_id, int *lcache_idx, double *__restrict logl
 	}
 
 	int id = 0;
-	SET_LCACHE_IDX(id);
+	GMRFLib_SET_LCACHE_IDX(id);
 
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
@@ -5660,7 +5660,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, int *lcache_idx, double **x, do
 
 
 	int idx = 0;
-	SET_LCACHE_IDX(idx);
+	GMRFLib_SET_LCACHE_IDX(idx);
 	if (!llcache) {
 		llcache[idx] = Calloc(1, lcache_t);
 	}
@@ -5756,7 +5756,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, int *lcache_idx, double **x, do
 		}
 	}
 	int idx = 0;
-	SET_LCACHE_IDX(idx);
+	GMRFLib_SET_LCACHE_IDX(idx);
 
 	if (!llcache[idx]) {
 		llcache[idx] = Calloc(1, lcache_t);
@@ -7991,7 +7991,7 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 	}
 
 	int cidx = 0;
-	SET_LCACHE_IDX(cidx);
+	GMRFLib_SET_LCACHE_IDX(cidx);
 
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
