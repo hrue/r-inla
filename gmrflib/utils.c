@@ -1348,11 +1348,10 @@ int GMRFLib_debug_functions(const char *name)
 
 	if (!ddefs) {
 #pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
-		{
-			if (!ddefs) {
-				first = Calloc(GMRFLib_CACHE_LEN(), int);
-				ddefs = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
-			}
+		if (!ddefs) {
+			first = Calloc(GMRFLib_CACHE_LEN(), int);
+			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			ddefs = tmp; 
 		}
 	}
 	int idx = 0;
@@ -1450,11 +1449,10 @@ int GMRFLib_trace_functions(const char *name)
 
 	if (!ddefs) {
 #pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
-		{
-			if (!ddefs) {
-				first = Calloc(GMRFLib_CACHE_LEN(), int);
-				ddefs = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
-			}
+		if (!ddefs) {
+			first = Calloc(GMRFLib_CACHE_LEN(), int);
+			map_stri ** tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			ddefs = tmp;
 		}
 	}
 	int idx = 0;
