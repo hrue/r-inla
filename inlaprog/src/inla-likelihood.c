@@ -21,7 +21,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		prec = exp(log_prec_high * (1.0 - w) + log_prec_low * w);
 
 		Memcpy(arr_old, arr, sizeof(arr));
-		GMRFLib_2order_taylor(thread_id, cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		if (ISNAN(arr[0]) || ISINF(arr[0])) {
 			Memcpy(arr, arr_old, sizeof(arr));
 			break;

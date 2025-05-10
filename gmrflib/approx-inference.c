@@ -776,7 +776,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;	\
 			if (fl && fl[idx]) {				\
 				/* then do nothing fancy and no checks, cmin = NULL*/ \
-				GMRFLib_2order_approx(thread_id, cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
+				GMRFLib_2order_approx(thread_id, &cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 						      &step_len, &(optpar->stencil), NULL); \
 			} else {					\
@@ -784,7 +784,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
 					/* If not successful then fall back to default step_len with cmin=0 */ \
 					while(1) {			\
-						GMRFLib_2order_approx(thread_id, cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
+						GMRFLib_2order_approx(thread_id, &cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 								      &step_len, &(optpar->stencil), NULL); \
 						/* if ok, we are done */ \
@@ -794,14 +794,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						/* unless we have gone to far... */ \
 						if (step_len > 1.0) {	\
 							ccmin = DBL_EPSILON; \
-							GMRFLib_2order_approx(thread_id, cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
+							GMRFLib_2order_approx(thread_id, &cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 									      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 									      &(optpar->step_len), &(optpar->stencil), &ccmin); \
 							break;		\
 						}			\
 					}				\
 				} else {				\
-					GMRFLib_2order_approx(thread_id, cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
+					GMRFLib_2order_approx(thread_id, &cache_idx, &acoof, &bcoof, &ccoof, NULL, d[idx], \
 							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 							      &(optpar->step_len), &(optpar->stencil), &cmin); \
 				}					\
@@ -2231,12 +2231,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *ll_info = NULL;
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			ll_info = Calloc(3 * preopt->Npred, double);
+			// best guess
+			int cache_idx; GMRFLib_CACHE_SET_ID(cache_idx);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 			for (int j = 0; j < preopt->Npred; j++) {
-				int jj = 3 * j, cache_idx = omp_get_thread_num();
+				int jj = 3 * j; 
 				double local_aa;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, cache_idx, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]),
+					GMRFLib_2order_taylor(thread_id, &cache_idx, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]),
 							      &(ll_info[jj + 2]), d[j], lpred_mode[j], j, lpred_mode, loglFunc,
 							      loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
 				} else {
@@ -3940,7 +3942,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		}							\
 		int nnode = d_idx->idx[i];				\
 		double xx = lpred_mode[nnode];				\
-		GMRFLib_2order_approx(thread_id, cache_idx, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
+		GMRFLib_2order_approx(thread_id, &cache_idx, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
 				      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &cmin); \
 	}
 
@@ -4269,7 +4271,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						int nnode = idxs[i];	\
 						double ll_a = 0.0, ll_b = 0.0, ll_c = 0.0; \
 						double xx = gsl_vector_get(xstar, i); \
-						GMRFLib_2order_approx(thread_id, cache_idx, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
+						GMRFLib_2order_approx(thread_id, &cache_idx, &ll_a, &ll_b, &ll_c, NULL, d[nnode], xx, nnode, \
 								      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &cmin); \
 						gsl_vector_set(b, i, ll_b); \
 						gsl_matrix_set(C, i, i, ll_c); \
@@ -4529,7 +4531,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
 		if (!lwork[cache_idx]) {
 			// need 3 only as 'wtmp' is not used because 'A' below is not computed
-			double *worktmp = Calloc(3 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
+			double *worktmp = Malloc(3 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
 			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {

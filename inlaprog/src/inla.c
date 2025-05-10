@@ -5586,13 +5586,13 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	int niter = 0, niter_min = 25, niter_max = 100, stencil = 3;
 	const int debug = 0;
 
-	int thread_id = 0, cache_idx = 0;
+	int thread_id = 0, cache_idx = -1;
 	x = xnew = mean;
 
 	while (1) {
 		w = (double) DMIN(niter_min, niter) / (double) niter_min;
 		prec = exp(w * log(prec_min) + (1.0 - w) * log(prec_max));
-		GMRFLib_2order_taylor(thread_id, cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		f = arr[0] - 0.5 * prec * SQR((x - mean));
 		deriv = arr[1] - prec * (x - mean);
 		dderiv = DMIN(0.0, arr[2]) - prec;

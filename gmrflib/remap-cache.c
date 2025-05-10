@@ -133,13 +133,13 @@ void GMRFLib_remap_print(FILE *fp)
 		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-				Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
-				sh = GMRFLib_remap_prettify_sha(sh);
-				fprintf(fp, "\tSlot[%1d] sha[%s] n[%1d] rhs[%1d] numa.node[%1d] nuse[%1d] remap[%1d %1d %1d...]\n",
-					k, sh, r->n, r->nrhs, r->numa_node, r->nuse, r->remap[0], r->remap[IMIN(r->n - 1, 1)], r->remap[IMIN(r->n - 1, 2)]);
+				// unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+				// Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
+				// sh = GMRFLib_remap_prettify_sha(sh);
+				fprintf(fp, "\tSlot[%1d] n[%1d] rhs[%1d] numa.node[%1d] nuse[%1d] remap[%1d %1d %1d...]\n",
+					k, r->n, r->nrhs, r->numa_node, r->nuse, r->remap[0], r->remap[IMIN(r->n - 1, 1)], r->remap[IMIN(r->n - 1, 2)]);
 				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
-				Free(sh);
+				// Free(sh);
 			}
 			k++;
 		}

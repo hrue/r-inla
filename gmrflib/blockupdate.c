@@ -29,7 +29,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate
 }
 
 
-int GMRFLib_2order_taylor(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
+int GMRFLib_2order_taylor(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
@@ -65,7 +65,7 @@ int GMRFLib_2order_taylor(int thread_id, int lcache_idx, double *a, double *b, d
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
+int GMRFLib_2order_approx(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin)
 {
 	/*
@@ -170,7 +170,7 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
+int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
@@ -191,10 +191,13 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 	}
 
 	int cache_idx = 0;
-	if (lcache_idx >= 0) {
-		cache_idx = lcache_idx;
+	if (lcache_idx && *lcache_idx >= 0) {
+		cache_idx = *lcache_idx;
 	} else {
 		GMRFLib_CACHE_SET_ID(cache_idx);
+		if (lcache_idx) {
+			*lcache_idx = cache_idx;
+		}
 	}
 
 	if (!lwork[cache_idx]) {
