@@ -1153,7 +1153,7 @@ int GMRFLib_pardiso_pstores_do(GMRFLib_pardiso_store_tp **store)
 	GMRFLib_CACHE_SET_ID(tnum);
 
 	// need critical, as we operate on the global variable S.static_...
-#pragma omp critical
+#pragma omp critical (Name_62af846ab39772752ebc33a713cb5579f0d0904e)
 	{
 		if (store && *store) {
 			if ((*store)->copy_pardiso_ptr) {
