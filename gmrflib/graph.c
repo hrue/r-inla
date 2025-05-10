@@ -1313,7 +1313,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 #pragma omp critical (Name_1a7225070120a13086515e5c250e27a43a27bdd8)
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+				double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 				wwork = tmp;
 			}
 		}

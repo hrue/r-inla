@@ -5577,7 +5577,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 #pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
 		if (!wp) {
 			double *wtmp = NULL;
-			GMRFLib_ghq(&xp, &wtmp, np);   /* just give ptr to storage */
+			GMRFLib_ghq(&xp, &wtmp, np);	       /* just give ptr to storage */
 			int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
 			xp1 = Calloc(5 * nn, double);
 			xp2 = xp1 + 1 * nn;
@@ -5588,11 +5588,11 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 			for (int i = 0; i < nnp1; i++) {
 				double x = xp[nnp + i];
 				double z2 = SQR(x);
-				xp1[i] = x;	       // d mu
-				xp2[i] = 0.5 * (z2 - 1.0);	// d var
-				xp3[i] = z2 - 1.0;     // d mu mu
+				xp1[i] = x;		       // d mu
+				xp2[i] = 0.5 * (z2 - 1.0);     // d var
+				xp3[i] = z2 - 1.0;	       // d mu mu
 				xp4[i] = 0.25 * (3.0 - 6.0 * z2 + SQR(z2));	// d var var
-				xp5[i] = 0.5 * x * (z2 - 3.0);	// d var mu
+				xp5[i] = 0.5 * x * (z2 - 3.0); // d var mu
 			}
 			wp = wtmp;
 		}

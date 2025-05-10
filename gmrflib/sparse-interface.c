@@ -432,7 +432,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 #pragma omp critical (Name_c02cfe7c85f984ba167d3d158f5219787998c27f)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			wwork = tmp;
 		}
 	}

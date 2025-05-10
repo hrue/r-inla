@@ -230,8 +230,7 @@ int inla_R_init_(void)
 				fprintf(fp, "base::searchpaths()\n");
 				fprintf(fp, "utils::sessionInfo()\n");
 			}
-			fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
-				R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
+			fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n", R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
 			fclose(fp);
 			inla_R_source_quiet_(filename);
 

@@ -1124,7 +1124,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 #pragma omp critical (Name_9c6d559b5470558ef474f5640951d6b63990a46d)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			wwork = tmp;
 		}
 	}
@@ -1168,7 +1168,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 #pragma omp critical (Name_a3dba7d9a29b2dbf1981362774e31bd1c94148ec)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			wwork = tmp;
 		}
 	}
@@ -1210,7 +1210,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 #pragma omp critical (Name_ae25603ba826d85ac7ffa0b88a9f11d5c2246a83)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			wwork = tmp;
 		}
 	}
@@ -1695,7 +1695,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 #pragma omp critical (Name_adb454feb2a421a0a2effd2a5298f308a1c3f192)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			wwork = tmp;
 		}
 	}

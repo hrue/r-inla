@@ -126,7 +126,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 #pragma omp critical (Name_57dd787c76d8e98b908fbe47a9af2b183bc7a84a)
 		if (!abscissas) {
 			weights = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
-			map_ivp ** tmp = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
+			map_ivp **tmp = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
 			abscissas = tmp;
 		}
 	}

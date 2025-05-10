@@ -733,12 +733,11 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 			Free(a[i]);
 		}
 	}
-
-	//  reformat data into better chunks
-	if (ds->data_id == L_GAUSSIAN || ds->data_id ==  L_STDGAUSSIAN) {
+	// reformat data into better chunks
+	if (ds->data_id == L_GAUSSIAN || ds->data_id == L_STDGAUSSIAN) {
 		n = mb->predictor_ndata;
 		inla_llik_data_gaussian_tp *g = Malloc(n, inla_llik_data_gaussian_tp);
-		for(i = 0; i < n; i++) {
+		for (i = 0; i < n; i++) {
 			g[i].y = ds->data_observations.y[i];
 			g[i].w = ds->data_observations.weight_gaussian[i];
 		}
@@ -746,35 +745,34 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		Free(ds->data_observations.y);
 		Free(ds->data_observations.weight_gaussian);
 	}
-		
-	if (ds->data_id == L_POISSON || ds->data_id ==  L_XPOISSON || ds->data_id ==  L_NPOISSON) {
+
+	if (ds->data_id == L_POISSON || ds->data_id == L_XPOISSON || ds->data_id == L_NPOISSON) {
 		n = mb->predictor_ndata;
 		inla_llik_data_poisson_tp *p = Malloc(n, inla_llik_data_poisson_tp);
-		for(i = 0; i < n; i++) {
+		for (i = 0; i < n; i++) {
 			p[i].y = ds->data_observations.y[i];
 			p[i].E = ds->data_observations.E[i];
 			p[i].normc = NAN;
 		}
 		ds->data_observations.data_poisson = p;
 		// Free later when checking input
-		//Free(ds->data_observations.y);
-		//Free(ds->data_observations.E);
+		// Free(ds->data_observations.y);
+		// Free(ds->data_observations.E);
 	}
 
 	if (ds->data_id == L_BINOMIAL) {
 		n = mb->predictor_ndata;
 		inla_llik_data_binomial_tp *b = Malloc(n, inla_llik_data_binomial_tp);
-		for(i = 0; i < n; i++) {
+		for (i = 0; i < n; i++) {
 			b[i].y = ds->data_observations.y[i];
 			b[i].nb = ds->data_observations.nb[i];
 			b[i].normc = NAN;
 		}
 		ds->data_observations.data_binomial = b;
 		// Free later when checking input
-		//Free(ds->data_observations.y);
-		//Free(ds->data_observations.nb);
+		// Free(ds->data_observations.y);
+		// Free(ds->data_observations.nb);
 	}
-
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -5586,7 +5584,7 @@ int loglikelihood_nmixnb(int thread_id, int *lcache_idx, double *__restrict logl
 			cy = ttmp;
 		}
 	}
-	
+
 
 	int id = 0;
 	GMRFLib_SET_LCACHE_IDX(id);
@@ -5907,9 +5905,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

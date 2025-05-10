@@ -431,28 +431,22 @@ typedef struct {
 	char *expression;				       /* an alternative expression/table */
 } Prior_tp;
 
-typedef struct 
-{
+typedef struct {
 	double y;
 	double w;
-}
-	inla_llik_data_gaussian_tp;
+} inla_llik_data_gaussian_tp;
 
-typedef struct 
-{
+typedef struct {
 	double y;
 	double E;
 	double normc;
-}
-	inla_llik_data_poisson_tp;
+} inla_llik_data_poisson_tp;
 
-typedef struct 
-{
+typedef struct {
 	double y;
 	double nb;
 	double normc;
-}
-	inla_llik_data_binomial_tp;
+} inla_llik_data_binomial_tp;
 
 typedef struct {
 	double *d;					       /* the d-array */
@@ -2355,8 +2349,8 @@ int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			     char **arg_str);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *), char **arg_str);
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *), char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
