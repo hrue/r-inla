@@ -431,6 +431,29 @@ typedef struct {
 	char *expression;				       /* an alternative expression/table */
 } Prior_tp;
 
+typedef struct 
+{
+	double y;
+	double w;
+}
+	inla_llik_data_gaussian_tp;
+
+typedef struct 
+{
+	double y;
+	double E;
+	double normc;
+}
+	inla_llik_data_poisson_tp;
+
+typedef struct 
+{
+	double y;
+	double nb;
+	double normc;
+}
+	inla_llik_data_binomial_tp;
+
 typedef struct {
 	double *d;					       /* the d-array */
 	int ndata;					       /* length of data (from file) */
@@ -443,6 +466,8 @@ typedef struct {
 	/*
 	 * y ~ Poisson(E*exp(x)) 
 	 */
+	inla_llik_data_poisson_tp *data_poisson;
+
 	double *E;
 	double *cen_low;				       /* cenpoisson2 */
 	double *cen_high;				       /* cenpoisson2 */
@@ -450,6 +475,7 @@ typedef struct {
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
+	inla_llik_data_binomial_tp *data_binomial;
 	double *nb;
 	double *p_scale;
 
@@ -491,6 +517,9 @@ typedef struct {
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
+
+	inla_llik_data_gaussian_tp *data_gaussian;
+
 	double **log_prec_gaussian;
 	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */

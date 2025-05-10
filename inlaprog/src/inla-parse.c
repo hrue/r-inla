@@ -1179,9 +1179,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
+				if (ds->data_observations.data_gaussian[i].w <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_gaussian[i]);
+							ds->data_observations.data_gaussian[i].w);
 					inla_error_general(msg);
 				}
 			}
@@ -1554,14 +1554,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_POISSON:
-	case L_NPOISSON:
 	case L_XPOISSON:
+	case L_NPOISSON:
 	{
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.E);
+
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.data_poisson[i].E < 0.0 || ds->data_observations.data_poisson[i].y < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
-							ds->data_observations.E[i], ds->data_observations.y[i]);
+							ds->data_observations.data_poisson[i].E, ds->data_observations.data_poisson[i].y);
 					inla_error_general(msg);
 				}
 			}
@@ -1992,6 +1995,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				}
 			}
 		}
+
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.nb);
 	}
 		break;
 
