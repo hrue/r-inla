@@ -82,7 +82,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			for (int iii = 0; iii < nidx; iii++) {
 				int ii = idxs[iii];
 				double ll = 0.0;
-				loglFunc(thread_id, &ll, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
+				loglFunc(thread_id, NULL, &ll, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
 				tmp2 += d[ii] * ll;
 			}
 			Calloc_free();
@@ -92,7 +92,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			 */
 			for (int ii = 0; ii < n; ii++) {
 				if (d[ii]) {
-					loglFunc(thread_id, &logl, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
+					loglFunc(thread_id, NULL, &logl, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
 					tmp2 += d[ii] * logl;
 				}
 			}
@@ -192,7 +192,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 			for (ii = 0; ii < ns; ii++) {
 				i = node_map[ii];
 				if (d[i]) {
-					loglFunc(thread_id, &logl, &x[i], 1, i, x, NULL, loglFunc_arg, NULL);
+					loglFunc(thread_id, NULL, &logl, &x[i], 1, i, x, NULL, loglFunc_arg, NULL);
 					tmp += d[i] * logl;
 				}
 			}
@@ -270,7 +270,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 				}					\
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
-				loglFunc(thread_id, logcor, x_user, np, idx, fixed_mode, NULL, loglFunc_arg, NULL); \
+				loglFunc(thread_id, NULL, logcor, x_user, np, idx, fixed_mode, NULL, loglFunc_arg, NULL); \
 				for(_i=0; _i < np; _i++) {		\
 					logcor[_i] *= d[idx];		\
 				}					\
@@ -3285,8 +3285,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				}
 
 				double x_tmp = (double) ((*density)[ii]->user_mean);
-				loglFunc(thread_id, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg, NULL);
-				logl_sat = inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
+				loglFunc(thread_id, NULL, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg, NULL);
+				logl_sat = inla_compute_saturated_loglik(thread_id, NULL, ii, loglFunc, x_vec, loglFunc_arg);
 				dm = -2.0 * d[ii] * logl;
 				dm_sat = -2.0 * d[ii] * (logl - logl_sat);
 				e_deviance[ii] = md;
@@ -3297,14 +3297,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to the
 				// real data doing the comparison there. But this information is not available at this level
 				double sig = 0.0;
-				if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
-					loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg, NULL);
+				if (loglFunc(0, NULL, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
+					loglFunc(0, NULL, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg, NULL);
 					sig = (sig <= 0.5 ? -1.0 : 1.0);
 				} else {
 					double xx[2], ld[2] = { 0.0, 0.0 };
 					xx[0] = (*density)[ii]->user_mean;
 					xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
-					loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg, NULL);
+					loglFunc(0, NULL, ld, xx, 2, ii, NULL, NULL, loglFunc_arg, NULL);
 					sig = (ld[1] > ld[0] ? 1.0 : -1.0);
 				}
 				sign[ii] = sig;
@@ -3895,7 +3895,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_daxpb(np, s, xp, m, x_user);
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
-		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, NULL, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
 #pragma omp simd reduction(+: A, B, C)
@@ -3935,7 +3935,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		}
 
 		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
-		loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, NULL, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 #pragma GCC ivdep
 		for (i = 0; i < np; i++) {
 			loglik[i] *= d;

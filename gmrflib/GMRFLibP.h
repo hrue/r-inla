@@ -544,6 +544,16 @@ typedef enum {
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #define GMRFLib_CACHE_SET_ID(__id) GMRFLib_CACHE_SET_ID_NUMA(__id)
 
+#define SET_LCACHE_IDX(idx_)				\
+	if (lcache_idx && *lcache_idx >= 0) {		\
+		idx_ = *lcache_idx;			\
+	} else {					\
+		GMRFLib_CACHE_SET_ID(idx_);		\
+		if (lcache_idx) {			\
+			*lcache_idx = idx_;		\
+		}					\
+	}
+
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
