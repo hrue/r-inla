@@ -19,8 +19,8 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
-int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
-			 void *UNUSED(arg), char **UNUSED(arg_str))
+int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
+			 double *UNUSED(y_cdf), void *UNUSED(arg), char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -41,8 +41,8 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -61,8 +61,8 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit2(int UNUSED(thread_id),  int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -81,8 +81,8 @@ int loglikelihood_testit2(int UNUSED(thread_id),  int *UNUSED(lcache_idx), doubl
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit3(int UNUSED(thread_id),  int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *UNUSED(arg), char **UNUSED(arg_str))
+int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *UNUSED(arg), char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -3943,7 +3943,8 @@ int testit(int argc, char **argv)
 		printf("d mu mu   : numeric1 %.16f  true %.16f  err %.16f\n", tmp[1], ee, ee - tmp[1]);
 		printf("d mu mu   : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], ee, ee - mm.coofs[2]);
 
-		GMRFLib_ai_vb_prepare_variance(0, NULL, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec), NULL);
+		GMRFLib_ai_vb_prepare_variance(0, NULL, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec),
+					       NULL);
 
 		printf("d var     : numeric1 %.16f  true %.16f  err %.16f\n", tmp[2], 0.5 * ee, 0.5 * ee - tmp[2]);
 		printf("d var     : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], 0.5 * ee, 0.5 * ee - mm.coofs[1]);
@@ -5400,11 +5401,11 @@ int testit(int argc, char **argv)
 			printf("thread %1d/%1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), omp_get_num_threads(), \
 			       cpu, numa, numa_ptr);			\
 		}
-		
+
 		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
 #undef CODE_BLOCK
 	}
-	break;
+		break;
 
 	case 999:
 	{

@@ -473,7 +473,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 			// default
 			int block_size = GMRFLib_taucs_get_ctl_ptr()->block_size;
-			if (block_size <= 0) block_size = 8;
+			if (block_size <= 0)
+				block_size = 8;
 
 			int target = IMAX(1, block_size);
 			ntt = IMIN(ntt, IMAX(1, nrhs / target));

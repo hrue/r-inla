@@ -1149,7 +1149,7 @@ int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, G
 int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
-int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, 
+int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx,
 				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
 char *GMRFLib_ai_tag(int *iz, int len);

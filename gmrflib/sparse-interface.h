@@ -32,11 +32,9 @@ __BEGIN_DECLS
 } GMRFLib_stiles_idx_tp;
 
 // this is from smtp-taucs.h
-typedef struct 
-{
+typedef struct {
 	int block_size;
-}
-	GMRFLib_taucs_ctl_tp;
+} GMRFLib_taucs_ctl_tp;
 
 typedef struct {
 	double factor;

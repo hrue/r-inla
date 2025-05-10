@@ -14,12 +14,10 @@
 #endif
 
 __BEGIN_DECLS
-
 //
 #include "no-stiles.h"
 //
-
-typedef struct {
+    typedef struct {
 	int verbose;
 	int tile_size;
 } GMRFLib_stiles_ctl_tp;

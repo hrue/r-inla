@@ -21,7 +21,8 @@ double inla_compute_saturated_loglik_core(int thread_id, int *lcache_idx, int id
 		prec = exp(log_prec_high * (1.0 - w) + log_prec_low * w);
 
 		Memcpy(arr_old, arr, sizeof(arr));
-		GMRFLib_2order_taylor(thread_id, &cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen,
+				      &stencil);
 		if (ISNAN(arr[0]) || ISINF(arr[0])) {
 			Memcpy(arr, arr_old, sizeof(arr));
 			break;
@@ -824,8 +825,8 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	return INLA_OK;
 }
 
-int loglikelihood_inla(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-		       char **arg_str)
+int loglikelihood_inla(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
+		       void *arg, char **arg_str)
 {
 	inla_tp *a = (inla_tp *) arg;
 	return a->loglikelihood[idx] (thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, a->loglikelihood_arg[idx], arg_str);
@@ -861,8 +862,8 @@ double inla_dnchisq(double x, double df, double ncp)
 	return (ldens);
 }
 
-int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **arg_str)
+int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
 	 * y ~ Normal(x, stdev)
@@ -935,8 +936,8 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **arg_str)
+int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
 	 * y ~ Normal(x, 1)
@@ -997,8 +998,8 @@ int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+			   double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -1075,8 +1076,8 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_sem(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		      void *arg, char **UNUSED(arg_str))
+int loglikelihood_sem(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -1117,8 +1118,8 @@ int loglikelihood_sem(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gaussianjw(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			     double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_gaussianjw(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -1160,8 +1161,8 @@ int loglikelihood_gaussianjw(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_agaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_agaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * aggregated Gaussian
@@ -1200,8 +1201,8 @@ int loglikelihood_agaussian(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_ggaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_ggaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -1252,8 +1253,8 @@ int loglikelihood_ggaussian(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_ggaussianS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_ggaussianS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -1302,8 +1303,8 @@ int loglikelihood_ggaussianS(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ LogNormal. This is similar to the normal
@@ -1355,15 +1356,16 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_lognormalsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-				void *arg, char **arg_str)
+int loglikelihood_lognormalsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+				double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_lognormal, arg_str));
 }
 
-int loglikelihood_bcgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_bcgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -1403,8 +1405,8 @@ int loglikelihood_bcgaussian(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
-		     void *arg, char **UNUSED(arg_str))
+int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		     double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	// return c[0] + c[1] * x - 1/2 * c[2] * (c[3] - x)^2 - c[4] exp(c[5] + c[6] * x) - c[7] * log((exp(c[8]*x)-1.0)/(sign(c[8])x))
 
@@ -1461,8 +1463,8 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_simplex(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_simplex(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ simplex
@@ -1497,8 +1499,8 @@ int loglikelihood_simplex(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_circular_normal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_circular_normal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				  double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 
 	// this needs to be redone....
@@ -1552,8 +1554,8 @@ int loglikelihood_circular_normal(int thread_id, int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_wrapped_cauchy(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				 double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_wrapped_cauchy(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				 double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ wrapped cauchy. DOES NOT WORK WELL OF'COURSE...
@@ -1597,8 +1599,8 @@ int loglikelihood_wrapped_cauchy(int thread_id, int *UNUSED(lcache_idx), double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_stochvol(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ N(0, var = exp(x) + 1/tau) 
@@ -1630,8 +1632,8 @@ int loglikelihood_stochvol(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvolln(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_stochvolln(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ N(c - 1/2 * var, var)
@@ -1664,8 +1666,8 @@ int loglikelihood_stochvolln(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_stochvol_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y / exp(x/2)  ~ Student-t_dof(0, ***var = 1***)
@@ -1707,8 +1709,8 @@ int loglikelihood_stochvol_t(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol_nig(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			       double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_stochvol_nig(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			       double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y / exp(x/2)  ~ NIG with skew and shape parameter. beta = skew, psi = shape. Note that E=1 and Var=1.
@@ -1750,8 +1752,8 @@ int loglikelihood_stochvol_nig(int thread_id, int *UNUSED(lcache_idx), double *_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_iid_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_iid_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ iid_gamma
@@ -1788,8 +1790,8 @@ int loglikelihood_iid_gamma(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_iid_logitbeta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_iid_logitbeta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ iid_logitbeta
@@ -1818,8 +1820,8 @@ int loglikelihood_iid_logitbeta(int thread_id, int *UNUSED(lcache_idx), double *
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_loggamma_frailty(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int UNUSED(idx), double *UNUSED(x_vec),
-				   double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_loggamma_frailty(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int UNUSED(idx),
+				   double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Log-gamma frailty Gamma(a,a), a = exp(log_prec...)
@@ -1847,8 +1849,8 @@ int loglikelihood_loggamma_frailty(int thread_id, int *UNUSED(lcache_idx), doubl
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_logistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_logistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Logisistc. scaled so that prec = 1 gives variance = 1
@@ -1905,8 +1907,8 @@ int loglikelihood_logistic(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_sn(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
-		     char **UNUSED(arg_str))
+int loglikelihood_sn(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		     double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Skew_Normal(x, stdev)
@@ -1952,8 +1954,8 @@ int loglikelihood_sn(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol_sn(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			      double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_stochvol_sn(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Skew_Normal(0, var= exp(x)+offset, skew)
@@ -1988,8 +1990,8 @@ int loglikelihood_stochvol_sn(int thread_id, int *UNUSED(lcache_idx), double *__
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gev(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		      void *arg, char **UNUSED(arg_str))
+int loglikelihood_gev(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ GEV
@@ -2057,8 +2059,8 @@ int loglikelihood_gev(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		       void *arg, char **UNUSED(arg_str))
+int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 #define f3_BETA_STD(_x) (30.0 * SQR(_x) * SQR(1.0-(_x)))
 #define F3_BETA_STD(_x) (POW3(_x) * (10.0 + (-15.0 + 6.0 * (_x)) * (_x)))
@@ -2297,8 +2299,8 @@ int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
-		    char **UNUSED(arg_str))
+int loglikelihood_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		    double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
@@ -2339,8 +2341,8 @@ int loglikelihood_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict l
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_tstrata(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_tstrata(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
@@ -2383,8 +2385,8 @@ int loglikelihood_tstrata(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ GPoisson(E*exp(x))
@@ -2434,8 +2436,8 @@ int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			  void *arg, char **arg_str)
+int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 #define _logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
 
@@ -2556,8 +2558,8 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Poisson(E*exp(x)) using the Normal approximation
@@ -2598,8 +2600,8 @@ int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nzpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **arg_str)
+int loglikelihood_nzpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
 	 * y ~ nzPoisson(E*exp(x))
@@ -2662,8 +2664,8 @@ int loglikelihood_nzpoisson(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_rcpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_rcpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -2754,8 +2756,8 @@ int loglikelihood_rcpoisson(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_tpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_tpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -2807,8 +2809,8 @@ int loglikelihood_tpoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		       void *arg, char **UNUSED(arg_str))
+int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -2861,8 +2863,8 @@ int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -2918,8 +2920,8 @@ int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -2973,8 +2975,8 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -3231,8 +3233,8 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_0binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_0binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3308,8 +3310,8 @@ int loglikelihood_0binomial(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_0binomialS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_0binomialS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3376,8 +3378,8 @@ int loglikelihood_0binomialS(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_binomialmix(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **UNUSED(arg_str))
+int loglikelihood_binomialmix(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3498,8 +3500,8 @@ double eval_log_contpoisson(double y, double lambda)
 	return (lval);
 }
 
-int loglikelihood_contpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **UNUSED(arg_str))
+int loglikelihood_contpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	// this model is disabled
 	assert(0 == 1);
@@ -3536,8 +3538,8 @@ int loglikelihood_contpoisson(int thread_id, int *UNUSED(lcache_idx), double *__
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qcontpoisson(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			       void *arg, char **UNUSED(arg_str))
+int loglikelihood_qcontpoisson(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
+			       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	// this model is disabled
 	assert(0 == 1);
@@ -3636,8 +3638,8 @@ double inla_negative_binomial_interval(double size, double mu, int y_from, int y
 	return (p_sum);
 }
 
-int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **UNUSED(arg_str))
+int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Poisson(E*exp(x)), [cen_low,cen_high] is cencored. cen_high<0 means Inf
@@ -3713,8 +3715,8 @@ int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *__
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
@@ -3779,8 +3781,8 @@ int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_cenpoisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					   double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_cenpoisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3854,8 +3856,8 @@ int loglikelihood_zeroinflated_cenpoisson0(int thread_id, int *UNUSED(lcache_idx
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_cenpoisson1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					   double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_cenpoisson1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3922,8 +3924,8 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, int *UNUSED(lcache_idx
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_pom(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
-		      void *arg, char **UNUSED(arg_str))
+int loglikelihood_pom(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 #define _F_CORE_LOGIT(_x) (1.0/(1.0 + exp(-(_x))))
 #define _P_LOGIT(_class, _eta) ((_class) == 1 ? _F_CORE_LOGIT(alpha[(_class)] - (_eta)) : \
@@ -4019,8 +4021,8 @@ int loglikelihood_pom(int thread_id, int *lcache_idx, double *__restrict logll, 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_poisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x) | y > 0)
@@ -4076,8 +4078,8 @@ int loglikelihood_zeroinflated_poisson0(int thread_id, int *UNUSED(lcache_idx), 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_poisson1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x))
@@ -4131,8 +4133,8 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, int *UNUSED(lcache_idx), 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_poisson2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x)), where p=p(x; alpha)
@@ -4230,8 +4232,8 @@ int loglikelihood_zeroinflated_poisson2(int thread_id, int *UNUSED(lcache_idx), 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_poisson_special1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				   double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_poisson_special1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * poisson special 1 : y ~ p*1[y=1] + (1-p)*Poisson(E*exp(x) | y > 0)
@@ -4306,8 +4308,8 @@ double ddexp_taylor(double x, double x0, int order)
 	return exp_taylor(x, x0, order - 2);
 }
 
-int loglikelihood_logperiodogram(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				 double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_logperiodogram(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				 double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y = x -log(2) + log\chi^2
@@ -4335,8 +4337,8 @@ int loglikelihood_logperiodogram(int thread_id, int *UNUSED(lcache_idx), double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				    double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.
@@ -4508,8 +4510,8 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_negative_binomial_cen2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					 double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_negative_binomial_cen2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.
@@ -4582,8 +4584,8 @@ int loglikelihood_negative_binomial_cen2(int thread_id, int *UNUSED(lcache_idx),
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-						  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_negative_binomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m,
+						  int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -4665,8 +4667,8 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, int *UNUSED(lca
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-						  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_negative_binomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m,
+						  int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -4753,8 +4755,8 @@ int loglikelihood_zeroinflated_negative_binomial1(int thread_id, int *UNUSED(lca
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-							  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x,
+							  int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -4843,8 +4845,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, int *UN
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-							  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x,
+							  int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -4934,8 +4936,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, int *UN
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-						  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m,
+						  int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -5042,8 +5044,8 @@ int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lca
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Binomial(n, p)
@@ -5286,8 +5288,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_xbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_xbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ xBinomial(n, p)
@@ -5357,8 +5359,8 @@ int loglikelihood_xbinomial(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nbinomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_nbinomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ nBinomial2. y is the number of failures to get n successes with a success in the last trial
@@ -5405,8 +5407,8 @@ int loglikelihood_nbinomial2(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nmix(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
-		       void *arg, char **UNUSED(arg_str))
+int loglikelihood_nmix(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		       double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Binomial(n, p) * poisson(n, lambda), log(lambda) = X'beta
@@ -5618,7 +5620,8 @@ int inla_mix_int_quadrature_gaussian(int thread_id, int *UNUSED(lcache_idx), dou
 	return GMRFLib_SUCCESS;
 }
 
-int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), int *UNUSED(lcache_idx), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
+int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), int *UNUSED(lcache_idx), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n),
+				     void *UNUSED(arg))
 {
 	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
@@ -5626,7 +5629,8 @@ int inla_mix_int_quadrature_loggamma(int UNUSED(thread_id), int *UNUSED(lcache_i
 	return GMRFLib_SUCCESS;
 }
 
-int inla_mix_int_quadrature_mloggamma(int UNUSED(thread_id), int *UNUSED(lcache_idx), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
+int inla_mix_int_quadrature_mloggamma(int UNUSED(thread_id), int *UNUSED(lcache_idx), double **UNUSED(x), double **UNUSED(w), int *UNUSED(n),
+				      void *UNUSED(arg))
 {
 	char *msg = Strdup("This function is not yet implemented.");
 	inla_error_general(msg);
@@ -5832,32 +5836,35 @@ int inla_mix_int_simpson_mloggamma(int thread_id, int *lcache_idx, double **x, d
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			       void *arg, char **arg_str)
+int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			       double *y_cdf, void *arg, char **arg_str)
 {
 	return (loglikelihood_mix_core
-		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_loggamma, inla_mix_int_simpson_loggamma, arg_str));
+		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_loggamma, inla_mix_int_simpson_loggamma,
+		 arg_str));
 }
 
-int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-				void *arg, char **arg_str)
+int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+				double *y_cdf, void *arg, char **arg_str)
 {
 	return (loglikelihood_mix_core
-		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_mloggamma, inla_mix_int_simpson_mloggamma, arg_str));
+		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_mloggamma, inla_mix_int_simpson_mloggamma,
+		 arg_str));
 }
 
-int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			       void *arg, char **arg_str)
+int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			       double *y_cdf, void *arg, char **arg_str)
 {
 	return (loglikelihood_mix_core
-		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_gaussian, inla_mix_int_simpson_gaussian, arg_str));
+		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_gaussian, inla_mix_int_simpson_gaussian,
+		 arg_str));
 }
 
-int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -5953,8 +5960,8 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict lo
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_cbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_cbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * z ~ CBinomial(k, n, p) == Binomial(k, 1-(1-p)^n)
@@ -6014,8 +6021,8 @@ int loglikelihood_cbinomial(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					 double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_binomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Binomial : y ~ p*1[y=0] + (1-p) Binomial(n, p | y > 0), where logit(p) = x. 
@@ -6068,8 +6075,8 @@ int loglikelihood_zeroinflated_binomial0(int thread_id, int *UNUSED(lcache_idx),
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					 double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_binomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Binomial : y ~ p*1[y=0] + (1-p)*Binomial(n, p), where logit(p) = x. 
@@ -6122,8 +6129,8 @@ int loglikelihood_zeroinflated_binomial1(int thread_id, int *UNUSED(lcache_idx),
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					 double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated Binomial : y ~ prob*1[y=0] + (1-prob)*Binomial(n, p), where logit(p) = x, and prob = 1-p^alpha.
@@ -6219,8 +6226,8 @@ double GMRFLib_logsum(double lA, double lB)
 	return (fmax(lA, lB) + log1p(exp(-fabs(lB - lA))));
 }
 
-int loglikelihood_zero_n_inflated_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_zero_n_inflated_binomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroNinflated Binomial : see doc from JS.
@@ -6311,8 +6318,8 @@ int loglikelihood_zero_n_inflated_binomial2(int thread_id, int *UNUSED(lcache_id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zero_n_inflated_binomial3(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					    double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_zero_n_inflated_binomial3(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroNinflated Binomial : see doc from JS.
@@ -6364,8 +6371,8 @@ int loglikelihood_zero_n_inflated_binomial3(int thread_id, int *UNUSED(lcache_id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			void *arg, char **UNUSED(arg_str))
+int loglikelihood_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Gamma
@@ -6403,8 +6410,8 @@ int loglikelihood_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restri
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_mgamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			 void *arg, char **UNUSED(arg_str))
+int loglikelihood_mgamma(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * mGamma
@@ -6443,22 +6450,24 @@ int loglikelihood_mgamma(int thread_id, int *UNUSED(lcache_idx), double *__restr
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gammasurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			    char **arg_str)
+int loglikelihood_gammasurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			    double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma,
+								 arg_str));
 }
 
-int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			     char **arg_str)
+int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			     double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_mgamma, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_mgamma,
+								 arg_str));
 }
 
-int loglikelihood_gammajw(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_gammajw(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Gammajw
@@ -6493,15 +6502,16 @@ int loglikelihood_gammajw(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gammajwsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			      void *arg, char **arg_str)
+int loglikelihood_gammajwsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			      double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw,
+								 arg_str));
 }
 
-int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			     void *arg, char **UNUSED(arg_str))
+int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Gammacount
@@ -6548,8 +6558,8 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qkumar(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			 void *arg, char **UNUSED(arg_str))
+int loglikelihood_qkumar(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * qKumar-distr
@@ -6590,8 +6600,8 @@ int loglikelihood_qkumar(int thread_id, int *UNUSED(lcache_idx), double *__restr
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
-		     char **UNUSED(arg_str))
+int loglikelihood_gp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		     double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * genPareto
@@ -6631,8 +6641,8 @@ int loglikelihood_gp(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_dgp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		      void *arg, char **UNUSED(arg_str))
+int loglikelihood_dgp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 #define F(_y, _sigma, _xi) (1.0 - pow(1.0 + (_xi) * ((_y) + 1.0)/(_sigma), -1.0/(_xi)))
 	/*
@@ -6674,8 +6684,8 @@ int loglikelihood_dgp(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		      void *arg, char **UNUSED(arg_str))
+int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6752,8 +6762,8 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		       void *arg, char **UNUSED(arg_str))
+int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Beta : y ~ Beta(y; a, b) = BetaFunction(a,b)^{-1} y^{a-1} (1-y)^{b-1}. mu = a/(a+b), phi = a+b = exp(theta).
@@ -6826,8 +6836,8 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			void *arg, char **UNUSED(arg_str))
+int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6892,8 +6902,8 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restri
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			       void *arg, char **UNUSED(arg_str))
+int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -7000,8 +7010,8 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_betabinomialna(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-				 double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_betabinomialna(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				 double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * BetaBinomialNA : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1), and use the normal
@@ -7043,8 +7053,8 @@ int loglikelihood_betabinomialna(int thread_id, int *UNUSED(lcache_idx), double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * Tweedie
@@ -7082,8 +7092,8 @@ int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					     double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -7150,8 +7160,8 @@ int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *UNUSED(lcache_i
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					     double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					     double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -7209,8 +7219,8 @@ int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *UNUSED(lcache_i
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-					     double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+					     double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ prob*1[y=0] + (1-prob)*BetaBinomial(n, p, delta), where logit(p) = x, and prob = 1-p^alpha.
@@ -7273,8 +7283,8 @@ int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *UNUSED(lcache_i
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_exp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		      void *arg, char **arg_str)
+int loglikelihood_exp(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		      double *y_cdf, void *arg, char **arg_str)
 {
 	/*
 	 * y ~ Exponential
@@ -7316,14 +7326,16 @@ int loglikelihood_exp(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_expsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			  char **arg_str)
+int loglikelihood_expsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			  double *y_cdf, void *arg, char **arg_str)
 {
-	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp, arg_str));
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp,
+								 arg_str));
 }
 
-int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			       void *arg, GMRFLib_logl_tp *loglfun, char **arg_str)
+int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			       double *y_cdf, void *arg, GMRFLib_logl_tp *loglfun, char **arg_str)
 {
 #define FDIFF(Fdiff_) TRUNCATE(Fdiff_, eps, 1.0)
 #define SAFEGUARD1(value_) value_ = TRUNCATE(value_, eps, 1.0 - eps)
@@ -7576,8 +7588,8 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_weibull(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			  void *arg, char **arg_str)
+int loglikelihood_weibull(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
 	 * y ~ Weibull.
@@ -7650,15 +7662,16 @@ int loglikelihood_weibull(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			      void *arg, char **arg_str)
+int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			      double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull,
+								 arg_str));
 }
 
-int loglikelihood_gompertz(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			   void *arg, char **UNUSED(arg_str))
+int loglikelihood_gompertz(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7706,8 +7719,8 @@ double dgompertz_helper(double y, double a)
 	}
 }
 
-int loglikelihood_dgompertz(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			    void *arg, char **UNUSED(arg_str))
+int loglikelihood_dgompertz(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7736,22 +7749,24 @@ int loglikelihood_dgompertz(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gompertzsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-			       void *arg, char **arg_str)
+int loglikelihood_gompertzsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			       double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz,
+								 arg_str));
 }
 
-int loglikelihood_dgompertzsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-				void *arg, char **arg_str)
+int loglikelihood_dgompertzsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+				double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_dgompertz, arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_dgompertz, arg_str));
 }
 
-int loglikelihood_loglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			      void *arg, char **UNUSED(arg_str))
+int loglikelihood_loglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7822,16 +7837,16 @@ int loglikelihood_loglogistic(int thread_id, int *UNUSED(lcache_idx), double *__
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_loglogisticsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-				  void *arg, char **arg_str)
+int loglikelihood_loglogisticsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+				  double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic,
-								 arg_str));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_loglogistic, arg_str));
 }
 
-int loglikelihood_qloglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-			       void *arg, char **UNUSED(arg_str))
+int loglikelihood_qloglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7901,23 +7916,25 @@ int loglikelihood_qloglogistic(int thread_id, int *UNUSED(lcache_idx), double *_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qloglogisticsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf,
-				   void *arg, char **arg_str)
+int loglikelihood_qloglogisticsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+				   double *y_cdf, void *arg, char **arg_str)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_qloglogistic,
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_qloglogistic, arg_str));
+}
+
+int loglikelihood_fmrisurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			   double *y_cdf, void *arg, char **arg_str)
+{
+
+	return (m ==
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_fmri,
 								 arg_str));
 }
 
-int loglikelihood_fmrisurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   char **arg_str)
-{
-
-	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_fmri, arg_str));
-}
-
-int loglikelihood_fmri(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
-		       void *arg, char **UNUSED(arg_str))
+int loglikelihood_fmri(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ fmri (noncentral-chi distribution).
@@ -7963,8 +7980,8 @@ int loglikelihood_fmri(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf),
-		     void *arg, char **UNUSED(arg_str))
+int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		     double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;

@@ -15,9 +15,7 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS
-
-int GMRFLib_numa_have(void);
+__BEGIN_DECLS int GMRFLib_numa_have(void);
 int GMRFLib_numa_node_of_ptr(void *ptr);
 int GMRFLib_numa_nodes(void);
 size_t GMRFLib_get_L3_cache(void);

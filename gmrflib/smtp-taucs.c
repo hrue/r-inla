@@ -13,20 +13,20 @@
 // this is defined in sparse-interface.h
 // typedef struct 
 // {
-// 	int block_size;
+//      int block_size;
 // }
-// 	GMRFLib_taucs_ctl_tp;
+//      GMRFLib_taucs_ctl_tp;
 
 static GMRFLib_taucs_ctl_tp taucs_ctl = {
 	.block_size = 0
 };
 
-void GMRFLib_taucs_set_ctl(int block_size) 
+void GMRFLib_taucs_set_ctl(int block_size)
 {
 	taucs_ctl.block_size = IMAX(0, block_size);
 }
 
-GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void) 
+GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void)
 {
 	return &taucs_ctl;
 }
