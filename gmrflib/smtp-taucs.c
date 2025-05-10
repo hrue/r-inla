@@ -897,7 +897,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	if (dump_Q < 0) {
 #pragma omp critical (Name_29d46bdd6abbbf3b1bd5098a4281a9dd165fe114)
 		if (dump_Q < 0) {
-			dump_Q = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
+			int tmp = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
+			dump_Q = tmp;
 		}
 	}
 
@@ -1032,11 +1033,10 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_4e65f9abac12404e1d9633582ec69bc86e375bd2)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
@@ -1122,11 +1122,10 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_9c6d559b5470558ef474f5640951d6b63990a46d)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
@@ -1167,11 +1166,10 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_a3dba7d9a29b2dbf1981362774e31bd1c94148ec)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
@@ -1210,11 +1208,10 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_ae25603ba826d85ac7ffa0b88a9f11d5c2246a83)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
@@ -1696,11 +1693,10 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_adb454feb2a421a0a2effd2a5298f308a1c3f192)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double ** tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 

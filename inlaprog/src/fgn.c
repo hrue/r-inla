@@ -68,18 +68,16 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 	if (phi_cache == NULL) {
 #pragma omp critical (Name_6cee800e55124771d0e7fd552ae7e48a27e4f94e)
-		{
-			if (phi_cache == NULL) {
-				double **cache = Calloc(GMRFLib_CACHE_LEN(), double *);
-				w_cache = Calloc(GMRFLib_CACHE_LEN(), double *);
-				H_intern_cache = Calloc(GMRFLib_CACHE_LEN(), double);
+		if (phi_cache == NULL) {
+			double **cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+			w_cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+			H_intern_cache = Calloc(GMRFLib_CACHE_LEN(), double);
 
-				for (int jj = 0; jj < GMRFLib_CACHE_LEN(); jj++) {
-					cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-					w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-				}
-				phi_cache = cache;
+			for (int jj = 0; jj < GMRFLib_CACHE_LEN(); jj++) {
+				cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+				w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 			}
+			phi_cache = cache;
 		}
 	}
 
@@ -246,10 +244,9 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 
 	static GMRFLib_spline_tp *dist_spline = NULL;
 #pragma omp critical (Name_f88269b9720b21345f72723d8de2fc329de96a39)
-	{
-		if (!dist_spline) {
-			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
-		}
+	if (!dist_spline) {
+		GMRFLib_spline_tp *tspline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
+		dist_spline = tspline;
 	}
 
 	double U_intern, lambda;
@@ -267,10 +264,9 @@ void priorfunc_fgn_priorH_extract(void)
 
 	static GMRFLib_spline_tp *dist_spline = NULL;
 #pragma omp critical (Name_1083cc49be9497f3e0b14820ba227f6584988f41)
-	{
-		if (!dist_spline) {
-			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
-		}
+	if (!dist_spline) {
+		GMRFLib_spline_tp *tspline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
+		dist_spline = tspline;
 	}
 
 	for (double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH / 2.0; H_intern += dH) {

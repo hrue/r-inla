@@ -490,9 +490,7 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, int verbose)
 		Dinit(nndir);
 		if (verbose) {
 #pragma omp critical (Name_2f68597610da063cce30cec1d19ac794527bc57e)
-			{
-				printf("\t\tstore gcpo-results in[%s]\n", nndir);
-			}
+			printf("\t\tstore gcpo-results in[%s]\n", nndir);
 		}
 		D1W(n);
 		for (i = 0; i < n; i++) {

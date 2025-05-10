@@ -206,8 +206,6 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 		if (!crwdef->work) {
 #pragma omp critical (Name_7b79c5928d913fdbaa9b3335cf6f26f060cef587)
 			{
-				/*
-				 */
 				if (!crwdef->work) {
 
 					/*

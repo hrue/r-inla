@@ -171,73 +171,71 @@ int inla_R_init_(void)
 {
 	if (R_init) {
 #pragma omp critical (Name_aac7e80b592e4a6319788827c44116e831460cd6)
-		{
-			if (R_init) {
-				R_debug = (getenv((const char *) "INLA_DEBUG_R") ? 1 : 0);
+		if (R_init) {
+			R_debug = (getenv((const char *) "INLA_DEBUG_R") ? 1 : 0);
 
-				// Check if R_HOME is set. If not, try to guess it, otherwise fail.
-				char *rhome = (R_home ? R_home : getenv((const char *) "R_HOME"));
-				if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
-					if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
-					} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
-					} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
-					} else if (my_dir_exists("/usr/local/lib64/R") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib64/R");
-					} else if (my_dir_exists("/usr/local/lib/R") == INLA_OK) {
-						GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib/R");
-					} else {
-						fprintf(stderr, "\n\n");
-						fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
-						fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
-						fprintf(stderr, "\n\n");
-						fflush(stderr);
-						exit(1);
-					}
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
-					fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
-					fflush(stderr);
-					my_setenv(rhome, 0);
+			// Check if R_HOME is set. If not, try to guess it, otherwise fail.
+			char *rhome = (R_home ? R_home : getenv((const char *) "R_HOME"));
+			if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
+				if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
+					GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
+				} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
+					GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
+				} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
+					GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
+				} else if (my_dir_exists("/usr/local/lib64/R") == INLA_OK) {
+					GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib64/R");
+				} else if (my_dir_exists("/usr/local/lib/R") == INLA_OK) {
+					GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib/R");
 				} else {
-					char *rrhome = NULL;
-					GMRFLib_sprintf(&rrhome, "R_HOME=%s", rhome);
-					my_setenv(rrhome, 0);
-				}
-
-				char *Rargv[4];
-				Rargv[0] = Strdup("REmbeddedPostgres");
-				Rargv[1] = Strdup("--gui=none");
-				Rargv[2] = Strdup("--vanilla");
-				Rargv[3] = Strdup("--quiet");
-				Rf_initEmbeddedR((R_debug ? 3 : 4), Rargv);
-
-				if (R_debug) {
-					fprintf(stderr, "R-interface: init\n");
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
+					fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
+					fprintf(stderr, "\n\n");
 					fflush(stderr);
+					exit(1);
 				}
-
-				// Disable C stack limit check
-				R_CStackLimit = (uintptr_t) (-1);
-
-				char *filename = NULL;
-				GMRFLib_sprintf(&filename, "%s/inla_rgeneric_wrapper_XXXXXX", GMRFLib_tmpdir);
-				int fd = mkstemp(filename);
-				close(fd);
-				FILE *fp = fopen(filename, "w");
-				if (R_debug) {
-					fprintf(fp, "base::searchpaths()\n");
-					fprintf(fp, "utils::sessionInfo()\n");
-				}
-				fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
-					R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
-				fclose(fp);
-				inla_R_source_quiet_(filename);
-
-				R_init = 0;
+				fprintf(stderr, "\n\n");
+				fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
+				fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+				fflush(stderr);
+				my_setenv(rhome, 0);
+			} else {
+				char *rrhome = NULL;
+				GMRFLib_sprintf(&rrhome, "R_HOME=%s", rhome);
+				my_setenv(rrhome, 0);
 			}
+
+			char *Rargv[4];
+			Rargv[0] = Strdup("REmbeddedPostgres");
+			Rargv[1] = Strdup("--gui=none");
+			Rargv[2] = Strdup("--vanilla");
+			Rargv[3] = Strdup("--quiet");
+			Rf_initEmbeddedR((R_debug ? 3 : 4), Rargv);
+
+			if (R_debug) {
+				fprintf(stderr, "R-interface: init\n");
+				fflush(stderr);
+			}
+
+			// Disable C stack limit check
+			R_CStackLimit = (uintptr_t) (-1);
+
+			char *filename = NULL;
+			GMRFLib_sprintf(&filename, "%s/inla_rgeneric_wrapper_XXXXXX", GMRFLib_tmpdir);
+			int fd = mkstemp(filename);
+			close(fd);
+			FILE *fp = fopen(filename, "w");
+			if (R_debug) {
+				fprintf(fp, "base::searchpaths()\n");
+				fprintf(fp, "utils::sessionInfo()\n");
+			}
+			fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n",
+				R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
+			fclose(fp);
+			inla_R_source_quiet_(filename);
+
+			R_init = 0;
 		}
 	}
 

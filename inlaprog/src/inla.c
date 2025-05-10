@@ -1568,8 +1568,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 						}
 						Free(vec_str);
 					}
+					jp_first_time = 0;
 				}
-				jp_first_time = 0;
 			}
 			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
@@ -2847,7 +2847,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	if (!sstore) {
 #pragma omp critical (Name_87d8c02a8a06b017c5015b7132be14e8b5996507)
 		if (!sstore) {
-			sstore = Calloc(GMRFLib_CACHE_LEN(), Store_tp **);
+			Store_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Store_tp **);
+			sstore = tmp;
 		}
 	}
 	int cidx = 0;
@@ -5219,10 +5220,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 			if (!hhold) {
 #pragma omp critical (Name_35784cb53aa98d636cf2d0897410586e2705f61e)
-				{
-					if (!hhold) {
-						hhold = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
-					}
+				if (!hhold) {
+					Hold_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					hhold = tmp;
 				}
 			}
 			int idx = 0;
@@ -5337,7 +5337,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (!hhold) {
 #pragma omp critical (Name_7acab2f371bbea723e9820a667f70647967dbd17)
 				if (!hhold) {
-					hhold = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					Hold_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					hhold = tmp;
 				}
 			}
 			int idx = 0;

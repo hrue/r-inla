@@ -3051,9 +3051,7 @@ int testit(int argc, char **argv)
 #pragma omp parallel for
 		for (int i = -1; i <= 2057; i++) {
 #pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
-			{
-				printf("%d %.20g\n", i, my_lbell(i));
-			}
+			printf("%d %.20g\n", i, my_lbell(i));
 		}
 	}
 		break;
@@ -4995,10 +4993,8 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			int c = -1, n = -1;
 			GMRFLib_numa_get(&c, &n);
-#pragma omp critical
-			{
-				printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
-			}
+#pragma omp critical (Name_bbc039e6c082e74f76e14604b3457c14112f1e69)
+			printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
 		}
 #else
 		printf("\n\tNUMA support is not included in this build.\n");

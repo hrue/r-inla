@@ -1794,7 +1794,8 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 	if (!llcache) {
 #pragma omp critical (Name_2396789afcc20ddee4600d09ab8d0fe4a104e9f3)
 		if (!llcache) {
-			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 

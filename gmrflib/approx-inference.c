@@ -418,10 +418,9 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	if (!nnr_step_factor_first_time_only) {
 #pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
 		if (!nnr_step_factor_first_time_only) {
-			nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN(), int);
-			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-				nnr_step_factor_first_time_only[i] = 1;
-			}
+			int *itmp = Calloc(GMRFLib_CACHE_LEN(), int);
+			GMRFLib_ifill(GMRFLib_CACHE_LEN(), 1, itmp);
+			nnr_step_factor_first_time_only = itmp;
 		}
 	}
 
@@ -3686,18 +3685,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 	if (detailed_output) {
 #pragma omp critical (Name_0c006e103a84c0a6e6169eed5e739b8065a95b95)
-		{
-			for (int node = 0; node < Npred; node++) {
-				char *msg = NULL;
-				GMRFLib_sprintf(&msg, "%s[%1d]: node %d", __GMRFLib_FuncName, omp_get_thread_num(), node);
-				if (groups[node]->n > 0) {
-					GMRFLib_idxval_printf(stdout, groups[node], msg);
-				}
-				if (missing[node]->n > 0) {
-					GMRFLib_idx2_printf(stdout, missing[node], msg);
-				}
-				Free(msg);
+		for (int node = 0; node < Npred; node++) {
+			char *msg = NULL;
+			GMRFLib_sprintf(&msg, "%s[%1d]: node %d", __GMRFLib_FuncName, omp_get_thread_num(), node);
+			if (groups[node]->n > 0) {
+				GMRFLib_idxval_printf(stdout, groups[node], msg);
 			}
+			if (missing[node]->n > 0) {
+				GMRFLib_idx2_printf(stdout, missing[node], msg);
+			}
+			Free(msg);
 		}
 	}
 
@@ -3905,14 +3902,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	if (detailed_output) {
 #pragma omp critical (Name_0139eb204165e8e82ee3aaaaff59eab1d5b3cc14)
-		{
-			for (int node = 0; node < Npred; node++) {
-				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
-					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node,
-					       (int) gcpo[node]->cov_mat->size1, (int) gcpo[node]->idx_node);
-					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, Strdup("nodes in this group"));
-					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
-				}
+		for (int node = 0; node < Npred; node++) {
+			if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
+				printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node,
+				       (int) gcpo[node]->cov_mat->size1, (int) gcpo[node]->idx_node);
+				GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, Strdup("nodes in this group"));
+				GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 			}
 		}
 	}
@@ -4407,10 +4402,9 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 
 		if (debug && np) {
 #pragma omp critical (Name_45542d32821a8fbfd2cec71e8219d7eeb4b423f2)
-			{
-				for (int i = 0; i < np; i++)
-					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
-					       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
+			for (int i = 0; i < np; i++) {
+				printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
+				       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
 			}
 		}
 		cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
@@ -4423,9 +4417,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		flag = (npp > np);
 		if (debug && np) {
 #pragma omp critical (Name_c6e59ebf504f17645e98f57731cc4de48bd2748a)
-			{
-				for (int i = 0; i < np; i++)
-					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
+			for (int i = 0; i < np; i++) {
+				printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
 			}
 		}
 		if (np > 4) {
@@ -4466,7 +4459,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	if (!lwork) {
 #pragma omp critical (Name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
 		if (!lwork) {
-			lwork = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			lwork = tmp;
 		}
 	}
 
@@ -4543,19 +4537,17 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 
 	if (!wp) {
 #pragma omp critical (Name_0713ff01bf46f0328663d7242f8e788872085a66)
-		{
-			if (!wp) {
-				double *wtmp = NULL;
-				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-				wxp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
-				wxp3 = wxp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
-				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-					double z2 = SQR(xp[i]);
-					wxp2[i] = wtmp[i] * (z2 - 1.0);
-					wxp3[i] = wtmp[i] * (3.0 - 6.0 * z2 + SQR(z2));
-				}
-				wp = wtmp;
+		if (!wp) {
+			double *wtmp = NULL;
+			GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
+			wxp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+			wxp3 = wxp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
+			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
+				double z2 = SQR(xp[i]);
+				wxp2[i] = wtmp[i] * (z2 - 1.0);
+				wxp3[i] = wtmp[i] * (3.0 - 6.0 * z2 + SQR(z2));
 			}
+			wp = wtmp;
 		}
 	}
 
@@ -5583,28 +5575,26 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 
 	if (!wp) {
 #pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
-		{
-			if (!wp) {
-				double *wtmp = NULL;
-				GMRFLib_ghq(&xp, &wtmp, np);   /* just give ptr to storage */
-				int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
-				xp1 = Calloc(5 * nn, double);
-				xp2 = xp1 + 1 * nn;
-				xp3 = xp1 + 2 * nn;
-				xp4 = xp1 + 3 * nn;
-				xp5 = xp1 + 4 * nn;
+		if (!wp) {
+			double *wtmp = NULL;
+			GMRFLib_ghq(&xp, &wtmp, np);   /* just give ptr to storage */
+			int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
+			xp1 = Calloc(5 * nn, double);
+			xp2 = xp1 + 1 * nn;
+			xp3 = xp1 + 2 * nn;
+			xp4 = xp1 + 3 * nn;
+			xp5 = xp1 + 4 * nn;
 
-				for (int i = 0; i < nnp1; i++) {
-					double x = xp[nnp + i];
-					double z2 = SQR(x);
-					xp1[i] = x;	       // d mu
-					xp2[i] = 0.5 * (z2 - 1.0);	// d var
-					xp3[i] = z2 - 1.0;     // d mu mu
-					xp4[i] = 0.25 * (3.0 - 6.0 * z2 + SQR(z2));	// d var var
-					xp5[i] = 0.5 * x * (z2 - 3.0);	// d var mu
-				}
-				wp = wtmp;
+			for (int i = 0; i < nnp1; i++) {
+				double x = xp[nnp + i];
+				double z2 = SQR(x);
+				xp1[i] = x;	       // d mu
+				xp2[i] = 0.5 * (z2 - 1.0);	// d var
+				xp3[i] = z2 - 1.0;     // d mu mu
+				xp4[i] = 0.25 * (3.0 - 6.0 * z2 + SQR(z2));	// d var var
+				xp5[i] = 0.5 * x * (z2 - 3.0);	// d var mu
 			}
+			wp = wtmp;
 		}
 	}
 
@@ -6220,7 +6210,8 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	if (!work) {
 #pragma omp critical (Name_743b7d82abb3dc313f542012c3a2640ccca29d15)
 		if (!work) {
-			work = Calloc(GMRFLib_CACHE_LEN(), double *);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			work = tmp;
 		}
 	}
 

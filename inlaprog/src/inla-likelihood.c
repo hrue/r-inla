@@ -1058,7 +1058,8 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 	if (!llcache) {
 #pragma omp critical (Name_21bf489d4a1518aff583c47b3b79b92dc0329b87)
 		if (!llcache) {
-			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 
@@ -1068,7 +1069,8 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
 		if (!llcache[cidx]) {
-			llcache[cidx] = Calloc(1, lcache_t);
+			lcache_t *tmp = Calloc(1, lcache_t);
+			llcache[cidx] = tmp;
 		}
 	}
 
@@ -4002,15 +4004,14 @@ int loglikelihood_pom(int thread_id, int *lcache_idx, double *__restrict logll, 
 
 	if (!calpha) {
 #pragma omp critical (Name_0e94df4562241e37d016a0edfddb0588df8765f1)
-		{
-			if (!calpha) {
-				nclass = Calloc(GMRFLib_CACHE_LEN(), int);
-				calpha = Calloc(GMRFLib_CACHE_LEN(), double *);
-				for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-					nclass[i] = 4;
-					calpha[i] = Calloc(nclass[i], double);
-				}
+		if (!calpha) {
+			nclass = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+				nclass[i] = 4;
+				tmp[i] = Calloc(nclass[i], double);
 			}
+			calpha = tmp;
 		}
 	}
 
@@ -5478,17 +5479,17 @@ int loglikelihood_nmix(int thread_id, int *lcache_idx, double *__restrict logll,
 	static double **cy = NULL;
 	static int *ncy = NULL;
 
+	// FIXME: Rewrite this later for NUMA
 	if (!cy) {
 #pragma omp critical (Name_1d71960e99b4e67a36228891d1af914edbfd3dc3)
-		{
-			if (!cy) {
-				ncy = Calloc(GMRFLib_CACHE_LEN(), int);
-				cy = Calloc(GMRFLib_CACHE_LEN(), double *);
-				for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-					ncy[i] = 8;
-					cy[i] = Calloc(ncy[i], double);
-				}
+		if (!cy) {
+			ncy = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **ttmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+				ncy[i] = 8;
+				ttmp[i] = Calloc(ncy[i], double);
 			}
+			cy = ttmp;
 		}
 	}
 
@@ -5572,19 +5573,20 @@ int loglikelihood_nmixnb(int thread_id, int *lcache_idx, double *__restrict logl
 	static double **cy = NULL;
 	static int *ncy = NULL;
 
+	// FIXME: Rewrite this later for NUMA
 	if (!cy) {
 #pragma omp critical (Name_0b245bce3bb8f2007cc26fbbb141a5a0c7559165)
-		{
-			if (!cy) {
-				ncy = Calloc(GMRFLib_CACHE_LEN(), int);
-				cy = Calloc(GMRFLib_CACHE_LEN(), double *);
-				for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-					ncy[i] = 8;
-					cy[i] = Calloc(ncy[i], double);
-				}
+		if (!cy) {
+			ncy = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **ttmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+				ncy[i] = 8;
+				ttmp[i] = Calloc(ncy[i], double);
 			}
+			cy = ttmp;
 		}
 	}
+	
 
 	int id = 0;
 	GMRFLib_SET_LCACHE_IDX(id);
@@ -5700,10 +5702,9 @@ int inla_mix_int_simpson_gaussian(int thread_id, int *lcache_idx, double **x, do
 
 	if (!llcache) {
 #pragma omp critical (Name_f0fed30114239788701d492c4202a46b68cc060a)
-		{
-			if (!llcache) {
-				llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
-			}
+		if (!llcache) {
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 
@@ -5798,10 +5799,9 @@ int inla_mix_int_simpson_loggamma(int thread_id, int *lcache_idx, double **x, do
 
 	if (!llcache) {
 #pragma omp critical (Name_ba31fe1f20db2ec14750ea49f488e614a1920cb7)
-		{
-			if (!llcache) {
-				llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
-			}
+		if (!llcache) {
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 	int idx = 0;
@@ -8048,7 +8048,8 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 	if (!llcache) {
 #pragma omp critical (Name_9a792f43e082023e6a38905564adf8598082df7f)
 		if (!llcache) {
-			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 
@@ -8058,7 +8059,8 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_93af423a814c85a479569f0787bff31c76ef23bf)
 		if (!llcache[cidx]) {
-			llcache[cidx] = Calloc(1, lcache_t);
+			lcache_t *tmp = Calloc(1, lcache_t);
+			llcache[cidx] = tmp;
 		}
 	}
 

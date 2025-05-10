@@ -267,10 +267,9 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp *io)
 
 	if (!lline) {
 #pragma omp critical (Name_3b7615ac7634fdd9cdf10e63dde5835b04b9da62)
-		{
-			if (!lline) {
-				lline = Calloc(GMRFLib_CACHE_LEN(), char *);
-			}
+		if (!lline) {
+			char **tmp = Calloc(GMRFLib_CACHE_LEN(), char *);
+			lline = tmp;
 		}
 	}
 	int idx = 0;

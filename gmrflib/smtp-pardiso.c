@@ -284,9 +284,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 			printf("\t[%1d] csr_store: store crs 0x%p\n", omp_get_thread_num(), (void *) Ms);
 		}
 #pragma omp critical (Name_488cde57983063f09dc9ddf7c473d77c79ea2929)
-		{
-			map_strvp_set(&csr_store, (char *) graph->sha, (void *) Ms);
-		}
+		map_strvp_set(&csr_store, (char *) graph->sha, (void *) Ms);
 	}
 
 	return (Ms);
@@ -1343,14 +1341,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 
 	if (S.static_pstores == NULL) {
 #pragma omp critical (Name_046c40f5fd2e202479d5c486dfdf986558c6e681)
-		{
-			if (S.static_pstores == NULL) {
-				if (S.s_verbose) {
-					printf("==> init static_pstores\n");
-				}
-				S.busy = Calloc(PSTORES_NUM, int);
-				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
+		if (S.static_pstores == NULL) {
+			if (S.s_verbose) {
+				printf("==> init static_pstores\n");
 			}
+			S.busy = Calloc(PSTORES_NUM, int);
+			S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
 		}
 	}
 
