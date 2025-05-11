@@ -299,8 +299,8 @@ typedef enum {
 		}							\
 		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
 		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
-			printf("\t[%1d] %s:%1d NUMA_hitmiss n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
-			       (int)tot, 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
+			printf("\t[%1d] %s:%1d NUMA_hitmiss idx[%1d] n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
+			       idx_, (int)tot, 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
 		}							\
 	}
 
