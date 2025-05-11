@@ -1573,7 +1573,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 			// prefix's GMRFLib_ and inla_ are removed automatically
 			char *def = getenv("INLA_CACHE_HITMISS");
 			int verbose = 0;
-			map_str *tmp = NULL;
+			map_stri *tmp = NULL;
 			
 			if (def) {
 				def = Strdup(def);
