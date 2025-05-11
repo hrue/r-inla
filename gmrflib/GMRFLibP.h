@@ -284,12 +284,17 @@ typedef enum {
 	static int hitmiss_ = -1;					\
 	static int *hitmiss_count_[2] = {NULL, NULL};			\
 	if (hitmiss_ < 0) {						\
-                hitmiss_ = GMRFLib_trace_cache_hitmiss(__GMRFLib_FuncName); \
-		if (hitmiss_ > 0) {					\
-			hitmiss_count_[0] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
-			hitmiss_count_[1] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
-		}							\
+		_Pragma("omp critical (Name_cache_hitmiss_init)")	\
+			if (hitmiss_ <  0) {				\
+				int hm = GMRFLib_trace_cache_hitmiss(__GMRFLib_FuncName); \
+				if (hm > 0) {				\
+					hitmiss_count_[0] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
+					hitmiss_count_[1] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
+				}					\
+				hitmiss_ = hm;				\
+			}						\
 	}
+
 
 #define GMRFLib_CACHE_HITMISS_CHECK(idx_, ptr_)				\
 	if (hitmiss_ > 0) {						\
@@ -299,7 +304,7 @@ typedef enum {
 		}							\
 		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
 		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
-			printf("\t[%1d] %s:%1d NUMA_hitmiss idx[%1d] n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
+			printf("\t[%1d] %s:%1d NUMA idx[%1d] n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
 			       idx_, (int)tot, 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
 		}							\
 	}
