@@ -764,8 +764,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			CODE_BLOCK_INIT_X(int);				\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
 			if (cache_idx == 0) {				\
-				GMRFLib_CACHE_SET_ID(cache_idx);	\
-				*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx; \
+				cache_idx = -1;				\
 			} else {					\
 				cache_idx--;				\
 			}						\
@@ -812,6 +811,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			aa[idx] = acoof;				\
 			bb[idx] = bcoof;				\
 			cc[idx] = ccoof;				\
+			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
