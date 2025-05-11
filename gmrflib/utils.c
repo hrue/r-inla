@@ -1469,7 +1469,7 @@ int GMRFLib_trace_functions(const char *name)
 			// prefix's GMRFLib_ and inla_ are removed automatically
 			char *def = getenv("INLA_TRACE");
 			int verbose = 0;
-			map_stri *tmp;
+			map_stri *tmp = NULL;
 			
 			if (def) {
 				def = Strdup(def);
