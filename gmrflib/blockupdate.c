@@ -489,7 +489,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	GMRFLib_CACHE_HITMISS_INIT();
-	GMRFLib_CACHE_HITMISS_CHECK(w->wf[stenc]);
+	GMRFLib_CACHE_HITMISS_CHECK(cache_idx, w->wf[stenc]);
 
 	return GMRFLib_SUCCESS;
 }
