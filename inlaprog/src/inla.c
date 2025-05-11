@@ -7411,8 +7411,10 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\nVersion......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-		fprintf(stdout, "Build-time...[%s]\n", __TIMESTAMP__);
+		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stdout, "Build-time....[%s]\n", __TIMESTAMP__);
+		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
+
 		_BUGS_intern(stdout);
 	}
 
