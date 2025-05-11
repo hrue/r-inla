@@ -280,6 +280,7 @@ typedef enum {
 		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName);	\
 	}
 
+#if defined(INLA_WITH_DEVEL)
 #define GMRFLib_CACHE_HITMISS_INIT()					\
 	static int hitmiss_ = -1;					\
 	static int *hitmiss_count_[2] = {NULL, NULL};			\
@@ -295,7 +296,6 @@ typedef enum {
 			}						\
 	}
 
-
 #define GMRFLib_CACHE_HITMISS_CHECK(idx_, ptr_)				\
 	if (hitmiss_ > 0) {						\
 		int r = GMRFLib_numa_cache_hitmiss_core(ptr_, __FILE__, __LINE__); \
@@ -304,10 +304,15 @@ typedef enum {
 		}							\
 		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
 		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
-			printf("\t[%1d] %s:%1d NUMA idx[%1d] n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
+			printf("\t[%1d] %s:%1d NUMA-aware cache: idx[%1d] n[%1d] hit[%.1f%%] miss[%.1f%%]\n", \
+			       omp_get_thread_num(), __FILE__, __LINE__, \
 			       idx_, (int)tot, 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
 		}							\
 	}
+#else
+#define GMRFLib_CACHE_HITMISS_INIT()
+#define GMRFLib_CACHE_HITMISS_CHECK(idx_, ptr_)
+#endif
 
 
 #if defined(INLA_WITH_DEVEL)
@@ -395,21 +400,21 @@ typedef enum {
 	}
 
 #else
-#define GMRFLib_DEBUG(msg_) ;
-#define GMRFLib_DEBUG_i(msg_, i_) ;
-#define GMRFLib_DEBUG_ii(msg_, i_, ii_)	;
-#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_) ;	
-#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_) ;	
-#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_) ;	
-#define GMRFLib_DEBUG_d(msg_, d_) ;
-#define GMRFLib_DEBUG_dd(msg_, d_, dd_) ;	
-#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_) ;	
-#define GMRFLib_DEBUG_id(msg_, i_, d_) ;	
-#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_) ;	
-#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_) ;	
-#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_) ;	
-#define GMRFLib_TRACE_i(msg_, i_) ;
-#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_) ;	
+#define GMRFLib_DEBUG(msg_) 
+#define GMRFLib_DEBUG_i(msg_, i_) 
+#define GMRFLib_DEBUG_ii(msg_, i_, ii_)	
+#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_) 	
+#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_) 	
+#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_) 	
+#define GMRFLib_DEBUG_d(msg_, d_) 
+#define GMRFLib_DEBUG_dd(msg_, d_, dd_) 	
+#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_) 	
+#define GMRFLib_DEBUG_id(msg_, i_, d_) 	
+#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_) 	
+#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_) 	
+#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_) 	
+#define GMRFLib_TRACE_i(msg_, i_) 
+#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_) 	
 #endif
 
 #define Calloc_init(n_, m_)						\
