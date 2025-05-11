@@ -296,11 +296,11 @@ typedef enum {
 			}						\
 	}
 
-#define GMRFLib_CACHE_HITMISS_CHECK(idx_, ptr_)				\
+#define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_)			\
 	if (hitmiss_ > 0) {						\
-		int r = GMRFLib_numa_cache_hitmiss_core(ptr_, __FILE__, __LINE__); \
-		if (r >= 0) {						\
-			hitmiss_count_[r][idx_]++;			\
+		val_ = GMRFLib_numa_cache_hitmiss_core(ptr_, __FILE__, __LINE__); \
+		if (val_ >= 0) {						\
+			hitmiss_count_[val_][idx_]++;			\
 		}							\
 		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
 		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
@@ -584,12 +584,9 @@ typedef enum {
 #define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
 	{								\
 		int numa_node = 0;					\
-		int cpu = 0;						\
-		GMRFLib_numa_get(&cpu, &numa_node);			\
+		GMRFLib_numa_get(NULL, &numa_node);			\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
-		FIXME1("FIX THIS");					\
-		tnum_ = cpu;						\
 		int mt = GMRFLib_MAX_THREADS();				\
 		int numa_offset = numa_node * (mt * (mt + 1));		\
 		if (level_ <= 1) {					\
