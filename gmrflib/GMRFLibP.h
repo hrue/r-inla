@@ -584,9 +584,12 @@ typedef enum {
 #define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
 	{								\
 		int numa_node = 0;					\
-		GMRFLib_numa_get(NULL, &numa_node);			\
+		int cpu = 0;						\
+		GMRFLib_numa_get(&cpu, &numa_node);			\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
+		FIXME1("FIX THIS");					\
+		tnum_ = cpu;						\
 		int mt = GMRFLib_MAX_THREADS();				\
 		int numa_offset = numa_node * (mt * (mt + 1));		\
 		if (level_ <= 1) {					\
