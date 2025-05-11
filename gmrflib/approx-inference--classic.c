@@ -3464,6 +3464,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			    interpol != GMRFLib_AI_INTERPOLATOR_GRIDSUM) {
 				double bvalue = GMRFLib_min_value(hyper_ldens, hyper_count, NULL);
 
+				assert(nhyper > 0);
 				izz = Calloc(nhyper, int);
 				for (ntimes = 0; ntimes < 2; ntimes++) {
 					int guard_count = 0;
