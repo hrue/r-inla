@@ -388,8 +388,8 @@ void my_lambert_W0s(int m, double *y, double *res)
 				yy[i] = logy_lim[0] + i * dy;
 				xx[i] = log(gsl_sf_lambert_W0(exp(yy[i])));
 			}
-			Free(work);
 			GMRFLib_spline_tp *tspline = GMRFLib_spline_create(yy, xx, n);
+			Free(work);
 			spline_lambert_W0 = tspline;
 		}
 	}
