@@ -1429,7 +1429,7 @@ int GMRFLib_debug_functions(const char *name)
 					}
 				}
 			}
-			defs[idx] = tmp;
+			ddefs[idx] = tmp;
 		}
 	}
 
