@@ -1637,7 +1637,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 					}
 				}
 			}
-			defs[idx] = tmp;
+			ddefs[idx] = tmp;
 		}
 	}
 
