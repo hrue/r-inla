@@ -1463,7 +1463,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 			       (tfunc ? tfunc[_idx]->func(thread_id, 0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL;
 	int ndiv;
@@ -1808,7 +1808,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 #undef _FUNC_ARG
 #undef _TFUNC
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return INLA_OK;
 }

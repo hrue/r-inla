@@ -433,7 +433,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	GMRFLib_optimize_param_tp *optpar = NULL;
 	GMRFLib_blockupdate_param_tp *blockpar = NULL;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	GMRFLib_ASSERT(ai_store, GMRFLib_EPARAMETER);	       /* this is required */
 
@@ -545,7 +545,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	if (free_ai_par)
 		Free(ai_par);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -716,7 +716,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	 * for that. 
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (optpar && optpar->fp)
 		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
@@ -971,10 +971,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	if (!*problem) {
 		if (nested == 1) {
 			GMRFLib_ASSERT(*problem, GMRFLib_EOPTNR);
-			GMRFLib_LEAVE_ROUTINE;
+			GMRFLib_LEAVE_FUNCTION;
 			return GMRFLib_EOPTNR;
 		} else if (nested == 2) {
-			GMRFLib_LEAVE_ROUTINE;
+			GMRFLib_LEAVE_FUNCTION;
 			return GMRFLib_EOPTNR;
 		} else {
 			/*
@@ -993,7 +993,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					__GMRFLib_FuncName, new_optpar.nr_step_factor);
 			}
 			if (new_optpar.nr_step_factor < 1e-3) {
-				GMRFLib_LEAVE_ROUTINE;
+				GMRFLib_LEAVE_FUNCTION;
 				return GMRFLib_EOPTNR;
 			} else {
 				/*
@@ -1055,7 +1055,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					} else {
 						*problem = NULL;
 						if (!stop) {
-							GMRFLib_LEAVE_ROUTINE;
+							GMRFLib_LEAVE_FUNCTION;
 							return retval;
 						}
 					}
@@ -1072,7 +1072,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	Free(mode);					       /* not part of 'FREE_ALL' */
 
 	FREE_ALL;
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 #undef FREE_ALL
@@ -1156,7 +1156,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int n_warnings = 0;
 	if (misc_output) {
@@ -3215,7 +3215,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	GMRFLib_idx_free(d_idx);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 #undef CHECK_HYPER_STORAGE
 #undef CHECK_DENS_STORAGE
 #undef COMPUTE_CPO_AND_DIC
@@ -3263,7 +3263,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						   gcpo_param->group_selection->idx, \
 						   gcpo_param->group_selection->n) >= 0)
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	TIMER_INIT(1, 1);
 
@@ -3703,7 +3703,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #undef A_idx
 #undef W
 #undef LEGAL_TO_ADD
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return ggroups;
 }
 
@@ -3714,7 +3714,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	TIMER_INIT(0, 10);
 
@@ -4350,7 +4350,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	TIMER_SUMMARY;
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return gcpo;
 }
 
@@ -4612,7 +4612,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 				      GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	Calloc_init(7 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 13);
 	FILE *fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
 	int verbose = ai_par->vb_verbose && ai_par->fp_log;
@@ -4640,7 +4640,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
 	if (!(ai_par->vb_enable && ai_par->vb_nodes_mean)) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -4653,7 +4653,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 	}
 	if (!vb_idx) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -5043,7 +5043,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 #undef SHOW_TIME
 	return GMRFLib_SUCCESS;
 }
@@ -5059,7 +5059,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 					  GMRFLib_preopt_tp *preopt, double *c_corrected, GMRFLib_idx_tp *d_idx)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
@@ -5083,7 +5083,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	int verbose = ai_par->vb_verbose && ai_par->fp_log;
 
 	if (!(ai_par->vb_enable && ai_par->vb_nodes_variance)) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -5096,7 +5096,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 	}
 	if (!vb_idx) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -5548,7 +5548,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -6752,7 +6752,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 	double extra_points[] = { -15.0, -10.0, -7.0, -5.0, -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 15.0 };
 	int npoints;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	assert(sizeof(extra_points) / sizeof(double) == NEXTRA);
 
 	// 
@@ -6995,7 +6995,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 
 #undef NEXTRA
 #undef COV
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -7124,9 +7124,9 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 
 #define COPY(name_) new_ai_store->name_ = ai_store->name_
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	if (!ai_store) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return NULL;
 	}
 	GMRFLib_ai_store_tp *new_ai_store = Calloc(1, GMRFLib_ai_store_tp);
@@ -7152,7 +7152,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	char *tmp = Calloc(1, char);
 	Free(tmp);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return new_ai_store;
 
 #undef DUPLICATE

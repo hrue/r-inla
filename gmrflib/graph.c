@@ -23,7 +23,7 @@ static int graph_store_debug = 0;
 
 int GMRFLib_graph_init_store(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	graph_store_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (graph_store_use) {
 		if (graph_store_must_init) {
@@ -35,7 +35,7 @@ int GMRFLib_graph_init_store(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1023,11 +1023,11 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 	int m, n, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (!graph_old) {
 		*graph_new = NULL;
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1043,7 +1043,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 		}
 		if (p) {
 			*graph_new = (GMRFLib_graph_tp *) * p;
-			GMRFLib_LEAVE_ROUTINE;
+			GMRFLib_LEAVE_FUNCTION;
 			return GMRFLib_SUCCESS;
 		}
 	}
@@ -1093,7 +1093,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 		map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1356,7 +1356,7 @@ int GMRFLib_Qx(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph
 
 int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *diag)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	const int debug = 0;
 	int run_parallel = (GMRFLib_Qx_strategy != 0);
@@ -1478,7 +1478,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 	}
 
 	Calloc_free();
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1512,7 +1512,7 @@ int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, 
 
 int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	// taken from GMRFLibP.h
 	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())?
@@ -1584,13 +1584,13 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 	Free(indx);
 	Free(dot_values);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_QM_ORIG(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 #define ADDTO(M_, i_, j_, val_) gsl_matrix_set(M_, i_, j_, gsl_matrix_get(M_, i_, j_) + val_)
 
@@ -1716,7 +1716,7 @@ int GMRFLib_QM_ORIG(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_gr
 	Free(values);
 #undef ADDTO
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 

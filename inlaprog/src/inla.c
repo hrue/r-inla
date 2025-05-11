@@ -6397,7 +6397,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
-	// GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_FUNCTION
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
@@ -6644,7 +6644,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #undef _MAP_DX_func
 #undef _MAP_DX_tfunc
 
-//      GMRFLib_LEAVE_ROUTINE;
+//      GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 

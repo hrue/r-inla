@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !defined(INLA_WITH_TESTIT)
+#if !defined(INLA_WITH_DEVEL)
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
 {
@@ -100,11 +100,11 @@ int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 
 int inla_testit_timer(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int ret = system("sleep 1");
 	if (ret != 0)
 		exit(1);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return 0;
 }
 

@@ -63,11 +63,30 @@ int GMRFLib_numa_nodes(void)
 
 int GMRFLib_numa_node_of_ptr(void *ptr)
 {
-	int numa_node = 0;
+	int numa_node = -1;
 	if (numa_have == 1) {
 		get_mempolicy(&numa_node, NULL, 0, (void *) ptr, MPOL_F_NODE | MPOL_F_ADDR);
 	}
 	return numa_node;
+}
+
+int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno) 
+{
+	// return -1 if not in use, 0=hit, 1=miss
+	int numa_ptr = GMRFLib_numa_node_of_ptr(ptr);
+	if (numa_ptr >= 0) {
+		char *nm = NULL;
+		GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
+
+		if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
+			int numa_cpu;
+			GMRFLib_numa_get(NULL, &numa_cpu);
+			return (numa_cpu == numa_ptr ? 1 : 0);
+		} else {
+			return -1;
+		}
+	}
+	return -1;
 }
 
 #else
@@ -99,7 +118,7 @@ int GMRFLib_numa_nodes(void)
 
 int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr))
 {
-	return 0;
+	return -1;
 }
 
 #endif

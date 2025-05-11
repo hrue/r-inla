@@ -212,6 +212,9 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	wf_tp *w = lwork[cache_idx];
 
+	GMRFLib_CACHE_HITMISS_INIT();
+	GMRFLib_CACHE_HITMISS_CHECK(w);
+
 	if (step_len && *step_len < 0.0) {
 		/*
 		 * for internal use only! 

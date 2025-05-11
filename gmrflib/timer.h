@@ -41,7 +41,8 @@ typedef struct {
 	double ctime_acc2;				       /* accumulated ctime^2 */
 } GMRFLib_timer_hashval_tp;
 
-#define GMRFLib_ENTER_ROUTINE						\
+#if defined(INLA_WITH_DEVEL)
+#define GMRFLib_ENTER_FUNCTION						\
 	GMRFLib_DEBUG_INIT();						\
 	GMRFLib_TRACE_INIT();						\
 	static double trace_cpu_acc_ = 0.0;				\
@@ -51,11 +52,15 @@ typedef struct {
 	trace_cpu_ = GMRFLib_timer();					\
 	GMRFLib_TRACE_i("Enter, total", trace_count_);
 
-#define GMRFLib_LEAVE_ROUTINE if (1)					\
-	{								\
-		trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
-		GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
-	}
+#define GMRFLib_LEAVE_FUNCTION						\
+	trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
+	GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); 
+
+#else
+#define GMRFLib_ENTER_FUNCTION ;
+#define GMRFLib_LEAVE_FUNCTION ;
+#endif
+
 
 double GMRFLib_timer_windows(void);
 

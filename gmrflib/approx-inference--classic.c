@@ -27,7 +27,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	int n;
 	double *xx = NULL, val, logl, result;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
@@ -105,7 +105,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 
 	*logdens = val;
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -129,7 +129,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 	int i, j, ii, jj, ns;
 	double xx, *f = NULL, *g = NULL, val, tmp, logl = 0.0, q_value;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	assert(subgraph);
 	ns = subgraph->n;
 
@@ -201,7 +201,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 		*logdens = val;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -313,7 +313,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		}							\
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (!ai_store) {				       /* use a temporary storage? */
 		free_ai_store = 1;
@@ -438,7 +438,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		Free(blockpar);
 		Free(optpar);
 
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -788,7 +788,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		GMRFLib_free_ai_store(ai_store);
 	}
 #undef COMPUTE_CPO_DENSITY
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -797,7 +797,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 				       GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp *constr, double *bbb, double *ccc, double **covariances, int idx)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (0) {
 		/*
@@ -952,7 +952,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 		Free(constr_m);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -973,7 +973,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *p
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
 	    NULL, *tmp_m = NULL, val;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = problem->n;
 	assert(n == problem->sub_graph->n);
@@ -1110,7 +1110,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *p
 
 	Calloc_free();
 	Free(constr_m_new);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 #undef IDX
 #undef WORK
@@ -1460,7 +1460,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		ai_par->int_strategy = (nhyper <= 2 ? GMRFLib_AI_INT_STRATEGY_GRID : GMRFLib_AI_INT_STRATEGY_CCD);
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (misc_output) {
 		timer = misc_output->wall_clock_time_used;
@@ -3836,7 +3836,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		timer[3] = GMRFLib_timer() - timer[3];
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
 #undef CHECK_DENS_STORAGE

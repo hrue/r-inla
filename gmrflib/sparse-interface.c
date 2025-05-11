@@ -3,7 +3,7 @@
 
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_global_node_tp *gn)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
 	if (gn) {
@@ -133,7 +133,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 		sm_fact->bandwidth = -1;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -150,7 +150,7 @@ int GMRFLib_free_reordering(GMRFLib_sm_fact_tp *sm_fact)
 int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
 				GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int ret = 0;
 
 	switch (sm_fact->smtp) {
@@ -199,14 +199,14 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	int ret;
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -252,7 +252,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -305,7 +305,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 	/*
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -354,7 +354,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -364,7 +364,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 	/*
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -413,7 +413,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -424,7 +424,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
@@ -528,7 +528,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -538,7 +538,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T. BUT, here we know that rhs is 0 execpt for a 1 at index idx.
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -572,7 +572,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -584,7 +584,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_f
 	 * rhs in real world, bchol in mapped world. solve L^Tx=b backward only from rhs[findx] up to rhs[toindx]. note that
 	 * findx and toindx is in mapped world. if remapped, do not remap/remap-back the rhs before solving.
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 	{
@@ -619,7 +619,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_f
 	}
 		break;
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -632,7 +632,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	 * findx and toindx is in mapped world. if remapped, do not remap/remap-back the rhs before solving.
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 	{
@@ -677,7 +677,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 		break;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -718,7 +718,7 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp *sm_fact, GMRFLib
 
 int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 	{
@@ -744,7 +744,7 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -782,7 +782,7 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 
 int GMRFLib_compute_Qinv(void *problem)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 
 	switch (p->sub_sm_fact.smtp) {
@@ -814,7 +814,7 @@ int GMRFLib_compute_Qinv(void *problem)
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 

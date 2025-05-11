@@ -501,7 +501,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		}
 	}
 
-	// GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_FUNCTION;
 	Calloc_init(6 * npm + 2 * np, 8);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
@@ -538,14 +538,14 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		// GMRFLib_LEAVE_ROUTINE;
+		// GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
 	if (!lookup_tables && density->type != GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		// GMRFLib_LEAVE_ROUTINE;
+		// GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -689,7 +689,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	}
 
 	Calloc_free();
-	// GMRFLib_LEAVE_ROUTINE;
+	// GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -941,7 +941,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 	 */
 	double result = 0.0;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	/*
 	 * if the density is Gaussian, then its easy 
@@ -995,7 +995,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 	}
 
 	*px = result;
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1595,7 +1595,7 @@ int GMRFLib_kld(double *kld, GMRFLib_density_tp *density, GMRFLib_density_tp *dd
 	gsl_function F;
 	GMRFLib_density_tp *d[2];
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	low0 = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->user_stdev + density->user_mean;
 	high0 = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->user_stdev + density->user_mean;
@@ -1614,7 +1614,7 @@ int GMRFLib_kld(double *kld, GMRFLib_density_tp *density, GMRFLib_density_tp *dd
 	GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
 	*kld = DMAX(0.0, result);			       /* known to be positive */
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 

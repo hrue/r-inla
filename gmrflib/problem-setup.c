@@ -16,7 +16,7 @@ static int constr_store_debug = 0;
 
 int GMRFLib_init_constr_store(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	constr_store_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_use) {
 		if (constr_store_must_init) {
@@ -28,7 +28,7 @@ int GMRFLib_init_constr_store(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -40,7 +40,7 @@ static int constr_store_logdet_debug = 0;
 
 int GMRFLib_init_constr_store_logdet(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	constr_store_logdet_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_logdet_use) {
 		if (constr_store_logdet_must_init) {
@@ -52,7 +52,7 @@ int GMRFLib_init_constr_store_logdet(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -325,7 +325,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 
 	// if IDX >=0 then assume only b[idx] != 0, if IDX < 0, then assume a general B
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
@@ -345,7 +345,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x, &inc, F_ONE);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -353,7 +353,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 {
 	// solve Q x = b, b=x, for many 'nrhs' and correct for constraints
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
@@ -385,7 +385,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -394,10 +394,10 @@ int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp **problem,
 			 GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args, GMRFLib_constr_tp *constr, GMRFLib_stiles_idx_tp *stiles_idx,
 			 GMRFLib_smtp_tp *local_smtp)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_EWRAP1(GMRFLib_init_problem_store
 		       (thread_id, problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL, stiles_idx, local_smtp));
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -422,7 +422,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	GMRFLib_Qfunc_tp *sub_Qfunc = NULL;
 	GMRFLib_Qfunc_arg_tp *sub_Qfunc_arg = NULL;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	GMRFLib_ASSERT(problem, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
@@ -515,7 +515,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		if (free_x) {
 			Free(x);
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -881,7 +881,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		Free(x);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -892,7 +892,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 
 	if (!problem)
 		return GMRFLib_SUCCESS;
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = problem->sub_graph->n;
 
@@ -914,7 +914,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 	 */
 	if (!problem->sub_constr || (problem->sub_constr && problem->sub_constr == 0)) {
 		problem->sub_logdens = -0.5 * n * log(2.0 * M_PI) + problem->log_normc - 0.5 * sqrterm;
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	} else {
 		/*
@@ -943,15 +943,15 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));     /* to compute the log-density */
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_evaluate(GMRFLib_problem_tp *problem)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_EWRAP1(GMRFLib_evaluate__intern(problem, 0));
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1452,7 +1452,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 	 * 
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int i, k, kk, n, ns, *in_use = NULL, *cmap = NULL, nc = 0;
 
@@ -1460,7 +1460,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 		if (new_constr) {
 			*new_constr = NULL;
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1481,7 +1481,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 		// this will add jfirst and jlen
 		GMRFLib_prepare_constr(*new_constr, graph, 0);
 
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1543,7 +1543,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 
 	Free(in_use);
 	Free(cmap);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }

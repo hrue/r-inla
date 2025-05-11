@@ -1541,6 +1541,108 @@ int GMRFLib_trace_functions(const char *name)
 	}
 }
 
+int GMRFLib_trace_cache_hitmiss(const char *name)
+{
+	static int not_defined = 0;
+	if (not_defined) {
+		return 0;
+	}
+
+	static map_stri **ddefs = NULL;
+	static int *first = NULL;
+
+	if (!ddefs) {
+#pragma omp critical (Name_72150bb8d161e16549ba70e0a250eb5d4f572df6)
+		if (!ddefs) {
+			first = Calloc(GMRFLib_CACHE_LEN(), int);
+			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			ddefs = tmp;
+		}
+	}
+	int idx = 0;
+	GMRFLib_CACHE_SET_ID(idx);
+
+	if (!ddefs[idx]) {
+#pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
+		if (!ddefs[idx]) {
+			// format FUN[:N],...
+			// prefix's GMRFLib_ and inla_ are removed automatically
+			char *def = getenv("INLA_CACHE_HITMISS");
+			int verbose = 0;
+
+			if (def) {
+				def = Strdup(def);
+			}
+			if (verbose) {
+				printf("\t\tREAD %s\n", def);
+			}
+
+			if (!def) {
+				not_defined = 1;
+			} else {
+				char sep1[] = ",;";
+
+				ddefs[idx] = Calloc(1, map_stri);
+				map_stri_init_hint(ddefs[idx], 128);
+				char *str = def;
+				char *s = NULL;
+
+				first[idx] = -1;
+				while ((s = strtok(str, sep1))) {
+					str = NULL;
+
+					int val = 0;
+					char *s2 = strchr(s, ':');
+					char *ss = NULL;
+					if (!s2) {
+						ss = s;
+						val = 1;
+					} else {
+						int len = s2 - s + 1;
+						assert(len >= 0);
+						ss = Calloc(len + 1, char);
+						ss[len] = '\0';
+						strncpy(ss, s, len - 1);
+						val = atoi(s2 + 1);
+						val = IMAX(val, 1);
+					}
+					// strip leading whitespace
+					while (!strncmp(ss, " ", 1))
+						ss++;
+					// special option that override all others
+					if (!strcmp(ss, "*")) {
+						first[idx] = 2;
+					}
+
+					char *nm = NULL;
+					if (strlen(ss)) {
+						GMRFLib_sprintf(&nm, "%s", ss);
+						map_stri_set(ddefs[idx], nm, val);
+						GMRFLib_sprintf(&nm, "inla_%s", ss);
+						map_stri_set(ddefs[idx], nm, val);
+						GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
+						map_stri_set(ddefs[idx], nm, val);
+					}
+					if (first[idx] != 2) {
+						first[idx] = 0;
+					}
+
+					if (verbose) {
+						printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
+					}
+				}
+			}
+		}
+	}
+
+	if (!name || not_defined) {
+		return 0;
+	} else {
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
+		return (p ? *p : 0);
+	}
+}
+
 // ******************************************************************************************
 
 int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp **vmatrix, int nrow, GMRFLib_graph_tp *graph)

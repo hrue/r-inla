@@ -52,7 +52,7 @@ static int csr_store_debug = 0;
 
 int GMRFLib_csr_init_store(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	csr_store_debug = GMRFLib_DEBUG_IF_TRUE();
 
 	if (csr_store_use) {
@@ -64,7 +64,7 @@ int GMRFLib_csr_init_store(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -292,7 +292,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 #define M (*csr)
 
@@ -344,13 +344,13 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	for (int i = 0; i < M->s->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
-			GMRFLib_LEAVE_ROUTINE;
+			GMRFLib_LEAVE_FUNCTION;
 			return !GMRFLib_SUCCESS;
 		}
 	}
 
 #undef M
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1274,7 +1274,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 		GMRFLib_pardiso_reorder(*nnew, old->graph);
 		return GMRFLib_SUCCESS;
 	}
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (copy_pardiso_ptr) {
 #define CP(_what) dup->_what = old->_what
@@ -1402,6 +1402,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) nnew), ((void *) old), idx);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }

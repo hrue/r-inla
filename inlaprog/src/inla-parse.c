@@ -401,8 +401,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_ARMPL)
 		printf("\t\tCompiled with -DINLA_WITH_ARMPL\n");
 #endif
-#if defined(INLA_WITH_TESTIT)
-		printf("\t\tCompiled with -DINLA_WITH_TESTIT\n");
+#if defined(INLA_WITH_DEVEL)
+		printf("\t\tCompiled with -DINLA_WITH_DEVEL\n");
 #endif
 #if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		printf("\t\tCompiled with -DINLA_WITH_FRAMEWORK_ACCELERATE\n");

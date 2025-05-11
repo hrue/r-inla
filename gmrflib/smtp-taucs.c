@@ -66,7 +66,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
 	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
@@ -237,13 +237,13 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		Free(len);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return C;
 }
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp **UNUSED(cache))
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	// original version, with added unused argument
 
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
@@ -326,7 +326,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_tauc
 	}
 
 	Free(len);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return C;
 }
 
@@ -1845,7 +1845,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	const int debug = 0;
 	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
@@ -1944,7 +1944,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	}
 
 	Free(rowidx);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return (LL);
 }
 

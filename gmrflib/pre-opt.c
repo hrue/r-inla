@@ -29,7 +29,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
 	int debug = GMRFLib_DEBUG_IF_TRUE();
@@ -802,7 +802,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("admin-3");
 #undef  SHOW_TIME
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1094,9 +1094,9 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 
 int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp *preopt)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[thread_id], preopt);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1133,17 +1133,17 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return val;
 }
 
 int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return val;
 }
 
@@ -1261,7 +1261,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	// compute the marginal mean and variance for the linear predictor
 	// either 'mean' and/or 'variance' could be NULL
@@ -1282,7 +1282,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	}
 
 	if (!compute_mean && !compute_variance) {
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1422,13 +1422,13 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like_b, double *like_c)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int np = preopt->Npred;
 
 	if (!(preopt->like_b[thread_id])) {
@@ -1444,7 +1444,7 @@ int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like
 	Memset(preopt->total_b[thread_id], 0, preopt->n * sizeof(double));
 	GMRFLib_preopt_bnew(thread_id, preopt->total_b[thread_id], preopt);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
