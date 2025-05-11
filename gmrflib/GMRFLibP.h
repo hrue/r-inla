@@ -1,7 +1,9 @@
 #ifndef __GMRFLibP_H__
 #define __GMRFLibP_H__
 
-#define _GNU_SOURCE 1
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
 
 #if defined(__linux__)
 #include <features.h>
@@ -580,20 +582,21 @@ typedef enum {
 	}
 
 #define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
-#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1) * GMRFLib_NUMA_NODES())
+#define GMRFLib_CACHE_LEN_NUMA() (ISQR(GMRFLib_MAX_THREADS()) * GMRFLib_NUMA_NODES())
 #define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
 	{								\
-		int numa_node = 0;					\
-		GMRFLib_numa_get(NULL, &numa_node);			\
-		int level_ = omp_get_level();				\
+		int numa_nodes = 0;					\
+		GMRFLib_numa_get(NULL, &numa_nodes);			\
+		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
-		int mt = GMRFLib_MAX_THREADS();				\
-		int numa_offset = numa_node * (mt * (mt + 1));		\
-		if (level_ <= 1) {					\
-			__id =  tnum_ + numa_offset;			\
-		} else if (level_ == 2) {				\
-			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
-			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_ + numa_offset; \
+		int mt_ = GMRFLib_MAX_THREADS();			\
+		int numa_offset_ = numa_nodes * ISQR(mt_);		\
+		if (level1_ <= 1) {					\
+			__id =  tnum_ + numa_offset_;			\
+		} else if (level1_ == 2) {				\
+			int level2_ = omp_get_ancestor_thread_num(level1_ -1); \
+			assert(level2_ >= 0);				\
+			__id = mt_ + level2_ * mt_ + tnum_ + numa_offset_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\

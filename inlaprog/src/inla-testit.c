@@ -5403,6 +5403,45 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 172: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		P(GMRFLib_MAX_THREADS());
+		GMRFLib_openmp_implement_strategy_special(n, m);
+		double s = 0.0;
+#pragma omp parallel for num_threads(n) schedule(static) reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			int tnum1 = omp_get_thread_num();
+			int cpu1 = 0;
+			GMRFLib_numa_get(&cpu1, NULL);
+#pragma omp parallel for num_threads(m) schedule(static)
+			for (int j = 0; j < m; j++) { 
+				s += i * j + i;
+
+				int id = 0;
+				GMRFLib_CACHE_SET_ID(id);
+
+				int level = omp_get_level();				
+				int tnum2 = omp_get_thread_num();			
+				int tnum12 = -1;
+				if (level == 2) {				
+					tnum12 = omp_get_ancestor_thread_num(level -1); 
+				}
+
+				int cpu2 = 0;
+				GMRFLib_numa_get(&cpu2, NULL);
+
+				printf("id %1d i %1d j %1d level %1d tnum12 %1d tnum1 %1d tnum2 %1d cpu1 %1d cpu2 %1d\n", id, i, j, level, tnum12, tnum1, tnum2, cpu1, cpu2);
+			}
+		}
+		P(s);
+	}
+	break;
+
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

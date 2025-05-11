@@ -4513,6 +4513,10 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		Free(x_user);
 	}
 
+	GMRFLib_CACHE_HITMISS_INIT();
+	int POSSIBLY_UNUSED(miss) = 0;
+	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, lwork[cache_idx]);
+
 	return GMRFLib_SUCCESS;
 }
 

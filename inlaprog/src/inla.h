@@ -12,6 +12,11 @@
 #endif
 
 __BEGIN_DECLS
+
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
