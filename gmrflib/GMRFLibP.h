@@ -284,8 +284,9 @@ typedef enum {
 	static int hitmiss_ = -1;					\
 	static int hitmiss_count_[2] = {0, 0};				\
 	_Pragma("omp threadprivate(hitmiss_count_)")			\
-	if (hitmiss_ < 0)	{					\
-		hitmiss_ = GMRFLib_trace_functions(__GMRFLib_FuncName);	\
+	if (hitmiss_ < 0) {						\
+		hitmiss_ = GMRFLib_trace_cache_hitmiss(__GMRFLib_FuncName);	\
+		if (GMRFLib_numa_have() == 0) hitmiss_ = 0;		\
 	}
 
 #define GMRFLib_CACHE_HITMISS_CHECK(ptr_)				\
@@ -294,10 +295,12 @@ typedef enum {
 		if (r >= 0) {						\
 			hitmiss_count_[r]++;				\
 		}							\
-		if (hitmiss_ && !(((hitmiss_count_[0] + hitmiss_count_[1]) - 1) % hitmiss_)) { \
-			printf("\t[%1d] %s:%1d hit[%1d] miss[%1d] miss%%[%.3f]\n", omp_get_thread_num(), __FILE__, __LINE__, \
+		if (hitmiss_ &&						\
+		    IMAX(hitmiss_count_[0], hitmiss_count_[1]) > 0 &&	\
+		    !(((hitmiss_count_[0] + hitmiss_count_[1]) - 1) % hitmiss_)) { \
+			printf("\t[%1d] %s:%1d hit[%1d] miss[%1d] miss[%.3f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
 			       hitmiss_count_[0], hitmiss_count_[1],	\
-			       hitmiss_count_[1] / (double)(hitmiss_count_[0] + hitmiss_count_[1])); \
+			       (double) 100.0 * hitmiss_count_[1] / (double)(hitmiss_count_[0] + hitmiss_count_[1])); \
 		}							\
 	}
 

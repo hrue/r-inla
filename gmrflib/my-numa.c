@@ -47,8 +47,9 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 		int c = 0;
 		if (cpu || numa_node) {
 			c = sched_getcpu();
-			if (cpu)
+			if (cpu) {
 				*cpu = c;
+			}
 		}
 		if (numa_node) {
 			*numa_node = numa_node_of_cpu(c);
