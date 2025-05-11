@@ -53,39 +53,39 @@ typedef int fortran_charlen_t;
 #endif
 
 #ifdef __GNUC__
-#define POSSIBLY_UNUSED_FUNCTION(x) __attribute__((__unused__)) x
+#define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
 #else
-#define POSSIBLY_UNUSED_FUNCTION(x) x
+#define POSSIBLY_UNUSED(x) x
 #endif
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(SQR) (double x) {
+static double POSSIBLY_UNUSED(SQR) (double x) {
 	return (x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ISQR) (int ix) {
+static int POSSIBLY_UNUSED(ISQR) (int ix) {
 	return (ix * ix);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(POW3) (double x) {
+static double POSSIBLY_UNUSED(POW3) (double x) {
 	return (x * x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IPOW3) (int ix) {
+static int POSSIBLY_UNUSED(IPOW3) (int ix) {
 	return (ix * ix * ix);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(POW4) (double x) {
+static double POSSIBLY_UNUSED(POW4) (double x) {
 	double xx = x * x;
 	return (xx * xx);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
+static int POSSIBLY_UNUSED(IPOW4) (int ix) {
 	int ixx = ix * ix;
 	return (ixx * ixx);
 }
@@ -100,34 +100,34 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 #define DMIN(a_, b_) fmin(a_, b_)
 #else
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
+static double POSSIBLY_UNUSED(DMAX) (double a, double b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMIN) (double a, double b) {
+static double POSSIBLY_UNUSED(DMIN) (double a, double b) {
 	return ((a) < (b) ? (a) : (b));
 }
 #endif
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
+static int POSSIBLY_UNUSED(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMIN) (int a, int b) {
+static int POSSIBLY_UNUSED(IMIN) (int a, int b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE) (int x, int low, int high) {
+static int POSSIBLY_UNUSED(ITRUNCATE) (int x, int low, int high) {
 	// #define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 	return IMIN(IMAX(x, low), high);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE) (double x, double low, double high) {
+static double POSSIBLY_UNUSED(TRUNCATE) (double x, double low, double high) {
 	// #define TRUNCATE(x, low, high) DMIN( DMAX(x, low), high) 
 	return DMIN(DMAX(x, low), high);
 }
@@ -311,7 +311,7 @@ typedef enum {
 	}
 #else
 #define GMRFLib_CACHE_HITMISS_INIT()
-#define GMRFLib_CACHE_HITMISS_CHECK(idx_, ptr_)
+#define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_) val_ = 0
 #endif
 
 

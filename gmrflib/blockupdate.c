@@ -489,12 +489,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	GMRFLib_CACHE_HITMISS_INIT();
-	int miss = 0;
+	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
-	if (miss == 1) {
-		FIXME("miss=1 FREE");
-		Free(w->wf[stenc]);
-	}
-
+	
 	return GMRFLib_SUCCESS;
 }
