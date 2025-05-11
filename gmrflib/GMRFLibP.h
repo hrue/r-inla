@@ -295,12 +295,10 @@ typedef enum {
 		if (r >= 0) {						\
 			hitmiss_count_[r]++;				\
 		}							\
-		if (hitmiss_ &&						\
-		    IMAX(hitmiss_count_[0], hitmiss_count_[1]) > 0 &&	\
-		    !(((hitmiss_count_[0] + hitmiss_count_[1]) - 1) % hitmiss_)) { \
-			printf("\t[%1d] %s:%1d hit[%1d] miss[%1d] miss[%.3f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
-			       hitmiss_count_[0], hitmiss_count_[1],	\
-			       (double) 100.0 * hitmiss_count_[1] / (double)(hitmiss_count_[0] + hitmiss_count_[1])); \
+		double tot = hitmiss_count_[0] + hitmiss_count_[1];	\
+		if (hitmiss_ &&	tot > 0.0 && !(((hitmiss_count_[0] + hitmiss_count_[1]) - 1) % hitmiss_)) { \
+			printf("\t[%1d] %s:%1d n[%1d] hit[%.1f%%] miss[%.1f%%]\n", omp_get_thread_num(), __FILE__, __LINE__, \
+			       (int)tot, 100.0 * hitmiss_count_[0] / tot, 100.0 * hitmiss_count_[1] / tot); \
 		}							\
 	}
 
