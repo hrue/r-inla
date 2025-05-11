@@ -763,11 +763,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
 			CODE_BLOCK_INIT_X(int);				\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
-			if (cache_idx == 0) {				\
-				cache_idx = -1;				\
-			} else {					\
-				cache_idx--;				\
-			}						\
+			cache_idx--;					\
 			int idx = d_idx->idx[i_];			\
 			double ccmin = cmin;				\
 			double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
@@ -3940,16 +3936,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	for(int i = 0; i < d_idx->n; i++) {				\
 		CODE_BLOCK_INIT_X(int);					\
 		int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());		\
-		if (cache_idx == 0) {					\
-			GMRFLib_CACHE_SET_ID(cache_idx);		\
-			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
-		} else {						\
-			cache_idx--;					\
-		}							\
+		cache_idx--;						\
 		int nnode = d_idx->idx[i];				\
 		double xx = lpred_mode[nnode];				\
 		GMRFLib_2order_approx(thread_id, &cache_idx, &(local_aa[nnode]), &(local_bb[nnode]), &(local_cc[nnode]), NULL, d[nnode], xx, nnode, \
 				      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &cmin); \
+		*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;		\
 	}
 
 	RUN_CODE_BLOCK_X(GMRFLib_MAX_THREADS(), 0, 0, int);
@@ -4801,20 +4793,16 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			CODE_BLOCK_INIT_X(int);				\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
-			if (cache_idx == 0) {				\
-				cache_idx = -1;				\
-			} else {					\
-				cache_idx--;				\
-			}						\
+			cache_idx--;					\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
 			GMRFLib_ai_vb_prepare_mean(thread_id, &cache_idx, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
-			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = vb_coof.coofs[2];			\
 			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
 				BB[i] = CC[i] = 0.0;			\
 			}						\
+			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
 		RUN_CODE_BLOCK_X(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
