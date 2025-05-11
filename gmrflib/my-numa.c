@@ -82,7 +82,7 @@ int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
 		if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
 			int numa_cpu;
 			GMRFLib_numa_get(NULL, &numa_cpu);
-			return (numa_cpu == numa_ptr ? 1 : 0);
+			return (numa_cpu == numa_ptr ? 0 : 1);
 		} else {
 			return -1;
 		}
