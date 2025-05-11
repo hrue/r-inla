@@ -4802,14 +4802,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CODE_BLOCK_INIT_X(int);				\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
 			if (cache_idx == 0) {				\
-				GMRFLib_CACHE_SET_ID(cache_idx);	\
-				*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx; \
+				cache_idx = -1;				\
 			} else {					\
 				cache_idx--;				\
 			}						\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
 			GMRFLib_ai_vb_prepare_mean(thread_id, &cache_idx, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
+			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = vb_coof.coofs[2];			\
 			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
