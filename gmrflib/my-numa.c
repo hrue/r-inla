@@ -106,7 +106,7 @@ void GMRFLib_numa_free(void *start, size_t size)
 	}
 }
 
-void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
+void *GMRFLib_numa_alloc_onnode(size_t size, int UNUSED(node))
 {
 	return (size > 0 ? malloc(size) : NULL);
 }
@@ -137,6 +137,11 @@ int GMRFLib_numa_nodes(void)
 }
 
 int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr))
+{
+	return -1;
+}
+
+int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno) 
 {
 	return -1;
 }
