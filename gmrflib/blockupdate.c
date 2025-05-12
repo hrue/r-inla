@@ -271,7 +271,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					int ok = 0;
 					int ntry = 0;
 					while(ok == 0) {
-						try++;
+						ntry++;
 						
 						double *ww = Calloc(3 * wlength, double);
 						ww[0] = 0.0833333333333333333333333;
@@ -294,11 +294,11 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
 
 						if (nnode_ptr != nnode) {
-							printf("allocate MEM but first touch fail %1d %1d try %1d\n", nnode, nnode_ptr, try);
+							printf("allocate MEM but first touch fail %1d %1d try %1d\n", nnode, nnode_ptr, ntry);
 							Free(ww);
 						} else {
 							ok = 1;
-							printf("allocate MEM first touch OK %1d %1d try %1d\n", nnode, nnode_ptr, try);
+							printf("allocate MEM first touch OK %1d %1d try %1d\n", nnode, nnode_ptr, ntry);
 						}
 					}
 				}
