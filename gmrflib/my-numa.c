@@ -45,6 +45,12 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 	if (numa_node) {
 		*numa_node = (int) unode;
 	}
+
+	if (1) {
+		int c = sched_getcpu(); 
+		int n = numa_node_of_cpu(c);
+		assert(c ==  (int) ucpu && n ==  (int) unode);
+	}
 }
 
 int GMRFLib_numa_nodes(void)
