@@ -283,6 +283,14 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					ww[19] = -1.0;
 					ww[20] = 0.5;
 					w->wf[stenc] = ww;
+
+					int nnode = -1;
+					GMRFLib_numa_get(NULL, &nnode);
+					int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
+
+					if (nnode_ptr != nnode) {
+						printf("allocate MEM but first touch fail %1d %1d\n", nnode, nnode_ptr);
+					}
 				}
 			}
 
