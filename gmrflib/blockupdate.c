@@ -274,8 +274,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					int nnode1 = -1;
-					GMRFLib_numa_get(NULL, &nnode1);
 					double *ww = Malloc(3 * wlength, double);
 					GMRFLib_dfill(3*wlength, 0.0, ww);
 					
@@ -297,7 +295,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					if (numa_have) {
 						int nnode = -1;
 						GMRFLib_numa_get(NULL, &nnode);
-						assert(nnode == nnode1);
 						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
 						numa_fail = (nnode_ptr != nnode);
 						if (numa_fail) printf("NUMA FAIL\n");
