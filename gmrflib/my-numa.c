@@ -36,23 +36,34 @@ int GMRFLib_numa_have(void)
 
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
-	if (numa_have == 0) {
+	if (1) {
+		unsigned int ucpu, unode; 
+		getcpu(&ucpu, &unode); 
 		if (cpu) {
-			*cpu = sched_getcpu();
+			*cpu = (int) ucpu;
 		}
 		if (numa_node) {
-			*numa_node = 0;
+			*numa_node = (int) unode;
 		}
 	} else {
-		int c = 0;
-		if (cpu || numa_node) {
-			c = sched_getcpu();
+		if (numa_have == 0) {
 			if (cpu) {
-				*cpu = c;
+				*cpu = sched_getcpu();
 			}
-		}
-		if (numa_node) {
-			*numa_node = numa_node_of_cpu(c);
+			if (numa_node) {
+				*numa_node = 0;
+			}
+		} else {
+			int c = 0;
+			if (cpu || numa_node) {
+				c = sched_getcpu();
+				if (cpu) {
+					*cpu = c;
+				}
+			}
+			if (numa_node) {
+				*numa_node = numa_node_of_cpu(c);
+			}
 		}
 	}
 }
