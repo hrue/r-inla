@@ -19003,6 +19003,12 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
+	// this assure backward compatibility
+	int debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	if (mb->debug != 0) {
+		printf("\t\tverbose[%1d]\n", debug);
+	}
+
 	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
 	if (mb->verbose) {
 		printf("\t\ttile.size[%1d]\n", tile_size);
