@@ -22,6 +22,7 @@ size_t GMRFLib_get_L3_cache(void);
 size_t GMRFLib_numa_get_L3_cache(int nnode);
 void GMRFLib_numa_get(int *cpu, int *numa);
 void GMRFLib_numa_init(void);
+void *GMRFLib_numa_alloc_onnode(size_t size, int node);
 
 
 __END_DECLS

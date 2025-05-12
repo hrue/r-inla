@@ -80,7 +80,17 @@ int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
 	return -1;
 }
 
+void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
+{
+	return numa_alloc_onnode(size, node);
+}
+
 #else
+
+void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
+{
+	return malloc(size);
+}
 
 void GMRFLib_numa_init(void)
 {

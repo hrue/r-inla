@@ -197,14 +197,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	int cache_idx = 0;
-	if (lcache_idx && *lcache_idx >= 0) {
-		cache_idx = *lcache_idx;
-	} else {
-		GMRFLib_CACHE_SET_ID(cache_idx);
-		if (lcache_idx) {
-			*lcache_idx = cache_idx;
-		}
-	}
+	GMRFLib_SET_LCACHE_IDX(cache_idx);
 
 	if (!lwork[cache_idx]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
@@ -274,21 +267,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
 					int len = 3 * wlength;
-					double *ww = Calloc(3 * wlength, double);
-
-					if (numa_have) {
-						int nnode = -1;
-						GMRFLib_numa_get(NULL, &nnode);
-						int node_ptr = GMRFLib_numa_node_of_ptr(ww);
-						if (node_ptr != nnode) {
-							double *ww_node = (double *) numa_alloc_onnode((size_t) (len * sizeof(double)), nnode);
-							if (ww_node) {
-								Free(ww);
-								ww = ww_node;
-								GMRFLib_dfill(len, 0.0, ww);
-							}
-						}
-					}
+					double *ww = Calloc(len, double);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
 					
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
@@ -350,7 +330,10 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(3 * wlength, double);
+					int len = 3 * wlength;
+					double *ww = Calloc(len, double);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
 					ww[0] = -0.0166666666666666666666667;
 					ww[1] = 0.15;
 					ww[2] = -0.75;
@@ -420,7 +403,10 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_2c6105c438980fcf3a3f8311ae71780a45886796)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(4 * wlength, double);
+					int len = 4 * wlength;
+					double *ww = Calloc(len, double);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
 					ww[0] = 0.00357142857142857142857143;
 					ww[1] = -0.0380952380952380952380952;
 					ww[2] = 0.20;

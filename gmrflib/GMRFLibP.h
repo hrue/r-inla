@@ -581,6 +581,7 @@ typedef enum {
 		}							\
 	}
 
+
 #define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
 #define GMRFLib_CACHE_LEN_NUMA() (ISQR(GMRFLib_MAX_THREADS()) * GMRFLib_NUMA_NODES())
 #define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
@@ -601,6 +602,24 @@ typedef enum {
 			assert(0 == 1);					\
 		}							\
 	}
+
+
+#define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)				\
+	if (numa_have) {						\
+		int numa_node_ = -1;					\
+		GMRFLib_numa_get(NULL, &numa_node_);			\
+		int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);		\
+		if (node_ptr_ != numa_node_) {				\
+			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode((size_t) (len_) * sizeof(type_), numa_node_); \
+			if (ww_) {					\
+				Free(ptr_);				\
+				ptr_ = ww_;				\
+				Memset(ptr_, 0, (len_) * sizeof(type_)); \
+			}						\
+		}							\
+	}	
+	
+
 
 // let us try with numa all over, as the code is ok with no numa as well (then num_numa_nodes=1 and numa_node=0)
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()

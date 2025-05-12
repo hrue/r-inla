@@ -4447,6 +4447,11 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		return GMRFLib_SUCCESS;
 	}
 
+	static int numa_have = -1;
+	if (numa_have < 0) {
+		numa_have = GMRFLib_numa_have();
+	}
+	
 	static double **lwork = NULL;
 	if (!lwork) {
 #pragma omp critical (Name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
@@ -4464,6 +4469,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		if (!lwork[cache_idx]) {
 			// need 3 only as 'wtmp' is not used because 'A' below is not computed
 			double *worktmp = Malloc(3 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
+			GMRFLib_ENSURE_NUMA_PTR(worktmp, 3 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
 			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
@@ -4523,6 +4530,11 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 		return GMRFLib_SUCCESS;
 	}
 
+	static int numa_have = -1;
+	if (numa_have < 0) {
+		numa_have = GMRFLib_numa_have();
+	}
+	
 	int cache_idx = 0;
 	GMRFLib_SET_LCACHE_IDX(cache_idx);
 
@@ -4537,6 +4549,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 			double *wtmp = NULL;
 			GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			wxp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+			GMRFLib_ENSURE_NUMA_PTR(wxp2, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+
 			wxp3 = wxp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
 			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 				double z2 = SQR(xp[i]);
