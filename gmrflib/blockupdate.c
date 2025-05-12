@@ -279,7 +279,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					if (numa_have) {
 						int nnode = -1;
 						GMRFLib_numa_get(NULL, &nnode);
-						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
+						int node_ptr = GMRFLib_numa_node_of_ptr(ww);
 						if (node_ptr != nnode) {
 							double *ww_node = (double *) numa_alloc_onnode((size_t) (len * sizeof(double)), nnode);
 							if (ww_node) {
