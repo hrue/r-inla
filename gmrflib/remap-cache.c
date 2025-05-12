@@ -136,7 +136,7 @@ void GMRFLib_remap_print(FILE *fp)
 				// unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 				// Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
 				// sh = GMRFLib_remap_prettify_sha(sh);
-				fprintf(fp, "\tSlot[%1d] n[%1d] rhs[%1d] numa.node[%1d] count[%1d] remap[%1d %1d %1d...]\n",
+				fprintf(fp, "\tSlot[%2.2d] n[%1d] rhs[%1d] numa.node[%1d] count[%1d] remap[%1d %1d %1d...]\n",
 					k, r->n, r->nrhs, r->numa_node, r->count, r->remap[0], r->remap[IMIN(r->n - 1, 1)],
 					r->remap[IMIN(r->n - 1, 2)]);
 				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
