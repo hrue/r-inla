@@ -290,6 +290,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 					if (nnode_ptr != nnode) {
 						printf("allocate MEM but first touch fail %1d %1d\n", nnode, nnode_ptr);
+					} else {
+						printf("allocate MEM first touch OK %1d %1d\n", nnode, nnode_ptr);
 					}
 				}
 			}
