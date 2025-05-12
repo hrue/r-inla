@@ -736,10 +736,14 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	// reformat data into better chunks
 	if (ds->data_id == L_GAUSSIAN || ds->data_id == L_STDGAUSSIAN) {
 		n = mb->predictor_ndata;
-		inla_llik_data_gaussian_tp *g = Malloc(n, inla_llik_data_gaussian_tp);
-		for (i = 0; i < n; i++) {
-			g[i].y = ds->data_observations.y[i];
-			g[i].w = ds->data_observations.weight_gaussian[i];
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_gaussian_tp **g = Calloc(nnuma, inla_llik_data_gaussian_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			g[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_gaussian_tp), knuma);
+			for (i = 0; i < n; i++) {
+				g[knuma][i].y = ds->data_observations.y[i];
+				g[knuma][i].w = ds->data_observations.weight_gaussian[i];
+			}
 		}
 		ds->data_observations.data_gaussian = g;
 		Free(ds->data_observations.y);
@@ -748,11 +752,17 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	if (ds->data_id == L_POISSON || ds->data_id == L_XPOISSON || ds->data_id == L_NPOISSON) {
 		n = mb->predictor_ndata;
-		inla_llik_data_poisson_tp *p = Malloc(n, inla_llik_data_poisson_tp);
-		for (i = 0; i < n; i++) {
-			p[i].y = ds->data_observations.y[i];
-			p[i].E = ds->data_observations.E[i];
-			p[i].normc = NAN;
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_poisson_tp **p = Calloc(nnuma, inla_llik_data_poisson_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			p[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_poisson_tp), knuma);
+			for (i = 0; i < n; i++) {
+				for (i = 0; i < n; i++) {
+					p[knuma][i].y = ds->data_observations.y[i];
+					p[knuma][i].E = ds->data_observations.E[i];
+					p[knuma][i].normc = NAN;
+				}
+			}
 		}
 		ds->data_observations.data_poisson = p;
 		// Free later when checking input
@@ -762,11 +772,15 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	if (ds->data_id == L_BINOMIAL) {
 		n = mb->predictor_ndata;
-		inla_llik_data_binomial_tp *b = Malloc(n, inla_llik_data_binomial_tp);
-		for (i = 0; i < n; i++) {
-			b[i].y = ds->data_observations.y[i];
-			b[i].nb = ds->data_observations.nb[i];
-			b[i].normc = NAN;
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_binomial_tp **b = Calloc(nnuma, inla_llik_data_binomial_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			b[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_binomial_tp), knuma);
+			for (i = 0; i < n; i++) {
+				b[knuma][i].y = ds->data_observations.y[i];
+				b[knuma][i].nb = ds->data_observations.nb[i];
+				b[knuma][i].normc = NAN;
+			}
 		}
 		ds->data_observations.data_binomial = b;
 		// Free later when checking input
@@ -914,8 +928,12 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	static double log_prec_limit = -log(INLA_REAL_SMALL);
 
-	double y = ds->data_observations.data_gaussian[idx].y;
-	double w = ds->data_observations.data_gaussian[idx].w;
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+	
+	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
+	double y = p->y;
+	double w = p->w;
 	double lprec, prec;
 
 	LINK_INIT;
@@ -985,9 +1003,14 @@ int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
+
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.data_gaussian[idx].y;
-	double w = ds->data_observations.data_gaussian[idx].w;
+	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
+	double y = p->y;
+	double w = p->w; 
 	double prec = w;
 	double lprec = (w == 1.0 ? 0.0 : log(prec));
 
@@ -2490,8 +2513,11 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[idx]);
+	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[numa][idx]);
 	double y = p->y;
 	double E = p->E;
 	double normc = p->normc;
@@ -2611,8 +2637,11 @@ int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[idx]);
+	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[numa][idx]);
 	double y = p->y;
 	double E = p->E;
 
@@ -5096,9 +5125,12 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	inla_llik_data_binomial_tp *b = &(ds->data_observations.data_binomial[idx]);
+	inla_llik_data_binomial_tp *b = &(ds->data_observations.data_binomial[numa][idx]);
 	double y = b->y;
 	double n = b->nb;
 	double normc = b->normc;
