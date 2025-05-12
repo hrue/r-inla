@@ -7782,7 +7782,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -19005,7 +19004,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 
 	// this assure backward compatibility
 	int debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	if (mb->debug != 0) {
+	if (debug != 0) {
 		printf("\t\tverbose[%1d]\n", debug);
 	}
 
