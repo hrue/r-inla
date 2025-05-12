@@ -182,7 +182,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
-	int numa_fail = 0;
 	
 	typedef struct {
 		double **wf;
@@ -274,27 +273,23 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
+					int len = 3 * wlength;
 					double *ww = Calloc(3 * wlength, double);
 
 					if (numa_have) {
 						int nnode = -1;
 						GMRFLib_numa_get(NULL, &nnode);
 						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
-						numa_fail = (nnode_ptr != nnode);
-						if (numa_fail) printf("NUMA FAIL. RETRY\n");
-						double *ww_node = (double *) numa_alloc_onnode((size_t) (3 * wlength * sizeof(double)), nnode);
-						if (ww_node) {
-							Free(ww);
-							ww = ww_node;
-							GMRFLib_dfill(3*wlength, 0.0, ww);
-							printf("NUMA_ALLOC SUCCESS\n");
-						} else {
-							printf("NUMA_ALLOC FAIL,  eREVERT BAC\n");
+						if (node_ptr != nnode) {
+							double *ww_node = (double *) numa_alloc_onnode((size_t) (len * sizeof(double)), nnode);
+							if (ww_node) {
+								Free(ww);
+								ww = ww_node;
+								GMRFLib_dfill(len, 0.0, ww);
+							}
 						}
 					}
 					
-
-
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
 					ww[3] = 0.666666666666666666666667;
@@ -518,9 +513,5 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
 	
-	if (numa_fail) {
-		Free(w->wf[stenc]);
-	}
-
 	return GMRFLib_SUCCESS;
 }
