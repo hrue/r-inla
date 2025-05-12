@@ -1511,6 +1511,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
+		GMRFLib_overall_cpu[3] = GMRFLib_timer();
+		
 		ai_par->hessian_forward_finite_difference = fd_save;
 
 		/*
@@ -1908,6 +1910,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		design = ai_par->int_design;
 	}
 
+
 	if (0)
 		GMRFLib_design_print(stdout, design);
 
@@ -1937,6 +1940,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
+	// need to put this time_used in the next slot (not the Hessian one)
+	double overall_time_correct = -GMRFLib_timer();
 	if (gcpo) {
 		// build the gcpo-groups, but change the openmp-strategy, temporary, as _gcpo_build() parallelise in one level only
 		int thread_id = 0;
@@ -1946,6 +1951,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
+	overall_time_correct += GMRFLib_timer();
+
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of
 	// threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve.
@@ -1960,6 +1967,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	int *early_stop = Calloc(design->nexperiments, int);
+	GMRFLib_overall_cpu[4] = GMRFLib_timer() - overall_time_correct;
 
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
@@ -3225,6 +3233,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
 #undef SET_MODE
+
+	GMRFLib_overall_cpu[5] = GMRFLib_timer();
 
 	return GMRFLib_SUCCESS;
 }

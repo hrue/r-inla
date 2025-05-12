@@ -6265,6 +6265,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_stiles_setup(setup);
 	}
 
+	GMRFLib_overall_cpu[2] = GMRFLib_timer();
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -7519,11 +7521,13 @@ int main(int argc, char **argv)
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", model_ini, GMRFLib_MAX_THREADS());
 			}
+			GMRFLib_overall_cpu[0] = GMRFLib_timer();
 			time_used[0] = GMRFLib_timer();
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(model_ini, verbose);
+
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
@@ -7531,6 +7535,7 @@ int main(int argc, char **argv)
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				fflush(stdout);
 			}
+			GMRFLib_overall_cpu[1] = GMRFLib_timer();
 			time_used[1] = GMRFLib_timer();
 			atime_used[1] = clock();
 
@@ -7540,6 +7545,7 @@ int main(int argc, char **argv)
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				time_used[3] = GMRFLib_timer();
 				inla_INLA_preopt_experimental(mb);
+
 				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
@@ -7586,9 +7592,25 @@ int main(int argc, char **argv)
 			time_used[2] = GMRFLib_timer();
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+
 			inla_output(mb);
+
+			GMRFLib_overall_cpu[6] = GMRFLib_timer();
 			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
+
+#define TDIF(n_) (GMRFLib_overall_cpu[n_]-GMRFLib_overall_cpu[(n_)-1])
+#define POVERALL_TIME(fp_)						\
+			{						\
+				double tot = 0.01 * (GMRFLib_overall_cpu[6] - GMRFLib_overall_cpu[0]); \
+				fprintf(fp_, "\nBreakdown of overall running time %.2f seconds in stages: \n", tot / 0.01); \
+				fprintf(fp_, "\tReading model    %.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
+				fprintf(fp_, "\tBuilding model   %.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
+				fprintf(fp_, "\tOptimising       %.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
+				fprintf(fp_, "\tHessian          %.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
+				fprintf(fp_, "\tPostprocessing   %.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
+				fprintf(fp_, "\tOutput           %.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+			}
 
 #define PEFF_OUTPUT(fp_)						\
 			if (1) {					\
@@ -7678,6 +7700,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
 				PEFF_OUTPUT(stdout);
+				POVERALL_TIME(stdout);
 #endif
 				printf("\n");
 			}
@@ -7733,6 +7756,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(fp);
 				}
 				PEFF_OUTPUT(fp);
+				POVERALL_TIME(fp);
 #endif
 				fclose(fp);
 				Free(nfile);
