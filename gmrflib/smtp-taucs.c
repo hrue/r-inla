@@ -1044,9 +1044,11 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1133,10 +1135,13 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
+
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
@@ -1177,9 +1182,11 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1225,9 +1232,11 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	x[idx_new] = 1.0;
 
 	if (n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	double *y = work;
@@ -1704,9 +1713,11 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);

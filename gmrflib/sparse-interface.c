@@ -442,12 +442,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 	int nw = graph->n * nrhs;
 	if (nw > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = nw;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
-	// double *work = Malloc(graph->n * nrhs, double);
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);

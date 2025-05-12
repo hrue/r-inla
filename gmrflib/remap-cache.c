@@ -34,7 +34,7 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	GMRFLib_SHA_IUPDATE(remap, n, c);
 	GMRFLib_SHA_IUPDATE(&n, 1, c);
 	GMRFLib_SHA_IUPDATE(&nrhs, 1, c);
-	int numa_node = 0;
+	int numa_node = -1;
 	GMRFLib_numa_get(NULL, &numa_node);
 	GMRFLib_SHA_IUPDATE(&numa_node, 1, c);
 	GMRFLib_SHA_Final(md, &c);
@@ -81,12 +81,12 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		GMRFLib_remap_tp *r = *((GMRFLib_remap_tp **) p);
 #pragma omp atomic
 		r->count++;
-
 		return r->remap;
 	}
 
-	int numa_node = 0;
-	int *re = Malloc(n * nrhs, int);
+	int numa_node = -1;
+	GMRFLib_numa_get(NULL, &numa_node);
+	int *re = GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
 	int *re1 = Malloc(n * nrhs, int);
 	int *re2 = Malloc(n * nrhs, int);
 
@@ -106,15 +106,12 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	r->sha = sha;
 	r->n = n;
 	r->nrhs = nrhs;
-	GMRFLib_numa_get(NULL, &numa_node);
 	r->numa_node = numa_node;
 	r->count = 1;
 	r->remap = re;
 
 #pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
-	{
-		map_strvp_set(remap_store, (char *) r->sha, (void *) r);
-	}
+	map_strvp_set(remap_store, (char *) r->sha, (void *) r);
 
 	Free(re1);
 	Free(re2);
@@ -155,7 +152,7 @@ void GMRFLib_remap_reset(void)
 		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				Free(r->remap);
+				GMRFLib_numa_free((void *) r->remap, r->n * r->nrhs * sizeof(int));
 				Free(r->sha);
 				Free(r);
 			}

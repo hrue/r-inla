@@ -85,7 +85,21 @@ void *GMRFLib_numa_alloc_onnode(size_t size, int node)
 	return numa_alloc_onnode(size, node);
 }
 
+void GMRFLib_numa_free(void *start, size_t size) 
+{
+	if (size > 0) {
+		numa_free(start, size);
+	}
+}
+
 #else
+
+void GMRFLib_numa_free(void *start, size_t size) 
+{
+	if (size > 0) {
+		Free(start);
+	}
+}
 
 void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
 {
