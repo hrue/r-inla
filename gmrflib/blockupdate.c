@@ -268,30 +268,35 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(3 * wlength, double);
-					ww[0] = 0.0833333333333333333333333;
-					ww[1] = -0.666666666666666666666667;
-					ww[3] = 0.666666666666666666666667;
-					ww[4] = -0.0833333333333333333333333;
-					ww[8] = -0.0833333333333333333333333;
-					ww[9] = 1.33333333333333333333333;
-					ww[10] = -2.5;
-					ww[11] = 1.33333333333333333333333;
-					ww[12] = -0.0833333333333333333333333;
-					ww[16] = -0.5;
-					ww[17] = 1.0;
-					ww[19] = -1.0;
-					ww[20] = 0.5;
-					w->wf[stenc] = ww;
+					int ok = 0;
+					while(ok == 0) {
+						double *ww = Calloc(3 * wlength, double);
+						ww[0] = 0.0833333333333333333333333;
+						ww[1] = -0.666666666666666666666667;
+						ww[3] = 0.666666666666666666666667;
+						ww[4] = -0.0833333333333333333333333;
+						ww[8] = -0.0833333333333333333333333;
+						ww[9] = 1.33333333333333333333333;
+						ww[10] = -2.5;
+						ww[11] = 1.33333333333333333333333;
+						ww[12] = -0.0833333333333333333333333;
+						ww[16] = -0.5;
+						ww[17] = 1.0;
+						ww[19] = -1.0;
+						ww[20] = 0.5;
+						w->wf[stenc] = ww;
 
-					int nnode = -1;
-					GMRFLib_numa_get(NULL, &nnode);
-					int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
+						int nnode = -1;
+						GMRFLib_numa_get(NULL, &nnode);
+						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
 
-					if (nnode_ptr != nnode) {
-						printf("allocate MEM but first touch fail %1d %1d\n", nnode, nnode_ptr);
-					} else {
-						printf("allocate MEM first touch OK %1d %1d\n", nnode, nnode_ptr);
+						if (nnode_ptr != nnode) {
+							printf("allocate MEM but first touch fail %1d %1d\n", nnode, nnode_ptr);
+							Free(ww);
+						} else {
+							ok = 1;
+							printf("allocate MEM first touch OK %1d %1d\n", nnode, nnode_ptr);
+						}
 					}
 				}
 			}
