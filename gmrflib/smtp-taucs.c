@@ -1041,7 +1041,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
@@ -1130,7 +1130,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
@@ -1174,7 +1174,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
@@ -1216,7 +1216,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
 
 	int idx_new = remap[idx];
@@ -1701,7 +1701,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (n > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);

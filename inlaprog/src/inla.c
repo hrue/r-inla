@@ -2852,7 +2852,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 		}
 	}
 	int cidx = 0;
-	GMRFLib_CACHE_SET_ID(cidx);
+	GMRFLib_CACHE_SET_IDX(cidx);
 
 	if (!sstore[cidx]) {
 		sstore[cidx] = Calloc(mb->nf, Store_tp *);
@@ -5226,7 +5226,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				}
 			}
 			int idx = 0;
-			GMRFLib_CACHE_SET_ID(idx);
+			GMRFLib_CACHE_SET_IDX(idx);
 
 			int jj;
 			Hold_tp *h = NULL, **hold = NULL;
@@ -5342,7 +5342,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				}
 			}
 			int idx = 0;
-			GMRFLib_CACHE_SET_ID(idx);
+			GMRFLib_CACHE_SET_IDX(idx);
 
 			int jj;
 			Hold_tp *h = NULL, **hold = NULL;

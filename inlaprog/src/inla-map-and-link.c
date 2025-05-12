@@ -358,7 +358,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 	delta = alpha / sqrt(1.0 + SQR(alpha));
 	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 	xi = -omega * delta * sqrt(2.0 / M_PI);
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	if (debug) {
 		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
 	}
@@ -1336,7 +1336,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 		}
 	}
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	if (a != table[id]->a) {
 		int len, llen;
 		double *work = NULL, *x_ = NULL, *y = NULL, p_local;
@@ -1800,7 +1800,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 	}
 
 	int cidx = 0;
-	GMRFLib_CACHE_SET_ID(cidx);
+	GMRFLib_CACHE_SET_IDX(cidx);
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_c393bf22256042fb97a79700a66d05c333658625)
 		if (!llcache[cidx]) {

@@ -994,7 +994,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
 		int idx = 0;
-		GMRFLib_CACHE_SET_ID(idx);
+		GMRFLib_CACHE_SET_IDX(idx);
 		for (k = 0; k < 6; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}
@@ -1106,7 +1106,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
 		int idx = 0;
-		GMRFLib_CACHE_SET_ID(idx);
+		GMRFLib_CACHE_SET_IDX(idx);
 		for (k = 0; k < 2; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}

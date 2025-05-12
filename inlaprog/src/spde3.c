@@ -333,7 +333,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	if (model->M[3]) {
 		int id = 0;
 
-		GMRFLib_CACHE_SET_ID(id);
+		GMRFLib_CACHE_SET_IDX(id);
 		if (use_store) {
 			// check if we need to recompute storage
 			int recompute = 0;

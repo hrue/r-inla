@@ -137,10 +137,10 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -224,10 +224,10 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -277,10 +277,10 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -331,10 +331,10 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:
@@ -372,10 +372,10 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:
@@ -412,10 +412,10 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:

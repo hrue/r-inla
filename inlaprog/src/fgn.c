@@ -85,7 +85,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	double H_intern, prec, val = 0.0, *phi = NULL, *w = NULL, kappa;
 	int id = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	phi = phi_cache[id];
 	w = w_cache[id];
 
@@ -186,7 +186,7 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	double H_intern, prec, val = 0.0, *phi = NULL, *w = NULL;
 	int id = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	phi = phi_cache[id];
 	w = w_cache[id];
 

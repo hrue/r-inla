@@ -567,7 +567,7 @@ typedef enum {
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
 #define GMRFLib_CACHE_LEN_OLD() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
-#define GMRFLib_CACHE_SET_ID_OLD(__id)					\
+#define GMRFLib_CACHE_SET_IDX_OLD(__id)					\
 	{								\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
@@ -584,7 +584,7 @@ typedef enum {
 
 #define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
 #define GMRFLib_CACHE_LEN_NUMA() (ISQR(GMRFLib_MAX_THREADS()) * GMRFLib_NUMA_NODES())
-#define GMRFLib_CACHE_SET_ID_NUMA(__id)					\
+#define GMRFLib_CACHE_SET_IDX_NUMA(__id)					\
 	{								\
 		int numa_nodes = 0;					\
 		GMRFLib_numa_get(NULL, &numa_nodes);			\
@@ -603,8 +603,7 @@ typedef enum {
 		}							\
 	}
 
-
-#define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)				\
+#define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (numa_have) {						\
 		int numa_node_ = -1;					\
 		GMRFLib_numa_get(NULL, &numa_node_);			\
@@ -618,18 +617,15 @@ typedef enum {
 			}						\
 		}							\
 	}	
-	
 
-
-// let us try with numa all over, as the code is ok with no numa as well (then num_numa_nodes=1 and numa_node=0)
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
-#define GMRFLib_CACHE_SET_ID(__id) GMRFLib_CACHE_SET_ID_NUMA(__id)
+#define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
 
 #define GMRFLib_SET_LCACHE_IDX(idx_)			\
 	if (lcache_idx && *lcache_idx >= 0) {		\
 		idx_ = *lcache_idx;			\
 	} else {					\
-		GMRFLib_CACHE_SET_ID(idx_);		\
+		GMRFLib_CACHE_SET_IDX(idx_);		\
 		if (lcache_idx) {			\
 			*lcache_idx = idx_;		\
 		}					\
@@ -638,7 +634,7 @@ typedef enum {
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
-#define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
+#define GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(__id)				\
 	__id = (omp_get_level() <= 1 ? omp_get_thread_num() : -1)
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to

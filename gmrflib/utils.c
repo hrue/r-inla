@@ -1355,7 +1355,7 @@ int GMRFLib_debug_functions(const char *name)
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_c3afbb5a350a04cd0a2ad81d85df8cc44ff04279)
@@ -1460,7 +1460,7 @@ int GMRFLib_trace_functions(const char *name)
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_e9b04207643dde9dc8734f9ae0e41a3e03910f80)
@@ -1564,7 +1564,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)

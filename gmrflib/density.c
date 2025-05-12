@@ -1934,7 +1934,7 @@ double GMRFLib_sn_mode(double skew)
 
 	static GMRFLib_spline_tp **spline = NULL;
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!spline) {
 #pragma omp critical (Name_f7f083055f5255ebc7e4aae6b1b8f1baa3991d18)
@@ -2068,7 +2068,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 
 	static GMRFLib_spline_tp **spline = NULL;
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!spline) {
 #pragma omp critical (Name_06501c73f0089b8702336f89a7e7c85e10465cf1)

@@ -425,7 +425,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	}
 
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	int *nr_step_factor_first_time_only = &(nnr_step_factor_first_time_only[idx]);
 
@@ -1973,7 +1973,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
 		int lcache_idx = 0;
-		GMRFLib_CACHE_SET_ID(lcache_idx);
+		GMRFLib_CACHE_SET_IDX(lcache_idx);
 		tref = GMRFLib_timer();
 
 		GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
@@ -4033,7 +4033,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		CODE_BLOCK_INIT_X(local_storage_tp);			\
 		int cache_idx = CODE_BLOCK_WORK_TP_PTR()->cache_idx;	\
 		if (cache_idx == 0) {					\
-			GMRFLib_CACHE_SET_ID(cache_idx);		\
+			GMRFLib_CACHE_SET_IDX(cache_idx);		\
 			CODE_BLOCK_WORK_TP_PTR()->cache_idx= 1 + cache_idx; \
 		} else {						\
 			cache_idx--;					\
@@ -4365,7 +4365,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	const int debug = 0;
 	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, npx = 8, itmp, np_new = np_orig + 2 * npx;
@@ -5627,7 +5627,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 	int max_iter = 100;
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	for (int iter = 0; iter < max_iter; iter++) {
 		double s = exp(0.5 * fit_log_var), s2 = SQR(s);
@@ -5895,7 +5895,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 	assert(remap);
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	assert(problem != NULL);
 	if (nlin <= 0) {
@@ -6220,7 +6220,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	double fail = 0.0;
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	static double **work = NULL;
 	if (!work) {
@@ -6488,7 +6488,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 	 * compute the integral of -2*loglikelihood * density(x), wrt x. also return the saturated one
 	 */
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 	double integral = 0.0;
 	double integral_sat = 0.0;
 	double sat_ll = inla_compute_saturated_loglik(thread_id, &cache_idx, idx, loglFunc, x_vec, loglFunc_arg);

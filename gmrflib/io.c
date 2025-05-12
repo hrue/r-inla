@@ -273,7 +273,7 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp *io)
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (io == NULL) {				       /* special: reset strtok */
 		Free(lline[idx]);

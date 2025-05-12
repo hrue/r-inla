@@ -1150,7 +1150,7 @@ int GMRFLib_pardiso_pstores_do(GMRFLib_pardiso_store_tp **store)
 
 	int retval = -1;
 	int tnum = 0;
-	GMRFLib_CACHE_SET_ID(tnum);
+	GMRFLib_CACHE_SET_IDX(tnum);
 
 	// need critical, as we operate on the global variable S.static_...
 #pragma omp critical (Name_62af846ab39772752ebc33a713cb5579f0d0904e)

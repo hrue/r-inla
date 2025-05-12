@@ -113,7 +113,7 @@ double inla_qgamma_cache(double shape, double quantile)
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	if ((cache[id]->quantile == quantile) && cache[id]->s) {
 		return (exp(GMRFLib_spline_eval(log(shape), cache[id]->s)));

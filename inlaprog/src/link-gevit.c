@@ -100,7 +100,7 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	xi = DSIGN(xi) * DMAX(XI_MIN, ABS(xi));
 	double *c = NULL, *l_xi = NULL;			       // why keep both? they are the same...

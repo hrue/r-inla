@@ -142,7 +142,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
 		storage[id] = Calloc(1, storage_t);
@@ -211,7 +211,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
 		storage[id] = Calloc(1, storage_t);

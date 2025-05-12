@@ -75,7 +75,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	int id = -1, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, show_stat = 0;
 	const int verbose = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	dtweedie_cache_tp *cache_ptr = cache[id];
 
 	if (cache_ptr->nterms < 0) {

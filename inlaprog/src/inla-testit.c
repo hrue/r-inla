@@ -5422,7 +5422,7 @@ int testit(int argc, char **argv)
 				s += i * j + i;
 
 				int id = 0;
-				GMRFLib_CACHE_SET_ID(id);
+				GMRFLib_CACHE_SET_IDX(id);
 
 				int level = omp_get_level();				
 				int tnum2 = omp_get_thread_num();			

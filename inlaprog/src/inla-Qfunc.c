@@ -338,7 +338,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	int rebuild, ii, id = 0;
 	const int debug = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 
 	if (!rebuild) {
@@ -433,7 +433,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 	int rebuild, id = 0;
 	const int debug = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -534,7 +534,7 @@ double Qfunc_dmatern(int thread_id, int node, int nnode, double *UNUSED(values),
 	int rebuild, id = 0;
 	const int debug = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
@@ -597,7 +597,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 		return 0.0;
 	}
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
 	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
 		rebuild = (a->mu_param[id][ii] != a->theta[ii][thread_id][0]);
@@ -661,7 +661,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 		return 0.0;
 	}
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
 	for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
 		rebuild = (a->mu_param[id][ii] != a->theta[ii][thread_id][0]);
@@ -916,7 +916,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	/*
 	 * using this prevent us for using '#pragma omp critical' below, so its much quicker 
 	 */
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	assert(a->hold);
 	hold = a->hold[id];
 	if (hold == NULL) {
@@ -1012,7 +1012,7 @@ double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(val
 	dim = a->dim;
 	n_theta = a->ntheta;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	hold = a->hold[id];
 	if (hold == NULL) {
 		a->hold[id] = Calloc(1, inla_wishartk_hold_tp);
@@ -1460,7 +1460,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	int build = 0;
 	for (int k = 0; k < a->nbeta; k++) {
@@ -1517,7 +1517,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	int build = 0;
 	for (int k = 0; k < a->nbeta; k++) {

@@ -438,7 +438,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	int nw = graph->n * nrhs;
 	if (nw > wwork_len[cache_idx]) {

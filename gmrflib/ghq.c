@@ -131,7 +131,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!abscissas[idx]) {
 		abscissas[idx] = Calloc(1, map_ivp);
