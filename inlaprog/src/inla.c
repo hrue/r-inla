@@ -7647,6 +7647,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
 				PEFF_OUTPUT(stdout);
+				POVERALL_TIME(stdout);
 #endif
 				fflush(stdout);
 			}

@@ -191,23 +191,23 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		int Lsize = L->sn_size[sn];				\
 		int Lubl = L->up_blocks_ld[sn];				\
 		int Lup_size = L->sn_up_size[sn];			\
-		double *Lsb = L->sn_blocks[sn];			\
-		double *Lub = L->up_blocks[sn];			\
+		double *Lsb = L->sn_blocks[sn];				\
+		double *Lub = L->up_blocks[sn];				\
 		for (int jp = 0; jp < Lsize; jp++) {			\
 			int j = Lss[jp];				\
 			int next = C->colptr[j];			\
-			double *Lsb_p = Lsb + jp * Lsbl;	\
-			double *Lub_p = Lub + jp * Lubl - Lsize; \
+			double *Lsb_p = Lsb + jp * Lsbl;		\
+			double *Lub_p = Lub + jp * Lubl - Lsize;	\
 			for (int ip = jp; ip < Lsize; ip++) {		\
 				int i = Lss[ip];			\
 				if (i >= j) {				\
-					C->values[next++] = Lsb_p[ip]; \
+					C->values[next++] = Lsb_p[ip];	\
 				}					\
 			}						\
 			for (int ip = Lsize; ip < Lup_size; ip++) {	\
 				int i = Lss[ip];			\
 				if (i >= j) {				\
-					C->values[next++] = Lub_p[ip]; \
+					C->values[next++] = Lub_p[ip];	\
 				}					\
 			}						\
 		}							\
@@ -1048,7 +1048,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 		GMRFLib_numa_get(NULL, &numa_node);
 		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1139,7 +1139,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 		GMRFLib_numa_get(NULL, &numa_node);
 		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 
 	double *work = wwork[cache_idx];
@@ -1186,7 +1186,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 		GMRFLib_numa_get(NULL, &numa_node);
 		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1236,7 +1236,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 		GMRFLib_numa_get(NULL, &numa_node);
 		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	double *y = work;
@@ -1717,7 +1717,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 		GMRFLib_numa_get(NULL, &numa_node);
 		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
