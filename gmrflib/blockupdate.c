@@ -175,9 +175,15 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
 
+	static int numa_have = -1;
+	if (numa_have < 0) {
+		numa_have = GMRFLib_numa_have();
+	}
+	
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
-
+	int numa_fail = 0;
+	
 	typedef struct {
 		double **wf;
 	} wf_tp;
@@ -268,38 +274,27 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					int ok = 0;
-					int ntry = 0;
-					while(ok == 0) {
-						ntry++;
+					double *ww = Calloc(3 * wlength, double);
+					ww[0] = 0.0833333333333333333333333;
+					ww[1] = -0.666666666666666666666667;
+					ww[3] = 0.666666666666666666666667;
+					ww[4] = -0.0833333333333333333333333;
+					ww[8] = -0.0833333333333333333333333;
+					ww[9] = 1.33333333333333333333333;
+					ww[10] = -2.5;
+					ww[11] = 1.33333333333333333333333;
+					ww[12] = -0.0833333333333333333333333;
+					ww[16] = -0.5;
+					ww[17] = 1.0;
+					ww[19] = -1.0;
+					ww[20] = 0.5;
+					w->wf[stenc] = ww;
 						
-						double *ww = Calloc(3 * wlength, double);
-						ww[0] = 0.0833333333333333333333333;
-						ww[1] = -0.666666666666666666666667;
-						ww[3] = 0.666666666666666666666667;
-						ww[4] = -0.0833333333333333333333333;
-						ww[8] = -0.0833333333333333333333333;
-						ww[9] = 1.33333333333333333333333;
-						ww[10] = -2.5;
-						ww[11] = 1.33333333333333333333333;
-						ww[12] = -0.0833333333333333333333333;
-						ww[16] = -0.5;
-						ww[17] = 1.0;
-						ww[19] = -1.0;
-						ww[20] = 0.5;
-						w->wf[stenc] = ww;
-
+					if (numa_have) {
 						int nnode = -1;
 						GMRFLib_numa_get(NULL, &nnode);
 						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
-
-						if (nnode_ptr != nnode) {
-							printf("allocate MEM but first touch fail %1d %1d try %1d\n", nnode, nnode_ptr, ntry);
-							Free(ww);
-						} else {
-							ok = 1;
-							printf("allocate MEM first touch OK %1d %1d try %1d\n", nnode, nnode_ptr, ntry);
-						}
+						numa_fail = (nnode_ptr != nnode);
 					}
 				}
 			}
@@ -510,5 +505,9 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
 	
+	if (numa_fail) {
+		Free(w->wf[stenc]);
+	}
+
 	return GMRFLib_SUCCESS;
 }
