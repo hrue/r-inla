@@ -258,7 +258,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			df = 0.5 * (-f[0] + f[2]);
 			ddf = f[0] - 2.0 * f[1] + f[2];
 		}
-			break;
+		break;
 
 		case 5:
 		{
@@ -274,9 +274,27 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					double *ww = Malloc(3 * wlength, double);
-					GMRFLib_dfill(3*wlength, 0.0, ww);
+					double *ww = Calloc(3 * wlength, double);
+
+					if (numa_have) {
+						int nnode = -1;
+						GMRFLib_numa_get(NULL, &nnode);
+						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
+						numa_fail = (nnode_ptr != nnode);
+						if (numa_fail) printf("NUMA FAIL. RETRY\n");
+						double *ww_node = (double *) numa_alloc_onnode((size_t) (3 * wlength * sizeof(double)), nnode);
+						if (ww_node) {
+							Free(ww);
+							ww = ww_node;
+							GMRFLib_dfill(3*wlength, 0.0, ww);
+							printf("NUMA_ALLOC SUCCESS\n");
+						} else {
+							printf("NUMA_ALLOC FAIL,  eREVERT BAC\n");
+						}
+					}
 					
+
+
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
 					ww[3] = 0.666666666666666666666667;
@@ -291,14 +309,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					ww[19] = -1.0;
 					ww[20] = 0.5;
 					w->wf[stenc] = ww;
-						
-					if (numa_have) {
-						int nnode = -1;
-						GMRFLib_numa_get(NULL, &nnode);
-						int nnode_ptr = GMRFLib_numa_node_of_ptr(ww);
-						numa_fail = (nnode_ptr != nnode);
-						if (numa_fail) printf("NUMA FAIL\n");
-					}
 				}
 			}
 
@@ -329,7 +339,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 			}
 		}
-			break;
+		break;
 
 		case 7:
 		{
@@ -391,7 +401,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			df = fma(wf_ref[3], f_ref[3] - f_ref[-3], df);
 
 			ddf = GMRFLib_prod_diff(wff_ref[0], f_ref[0], -wff_ref[1], f_ref[1] + f_ref[-1]) +
-			    GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
+				GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
@@ -399,7 +409,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				dddf = fma(wfff_ref[3], f_ref[3] - f_ref[-3], dddf);
 			}
 		}
-			break;
+		break;
 
 		case 9:
 		{
@@ -471,19 +481,19 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			double *wff_ref = wff + iref;
 
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]) +
-			    GMRFLib_prod_diff(wf_ref[3], f_ref[3] - f_ref[-3], -wf_ref[4], f_ref[4] - f_ref[-4]);
+				GMRFLib_prod_diff(wf_ref[3], f_ref[3] - f_ref[-3], -wf_ref[4], f_ref[4] - f_ref[-4]);
 
 			ddf = GMRFLib_prod_diff(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]) +
-			    GMRFLib_prod_diff(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
+				GMRFLib_prod_diff(wff_ref[3], f_ref[-3] + f_ref[3], -wff_ref[4], f_ref[-4] + f_ref[4]);
 			ddf = fma(wff_ref[0], f_ref[0], ddf);
 
 			if (dd) {
 				double *wfff_ref = wfff + iref;
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]) +
-				    GMRFLib_prod_diff(wfff_ref[3], f_ref[3] - f_ref[-3], -wfff_ref[4], f_ref[4] - f_ref[-4]);
+					GMRFLib_prod_diff(wfff_ref[3], f_ref[3] - f_ref[-3], -wfff_ref[4], f_ref[4] - f_ref[-4]);
 			}
 		}
-			break;
+		break;
 
 		default:
 			assert(0 == 1);
