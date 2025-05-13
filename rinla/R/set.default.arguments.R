@@ -926,7 +926,7 @@ control.vb <-
 
              #' @param compute.initial.values Compute initial values for the latent field or not.
              #' (experimental-mode only)
-             compute.initial.values = TRUE,
+             compute.initial.values = FALSE,
 
              #' @param hessian.correct.skewness.only If TRUE (default) correct only
              #' skewness in the Hessian, for the hyperparameters. If FALSE,

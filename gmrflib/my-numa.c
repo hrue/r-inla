@@ -17,7 +17,7 @@
 static int NUMA_have = -1;				       // we have (=1) NUMA support or not (=0)
 static int NUMA_nodes = -1;				       // number of NUMA nodes. =1 if no NUMA */
 static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
-							       // to the behaviour as if INLA_WITH_NUMA was not defined
+							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 
 void GMRFLib_numa_init(void)
 {

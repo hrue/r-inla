@@ -2579,6 +2579,7 @@
                         strategy = "gaussian",
                         control.vb = ctrl_object(list(enable = FALSE), "vb"),
                         cmin = cmin,
+                        compute.initial.values = TRUE, 
                         force.diagonal = TRUE,
                         optimise.strategy = "plain",
                         tolerance = 0.01),
