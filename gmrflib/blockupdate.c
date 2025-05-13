@@ -198,6 +198,12 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	int cache_idx = 0;
 	GMRFLib_SET_LCACHE_IDX(cache_idx);
+	int numa_node = 0;
+	GMRFLib_numa_get(NULL, &numa_node);
+	int len = GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1);
+	*lcache_idx = cache_idx = (cache_idx % len) + numa_nod * len;
+	
+
 
 	if (!lwork[cache_idx]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
@@ -499,11 +505,5 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
 
-	int numa_node = 0;
-	GMRFLib_numa_get(NULL, &numa_node);
-	int len = GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1);
-	
-	*lcache_idx = (*lcache_idx % len) + numa_nod * len;
-	
 	return GMRFLib_SUCCESS;
 }
