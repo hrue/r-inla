@@ -1170,6 +1170,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	switch (ds->data_id) {
 	case L_SEM:
 		break;
@@ -1562,9 +1565,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.data_poisson[0][i].E < 0.0 || ds->data_observations.data_poisson[0][i].y < 0.0) {
+				if (ds->data_observations.data_poisson[numa][i].E < 0.0 || ds->data_observations.data_poisson[numa][i].y < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
-							ds->data_observations.data_poisson[0][i].E, ds->data_observations.data_poisson[0][i].y);
+							ds->data_observations.data_poisson[numa][i].E, ds->data_observations.data_poisson[numa][i].y);
 					inla_error_general(msg);
 				}
 			}

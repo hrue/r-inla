@@ -141,7 +141,7 @@ int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr))
 	return -1;
 }
 
-int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno) 
+int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), const char *UNUSED(filename), int UNUSED(lineno))
 {
 	return -1;
 }
