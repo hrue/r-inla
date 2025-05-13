@@ -7616,6 +7616,13 @@ int main(int argc, char **argv)
 			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
+			// in case sections are skipped
+			for (int i = 1; i <= 6; i++) {
+				if (ISZERO(GMRFLib_overall_cpu[i])) {
+					GMRFLib_overall_cpu[i] = GMRFLib_overall_cpu[i-1];
+				}
+			}
+
 #define TDIF(n_) (GMRFLib_overall_cpu[n_]-GMRFLib_overall_cpu[(n_)-1])
 #define POVERALL_TIME(fp_)						\
 			{						\
