@@ -104,7 +104,7 @@ extern int GMRFLib_model_n;
 
 extern char *GMRFLib_tmpdir;
 
-extern double GMRFLib_overall_cpu[7];
+extern double GMRFLib_overall_cpu[8];
 
 #endif
 __END_DECLS

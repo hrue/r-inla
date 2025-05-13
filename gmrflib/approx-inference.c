@@ -1426,6 +1426,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		SET_MODE;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
+		GMRFLib_overall_cpu[3] = GMRFLib_timer();
+
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
 				(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
@@ -1511,7 +1513,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
-		GMRFLib_overall_cpu[3] = GMRFLib_timer();
+		GMRFLib_overall_cpu[4] = GMRFLib_timer();
 		
 		ai_par->hessian_forward_finite_difference = fd_save;
 
@@ -1967,7 +1969,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	int *early_stop = Calloc(design->nexperiments, int);
-	GMRFLib_overall_cpu[4] = GMRFLib_timer() - overall_time_correct;
 
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
@@ -2304,6 +2305,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	if (place_save) {
 		GMRFLib_openmp_implement_strategy(place_save, NULL, NULL);
 	}
+
+	GMRFLib_overall_cpu[5] = GMRFLib_timer() - overall_time_correct;
 
 	if (nlin) {
 		// revert back as it was before
@@ -3234,7 +3237,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #undef ADD_LINEAR_TERM_LOCAL
 #undef SET_MODE
 
-	GMRFLib_overall_cpu[5] = GMRFLib_timer();
+	GMRFLib_overall_cpu[6] = GMRFLib_timer();
 
 	return GMRFLib_SUCCESS;
 }

@@ -7612,28 +7612,29 @@ int main(int argc, char **argv)
 
 			inla_output(mb);
 
-			GMRFLib_overall_cpu[6] = GMRFLib_timer();
+			GMRFLib_overall_cpu[7] = GMRFLib_timer();
 			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
 			// in case sections are skipped
-			for (int i = 1; i <= 6; i++) {
-				if (ISZERO(GMRFLib_overall_cpu[i])) {
-					GMRFLib_overall_cpu[i] = GMRFLib_overall_cpu[i-1];
+			for (int ii = 1; ii <= 7; ii++) {
+				if (ISZERO(GMRFLib_overall_cpu[ii])) {
+					GMRFLib_overall_cpu[ii] = GMRFLib_overall_cpu[ii-1];
 				}
 			}
 
 #define TDIF(n_) (GMRFLib_overall_cpu[n_]-GMRFLib_overall_cpu[(n_)-1])
 #define POVERALL_TIME(fp_)						\
-			{						\
-				double tot = 0.01 * (GMRFLib_overall_cpu[6] - GMRFLib_overall_cpu[0]); \
+			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) { \
+				double tot = 0.01 * (GMRFLib_overall_cpu[7] - GMRFLib_overall_cpu[0]); \
 				fprintf(fp_, "\nBreakdown of overall running time %.2f seconds in stages: \n", tot / 0.01); \
 				fprintf(fp_, "\tReading model    %.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
 				fprintf(fp_, "\tBuilding model   %.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
 				fprintf(fp_, "\tOptimising       %.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
 				fprintf(fp_, "\tHessian          %.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
-				fprintf(fp_, "\tPostprocessing   %.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
-				fprintf(fp_, "\tOutput           %.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+				fprintf(fp_, "\tIntegration      %.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
+				fprintf(fp_, "\tPostprocessing   %.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+				fprintf(fp_, "\tOutput           %.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
 			}
 
 #define PEFF_OUTPUT(fp_)						\
@@ -7646,6 +7647,7 @@ int main(int argc, char **argv)
 				fprintf(fp_, "%sEfficiency using %1d threads = %.2f%%\n", tab, GMRFLib_MAX_THREADS(), \
 					100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
+
 #define PEFF_PREOPT_OUTPUT(fp_)						\
 			if (1) {					\
 				char *tab = Strdup("");			\
