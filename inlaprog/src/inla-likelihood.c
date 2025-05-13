@@ -992,7 +992,7 @@ int loglikelihood_gaussian(int thread_id, int *lcache_idx, double *__restrict lo
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_stdgaussian(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
 			      double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
@@ -2497,7 +2497,7 @@ int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_poisson(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
 			  double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 #define _logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
@@ -2620,7 +2620,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_npoisson(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
@@ -5107,7 +5107,7 @@ int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lca
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_binomial(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
 {
 	/*
