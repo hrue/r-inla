@@ -266,7 +266,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
 					int len = 3 * wlength;
-					double *ww = Calloc(len, double);
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
 					
 					ww[0] = 0.0833333333333333333333333;
@@ -330,7 +331,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 #pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
 				if (!(w->wf[stenc])) {
 					int len = 3 * wlength;
-					double *ww = Calloc(len, double);
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
 
 					ww[0] = -0.0166666666666666666666667;
@@ -403,7 +405,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 #pragma omp critical (Name_2c6105c438980fcf3a3f8311ae71780a45886796)
 				if (!(w->wf[stenc])) {
 					int len = 4 * wlength;
-					double *ww = Calloc(len, double);
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
 
 					ww[0] = 0.00357142857142857142857143;
