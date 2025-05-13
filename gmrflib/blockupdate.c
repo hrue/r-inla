@@ -498,6 +498,12 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	GMRFLib_CACHE_HITMISS_INIT();
 	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
+
+	int numa_node = 0;
+	GMRFLib_numa_get(NULL, &numa_node);
+	int len = GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1);
+	
+	*lcache_idx = (*lcache_idx % len) + numa_nod * len;
 	
 	return GMRFLib_SUCCESS;
 }
