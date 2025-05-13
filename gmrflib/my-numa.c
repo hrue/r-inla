@@ -14,9 +14,10 @@
 #include <numaif.h>
 
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
-static int NUMA_have = -1;
-static int NUMA_nodes = -1;
-static int NUMA_enable = 1;
+static int NUMA_have = -1;				       // we have (=1) NUMA support or not (=0)
+static int NUMA_nodes = -1;				       // number of NUMA nodes. =1 if no NUMA */
+static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
+							       // to the behaviour as if INLA_WITH_NUMA was not defined
 
 void GMRFLib_numa_init(void)
 {
@@ -24,7 +25,7 @@ void GMRFLib_numa_init(void)
 		GMRFLib_numa_have();
 }
 
-void GMRFLib_numa_set_ctl(int enable) 
+void GMRFLib_numa_set_ctl(int enable)
 {
 	NUMA_enable = enable;
 }
@@ -46,8 +47,8 @@ int GMRFLib_numa_have(void)
 
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
-	unsigned int ucpu, unode; 
-	getcpu(&ucpu, &unode); 
+	unsigned int ucpu, unode;
+	getcpu(&ucpu, &unode);
 	if (cpu) {
 		*cpu = (int) ucpu;
 	}
@@ -78,7 +79,7 @@ int GMRFLib_numa_node_of_ptr(void *ptr)
 	}
 }
 
-int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno) 
+int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
 {
 	// return -1 if not in use, 0=hit, 1=miss
 	if (NUMA_enable) {
@@ -101,7 +102,7 @@ int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
 	}
 }
 
-void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
+void *GMRFLib_numa_alloc_onnode(size_t size, int node)
 {
 	if (NUMA_enable) {
 		if (size > 0) {
@@ -115,7 +116,7 @@ void *GMRFLib_numa_alloc_onnode(size_t size, int node)
 	}
 }
 
-void GMRFLib_numa_free(void *start, size_t size) 
+void GMRFLib_numa_free(void *start, size_t size)
 {
 	if (NUMA_enable) {
 		if (size > 0) {
@@ -130,13 +131,13 @@ void GMRFLib_numa_free(void *start, size_t size)
 
 #else
 
-void GMRFLib_numa_set_ctl(int enable) 
+void GMRFLib_numa_set_ctl(int enable)
 {
 	NUMA_enable = 0;
 }
 
 
-void GMRFLib_numa_free(void *start, size_t size) 
+void GMRFLib_numa_free(void *start, size_t size)
 {
 	if (size > 0) {
 		Free(start);
