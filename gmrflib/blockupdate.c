@@ -201,7 +201,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	int numa_node = 0;
 	GMRFLib_numa_get(NULL, &numa_node);
 	int len = GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1);
-	*lcache_idx = cache_idx = (cache_idx % len) + numa_nod * len;
+	*lcache_idx = cache_idx = (cache_idx % len) + numa_node * len;
 	
 
 
