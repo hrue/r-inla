@@ -196,20 +196,21 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		}
 	}
 
-	int cache_idx = 0, numa = 0;
+	int cache_idx = 0, cache_idx_numa = 0, numa = 0;
 	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
+	cache_idx_numa = cache_idx;
+	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx_numa);
 
-	if (!lwork[cache_idx]) {
+	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
-		if (!lwork[cache_idx]) {
+		if (!lwork[cache_idx_numa]) {
 			wf_tp *w = Calloc(1, wf_tp);
 			w->wf = Calloc(10, double *);	       /* Must initialize to 0 */
-			lwork[cache_idx] = w;
+			lwork[cache_idx_numa] = w;
 		}
 	}
 
-	wf_tp *w = lwork[cache_idx];
+	wf_tp *w = lwork[cache_idx_numa];
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -498,7 +499,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	GMRFLib_CACHE_HITMISS_INIT();
 	int POSSIBLY_UNUSED(miss) = 0;
-	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, w->wf[stenc]);
+	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, w->wf[stenc]);
 
 	return GMRFLib_SUCCESS;
 }
