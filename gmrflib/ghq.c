@@ -134,10 +134,14 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!abscissas[idx]) {
-		abscissas[idx] = Calloc(1, map_ivp);
-		weights[idx] = Calloc(1, map_ivp);
-		map_ivp_init(abscissas[idx]);
-		map_ivp_init(weights[idx]);
+#pragma omp critical (Name_144aa75e163ba7c9b9b2548a2c758b4aa2b19808)
+		if (!abscissas[idx]) {
+			map_ivp *tmp = Calloc(1, map_ivp);
+			weights[idx] = Calloc(1, map_ivp);
+			map_ivp_init(tmp);
+			map_ivp_init(weights[idx]);
+			abscissas[idx] = tmp;
+		}
 	}
 
 	double *x = NULL, *w = NULL;

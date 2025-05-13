@@ -583,21 +583,21 @@ typedef enum {
 
 
 #define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
-#define GMRFLib_CACHE_LEN_NUMA() (ISQR(GMRFLib_MAX_THREADS()) * GMRFLib_NUMA_NODES())
+#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1) * GMRFLib_NUMA_NODES())
 #define GMRFLib_CACHE_SET_IDX_NUMA(__id)					\
 	{								\
-		int numa_nodes = 0;					\
-		GMRFLib_numa_get(NULL, &numa_nodes);			\
+		int numa_node = 0;					\
+		GMRFLib_numa_get(NULL, &numa_node);			\
 		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		int mt_ = GMRFLib_MAX_THREADS();			\
-		int numa_offset_ = numa_nodes * ISQR(mt_);		\
+		int numa_offset_ = numa_node * mt_ * (mt_ + 1);		\
 		if (level1_ <= 1) {					\
 			__id =  tnum_ + numa_offset_;			\
 		} else if (level1_ == 2) {				\
-			int level2_ = omp_get_ancestor_thread_num(level1_ -1); \
-			assert(level2_ >= 0);				\
-			__id = mt_ + level2_ * mt_ + tnum_ + numa_offset_; \
+			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
+			assert(tnum2_ >= 0);				\
+			__id = mt_ + tnum2_ * mt_ + tnum_ + numa_offset_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\
@@ -631,7 +631,7 @@ typedef enum {
 		}					\
 	}
 
-#define GMRFLib_CACHE_IDX_TO_NUMA_NODE(idx_) ((idx_) / ISQR(GMRFLib_MAX_THREADS()))
+#define GMRFLib_CACHE_IDX_TO_NUMA_NODE(idx_) ((idx_) / (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1)))
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())

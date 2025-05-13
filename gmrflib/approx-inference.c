@@ -6348,6 +6348,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		return fail;
 	}
 
+	int lcache_idx = 0;
+	GMRFLib_CACHE_SET_IDX(lcache_idx);
+
 	if (po_density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
@@ -6364,7 +6367,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		GMRFLib_dfill(np, 1.0, mask);
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
-		loglFunc(thread_id, NULL, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &lcache_idx, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
 		double dmin = GMRFLib_min_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
@@ -6409,7 +6412,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			xpi[i] = xpi[0] + i * dxi;
 		}
 		GMRFLib_evaluate_nlogdensity(ldens, xpi, np, po_density);
-		loglFunc(thread_id, NULL, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &lcache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double *dens = Calloc_get(npm);
 		double *llik = Calloc_get(npm);
