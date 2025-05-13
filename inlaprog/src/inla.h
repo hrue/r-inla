@@ -2554,6 +2554,17 @@ typedef struct {
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
 
+
+// this is for likelihood functions
+#define LOGL_ADD_NUMA							\
+	int numa = 0;							\
+	if (lcache_idx) {						\
+		numa = GMRFLib_CACHE_IDX_TO_NUMA_NODE(*lcache_idx);	\
+	} else {							\
+		GMRFLib_numa_get(NULL, &numa);				\
+	}
+
+
 // needs inla_tp definition
 #include "param-constr.h"
 
