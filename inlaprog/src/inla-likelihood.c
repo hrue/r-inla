@@ -916,7 +916,7 @@ double inla_dnchisq(double x, double df, double ncp)
 	return (ldens);
 }
 
-int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_gaussian(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
 {
 	/*
@@ -928,8 +928,7 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	static double log_prec_limit = -log(INLA_REAL_SMALL);
 
-	int numa = -1;
-	GMRFLib_numa_get(NULL, &numa);
+	int numa = GMRFLib_CACHE_IDX_TO_NUMA_NODE(*lcache_idx);
 	
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;

@@ -631,6 +631,7 @@ typedef enum {
 		}					\
 	}
 
+#define GMRFLib_CACHE_IDX_TO_NUMA_NODE(idx_) ((idx_) / ISQR(GMRFLib_MAX_THREADS()))
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())

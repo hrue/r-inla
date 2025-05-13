@@ -1182,9 +1182,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.data_gaussian[0][i].w <= 0.0) {
+				if (ds->data_observations.data_gaussian[numa][i].w <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.data_gaussian[0][i].w);
+							ds->data_observations.data_gaussian[numa][i].w);
 					inla_error_general(msg);
 				}
 			}
