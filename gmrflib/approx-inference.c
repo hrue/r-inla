@@ -4460,11 +4460,6 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		return GMRFLib_SUCCESS;
 	}
 
-	static int numa_have = -1;
-	if (numa_have < 0) {
-		numa_have = GMRFLib_numa_have();
-	}
-	
 	static double **lwork = NULL;
 	if (!lwork) {
 #pragma omp critical (Name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
@@ -4474,15 +4469,14 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		}
 	}
 
-	int cache_idx = 0;
-	GMRFLib_SET_LCACHE_IDX(cache_idx);
+	SET_CACHE();
 
-	if (!lwork[cache_idx]) {
+	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
-		if (!lwork[cache_idx]) {
+		if (!lwork[cache_idx_numa]) {
 			// need 3 only as 'wtmp' is not used because 'A' below is not computed
-			double *worktmp = Malloc(3 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
-			GMRFLib_ENSURE_NUMA_PTR(worktmp, 3 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+			double *worktmp = Malloc(5 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
+			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
 
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
@@ -4490,20 +4484,15 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 				worktmp[1 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * xtmp[i];
 				worktmp[2 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * (SQR(xtmp[i]) - 1.0);
 			}
-			lwork[cache_idx] = worktmp;
+			lwork[cache_idx_numa] = worktmp;
 		}
 	}
 
-	double *xp = lwork[cache_idx];
-	double *wxp = lwork[cache_idx] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *wxp2 = lwork[cache_idx] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
-
-	double *x_user = NULL, *loglik = NULL;
-	if (workspace) {
-		x_user = workspace;
-	} else {
-		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
-	}
+	double *xp = lwork[cache_idx_numa];
+	double *wxp = lwork[cache_idx_numa] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *wxp2 = lwork[cache_idx_numa] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = lwork[cache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *loglik = lwork[cache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, &cache_idx, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4521,13 +4510,9 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
-	if (!workspace) {
-		Free(x_user);
-	}
-
 	GMRFLib_CACHE_HITMISS_INIT();
 	int POSSIBLY_UNUSED(miss) = 0;
-	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx, lwork[cache_idx]);
+	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, lwork[cache_idx_numa]);
 
 	return GMRFLib_SUCCESS;
 }
@@ -4548,9 +4533,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 		numa_have = GMRFLib_numa_have();
 	}
 	
-	int cache_idx = 0;
-	GMRFLib_SET_LCACHE_IDX(cache_idx);
-
+	SET_CACHE();
+	
 	static double *wp = NULL;
 	static double *xp = NULL;
 	static double *wxp2 = NULL;
@@ -4580,7 +4564,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 	if (workspace) {
 		x_user = workspace;
 	} else {
-		x_user = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+		x_user = Malloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
 	}
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 

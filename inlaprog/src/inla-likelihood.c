@@ -928,9 +928,7 @@ int loglikelihood_gaussian(int thread_id, int *lcache_idx, double *__restrict lo
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	static double log_prec_limit = -log(INLA_REAL_SMALL);
 
-	int cache_idx = 0, numa = 0;
-	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
+	SET_CACHE();
 
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;
@@ -1005,9 +1003,7 @@ int loglikelihood_stdgaussian(int thread_id, int *lcache_idx, double *__restrict
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int cache_idx = 0, numa = 0;
-	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
+	SET_CACHE();
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
@@ -2515,10 +2511,8 @@ int loglikelihood_poisson(int thread_id, int *lcache_idx, double *__restrict log
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int cache_idx = 0, numa = 0;
-	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
-
+	SET_CACHE();
+	
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[numa][idx]);
 	double y = p->y;
@@ -2640,10 +2634,8 @@ int loglikelihood_npoisson(int thread_id, int *lcache_idx, double *__restrict lo
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int cache_idx = 0, numa = 0;
-	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
-
+	SET_CACHE();
+	
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[numa][idx]);
 	double y = p->y;
@@ -5129,10 +5121,8 @@ int loglikelihood_binomial(int thread_id, int *lcache_idx, double *__restrict lo
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int cache_idx = 0, numa = 0;
-	GMRFLib_SET_LCACHE_IDX_NO_NUMA(cache_idx);
-	GMRFLib_CACHE_IDX_ADD_NUMA(cache_idx);
-
+	SET_CACHE();
+	
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	inla_llik_data_binomial_tp *b = &(ds->data_observations.data_binomial[numa][idx]);
