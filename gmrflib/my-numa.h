@@ -24,6 +24,7 @@ void *GMRFLib_numa_alloc_onnode(size_t size, int node);
 void GMRFLib_numa_free(void *start, size_t size);
 void GMRFLib_numa_get(int *cpu, int *numa);
 void GMRFLib_numa_init(void);
+void GMRFLib_numa_set_ctl(int enable);
 
 __END_DECLS
 #endif

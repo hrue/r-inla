@@ -19045,6 +19045,28 @@ int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
 	return INLA_OK;
 }
 
+int inla_parse_numa(inla_tp *mb, dictionary *ini, int sec)
+{
+	/*
+	 * parse section = NUMA
+	 */
+	if (mb->verbose) {
+		printf("\tinla_parse_numa...\n");
+	}
+	char * secname = Strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	int enable = iniparser_getint(ini, inla_string_join(secname, "ENABLE"), 1);
+	if (mb->verbose) {
+		printf("\t\tenable[%1d]\n", enable);
+	}
+	GMRFLib_numa_set_ctl(enable);
+
+	return INLA_OK;
+}
+
 int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*

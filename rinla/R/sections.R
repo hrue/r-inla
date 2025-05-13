@@ -1845,6 +1845,13 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
+`inla.numa.section` <- function(file, data.dir, contr) {
+    cat("\n", inla.secsep("INLA.numa"), "\n", sep = "", file = file, append = TRUE)
+    cat("type = numa\n", sep = " ", file = file, append = TRUE)
+    cat("enable = ", if (contr$enable) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
+    cat("\n", sep = " ", file = file, append = TRUE)
+}
+
 `inla.lincomb.section` <- function(file, data.dir, contr, lincomb) {
     ## this one write binary format files...
 

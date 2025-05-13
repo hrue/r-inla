@@ -14,90 +14,127 @@
 #include <numaif.h>
 
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
-static int numa_have = -1;
-static int numa_nodes = -1;
+static int NUMA_have = -1;
+static int NUMA_nodes = -1;
+static int NUMA_enable = 1;
 
 void GMRFLib_numa_init(void)
 {
-	if (numa_have < 0)
+	if (NUMA_have < 0)
 		GMRFLib_numa_have();
+}
+
+void GMRFLib_numa_set_ctl(int enable) 
+{
+	NUMA_enable = enable;
 }
 
 int GMRFLib_numa_have(void)
 {
-	if (numa_have >= 0) {
-		return numa_have;
+	if (NUMA_enable) {
+		if (NUMA_have >= 0) {
+			return NUMA_have;
+		} else {
+			NUMA_have = ((numa_available() > -1) && (numa_num_configured_nodes() >= 1) ? 1 : 0);
+			NUMA_nodes = IMAX(1, numa_num_configured_nodes());
+			return NUMA_have;
+		}
 	} else {
-		numa_have = ((numa_available() > -1) && (numa_num_configured_nodes() >= 1) ? 1 : 0);
-		numa_nodes = IMAX(1, numa_num_configured_nodes());
-		return numa_have;
+		return 0;
 	}
 }
 
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	unsigned int ucpu, unode; 
-
 	getcpu(&ucpu, &unode); 
 	if (cpu) {
 		*cpu = (int) ucpu;
 	}
 	if (numa_node) {
-		*numa_node = (int) unode;
+		if (NUMA_enable) {
+			*numa_node = (int) unode;
+		} else {
+			*numa_node = 0;
+		}
 	}
 }
 
 int GMRFLib_numa_nodes(void)
 {
-	return numa_nodes;
+	return (NUMA_enable ? NUMA_nodes : 1);
 }
 
 int GMRFLib_numa_node_of_ptr(void *ptr)
 {
-	int numa_node = -1;
-	if (numa_have == 1) {
-		get_mempolicy(&numa_node, NULL, 0, (void *) ptr, MPOL_F_NODE | MPOL_F_ADDR);
+	if (NUMA_enable) {
+		int numa_node = -1;
+		if (NUMA_have == 1) {
+			get_mempolicy(&numa_node, NULL, 0, (void *) ptr, MPOL_F_NODE | MPOL_F_ADDR);
+		}
+		return numa_node;
+	} else {
+		return 0;
 	}
-	return numa_node;
 }
 
 int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno) 
 {
 	// return -1 if not in use, 0=hit, 1=miss
-	int numa_ptr = GMRFLib_numa_node_of_ptr(ptr);
-	if (numa_ptr >= 0) {
-		char *nm = NULL;
-		GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
+	if (NUMA_enable) {
+		int numa_ptr = GMRFLib_numa_node_of_ptr(ptr);
+		if (numa_ptr >= 0) {
+			char *nm = NULL;
+			GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
 
-		if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
-			int numa_cpu;
-			GMRFLib_numa_get(NULL, &numa_cpu);
-			return (numa_cpu == numa_ptr ? 0 : 1);
-		} else {
-			return -1;
+			if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
+				int numa_cpu;
+				GMRFLib_numa_get(NULL, &numa_cpu);
+				return (numa_cpu == numa_ptr ? 0 : 1);
+			} else {
+				return -1;
+			}
 		}
+		return -1;
+	} else {
+		return -1;
 	}
-	return -1;
 }
 
 void *GMRFLib_numa_alloc_onnode(size_t size, int node) 
 {
-	if (size > 0) {
-		void *p = numa_alloc_onnode(size, node);
-		return (p ? p : malloc(size));
+	if (NUMA_enable) {
+		if (size > 0) {
+			void *p = numa_alloc_onnode(size, node);
+			return (p ? p : malloc(size));
+		} else {
+			return NULL;
+		}
 	} else {
-		return NULL;
+		return (size > 0 ? malloc(size) : NULL);
 	}
 }
 
 void GMRFLib_numa_free(void *start, size_t size) 
 {
-	if (size > 0) {
-		numa_free(start, size);
+	if (NUMA_enable) {
+		if (size > 0) {
+			numa_free(start, size);
+		}
+	} else {
+		if (size > 0) {
+			Free(start);
+		}
 	}
 }
 
 #else
+
+void GMRFLib_numa_set_ctl(int enable) 
+{
+	NUMA_enable = 0;
+}
+
 
 void GMRFLib_numa_free(void *start, size_t size) 
 {

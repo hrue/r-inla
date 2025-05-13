@@ -474,6 +474,19 @@ control.gcpo <-
         ctrl_object(as.list(environment()), "taucs", check = FALSE)
     }
 
+#' @title control.numa
+#' @inherit control.update params description seealso
+#' @details Extra options controlling the NUMA awareness (when NUMA is present)
+#' @family control
+#' @export
+`control.numa` <-
+    function(
+             #' @param enable Enable NUMA aware cache
+             enable = TRUE
+             ) {
+        ctrl_object(as.list(environment()), "numa", check = FALSE)
+    }
+
 #' @title control.bgev
 #' @inherit control.update params description seealso
 #' @family control

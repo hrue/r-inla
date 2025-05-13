@@ -87,6 +87,7 @@
 #' @param control.pardiso See `?control.pardiso`
 #' @param control.stiles See `?control.stiles`
 #' @param control.taucs See `?control.taucs`
+#' @param control.numa See `?control.numa`
 #' @param only.hyperparam If `TRUE`, then only the hyperparameters are
 #' computed.
 #' @param inla.call The path to, or the name of, the `inla`-program. This
@@ -261,6 +262,7 @@
                    control.pardiso = list(),
                    control.stiles = list(),
                    control.taucs = list(),
+                   control.numa = list(),
                    only.hyperparam = FALSE,
                    inla.call = inla.getOption("inla.call"),
                    inla.arg = inla.getOption("inla.arg"),
@@ -371,6 +373,7 @@
             control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
+            control.numa = control.numa, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 
@@ -414,6 +417,7 @@
             control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
+            control.numa = control.numa, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 
@@ -521,6 +525,7 @@
     control.pardiso <- ctrl_object(control.pardiso, "pardiso", data)
     control.stiles <- ctrl_object(control.stiles, "stiles", data)
     control.taucs <- ctrl_object(control.taucs, "taucs", data)
+    control.numa <- ctrl_object(control.numa, "numa", data)
 
     n.family <- length(family)
     for (i in 1:n.family) {
@@ -630,6 +635,7 @@
             control.pardiso = control.pardiso,
             control.stiles = control.stiles,
             control.taucs = control.taucs,
+            control.numa = control.numa,
             only.hyperparam = only.hyperparam,
             inla.call = inla.call,
             inla.arg = inla.arg,
@@ -1129,6 +1135,7 @@
     mf$control.pardiso <- NULL
     mf$control.stiles <- NULL
     mf$control.taucs <- NULL
+    mf$control.numa <- NULL
     mf$control.inla <- NULL
     mf$control.fixed <- NULL
     mf$control.lincomb <- NULL
@@ -2093,6 +2100,8 @@
     inla.stiles.section(file = file.ini, data.dir = data.dir, contr = cont.stiles)
     cont.taucs <- ctrl_update(control.taucs)
     inla.taucs.section(file = file.ini, data.dir = data.dir, contr = cont.taucs)
+    cont.numa <- ctrl_update(control.numa)
+    inla.numa.section(file = file.ini, data.dir = data.dir, contr = cont.numa)
 
     ## now, do the job
     if (debug) {
@@ -2519,6 +2528,7 @@
             control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
+            control.numa = control.numa, 
             only.hyperparam = only.hyperparam, 
             inla.call = inla.call, 
             inla.arg = inla.arg, 
