@@ -568,8 +568,7 @@ typedef enum {
 #define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS2() * GMRFLib_NUMA_NODES())
 #define GMRFLib_CACHE_SET_IDX_NUMA(__id)				\
 	{								\
-		int numa_node_ = 0;					\
-		GMRFLib_numa_get(NULL, &numa_node_);			\
+		int numa_node_ = GMRFLib_numa_get_node();		\
 		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		int mt_ = GMRFLib_MAX_THREADS();			\
@@ -603,7 +602,7 @@ typedef enum {
 	}
 
 #define GMRFLib_CACHE_IDX_ADD_NUMA(__id)				\
-	__id += GMRFLib_MAX_THREADS() + GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2(); \
+	__id += GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2(); \
 	
 #define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (GMRFLib_numa_have()) {					\
@@ -616,6 +615,7 @@ typedef enum {
 				FIXME("NUMA ALLOC _onnode FAIL");	\
 				GMRFLib_numa_free(ww_, llen_);		\
 				ww_ = NULL;				\
+				abort();				\
 			}						\
 			if (ww_) {					\
 				Free(ptr_);				\
@@ -623,6 +623,7 @@ typedef enum {
 			} else {					\
 				numa_retry = 1;				\
 				FIXME("NUMA ALLOC RETRY");		\
+				abort();				\
 			}						\
 		}							\
 	}	
