@@ -54,7 +54,7 @@ typedef struct {
 
 #define GMRFLib_LEAVE_FUNCTION						\
 	trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
-	GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); 
+	GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_);
 
 #else
 #define GMRFLib_ENTER_FUNCTION ;

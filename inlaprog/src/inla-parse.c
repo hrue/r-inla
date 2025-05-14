@@ -1567,7 +1567,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.data_poisson[numa][i].E < 0.0 || ds->data_observations.data_poisson[numa][i].y < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
-							ds->data_observations.data_poisson[numa][i].E, ds->data_observations.data_poisson[numa][i].y);
+							ds->data_observations.data_poisson[numa][i].E,
+							ds->data_observations.data_poisson[numa][i].y);
 					inla_error_general(msg);
 				}
 			}
@@ -19058,7 +19059,7 @@ int inla_parse_numa(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_numa...\n");
 	}
-	char * secname = Strdup(iniparser_getsecname(ini, sec));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}

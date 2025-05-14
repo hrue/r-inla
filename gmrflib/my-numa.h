@@ -16,9 +16,7 @@
 #endif
 
 __BEGIN_DECLS
-
 //
-
 int GMRFLib_numa_cache_hitmiss_core(void *ptr, int numa, const char *filename, int lineno);
 int GMRFLib_numa_get_node(void);
 int GMRFLib_numa_have(void);

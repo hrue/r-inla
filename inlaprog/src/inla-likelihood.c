@@ -928,8 +928,8 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	int numa = GMRFLib_numa_get_node();
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	static double log_prec_limit = -log(INLA_REAL_SMALL);
-	
-	
+
+
 
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;
@@ -1008,7 +1008,7 @@ int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;
-	double w = p->w; 
+	double w = p->w;
 	double prec = w;
 	double lprec = (w == 1.0 ? 0.0 : log(prec));
 
@@ -5474,8 +5474,8 @@ int loglikelihood_nbinomial2(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nmix(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-		       double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_nmix(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Binomial(n, p) * poisson(n, lambda), log(lambda) = X'beta
@@ -5567,8 +5567,8 @@ int loglikelihood_nmix(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nmixnb(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-			 double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
+int loglikelihood_nmixnb(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			 double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	/*
 	 * y ~ Binomial(n, p) * NegBinom(n, mu=lambda, size=1/overdispersion), log(lambda) = X'beta
@@ -5928,9 +5928,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

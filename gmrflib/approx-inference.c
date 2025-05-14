@@ -1514,7 +1514,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 
 		GMRFLib_overall_cpu[4] = GMRFLib_timer();
-		
+
 		ai_par->hessian_forward_finite_difference = fd_save;
 
 		/*
@@ -1941,7 +1941,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
-
 	// need to put this time_used in the next slot (not the Hessian one)
 	double overall_time_correct = -GMRFLib_timer();
 	if (gcpo) {
@@ -4527,9 +4526,9 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 	if (numa_have < 0) {
 		numa_have = GMRFLib_numa_have();
 	}
-	
+
 	SET_CACHE_IDX();
-	
+
 	static double *wp = NULL;
 	static double *xp = NULL;
 	static double *wxp2 = NULL;

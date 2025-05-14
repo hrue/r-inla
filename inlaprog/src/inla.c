@@ -6969,7 +6969,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
-	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1); // for cache-indexing
+	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing
 	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
@@ -7621,7 +7621,7 @@ int main(int argc, char **argv)
 			// in case sections are skipped
 			for (int ii = 1; ii <= 7; ii++) {
 				if (ISZERO(GMRFLib_overall_cpu[ii])) {
-					GMRFLib_overall_cpu[ii] = GMRFLib_overall_cpu[ii-1];
+					GMRFLib_overall_cpu[ii] = GMRFLib_overall_cpu[ii - 1];
 				}
 			}
 

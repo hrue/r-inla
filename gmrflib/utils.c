@@ -1365,7 +1365,7 @@ int GMRFLib_debug_functions(const char *name)
 			char *def = getenv("INLA_DEBUG");
 			int verbose = 0;
 			map_stri *tmp = NULL;
-			
+
 			if (def) {
 				def = Strdup(def);
 			}
@@ -1395,7 +1395,7 @@ int GMRFLib_debug_functions(const char *name)
 						val = 1;
 					} else {
 						int len = s2 - s + 1;
-						int len1 = len + 1;    /* to avoid compiler warning */
+						int len1 = len + 1;	/* to avoid compiler warning */
 						assert(len >= 0);
 						ss = Calloc(len + 1, char);
 						ss[len1 - 1] = '\0';
@@ -1470,7 +1470,7 @@ int GMRFLib_trace_functions(const char *name)
 			char *def = getenv("INLA_TRACE");
 			int verbose = 0;
 			map_stri *tmp = NULL;
-			
+
 			if (def) {
 				def = Strdup(def);
 			}
@@ -1574,7 +1574,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 			char *def = getenv("INLA_CACHE");
 			int verbose = 0;
 			map_stri *tmp = NULL;
-			
+
 			if (def) {
 				def = Strdup(def);
 			}
@@ -2247,9 +2247,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2269,15 +2269,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

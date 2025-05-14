@@ -402,21 +402,21 @@ typedef enum {
 	}
 
 #else
-#define GMRFLib_DEBUG(msg_) 
-#define GMRFLib_DEBUG_i(msg_, i_) 
-#define GMRFLib_DEBUG_ii(msg_, i_, ii_)	
-#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_) 	
-#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_) 	
-#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_) 	
-#define GMRFLib_DEBUG_d(msg_, d_) 
-#define GMRFLib_DEBUG_dd(msg_, d_, dd_) 	
-#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_) 	
-#define GMRFLib_DEBUG_id(msg_, i_, d_) 	
-#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_) 	
-#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_) 	
-#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_) 	
-#define GMRFLib_TRACE_i(msg_, i_) 
-#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_) 	
+#define GMRFLib_DEBUG(msg_)
+#define GMRFLib_DEBUG_i(msg_, i_)
+#define GMRFLib_DEBUG_ii(msg_, i_, ii_)
+#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_)
+#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_)
+#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_)
+#define GMRFLib_DEBUG_d(msg_, d_)
+#define GMRFLib_DEBUG_dd(msg_, d_, dd_)
+#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_)
+#define GMRFLib_DEBUG_id(msg_, i_, d_)
+#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_)
+#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_)
+#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_)
+#define GMRFLib_TRACE_i(msg_, i_)
+#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_)
 #endif
 
 #define Calloc_init(n_, m_)						\
@@ -603,7 +603,7 @@ typedef enum {
 
 #define GMRFLib_CACHE_IDX_ADD_NUMA(__id)				\
 	__id += GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2(); \
-	
+
 #define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (GMRFLib_numa_have()) {					\
 		int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);		\
