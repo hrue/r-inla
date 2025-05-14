@@ -4474,7 +4474,6 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
 		if (!lwork[cache_idx_numa]) {
-			// need 3 only as 'wtmp' is not used because 'A' below is not computed
 			double *worktmp = Malloc(5 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
 
@@ -4510,6 +4509,10 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
+	if (numa_retry) {
+		Free(lwork[cache_idx_numa]);
+	}
+	
 	GMRFLib_CACHE_HITMISS_INIT();
 	int POSSIBLY_UNUSED(miss) = 0;
 	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, lwork[cache_idx_numa]);

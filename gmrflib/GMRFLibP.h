@@ -613,6 +613,9 @@ typedef enum {
 				Free(ptr_);				\
 				ptr_ = ww_;				\
 				Memset(ptr_, 0, (len_) * sizeof(type_)); \
+			} else {					\
+				numa_retry = 1;				\
+				FIXME("NUMA ALLOC FAIL");		\
 			}						\
 		}							\
 	}	
@@ -621,6 +624,7 @@ typedef enum {
 #define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
 
 #define SET_CACHE_IDX()							\
+	int POSSIBLY_UNUSED(numa_retry) = 0;				\
 	int POSSIBLY_UNUSED(cache_idx) = 0;				\
 	int POSSIBLY_UNUSED(cache_idx_numa) = 0;			\
 	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\

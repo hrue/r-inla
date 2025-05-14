@@ -270,8 +270,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
 
-					assert(GMRFLib_numa_node_of_ptr((void *) ww) != numa);
-					
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
 					ww[3] = 0.666666666666666666666667;
@@ -499,9 +497,15 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		*dd = dddf;
 	}
 
-	GMRFLib_CACHE_HITMISS_INIT();
-	int POSSIBLY_UNUSED(miss) = 0;
-	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, w->wf[stenc]);
+	if (numa_retry) {
+		Free(w->wf[stenc]);
+	}
 
+	if (w->wf[stenc]) {
+		GMRFLib_CACHE_HITMISS_INIT();
+		int POSSIBLY_UNUSED(miss) = 0;
+		GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, w->wf[stenc]);
+	}
+	
 	return GMRFLib_SUCCESS;
 }
