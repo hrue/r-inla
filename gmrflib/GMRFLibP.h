@@ -573,7 +573,8 @@ typedef enum {
 		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		int mt_ = GMRFLib_MAX_THREADS();			\
-		int numa_offset_ = numa_node_ * mt_ * (mt_ + 1);	\
+		int mt2_ = GMRFLib_MAX_THREADS2();			\
+		int numa_offset_ = numa_node_ * mt2_;			\
 		if (level1_ <= 1) {					\
 			__id =  tnum_ + numa_offset_;			\
 		} else if (level1_ == 2) {				\
@@ -636,13 +637,14 @@ typedef enum {
 	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
 	int mt1_ = GMRFLib_MAX_THREADS();				\
 	int mt2_ = GMRFLib_MAX_THREADS2();				\
-	if (lcache_idx && *lcache_idx >= mt1_) {			\
+	FIXME1("FIXME");						\
+	if (0 && lcache_idx && *lcache_idx >= mt1_) {			\
 		/* In this case, lcache_idx is numa_ready, do nothing */ \
 		cache_idx = (*lcache_idx  - (mt1_ + mt2_ * numa));	\
 		cache_idx_numa = *lcache_idx;				\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \
-		if (lcache_idx && *lcache_idx >= 0) {			\
+		if (0 && lcache_idx && *lcache_idx >= 0) {		\
 			cache_idx = *lcache_idx;			\
 		} else {						\
 			GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);	\
