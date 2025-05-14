@@ -4,6 +4,11 @@
 #include <sched.h>
 #include "my-numa.h"
 
+// oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
+static int NUMA_have = -1;				       // we have (=1) NUMA support or not (=0)
+static int NUMA_nodes = -1;				       // number of NUMA nodes. =1 if no NUMA */
+static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
+							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #if defined(INLA_WITH_NUMA)
 
 #if !defined(INLA_WITH_HWLOC)
@@ -13,11 +18,6 @@
 #include <numa.h>
 #include <numaif.h>
 
-// oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
-static int NUMA_have = -1;				       // we have (=1) NUMA support or not (=0)
-static int NUMA_nodes = -1;				       // number of NUMA nodes. =1 if no NUMA */
-static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
-							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 
 void GMRFLib_numa_init(void)
 {
@@ -135,7 +135,7 @@ void GMRFLib_numa_free(void *start, size_t size)
 
 #else
 
-void GMRFLib_numa_set_ctl(int enable)
+void GMRFLib_numa_set_ctl(int UNUSED(enable))
 {
 	NUMA_enable = 0;
 }
