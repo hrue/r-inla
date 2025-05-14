@@ -15640,7 +15640,7 @@ Number of hyperparmeters is 10.
 \item{doc = }{\verb{The circular Gaussian likelihoood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
-\item{link = }{\verb{default tan}}
+\item{link = }{\verb{default tan tan.pi}}
 \item{pdf = }{\verb{circular-normal}}
 \item{status = }{\verb{disabled}}
 }
@@ -15672,7 +15672,7 @@ Number of hyperparmeters is 1.
 \item{doc = }{\verb{The wrapped Cauchy likelihoood}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
-\item{link = }{\verb{default tan}}
+\item{link = }{\verb{default tan tan.pi}}
 \item{pdf = }{\verb{wrapped-cauchy}}
 \item{status = }{\verb{disabled}}
 }
@@ -19177,7 +19177,7 @@ Number of hyperparmeters is 1.
 \item{experimental = }{\verb{TRUE}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
-\item{link = }{\verb{default circular identity}}
+\item{link = }{\verb{default circular tan tan.pi identity}}
 \item{pdf = }{\verb{vm}}
 }
 }

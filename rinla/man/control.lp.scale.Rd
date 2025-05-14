@@ -35,12 +35,14 @@ Other control:
 \code{\link{control.link}()},
 \code{\link{control.mix}()},
 \code{\link{control.mode}()},
+\code{\link{control.numa}()},
 \code{\link{control.pardiso}()},
 \code{\link{control.pom}()},
 \code{\link{control.predictor}()},
 \code{\link{control.scopy}()},
 \code{\link{control.sem}()},
 \code{\link{control.stiles}()},
+\code{\link{control.taucs}()},
 \code{\link{control.update}()},
 \code{\link{control.vb}()}
 }

@@ -1,0 +1,20905 @@
+## DO NOT EDIT!
+## This file is generated automatically from models.R
+#' @title Valid models in INLA
+#'
+#' @name inla.models
+#' @rdname models
+#' @aliases inla.models
+#' @export inla.models
+#'
+#' @description
+#' This page describe the models implemented in `inla`, divided into sections:
+#' latent, group, scopy, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale.
+#'
+#' @usage
+#' inla.models()
+#'
+#' @return
+#' Valid sections are:
+#' latent, group, scopy, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale.
+#' @section 'latent':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'linear'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Alternative interface to an fixed effect}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{linear}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'iid'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effects in dim=1}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{indep}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{1001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'mec'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Classical measurement error model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{mec}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 4.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{2001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{1 0.001}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{2002}}
+#'             \item{name = }{\verb{prec.u}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1e-04}}
+#'             \item{initial = }{\verb{9.21034037197618}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{2003}}
+#'             \item{name = }{\verb{mean.x}}
+#'             \item{short.name = }{\verb{mu.x}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 1e-04}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{2004}}
+#'             \item{name = }{\verb{prec.x}}
+#'             \item{short.name = }{\verb{prec.x}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 10000}}
+#'             \item{initial = }{\verb{-9.21034037197618}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'meb'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Berkson measurement error model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{meb}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{3001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{1 0.001}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{3002}}
+#'             \item{name = }{\verb{prec.u}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1e-04}}
+#'             \item{initial = }{\verb{6.90775527898214}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rgeneric'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Generic latent model specified using R}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{rgeneric}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cgeneric'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Generic latent model specified using C}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{rgeneric}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'rw1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 1}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{min.diff = }{\verb{1e-06}}
+#'               \item{pdf = }{\verb{rw1}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{4001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 2}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{min.diff = }{\verb{1e-04}}
+#'               \item{pdf = }{\verb{rw2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{5001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'crw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Exact solution to the random walk of order 2}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{2}}
+#'               \item{aug.constr = }{\verb{1}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{min.diff = }{\verb{1e-04}}
+#'               \item{pdf = }{\verb{crw2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{6001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'seasonal'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Seasonal model for time series}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{seasonal}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{7001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'besag'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Besag area model (CAR-model)}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{besag}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{8001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'besag2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The shared Besag model}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2}}
+#'               \item{n.div.by = }{\verb{2}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{besag2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{9001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{9002}}
+#'             \item{name = }{\verb{scaling parameter}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{10 10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'bym'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The BYM-model (Besag-York-Mollier model)}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{2}}
+#'               \item{aug.constr = }{\verb{2}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{bym}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{10001}}
+#'             \item{name = }{\verb{log unstructured precision}}
+#'             \item{short.name = }{\verb{prec.unstruct}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-04}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{10002}}
+#'             \item{name = }{\verb{log spatial precision}}
+#'             \item{short.name = }{\verb{prec.spatial}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-04}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'bym2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The BYM-model with the PC priors}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{2}}
+#'               \item{aug.constr = }{\verb{2}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{bym2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{11001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{11002}}
+#'             \item{name = }{\verb{logit phi}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{prior = }{\verb{pc}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{initial = }{\verb{-3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'besagproper'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A proper version of the Besag model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{besagproper}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{12001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-04}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{12002}}
+#'             \item{name = }{\verb{log diagonal}}
+#'             \item{short.name = }{\verb{diag}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'besagproper2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{An alternative proper version of the Besag model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{besagproper2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-04}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13002}}
+#'             \item{name = }{\verb{logit lambda}}
+#'             \item{short.name = }{\verb{lambda}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.45}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'fgn'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Fractional Gaussian noise model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{5}}
+#'               \item{aug.constr = }{\verb{1}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{order.default = }{\verb{4}}
+#'               \item{order.defined = }{\verb{3 4}}
+#'               \item{pdf = }{\verb{fgn}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13101}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{3 0.01}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13102}}
+#'             \item{name = }{\verb{logit H}}
+#'             \item{short.name = }{\verb{H}}
+#'             \item{prior = }{\verb{pcfgnh}}
+#'             \item{param = }{\verb{0.9 0.1}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log((2 * x - 1) / (2 * (1 - x)))}}
+#'             \item{from.theta = }{\verb{function(x) 0.5 + 0.5 * exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'fgn2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Fractional Gaussian noise model (alt 2)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{4}}
+#'               \item{aug.constr = }{\verb{1}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{order.default = }{\verb{4}}
+#'               \item{order.defined = }{\verb{3 4}}
+#'               \item{pdf = }{\verb{fgn}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13111}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{3 0.01}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{13112}}
+#'             \item{name = }{\verb{logit H}}
+#'             \item{short.name = }{\verb{H}}
+#'             \item{prior = }{\verb{pcfgnh}}
+#'             \item{param = }{\verb{0.9 0.1}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log((2 * x - 1) / (2 * (1 - x)))}}
+#'             \item{from.theta = }{\verb{function(x) 0.5 + 0.5 * exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ar1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Auto-regressive model of order 1 (AR(1))}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{ar1}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{14001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{14002}}
+#'             \item{name = }{\verb{logit lag one correlation}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.15}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{14003}}
+#'             \item{name = }{\verb{mean}}
+#'             \item{short.name = }{\verb{mean}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ar1c'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Auto-regressive model of order 1 w/covariates}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{ar1c}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{14101}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{14102}}
+#'             \item{name = }{\verb{logit lag one correlation}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ar'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Auto-regressive model of order p (AR(p))}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{ar}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{3 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15002}}
+#'             \item{name = }{\verb{pacf1}}
+#'             \item{short.name = }{\verb{pacf1}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15003}}
+#'             \item{name = }{\verb{pacf2}}
+#'             \item{short.name = }{\verb{pacf2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15004}}
+#'             \item{name = }{\verb{pacf3}}
+#'             \item{short.name = }{\verb{pacf3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.3}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15005}}
+#'             \item{name = }{\verb{pacf4}}
+#'             \item{short.name = }{\verb{pacf4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15006}}
+#'             \item{name = }{\verb{pacf5}}
+#'             \item{short.name = }{\verb{pacf5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15007}}
+#'             \item{name = }{\verb{pacf6}}
+#'             \item{short.name = }{\verb{pacf6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15008}}
+#'             \item{name = }{\verb{pacf7}}
+#'             \item{short.name = }{\verb{pacf7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15009}}
+#'             \item{name = }{\verb{pacf8}}
+#'             \item{short.name = }{\verb{pacf8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15010}}
+#'             \item{name = }{\verb{pacf9}}
+#'             \item{short.name = }{\verb{pacf9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{15011}}
+#'             \item{name = }{\verb{pacf10}}
+#'             \item{short.name = }{\verb{pacf10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ou'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Ornstein-Uhlenbeck process}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{ou}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16002}}
+#'             \item{name = }{\verb{log phi}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'intslope'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Intecept-slope model with Wishart-prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{intslope}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 53.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16101}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart2d}}
+#'             \item{param = }{\verb{4 1 1 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16102}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16103}}
+#'             \item{name = }{\verb{logit correlation}}
+#'             \item{short.name = }{\verb{cor}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16104}}
+#'             \item{name = }{\verb{gamma1}}
+#'             \item{short.name = }{\verb{g1}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16105}}
+#'             \item{name = }{\verb{gamma2}}
+#'             \item{short.name = }{\verb{g2}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16106}}
+#'             \item{name = }{\verb{gamma3}}
+#'             \item{short.name = }{\verb{g3}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16107}}
+#'             \item{name = }{\verb{gamma4}}
+#'             \item{short.name = }{\verb{g4}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16108}}
+#'             \item{name = }{\verb{gamma5}}
+#'             \item{short.name = }{\verb{g5}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16109}}
+#'             \item{name = }{\verb{gamma6}}
+#'             \item{short.name = }{\verb{g6}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16110}}
+#'             \item{name = }{\verb{gamma7}}
+#'             \item{short.name = }{\verb{g7}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16111}}
+#'             \item{name = }{\verb{gamma8}}
+#'             \item{short.name = }{\verb{g8}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16112}}
+#'             \item{name = }{\verb{gamma9}}
+#'             \item{short.name = }{\verb{g9}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16113}}
+#'             \item{name = }{\verb{gamma10}}
+#'             \item{short.name = }{\verb{g10}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16114}}
+#'             \item{name = }{\verb{gamma11}}
+#'             \item{short.name = }{\verb{g11}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16115}}
+#'             \item{name = }{\verb{gamma12}}
+#'             \item{short.name = }{\verb{g12}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16116}}
+#'             \item{name = }{\verb{gamma13}}
+#'             \item{short.name = }{\verb{g13}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16117}}
+#'             \item{name = }{\verb{gamma14}}
+#'             \item{short.name = }{\verb{g14}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16118}}
+#'             \item{name = }{\verb{gamma15}}
+#'             \item{short.name = }{\verb{g15}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16119}}
+#'             \item{name = }{\verb{gamma16}}
+#'             \item{short.name = }{\verb{g16}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16120}}
+#'             \item{name = }{\verb{gamma17}}
+#'             \item{short.name = }{\verb{g17}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16121}}
+#'             \item{name = }{\verb{gamma18}}
+#'             \item{short.name = }{\verb{g18}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16122}}
+#'             \item{name = }{\verb{gamma19}}
+#'             \item{short.name = }{\verb{g19}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16123}}
+#'             \item{name = }{\verb{gamma20}}
+#'             \item{short.name = }{\verb{g20}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16124}}
+#'             \item{name = }{\verb{gamma21}}
+#'             \item{short.name = }{\verb{g21}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16125}}
+#'             \item{name = }{\verb{gamma22}}
+#'             \item{short.name = }{\verb{g22}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16126}}
+#'             \item{name = }{\verb{gamma23}}
+#'             \item{short.name = }{\verb{g23}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16127}}
+#'             \item{name = }{\verb{gamma24}}
+#'             \item{short.name = }{\verb{g24}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16128}}
+#'             \item{name = }{\verb{gamma25}}
+#'             \item{short.name = }{\verb{g25}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16129}}
+#'             \item{name = }{\verb{gamma26}}
+#'             \item{short.name = }{\verb{g26}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16130}}
+#'             \item{name = }{\verb{gamma27}}
+#'             \item{short.name = }{\verb{g27}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16131}}
+#'             \item{name = }{\verb{gamma28}}
+#'             \item{short.name = }{\verb{g28}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16132}}
+#'             \item{name = }{\verb{gamma29}}
+#'             \item{short.name = }{\verb{g29}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16133}}
+#'             \item{name = }{\verb{gamma30}}
+#'             \item{short.name = }{\verb{g30}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16134}}
+#'             \item{name = }{\verb{gamma31}}
+#'             \item{short.name = }{\verb{g31}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16135}}
+#'             \item{name = }{\verb{gamma32}}
+#'             \item{short.name = }{\verb{g32}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16136}}
+#'             \item{name = }{\verb{gamma33}}
+#'             \item{short.name = }{\verb{g33}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16137}}
+#'             \item{name = }{\verb{gamma34}}
+#'             \item{short.name = }{\verb{g34}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16138}}
+#'             \item{name = }{\verb{gamma35}}
+#'             \item{short.name = }{\verb{g35}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16139}}
+#'             \item{name = }{\verb{gamma36}}
+#'             \item{short.name = }{\verb{g36}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16140}}
+#'             \item{name = }{\verb{gamma37}}
+#'             \item{short.name = }{\verb{g37}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16141}}
+#'             \item{name = }{\verb{gamma38}}
+#'             \item{short.name = }{\verb{g38}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16142}}
+#'             \item{name = }{\verb{gamma39}}
+#'             \item{short.name = }{\verb{g39}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16143}}
+#'             \item{name = }{\verb{gamma40}}
+#'             \item{short.name = }{\verb{g40}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16144}}
+#'             \item{name = }{\verb{gamma41}}
+#'             \item{short.name = }{\verb{g41}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16145}}
+#'             \item{name = }{\verb{gamma42}}
+#'             \item{short.name = }{\verb{g42}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16146}}
+#'             \item{name = }{\verb{gamma43}}
+#'             \item{short.name = }{\verb{g43}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16147}}
+#'             \item{name = }{\verb{gamma44}}
+#'             \item{short.name = }{\verb{g44}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16148}}
+#'             \item{name = }{\verb{gamma45}}
+#'             \item{short.name = }{\verb{g45}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16149}}
+#'             \item{name = }{\verb{gamma46}}
+#'             \item{short.name = }{\verb{g46}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16150}}
+#'             \item{name = }{\verb{gamma47}}
+#'             \item{short.name = }{\verb{g47}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16151}}
+#'             \item{name = }{\verb{gamma48}}
+#'             \item{short.name = }{\verb{g48}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta52'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16152}}
+#'             \item{name = }{\verb{gamma49}}
+#'             \item{short.name = }{\verb{g49}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta53'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{16153}}
+#'             \item{name = }{\verb{gamma50}}
+#'             \item{short.name = }{\verb{g50}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 36}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'generic'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A generic model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{generic0}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{17001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'generic0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A generic model (type 0)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{generic0}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{18001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'generic1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A generic model (type 1)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{generic1}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{19001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{19002}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{beta}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'generic2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A generic model (type 2)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{2}}
+#'               \item{aug.constr = }{\verb{2}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{generic2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{20001}}
+#'             \item{name = }{\verb{log precision cmatrix}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{20002}}
+#'             \item{name = }{\verb{log precision random}}
+#'             \item{short.name = }{\verb{prec.random}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.001}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'generic3'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A generic model (type 3)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{generic3}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21003}}
+#'             \item{name = }{\verb{log precision3}}
+#'             \item{short.name = }{\verb{prec3}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21004}}
+#'             \item{name = }{\verb{log precision4}}
+#'             \item{short.name = }{\verb{prec4}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21005}}
+#'             \item{name = }{\verb{log precision5}}
+#'             \item{short.name = }{\verb{prec5}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21006}}
+#'             \item{name = }{\verb{log precision6}}
+#'             \item{short.name = }{\verb{prec6}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21007}}
+#'             \item{name = }{\verb{log precision7}}
+#'             \item{short.name = }{\verb{prec7}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21008}}
+#'             \item{name = }{\verb{log precision8}}
+#'             \item{short.name = }{\verb{prec8}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21009}}
+#'             \item{name = }{\verb{log precision9}}
+#'             \item{short.name = }{\verb{prec9}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21010}}
+#'             \item{name = }{\verb{log precision10}}
+#'             \item{short.name = }{\verb{prec10}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{21011}}
+#'             \item{name = }{\verb{log precision common}}
+#'             \item{short.name = }{\verb{prec.common}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'spde'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A SPDE model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{spde}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 4.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{22001}}
+#'             \item{name = }{\verb{theta.T}}
+#'             \item{short.name = }{\verb{T}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{22002}}
+#'             \item{name = }{\verb{theta.K}}
+#'             \item{short.name = }{\verb{K}}
+#'             \item{initial = }{\verb{-2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{22003}}
+#'             \item{name = }{\verb{theta.KT}}
+#'             \item{short.name = }{\verb{KT}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{22004}}
+#'             \item{name = }{\verb{theta.OC}}
+#'             \item{short.name = }{\verb{OC}}
+#'             \item{initial = }{\verb{-20}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'spde2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A SPDE2 model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{spde2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 100.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23001}}
+#'             \item{name = }{\verb{theta1}}
+#'             \item{short.name = }{\verb{t1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{mvnorm}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23002}}
+#'             \item{name = }{\verb{theta2}}
+#'             \item{short.name = }{\verb{t2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23003}}
+#'             \item{name = }{\verb{theta3}}
+#'             \item{short.name = }{\verb{t3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23004}}
+#'             \item{name = }{\verb{theta4}}
+#'             \item{short.name = }{\verb{t4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23005}}
+#'             \item{name = }{\verb{theta5}}
+#'             \item{short.name = }{\verb{t5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23006}}
+#'             \item{name = }{\verb{theta6}}
+#'             \item{short.name = }{\verb{t6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23007}}
+#'             \item{name = }{\verb{theta7}}
+#'             \item{short.name = }{\verb{t7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23008}}
+#'             \item{name = }{\verb{theta8}}
+#'             \item{short.name = }{\verb{t8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23009}}
+#'             \item{name = }{\verb{theta9}}
+#'             \item{short.name = }{\verb{t9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23010}}
+#'             \item{name = }{\verb{theta10}}
+#'             \item{short.name = }{\verb{t10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23011}}
+#'             \item{name = }{\verb{theta11}}
+#'             \item{short.name = }{\verb{t11}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23012}}
+#'             \item{name = }{\verb{theta12}}
+#'             \item{short.name = }{\verb{t12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23013}}
+#'             \item{name = }{\verb{theta13}}
+#'             \item{short.name = }{\verb{t13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23014}}
+#'             \item{name = }{\verb{theta14}}
+#'             \item{short.name = }{\verb{t14}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23015}}
+#'             \item{name = }{\verb{theta15}}
+#'             \item{short.name = }{\verb{t15}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23016}}
+#'             \item{name = }{\verb{theta16}}
+#'             \item{short.name = }{\verb{t16}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23017}}
+#'             \item{name = }{\verb{theta17}}
+#'             \item{short.name = }{\verb{t17}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23018}}
+#'             \item{name = }{\verb{theta18}}
+#'             \item{short.name = }{\verb{t18}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23019}}
+#'             \item{name = }{\verb{theta19}}
+#'             \item{short.name = }{\verb{t19}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23020}}
+#'             \item{name = }{\verb{theta20}}
+#'             \item{short.name = }{\verb{t20}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23021}}
+#'             \item{name = }{\verb{theta21}}
+#'             \item{short.name = }{\verb{t21}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23022}}
+#'             \item{name = }{\verb{theta22}}
+#'             \item{short.name = }{\verb{t22}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23023}}
+#'             \item{name = }{\verb{theta23}}
+#'             \item{short.name = }{\verb{t23}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23024}}
+#'             \item{name = }{\verb{theta24}}
+#'             \item{short.name = }{\verb{t24}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23025}}
+#'             \item{name = }{\verb{theta25}}
+#'             \item{short.name = }{\verb{t25}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23026}}
+#'             \item{name = }{\verb{theta26}}
+#'             \item{short.name = }{\verb{t26}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23027}}
+#'             \item{name = }{\verb{theta27}}
+#'             \item{short.name = }{\verb{t27}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23028}}
+#'             \item{name = }{\verb{theta28}}
+#'             \item{short.name = }{\verb{t28}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23029}}
+#'             \item{name = }{\verb{theta29}}
+#'             \item{short.name = }{\verb{t29}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23030}}
+#'             \item{name = }{\verb{theta30}}
+#'             \item{short.name = }{\verb{t30}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23031}}
+#'             \item{name = }{\verb{theta31}}
+#'             \item{short.name = }{\verb{t31}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23032}}
+#'             \item{name = }{\verb{theta32}}
+#'             \item{short.name = }{\verb{t32}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23033}}
+#'             \item{name = }{\verb{theta33}}
+#'             \item{short.name = }{\verb{t33}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23034}}
+#'             \item{name = }{\verb{theta34}}
+#'             \item{short.name = }{\verb{t34}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23035}}
+#'             \item{name = }{\verb{theta35}}
+#'             \item{short.name = }{\verb{t35}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23036}}
+#'             \item{name = }{\verb{theta36}}
+#'             \item{short.name = }{\verb{t36}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23037}}
+#'             \item{name = }{\verb{theta37}}
+#'             \item{short.name = }{\verb{t37}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23038}}
+#'             \item{name = }{\verb{theta38}}
+#'             \item{short.name = }{\verb{t38}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23039}}
+#'             \item{name = }{\verb{theta39}}
+#'             \item{short.name = }{\verb{t39}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23040}}
+#'             \item{name = }{\verb{theta40}}
+#'             \item{short.name = }{\verb{t40}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23041}}
+#'             \item{name = }{\verb{theta41}}
+#'             \item{short.name = }{\verb{t41}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23042}}
+#'             \item{name = }{\verb{theta42}}
+#'             \item{short.name = }{\verb{t42}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23043}}
+#'             \item{name = }{\verb{theta43}}
+#'             \item{short.name = }{\verb{t43}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23044}}
+#'             \item{name = }{\verb{theta44}}
+#'             \item{short.name = }{\verb{t44}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23045}}
+#'             \item{name = }{\verb{theta45}}
+#'             \item{short.name = }{\verb{t45}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23046}}
+#'             \item{name = }{\verb{theta46}}
+#'             \item{short.name = }{\verb{t46}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23047}}
+#'             \item{name = }{\verb{theta47}}
+#'             \item{short.name = }{\verb{t47}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23048}}
+#'             \item{name = }{\verb{theta48}}
+#'             \item{short.name = }{\verb{t48}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23049}}
+#'             \item{name = }{\verb{theta49}}
+#'             \item{short.name = }{\verb{t49}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23050}}
+#'             \item{name = }{\verb{theta50}}
+#'             \item{short.name = }{\verb{t50}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23051}}
+#'             \item{name = }{\verb{theta51}}
+#'             \item{short.name = }{\verb{t51}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta52'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23052}}
+#'             \item{name = }{\verb{theta52}}
+#'             \item{short.name = }{\verb{t52}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta53'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23053}}
+#'             \item{name = }{\verb{theta53}}
+#'             \item{short.name = }{\verb{t53}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta54'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23054}}
+#'             \item{name = }{\verb{theta54}}
+#'             \item{short.name = }{\verb{t54}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta55'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23055}}
+#'             \item{name = }{\verb{theta55}}
+#'             \item{short.name = }{\verb{t55}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta56'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23056}}
+#'             \item{name = }{\verb{theta56}}
+#'             \item{short.name = }{\verb{t56}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta57'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23057}}
+#'             \item{name = }{\verb{theta57}}
+#'             \item{short.name = }{\verb{t57}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta58'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23058}}
+#'             \item{name = }{\verb{theta58}}
+#'             \item{short.name = }{\verb{t58}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta59'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23059}}
+#'             \item{name = }{\verb{theta59}}
+#'             \item{short.name = }{\verb{t59}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta60'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23060}}
+#'             \item{name = }{\verb{theta60}}
+#'             \item{short.name = }{\verb{t60}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta61'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23061}}
+#'             \item{name = }{\verb{theta61}}
+#'             \item{short.name = }{\verb{t61}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta62'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23062}}
+#'             \item{name = }{\verb{theta62}}
+#'             \item{short.name = }{\verb{t62}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta63'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23063}}
+#'             \item{name = }{\verb{theta63}}
+#'             \item{short.name = }{\verb{t63}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta64'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23064}}
+#'             \item{name = }{\verb{theta64}}
+#'             \item{short.name = }{\verb{t64}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta65'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23065}}
+#'             \item{name = }{\verb{theta65}}
+#'             \item{short.name = }{\verb{t65}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta66'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23066}}
+#'             \item{name = }{\verb{theta66}}
+#'             \item{short.name = }{\verb{t66}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta67'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23067}}
+#'             \item{name = }{\verb{theta67}}
+#'             \item{short.name = }{\verb{t67}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta68'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23068}}
+#'             \item{name = }{\verb{theta68}}
+#'             \item{short.name = }{\verb{t68}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta69'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23069}}
+#'             \item{name = }{\verb{theta69}}
+#'             \item{short.name = }{\verb{t69}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta70'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23070}}
+#'             \item{name = }{\verb{theta70}}
+#'             \item{short.name = }{\verb{t70}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta71'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23071}}
+#'             \item{name = }{\verb{theta71}}
+#'             \item{short.name = }{\verb{t71}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta72'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23072}}
+#'             \item{name = }{\verb{theta72}}
+#'             \item{short.name = }{\verb{t72}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta73'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23073}}
+#'             \item{name = }{\verb{theta73}}
+#'             \item{short.name = }{\verb{t73}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta74'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23074}}
+#'             \item{name = }{\verb{theta74}}
+#'             \item{short.name = }{\verb{t74}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta75'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23075}}
+#'             \item{name = }{\verb{theta75}}
+#'             \item{short.name = }{\verb{t75}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta76'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23076}}
+#'             \item{name = }{\verb{theta76}}
+#'             \item{short.name = }{\verb{t76}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta77'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23077}}
+#'             \item{name = }{\verb{theta77}}
+#'             \item{short.name = }{\verb{t77}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta78'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23078}}
+#'             \item{name = }{\verb{theta78}}
+#'             \item{short.name = }{\verb{t78}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta79'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23079}}
+#'             \item{name = }{\verb{theta79}}
+#'             \item{short.name = }{\verb{t79}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta80'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23080}}
+#'             \item{name = }{\verb{theta80}}
+#'             \item{short.name = }{\verb{t80}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta81'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23081}}
+#'             \item{name = }{\verb{theta81}}
+#'             \item{short.name = }{\verb{t81}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta82'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23082}}
+#'             \item{name = }{\verb{theta82}}
+#'             \item{short.name = }{\verb{t82}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta83'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23083}}
+#'             \item{name = }{\verb{theta83}}
+#'             \item{short.name = }{\verb{t83}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta84'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23084}}
+#'             \item{name = }{\verb{theta84}}
+#'             \item{short.name = }{\verb{t84}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta85'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23085}}
+#'             \item{name = }{\verb{theta85}}
+#'             \item{short.name = }{\verb{t85}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta86'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23086}}
+#'             \item{name = }{\verb{theta86}}
+#'             \item{short.name = }{\verb{t86}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta87'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23087}}
+#'             \item{name = }{\verb{theta87}}
+#'             \item{short.name = }{\verb{t87}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta88'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23088}}
+#'             \item{name = }{\verb{theta88}}
+#'             \item{short.name = }{\verb{t88}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta89'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23089}}
+#'             \item{name = }{\verb{theta89}}
+#'             \item{short.name = }{\verb{t89}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta90'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23090}}
+#'             \item{name = }{\verb{theta90}}
+#'             \item{short.name = }{\verb{t90}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta91'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23091}}
+#'             \item{name = }{\verb{theta91}}
+#'             \item{short.name = }{\verb{t91}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta92'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23092}}
+#'             \item{name = }{\verb{theta92}}
+#'             \item{short.name = }{\verb{t92}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta93'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23093}}
+#'             \item{name = }{\verb{theta93}}
+#'             \item{short.name = }{\verb{t93}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta94'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23094}}
+#'             \item{name = }{\verb{theta94}}
+#'             \item{short.name = }{\verb{t94}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta95'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23095}}
+#'             \item{name = }{\verb{theta95}}
+#'             \item{short.name = }{\verb{t95}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta96'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23096}}
+#'             \item{name = }{\verb{theta96}}
+#'             \item{short.name = }{\verb{t96}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta97'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23097}}
+#'             \item{name = }{\verb{theta97}}
+#'             \item{short.name = }{\verb{t97}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta98'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23098}}
+#'             \item{name = }{\verb{theta98}}
+#'             \item{short.name = }{\verb{t98}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta99'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23099}}
+#'             \item{name = }{\verb{theta99}}
+#'             \item{short.name = }{\verb{t99}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta100'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{23100}}
+#'             \item{name = }{\verb{theta100}}
+#'             \item{short.name = }{\verb{t100}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'spde3'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A SPDE3 model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{spde3}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 100.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24001}}
+#'             \item{name = }{\verb{theta1}}
+#'             \item{short.name = }{\verb{t1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{mvnorm}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24002}}
+#'             \item{name = }{\verb{theta2}}
+#'             \item{short.name = }{\verb{t2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24003}}
+#'             \item{name = }{\verb{theta3}}
+#'             \item{short.name = }{\verb{t3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24004}}
+#'             \item{name = }{\verb{theta4}}
+#'             \item{short.name = }{\verb{t4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24005}}
+#'             \item{name = }{\verb{theta5}}
+#'             \item{short.name = }{\verb{t5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24006}}
+#'             \item{name = }{\verb{theta6}}
+#'             \item{short.name = }{\verb{t6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24007}}
+#'             \item{name = }{\verb{theta7}}
+#'             \item{short.name = }{\verb{t7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24008}}
+#'             \item{name = }{\verb{theta8}}
+#'             \item{short.name = }{\verb{t8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24009}}
+#'             \item{name = }{\verb{theta9}}
+#'             \item{short.name = }{\verb{t9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24010}}
+#'             \item{name = }{\verb{theta10}}
+#'             \item{short.name = }{\verb{t10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24011}}
+#'             \item{name = }{\verb{theta11}}
+#'             \item{short.name = }{\verb{t11}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24012}}
+#'             \item{name = }{\verb{theta12}}
+#'             \item{short.name = }{\verb{t12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24013}}
+#'             \item{name = }{\verb{theta13}}
+#'             \item{short.name = }{\verb{t13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24014}}
+#'             \item{name = }{\verb{theta14}}
+#'             \item{short.name = }{\verb{t14}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24015}}
+#'             \item{name = }{\verb{theta15}}
+#'             \item{short.name = }{\verb{t15}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24016}}
+#'             \item{name = }{\verb{theta16}}
+#'             \item{short.name = }{\verb{t16}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24017}}
+#'             \item{name = }{\verb{theta17}}
+#'             \item{short.name = }{\verb{t17}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24018}}
+#'             \item{name = }{\verb{theta18}}
+#'             \item{short.name = }{\verb{t18}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24019}}
+#'             \item{name = }{\verb{theta19}}
+#'             \item{short.name = }{\verb{t19}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24020}}
+#'             \item{name = }{\verb{theta20}}
+#'             \item{short.name = }{\verb{t20}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24021}}
+#'             \item{name = }{\verb{theta21}}
+#'             \item{short.name = }{\verb{t21}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24022}}
+#'             \item{name = }{\verb{theta22}}
+#'             \item{short.name = }{\verb{t22}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24023}}
+#'             \item{name = }{\verb{theta23}}
+#'             \item{short.name = }{\verb{t23}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24024}}
+#'             \item{name = }{\verb{theta24}}
+#'             \item{short.name = }{\verb{t24}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24025}}
+#'             \item{name = }{\verb{theta25}}
+#'             \item{short.name = }{\verb{t25}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24026}}
+#'             \item{name = }{\verb{theta26}}
+#'             \item{short.name = }{\verb{t26}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24027}}
+#'             \item{name = }{\verb{theta27}}
+#'             \item{short.name = }{\verb{t27}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24028}}
+#'             \item{name = }{\verb{theta28}}
+#'             \item{short.name = }{\verb{t28}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24029}}
+#'             \item{name = }{\verb{theta29}}
+#'             \item{short.name = }{\verb{t29}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24030}}
+#'             \item{name = }{\verb{theta30}}
+#'             \item{short.name = }{\verb{t30}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24031}}
+#'             \item{name = }{\verb{theta31}}
+#'             \item{short.name = }{\verb{t31}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24032}}
+#'             \item{name = }{\verb{theta32}}
+#'             \item{short.name = }{\verb{t32}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24033}}
+#'             \item{name = }{\verb{theta33}}
+#'             \item{short.name = }{\verb{t33}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24034}}
+#'             \item{name = }{\verb{theta34}}
+#'             \item{short.name = }{\verb{t34}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24035}}
+#'             \item{name = }{\verb{theta35}}
+#'             \item{short.name = }{\verb{t35}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24036}}
+#'             \item{name = }{\verb{theta36}}
+#'             \item{short.name = }{\verb{t36}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24037}}
+#'             \item{name = }{\verb{theta37}}
+#'             \item{short.name = }{\verb{t37}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24038}}
+#'             \item{name = }{\verb{theta38}}
+#'             \item{short.name = }{\verb{t38}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24039}}
+#'             \item{name = }{\verb{theta39}}
+#'             \item{short.name = }{\verb{t39}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24040}}
+#'             \item{name = }{\verb{theta40}}
+#'             \item{short.name = }{\verb{t40}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24041}}
+#'             \item{name = }{\verb{theta41}}
+#'             \item{short.name = }{\verb{t41}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24042}}
+#'             \item{name = }{\verb{theta42}}
+#'             \item{short.name = }{\verb{t42}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24043}}
+#'             \item{name = }{\verb{theta43}}
+#'             \item{short.name = }{\verb{t43}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24044}}
+#'             \item{name = }{\verb{theta44}}
+#'             \item{short.name = }{\verb{t44}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24045}}
+#'             \item{name = }{\verb{theta45}}
+#'             \item{short.name = }{\verb{t45}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24046}}
+#'             \item{name = }{\verb{theta46}}
+#'             \item{short.name = }{\verb{t46}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24047}}
+#'             \item{name = }{\verb{theta47}}
+#'             \item{short.name = }{\verb{t47}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24048}}
+#'             \item{name = }{\verb{theta48}}
+#'             \item{short.name = }{\verb{t48}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24049}}
+#'             \item{name = }{\verb{theta49}}
+#'             \item{short.name = }{\verb{t49}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24050}}
+#'             \item{name = }{\verb{theta50}}
+#'             \item{short.name = }{\verb{t50}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24051}}
+#'             \item{name = }{\verb{theta51}}
+#'             \item{short.name = }{\verb{t51}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta52'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24052}}
+#'             \item{name = }{\verb{theta52}}
+#'             \item{short.name = }{\verb{t52}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta53'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24053}}
+#'             \item{name = }{\verb{theta53}}
+#'             \item{short.name = }{\verb{t53}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta54'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24054}}
+#'             \item{name = }{\verb{theta54}}
+#'             \item{short.name = }{\verb{t54}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta55'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24055}}
+#'             \item{name = }{\verb{theta55}}
+#'             \item{short.name = }{\verb{t55}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta56'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24056}}
+#'             \item{name = }{\verb{theta56}}
+#'             \item{short.name = }{\verb{t56}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta57'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24057}}
+#'             \item{name = }{\verb{theta57}}
+#'             \item{short.name = }{\verb{t57}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta58'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24058}}
+#'             \item{name = }{\verb{theta58}}
+#'             \item{short.name = }{\verb{t58}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta59'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24059}}
+#'             \item{name = }{\verb{theta59}}
+#'             \item{short.name = }{\verb{t59}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta60'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24060}}
+#'             \item{name = }{\verb{theta60}}
+#'             \item{short.name = }{\verb{t60}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta61'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24061}}
+#'             \item{name = }{\verb{theta61}}
+#'             \item{short.name = }{\verb{t61}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta62'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24062}}
+#'             \item{name = }{\verb{theta62}}
+#'             \item{short.name = }{\verb{t62}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta63'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24063}}
+#'             \item{name = }{\verb{theta63}}
+#'             \item{short.name = }{\verb{t63}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta64'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24064}}
+#'             \item{name = }{\verb{theta64}}
+#'             \item{short.name = }{\verb{t64}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta65'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24065}}
+#'             \item{name = }{\verb{theta65}}
+#'             \item{short.name = }{\verb{t65}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta66'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24066}}
+#'             \item{name = }{\verb{theta66}}
+#'             \item{short.name = }{\verb{t66}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta67'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24067}}
+#'             \item{name = }{\verb{theta67}}
+#'             \item{short.name = }{\verb{t67}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta68'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24068}}
+#'             \item{name = }{\verb{theta68}}
+#'             \item{short.name = }{\verb{t68}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta69'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24069}}
+#'             \item{name = }{\verb{theta69}}
+#'             \item{short.name = }{\verb{t69}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta70'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24070}}
+#'             \item{name = }{\verb{theta70}}
+#'             \item{short.name = }{\verb{t70}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta71'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24071}}
+#'             \item{name = }{\verb{theta71}}
+#'             \item{short.name = }{\verb{t71}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta72'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24072}}
+#'             \item{name = }{\verb{theta72}}
+#'             \item{short.name = }{\verb{t72}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta73'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24073}}
+#'             \item{name = }{\verb{theta73}}
+#'             \item{short.name = }{\verb{t73}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta74'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24074}}
+#'             \item{name = }{\verb{theta74}}
+#'             \item{short.name = }{\verb{t74}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta75'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24075}}
+#'             \item{name = }{\verb{theta75}}
+#'             \item{short.name = }{\verb{t75}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta76'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24076}}
+#'             \item{name = }{\verb{theta76}}
+#'             \item{short.name = }{\verb{t76}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta77'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24077}}
+#'             \item{name = }{\verb{theta77}}
+#'             \item{short.name = }{\verb{t77}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta78'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24078}}
+#'             \item{name = }{\verb{theta78}}
+#'             \item{short.name = }{\verb{t78}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta79'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24079}}
+#'             \item{name = }{\verb{theta79}}
+#'             \item{short.name = }{\verb{t79}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta80'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24080}}
+#'             \item{name = }{\verb{theta80}}
+#'             \item{short.name = }{\verb{t80}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta81'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24081}}
+#'             \item{name = }{\verb{theta81}}
+#'             \item{short.name = }{\verb{t81}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta82'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24082}}
+#'             \item{name = }{\verb{theta82}}
+#'             \item{short.name = }{\verb{t82}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta83'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24083}}
+#'             \item{name = }{\verb{theta83}}
+#'             \item{short.name = }{\verb{t83}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta84'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24084}}
+#'             \item{name = }{\verb{theta84}}
+#'             \item{short.name = }{\verb{t84}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta85'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24085}}
+#'             \item{name = }{\verb{theta85}}
+#'             \item{short.name = }{\verb{t85}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta86'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24086}}
+#'             \item{name = }{\verb{theta86}}
+#'             \item{short.name = }{\verb{t86}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta87'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24087}}
+#'             \item{name = }{\verb{theta87}}
+#'             \item{short.name = }{\verb{t87}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta88'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24088}}
+#'             \item{name = }{\verb{theta88}}
+#'             \item{short.name = }{\verb{t88}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta89'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24089}}
+#'             \item{name = }{\verb{theta89}}
+#'             \item{short.name = }{\verb{t89}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta90'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24090}}
+#'             \item{name = }{\verb{theta90}}
+#'             \item{short.name = }{\verb{t90}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta91'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24091}}
+#'             \item{name = }{\verb{theta91}}
+#'             \item{short.name = }{\verb{t91}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta92'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24092}}
+#'             \item{name = }{\verb{theta92}}
+#'             \item{short.name = }{\verb{t92}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta93'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24093}}
+#'             \item{name = }{\verb{theta93}}
+#'             \item{short.name = }{\verb{t93}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta94'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24094}}
+#'             \item{name = }{\verb{theta94}}
+#'             \item{short.name = }{\verb{t94}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta95'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24095}}
+#'             \item{name = }{\verb{theta95}}
+#'             \item{short.name = }{\verb{t95}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta96'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24096}}
+#'             \item{name = }{\verb{theta96}}
+#'             \item{short.name = }{\verb{t96}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta97'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24097}}
+#'             \item{name = }{\verb{theta97}}
+#'             \item{short.name = }{\verb{t97}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta98'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24098}}
+#'             \item{name = }{\verb{theta98}}
+#'             \item{short.name = }{\verb{t98}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta99'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24099}}
+#'             \item{name = }{\verb{theta99}}
+#'             \item{short.name = }{\verb{t99}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta100'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{24100}}
+#'             \item{name = }{\verb{theta100}}
+#'             \item{short.name = }{\verb{t100}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid1d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=1 with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{25001}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart1d}}
+#'             \item{param = }{\verb{2 1e-04}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid2d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=2 with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2}}
+#'               \item{n.div.by = }{\verb{2}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{26001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart2d}}
+#'             \item{param = }{\verb{4 1 1 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{26002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{26003}}
+#'             \item{name = }{\verb{logit correlation}}
+#'             \item{short.name = }{\verb{cor}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid3d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=3 with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2 3}}
+#'               \item{n.div.by = }{\verb{3}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 6.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart3d}}
+#'             \item{param = }{\verb{7 1 1 1 0 0 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27003}}
+#'             \item{name = }{\verb{log precision3}}
+#'             \item{short.name = }{\verb{prec3}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27004}}
+#'             \item{name = }{\verb{logit correlation12}}
+#'             \item{short.name = }{\verb{cor12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27005}}
+#'             \item{name = }{\verb{logit correlation13}}
+#'             \item{short.name = }{\verb{cor13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{27006}}
+#'             \item{name = }{\verb{logit correlation23}}
+#'             \item{short.name = }{\verb{cor23}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid4d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=4 with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2 3 4}}
+#'               \item{n.div.by = }{\verb{4}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart4d}}
+#'             \item{param = }{\verb{11 1 1 1 1 0 0 0 0 0 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28003}}
+#'             \item{name = }{\verb{log precision3}}
+#'             \item{short.name = }{\verb{prec3}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28004}}
+#'             \item{name = }{\verb{log precision4}}
+#'             \item{short.name = }{\verb{prec4}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28005}}
+#'             \item{name = }{\verb{logit correlation12}}
+#'             \item{short.name = }{\verb{cor12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28006}}
+#'             \item{name = }{\verb{logit correlation13}}
+#'             \item{short.name = }{\verb{cor13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28007}}
+#'             \item{name = }{\verb{logit correlation14}}
+#'             \item{short.name = }{\verb{cor14}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28008}}
+#'             \item{name = }{\verb{logit correlation23}}
+#'             \item{short.name = }{\verb{cor23}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28009}}
+#'             \item{name = }{\verb{logit correlation24}}
+#'             \item{short.name = }{\verb{cor24}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{28010}}
+#'             \item{name = }{\verb{logit correlation34}}
+#'             \item{short.name = }{\verb{cor34}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid5d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=5 with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2 3 4 5}}
+#'               \item{n.div.by = }{\verb{5}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 15.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishart5d}}
+#'             \item{param = }{\verb{16 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29003}}
+#'             \item{name = }{\verb{log precision3}}
+#'             \item{short.name = }{\verb{prec3}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29004}}
+#'             \item{name = }{\verb{log precision4}}
+#'             \item{short.name = }{\verb{prec4}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29005}}
+#'             \item{name = }{\verb{log precision5}}
+#'             \item{short.name = }{\verb{prec5}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29006}}
+#'             \item{name = }{\verb{logit correlation12}}
+#'             \item{short.name = }{\verb{cor12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29007}}
+#'             \item{name = }{\verb{logit correlation13}}
+#'             \item{short.name = }{\verb{cor13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29008}}
+#'             \item{name = }{\verb{logit correlation14}}
+#'             \item{short.name = }{\verb{cor14}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29009}}
+#'             \item{name = }{\verb{logit correlation15}}
+#'             \item{short.name = }{\verb{cor15}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29010}}
+#'             \item{name = }{\verb{logit correlation23}}
+#'             \item{short.name = }{\verb{cor23}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29011}}
+#'             \item{name = }{\verb{logit correlation24}}
+#'             \item{short.name = }{\verb{cor24}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29012}}
+#'             \item{name = }{\verb{logit correlation25}}
+#'             \item{short.name = }{\verb{cor25}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29013}}
+#'             \item{name = }{\verb{logit correlation34}}
+#'             \item{short.name = }{\verb{cor34}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29014}}
+#'             \item{name = }{\verb{logit correlation35}}
+#'             \item{short.name = }{\verb{cor35}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29015}}
+#'             \item{name = }{\verb{logit correlation45}}
+#'             \item{short.name = }{\verb{cor45}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iidkd'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian random effect in dim=k with Wishart prior}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24}}
+#'               \item{n.div.by = }{\verb{-1}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iidkd}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 300.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29101}}
+#'             \item{name = }{\verb{theta1}}
+#'             \item{short.name = }{\verb{theta1}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{wishartkd}}
+#'             \item{param = }{\verb{30 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576 1048576}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29102}}
+#'             \item{name = }{\verb{theta2}}
+#'             \item{short.name = }{\verb{theta2}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29103}}
+#'             \item{name = }{\verb{theta3}}
+#'             \item{short.name = }{\verb{theta3}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29104}}
+#'             \item{name = }{\verb{theta4}}
+#'             \item{short.name = }{\verb{theta4}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29105}}
+#'             \item{name = }{\verb{theta5}}
+#'             \item{short.name = }{\verb{theta5}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29106}}
+#'             \item{name = }{\verb{theta6}}
+#'             \item{short.name = }{\verb{theta6}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29107}}
+#'             \item{name = }{\verb{theta7}}
+#'             \item{short.name = }{\verb{theta7}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29108}}
+#'             \item{name = }{\verb{theta8}}
+#'             \item{short.name = }{\verb{theta8}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29109}}
+#'             \item{name = }{\verb{theta9}}
+#'             \item{short.name = }{\verb{theta9}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29110}}
+#'             \item{name = }{\verb{theta10}}
+#'             \item{short.name = }{\verb{theta10}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29111}}
+#'             \item{name = }{\verb{theta11}}
+#'             \item{short.name = }{\verb{theta11}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29112}}
+#'             \item{name = }{\verb{theta12}}
+#'             \item{short.name = }{\verb{theta12}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29113}}
+#'             \item{name = }{\verb{theta13}}
+#'             \item{short.name = }{\verb{theta13}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29114}}
+#'             \item{name = }{\verb{theta14}}
+#'             \item{short.name = }{\verb{theta14}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29115}}
+#'             \item{name = }{\verb{theta15}}
+#'             \item{short.name = }{\verb{theta15}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29116}}
+#'             \item{name = }{\verb{theta16}}
+#'             \item{short.name = }{\verb{theta16}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29117}}
+#'             \item{name = }{\verb{theta17}}
+#'             \item{short.name = }{\verb{theta17}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29118}}
+#'             \item{name = }{\verb{theta18}}
+#'             \item{short.name = }{\verb{theta18}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29119}}
+#'             \item{name = }{\verb{theta19}}
+#'             \item{short.name = }{\verb{theta19}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29120}}
+#'             \item{name = }{\verb{theta20}}
+#'             \item{short.name = }{\verb{theta20}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29121}}
+#'             \item{name = }{\verb{theta21}}
+#'             \item{short.name = }{\verb{theta21}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29122}}
+#'             \item{name = }{\verb{theta22}}
+#'             \item{short.name = }{\verb{theta22}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29123}}
+#'             \item{name = }{\verb{theta23}}
+#'             \item{short.name = }{\verb{theta23}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29124}}
+#'             \item{name = }{\verb{theta24}}
+#'             \item{short.name = }{\verb{theta24}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29125}}
+#'             \item{name = }{\verb{theta25}}
+#'             \item{short.name = }{\verb{theta25}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29126}}
+#'             \item{name = }{\verb{theta26}}
+#'             \item{short.name = }{\verb{theta26}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29127}}
+#'             \item{name = }{\verb{theta27}}
+#'             \item{short.name = }{\verb{theta27}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29128}}
+#'             \item{name = }{\verb{theta28}}
+#'             \item{short.name = }{\verb{theta28}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29129}}
+#'             \item{name = }{\verb{theta29}}
+#'             \item{short.name = }{\verb{theta29}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29130}}
+#'             \item{name = }{\verb{theta30}}
+#'             \item{short.name = }{\verb{theta30}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29131}}
+#'             \item{name = }{\verb{theta31}}
+#'             \item{short.name = }{\verb{theta31}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29132}}
+#'             \item{name = }{\verb{theta32}}
+#'             \item{short.name = }{\verb{theta32}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29133}}
+#'             \item{name = }{\verb{theta33}}
+#'             \item{short.name = }{\verb{theta33}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29134}}
+#'             \item{name = }{\verb{theta34}}
+#'             \item{short.name = }{\verb{theta34}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29135}}
+#'             \item{name = }{\verb{theta35}}
+#'             \item{short.name = }{\verb{theta35}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29136}}
+#'             \item{name = }{\verb{theta36}}
+#'             \item{short.name = }{\verb{theta36}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29137}}
+#'             \item{name = }{\verb{theta37}}
+#'             \item{short.name = }{\verb{theta37}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29138}}
+#'             \item{name = }{\verb{theta38}}
+#'             \item{short.name = }{\verb{theta38}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29139}}
+#'             \item{name = }{\verb{theta39}}
+#'             \item{short.name = }{\verb{theta39}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29140}}
+#'             \item{name = }{\verb{theta40}}
+#'             \item{short.name = }{\verb{theta40}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29141}}
+#'             \item{name = }{\verb{theta41}}
+#'             \item{short.name = }{\verb{theta41}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29142}}
+#'             \item{name = }{\verb{theta42}}
+#'             \item{short.name = }{\verb{theta42}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29143}}
+#'             \item{name = }{\verb{theta43}}
+#'             \item{short.name = }{\verb{theta43}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29144}}
+#'             \item{name = }{\verb{theta44}}
+#'             \item{short.name = }{\verb{theta44}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29145}}
+#'             \item{name = }{\verb{theta45}}
+#'             \item{short.name = }{\verb{theta45}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29146}}
+#'             \item{name = }{\verb{theta46}}
+#'             \item{short.name = }{\verb{theta46}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29147}}
+#'             \item{name = }{\verb{theta47}}
+#'             \item{short.name = }{\verb{theta47}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29148}}
+#'             \item{name = }{\verb{theta48}}
+#'             \item{short.name = }{\verb{theta48}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29149}}
+#'             \item{name = }{\verb{theta49}}
+#'             \item{short.name = }{\verb{theta49}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29150}}
+#'             \item{name = }{\verb{theta50}}
+#'             \item{short.name = }{\verb{theta50}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29151}}
+#'             \item{name = }{\verb{theta51}}
+#'             \item{short.name = }{\verb{theta51}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta52'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29152}}
+#'             \item{name = }{\verb{theta52}}
+#'             \item{short.name = }{\verb{theta52}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta53'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29153}}
+#'             \item{name = }{\verb{theta53}}
+#'             \item{short.name = }{\verb{theta53}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta54'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29154}}
+#'             \item{name = }{\verb{theta54}}
+#'             \item{short.name = }{\verb{theta54}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta55'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29155}}
+#'             \item{name = }{\verb{theta55}}
+#'             \item{short.name = }{\verb{theta55}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta56'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29156}}
+#'             \item{name = }{\verb{theta56}}
+#'             \item{short.name = }{\verb{theta56}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta57'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29157}}
+#'             \item{name = }{\verb{theta57}}
+#'             \item{short.name = }{\verb{theta57}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta58'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29158}}
+#'             \item{name = }{\verb{theta58}}
+#'             \item{short.name = }{\verb{theta58}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta59'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29159}}
+#'             \item{name = }{\verb{theta59}}
+#'             \item{short.name = }{\verb{theta59}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta60'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29160}}
+#'             \item{name = }{\verb{theta60}}
+#'             \item{short.name = }{\verb{theta60}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta61'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29161}}
+#'             \item{name = }{\verb{theta61}}
+#'             \item{short.name = }{\verb{theta61}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta62'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29162}}
+#'             \item{name = }{\verb{theta62}}
+#'             \item{short.name = }{\verb{theta62}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta63'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29163}}
+#'             \item{name = }{\verb{theta63}}
+#'             \item{short.name = }{\verb{theta63}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta64'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29164}}
+#'             \item{name = }{\verb{theta64}}
+#'             \item{short.name = }{\verb{theta64}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta65'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29165}}
+#'             \item{name = }{\verb{theta65}}
+#'             \item{short.name = }{\verb{theta65}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta66'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29166}}
+#'             \item{name = }{\verb{theta66}}
+#'             \item{short.name = }{\verb{theta66}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta67'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29167}}
+#'             \item{name = }{\verb{theta67}}
+#'             \item{short.name = }{\verb{theta67}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta68'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29168}}
+#'             \item{name = }{\verb{theta68}}
+#'             \item{short.name = }{\verb{theta68}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta69'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29169}}
+#'             \item{name = }{\verb{theta69}}
+#'             \item{short.name = }{\verb{theta69}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta70'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29170}}
+#'             \item{name = }{\verb{theta70}}
+#'             \item{short.name = }{\verb{theta70}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta71'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29171}}
+#'             \item{name = }{\verb{theta71}}
+#'             \item{short.name = }{\verb{theta71}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta72'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29172}}
+#'             \item{name = }{\verb{theta72}}
+#'             \item{short.name = }{\verb{theta72}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta73'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29173}}
+#'             \item{name = }{\verb{theta73}}
+#'             \item{short.name = }{\verb{theta73}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta74'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29174}}
+#'             \item{name = }{\verb{theta74}}
+#'             \item{short.name = }{\verb{theta74}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta75'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29175}}
+#'             \item{name = }{\verb{theta75}}
+#'             \item{short.name = }{\verb{theta75}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta76'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29176}}
+#'             \item{name = }{\verb{theta76}}
+#'             \item{short.name = }{\verb{theta76}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta77'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29177}}
+#'             \item{name = }{\verb{theta77}}
+#'             \item{short.name = }{\verb{theta77}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta78'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29178}}
+#'             \item{name = }{\verb{theta78}}
+#'             \item{short.name = }{\verb{theta78}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta79'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29179}}
+#'             \item{name = }{\verb{theta79}}
+#'             \item{short.name = }{\verb{theta79}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta80'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29180}}
+#'             \item{name = }{\verb{theta80}}
+#'             \item{short.name = }{\verb{theta80}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta81'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29181}}
+#'             \item{name = }{\verb{theta81}}
+#'             \item{short.name = }{\verb{theta81}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta82'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29182}}
+#'             \item{name = }{\verb{theta82}}
+#'             \item{short.name = }{\verb{theta82}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta83'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29183}}
+#'             \item{name = }{\verb{theta83}}
+#'             \item{short.name = }{\verb{theta83}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta84'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29184}}
+#'             \item{name = }{\verb{theta84}}
+#'             \item{short.name = }{\verb{theta84}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta85'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29185}}
+#'             \item{name = }{\verb{theta85}}
+#'             \item{short.name = }{\verb{theta85}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta86'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29186}}
+#'             \item{name = }{\verb{theta86}}
+#'             \item{short.name = }{\verb{theta86}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta87'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29187}}
+#'             \item{name = }{\verb{theta87}}
+#'             \item{short.name = }{\verb{theta87}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta88'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29188}}
+#'             \item{name = }{\verb{theta88}}
+#'             \item{short.name = }{\verb{theta88}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta89'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29189}}
+#'             \item{name = }{\verb{theta89}}
+#'             \item{short.name = }{\verb{theta89}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta90'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29190}}
+#'             \item{name = }{\verb{theta90}}
+#'             \item{short.name = }{\verb{theta90}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta91'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29191}}
+#'             \item{name = }{\verb{theta91}}
+#'             \item{short.name = }{\verb{theta91}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta92'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29192}}
+#'             \item{name = }{\verb{theta92}}
+#'             \item{short.name = }{\verb{theta92}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta93'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29193}}
+#'             \item{name = }{\verb{theta93}}
+#'             \item{short.name = }{\verb{theta93}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta94'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29194}}
+#'             \item{name = }{\verb{theta94}}
+#'             \item{short.name = }{\verb{theta94}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta95'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29195}}
+#'             \item{name = }{\verb{theta95}}
+#'             \item{short.name = }{\verb{theta95}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta96'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29196}}
+#'             \item{name = }{\verb{theta96}}
+#'             \item{short.name = }{\verb{theta96}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta97'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29197}}
+#'             \item{name = }{\verb{theta97}}
+#'             \item{short.name = }{\verb{theta97}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta98'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29198}}
+#'             \item{name = }{\verb{theta98}}
+#'             \item{short.name = }{\verb{theta98}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta99'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29199}}
+#'             \item{name = }{\verb{theta99}}
+#'             \item{short.name = }{\verb{theta99}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta100'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29200}}
+#'             \item{name = }{\verb{theta100}}
+#'             \item{short.name = }{\verb{theta100}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta101'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29201}}
+#'             \item{name = }{\verb{theta101}}
+#'             \item{short.name = }{\verb{theta101}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta102'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29202}}
+#'             \item{name = }{\verb{theta102}}
+#'             \item{short.name = }{\verb{theta102}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta103'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29203}}
+#'             \item{name = }{\verb{theta103}}
+#'             \item{short.name = }{\verb{theta103}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta104'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29204}}
+#'             \item{name = }{\verb{theta104}}
+#'             \item{short.name = }{\verb{theta104}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta105'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29205}}
+#'             \item{name = }{\verb{theta105}}
+#'             \item{short.name = }{\verb{theta105}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta106'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29206}}
+#'             \item{name = }{\verb{theta106}}
+#'             \item{short.name = }{\verb{theta106}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta107'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29207}}
+#'             \item{name = }{\verb{theta107}}
+#'             \item{short.name = }{\verb{theta107}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta108'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29208}}
+#'             \item{name = }{\verb{theta108}}
+#'             \item{short.name = }{\verb{theta108}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta109'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29209}}
+#'             \item{name = }{\verb{theta109}}
+#'             \item{short.name = }{\verb{theta109}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta110'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29210}}
+#'             \item{name = }{\verb{theta110}}
+#'             \item{short.name = }{\verb{theta110}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta111'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29211}}
+#'             \item{name = }{\verb{theta111}}
+#'             \item{short.name = }{\verb{theta111}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta112'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29212}}
+#'             \item{name = }{\verb{theta112}}
+#'             \item{short.name = }{\verb{theta112}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta113'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29213}}
+#'             \item{name = }{\verb{theta113}}
+#'             \item{short.name = }{\verb{theta113}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta114'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29214}}
+#'             \item{name = }{\verb{theta114}}
+#'             \item{short.name = }{\verb{theta114}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta115'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29215}}
+#'             \item{name = }{\verb{theta115}}
+#'             \item{short.name = }{\verb{theta115}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta116'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29216}}
+#'             \item{name = }{\verb{theta116}}
+#'             \item{short.name = }{\verb{theta116}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta117'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29217}}
+#'             \item{name = }{\verb{theta117}}
+#'             \item{short.name = }{\verb{theta117}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta118'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29218}}
+#'             \item{name = }{\verb{theta118}}
+#'             \item{short.name = }{\verb{theta118}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta119'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29219}}
+#'             \item{name = }{\verb{theta119}}
+#'             \item{short.name = }{\verb{theta119}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta120'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29220}}
+#'             \item{name = }{\verb{theta120}}
+#'             \item{short.name = }{\verb{theta120}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta121'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29221}}
+#'             \item{name = }{\verb{theta121}}
+#'             \item{short.name = }{\verb{theta121}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta122'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29222}}
+#'             \item{name = }{\verb{theta122}}
+#'             \item{short.name = }{\verb{theta122}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta123'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29223}}
+#'             \item{name = }{\verb{theta123}}
+#'             \item{short.name = }{\verb{theta123}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta124'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29224}}
+#'             \item{name = }{\verb{theta124}}
+#'             \item{short.name = }{\verb{theta124}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta125'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29225}}
+#'             \item{name = }{\verb{theta125}}
+#'             \item{short.name = }{\verb{theta125}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta126'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29226}}
+#'             \item{name = }{\verb{theta126}}
+#'             \item{short.name = }{\verb{theta126}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta127'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29227}}
+#'             \item{name = }{\verb{theta127}}
+#'             \item{short.name = }{\verb{theta127}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta128'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29228}}
+#'             \item{name = }{\verb{theta128}}
+#'             \item{short.name = }{\verb{theta128}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta129'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29229}}
+#'             \item{name = }{\verb{theta129}}
+#'             \item{short.name = }{\verb{theta129}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta130'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29230}}
+#'             \item{name = }{\verb{theta130}}
+#'             \item{short.name = }{\verb{theta130}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta131'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29231}}
+#'             \item{name = }{\verb{theta131}}
+#'             \item{short.name = }{\verb{theta131}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta132'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29232}}
+#'             \item{name = }{\verb{theta132}}
+#'             \item{short.name = }{\verb{theta132}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta133'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29233}}
+#'             \item{name = }{\verb{theta133}}
+#'             \item{short.name = }{\verb{theta133}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta134'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29234}}
+#'             \item{name = }{\verb{theta134}}
+#'             \item{short.name = }{\verb{theta134}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta135'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29235}}
+#'             \item{name = }{\verb{theta135}}
+#'             \item{short.name = }{\verb{theta135}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta136'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29236}}
+#'             \item{name = }{\verb{theta136}}
+#'             \item{short.name = }{\verb{theta136}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta137'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29237}}
+#'             \item{name = }{\verb{theta137}}
+#'             \item{short.name = }{\verb{theta137}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta138'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29238}}
+#'             \item{name = }{\verb{theta138}}
+#'             \item{short.name = }{\verb{theta138}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta139'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29239}}
+#'             \item{name = }{\verb{theta139}}
+#'             \item{short.name = }{\verb{theta139}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta140'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29240}}
+#'             \item{name = }{\verb{theta140}}
+#'             \item{short.name = }{\verb{theta140}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta141'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29241}}
+#'             \item{name = }{\verb{theta141}}
+#'             \item{short.name = }{\verb{theta141}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta142'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29242}}
+#'             \item{name = }{\verb{theta142}}
+#'             \item{short.name = }{\verb{theta142}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta143'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29243}}
+#'             \item{name = }{\verb{theta143}}
+#'             \item{short.name = }{\verb{theta143}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta144'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29244}}
+#'             \item{name = }{\verb{theta144}}
+#'             \item{short.name = }{\verb{theta144}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta145'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29245}}
+#'             \item{name = }{\verb{theta145}}
+#'             \item{short.name = }{\verb{theta145}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta146'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29246}}
+#'             \item{name = }{\verb{theta146}}
+#'             \item{short.name = }{\verb{theta146}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta147'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29247}}
+#'             \item{name = }{\verb{theta147}}
+#'             \item{short.name = }{\verb{theta147}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta148'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29248}}
+#'             \item{name = }{\verb{theta148}}
+#'             \item{short.name = }{\verb{theta148}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta149'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29249}}
+#'             \item{name = }{\verb{theta149}}
+#'             \item{short.name = }{\verb{theta149}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta150'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29250}}
+#'             \item{name = }{\verb{theta150}}
+#'             \item{short.name = }{\verb{theta150}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta151'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29251}}
+#'             \item{name = }{\verb{theta151}}
+#'             \item{short.name = }{\verb{theta151}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta152'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29252}}
+#'             \item{name = }{\verb{theta152}}
+#'             \item{short.name = }{\verb{theta152}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta153'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29253}}
+#'             \item{name = }{\verb{theta153}}
+#'             \item{short.name = }{\verb{theta153}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta154'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29254}}
+#'             \item{name = }{\verb{theta154}}
+#'             \item{short.name = }{\verb{theta154}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta155'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29255}}
+#'             \item{name = }{\verb{theta155}}
+#'             \item{short.name = }{\verb{theta155}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta156'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29256}}
+#'             \item{name = }{\verb{theta156}}
+#'             \item{short.name = }{\verb{theta156}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta157'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29257}}
+#'             \item{name = }{\verb{theta157}}
+#'             \item{short.name = }{\verb{theta157}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta158'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29258}}
+#'             \item{name = }{\verb{theta158}}
+#'             \item{short.name = }{\verb{theta158}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta159'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29259}}
+#'             \item{name = }{\verb{theta159}}
+#'             \item{short.name = }{\verb{theta159}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta160'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29260}}
+#'             \item{name = }{\verb{theta160}}
+#'             \item{short.name = }{\verb{theta160}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta161'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29261}}
+#'             \item{name = }{\verb{theta161}}
+#'             \item{short.name = }{\verb{theta161}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta162'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29262}}
+#'             \item{name = }{\verb{theta162}}
+#'             \item{short.name = }{\verb{theta162}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta163'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29263}}
+#'             \item{name = }{\verb{theta163}}
+#'             \item{short.name = }{\verb{theta163}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta164'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29264}}
+#'             \item{name = }{\verb{theta164}}
+#'             \item{short.name = }{\verb{theta164}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta165'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29265}}
+#'             \item{name = }{\verb{theta165}}
+#'             \item{short.name = }{\verb{theta165}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta166'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29266}}
+#'             \item{name = }{\verb{theta166}}
+#'             \item{short.name = }{\verb{theta166}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta167'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29267}}
+#'             \item{name = }{\verb{theta167}}
+#'             \item{short.name = }{\verb{theta167}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta168'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29268}}
+#'             \item{name = }{\verb{theta168}}
+#'             \item{short.name = }{\verb{theta168}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta169'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29269}}
+#'             \item{name = }{\verb{theta169}}
+#'             \item{short.name = }{\verb{theta169}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta170'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29270}}
+#'             \item{name = }{\verb{theta170}}
+#'             \item{short.name = }{\verb{theta170}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta171'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29271}}
+#'             \item{name = }{\verb{theta171}}
+#'             \item{short.name = }{\verb{theta171}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta172'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29272}}
+#'             \item{name = }{\verb{theta172}}
+#'             \item{short.name = }{\verb{theta172}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta173'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29273}}
+#'             \item{name = }{\verb{theta173}}
+#'             \item{short.name = }{\verb{theta173}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta174'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29274}}
+#'             \item{name = }{\verb{theta174}}
+#'             \item{short.name = }{\verb{theta174}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta175'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29275}}
+#'             \item{name = }{\verb{theta175}}
+#'             \item{short.name = }{\verb{theta175}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta176'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29276}}
+#'             \item{name = }{\verb{theta176}}
+#'             \item{short.name = }{\verb{theta176}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta177'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29277}}
+#'             \item{name = }{\verb{theta177}}
+#'             \item{short.name = }{\verb{theta177}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta178'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29278}}
+#'             \item{name = }{\verb{theta178}}
+#'             \item{short.name = }{\verb{theta178}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta179'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29279}}
+#'             \item{name = }{\verb{theta179}}
+#'             \item{short.name = }{\verb{theta179}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta180'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29280}}
+#'             \item{name = }{\verb{theta180}}
+#'             \item{short.name = }{\verb{theta180}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta181'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29281}}
+#'             \item{name = }{\verb{theta181}}
+#'             \item{short.name = }{\verb{theta181}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta182'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29282}}
+#'             \item{name = }{\verb{theta182}}
+#'             \item{short.name = }{\verb{theta182}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta183'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29283}}
+#'             \item{name = }{\verb{theta183}}
+#'             \item{short.name = }{\verb{theta183}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta184'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29284}}
+#'             \item{name = }{\verb{theta184}}
+#'             \item{short.name = }{\verb{theta184}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta185'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29285}}
+#'             \item{name = }{\verb{theta185}}
+#'             \item{short.name = }{\verb{theta185}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta186'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29286}}
+#'             \item{name = }{\verb{theta186}}
+#'             \item{short.name = }{\verb{theta186}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta187'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29287}}
+#'             \item{name = }{\verb{theta187}}
+#'             \item{short.name = }{\verb{theta187}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta188'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29288}}
+#'             \item{name = }{\verb{theta188}}
+#'             \item{short.name = }{\verb{theta188}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta189'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29289}}
+#'             \item{name = }{\verb{theta189}}
+#'             \item{short.name = }{\verb{theta189}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta190'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29290}}
+#'             \item{name = }{\verb{theta190}}
+#'             \item{short.name = }{\verb{theta190}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta191'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29291}}
+#'             \item{name = }{\verb{theta191}}
+#'             \item{short.name = }{\verb{theta191}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta192'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29292}}
+#'             \item{name = }{\verb{theta192}}
+#'             \item{short.name = }{\verb{theta192}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta193'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29293}}
+#'             \item{name = }{\verb{theta193}}
+#'             \item{short.name = }{\verb{theta193}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta194'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29294}}
+#'             \item{name = }{\verb{theta194}}
+#'             \item{short.name = }{\verb{theta194}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta195'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29295}}
+#'             \item{name = }{\verb{theta195}}
+#'             \item{short.name = }{\verb{theta195}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta196'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29296}}
+#'             \item{name = }{\verb{theta196}}
+#'             \item{short.name = }{\verb{theta196}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta197'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29297}}
+#'             \item{name = }{\verb{theta197}}
+#'             \item{short.name = }{\verb{theta197}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta198'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29298}}
+#'             \item{name = }{\verb{theta198}}
+#'             \item{short.name = }{\verb{theta198}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta199'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29299}}
+#'             \item{name = }{\verb{theta199}}
+#'             \item{short.name = }{\verb{theta199}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta200'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29300}}
+#'             \item{name = }{\verb{theta200}}
+#'             \item{short.name = }{\verb{theta200}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta201'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29301}}
+#'             \item{name = }{\verb{theta201}}
+#'             \item{short.name = }{\verb{theta201}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta202'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29302}}
+#'             \item{name = }{\verb{theta202}}
+#'             \item{short.name = }{\verb{theta202}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta203'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29303}}
+#'             \item{name = }{\verb{theta203}}
+#'             \item{short.name = }{\verb{theta203}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta204'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29304}}
+#'             \item{name = }{\verb{theta204}}
+#'             \item{short.name = }{\verb{theta204}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta205'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29305}}
+#'             \item{name = }{\verb{theta205}}
+#'             \item{short.name = }{\verb{theta205}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta206'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29306}}
+#'             \item{name = }{\verb{theta206}}
+#'             \item{short.name = }{\verb{theta206}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta207'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29307}}
+#'             \item{name = }{\verb{theta207}}
+#'             \item{short.name = }{\verb{theta207}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta208'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29308}}
+#'             \item{name = }{\verb{theta208}}
+#'             \item{short.name = }{\verb{theta208}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta209'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29309}}
+#'             \item{name = }{\verb{theta209}}
+#'             \item{short.name = }{\verb{theta209}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta210'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29310}}
+#'             \item{name = }{\verb{theta210}}
+#'             \item{short.name = }{\verb{theta210}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta211'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29311}}
+#'             \item{name = }{\verb{theta211}}
+#'             \item{short.name = }{\verb{theta211}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta212'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29312}}
+#'             \item{name = }{\verb{theta212}}
+#'             \item{short.name = }{\verb{theta212}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta213'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29313}}
+#'             \item{name = }{\verb{theta213}}
+#'             \item{short.name = }{\verb{theta213}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta214'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29314}}
+#'             \item{name = }{\verb{theta214}}
+#'             \item{short.name = }{\verb{theta214}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta215'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29315}}
+#'             \item{name = }{\verb{theta215}}
+#'             \item{short.name = }{\verb{theta215}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta216'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29316}}
+#'             \item{name = }{\verb{theta216}}
+#'             \item{short.name = }{\verb{theta216}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta217'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29317}}
+#'             \item{name = }{\verb{theta217}}
+#'             \item{short.name = }{\verb{theta217}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta218'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29318}}
+#'             \item{name = }{\verb{theta218}}
+#'             \item{short.name = }{\verb{theta218}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta219'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29319}}
+#'             \item{name = }{\verb{theta219}}
+#'             \item{short.name = }{\verb{theta219}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta220'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29320}}
+#'             \item{name = }{\verb{theta220}}
+#'             \item{short.name = }{\verb{theta220}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta221'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29321}}
+#'             \item{name = }{\verb{theta221}}
+#'             \item{short.name = }{\verb{theta221}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta222'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29322}}
+#'             \item{name = }{\verb{theta222}}
+#'             \item{short.name = }{\verb{theta222}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta223'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29323}}
+#'             \item{name = }{\verb{theta223}}
+#'             \item{short.name = }{\verb{theta223}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta224'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29324}}
+#'             \item{name = }{\verb{theta224}}
+#'             \item{short.name = }{\verb{theta224}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta225'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29325}}
+#'             \item{name = }{\verb{theta225}}
+#'             \item{short.name = }{\verb{theta225}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta226'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29326}}
+#'             \item{name = }{\verb{theta226}}
+#'             \item{short.name = }{\verb{theta226}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta227'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29327}}
+#'             \item{name = }{\verb{theta227}}
+#'             \item{short.name = }{\verb{theta227}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta228'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29328}}
+#'             \item{name = }{\verb{theta228}}
+#'             \item{short.name = }{\verb{theta228}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta229'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29329}}
+#'             \item{name = }{\verb{theta229}}
+#'             \item{short.name = }{\verb{theta229}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta230'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29330}}
+#'             \item{name = }{\verb{theta230}}
+#'             \item{short.name = }{\verb{theta230}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta231'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29331}}
+#'             \item{name = }{\verb{theta231}}
+#'             \item{short.name = }{\verb{theta231}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta232'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29332}}
+#'             \item{name = }{\verb{theta232}}
+#'             \item{short.name = }{\verb{theta232}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta233'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29333}}
+#'             \item{name = }{\verb{theta233}}
+#'             \item{short.name = }{\verb{theta233}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta234'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29334}}
+#'             \item{name = }{\verb{theta234}}
+#'             \item{short.name = }{\verb{theta234}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta235'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29335}}
+#'             \item{name = }{\verb{theta235}}
+#'             \item{short.name = }{\verb{theta235}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta236'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29336}}
+#'             \item{name = }{\verb{theta236}}
+#'             \item{short.name = }{\verb{theta236}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta237'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29337}}
+#'             \item{name = }{\verb{theta237}}
+#'             \item{short.name = }{\verb{theta237}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta238'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29338}}
+#'             \item{name = }{\verb{theta238}}
+#'             \item{short.name = }{\verb{theta238}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta239'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29339}}
+#'             \item{name = }{\verb{theta239}}
+#'             \item{short.name = }{\verb{theta239}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta240'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29340}}
+#'             \item{name = }{\verb{theta240}}
+#'             \item{short.name = }{\verb{theta240}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta241'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29341}}
+#'             \item{name = }{\verb{theta241}}
+#'             \item{short.name = }{\verb{theta241}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta242'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29342}}
+#'             \item{name = }{\verb{theta242}}
+#'             \item{short.name = }{\verb{theta242}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta243'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29343}}
+#'             \item{name = }{\verb{theta243}}
+#'             \item{short.name = }{\verb{theta243}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta244'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29344}}
+#'             \item{name = }{\verb{theta244}}
+#'             \item{short.name = }{\verb{theta244}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta245'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29345}}
+#'             \item{name = }{\verb{theta245}}
+#'             \item{short.name = }{\verb{theta245}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta246'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29346}}
+#'             \item{name = }{\verb{theta246}}
+#'             \item{short.name = }{\verb{theta246}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta247'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29347}}
+#'             \item{name = }{\verb{theta247}}
+#'             \item{short.name = }{\verb{theta247}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta248'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29348}}
+#'             \item{name = }{\verb{theta248}}
+#'             \item{short.name = }{\verb{theta248}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta249'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29349}}
+#'             \item{name = }{\verb{theta249}}
+#'             \item{short.name = }{\verb{theta249}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta250'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29350}}
+#'             \item{name = }{\verb{theta250}}
+#'             \item{short.name = }{\verb{theta250}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta251'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29351}}
+#'             \item{name = }{\verb{theta251}}
+#'             \item{short.name = }{\verb{theta251}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta252'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29352}}
+#'             \item{name = }{\verb{theta252}}
+#'             \item{short.name = }{\verb{theta252}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta253'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29353}}
+#'             \item{name = }{\verb{theta253}}
+#'             \item{short.name = }{\verb{theta253}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta254'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29354}}
+#'             \item{name = }{\verb{theta254}}
+#'             \item{short.name = }{\verb{theta254}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta255'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29355}}
+#'             \item{name = }{\verb{theta255}}
+#'             \item{short.name = }{\verb{theta255}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta256'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29356}}
+#'             \item{name = }{\verb{theta256}}
+#'             \item{short.name = }{\verb{theta256}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta257'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29357}}
+#'             \item{name = }{\verb{theta257}}
+#'             \item{short.name = }{\verb{theta257}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta258'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29358}}
+#'             \item{name = }{\verb{theta258}}
+#'             \item{short.name = }{\verb{theta258}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta259'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29359}}
+#'             \item{name = }{\verb{theta259}}
+#'             \item{short.name = }{\verb{theta259}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta260'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29360}}
+#'             \item{name = }{\verb{theta260}}
+#'             \item{short.name = }{\verb{theta260}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta261'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29361}}
+#'             \item{name = }{\verb{theta261}}
+#'             \item{short.name = }{\verb{theta261}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta262'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29362}}
+#'             \item{name = }{\verb{theta262}}
+#'             \item{short.name = }{\verb{theta262}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta263'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29363}}
+#'             \item{name = }{\verb{theta263}}
+#'             \item{short.name = }{\verb{theta263}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta264'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29364}}
+#'             \item{name = }{\verb{theta264}}
+#'             \item{short.name = }{\verb{theta264}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta265'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29365}}
+#'             \item{name = }{\verb{theta265}}
+#'             \item{short.name = }{\verb{theta265}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta266'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29366}}
+#'             \item{name = }{\verb{theta266}}
+#'             \item{short.name = }{\verb{theta266}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta267'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29367}}
+#'             \item{name = }{\verb{theta267}}
+#'             \item{short.name = }{\verb{theta267}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta268'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29368}}
+#'             \item{name = }{\verb{theta268}}
+#'             \item{short.name = }{\verb{theta268}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta269'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29369}}
+#'             \item{name = }{\verb{theta269}}
+#'             \item{short.name = }{\verb{theta269}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta270'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29370}}
+#'             \item{name = }{\verb{theta270}}
+#'             \item{short.name = }{\verb{theta270}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta271'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29371}}
+#'             \item{name = }{\verb{theta271}}
+#'             \item{short.name = }{\verb{theta271}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta272'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29372}}
+#'             \item{name = }{\verb{theta272}}
+#'             \item{short.name = }{\verb{theta272}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta273'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29373}}
+#'             \item{name = }{\verb{theta273}}
+#'             \item{short.name = }{\verb{theta273}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta274'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29374}}
+#'             \item{name = }{\verb{theta274}}
+#'             \item{short.name = }{\verb{theta274}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta275'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29375}}
+#'             \item{name = }{\verb{theta275}}
+#'             \item{short.name = }{\verb{theta275}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta276'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29376}}
+#'             \item{name = }{\verb{theta276}}
+#'             \item{short.name = }{\verb{theta276}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta277'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29377}}
+#'             \item{name = }{\verb{theta277}}
+#'             \item{short.name = }{\verb{theta277}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta278'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29378}}
+#'             \item{name = }{\verb{theta278}}
+#'             \item{short.name = }{\verb{theta278}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta279'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29379}}
+#'             \item{name = }{\verb{theta279}}
+#'             \item{short.name = }{\verb{theta279}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta280'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29380}}
+#'             \item{name = }{\verb{theta280}}
+#'             \item{short.name = }{\verb{theta280}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta281'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29381}}
+#'             \item{name = }{\verb{theta281}}
+#'             \item{short.name = }{\verb{theta281}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta282'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29382}}
+#'             \item{name = }{\verb{theta282}}
+#'             \item{short.name = }{\verb{theta282}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta283'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29383}}
+#'             \item{name = }{\verb{theta283}}
+#'             \item{short.name = }{\verb{theta283}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta284'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29384}}
+#'             \item{name = }{\verb{theta284}}
+#'             \item{short.name = }{\verb{theta284}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta285'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29385}}
+#'             \item{name = }{\verb{theta285}}
+#'             \item{short.name = }{\verb{theta285}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta286'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29386}}
+#'             \item{name = }{\verb{theta286}}
+#'             \item{short.name = }{\verb{theta286}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta287'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29387}}
+#'             \item{name = }{\verb{theta287}}
+#'             \item{short.name = }{\verb{theta287}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta288'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29388}}
+#'             \item{name = }{\verb{theta288}}
+#'             \item{short.name = }{\verb{theta288}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta289'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29389}}
+#'             \item{name = }{\verb{theta289}}
+#'             \item{short.name = }{\verb{theta289}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta290'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29390}}
+#'             \item{name = }{\verb{theta290}}
+#'             \item{short.name = }{\verb{theta290}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta291'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29391}}
+#'             \item{name = }{\verb{theta291}}
+#'             \item{short.name = }{\verb{theta291}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta292'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29392}}
+#'             \item{name = }{\verb{theta292}}
+#'             \item{short.name = }{\verb{theta292}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta293'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29393}}
+#'             \item{name = }{\verb{theta293}}
+#'             \item{short.name = }{\verb{theta293}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta294'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29394}}
+#'             \item{name = }{\verb{theta294}}
+#'             \item{short.name = }{\verb{theta294}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta295'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29395}}
+#'             \item{name = }{\verb{theta295}}
+#'             \item{short.name = }{\verb{theta295}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta296'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29396}}
+#'             \item{name = }{\verb{theta296}}
+#'             \item{short.name = }{\verb{theta296}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta297'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29397}}
+#'             \item{name = }{\verb{theta297}}
+#'             \item{short.name = }{\verb{theta297}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta298'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29398}}
+#'             \item{name = }{\verb{theta298}}
+#'             \item{short.name = }{\verb{theta298}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta299'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29399}}
+#'             \item{name = }{\verb{theta299}}
+#'             \item{short.name = }{\verb{theta299}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta300'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{29400}}
+#'             \item{name = }{\verb{theta300}}
+#'             \item{short.name = }{\verb{theta300}}
+#'             \item{initial = }{\verb{1048576}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model '2diid'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(This model is obsolute)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{1 2}}
+#'               \item{n.div.by = }{\verb{2}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{iid123d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{30001}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{30002}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{30003}}
+#'             \item{name = }{\verb{correlation}}
+#'             \item{short.name = }{\verb{cor}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.15}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'z'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The z-model in a classical mixed model formulation}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{z}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{31001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw2d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Thin-plate spline model}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{TRUE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{rw2d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{32001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw2diid'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Thin-plate spline with iid noise}}
+#'               \item{constr = }{\verb{TRUE}}
+#'               \item{nrow.ncol = }{\verb{TRUE}}
+#'               \item{augmented = }{\verb{TRUE}}
+#'               \item{aug.factor = }{\verb{2}}
+#'               \item{aug.constr = }{\verb{2}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{rw2diid}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{33001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{33002}}
+#'             \item{name = }{\verb{logit phi}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{prior = }{\verb{pc}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'slm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Spatial lag model}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{slm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{34001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{34002}}
+#'             \item{name = }{\verb{rho}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'matern2d'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Matern covariance function on a regular grid}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{TRUE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{matern2d}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{35001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{35002}}
+#'             \item{name = }{\verb{log range}}
+#'             \item{short.name = }{\verb{range}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'dmatern'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Dense Matern field}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{TRUE}}
+#'               \item{set.default.values = }{\verb{TRUE}}
+#'               \item{pdf = }{\verb{dmatern}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{35101}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{35102}}
+#'             \item{name = }{\verb{log range}}
+#'             \item{short.name = }{\verb{range}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.range}}
+#'             \item{param = }{\verb{1 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{35103}}
+#'             \item{name = }{\verb{log nu}}
+#'             \item{short.name = }{\verb{nu}}
+#'             \item{initial = }{\verb{-0.693147180559945}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{0.5 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'copy'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Create a copy of a model component}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{copy}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(log(-(low - x) / (high - x)))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(log(x - low))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }}}
+#'             \item{from.theta = }{\verb{function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(low + exp(x) / (1 + exp(x)) * (high - low))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(low + exp(x))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'scopy'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Create a scopy of a model component}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{scopy}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 15.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36101}}
+#'             \item{name = }{\verb{mean}}
+#'             \item{short.name = }{\verb{mean}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36102}}
+#'             \item{name = }{\verb{slope}}
+#'             \item{short.name = }{\verb{slope}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36103}}
+#'             \item{name = }{\verb{spline.theta1}}
+#'             \item{short.name = }{\verb{spline}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{laplace}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36104}}
+#'             \item{name = }{\verb{spline.theta2}}
+#'             \item{short.name = }{\verb{spline2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36105}}
+#'             \item{name = }{\verb{spline.theta3}}
+#'             \item{short.name = }{\verb{spline3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36106}}
+#'             \item{name = }{\verb{spline.theta4}}
+#'             \item{short.name = }{\verb{spline4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36107}}
+#'             \item{name = }{\verb{spline.theta5}}
+#'             \item{short.name = }{\verb{spline5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36108}}
+#'             \item{name = }{\verb{spline.theta6}}
+#'             \item{short.name = }{\verb{spline6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36109}}
+#'             \item{name = }{\verb{spline.theta7}}
+#'             \item{short.name = }{\verb{spline7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36110}}
+#'             \item{name = }{\verb{spline.theta8}}
+#'             \item{short.name = }{\verb{spline8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36111}}
+#'             \item{name = }{\verb{spline.theta9}}
+#'             \item{short.name = }{\verb{spline9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36112}}
+#'             \item{name = }{\verb{spline.theta10}}
+#'             \item{short.name = }{\verb{spline10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36113}}
+#'             \item{name = }{\verb{spline.theta11}}
+#'             \item{short.name = }{\verb{spline11}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36114}}
+#'             \item{name = }{\verb{spline.theta12}}
+#'             \item{short.name = }{\verb{spline12}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{36115}}
+#'             \item{name = }{\verb{spline.theta13}}
+#'             \item{short.name = }{\verb{spline13}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'clinear'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Constrained linear effect}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{clinear}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{37001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     stopifnot(low < high)                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(log(-(low - x) / (high - x)))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(log(x - low))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }}}
+#'             \item{from.theta = }{\verb{function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     stopifnot(low < high)                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(low + exp(x) / (1 + exp(x)) * (high - low))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(low + exp(x))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'sigm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Sigmoidal effect of a covariate}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{sigm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{38001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{38002}}
+#'             \item{name = }{\verb{loghalflife}}
+#'             \item{short.name = }{\verb{halflife}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{3 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{38003}}
+#'             \item{name = }{\verb{logshape}}
+#'             \item{short.name = }{\verb{shape}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{10 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'revsigm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Reverse sigmoidal effect of a covariate}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{sigm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39002}}
+#'             \item{name = }{\verb{loghalflife}}
+#'             \item{short.name = }{\verb{halflife}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{3 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39003}}
+#'             \item{name = }{\verb{logshape}}
+#'             \item{short.name = }{\verb{shape}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{10 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'log1exp'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A nonlinear model of a covariate}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{log1exp}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39011}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39012}}
+#'             \item{name = }{\verb{alpha}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39013}}
+#'             \item{name = }{\verb{gamma}}
+#'             \item{short.name = }{\verb{g}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'logdist'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A nonlinear model of a covariate}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{logdist}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39021}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39022}}
+#'             \item{name = }{\verb{alpha1}}
+#'             \item{short.name = }{\verb{a1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{0.1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{39023}}
+#'             \item{name = }{\verb{alpha2}}
+#'             \item{short.name = }{\verb{a2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{0.1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'group':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'exchangeable'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Exchangeable correlations}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{40001}}
+#'             \item{name = }{\verb{logit correlation}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.2}}
+#'             \item{to.theta = }{\verb{function(x, REPLACE.ME.ngroup) log((1 + x * (ngroup - 1)) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x, REPLACE.ME.ngroup) (exp(x) - 1) / (exp(x) + ngroup - 1)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'exchangeablepos'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Exchangeable positive correlations}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{40101}}
+#'             \item{name = }{\verb{logit correlation}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ar1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{AR(1) correlations}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{41001}}
+#'             \item{name = }{\verb{logit correlation}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.15}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ar'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{AR(p) correlations}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{3 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42002}}
+#'             \item{name = }{\verb{pacf1}}
+#'             \item{short.name = }{\verb{pacf1}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42003}}
+#'             \item{name = }{\verb{pacf2}}
+#'             \item{short.name = }{\verb{pacf2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42004}}
+#'             \item{name = }{\verb{pacf3}}
+#'             \item{short.name = }{\verb{pacf3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.3}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42005}}
+#'             \item{name = }{\verb{pacf4}}
+#'             \item{short.name = }{\verb{pacf4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42006}}
+#'             \item{name = }{\verb{pacf5}}
+#'             \item{short.name = }{\verb{pacf5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42007}}
+#'             \item{name = }{\verb{pacf6}}
+#'             \item{short.name = }{\verb{pacf6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42008}}
+#'             \item{name = }{\verb{pacf7}}
+#'             \item{short.name = }{\verb{pacf7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42009}}
+#'             \item{name = }{\verb{pacf8}}
+#'             \item{short.name = }{\verb{pacf8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42010}}
+#'             \item{name = }{\verb{pacf9}}
+#'             \item{short.name = }{\verb{pacf9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{42011}}
+#'             \item{name = }{\verb{pacf10}}
+#'             \item{short.name = }{\verb{pacf10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.cor0}}
+#'             \item{param = }{\verb{0.5 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log((1 + x) / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 2 * exp(x) / (1 + exp(x)) - 1}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 1}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{43001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{44001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'besag'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Besag model}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{45001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Independent model}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{46001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'scopy':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'rw1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 1}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'rw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Random walk of order 2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'      }
+#' @section 'mix':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'gaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Gaussian mixture}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{47001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the Gaussian observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the Gaussian observations}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'loggamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{LogGamma mixture}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{47101}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{4.8}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'mloggamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Minus-LogGamma mixture}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{47201}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{4.8}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'link':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'default'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The default link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cloglog'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The complementary log-log link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'ccloglog'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The complement complementary log-log link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'loglog'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The log-log link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'identity'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The identity link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'inverse'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The inverse link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'log'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The log-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'loga'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The loga-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'neglog'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The negative log-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'logit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The logit-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'probit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The probit-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cauchit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The cauchit-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'tan'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The tan-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'quantile'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The quantile-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'pquantile'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The population quantile-link}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'sslogit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Logit link with sensitivity and specificity}}
+#'               \item{status = }{\verb{disabled}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{48001}}
+#'             \item{name = }{\verb{sensitivity}}
+#'             \item{short.name = }{\verb{sens}}
+#'             \item{prior = }{\verb{logitbeta}}
+#'             \item{param = }{\verb{10 5}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{48002}}
+#'             \item{name = }{\verb{specificity}}
+#'             \item{short.name = }{\verb{spec}}
+#'             \item{prior = }{\verb{logitbeta}}
+#'             \item{param = }{\verb{10 5}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'logoffset'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Log-link with an offset}}
+#'               \item{pdf = }{\verb{logoffset}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'logitoffset'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Logit-link with an offset}}
+#'               \item{pdf = }{\verb{logitoffset}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49011}}
+#'             \item{name = }{\verb{prob}}
+#'             \item{short.name = }{\verb{p}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-1 100}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'robit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Robit link}}
+#'               \item{pdf = }{\verb{robit}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49021}}
+#'             \item{name = }{\verb{log degrees of freedom}}
+#'             \item{short.name = }{\verb{dof}}
+#'             \item{initial = }{\verb{1.6094379124341}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.dof}}
+#'             \item{param = }{\verb{50 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x - 2)}}
+#'             \item{from.theta = }{\verb{function(x) 2 + exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'sn'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Skew-normal link}}
+#'               \item{pdf = }{\verb{linksn}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49031}}
+#'             \item{name = }{\verb{skewness}}
+#'             \item{short.name = }{\verb{skew}}
+#'             \item{initial = }{\verb{0.00123456789}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.sn}}
+#'             \item{param = }{\verb{10}}
+#'             \item{to.theta = }{\verb{function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))}}
+#'             \item{from.theta = }{\verb{function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49032}}
+#'             \item{name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{linksnintercept}}
+#'             \item{param = }{\verb{0 0}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gevit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{GEVIT link}}
+#'               \item{pdf = }{\verb{gevit}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49033}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{initial = }{\verb{0.1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.egptail}}
+#'             \item{param = }{\verb{5 -0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49034}}
+#'             \item{name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'cgevit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Complement GEVIT link}}
+#'               \item{pdf = }{\verb{gevit}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49035}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{initial = }{\verb{-3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gevtail}}
+#'             \item{param = }{\verb{7 0 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49036}}
+#'             \item{name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) 1 / (1 + exp(-x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'powerlogit'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Power logit link}}
+#'               \item{pdf = }{\verb{powerlogit}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49131}}
+#'             \item{name = }{\verb{power}}
+#'             \item{short.name = }{\verb{power}}
+#'             \item{initial = }{\verb{0.00123456789}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{49132}}
+#'             \item{name = }{\verb{intercept}}
+#'             \item{short.name = }{\verb{p0}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{logitbeta}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'test1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A test1-link function (experimental)}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{50001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'special1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A special1-link function (experimental)}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51002}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{mvnorm}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51003}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51004}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51005}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51006}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51007}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51008}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51009}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51010}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{51011}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'special2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A special2-link function (experimental)}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{52001}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'predictor':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'predictor'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(do not use)}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{53001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{13.8155105579643}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'hazard':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'rw1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A random walk of order 1 for the log-hazard}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{54001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'rw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A random walk of order 2 for the log-hazard}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{55001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iid'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{An iid model for the log-hazard}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{55501}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'likelihood':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'fl'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The fl likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{pdf = }{\verb{fl}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'poisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset quantile test1 special1 special2}}
+#'               \item{pdf = }{\verb{poisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'npoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Normal approximation to the Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset}}
+#'               \item{pdf = }{\verb{poisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'nzpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The nzPoisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset}}
+#'               \item{pdf = }{\verb{nzpoisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'xpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Poisson likelihood (expert version)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset quantile test1 special1 special2}}
+#'               \item{pdf = }{\verb{poisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cenpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Then censored Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset test1 special1 special2}}
+#'               \item{pdf = }{\verb{cenpoisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cenpoisson2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Then censored Poisson likelihood (version 2)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset test1 special1 special2}}
+#'               \item{pdf = }{\verb{cenpoisson2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'gpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The generalized Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset}}
+#'               \item{pdf = }{\verb{gpoisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56001}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{output.name = }{\verb{Overdispersion for gpoisson}}
+#'             \item{output.name.intern = }{\verb{Log overdispersion for gpoisson}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56002}}
+#'             \item{name = }{\verb{p}}
+#'             \item{short.name = }{\verb{p}}
+#'             \item{output.name = }{\verb{Parameter p for gpoisson}}
+#'             \item{output.name.intern = }{\verb{Parameter p_intern for gpoisson}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'poisson.special1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Poisson.special1 likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{poisson-special}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56100}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{one-probability parameter for poisson.special1}}
+#'             \item{output.name.intern = }{\verb{intern one-probability parameter for poisson.special1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model '0poisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated Poisson}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log quantile}}
+#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56201}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0poisson observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56202}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56203}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56204}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56205}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56206}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56207}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56208}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56209}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56210}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0poisson observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0poisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model '0poissonS'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated Poisson Swap}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit}}
+#'               \item{link.simple = }{\verb{default log}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56301}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0poissonS observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56302}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56303}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56304}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56305}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56306}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56307}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56308}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56309}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56310}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0poissonS observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0poissonS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'bell'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Bell likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{bell}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model '0binomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated Binomial}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
+#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56401}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0binomial observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56402}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56403}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56404}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56405}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56406}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56407}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56408}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56409}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56410}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0binomial observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0binomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model '0binomialS'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated Binomial Swap}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log}}
+#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56501}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0binomialS observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56502}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56503}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56504}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56505}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56506}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56507}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56508}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56509}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56510}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0binomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0binomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'binomialmix'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Binomial mixture}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit probit}}
+#'               \item{pdf = }{\verb{binomialmix}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 51.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56551}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56552}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56553}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56554}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56555}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56556}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56557}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56558}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56559}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56560}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56561}}
+#'             \item{name = }{\verb{beta11}}
+#'             \item{short.name = }{\verb{beta11}}
+#'             \item{output.name = }{\verb{beta11 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta11 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56562}}
+#'             \item{name = }{\verb{beta12}}
+#'             \item{short.name = }{\verb{beta12}}
+#'             \item{output.name = }{\verb{beta12 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta12 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56563}}
+#'             \item{name = }{\verb{beta13}}
+#'             \item{short.name = }{\verb{beta13}}
+#'             \item{output.name = }{\verb{beta13 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta13 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56564}}
+#'             \item{name = }{\verb{beta14}}
+#'             \item{short.name = }{\verb{beta14}}
+#'             \item{output.name = }{\verb{beta14 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta14 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56565}}
+#'             \item{name = }{\verb{beta15}}
+#'             \item{short.name = }{\verb{beta15}}
+#'             \item{output.name = }{\verb{beta15 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta15 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56566}}
+#'             \item{name = }{\verb{beta16}}
+#'             \item{short.name = }{\verb{beta16}}
+#'             \item{output.name = }{\verb{beta16 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta16 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56567}}
+#'             \item{name = }{\verb{beta17}}
+#'             \item{short.name = }{\verb{beta17}}
+#'             \item{output.name = }{\verb{beta17 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta17 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56568}}
+#'             \item{name = }{\verb{beta18}}
+#'             \item{short.name = }{\verb{beta18}}
+#'             \item{output.name = }{\verb{beta18 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta18 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56569}}
+#'             \item{name = }{\verb{beta19}}
+#'             \item{short.name = }{\verb{beta19}}
+#'             \item{output.name = }{\verb{beta19 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta19 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56570}}
+#'             \item{name = }{\verb{beta20}}
+#'             \item{short.name = }{\verb{beta20}}
+#'             \item{output.name = }{\verb{beta20 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta20 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56571}}
+#'             \item{name = }{\verb{beta21}}
+#'             \item{short.name = }{\verb{beta21}}
+#'             \item{output.name = }{\verb{beta21 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta21 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56572}}
+#'             \item{name = }{\verb{beta22}}
+#'             \item{short.name = }{\verb{beta22}}
+#'             \item{output.name = }{\verb{beta22 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta22 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56573}}
+#'             \item{name = }{\verb{beta23}}
+#'             \item{short.name = }{\verb{beta23}}
+#'             \item{output.name = }{\verb{beta23 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta23 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56574}}
+#'             \item{name = }{\verb{beta24}}
+#'             \item{short.name = }{\verb{beta24}}
+#'             \item{output.name = }{\verb{beta24 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta24 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56575}}
+#'             \item{name = }{\verb{beta25}}
+#'             \item{short.name = }{\verb{beta25}}
+#'             \item{output.name = }{\verb{beta25 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta25 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56576}}
+#'             \item{name = }{\verb{beta26}}
+#'             \item{short.name = }{\verb{beta26}}
+#'             \item{output.name = }{\verb{beta26 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta26 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56577}}
+#'             \item{name = }{\verb{beta27}}
+#'             \item{short.name = }{\verb{beta27}}
+#'             \item{output.name = }{\verb{beta27 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta27 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56578}}
+#'             \item{name = }{\verb{beta28}}
+#'             \item{short.name = }{\verb{beta28}}
+#'             \item{output.name = }{\verb{beta28 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta28 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56579}}
+#'             \item{name = }{\verb{beta29}}
+#'             \item{short.name = }{\verb{beta29}}
+#'             \item{output.name = }{\verb{beta29 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta29 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56580}}
+#'             \item{name = }{\verb{beta30}}
+#'             \item{short.name = }{\verb{beta30}}
+#'             \item{output.name = }{\verb{beta30 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta30 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56581}}
+#'             \item{name = }{\verb{beta31}}
+#'             \item{short.name = }{\verb{beta31}}
+#'             \item{output.name = }{\verb{beta31 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta31 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56582}}
+#'             \item{name = }{\verb{beta32}}
+#'             \item{short.name = }{\verb{beta32}}
+#'             \item{output.name = }{\verb{beta32 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta32 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56583}}
+#'             \item{name = }{\verb{beta33}}
+#'             \item{short.name = }{\verb{beta33}}
+#'             \item{output.name = }{\verb{beta33 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta33 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56584}}
+#'             \item{name = }{\verb{beta34}}
+#'             \item{short.name = }{\verb{beta34}}
+#'             \item{output.name = }{\verb{beta34 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta34 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56585}}
+#'             \item{name = }{\verb{beta35}}
+#'             \item{short.name = }{\verb{beta35}}
+#'             \item{output.name = }{\verb{beta35 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta35 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56586}}
+#'             \item{name = }{\verb{beta36}}
+#'             \item{short.name = }{\verb{beta36}}
+#'             \item{output.name = }{\verb{beta36 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta36 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56587}}
+#'             \item{name = }{\verb{beta37}}
+#'             \item{short.name = }{\verb{beta37}}
+#'             \item{output.name = }{\verb{beta37 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta37 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56588}}
+#'             \item{name = }{\verb{beta38}}
+#'             \item{short.name = }{\verb{beta38}}
+#'             \item{output.name = }{\verb{beta38 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta38 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56589}}
+#'             \item{name = }{\verb{beta39}}
+#'             \item{short.name = }{\verb{beta39}}
+#'             \item{output.name = }{\verb{beta39 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta39 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56590}}
+#'             \item{name = }{\verb{beta40}}
+#'             \item{short.name = }{\verb{beta40}}
+#'             \item{output.name = }{\verb{beta40 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta40 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56591}}
+#'             \item{name = }{\verb{beta41}}
+#'             \item{short.name = }{\verb{beta41}}
+#'             \item{output.name = }{\verb{beta41 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta41 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56592}}
+#'             \item{name = }{\verb{beta42}}
+#'             \item{short.name = }{\verb{beta42}}
+#'             \item{output.name = }{\verb{beta42 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta42 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56593}}
+#'             \item{name = }{\verb{beta43}}
+#'             \item{short.name = }{\verb{beta43}}
+#'             \item{output.name = }{\verb{beta43 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta43 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56594}}
+#'             \item{name = }{\verb{beta44}}
+#'             \item{short.name = }{\verb{beta44}}
+#'             \item{output.name = }{\verb{beta44 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta44 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56595}}
+#'             \item{name = }{\verb{beta45}}
+#'             \item{short.name = }{\verb{beta45}}
+#'             \item{output.name = }{\verb{beta45 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta45 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56596}}
+#'             \item{name = }{\verb{beta46}}
+#'             \item{short.name = }{\verb{beta46}}
+#'             \item{output.name = }{\verb{beta46 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta46 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56597}}
+#'             \item{name = }{\verb{beta47}}
+#'             \item{short.name = }{\verb{beta47}}
+#'             \item{output.name = }{\verb{beta47 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta47 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56598}}
+#'             \item{name = }{\verb{beta48}}
+#'             \item{short.name = }{\verb{beta48}}
+#'             \item{output.name = }{\verb{beta48 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta48 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56599}}
+#'             \item{name = }{\verb{beta49}}
+#'             \item{short.name = }{\verb{beta49}}
+#'             \item{output.name = }{\verb{beta49 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta49 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56600}}
+#'             \item{name = }{\verb{beta50}}
+#'             \item{short.name = }{\verb{beta50}}
+#'             \item{output.name = }{\verb{beta50 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta50 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56601}}
+#'             \item{name = }{\verb{beta51}}
+#'             \item{short.name = }{\verb{beta51}}
+#'             \item{output.name = }{\verb{beta51 for binomialmix observations}}
+#'             \item{output.name.intern = }{\verb{beta51 for binomialmix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'binomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Binomial likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
+#'               \item{pdf = }{\verb{binomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'xbinomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Binomial likelihood (experimental version)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit gevit cgevit}}
+#'               \item{pdf = }{\verb{binomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'occupancy'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Occupancy likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit cloglog}}
+#'               \item{link.simple = }{\verb{default logit cloglog}}
+#'               \item{pdf = }{\verb{occupancy}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56601}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for occupancy observations}}
+#'             \item{initial = }{\verb{-2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-2 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56602}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56603}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56604}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56605}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56606}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56607}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56608}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56609}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56610}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for occupancy observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for occupancy observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'pom'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Likelihood for the proportional odds model}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{pom}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57101}}
+#'             \item{name = }{\verb{theta1}}
+#'             \item{short.name = }{\verb{theta1}}
+#'             \item{output.name = }{\verb{theta1 for POM}}
+#'             \item{output.name.intern = }{\verb{theta1 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{dirichlet}}
+#'             \item{param = }{\verb{3}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57102}}
+#'             \item{name = }{\verb{theta2}}
+#'             \item{short.name = }{\verb{theta2}}
+#'             \item{output.name = }{\verb{theta2 for POM}}
+#'             \item{output.name.intern = }{\verb{theta2 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57103}}
+#'             \item{name = }{\verb{theta3}}
+#'             \item{short.name = }{\verb{theta3}}
+#'             \item{output.name = }{\verb{theta3 for POM}}
+#'             \item{output.name.intern = }{\verb{theta3 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57104}}
+#'             \item{name = }{\verb{theta4}}
+#'             \item{short.name = }{\verb{theta4}}
+#'             \item{output.name = }{\verb{theta4 for POM}}
+#'             \item{output.name.intern = }{\verb{theta4 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57105}}
+#'             \item{name = }{\verb{theta5}}
+#'             \item{short.name = }{\verb{theta5}}
+#'             \item{output.name = }{\verb{theta5 for POM}}
+#'             \item{output.name.intern = }{\verb{theta5 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57106}}
+#'             \item{name = }{\verb{theta6}}
+#'             \item{short.name = }{\verb{theta6}}
+#'             \item{output.name = }{\verb{theta6 for POM}}
+#'             \item{output.name.intern = }{\verb{theta6 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57107}}
+#'             \item{name = }{\verb{theta7}}
+#'             \item{short.name = }{\verb{theta7}}
+#'             \item{output.name = }{\verb{theta7 for POM}}
+#'             \item{output.name.intern = }{\verb{theta7 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57108}}
+#'             \item{name = }{\verb{theta8}}
+#'             \item{short.name = }{\verb{theta8}}
+#'             \item{output.name = }{\verb{theta8 for POM}}
+#'             \item{output.name.intern = }{\verb{theta8 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57109}}
+#'             \item{name = }{\verb{theta9}}
+#'             \item{short.name = }{\verb{theta9}}
+#'             \item{output.name = }{\verb{theta9 for POM}}
+#'             \item{output.name.intern = }{\verb{theta9 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57110}}
+#'             \item{name = }{\verb{theta10}}
+#'             \item{short.name = }{\verb{theta10}}
+#'             \item{output.name = }{\verb{theta10 for POM}}
+#'             \item{output.name.intern = }{\verb{theta10 for POM}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'bgev'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The blended Generalized Extreme Value likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity log}}
+#'               \item{pdf = }{\verb{bgev}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 12.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57201}}
+#'             \item{name = }{\verb{spread}}
+#'             \item{short.name = }{\verb{sd}}
+#'             \item{output.name = }{\verb{spread for BGEV observations}}
+#'             \item{output.name.intern = }{\verb{log spread for BGEV observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 3}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57202}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{output.name = }{\verb{tail for BGEV observations}}
+#'             \item{output.name.intern = }{\verb{intern tail for BGEV observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gevtail}}
+#'             \item{param = }{\verb{7 0 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57203}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57204}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57205}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57206}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57207}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57208}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57209}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57210}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57211}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{57212}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta}}
+#'             \item{output.name = }{\verb{MUST BE FIXED}}
+#'             \item{output.name.intern = }{\verb{MUST BE FIXED}}
+#'             \item{initial = }{\verb{NA}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 300}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Gamma likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log quantile}}
+#'               \item{pdf = }{\verb{gamma}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58001}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the Gamma observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the Gamma observations}}
+#'             \item{initial = }{\verb{4.60517018598809}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'mgamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The modal Gamma likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{mgamma}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58002}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the modal Gamma observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the modal Gamma observations}}
+#'             \item{initial = }{\verb{4.60517018598809}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gammasurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Gamma likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog quantile}}
+#'               \item{pdf = }{\verb{gammasurv}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58101}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the Gamma surv observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the Gamma surv observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58102}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for Gamma-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58103}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58104}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58105}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Ga mma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58106}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58107}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58108}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58109}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58110}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58111}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'mgammasurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The modal Gamma likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{agamma}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58121}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision-parameter for the modal Gamma surv observations}}
+#'             \item{output.name.intern = }{\verb{Intern precision-parameter for the modal Gamma surv observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58122}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58123}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58124}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58125}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Ga mma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58126}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58127}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58128}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58129}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58130}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58131}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for modal Gamma-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for modal Gamma-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gammajw'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A special case of the Gamma likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{gammajw}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'gammajwsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A special case of the Gamma likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{gammajw}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58200}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58201}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta1 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58202}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58203}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58204}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58205}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58206}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58207}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58208}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{58209}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for GammaJW-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for GammaJW-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gammacount'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A Gamma generalisation of the Poisson likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{gammacount}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{59001}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{Log-alpha parameter for Gammacount observations}}
+#'             \item{output.name.intern = }{\verb{Alpha parameter for Gammacount observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gammacount}}
+#'             \item{param = }{\verb{3}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'qkumar'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A quantile version of the Kumar likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit}}
+#'               \item{pdf = }{\verb{qkumar}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60001}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for qkumar observations}}
+#'             \item{output.name.intern = }{\verb{log precision for qkumar observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.1}}
+#'             \item{to.theta = }{\verb{function(x, sc = 0.1) log(x) / sc}}
+#'             \item{from.theta = }{\verb{function(x, sc = 0.1) exp(sc * x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'qloglogistic'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A quantile loglogistic likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{qloglogistic}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60011}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha for qloglogistic observations}}
+#'             \item{output.name.intern = }{\verb{log alpha for qloglogistic observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{25 25}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'qloglogisticsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A quantile loglogistic likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{qloglogistic}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60021}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha for qloglogisticsurv observations}}
+#'             \item{output.name.intern = }{\verb{log alpha for qloglogisticsurv observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{25 25}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60022}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{-5}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60023}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60024}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60025}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60026}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60027}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60028}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60029}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60030}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{60031}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for qlogLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for qlogLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'beta'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Beta likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}
+#'               \item{pdf = }{\verb{beta}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61001}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{output.name = }{\verb{precision parameter for the beta observations}}
+#'             \item{output.name.intern = }{\verb{intern precision-parameter for the beta observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'obeta'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The ordered Beta likelihood}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}
+#'               \item{pdf = }{\verb{obeta}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61101}}
+#'             \item{name = }{\verb{precision parameter}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{output.name = }{\verb{precision-parameter for the obeta observations}}
+#'             \item{output.name.intern = }{\verb{intern precision-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61102}}
+#'             \item{name = }{\verb{offset location}}
+#'             \item{short.name = }{\verb{loc}}
+#'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
+#'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{61103}}
+#'             \item{name = }{\verb{offset width}}
+#'             \item{short.name = }{\verb{width}}
+#'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
+#'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'betabinomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Beta-Binomial likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{betabinomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{62001}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{output.name = }{\verb{overdispersion for the betabinomial observations}}
+#'             \item{output.name.intern = }{\verb{intern overdispersion for the betabinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'betabinomialna'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Beta-Binomial Normal approximation likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{betabinomialna}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{62101}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{output.name = }{\verb{overdispersion for the betabinomialna observations}}
+#'             \item{output.name.intern = }{\verb{intern overdispersion for the betabinomialna observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'cbinomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The clustered Binomial likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{cbinomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'nbinomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The negBinomial likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset quantile}}
+#'               \item{pdf = }{\verb{nbinomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{63001}}
+#'             \item{name = }{\verb{size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for the nbinomial observations (1/overdispersion)}}
+#'             \item{output.name.intern = }{\verb{log size for the nbinomial observations (1/overdispersion)}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'nbinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The negBinomial2 likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}
+#'               \item{pdf = }{\verb{nbinomial}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'cennbinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The CenNegBinomial2 likelihood (similar to cenpoisson2)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log logoffset quantile}}
+#'               \item{pdf = }{\verb{cennbinomial2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{63101}}
+#'             \item{name = }{\verb{size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for the cennbinomial2 observations (1/overdispersion)}}
+#'             \item{output.name.intern = }{\verb{log size for the cennbinomial2 observations (1/overdispersion)}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'simplex'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The simplex likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}
+#'               \item{pdf = }{\verb{simplex}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{64001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the Simplex observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the Simplex observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Gaussian likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity logit loga cauchit log logoffset}}
+#'               \item{pdf = }{\verb{gaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the Gaussian observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the Gaussian observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65002}}
+#'             \item{name = }{\verb{log precision offset}}
+#'             \item{short.name = }{\verb{precoffset}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{72.0873067782343}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{none}}
+#'             \item{param = }{\verb{}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stdgaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The stdGaussian likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity logit loga cauchit log logoffset}}
+#'               \item{pdf = }{\verb{gaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'gaussianjw'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The GaussianJW likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit probit}}
+#'               \item{pdf = }{\verb{gaussianjw}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 3.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65101}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for GaussianJW observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for GaussianJW observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65102}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for GaussianJW observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for GaussianJW observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65103}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for GaussianJW observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for GaussianJW observations}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-1 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'agaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The aggregated Gaussian likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity logit loga cauchit log logoffset}}
+#'               \item{pdf = }{\verb{agaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the AggGaussian observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the AggGaussian observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ggaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Generalized Gaussian}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{link.simple = }{\verb{default log}}
+#'               \item{pdf = }{\verb{ggaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66501}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for ggaussian observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{9.33 0.61}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66502}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66503}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66504}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66505}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66506}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66507}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66508}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66509}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66510}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for ggaussian observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for ggaussian observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'ggaussianS'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Generalized GaussianS}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{link.simple = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{ggaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66601}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66602}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66603}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66604}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66605}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66606}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66607}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66608}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66609}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66610}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for ggaussianS observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for ggaussianS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.001}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'bcgaussian'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Box-Cox Gaussian likelihoood}}
+#'               \item{status = }{\verb{disabled}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{bcgaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65010}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the Box-Cox Gaussian observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the Box-Cox Gaussian observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65011}}
+#'             \item{name = }{\verb{Box-Cox transformation parameter}}
+#'             \item{short.name = }{\verb{lambda}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{1 8}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'exppower'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The exponential power likelihoood}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity quantile}}
+#'               \item{pdf = }{\verb{exppower}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65021}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{65022}}
+#'             \item{name = }{\verb{power}}
+#'             \item{short.name = }{\verb{beta}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x-1)}}
+#'             \item{from.theta = }{\verb{function(x) 1+exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'sem'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The SEM likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{sem}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'rcpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Randomly censored Poisson}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{rcpoisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66701}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta1 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66702}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta2 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66703}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta3 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66704}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta4 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66705}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta5 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66706}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta6 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66707}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta7 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66708}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta8 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66709}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta9 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66710}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 rcpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta10 rcpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'tpoisson'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Thinned Poisson}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{tpoisson}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66721}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta1 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66722}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta2 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66723}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta3 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66724}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta4 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66725}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta5 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66726}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta6 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66727}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta7 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66728}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta8 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66729}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta9 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{66730}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 tpoisson observations}}
+#'             \item{output.name.intern = }{\verb{beta10 tpoisson observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'circularnormal'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The circular Gaussian likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default tan tan.pi}}
+#'               \item{pdf = }{\verb{circular-normal}}
+#'               \item{status = }{\verb{disabled}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{67001}}
+#'             \item{name = }{\verb{log precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision parameter for the Circular Normal observations}}
+#'             \item{output.name.intern = }{\verb{Log precision parameter for the Circular Normal observations}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'wrappedcauchy'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The wrapped Cauchy likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default tan tan.pi}}
+#'               \item{pdf = }{\verb{wrapped-cauchy}}
+#'               \item{status = }{\verb{disabled}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{68001}}
+#'             \item{name = }{\verb{log precision parameter}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision parameter for the Wrapped Cauchy observations}}
+#'             \item{output.name.intern = }{\verb{Log precision parameter for the Wrapped Cauchy observations}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.005}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iidgamma'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(experimental)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{iidgamma}}
+#'               \item{status = }{\verb{experimental}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{69001}}
+#'             \item{name = }{\verb{logshape}}
+#'             \item{short.name = }{\verb{shape}}
+#'             \item{output.name = }{\verb{Shape parameter for iid-gamma}}
+#'             \item{output.name.intern = }{\verb{Log shape parameter for iid-gamma}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{100 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{69002}}
+#'             \item{name = }{\verb{lograte}}
+#'             \item{short.name = }{\verb{rate}}
+#'             \item{output.name = }{\verb{Rate parameter for iid-gamma}}
+#'             \item{output.name.intern = }{\verb{Log rate parameter for iid-gamma}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{100 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'iidlogitbeta'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(experimental)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga}}
+#'               \item{pdf = }{\verb{iidlogitbeta}}
+#'               \item{status = }{\verb{experimental}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{70001}}
+#'             \item{name = }{\verb{log.a}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{output.name = }{\verb{a parameter for iid-beta}}
+#'             \item{output.name.intern = }{\verb{Log a parameter for iid-beta}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{70002}}
+#'             \item{name = }{\verb{log.b}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{output.name = }{\verb{Rate parameter for iid-gamma}}
+#'             \item{output.name.intern = }{\verb{Log rate parameter for iid-gamma}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'loggammafrailty'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(experimental)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{loggammafrailty}}
+#'               \item{status = }{\verb{experimental}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{71001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for the gamma frailty}}
+#'             \item{output.name.intern = }{\verb{log precision for the gamma frailty}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'logistic'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Logistic likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{logistic}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{72001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for the logistic observations}}
+#'             \item{output.name.intern = }{\verb{log precision for the logistic observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'sn'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Skew-Normal likelihoood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{sn}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{74001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for skew-normal observations}}
+#'             \item{output.name.intern = }{\verb{log precision for skew-normal observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{74002}}
+#'             \item{name = }{\verb{logit skew}}
+#'             \item{short.name = }{\verb{skew}}
+#'             \item{output.name = }{\verb{Skewness for skew-normal observations}}
+#'             \item{output.name.intern = }{\verb{Intern skewness for skew-normal observations}}
+#'             \item{initial = }{\verb{0.00123456789}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.sn}}
+#'             \item{param = }{\verb{10}}
+#'             \item{to.theta = }{\verb{function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))}}
+#'             \item{from.theta = }{\verb{function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gev'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Generalized Extreme Value likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{status = }{\verb{disabled: Use likelihood model 'bgev' instead; see inla.doc('bgev')}}
+#'               \item{pdf = }{\verb{gev}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{76001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for GEV observations}}
+#'             \item{output.name.intern = }{\verb{log precision for GEV observations}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{76002}}
+#'             \item{name = }{\verb{tail parameter}}
+#'             \item{short.name = }{\verb{tail}}
+#'             \item{output.name = }{\verb{tail parameter for GEV observations}}
+#'             \item{output.name.intern = }{\verb{tail parameter for GEV observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 25}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'lognormal'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The log-Normal likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{lognormal}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{77101}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the lognormal observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the lognormal observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'lognormalsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The log-Normal likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{lognormal}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for the lognormalsurv observations}}
+#'             \item{output.name.intern = }{\verb{Log precision for the lognormalsurv observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78002}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for logNormal-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78003}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78004}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78005}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78006}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78007}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78008}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78009}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78010}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78011}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for logNormal-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for logNormal-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'exponential'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Exponential likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{exponential}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'exponentialsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Exponential likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{exponential}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78020}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for Exp-Cure}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-1 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78021}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78022}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78023}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78024}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78025}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78026}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78027}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78028}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{78029}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for Exp-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for Exp-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'coxph'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Cox-proportional hazard likelihood}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{coxph}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'weibull'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Weibull likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog quantile}}
+#'               \item{pdf = }{\verb{weibull}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79001}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha parameter for weibull}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for weibull}}
+#'             \item{initial = }{\verb{-2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.alphaw}}
+#'             \item{param = }{\verb{5}}
+#'             \item{to.theta = }{\verb{function(x, sc = 0.1) log(x) / sc}}
+#'             \item{from.theta = }{\verb{function(x, sc = 0.1) exp(sc * x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'weibullsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Weibull likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog quantile}}
+#'               \item{pdf = }{\verb{weibull}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79101}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha parameter for weibullsurv}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for weibullsurv}}
+#'             \item{initial = }{\verb{-2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.alphaw}}
+#'             \item{param = }{\verb{5}}
+#'             \item{to.theta = }{\verb{function(x, sc = 0.1) log(x) / sc}}
+#'             \item{from.theta = }{\verb{function(x, sc = 0.1) exp(sc * x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79102}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for Weibull-Cure}}
+#'             \item{initial = }{\verb{-7}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79103}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79104}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79105}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79106}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79107}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79108}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79109}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79110}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{79111}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for Weibull-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for Weibull-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'loglogistic'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The loglogistic likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{loglogistic}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80001}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha for loglogistic observations}}
+#'             \item{output.name.intern = }{\verb{log alpha for loglogistic observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{25 25}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'loglogisticsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The loglogistic likelihood (survival)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{loglogistic}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80011}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{alpha for loglogisticsurv observations}}
+#'             \item{output.name.intern = }{\verb{log alpha for loglogisticsurv observations}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{25 25}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80012}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{-5}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80013}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80014}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80015}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80016}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80017}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80018}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80019}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80020}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{80021}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for logLogistic-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for logLogistic-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stochvol'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Gaussian stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolgaussian}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{82001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Offset precision for stochvol}}
+#'             \item{output.name.intern = }{\verb{Log offset precision for stochvol}}
+#'             \item{initial = }{\verb{500}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.005}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stochvolln'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Log-Normal stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolln}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{82011}}
+#'             \item{name = }{\verb{offset}}
+#'             \item{short.name = }{\verb{c}}
+#'             \item{output.name = }{\verb{Mean offset for stochvolln}}
+#'             \item{output.name.intern = }{\verb{Mean offset for stochvolln}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stochvolsn'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The SkewNormal stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolsn}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{82101}}
+#'             \item{name = }{\verb{logit skew}}
+#'             \item{short.name = }{\verb{skew}}
+#'             \item{output.name = }{\verb{Skewness for stochvol_sn observations}}
+#'             \item{output.name.intern = }{\verb{Intern skewness for stochvol_sn observations}}
+#'             \item{initial = }{\verb{0.00123456789}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.sn}}
+#'             \item{param = }{\verb{10}}
+#'             \item{to.theta = }{\verb{function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))}}
+#'             \item{from.theta = }{\verb{function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{82102}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Offset precision for stochvol_sn}}
+#'             \item{output.name.intern = }{\verb{Log offset precision for stochvol_sn}}
+#'             \item{initial = }{\verb{500}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.005}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stochvolt'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Student-t stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolt}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{83001}}
+#'             \item{name = }{\verb{log degrees of freedom}}
+#'             \item{short.name = }{\verb{dof}}
+#'             \item{output.name = }{\verb{degrees of freedom for stochvol student-t}}
+#'             \item{output.name.intern = }{\verb{dof_intern for stochvol student-t}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.dof}}
+#'             \item{param = }{\verb{15 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x - 2)}}
+#'             \item{from.theta = }{\verb{function(x) 2 + exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'stochvolnig'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{The Normal inverse Gaussian stochvol likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{stochvolnig}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{84001}}
+#'             \item{name = }{\verb{skewness}}
+#'             \item{short.name = }{\verb{skew}}
+#'             \item{output.name.intern = }{\verb{skewness_param_intern for stochvol-nig}}
+#'             \item{output.name = }{\verb{skewness parameter for stochvol-nig}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{84002}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{shape}}
+#'             \item{output.name = }{\verb{shape parameter for stochvol-nig}}
+#'             \item{output.name.intern = }{\verb{shape_param_intern for stochvol-nig}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x - 1)}}
+#'             \item{from.theta = }{\verb{function(x) 1 + exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedpoisson0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Poisson, type 0}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{85001}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated poisson_0}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated poisson_0}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedpoisson1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Poisson, type 1}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{86001}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated poisson_1}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated poisson_1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedpoisson2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Poisson, type 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{87001}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated poisson_2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated poisson_2}}
+#'             \item{initial = }{\verb{0.693147180559945}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0.693147180559945 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedcenpoisson0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated censored Poisson, type 0}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{87101}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated poisson_0}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated poisson_0}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedcenpoisson1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated censored Poisson, type 1}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{87201}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated poisson_1}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated poisson_1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbetabinomial0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Beta-Binomial, type 0}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{88001}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{output.name = }{\verb{rho for zero-inflated betabinomial_0}}
+#'             \item{output.name.intern = }{\verb{rho_intern for zero-inflated betabinomial_0}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{88002}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated betabinomial_0}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated betabinomial_0}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbetabinomial1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Beta-Binomial, type 1}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{89001}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{rho}}
+#'             \item{output.name = }{\verb{rho for zero-inflated betabinomial_1}}
+#'             \item{output.name.intern = }{\verb{rho_intern for zero-inflated betabinomial_1}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 0.4}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{89002}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated betabinomial_1}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated betabinomial_1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbinomial0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Binomial, type 0}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{90001}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated binomial_0}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated binomial_0}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbinomial1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Binomial, type 1}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{91001}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated binomial_1}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated binomial_1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero-inflated Binomial, type 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{92001}}
+#'             \item{name = }{\verb{alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated binomial_2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated binomial_2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroninflatedbinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero and N inflated binomial, type 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{93001}}
+#'             \item{name = }{\verb{alpha1}}
+#'             \item{short.name = }{\verb{alpha1}}
+#'             \item{output.name = }{\verb{alpha1 parameter for zero-n-inflated binomial_2}}
+#'             \item{output.name.intern = }{\verb{intern alpha1 parameter for zero-n-inflated binomial_2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{93002}}
+#'             \item{name = }{\verb{alpha2}}
+#'             \item{short.name = }{\verb{alpha2}}
+#'             \item{output.name = }{\verb{alpha2 parameter for zero-n-inflated binomial_2}}
+#'             \item{output.name.intern = }{\verb{intern alpha2 parameter for zero-n-inflated binomial_2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroninflatedbinomial3'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero and N inflated binomial, type 3}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{93101}}
+#'             \item{name = }{\verb{alpha0}}
+#'             \item{short.name = }{\verb{alpha0}}
+#'             \item{output.name = }{\verb{alpha0 parameter for zero-n-inflated binomial_3}}
+#'             \item{output.name.intern = }{\verb{intern alpha0 parameter for zero-n-inflated binomial_3}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{93102}}
+#'             \item{name = }{\verb{alphaN}}
+#'             \item{short.name = }{\verb{alphaN}}
+#'             \item{output.name.intern = }{\verb{intern alphaN parameter for zero-n-inflated binomial_3}}
+#'             \item{output.name = }{\verb{alphaN parameter for zero-n-inflated binomial_3}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatedbetabinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated Beta-Binomial, type 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog robit sn}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{94001}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated betabinomial_2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated betabinomial_2}}
+#'             \item{initial = }{\verb{0.693147180559945}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0.693147180559945 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{94002}}
+#'             \item{name = }{\verb{beta}}
+#'             \item{short.name = }{\verb{b}}
+#'             \item{output.name = }{\verb{overdispersion parameter for zero-inflated betabinomial_2}}
+#'             \item{output.name.intern = }{\verb{intern overdispersion parameter for zero-inflated betabinomial_2}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatednbinomial0'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated negBinomial, type 0}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{95001}}
+#'             \item{name = }{\verb{log size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for nbinomial_0 zero-inflated observations}}
+#'             \item{output.name.intern = }{\verb{log size for nbinomial_0 zero-inflated observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{95002}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated nbinomial_0}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated nbinomial_0}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatednbinomial1'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated negBinomial, type 1}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{96001}}
+#'             \item{name = }{\verb{log size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for nbinomial_1 zero-inflated observations}}
+#'             \item{output.name.intern = }{\verb{log size for nbinomial_1 zero-inflated observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{96002}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability parameter for zero-inflated nbinomial_1}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability parameter for zero-inflated nbinomial_1}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatednbinomial1strata2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97001}}
+#'             \item{name = }{\verb{log size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{log size for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97002}}
+#'             \item{name = }{\verb{logit probability 1}}
+#'             \item{short.name = }{\verb{prob1}}
+#'             \item{output.name = }{\verb{zero-probability1 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability1 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97003}}
+#'             \item{name = }{\verb{logit probability 2}}
+#'             \item{short.name = }{\verb{prob2}}
+#'             \item{output.name = }{\verb{zero-probability2 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability2 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97004}}
+#'             \item{name = }{\verb{logit probability 3}}
+#'             \item{short.name = }{\verb{prob3}}
+#'             \item{output.name = }{\verb{zero-probability3 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability3 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97005}}
+#'             \item{name = }{\verb{logit probability 4}}
+#'             \item{short.name = }{\verb{prob4}}
+#'             \item{output.name = }{\verb{zero-probability4 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability4 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97006}}
+#'             \item{name = }{\verb{logit probability 5}}
+#'             \item{short.name = }{\verb{prob5}}
+#'             \item{output.name = }{\verb{zero-probability5 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability5 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97007}}
+#'             \item{name = }{\verb{logit probability 6}}
+#'             \item{short.name = }{\verb{prob6}}
+#'             \item{output.name = }{\verb{zero-probability6 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability6 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97008}}
+#'             \item{name = }{\verb{logit probability 7}}
+#'             \item{short.name = }{\verb{prob7}}
+#'             \item{output.name = }{\verb{zero-probability7 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability7 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97009}}
+#'             \item{name = }{\verb{logit probability 8}}
+#'             \item{short.name = }{\verb{prob8}}
+#'             \item{output.name = }{\verb{zero-probability8 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability8 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97010}}
+#'             \item{name = }{\verb{logit probability 9}}
+#'             \item{short.name = }{\verb{prob9}}
+#'             \item{output.name = }{\verb{zero-probability9 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability9 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{97011}}
+#'             \item{name = }{\verb{logit probability 10}}
+#'             \item{short.name = }{\verb{prob10}}
+#'             \item{output.name = }{\verb{zero-probability10 for zero-inflated nbinomial_1_strata2}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability10 for zero-inflated nbinomial_1_strata2}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatednbinomial1strata3'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated negBinomial, type 1, strata 3}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98001}}
+#'             \item{name = }{\verb{logit probability}}
+#'             \item{short.name = }{\verb{prob}}
+#'             \item{output.name = }{\verb{zero-probability for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{intern zero-probability for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{-1 0.2}}
+#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
+#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98002}}
+#'             \item{name = }{\verb{log size 1}}
+#'             \item{short.name = }{\verb{size1}}
+#'             \item{output.name = }{\verb{size1 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size1 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98003}}
+#'             \item{name = }{\verb{log size 2}}
+#'             \item{short.name = }{\verb{size2}}
+#'             \item{output.name = }{\verb{size2 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size2 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98004}}
+#'             \item{name = }{\verb{log size 3}}
+#'             \item{short.name = }{\verb{size3}}
+#'             \item{output.name = }{\verb{size3 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size3 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98005}}
+#'             \item{name = }{\verb{log size 4}}
+#'             \item{short.name = }{\verb{size4}}
+#'             \item{output.name = }{\verb{size4 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size4 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98006}}
+#'             \item{name = }{\verb{log size 5}}
+#'             \item{short.name = }{\verb{size5}}
+#'             \item{output.name = }{\verb{size5 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size5 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98007}}
+#'             \item{name = }{\verb{log size 6}}
+#'             \item{short.name = }{\verb{size6}}
+#'             \item{output.name = }{\verb{size6 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size6 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98008}}
+#'             \item{name = }{\verb{log size 7}}
+#'             \item{short.name = }{\verb{size7}}
+#'             \item{output.name = }{\verb{size7 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size7 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98009}}
+#'             \item{name = }{\verb{log size 8}}
+#'             \item{short.name = }{\verb{size8}}
+#'             \item{output.name = }{\verb{size8 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size8 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98010}}
+#'             \item{name = }{\verb{log size 9}}
+#'             \item{short.name = }{\verb{size9}}
+#'             \item{output.name = }{\verb{size9 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size9 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{98011}}
+#'             \item{name = }{\verb{log size 10}}
+#'             \item{short.name = }{\verb{size10}}
+#'             \item{output.name = }{\verb{size10 for zero-inflated nbinomial_1_strata3}}
+#'             \item{output.name.intern = }{\verb{log_size10 for zero-inflated nbinomial_1_strata3}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'zeroinflatednbinomial2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Zero inflated negBinomial, type 2}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{zeroinflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{99001}}
+#'             \item{name = }{\verb{log size}}
+#'             \item{short.name = }{\verb{size}}
+#'             \item{output.name = }{\verb{size for nbinomial zero-inflated observations}}
+#'             \item{output.name.inter = }{\verb{log size for nbinomial zero-inflated observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.mgamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{99002}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{a}}
+#'             \item{output.name = }{\verb{parameter alpha for zero-inflated nbinomial2}}
+#'             \item{output.name.intern = }{\verb{parameter alpha.intern for zero-inflated nbinomial2}}
+#'             \item{initial = }{\verb{0.693147180559945}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{gaussian}}
+#'             \item{param = }{\verb{2 1}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 't'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Student-t likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{student-t}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{100001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{precision for the student-t observations}}
+#'             \item{output.name.intern = }{\verb{log precision for the student-t observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{100002}}
+#'             \item{name = }{\verb{log degrees of freedom}}
+#'             \item{short.name = }{\verb{dof}}
+#'             \item{output.name = }{\verb{degrees of freedom for student-t}}
+#'             \item{output.name.intern = }{\verb{dof_intern for student-t}}
+#'             \item{initial = }{\verb{5}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.dof}}
+#'             \item{param = }{\verb{15 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x - 2)}}
+#'             \item{from.theta = }{\verb{function(x) 2 + exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'tstrata'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A stratified version of the Student-t likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{tstrata}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101001}}
+#'             \item{name = }{\verb{log degrees of freedom}}
+#'             \item{short.name = }{\verb{dof}}
+#'             \item{output.name.intern = }{\verb{dof_intern for tstrata}}
+#'             \item{output.name = }{\verb{degrees of freedom for tstrata}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.dof}}
+#'             \item{param = }{\verb{15 0.5}}
+#'             \item{to.theta = }{\verb{function(x) log(x - 5)}}
+#'             \item{from.theta = }{\verb{function(x) 5 + exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101002}}
+#'             \item{name = }{\verb{log precision1}}
+#'             \item{short.name = }{\verb{prec1}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101003}}
+#'             \item{name = }{\verb{log precision2}}
+#'             \item{short.name = }{\verb{prec2}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[2]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[2]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101004}}
+#'             \item{name = }{\verb{log precision3}}
+#'             \item{short.name = }{\verb{prec3}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[3]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[3]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101005}}
+#'             \item{name = }{\verb{log precision4}}
+#'             \item{short.name = }{\verb{prec4}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[4]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[4]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101006}}
+#'             \item{name = }{\verb{log precision5}}
+#'             \item{short.name = }{\verb{prec5}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[5]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[5]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101007}}
+#'             \item{name = }{\verb{log precision6}}
+#'             \item{short.name = }{\verb{prec6}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[6]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[6]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101008}}
+#'             \item{name = }{\verb{log precision7}}
+#'             \item{short.name = }{\verb{prec7}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[7]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[7]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101009}}
+#'             \item{name = }{\verb{log precision8}}
+#'             \item{short.name = }{\verb{prec8}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[8]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[8]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101010}}
+#'             \item{name = }{\verb{log precision9}}
+#'             \item{short.name = }{\verb{prec9}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[9]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[9]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101011}}
+#'             \item{name = }{\verb{log precision10}}
+#'             \item{short.name = }{\verb{prec10}}
+#'             \item{output.name = }{\verb{Prec for tstrata strata[10]}}
+#'             \item{output.name.intern = }{\verb{Log prec for tstrata strata[10]}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'nmix'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Binomial-Poisson mixture}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga probit}}
+#'               \item{pdf = }{\verb{nmix}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 15.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101101}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta[1] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[1] for NMix observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.5}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101102}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta[2] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[2] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101103}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta[3] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[3] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101104}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta[4] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[4] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101105}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta[5] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[5] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101106}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta[6] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[6] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101107}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta[7] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[7] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101108}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta[8] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[8] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101109}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta[9] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[9] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101110}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta[10] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[10] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101111}}
+#'             \item{name = }{\verb{beta11}}
+#'             \item{short.name = }{\verb{beta11}}
+#'             \item{output.name = }{\verb{beta[11] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[11] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101112}}
+#'             \item{name = }{\verb{beta12}}
+#'             \item{short.name = }{\verb{beta12}}
+#'             \item{output.name = }{\verb{beta[12] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[12] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101113}}
+#'             \item{name = }{\verb{beta13}}
+#'             \item{short.name = }{\verb{beta13}}
+#'             \item{output.name = }{\verb{beta[13] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[13] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101114}}
+#'             \item{name = }{\verb{beta14}}
+#'             \item{short.name = }{\verb{beta14}}
+#'             \item{output.name = }{\verb{beta[14] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[14] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101115}}
+#'             \item{name = }{\verb{beta15}}
+#'             \item{short.name = }{\verb{beta15}}
+#'             \item{output.name = }{\verb{beta[15] for NMix observations}}
+#'             \item{output.name.intern = }{\verb{beta[15] for NMix observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'nmixnb'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{NegBinomial-Poisson mixture}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit loga probit}}
+#'               \item{pdf = }{\verb{nmixnb}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 16.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101121}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta[1] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[1] for NMixNB observations}}
+#'             \item{initial = }{\verb{2.30258509299405}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 0.5}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101122}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta[2] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[2] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101123}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta[3] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[3] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101124}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta[4] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[4] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101125}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta[5] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[5] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101126}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta[6] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[6] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101127}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta[7] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[7] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101128}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta[8] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[8] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101129}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta[9] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[9] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101130}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta[10] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[10] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101131}}
+#'             \item{name = }{\verb{beta11}}
+#'             \item{short.name = }{\verb{beta11}}
+#'             \item{output.name = }{\verb{beta[11] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[11] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101132}}
+#'             \item{name = }{\verb{beta12}}
+#'             \item{short.name = }{\verb{beta12}}
+#'             \item{output.name = }{\verb{beta[12] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[12] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101133}}
+#'             \item{name = }{\verb{beta13}}
+#'             \item{short.name = }{\verb{beta13}}
+#'             \item{output.name = }{\verb{beta[13] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[13] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101134}}
+#'             \item{name = }{\verb{beta14}}
+#'             \item{short.name = }{\verb{beta14}}
+#'             \item{output.name = }{\verb{beta[14] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[14] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101135}}
+#'             \item{name = }{\verb{beta15}}
+#'             \item{short.name = }{\verb{beta15}}
+#'             \item{output.name = }{\verb{beta[15] for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{beta[15] for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101136}}
+#'             \item{name = }{\verb{overdispersion}}
+#'             \item{short.name = }{\verb{overdispersion}}
+#'             \item{output.name = }{\verb{overdispersion for NMixNB observations}}
+#'             \item{output.name.intern = }{\verb{log_overdispersion for NMixNB observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gamma}}
+#'             \item{param = }{\verb{7}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gp'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Generalized Pareto likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default quantile}}
+#'               \item{pdf = }{\verb{genPareto}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101201}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{output.name = }{\verb{Tail parameter for the gp observations}}
+#'             \item{output.name.intern = }{\verb{Intern tail parameter for the gp observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gevtail}}
+#'             \item{param = }{\verb{7 0 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'egp'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Exteneded Generalized Pareto likelihood}}
+#'               \item{status = }{\verb{experimental}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default quantile}}
+#'               \item{pdf = }{\verb{egp}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101211}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{output.name = }{\verb{Tail parameter for egp observations}}
+#'             \item{output.name.intern = }{\verb{Intern tail parameter for egp observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.egptail}}
+#'             \item{param = }{\verb{5 -0.5 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101212}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{kappa}}
+#'             \item{output.name = }{\verb{Shape parameter for the egp observations}}
+#'             \item{output.name.intern = }{\verb{Intern shape parameter for the egp observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{100 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'dgp'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Discrete generalized Pareto likelihood}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default quantile}}
+#'               \item{pdf = }{\verb{dgp}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{101301}}
+#'             \item{name = }{\verb{tail}}
+#'             \item{short.name = }{\verb{xi}}
+#'             \item{output.name = }{\verb{Tail parameter for the dgp observations}}
+#'             \item{output.name.intern = }{\verb{Intern tail parameter for the dgp observations}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gevtail}}
+#'             \item{param = }{\verb{7 0 0.5}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'logperiodogram'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Likelihood for the log-periodogram}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default identity}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
+#'       \item{Model 'tweedie'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Tweedie distribution}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{tweedie}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{102101}}
+#'             \item{name = }{\verb{p}}
+#'             \item{short.name = }{\verb{p}}
+#'             \item{output.name = }{\verb{p parameter for Tweedie}}
+#'             \item{output.name.intern = }{\verb{p_intern parameter for Tweedie}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x))}}
+#'             \item{from.theta = }{\verb{function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{102201}}
+#'             \item{name = }{\verb{dispersion}}
+#'             \item{short.name = }{\verb{phi}}
+#'             \item{output.name = }{\verb{Dispersion parameter for Tweedie}}
+#'             \item{output.name.intern = }{\verb{Log dispersion parameter for Tweedie}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{100 100}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'fmri'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{fmri distribution (special nc-chi)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{fmri}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103101}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for fmri}}
+#'             \item{output.name.intern = }{\verb{Log precision for fmri}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{10 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103202}}
+#'             \item{name = }{\verb{dof}}
+#'             \item{short.name = }{\verb{df}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'fmrisurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{fmri distribution (special nc-chi)}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{fmri}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{104101}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{Precision for fmrisurv}}
+#'             \item{output.name.intern = }{\verb{Log precision for fmrisurv}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{10 10}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{104201}}
+#'             \item{name = }{\verb{dof}}
+#'             \item{short.name = }{\verb{df}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gompertz'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{gompertz distribution}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{gompertz}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{105101}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for Gompertz}}
+#'             \item{output.name = }{\verb{alpha parameter for Gompertz}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x, sc = 0.1) log(x) / sc}}
+#'             \item{from.theta = }{\verb{function(x, sc = 0.1) exp(sc * x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'gompertzsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{gompertz distribution}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{gompertz}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 11.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106101}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for Gompertz-surv}}
+#'             \item{output.name = }{\verb{alpha parameter for Gompertz-surv}}
+#'             \item{initial = }{\verb{-10}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 1}}
+#'             \item{to.theta = }{\verb{function(x, sc = 0.1) log(x) / sc}}
+#'             \item{from.theta = }{\verb{function(x, sc = 0.1) exp(sc * x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106102}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta1 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{-5}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106103}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta2 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106104}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta3 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106105}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta4 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106106}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta5 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106107}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta6 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106108}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta7 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106109}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta8 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106110}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta9 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{106111}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for Gompertz-Cure}}
+#'             \item{output.name.intern = }{\verb{beta10 for Gompertz-Cure}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 100}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'dgompertzsurv'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{destructive gompertz (survival) distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{TRUE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log neglog}}
+#'               \item{pdf = }{\verb{dgompertz}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{108101}}
+#'             \item{name = }{\verb{shape}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name.intern = }{\verb{alpha_intern for dGompertz}}
+#'             \item{output.name = }{\verb{alpha parameter for dGompertz}}
+#'             \item{initial = }{\verb{-1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'vm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{von Mises circular distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default circular tan tan.pi identity}}
+#'               \item{pdf = }{\verb{vm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{109101}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name.intern = }{\verb{prec_intern for vm}}
+#'             \item{output.name = }{\verb{precision parameter for vm}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'prior':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'normal'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'gaussian'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'laplace'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'linksnintercept'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'wishart1d'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'wishart2d'.}{
+#'          Number of parameters in the prior = 4
+#'        }
+#'       \item{Model 'wishart3d'.}{
+#'          Number of parameters in the prior = 7
+#'        }
+#'       \item{Model 'wishart4d'.}{
+#'          Number of parameters in the prior = 11
+#'        }
+#'       \item{Model 'wishart5d'.}{
+#'          Number of parameters in the prior = 16
+#'        }
+#'       \item{Model 'loggamma'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'gamma'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'minuslogsqrtruncnormal'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'logtnormal'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'logtgaussian'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'flat'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'logflat'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'logiflat'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'mvnorm'.}{
+#'          Number of parameters in the prior = -1
+#'        }
+#'       \item{Model 'pc.alphaw'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'pc.ar'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'dirichlet'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'none'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'invalid'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'betacorrelation'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'logitbeta'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.prec'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.dof'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.cor0'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.cor1'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.fgnh'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.spde.GA'.}{
+#'          Number of parameters in the prior = 4
+#'        }
+#'       \item{Model 'pc.matern'.}{
+#'          Number of parameters in the prior = 3
+#'        }
+#'       \item{Model 'pc.range'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.sn'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'pc.gamma'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'pc.mgamma'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'pc.gammacount'.}{
+#'          Number of parameters in the prior = 1
+#'        }
+#'       \item{Model 'pc.gevtail'.}{
+#'          Number of parameters in the prior = 3
+#'        }
+#'       \item{Model 'pc.egptail'.}{
+#'          Number of parameters in the prior = 3
+#'        }
+#'       \item{Model 'pc'.}{
+#'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'ref.ar'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'pom'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'jeffreystdf'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'       \item{Model 'wishartkd'.}{
+#'          Number of parameters in the prior = 301
+#'        }
+#'       \item{Model 'expression:'.}{
+#'          Number of parameters in the prior = -1
+#'        }
+#'       \item{Model 'table:'.}{
+#'          Number of parameters in the prior = -1
+#'        }
+#'       \item{Model 'rprior:'.}{
+#'          Number of parameters in the prior = 0
+#'        }
+#'      }
+#' @section 'wrapper':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'joint'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{(experimental)}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{NA}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{102001}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name = }{\verb{NOT IN USE}}
+#'             \item{output.name.intern = }{\verb{NOT IN USE}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{TRUE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 5e-05}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @section 'lp.scale':
+#'
+#'    Valid models in this section are:
+#'      \describe{
+#'       \item{Model 'lp.scale'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{pdf = }{\verb{lp.scale}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 100.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103001}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{b1}}
+#'             \item{output.name = }{\verb{beta[1] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[1] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103002}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{b2}}
+#'             \item{output.name = }{\verb{beta[2] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[2] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103003}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{b3}}
+#'             \item{output.name = }{\verb{beta[3] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[3] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103004}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{b4}}
+#'             \item{output.name = }{\verb{beta[4] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[4] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103005}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{b5}}
+#'             \item{output.name = }{\verb{beta[5] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[5] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103006}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{b6}}
+#'             \item{output.name = }{\verb{beta[6] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[6] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103007}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{b7}}
+#'             \item{output.name = }{\verb{beta[7] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[7] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103008}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{b8}}
+#'             \item{output.name = }{\verb{beta[8] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[8] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103009}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{b9}}
+#'             \item{output.name = }{\verb{beta[9] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[9] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103010}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{b10}}
+#'             \item{output.name = }{\verb{beta[10] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[10] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta11'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103011}}
+#'             \item{name = }{\verb{beta11}}
+#'             \item{short.name = }{\verb{b11}}
+#'             \item{output.name = }{\verb{beta[11] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[11] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta12'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103012}}
+#'             \item{name = }{\verb{beta12}}
+#'             \item{short.name = }{\verb{b12}}
+#'             \item{output.name = }{\verb{beta[12] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[12] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta13'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103013}}
+#'             \item{name = }{\verb{beta13}}
+#'             \item{short.name = }{\verb{b13}}
+#'             \item{output.name = }{\verb{beta[13] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[13] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta14'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103014}}
+#'             \item{name = }{\verb{beta14}}
+#'             \item{short.name = }{\verb{b14}}
+#'             \item{output.name = }{\verb{beta[14] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[14] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta15'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103015}}
+#'             \item{name = }{\verb{beta15}}
+#'             \item{short.name = }{\verb{b15}}
+#'             \item{output.name = }{\verb{beta[15] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[15] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta16'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103016}}
+#'             \item{name = }{\verb{beta16}}
+#'             \item{short.name = }{\verb{b16}}
+#'             \item{output.name = }{\verb{beta[16] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[16] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta17'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103017}}
+#'             \item{name = }{\verb{beta17}}
+#'             \item{short.name = }{\verb{b17}}
+#'             \item{output.name = }{\verb{beta[17] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[17] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta18'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103018}}
+#'             \item{name = }{\verb{beta18}}
+#'             \item{short.name = }{\verb{b18}}
+#'             \item{output.name = }{\verb{beta[18] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[18] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta19'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103019}}
+#'             \item{name = }{\verb{beta19}}
+#'             \item{short.name = }{\verb{b19}}
+#'             \item{output.name = }{\verb{beta[19] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[19] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta20'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103020}}
+#'             \item{name = }{\verb{beta20}}
+#'             \item{short.name = }{\verb{b20}}
+#'             \item{output.name = }{\verb{beta[20] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[20] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta21'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103021}}
+#'             \item{name = }{\verb{beta21}}
+#'             \item{short.name = }{\verb{b21}}
+#'             \item{output.name = }{\verb{beta[21] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[21] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta22'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103022}}
+#'             \item{name = }{\verb{beta22}}
+#'             \item{short.name = }{\verb{b22}}
+#'             \item{output.name = }{\verb{beta[22] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[22] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta23'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103023}}
+#'             \item{name = }{\verb{beta23}}
+#'             \item{short.name = }{\verb{b23}}
+#'             \item{output.name = }{\verb{beta[23] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[23] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta24'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103024}}
+#'             \item{name = }{\verb{beta24}}
+#'             \item{short.name = }{\verb{b24}}
+#'             \item{output.name = }{\verb{beta[24] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[24] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta25'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103025}}
+#'             \item{name = }{\verb{beta25}}
+#'             \item{short.name = }{\verb{b25}}
+#'             \item{output.name = }{\verb{beta[25] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[25] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta26'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103026}}
+#'             \item{name = }{\verb{beta26}}
+#'             \item{short.name = }{\verb{b26}}
+#'             \item{output.name = }{\verb{beta[26] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[26] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta27'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103027}}
+#'             \item{name = }{\verb{beta27}}
+#'             \item{short.name = }{\verb{b27}}
+#'             \item{output.name = }{\verb{beta[27] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[27] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta28'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103028}}
+#'             \item{name = }{\verb{beta28}}
+#'             \item{short.name = }{\verb{b28}}
+#'             \item{output.name = }{\verb{beta[28] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[28] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta29'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103029}}
+#'             \item{name = }{\verb{beta29}}
+#'             \item{short.name = }{\verb{b29}}
+#'             \item{output.name = }{\verb{beta[29] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[29] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta30'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103030}}
+#'             \item{name = }{\verb{beta30}}
+#'             \item{short.name = }{\verb{b30}}
+#'             \item{output.name = }{\verb{beta[30] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[30] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta31'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103031}}
+#'             \item{name = }{\verb{beta31}}
+#'             \item{short.name = }{\verb{b31}}
+#'             \item{output.name = }{\verb{beta[31] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[31] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta32'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103032}}
+#'             \item{name = }{\verb{beta32}}
+#'             \item{short.name = }{\verb{b32}}
+#'             \item{output.name = }{\verb{beta[32] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[32] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta33'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103033}}
+#'             \item{name = }{\verb{beta33}}
+#'             \item{short.name = }{\verb{b33}}
+#'             \item{output.name = }{\verb{beta[33] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[33] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta34'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103034}}
+#'             \item{name = }{\verb{beta34}}
+#'             \item{short.name = }{\verb{b34}}
+#'             \item{output.name = }{\verb{beta[34] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[34] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta35'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103035}}
+#'             \item{name = }{\verb{beta35}}
+#'             \item{short.name = }{\verb{b35}}
+#'             \item{output.name = }{\verb{beta[35] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[35] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta36'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103036}}
+#'             \item{name = }{\verb{beta36}}
+#'             \item{short.name = }{\verb{b36}}
+#'             \item{output.name = }{\verb{beta[36] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[36] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta37'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103037}}
+#'             \item{name = }{\verb{beta37}}
+#'             \item{short.name = }{\verb{b37}}
+#'             \item{output.name = }{\verb{beta[37] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[37] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta38'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103038}}
+#'             \item{name = }{\verb{beta38}}
+#'             \item{short.name = }{\verb{b38}}
+#'             \item{output.name = }{\verb{beta[38] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[38] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta39'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103039}}
+#'             \item{name = }{\verb{beta39}}
+#'             \item{short.name = }{\verb{b39}}
+#'             \item{output.name = }{\verb{beta[39] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[39] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta40'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103040}}
+#'             \item{name = }{\verb{beta40}}
+#'             \item{short.name = }{\verb{b40}}
+#'             \item{output.name = }{\verb{beta[40] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[40] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta41'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103041}}
+#'             \item{name = }{\verb{beta41}}
+#'             \item{short.name = }{\verb{b41}}
+#'             \item{output.name = }{\verb{beta[41] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[41] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta42'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103042}}
+#'             \item{name = }{\verb{beta42}}
+#'             \item{short.name = }{\verb{b42}}
+#'             \item{output.name = }{\verb{beta[42] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[42] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta43'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103043}}
+#'             \item{name = }{\verb{beta43}}
+#'             \item{short.name = }{\verb{b43}}
+#'             \item{output.name = }{\verb{beta[43] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[43] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta44'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103044}}
+#'             \item{name = }{\verb{beta44}}
+#'             \item{short.name = }{\verb{b44}}
+#'             \item{output.name = }{\verb{beta[44] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[44] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta45'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103045}}
+#'             \item{name = }{\verb{beta45}}
+#'             \item{short.name = }{\verb{b45}}
+#'             \item{output.name = }{\verb{beta[45] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[45] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta46'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103046}}
+#'             \item{name = }{\verb{beta46}}
+#'             \item{short.name = }{\verb{b46}}
+#'             \item{output.name = }{\verb{beta[46] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[46] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta47'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103047}}
+#'             \item{name = }{\verb{beta47}}
+#'             \item{short.name = }{\verb{b47}}
+#'             \item{output.name = }{\verb{beta[47] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[47] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta48'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103048}}
+#'             \item{name = }{\verb{beta48}}
+#'             \item{short.name = }{\verb{b48}}
+#'             \item{output.name = }{\verb{beta[48] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[48] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta49'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103049}}
+#'             \item{name = }{\verb{beta49}}
+#'             \item{short.name = }{\verb{b49}}
+#'             \item{output.name = }{\verb{beta[49] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[49] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta50'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103050}}
+#'             \item{name = }{\verb{beta50}}
+#'             \item{short.name = }{\verb{b50}}
+#'             \item{output.name = }{\verb{beta[50] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[50] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta51'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103051}}
+#'             \item{name = }{\verb{beta51}}
+#'             \item{short.name = }{\verb{b51}}
+#'             \item{output.name = }{\verb{beta[51] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[51] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta52'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103052}}
+#'             \item{name = }{\verb{beta52}}
+#'             \item{short.name = }{\verb{b52}}
+#'             \item{output.name = }{\verb{beta[52] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[52] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta53'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103053}}
+#'             \item{name = }{\verb{beta53}}
+#'             \item{short.name = }{\verb{b53}}
+#'             \item{output.name = }{\verb{beta[53] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[53] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta54'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103054}}
+#'             \item{name = }{\verb{beta54}}
+#'             \item{short.name = }{\verb{b54}}
+#'             \item{output.name = }{\verb{beta[54] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[54] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta55'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103055}}
+#'             \item{name = }{\verb{beta55}}
+#'             \item{short.name = }{\verb{b55}}
+#'             \item{output.name = }{\verb{beta[55] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[55] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta56'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103056}}
+#'             \item{name = }{\verb{beta56}}
+#'             \item{short.name = }{\verb{b56}}
+#'             \item{output.name = }{\verb{beta[56] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[56] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta57'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103057}}
+#'             \item{name = }{\verb{beta57}}
+#'             \item{short.name = }{\verb{b57}}
+#'             \item{output.name = }{\verb{beta[57] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[57] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta58'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103058}}
+#'             \item{name = }{\verb{beta58}}
+#'             \item{short.name = }{\verb{b58}}
+#'             \item{output.name = }{\verb{beta[58] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[58] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta59'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103059}}
+#'             \item{name = }{\verb{beta59}}
+#'             \item{short.name = }{\verb{b59}}
+#'             \item{output.name = }{\verb{beta[59] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[59] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta60'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103060}}
+#'             \item{name = }{\verb{beta60}}
+#'             \item{short.name = }{\verb{b60}}
+#'             \item{output.name = }{\verb{beta[60] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[60] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta61'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103061}}
+#'             \item{name = }{\verb{beta61}}
+#'             \item{short.name = }{\verb{b61}}
+#'             \item{output.name = }{\verb{beta[61] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[61] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta62'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103062}}
+#'             \item{name = }{\verb{beta62}}
+#'             \item{short.name = }{\verb{b62}}
+#'             \item{output.name = }{\verb{beta[62] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[62] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta63'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103063}}
+#'             \item{name = }{\verb{beta63}}
+#'             \item{short.name = }{\verb{b63}}
+#'             \item{output.name = }{\verb{beta[63] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[63] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta64'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103064}}
+#'             \item{name = }{\verb{beta64}}
+#'             \item{short.name = }{\verb{b64}}
+#'             \item{output.name = }{\verb{beta[64] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[64] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta65'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103065}}
+#'             \item{name = }{\verb{beta65}}
+#'             \item{short.name = }{\verb{b65}}
+#'             \item{output.name = }{\verb{beta[65] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[65] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta66'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103066}}
+#'             \item{name = }{\verb{beta66}}
+#'             \item{short.name = }{\verb{b66}}
+#'             \item{output.name = }{\verb{beta[66] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[66] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta67'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103067}}
+#'             \item{name = }{\verb{beta67}}
+#'             \item{short.name = }{\verb{b67}}
+#'             \item{output.name = }{\verb{beta[67] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[67] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta68'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103068}}
+#'             \item{name = }{\verb{beta68}}
+#'             \item{short.name = }{\verb{b68}}
+#'             \item{output.name = }{\verb{beta[68] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[68] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta69'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103069}}
+#'             \item{name = }{\verb{beta69}}
+#'             \item{short.name = }{\verb{b69}}
+#'             \item{output.name = }{\verb{beta[69] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[69] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta70'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103070}}
+#'             \item{name = }{\verb{beta70}}
+#'             \item{short.name = }{\verb{b70}}
+#'             \item{output.name = }{\verb{beta[70] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[70] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta71'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103071}}
+#'             \item{name = }{\verb{beta71}}
+#'             \item{short.name = }{\verb{b71}}
+#'             \item{output.name = }{\verb{beta[71] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[71] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta72'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103072}}
+#'             \item{name = }{\verb{beta72}}
+#'             \item{short.name = }{\verb{b72}}
+#'             \item{output.name = }{\verb{beta[72] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[72] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta73'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103073}}
+#'             \item{name = }{\verb{beta73}}
+#'             \item{short.name = }{\verb{b73}}
+#'             \item{output.name = }{\verb{beta[73] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[73] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta74'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103074}}
+#'             \item{name = }{\verb{beta74}}
+#'             \item{short.name = }{\verb{b74}}
+#'             \item{output.name = }{\verb{beta[74] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[74] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta75'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103075}}
+#'             \item{name = }{\verb{beta75}}
+#'             \item{short.name = }{\verb{b75}}
+#'             \item{output.name = }{\verb{beta[75] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[75] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta76'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103076}}
+#'             \item{name = }{\verb{beta76}}
+#'             \item{short.name = }{\verb{b76}}
+#'             \item{output.name = }{\verb{beta[76] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[76] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta77'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103077}}
+#'             \item{name = }{\verb{beta77}}
+#'             \item{short.name = }{\verb{b77}}
+#'             \item{output.name = }{\verb{beta[77] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[77] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta78'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103078}}
+#'             \item{name = }{\verb{beta78}}
+#'             \item{short.name = }{\verb{b78}}
+#'             \item{output.name = }{\verb{beta[78] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[78] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta79'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103079}}
+#'             \item{name = }{\verb{beta79}}
+#'             \item{short.name = }{\verb{b79}}
+#'             \item{output.name = }{\verb{beta[79] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[79] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta80'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103080}}
+#'             \item{name = }{\verb{beta80}}
+#'             \item{short.name = }{\verb{b80}}
+#'             \item{output.name = }{\verb{beta[80] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[80] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta81'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103081}}
+#'             \item{name = }{\verb{beta81}}
+#'             \item{short.name = }{\verb{b81}}
+#'             \item{output.name = }{\verb{beta[81] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[81] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta82'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103082}}
+#'             \item{name = }{\verb{beta82}}
+#'             \item{short.name = }{\verb{b82}}
+#'             \item{output.name = }{\verb{beta[82] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[82] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta83'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103083}}
+#'             \item{name = }{\verb{beta83}}
+#'             \item{short.name = }{\verb{b83}}
+#'             \item{output.name = }{\verb{beta[83] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[83] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta84'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103084}}
+#'             \item{name = }{\verb{beta84}}
+#'             \item{short.name = }{\verb{b84}}
+#'             \item{output.name = }{\verb{beta[84] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[84] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta85'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103085}}
+#'             \item{name = }{\verb{beta85}}
+#'             \item{short.name = }{\verb{b85}}
+#'             \item{output.name = }{\verb{beta[85] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[85] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta86'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103086}}
+#'             \item{name = }{\verb{beta86}}
+#'             \item{short.name = }{\verb{b86}}
+#'             \item{output.name = }{\verb{beta[86] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[86] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta87'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103087}}
+#'             \item{name = }{\verb{beta87}}
+#'             \item{short.name = }{\verb{b87}}
+#'             \item{output.name = }{\verb{beta[87] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[87] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta88'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103088}}
+#'             \item{name = }{\verb{beta88}}
+#'             \item{short.name = }{\verb{b88}}
+#'             \item{output.name = }{\verb{beta[88] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[88] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta89'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103089}}
+#'             \item{name = }{\verb{beta89}}
+#'             \item{short.name = }{\verb{b89}}
+#'             \item{output.name = }{\verb{beta[89] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[89] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta90'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103090}}
+#'             \item{name = }{\verb{beta90}}
+#'             \item{short.name = }{\verb{b90}}
+#'             \item{output.name = }{\verb{beta[90] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[90] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta91'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103091}}
+#'             \item{name = }{\verb{beta91}}
+#'             \item{short.name = }{\verb{b91}}
+#'             \item{output.name = }{\verb{beta[91] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[91] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta92'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103092}}
+#'             \item{name = }{\verb{beta92}}
+#'             \item{short.name = }{\verb{b92}}
+#'             \item{output.name = }{\verb{beta[92] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[92] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta93'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103093}}
+#'             \item{name = }{\verb{beta93}}
+#'             \item{short.name = }{\verb{b93}}
+#'             \item{output.name = }{\verb{beta[93] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[93] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta94'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103094}}
+#'             \item{name = }{\verb{beta94}}
+#'             \item{short.name = }{\verb{b94}}
+#'             \item{output.name = }{\verb{beta[94] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[94] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta95'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103095}}
+#'             \item{name = }{\verb{beta95}}
+#'             \item{short.name = }{\verb{b95}}
+#'             \item{output.name = }{\verb{beta[95] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[95] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta96'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103096}}
+#'             \item{name = }{\verb{beta96}}
+#'             \item{short.name = }{\verb{b96}}
+#'             \item{output.name = }{\verb{beta[96] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[96] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta97'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103097}}
+#'             \item{name = }{\verb{beta97}}
+#'             \item{short.name = }{\verb{b97}}
+#'             \item{output.name = }{\verb{beta[97] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[97] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta98'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103098}}
+#'             \item{name = }{\verb{beta98}}
+#'             \item{short.name = }{\verb{b98}}
+#'             \item{output.name = }{\verb{beta[98] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[98] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta99'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103099}}
+#'             \item{name = }{\verb{beta99}}
+#'             \item{short.name = }{\verb{b99}}
+#'             \item{output.name = }{\verb{beta[99] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[99] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta100'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{103100}}
+#'             \item{name = }{\verb{beta100}}
+#'             \item{short.name = }{\verb{b100}}
+#'             \item{output.name = }{\verb{beta[100] for lp_scale}}
+#'             \item{output.name.intern = }{\verb{beta[100] for lp_scale}}
+#'             \item{initial = }{\verb{1}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{1 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'      }
+#' @examples
+#' ## How to set hyperparameters to pass as the argument 'hyper'. This
+#' ## format is compatible with the old style (using 'initial', 'fixed',
+#' ## 'prior', 'param'), but the new style using 'hyper' takes precedence
+#' ## over the old style. The two styles can also be mixed. The old style
+#' ## might be removed from the code in the future...
+#'
+#' ## Only a subset need to be given
+#' hyper <- list(theta = list(initial = 2))
+#' ## The `name' can be used instead of 'theta', or 'theta1', 'theta2',...
+#' hyper <- list(precision = list(initial = 2))
+#' hyper <- list(precision = list(prior = "flat", param = numeric(0)))
+#' hyper <- list(theta2 = list(initial = 3), theta1 = list(prior = "gaussian"))
+#' ## The 'short.name' can be used instead of 'name'
+#' hyper <- list(rho = list(param = c(0, 1)))
+NULL

@@ -2675,6 +2675,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
 			case LINK_TAN:
+			case LINK_TAN_PI:
 			case LINK_QPOISSON:
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:

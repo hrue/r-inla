@@ -397,7 +397,8 @@ typedef enum {
 	LINK_GEVIT,
 	LINK_CGEVIT,
 	LINK_QEXPPOWER,
-	LINK_CIRCULAR
+	LINK_CIRCULAR,
+	LINK_TAN_PI
 } inla_component_tp;
 
 typedef enum {
@@ -1932,6 +1933,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 double link_special2(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_tan_pi(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
@@ -1974,7 +1976,7 @@ double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
-double map_invtan(double arg, map_arg_tp typ, void *param);
+double map_invtan_pi(double x, map_arg_tp typ, void *UNUSED(param));
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_prec_qkumar(double arg, map_arg_tp typ, void *param);

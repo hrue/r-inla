@@ -8540,10 +8540,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_LOGIT;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_logit;
-	} else if (!strcasecmp(ds->link_model, "TAN")) {
-		ds->link_id = LINK_TAN;
-		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_tan;
 	} else if (!strcasecmp(ds->link_model, "LOGOFFSET")) {
 		ds->link_id = LINK_LOGOFFSET;
 		ds->link_ntheta = 1;
@@ -8580,6 +8576,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_CIRCULAR;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_circular;
+	} else if (!strcasecmp(ds->link_model, "TAN")) {
+		ds->link_id = LINK_TAN;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_tan;
+	} else if (!strcasecmp(ds->link_model, "TAN.PI")) {
+		ds->link_id = LINK_TAN_PI;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_tan_pi;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -8751,6 +8755,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
+	case LINK_TAN_PI:
 	case LINK_CIRCULAR:
 		break;
 

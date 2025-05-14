@@ -34,6 +34,8 @@ inla(
   control.lp.scale = list(),
   control.pardiso = list(),
   control.stiles = list(),
+  control.taucs = list(),
+  control.numa = list(),
   only.hyperparam = FALSE,
   inla.call = inla.getOption("inla.call"),
   inla.arg = inla.getOption("inla.arg"),
@@ -156,6 +158,10 @@ See also \code{?inla.rjmarginal} and the approriate vignette.}
 \item{control.pardiso}{See \code{?control.pardiso}}
 
 \item{control.stiles}{See \code{?control.stiles}}
+
+\item{control.taucs}{See \code{?control.taucs}}
+
+\item{control.numa}{See \code{?control.numa}}
 
 \item{only.hyperparam}{If \code{TRUE}, then only the hyperparameters are
 computed.}
