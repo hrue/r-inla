@@ -602,7 +602,7 @@ typedef enum {
 	}
 
 #define GMRFLib_CACHE_IDX_ADD_NUMA(__id)				\
-	__id += GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2();	\
+	__id += GMRFLib_MAX_THREADS() + GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2(); \
 	
 #define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (GMRFLib_numa_have()) {					\
@@ -612,7 +612,7 @@ typedef enum {
 			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
 			Memset(ww_, 0, llen_);				\
 			if (ww_ && GMRFLib_numa_node_of_ptr(ww_) != numa) { \
-				FIXME("NUMA_alloc_onnode FAIL");	\
+				FIXME("NUMA ALLOC _onnode FAIL");	\
 				GMRFLib_numa_free(ww_, llen_);		\
 				ww_ = NULL;				\
 			}						\
@@ -621,7 +621,7 @@ typedef enum {
 				ptr_ = ww_;				\
 			} else {					\
 				numa_retry = 1;				\
-				FIXME("NUMA ALLOC FAIL");		\
+				FIXME("NUMA ALLOC RETRY");		\
 			}						\
 		}							\
 	}	
@@ -634,13 +634,12 @@ typedef enum {
 	int POSSIBLY_UNUSED(cache_idx) = 0;				\
 	int POSSIBLY_UNUSED(cache_idx_numa) = 0;			\
 	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
+	int mt1_ = GMRFLib_MAX_THREADS();				\
 	int mt2_ = GMRFLib_MAX_THREADS2();				\
-	if (lcache_idx && *lcache_idx >= mt2_) {			\
+	if (lcache_idx && *lcache_idx >= mt1_) {			\
 		/* In this case, lcache_idx is numa_ready, do nothing */ \
-		cache_idx = cache_idx % mt2_;				\
-		if (0) cache_idx_numa = *lcache_idx;			\
-		FIXME1(">>>>>>>>>>>>>>>>>>>FIX THIS<<<<<<<<<<<<<<<<<<<<<<<<<<"); \
-		cache_idx_numa = cache_idx + mt2_ * numa;		\
+		cache_idx = (*lcache_idx  - (mt1_ + mt2_ * numa));	\
+		cache_idx_numa = *lcache_idx;				\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \
 		if (lcache_idx && *lcache_idx >= 0) {			\
@@ -651,7 +650,7 @@ typedef enum {
 				*lcache_idx = cache_idx;		\
 			}						\
 		}							\
-		cache_idx_numa = cache_idx + numa * mt2_;		\
+		cache_idx_numa = cache_idx + mt1_ + numa * mt2_; \
 	}
 
 // this use level1 only. set __id to -1 if we're on level2
