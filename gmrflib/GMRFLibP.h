@@ -610,7 +610,7 @@ typedef enum {
 		if (node_ptr_ != numa) {				\
 			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode((size_t) (len_) * sizeof(type_), numa); \
 			if (ww_) {					\
-				assert(GMRFLib_numa_node_of_ptr((void *) ww_) == numa);	\
+				assert(GMRFLib_numa_node_of_ptr((void *) ww_) >= 0 && GMRFLib_numa_node_of_ptr((void *) ww_) == numa);	\
 				Free(ptr_);				\
 				ptr_ = ww_;				\
 				Memset(ptr_, 0, (len_) * sizeof(type_)); \
