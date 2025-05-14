@@ -638,10 +638,11 @@ typedef enum {
 	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
 	int mt1_ = GMRFLib_MAX_THREADS();				\
 	int mt2_ = GMRFLib_MAX_THREADS2();				\
-	FIXME1("FIXME: override lcache_idx");				\
-	if (0 && lcache_idx && *lcache_idx >= mt1_) {			\
+	if (0) FIXME1("FIXME: override lcache_idx");			\
+	if (lcache_idx && *lcache_idx >= mt1_) {			\
 		/* In this case, lcache_idx is numa_ready, do nothing */ \
-		cache_idx = (*lcache_idx  - (mt1_ + mt2_ * numa));	\
+		cache_idx = cache_idx % mt2_;				\
+		if (cache_idx >= mt1_) cache_idx -= mt1_;		\
 		cache_idx_numa = *lcache_idx;				\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \

@@ -503,7 +503,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	if (w->wf[stenc]) {
-		printf("cache_idx %1d cache_idx %1d numa %d numa_ptr %d\n", cache_idx, cache_idx_numa, numa, GMRFLib_numa_node_of_ptr(w->wf[stenc]));
+		printf("cache_idx %1d cache_idx_numa %1d numa %d numa_ptr %d\n", cache_idx, cache_idx_numa, numa, GMRFLib_numa_node_of_ptr(w->wf[stenc]));
 		fflush(stdout);
 		if (numa != GMRFLib_numa_node_of_ptr(w->wf[stenc])) abort();
 
