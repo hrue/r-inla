@@ -8903,7 +8903,14 @@
 
                 tan = list(
                     doc = "The tan-link",
-                    hyper = list()
+                    hyper = list(),
+                    pdf = "circular"
+                ),
+
+                tan.pi = list(
+                    doc = "The tan.pi-link",
+                    hyper = list(), 
+                    pdf = "circular"
                 ),
 
                 quantile = list(
