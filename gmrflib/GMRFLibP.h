@@ -608,12 +608,17 @@ typedef enum {
 	if (GMRFLib_numa_have()) {					\
 		int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);		\
 		if (node_ptr_ != numa) {				\
-			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode((size_t) (len_) * sizeof(type_), numa); \
+			size_t llen_ = (len_) * sizeof(type_);		\
+			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
+			Memset(ww_, 0, llen_);				\
+			if (ww_ && GMRFLib_numa_node_of_ptr(ww_) != numa) { \
+				FIXME("numa_alloc_onnode FAIL");	\
+				GMRFLib_numa_free(ww_, llen_);		\
+				ww_ = NULL;				\
+			}						\
 			if (ww_) {					\
-				assert(GMRFLib_numa_node_of_ptr((void *) ww_) >= 0 && GMRFLib_numa_node_of_ptr((void *) ww_) == numa);	\
 				Free(ptr_);				\
 				ptr_ = ww_;				\
-				Memset(ptr_, 0, (len_) * sizeof(type_)); \
 			} else {					\
 				numa_retry = 1;				\
 				FIXME("NUMA ALLOC FAIL");		\
