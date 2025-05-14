@@ -612,7 +612,7 @@ typedef enum {
 			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
 			Memset(ww_, 0, llen_);				\
 			if (ww_ && GMRFLib_numa_node_of_ptr(ww_) != numa) { \
-				FIXME("numa_alloc_onnode FAIL");	\
+				FIXME("NUMA_alloc_onnode FAIL");	\
 				GMRFLib_numa_free(ww_, llen_);		\
 				ww_ = NULL;				\
 			}						\
