@@ -645,7 +645,9 @@ typedef enum {
 			cache_idx = *lcache_idx;			\
 		} else {						\
 			GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);	\
-			*lcache_idx = cache_idx;			\
+			if (lcache_idx) {				\
+				*lcache_idx = cache_idx;		\
+			}						\
 		}							\
 		cache_idx_numa = cache_idx + numa * mt2_;		\
 	}

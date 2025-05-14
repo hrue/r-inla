@@ -442,9 +442,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 	int nw = graph->n * nrhs;
 	if (nw > wwork_len[cache_idx]) {
-		int numa_node = -1;
-		GMRFLib_numa_get(NULL, &numa_node);
-		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
+		int numa_node = GMRFLib_numa_get_node();
+		if (wwork[cache_idx] && wwork_len[cache_idx] > 0) {
+			GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
+		}
 		wwork_len[cache_idx] = nw;
 		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
