@@ -19058,7 +19058,7 @@ int inla_parse_numa(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	int enable = iniparser_getint(ini, inla_string_join(secname, "ENABLE"), 1);
+	int enable = iniparser_getint(ini, inla_string_join(secname, "ENABLE"), 0);
 	if (mb->verbose) {
 		printf("\t\tenable[%1d]\n", enable);
 	}
