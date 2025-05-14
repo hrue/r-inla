@@ -504,6 +504,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	if (w->wf[stenc]) {
 		printf("cache_idx %1d cache_idx %1d numa %d numa_ptr %d\n", cache_idx, cache_idx_numa, numa, GMRFLib_numa_node_of_ptr(w->wf[stenc]));
+		if (numa != GMRFLib_numa_node_of_ptr(w->wf[stenc])) abort();
+
 		GMRFLib_CACHE_HITMISS_INIT();
 		int POSSIBLY_UNUSED(miss) = 0;
 		GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, w->wf[stenc]);
