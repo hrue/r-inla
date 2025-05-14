@@ -1,14 +1,17 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#include <sched.h>
-#include "my-numa.h"
-
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
 static int NUMA_have = -1;				       // we have (=1) NUMA support or not (=0)
 static int NUMA_nodes = -1;				       // number of NUMA nodes. =1 if no NUMA */
 static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
+#include "my-numa.h"
+
+#if defined(__linux__) || defined(INLA_WITH_NUMA)
+#include <sched.h>
+#endif
+
 #if defined(INLA_WITH_NUMA)
 
 #if !defined(INLA_WITH_HWLOC)
@@ -17,7 +20,6 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 
 #include <numa.h>
 #include <numaif.h>
-
 
 void GMRFLib_numa_init(void)
 {
@@ -168,7 +170,11 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
+#if defined(__linux__)
 		*cpu = sched_getcpu();
+#else
+		*cpu = 0;
+#endif		
 	}
 	if (numa_node) {
 		*numa_node = 0;
