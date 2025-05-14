@@ -629,6 +629,7 @@ typedef enum {
 		/* In this case, lcache_idx is numa_ready, do nothing */ \
 		cache_idx = cache_idx % mt2_;				\
 		cache_idx_numa = *lcache_idx;				\
+		assert(cache_idx_numa == numa);				\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \
 		if (lcache_idx && *lcache_idx >= 0) {			\

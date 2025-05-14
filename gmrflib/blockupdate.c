@@ -269,6 +269,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					double *ww = Malloc(len, double);
 					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
+					assert(GMRFLib_numa_node_of_ptr((void *) ww) != numa);
 					
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
