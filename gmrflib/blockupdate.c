@@ -197,8 +197,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	SET_CACHE_IDX();
-	FIXME1(">>>>>>>>>>>>>>>>>>>>>>FIX THIS<<<<<<<<<<<<<<<<<<<<<<<");
-	GMRFLib_CACHE_SET_IDX_NUMA(cache_idx_numa);
 
 	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
@@ -499,20 +497,5 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		*dd = dddf;
 	}
 
-	if (numa_retry) {
-		FIXME("RETRY ALLOC");
-		Free(w->wf[stenc]);
-	}
-
-	if (w->wf[stenc]) {
-		printf("cache_idx %1d cache_idx_numa %1d numa %d numa_ptr %d\n", cache_idx, cache_idx_numa, numa, GMRFLib_numa_node_of_ptr(w->wf[stenc]));
-		fflush(stdout);
-		if (numa != GMRFLib_numa_node_of_ptr(w->wf[stenc])) abort();
-
-		GMRFLib_CACHE_HITMISS_INIT();
-		int POSSIBLY_UNUSED(miss) = 0;
-		GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, w->wf[stenc]);
-	}
-	
 	return GMRFLib_SUCCESS;
 }

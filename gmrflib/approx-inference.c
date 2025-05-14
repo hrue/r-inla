@@ -4509,14 +4509,6 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
-	if (numa_retry) {
-		Free(lwork[cache_idx_numa]);
-	}
-	
-	GMRFLib_CACHE_HITMISS_INIT();
-	int POSSIBLY_UNUSED(miss) = 0;
-	GMRFLib_CACHE_HITMISS_CHECK(miss, cache_idx_numa, lwork[cache_idx_numa]);
-
 	return GMRFLib_SUCCESS;
 }
 

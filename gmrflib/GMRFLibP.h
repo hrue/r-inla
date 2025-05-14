@@ -606,33 +606,28 @@ typedef enum {
 	
 #define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (GMRFLib_numa_have()) {					\
-		int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);		\
-		if (node_ptr_ != numa) {				\
-			size_t llen_ = (len_) * sizeof(type_);		\
-			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
-			Memset(ww_, 0, llen_);				\
-			if (ww_ && GMRFLib_numa_node_of_ptr(ww_) != numa) { \
-				FIXME("NUMA ALLOC _onnode FAIL");	\
-				GMRFLib_numa_free(ww_, llen_);		\
-				ww_ = NULL;				\
-				abort();				\
-			}						\
-			if (ww_) {					\
-				Free(ptr_);				\
-				ptr_ = ww_;				\
-			} else {					\
-				numa_retry = 1;				\
-				FIXME("NUMA ALLOC RETRY");		\
-				abort();				\
-			}						\
+	int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);			\
+	if (node_ptr_ != numa) {					\
+		size_t llen_ = (len_) * sizeof(type_);			\
+		type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
+		Memset(ww_, 0, llen_);					\
+		if (ww_ && GMRFLib_numa_node_of_ptr(ww_) != numa) {	\
+			FIXME("NUMA_ALLOC_ONNODE gives ptr on wrong node"); \
+			GMRFLib_numa_free(ww_, llen_);			\
+			ww_ = NULL;					\
 		}							\
-	}	
+		if (ww_) {						\
+			Free(ptr_);					\
+			ptr_ = ww_;					\
+		}							\
+	}								\
+	}
+
 
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
 
 #define SET_CACHE_IDX()							\
-	int POSSIBLY_UNUSED(numa_retry) = 0;				\
 	int POSSIBLY_UNUSED(cache_idx) = 0;				\
 	int POSSIBLY_UNUSED(cache_idx_numa) = 0;			\
 	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
