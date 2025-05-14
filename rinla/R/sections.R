@@ -1848,6 +1848,7 @@ inla.parse.Bmatrix.test <- function() {
 `inla.numa.section` <- function(file, data.dir, contr) {
     cat("\n", inla.secsep("INLA.numa"), "\n", sep = "", file = file, append = TRUE)
     cat("type = numa\n", sep = " ", file = file, append = TRUE)
+    if (is.null(contr$enable)) contr$enable <- inla.getOption("numa")
     cat("enable = ", if (contr$enable) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file, append = TRUE)
 }

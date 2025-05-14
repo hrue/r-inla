@@ -481,8 +481,8 @@ control.gcpo <-
 #' @export
 `control.numa` <-
     function(
-             #' @param enable Enable NUMA aware cache?
-             enable = FALSE
+             #' @param enable Enable NUMA aware cache? (NULL used the value `inla.getOption("numa")`.)
+             enable = NULL
              ) {
         ctrl_object(as.list(environment()), "numa", check = FALSE)
     }
