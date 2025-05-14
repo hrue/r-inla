@@ -595,7 +595,7 @@ typedef enum {
 			__id =  tnum_;					\
 		} else if (level1_ == 2) {				\
 			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
-			__id = mt_ + tnum2_ * mt_ + tnum_;		\
+			__id = mt_ + tnum_ + tnum2_ * mt_;		\
 		} else {						\
 			assert(0 == 1);					\
 		}							\
@@ -645,15 +645,13 @@ typedef enum {
 		cache_idx_numa = *lcache_idx;				\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \
-		if (0 && lcache_idx && *lcache_idx >= 0) {		\
+		if (lcache_idx && *lcache_idx >= 0) {			\
 			cache_idx = *lcache_idx;			\
 		} else {						\
 			GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);	\
-			if (lcache_idx) {				\
-				*lcache_idx = cache_idx;		\
-			}						\
+			*lcache_idx = cache_idx;			\
 		}							\
-		cache_idx_numa = cache_idx + numa * mt2_; \
+		cache_idx_numa = cache_idx + numa * mt2_;		\
 	}
 
 // this use level1 only. set __id to -1 if we're on level2
