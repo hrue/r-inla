@@ -197,6 +197,8 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	SET_CACHE_IDX();
+	FIXME1(">>>>>>>>>>>>>>>>>>>>>>FIX THIS<<<<<<<<<<<<<<<<<<<<<<<");
+	GMRFLib_CACHE_SET_IDX_NUMA(cache_idx_numa);
 
 	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
