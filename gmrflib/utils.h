@@ -85,7 +85,6 @@ int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno);
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno);
 int GMRFLib_normalize(int n, double *x);
-int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);

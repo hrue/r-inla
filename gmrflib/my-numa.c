@@ -86,7 +86,7 @@ int GMRFLib_numa_node_of_ptr(void *ptr)
 	}
 }
 
-int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
+int GMRFLib_numa_cache_hitmiss_core(void *ptr, int numa, const char *filename, int lineno)
 {
 	// return -1 if not in use, 0=hit, 1=miss
 	if (NUMA_enable) {
@@ -94,11 +94,8 @@ int GMRFLib_numa_cache_hitmiss_core(void *ptr, const char *filename, int lineno)
 		if (numa_ptr >= 0) {
 			char *nm = NULL;
 			GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
-
 			if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
-				int numa_cpu;
-				GMRFLib_numa_get(NULL, &numa_cpu);
-				return (numa_cpu == numa_ptr ? 0 : 1);
+				return (numa == numa_ptr ? 0 : 1);
 			} else {
 				return -1;
 			}
@@ -193,7 +190,7 @@ int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr))
 	return -1;
 }
 
-int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), const char *UNUSED(filename), int UNUSED(lineno))
+int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), int UNUSED(numa), const char *UNUSED(filename), int UNUSED(lineno))
 {
 	return -1;
 }

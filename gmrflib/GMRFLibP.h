@@ -300,15 +300,15 @@ typedef enum {
 
 #define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_)			\
 	if (hitmiss_ > 0) {						\
-		val_ = GMRFLib_numa_cache_hitmiss_core(ptr_, __FILE__, __LINE__); \
+		val_ = GMRFLib_numa_cache_hitmiss_core(ptr_, numa, __FILE__, __LINE__); \
 		if (val_ >= 0) {						\
 			hitmiss_count_[val_][idx_]++;			\
 		}							\
 		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
 		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
-			printf("\t[%2.2d] %s:%1d NUMA-aware cache: idx[%4.4d] n[%1d %1d] hit[%.1f%%] miss[%.1f%%]\n", \
+			printf("\t[%2.2d] %s:%1d NUMA-aware cache: idx[%4.4d] numa[%1d] n[%1d %1d] hit[%.1f%%] miss[%.1f%%]\n", \
 			       omp_get_thread_num(), __FILE__, __LINE__, \
-			       idx_, hitmiss_count_[0][idx_], hitmiss_count_[1][idx_], 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
+			       idx_, numa, hitmiss_count_[0][idx_], hitmiss_count_[1][idx_], 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
 		}							\
 	}
 #else
