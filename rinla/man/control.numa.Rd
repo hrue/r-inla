@@ -4,10 +4,10 @@
 \alias{control.numa}
 \title{control.numa}
 \usage{
-control.numa(enable = FALSE)
+control.numa(enable = NULL)
 }
 \arguments{
-\item{enable}{Enable NUMA aware cache?}
+\item{enable}{Enable NUMA aware cache? (NULL used the value \code{inla.getOption("numa")}.)}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.
