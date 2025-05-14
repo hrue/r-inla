@@ -610,6 +610,7 @@ typedef enum {
 		if (node_ptr_ != numa) {				\
 			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode((size_t) (len_) * sizeof(type_), numa); \
 			if (ww_) {					\
+				assert(GMRFLib_numa_node_of_ptr((void *) ww_) == numa);	\
 				Free(ptr_);				\
 				ptr_ = ww_;				\
 				Memset(ptr_, 0, (len_) * sizeof(type_)); \
@@ -632,8 +633,9 @@ typedef enum {
 	if (lcache_idx && *lcache_idx >= mt2_) {			\
 		/* In this case, lcache_idx is numa_ready, do nothing */ \
 		cache_idx = cache_idx % mt2_;				\
-		cache_idx_numa = *lcache_idx;				\
-		assert(cache_idx_numa == numa);				\
+		if (0) cache_idx_numa = *lcache_idx;			\
+		FIXME1(">>>>>>>>>>>>>>>>>>>FIX THIS<<<<<<<<<<<<<<<<<<<<<<<<<<"); \
+		cache_idx_numa = cache_idx + mt2_ * numa;		\
 	} else {							\
 		/* In this case, the lcache is (possibly) not numa_ready */ \
 		if (lcache_idx && *lcache_idx >= 0) {			\
@@ -646,7 +648,6 @@ typedef enum {
 		}							\
 		cache_idx_numa = cache_idx + numa * mt2_;		\
 	}
-
 
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
