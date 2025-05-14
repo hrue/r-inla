@@ -4444,7 +4444,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 
 int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
+			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *UNUSED(workspace))
 {
 	// better memory locality with 'lcache_idx'
 
@@ -4469,7 +4469,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 		}
 	}
 
-	SET_CACHE();
+	SET_CACHE_IDX();
 
 	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
@@ -4495,7 +4495,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 	double *loglik = lwork[cache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, &cache_idx, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, &cache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
 
@@ -4533,7 +4533,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 		numa_have = GMRFLib_numa_have();
 	}
 	
-	SET_CACHE();
+	SET_CACHE_IDX();
 	
 	static double *wp = NULL;
 	static double *xp = NULL;
@@ -4569,7 +4569,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, &cache_idx, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, &cache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp2, loglik);
 	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp3, loglik);

@@ -564,34 +564,16 @@ typedef enum {
 #define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[thread_id])) : 1.0)
 #define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[thread_id])) : 1.0)
 
-#define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
-// assume _level() <= 2
-#define GMRFLib_CACHE_LEN_OLD() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
-#define GMRFLib_CACHE_SET_IDX_OLD(__id)					\
-	{								\
-		int level_ = omp_get_level();				\
-		int tnum_ = omp_get_thread_num();			\
-		if (level_ <= 1) {					\
-			__id =  tnum_;					\
-		} else if (level_ == 2) {				\
-			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
-			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_; \
-		} else {						\
-			assert(0 == 1);					\
-		}							\
-	}
-
-
 #define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
-#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1) * GMRFLib_NUMA_NODES())
-#define GMRFLib_CACHE_SET_IDX_NUMA(__id)					\
+#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS2() * GMRFLib_NUMA_NODES())
+#define GMRFLib_CACHE_SET_IDX_NUMA(__id)				\
 	{								\
 		int numa_node_ = 0;					\
 		GMRFLib_numa_get(NULL, &numa_node_);			\
 		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		int mt_ = GMRFLib_MAX_THREADS();			\
-		int numa_offset_ = numa_node_ * mt_ * (mt_ + 1);		\
+		int numa_offset_ = numa_node_ * mt_ * (mt_ + 1);	\
 		if (level1_ <= 1) {					\
 			__id =  tnum_ + numa_offset_;			\
 		} else if (level1_ == 2) {				\
@@ -603,6 +585,7 @@ typedef enum {
 		}							\
 	}
 
+#define GMRFLib_CACHE_LEN_NO_NUMA() GMRFLib_MAX_THREADS2()
 #define GMRFLib_CACHE_SET_IDX_NO_NUMA(__id)				\
 	{								\
 		int level1_ = omp_get_level();				\
@@ -619,11 +602,7 @@ typedef enum {
 	}
 
 #define GMRFLib_CACHE_IDX_ADD_NUMA(__id)				\
-	{								\
-		GMRFLib_numa_get(NULL, &numa);				\
-		int mt_ = GMRFLib_MAX_THREADS();			\
-		__id += numa * mt_ * (mt_ + 1);				\
-	}
+	__id += GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2();	\
 	
 #define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
 	if (GMRFLib_numa_have()) {					\
@@ -641,39 +620,27 @@ typedef enum {
 #define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
 
-#define GMRFLib_SET_LCACHE_IDX(idx_)			\
-	if (lcache_idx && *lcache_idx >= 0) {		\
-		idx_ = *lcache_idx;			\
-	} else {					\
-		GMRFLib_CACHE_SET_IDX(idx_);		\
-		if (lcache_idx) {			\
-			*lcache_idx = idx_;		\
-		}					\
-	}
-
-#define GMRFLib_SET_LCACHE_IDX_NO_NUMA(idx_)		\
-	if (lcache_idx && *lcache_idx >= 0) {		\
-		idx_ = *lcache_idx;			\
-	} else {					\
-		GMRFLib_CACHE_SET_IDX_NO_NUMA(idx_);	\
-		if (lcache_idx) {			\
-			*lcache_idx = idx_;		\
-		}					\
-	}
-
-#define SET_CACHE()							\
-	int cache_idx = 0, POSSIBLY_UNUSED(cache_idx_numa) = 0, numa = 0; \
-	if (lcache_idx && *lcache_idx >= 0) {				\
-		cache_idx = *lcache_idx;				\
+#define SET_CACHE_IDX()							\
+	int POSSIBLY_UNUSED(cache_idx) = 0;				\
+	int POSSIBLY_UNUSED(cache_idx_numa) = 0;			\
+	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
+	int mt2_ = GMRFLib_MAX_THREADS2();				\
+	if (lcache_idx && *lcache_idx >= mt2_) {			\
+		/* In this case, lcache_idx is numa_ready, do nothing */ \
+		cache_idx = cache_idx % mt2_;				\
+		cache_idx_numa = *lcache_idx;				\
 	} else {							\
-		GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);		\
-		if (lcache_idx) {					\
-			*lcache_idx = cache_idx;			\
+		/* In this case, the lcache is (possibly) not numa_ready */ \
+		if (lcache_idx && *lcache_idx >= 0) {			\
+			cache_idx = *lcache_idx;			\
+		} else {						\
+			GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);	\
+			if (lcache_idx) {				\
+				*lcache_idx = cache_idx;		\
+			}						\
 		}							\
-	}								\
-	GMRFLib_numa_get(NULL, &numa);					\
-	int mt_ = GMRFLib_MAX_THREADS();				\
-	cache_idx_numa = cache_idx + numa * mt_ * (mt_ + 1);		\
+		cache_idx_numa = cache_idx + numa * mt2_;		\
+	}
 
 
 // this use level1 only. set __id to -1 if we're on level2

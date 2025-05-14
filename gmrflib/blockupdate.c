@@ -196,7 +196,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		}
 	}
 
-	SET_CACHE();
+	SET_CACHE_IDX();
 
 	if (!lwork[cache_idx_numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
@@ -221,7 +221,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		xx[3] = x0 + step;
 		xx[4] = x0 + 2 * step;
 
-		loglFunc(thread_id, &cache_idx, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &cache_idx_numa, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[2];
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
@@ -243,7 +243,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(thread_id, &cache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 			f0 = f[1];
 			df = 0.5 * (-f[0] + f[2]);
@@ -297,7 +297,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -368,7 +368,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -455,7 +455,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;

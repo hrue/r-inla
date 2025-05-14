@@ -45,6 +45,13 @@ int GMRFLib_numa_have(void)
 	}
 }
 
+int GMRFLib_numa_get_node(void) 
+{
+	int nnode = 0;
+	GMRFLib_numa_get(NULL, &nnode);
+	return nnode;
+}
+
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	unsigned int ucpu, unode;
@@ -136,6 +143,13 @@ void GMRFLib_numa_set_ctl(int enable)
 	NUMA_enable = 0;
 }
 
+
+int GMRFLib_numa_get_node(void) 
+{
+	int nnode = 0;
+	GMRFLib_numa_get(NULL, &nnode);
+	return nnode;
+}
 
 void GMRFLib_numa_free(void *start, size_t size)
 {

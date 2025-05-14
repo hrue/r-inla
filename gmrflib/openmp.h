@@ -73,6 +73,7 @@ typedef struct {
 	GMRFLib_openmp_place_tp place;
 	GMRFLib_openmp_strategy_tp strategy;
 	int max_threads;
+	int max_threads2;
 	int *max_threads_nested;
 	int blas_num_threads_force;
 	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
@@ -88,6 +89,7 @@ typedef struct {
 } GMRFLib_openmp_tp;
 
 #define GMRFLib_MAX_THREADS() (GMRFLib_openmp->max_threads)
+#define GMRFLib_MAX_THREADS2() (GMRFLib_openmp->max_threads2)
 
 // Might replace `4' in the generic pardiso control statement later (if that happens)
 #define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
