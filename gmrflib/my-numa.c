@@ -56,11 +56,15 @@ int GMRFLib_numa_get_node(void)
 
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
-	unsigned int ucpu, unode;
-	getcpu(&ucpu, &unode);
+	unsigned int unode;
 	if (cpu) {
+		unsigned int ucpu;
+		getcpu(&ucpu, &unode);
 		*cpu = (int) ucpu;
+	} else {
+		getcpu(NULL, &unode);
 	}
+		
 	if (numa_node) {
 		if (NUMA_enable) {
 			*numa_node = (int) unode;
