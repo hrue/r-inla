@@ -175,11 +175,6 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
 
-	static int numa_have = -1;
-	if (numa_have < 0) {
-		numa_have = GMRFLib_numa_have();
-	}
-
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
 
