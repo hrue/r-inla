@@ -177,6 +177,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
+	int numa = GMRFLib_numa_get_node();
 
 	typedef struct {
 		double **wf;
@@ -186,23 +187,21 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	if (!lwork) {
 #pragma omp critical (Name_009f5f31299b4b554b667873ad6c4c874bfc9a77)
 		if (!lwork) {
-			wf_tp **tmp = Calloc(GMRFLib_CACHE_LEN(), wf_tp *);
+			wf_tp **tmp = Calloc(GMRFLib_numa_nodes(), wf_tp *);
 			lwork = tmp;
 		}
 	}
 
-	SET_CACHE_IDX();
-
-	if (!lwork[cache_idx_numa]) {
+	if (!lwork[numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
-		if (!lwork[cache_idx_numa]) {
+		if (!lwork[numa]) {
 			wf_tp *w = Calloc(1, wf_tp);
 			w->wf = Calloc(10, double *);	       /* Must initialize to 0 */
-			lwork[cache_idx_numa] = w;
+			lwork[numa] = w;
 		}
 	}
 
-	wf_tp *w = lwork[cache_idx_numa];
+	wf_tp *w = lwork[numa];
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -216,7 +215,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		xx[3] = x0 + step;
 		xx[4] = x0 + 2 * step;
 
-		loglFunc(thread_id, &cache_idx_numa, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, lcache_idx, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[2];
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
@@ -238,7 +237,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 			f0 = f[1];
 			df = 0.5 * (-f[0] + f[2]);
@@ -292,7 +291,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -363,7 +362,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -450,7 +449,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, &cache_idx_numa, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
