@@ -475,7 +475,7 @@ control.gcpo <-
     }
 
 #' @title control.numa
-#' @inherit control.update params description seealso
+#' @inherit control.update description seealso
 #' @details Extra options controlling the NUMA awareness (when NUMA is present)
 #' @family control
 #' @export
