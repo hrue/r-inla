@@ -75,7 +75,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	int id = -1, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, show_stat = 0;
 	const int verbose = 0;
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	dtweedie_cache_tp *cache_ptr = cache[id];
 
 	if (cache_ptr->nterms < 0) {
@@ -275,17 +275,15 @@ double ptweedie(double y, double mu, double phi, double p)
 	static double *lognfac_cache = NULL;
 	if (!logn_cache) {
 #pragma omp critical (Name_5aac6c506965cfff83cc864e1be817dda2d01925)
-		{
-			if (!logn_cache) {
-				double *tmp = Calloc(2 * LOG_n_max, double);
-				double *tmp2 = tmp + LOG_n_max;
-				for (int i = 1; i < LOG_n_max; i++) {
-					tmp[i] = log((double) i);
-					tmp2[i] = tmp2[i - 1] + tmp[i];
-				}
-				lognfac_cache = tmp2;
-				logn_cache = tmp;
+		if (!logn_cache) {
+			double *tmp = Calloc(2 * LOG_n_max, double);
+			double *tmp2 = tmp + LOG_n_max;
+			for (int i = 1; i < LOG_n_max; i++) {
+				tmp[i] = log((double) i);
+				tmp2[i] = tmp2[i - 1] + tmp[i];
 			}
+			lognfac_cache = tmp2;
+			logn_cache = tmp;
 		}
 	}
 #define LOGN(n_) ((n_) < LOG_n_max ? logn_cache[n_] : log(n_))

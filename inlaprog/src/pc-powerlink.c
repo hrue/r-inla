@@ -21,7 +21,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #define Probit_P(_x, _power) exp(-(_power) * log1p(exp(-(_x))))
 
 	int id = -1;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	static inla_powerlink_table_tp **table = NULL;
 	static int first = 1, x_len = 256;
@@ -57,7 +57,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		}
 	}
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	if (!ISEQUAL(power, table[id]->power)) {
 		double *x = NULL, *cdf = NULL, yy, p;
 		int len;

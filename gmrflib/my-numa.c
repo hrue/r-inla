@@ -1,65 +1,214 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+// oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
+static int POSSIBLY_UNUSED(NUMA_have) = -1;		       // we have (=1) NUMA support or not (=0)
+static int POSSIBLY_UNUSED(NUMA_nodes) = -1;		       // number of NUMA nodes. =1 if no NUMA */
+static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
+							       // to the behaviour as if INLA_WITH_NUMA was not defined)
+#include "my-numa.h"
+
+#if defined(__linux__) || defined(INLA_WITH_NUMA)
+#include <sched.h>
+#endif
+
 #if defined(INLA_WITH_NUMA)
 
 #if !defined(INLA_WITH_HWLOC)
 #define INLA_WITH_HWLOC
 #endif
 
-#include <sched.h>
-void GMRFLib_numa_get(int *cpu, int *numa)
+#include <numa.h>
+#include <numaif.h>
+
+void GMRFLib_numa_init(void)
 {
-	int c = sched_getcpu();
-	int n = numa_node_of_cpu(c);
-	if (cpu)
-		*cpu = c;
-	if (numa)
-		*numa = n;
+	if (NUMA_have < 0)
+		GMRFLib_numa_have();
 }
 
-int GMRFLib_numa(void)
+void GMRFLib_numa_set_ctl(int enable)
 {
-	return ((numa_available() > -1) && (numa_num_configured_nodes() > 1)
-		? 1 : 0);
+	NUMA_enable = enable;
 }
 
-int GMRFLib_numa_nodes(void)
+int GMRFLib_numa_have(void)
 {
-	if (GMRFLib_numa()) {
-		return (numa_num_configured_nodes());
+	if (NUMA_enable) {
+		if (NUMA_have >= 0) {
+			return NUMA_have;
+		} else {
+			NUMA_have = ((numa_available() > -1) && (numa_num_configured_nodes() >= 1) ? 1 : 0);
+			NUMA_nodes = IMAX(1, numa_num_configured_nodes());
+			return NUMA_have;
+		}
 	} else {
 		return 0;
 	}
 }
 
-#else
-
-void GMRFLib_numa_get(int *cpu, int *numa)
+int GMRFLib_numa_get_node(void)
 {
-	if (cpu)
-		*cpu = 0;
-	if (numa)
-		*numa = 0;
+	int nnode = 0;
+	GMRFLib_numa_get(NULL, &nnode);
+	return nnode;
 }
 
-int GMRFLib_numa(void)
+void GMRFLib_numa_get(int *cpu, int *numa_node)
+{
+	unsigned int unode;
+	if (cpu) {
+		unsigned int ucpu;
+		getcpu(&ucpu, &unode);
+		*cpu = (int) ucpu;
+	} else {
+		getcpu(NULL, &unode);
+	}
+		
+	if (numa_node) {
+		if (NUMA_enable) {
+			*numa_node = (int) unode;
+		} else {
+			*numa_node = 0;
+		}
+	}
+}
+
+int GMRFLib_numa_nodes(void)
+{
+	return (NUMA_enable ? NUMA_nodes : 1);
+}
+
+int GMRFLib_numa_node_of_ptr(void *ptr)
+{
+	if (NUMA_enable) {
+		int numa_node = -1;
+		if (NUMA_have == 1) {
+			get_mempolicy(&numa_node, NULL, 0, (void *) ptr, MPOL_F_NODE | MPOL_F_ADDR);
+		}
+		return numa_node;
+	} else {
+		return 0;
+	}
+}
+
+int GMRFLib_numa_cache_hitmiss_core(void *ptr, int numa, const char *filename, int lineno)
+{
+	// return -1 if not in use, 0=hit, 1=miss
+	if (NUMA_enable) {
+		int numa_ptr = GMRFLib_numa_node_of_ptr(ptr);
+		if (numa_ptr >= 0) {
+			char *nm = NULL;
+			GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
+			if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
+				return (numa == numa_ptr ? 0 : 1);
+			} else {
+				return -1;
+			}
+		}
+		return -1;
+	} else {
+		return -1;
+	}
+}
+
+void *GMRFLib_numa_alloc_onnode(size_t size, int node)
+{
+	if (NUMA_enable) {
+		return (size > 0 ? numa_alloc_onnode(size, node) : NULL);
+	} else {
+		return (size > 0 ? malloc(size) : NULL);
+	}
+}
+
+void GMRFLib_numa_free(void *start, size_t size)
+{
+	if (NUMA_enable) {
+		if (size > 0 && start) {
+			numa_free(start, size);
+		}
+	} else {
+		if (size > 0) {
+			Free(start);
+		}
+	}
+}
+
+#else
+
+void GMRFLib_numa_set_ctl(int UNUSED(enable))
+{
+	NUMA_enable = 0;
+}
+
+
+int GMRFLib_numa_get_node(void)
+{
+	int nnode = 0;
+	GMRFLib_numa_get(NULL, &nnode);
+	return nnode;
+}
+
+void GMRFLib_numa_free(void *start, size_t size)
+{
+	if (size > 0) {
+		Free(start);
+	}
+}
+
+void *GMRFLib_numa_alloc_onnode(size_t size, int UNUSED(node))
+{
+	return (size > 0 ? malloc(size) : NULL);
+}
+
+void GMRFLib_numa_init(void)
+{
+	// nothing to do
+}
+
+void GMRFLib_numa_get(int *cpu, int *numa_node)
+{
+	if (cpu) {
+#if defined(__linux__)
+		*cpu = sched_getcpu();
+#else
+		*cpu = 0;
+#endif
+	}
+	if (numa_node) {
+		*numa_node = 0;
+	}
+}
+
+int GMRFLib_numa_have(void)
 {
 	return 0;
 }
 
 int GMRFLib_numa_nodes(void)
 {
-	return 0;
+	return 1;
 }
+
+int GMRFLib_numa_node_of_ptr(void *UNUSED(ptr))
+{
+	return -1;
+}
+
+int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), int UNUSED(numa), const char *UNUSED(filename), int UNUSED(lineno))
+{
+	return -1;
+}
+
 #endif
+
 
 #if defined(INLA_WITH_HWLOC)
 #include <hwloc.h>
 
 size_t GMRFLib_get_L3_cache(void)
 {
-	// this returns the first one found, must be checked that this is what we want
+	// this returns the first one found, must be checked that this is what we want!!!!!!!!!
 	hwloc_topology_t topology;
 	size_t l3 = 0;
 
@@ -85,7 +234,7 @@ size_t GMRFLib_get_L3_cache(void)
 
 size_t GMRFLib_numa_get_L3_cache(int nnode)
 {
-	// this returns the first one found, must be checked that this is what we want
+	// this returns the first one found, must be checked that this is what we want!!!!!!!!
 	hwloc_topology_t topology;
 	hwloc_obj_t numa_node;
 	hwloc_obj_t obj = NULL;
@@ -116,7 +265,7 @@ size_t GMRFLib_get_L3_cache(void)
 	return 0;
 }
 
-size_t GMRFLib_numa_L3_cache(int nnode)
+size_t GMRFLib_numa_get_L3_cache(int UNUSED(nnode))
 {
 	return 0;
 }

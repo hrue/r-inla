@@ -146,7 +146,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 		// cache-index
 
 		int idx = -1;
-		GMRFLib_CACHE_SET_ID(idx);
+		GMRFLib_CACHE_SET_IDX(idx);
 		assert(idx >= 0);
 
 		int fake_values[2];
@@ -184,7 +184,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 		i_in_cache = 1;				       // ok as element Q(i,i) is always computed and then cache'd
 		cache_id = 1;				       // this is for Q(i,-1) call
 	} else {
-		GMRFLib_CACHE_SET_ID(idx);
+		GMRFLib_CACHE_SET_IDX(idx);
 	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;

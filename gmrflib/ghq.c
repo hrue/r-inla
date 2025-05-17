@@ -124,21 +124,24 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 
 	if (!abscissas) {
 #pragma omp critical (Name_57dd787c76d8e98b908fbe47a9af2b183bc7a84a)
-		{
-			if (!abscissas) {
-				weights = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
-				abscissas = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
-			}
+		if (!abscissas) {
+			weights = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
+			map_ivp **tmp = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
+			abscissas = tmp;
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!abscissas[idx]) {
-		abscissas[idx] = Calloc(1, map_ivp);
-		weights[idx] = Calloc(1, map_ivp);
-		map_ivp_init(abscissas[idx]);
-		map_ivp_init(weights[idx]);
+#pragma omp critical (Name_144aa75e163ba7c9b9b2548a2c758b4aa2b19808)
+		if (!abscissas[idx]) {
+			map_ivp *tmp = Calloc(1, map_ivp);
+			weights[idx] = Calloc(1, map_ivp);
+			map_ivp_init(tmp);
+			map_ivp_init(weights[idx]);
+			abscissas[idx] = tmp;
+		}
 	}
 
 	double *x = NULL, *w = NULL;

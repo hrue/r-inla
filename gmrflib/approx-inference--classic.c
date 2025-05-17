@@ -27,7 +27,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	int n;
 	double *xx = NULL, val, logl, result;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
@@ -82,7 +82,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			for (int iii = 0; iii < nidx; iii++) {
 				int ii = idxs[iii];
 				double ll = 0.0;
-				loglFunc(thread_id, &ll, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
+				loglFunc(thread_id, NULL, &ll, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
 				tmp2 += d[ii] * ll;
 			}
 			Calloc_free();
@@ -92,7 +92,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			 */
 			for (int ii = 0; ii < n; ii++) {
 				if (d[ii]) {
-					loglFunc(thread_id, &logl, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
+					loglFunc(thread_id, NULL, &logl, &x[ii], 1, ii, x, NULL, loglFunc_arg, NULL);
 					tmp2 += d[ii] * logl;
 				}
 			}
@@ -105,7 +105,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 
 	*logdens = val;
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -129,7 +129,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 	int i, j, ii, jj, ns;
 	double xx, *f = NULL, *g = NULL, val, tmp, logl = 0.0, q_value;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	assert(subgraph);
 	ns = subgraph->n;
 
@@ -192,7 +192,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 			for (ii = 0; ii < ns; ii++) {
 				i = node_map[ii];
 				if (d[i]) {
-					loglFunc(thread_id, &logl, &x[i], 1, i, x, NULL, loglFunc_arg, NULL);
+					loglFunc(thread_id, NULL, &logl, &x[i], 1, i, x, NULL, loglFunc_arg, NULL);
 					tmp += d[i] * logl;
 				}
 			}
@@ -201,7 +201,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 		*logdens = val;
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -270,7 +270,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 				}					\
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
-				loglFunc(thread_id, logcor, x_user, np, idx, fixed_mode, NULL, loglFunc_arg, NULL); \
+				loglFunc(thread_id, NULL, logcor, x_user, np, idx, fixed_mode, NULL, loglFunc_arg, NULL); \
 				for(_i=0; _i < np; _i++) {		\
 					logcor[_i] *= d[idx];		\
 				}					\
@@ -313,7 +313,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		}							\
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (!ai_store) {				       /* use a temporary storage? */
 		free_ai_store = 1;
@@ -438,7 +438,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		Free(blockpar);
 		Free(optpar);
 
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -788,7 +788,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		GMRFLib_free_ai_store(ai_store);
 	}
 #undef COMPUTE_CPO_DENSITY
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -797,7 +797,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 				       GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp *constr, double *bbb, double *ccc, double **covariances, int idx)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (0) {
 		/*
@@ -952,7 +952,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 		Free(constr_m);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -973,7 +973,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *p
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
 	    NULL, *tmp_m = NULL, val;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = problem->n;
 	assert(n == problem->sub_graph->n);
@@ -1110,7 +1110,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *p
 
 	Calloc_free();
 	Free(constr_m_new);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 #undef IDX
 #undef WORK
@@ -1460,7 +1460,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		ai_par->int_strategy = (nhyper <= 2 ? GMRFLib_AI_INT_STRATEGY_GRID : GMRFLib_AI_INT_STRATEGY_CCD);
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (misc_output) {
 		timer = misc_output->wall_clock_time_used;
@@ -3285,8 +3285,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				}
 
 				double x_tmp = (double) ((*density)[ii]->user_mean);
-				loglFunc(thread_id, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg, NULL);
-				logl_sat = inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
+				loglFunc(thread_id, NULL, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg, NULL);
+				logl_sat = inla_compute_saturated_loglik(thread_id, NULL, ii, loglFunc, x_vec, loglFunc_arg);
 				dm = -2.0 * d[ii] * logl;
 				dm_sat = -2.0 * d[ii] * (logl - logl_sat);
 				e_deviance[ii] = md;
@@ -3297,14 +3297,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to the
 				// real data doing the comparison there. But this information is not available at this level
 				double sig = 0.0;
-				if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
-					loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg, NULL);
+				if (loglFunc(0, NULL, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
+					loglFunc(0, NULL, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg, NULL);
 					sig = (sig <= 0.5 ? -1.0 : 1.0);
 				} else {
 					double xx[2], ld[2] = { 0.0, 0.0 };
 					xx[0] = (*density)[ii]->user_mean;
 					xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
-					loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg, NULL);
+					loglFunc(0, NULL, ld, xx, 2, ii, NULL, NULL, loglFunc_arg, NULL);
 					sig = (ld[1] > ld[0] ? 1.0 : -1.0);
 				}
 				sign[ii] = sig;
@@ -3464,6 +3464,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			    interpol != GMRFLib_AI_INTERPOLATOR_GRIDSUM) {
 				double bvalue = GMRFLib_min_value(hyper_ldens, hyper_count, NULL);
 
+				assert(nhyper > 0);
 				izz = Calloc(nhyper, int);
 				for (ntimes = 0; ntimes < 2; ntimes++) {
 					int guard_count = 0;
@@ -3836,7 +3837,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		timer[3] = GMRFLib_timer() - timer[3];
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
 #undef CHECK_DENS_STORAGE
@@ -3895,7 +3896,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_daxpb(np, s, xp, m, x_user);
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
-		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, NULL, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
 #pragma omp simd reduction(+: A, B, C)
@@ -3935,7 +3936,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		}
 
 		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
-		loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, NULL, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 #pragma GCC ivdep
 		for (i = 0; i < np; i++) {
 			loglik[i] *= d;

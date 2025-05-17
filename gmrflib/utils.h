@@ -71,9 +71,9 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
 int GMRFLib_is_zero(double *x, int n);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_icmp_r(const void *a, const void *b);
+int GMRFLib_iamax_value(int *x, int n, int *idx);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
-int GMRFLib_iamax_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, int len);
@@ -93,6 +93,7 @@ int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
+int GMRFLib_trace_cache_hitmiss(const char *name);
 int GMRFLib_trace_functions(const char *name);
 int GMRFLib_unique_additive(int *n, double *x, double eps);
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);

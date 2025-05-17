@@ -8903,7 +8903,14 @@
 
                 tan = list(
                     doc = "The tan-link",
-                    hyper = list()
+                    hyper = list(),
+                    pdf = "circular"
+                ),
+
+                tan.pi = list(
+                    doc = "The tan.pi-link",
+                    hyper = list(), 
+                    pdf = "circular"
                 ),
 
                 quantile = list(
@@ -12933,7 +12940,7 @@
                     ),
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "tan"),
+                    link = c("default", "tan", "tan.pi"),
                     pdf = "circular-normal",
                     status = "disabled"
                 ),
@@ -12957,7 +12964,7 @@
                     ),
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "tan"),
+                    link = c("default", "tan", "tan.pi"),
                     pdf = "wrapped-cauchy",
                     status = "disabled"
                 ),
@@ -15815,7 +15822,7 @@
                     experimental = TRUE, 
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "circular", "identity"),
+                    link = c("default", "circular", "tan", "tan.pi", "identity"),
                     pdf = "vm"
                 )
             )

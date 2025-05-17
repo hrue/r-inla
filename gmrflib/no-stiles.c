@@ -1,9 +1,10 @@
 #include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "stiles.h"
 
 #if !defined(INLA_WITH_STILES)
+
+#include "no-stiles.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -44,6 +45,9 @@ int sTiles_return_tile_size() EMPTY_FUNCTION;
 void sTiles_map_group_call_to_group_call(sTiles_object **obj, int group_index1, int call_index1, int group_index2, int call_index2) EMPTY_FUNCTION;
 int sTiles_bind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNCTION;
 int sTiles_unbind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNCTION;
+
+//
+
 #undef EMPTY_FUNCTION
 #pragma GCC diagnostic pop
 

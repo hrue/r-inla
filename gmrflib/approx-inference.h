@@ -1146,13 +1146,10 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
 			  void *loglFunc_arg, double *x_vec);
-int GMRFLib_ai_vb_prepare_mean_OLD(int thread_id,
-				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
-				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
-int GMRFLib_ai_vb_prepare_mean(int thread_id, int lcache_idx,
+int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
-int GMRFLib_ai_vb_prepare_variance(int thread_id,
+int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx,
 				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
 char *GMRFLib_ai_tag(int *iz, int len);
@@ -1229,7 +1226,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
 					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl);
 
-double inla_compute_saturated_loglik(int, int, GMRFLib_logl_tp *, double *, void *);
+double inla_compute_saturated_loglik(int, int *, int, GMRFLib_logl_tp *, double *, void *);
 double GMRFLib_prior_mean_eval(int thread_id, GMRFLib_prior_mean_tp * pmean);
 int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp ** prior_mean);
 

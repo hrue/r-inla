@@ -92,7 +92,7 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 	}
 
 	int cache_idx = -1;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 	cache_tp *c = ((cache_tp **) ds->data_observations.sem_cache)[cache_idx];
 
 	if (!c) {

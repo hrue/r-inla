@@ -511,6 +511,40 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 
 	/*
+	 * type = TAUCS
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "TAUCS")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[TAUCS]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_taucs(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
+	 * type = NUMA
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "NUMA")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[NUMA]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_numa(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * type = LPSCALE
 	 */
 	for (sec = 0; sec < nsec; sec++) {
@@ -1551,8 +1585,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 						}
 						Free(vec_str);
 					}
+					jp_first_time = 0;
 				}
-				jp_first_time = 0;
 			}
 			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
@@ -2641,6 +2675,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
 			case LINK_TAN:
+			case LINK_TAN_PI:
 			case LINK_QPOISSON:
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
@@ -2830,11 +2865,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	if (!sstore) {
 #pragma omp critical (Name_87d8c02a8a06b017c5015b7132be14e8b5996507)
 		if (!sstore) {
-			sstore = Calloc(GMRFLib_CACHE_LEN(), Store_tp **);
+			Store_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Store_tp **);
+			sstore = tmp;
 		}
 	}
 	int cidx = 0;
-	GMRFLib_CACHE_SET_ID(cidx);
+	GMRFLib_CACHE_SET_IDX(cidx);
 
 	if (!sstore[cidx]) {
 		sstore[cidx] = Calloc(mb->nf, Store_tp *);
@@ -5202,14 +5238,13 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 			if (!hhold) {
 #pragma omp critical (Name_35784cb53aa98d636cf2d0897410586e2705f61e)
-				{
-					if (!hhold) {
-						hhold = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
-					}
+				if (!hhold) {
+					Hold_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					hhold = tmp;
 				}
 			}
 			int idx = 0;
-			GMRFLib_CACHE_SET_ID(idx);
+			GMRFLib_CACHE_SET_IDX(idx);
 
 			int jj;
 			Hold_tp *h = NULL, **hold = NULL;
@@ -5320,11 +5355,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (!hhold) {
 #pragma omp critical (Name_7acab2f371bbea723e9820a667f70647967dbd17)
 				if (!hhold) {
-					hhold = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					Hold_tp ***tmp = Calloc(GMRFLib_CACHE_LEN(), Hold_tp **);
+					hhold = tmp;
 				}
 			}
 			int idx = 0;
-			GMRFLib_CACHE_SET_ID(idx);
+			GMRFLib_CACHE_SET_IDX(idx);
 
 			int jj;
 			Hold_tp *h = NULL, **hold = NULL;
@@ -5569,13 +5605,14 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	int niter = 0, niter_min = 25, niter_max = 100, stencil = 3;
 	const int debug = 0;
 
-	int thread_id = 0, cache_idx = 0;
+	int thread_id = 0, cache_idx = -1;
 	x = xnew = mean;
 
 	while (1) {
 		w = (double) DMIN(niter_min, niter) / (double) niter_min;
 		prec = exp(w * log(prec_min) + (1.0 - w) * log(prec_max));
-		GMRFLib_2order_taylor(thread_id, cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen,
+				      &stencil);
 		f = arr[0] - 0.5 * prec * SQR((x - mean));
 		deriv = arr[1] - prec * (x - mean);
 		dderiv = DMIN(0.0, arr[2]) - prec;
@@ -6246,6 +6283,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_stiles_setup(setup);
 	}
 
+	GMRFLib_overall_cpu[2] = GMRFLib_timer();
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -6378,7 +6417,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
-	// GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_FUNCTION
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
@@ -6625,7 +6664,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #undef _MAP_DX_func
 #undef _MAP_DX_tfunc
 
-//      GMRFLib_LEAVE_ROUTINE;
+//      GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -6930,6 +6969,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;
+	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing
 	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
@@ -6945,8 +6985,8 @@ int main(int argc, char **argv)
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
-	GMRFLib_numa_is_available = GMRFLib_numa();
 
+	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */
@@ -7392,8 +7432,10 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\nVersion......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-		fprintf(stdout, "Build-time...[%s]\n", __TIMESTAMP__);
+		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stdout, "Build-time....[%s]\n", __TIMESTAMP__);
+		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
+
 		_BUGS_intern(stdout);
 	}
 
@@ -7498,11 +7540,13 @@ int main(int argc, char **argv)
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", model_ini, GMRFLib_MAX_THREADS());
 			}
+			GMRFLib_overall_cpu[0] = GMRFLib_timer();
 			time_used[0] = GMRFLib_timer();
 			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(model_ini, verbose);
+
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_timer() - time_used[0];
 			atime_used[0] = clock() - atime_used[0];
@@ -7510,6 +7554,7 @@ int main(int argc, char **argv)
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				fflush(stdout);
 			}
+			GMRFLib_overall_cpu[1] = GMRFLib_timer();
 			time_used[1] = GMRFLib_timer();
 			atime_used[1] = clock();
 
@@ -7519,6 +7564,7 @@ int main(int argc, char **argv)
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				time_used[3] = GMRFLib_timer();
 				inla_INLA_preopt_experimental(mb);
+
 				time_used[3] = GMRFLib_timer() - time_used[1];
 				atime_used[3] = clock() - atime_used[1];
 				nfunc[0] = mb->misc_output->nfunc;
@@ -7565,9 +7611,33 @@ int main(int argc, char **argv)
 			time_used[2] = GMRFLib_timer();
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+
 			inla_output(mb);
+
+			GMRFLib_overall_cpu[7] = GMRFLib_timer();
 			time_used[2] = GMRFLib_timer() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
+
+			// in case sections are skipped
+			for (int ii = 1; ii <= 7; ii++) {
+				if (ISZERO(GMRFLib_overall_cpu[ii])) {
+					GMRFLib_overall_cpu[ii] = GMRFLib_overall_cpu[ii - 1];
+				}
+			}
+
+#define TDIF(n_) (GMRFLib_overall_cpu[n_]-GMRFLib_overall_cpu[(n_)-1])
+#define POVERALL_TIME(fp_)						\
+			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) { \
+				double tot = 0.01 * (GMRFLib_overall_cpu[7] - GMRFLib_overall_cpu[0]); \
+				fprintf(fp_, "\nBreakdown of overall running time %.2f seconds in stages: \n", tot / 0.01); \
+				fprintf(fp_, "\tReading model    %5.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
+				fprintf(fp_, "\tBuilding model   %5.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
+				fprintf(fp_, "\tOptimising       %5.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
+				fprintf(fp_, "\tHessian          %5.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
+				fprintf(fp_, "\tIntegration      %5.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
+				fprintf(fp_, "\tPostprocessing   %5.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+				fprintf(fp_, "\tOutput           %5.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
+			}
 
 #define PEFF_OUTPUT(fp_)						\
 			if (1) {					\
@@ -7579,6 +7649,7 @@ int main(int argc, char **argv)
 				fprintf(fp_, "%sEfficiency using %1d threads = %.2f%%\n", tab, GMRFLib_MAX_THREADS(), \
 					100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
+
 #define PEFF_PREOPT_OUTPUT(fp_)						\
 			if (1) {					\
 				char *tab = Strdup("");			\
@@ -7604,6 +7675,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
 				PEFF_OUTPUT(stdout);
+				POVERALL_TIME(stdout);
 #endif
 				fflush(stdout);
 			}
@@ -7657,6 +7729,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
 				PEFF_OUTPUT(stdout);
+				POVERALL_TIME(stdout);
 #endif
 				printf("\n");
 			}
@@ -7712,6 +7785,7 @@ int main(int argc, char **argv)
 					PEFF_PREOPT_OUTPUT(fp);
 				}
 				PEFF_OUTPUT(fp);
+				POVERALL_TIME(fp);
 #endif
 				fclose(fp);
 				Free(nfile);

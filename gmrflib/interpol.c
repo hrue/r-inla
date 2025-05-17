@@ -137,10 +137,10 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -155,7 +155,8 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+					s->accel[tnum] = ac;
 				}
 			}
 			acc = s->accel[tnum];
@@ -223,10 +224,10 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -241,7 +242,8 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+					s->accel[tnum] = ac;
 				}
 			}
 			acc = s->accel[tnum];
@@ -275,10 +277,10 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	int tnum = 0;
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
-		GMRFLib_CACHE_SET_ID(tnum);
+		GMRFLib_CACHE_SET_IDX(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_LEVEL1:
-		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
 	case GMRFLib_INTPOL_CACHE_NONE:
@@ -293,7 +295,8 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
 				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
+					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+					s->accel[tnum] = ac;
 				}
 			}
 			acc = s->accel[tnum];
@@ -328,10 +331,10 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:
@@ -346,7 +349,8 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_7db308fb16056e07320f9aa74e5445c74a6f298f)
 					if (!(s->accel[tnum])) {
-						s->accel[tnum] = gsl_interp_accel_alloc();
+						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+						s->accel[tnum] = ac;
 					}
 				}
 				acc = s->accel[tnum];
@@ -368,10 +372,10 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:
@@ -386,7 +390,8 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_8c1f6a9b1676b904f0235f5d9f3817343bf0b5d3)
 					if (!(s->accel[tnum])) {
-						s->accel[tnum] = gsl_interp_accel_alloc();
+						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+						s->accel[tnum] = ac;
 					}
 				}
 				acc = s->accel[tnum];
@@ -407,10 +412,10 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		int tnum = 0;
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
+			GMRFLib_CACHE_SET_IDX(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+			GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
 		case GMRFLib_INTPOL_CACHE_NONE:
@@ -425,7 +430,8 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_6c1aed3d698e547929f98757e8a8e32e2adc4b68)
 					if (!(s->accel[tnum])) {
-						s->accel[tnum] = gsl_interp_accel_alloc();
+						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+						s->accel[tnum] = ac;
 					}
 				}
 				acc = s->accel[tnum];

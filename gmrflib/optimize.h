@@ -118,7 +118,7 @@ __BEGIN_DECLS
 
   \sa GMRFLib_blockupdate
 */
-typedef int GMRFLib_logl_tp(int thread_id, double *logll, double *x_i, int m, int idx, double *x_vec, double *y_cdf, void *logl_arg,
+typedef int GMRFLib_logl_tp(int thread_id, int *cache_idx, double *logll, double *x_i, int m, int idx, double *x_vec, double *y_cdf, void *logl_arg,
 			    char **arg_string);
 
 /*!

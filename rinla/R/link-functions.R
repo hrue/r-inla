@@ -181,6 +181,22 @@ NULL
 
 #' @rdname link-functions
 #' @export
+`inla.link.tan.pi` = function(x, inverse = FALSE) {
+    if (!inverse) {
+        return (2*atan(x) + pi)
+    } else {
+        return (tan((x - pi)/2))
+    }
+}
+
+#' @rdname link-functions
+#' @export
+`inla.link.invtan.pi` = function(x, inverse = FALSE) {
+    return (inla.link.tan.pi(x, inverse = !inverse))
+}
+
+#' @rdname link-functions
+#' @export
 `inla.link.identity` <- function(x, inverse = FALSE) {
     return(x)
 }
@@ -344,7 +360,6 @@ NULL
 `inla.link.invinvalid` <- function(x, inverse = FALSE) {
     stop("The invinvalid link-function is used.")
 }
-
 
 ## Not exported
 `inla.link.sn.test` <- function() {

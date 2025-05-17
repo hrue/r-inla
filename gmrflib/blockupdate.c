@@ -29,7 +29,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate
 }
 
 
-int GMRFLib_2order_taylor(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
+int GMRFLib_2order_taylor(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
@@ -65,7 +65,7 @@ int GMRFLib_2order_taylor(int thread_id, int lcache_idx, double *a, double *b, d
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
+int GMRFLib_2order_approx(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin)
 {
 	/*
@@ -116,7 +116,7 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 
 	if (idx == give_warning_idx && give_warning_c > 1) {
 		fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: reset counter for %1d NAN/INF values in logl\n", give_warning_c);
-#pragma omp critical
+#pragma omp critical (Name_61a18063454b0e56bccffa14dda9ace39df612f8)
 		give_warning_c = 0;
 	}
 
@@ -126,7 +126,7 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 		if (give_warning_c == 0) {
 			fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", idx);
 		}
-#pragma omp critical
+#pragma omp atomic
 		give_warning_c++;
 
 		f0 = df = 0.0;
@@ -170,13 +170,14 @@ int GMRFLib_2order_approx(int thread_id, int lcache_idx, double *a, double *b, d
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
+int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	// default step-size is determined using test=151. stencil=9 does not bring much...
 
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
+	int numa = GMRFLib_numa_get_node();
 
 	typedef struct {
 		double **wf;
@@ -186,27 +187,21 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 	if (!lwork) {
 #pragma omp critical (Name_009f5f31299b4b554b667873ad6c4c874bfc9a77)
 		if (!lwork) {
-			lwork = Calloc(GMRFLib_CACHE_LEN(), wf_tp *);
+			wf_tp **tmp = Calloc(GMRFLib_numa_nodes(), wf_tp *);
+			lwork = tmp;
 		}
 	}
 
-	int cache_idx = 0;
-	if (lcache_idx >= 0) {
-		cache_idx = lcache_idx;
-	} else {
-		GMRFLib_CACHE_SET_ID(cache_idx);
-	}
-
-	if (!lwork[cache_idx]) {
+	if (!lwork[numa]) {
 #pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
-		if (!lwork[cache_idx]) {
+		if (!lwork[numa]) {
 			wf_tp *w = Calloc(1, wf_tp);
 			w->wf = Calloc(10, double *);	       /* Must initialize to 0 */
-			lwork[cache_idx] = w;
+			lwork[numa] = w;
 		}
 	}
 
-	wf_tp *w = lwork[cache_idx];
+	wf_tp *w = lwork[numa];
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -220,7 +215,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 		xx[3] = x0 + step;
 		xx[4] = x0 + 2 * step;
 
-		loglFunc(thread_id, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, lcache_idx, f, xx, 5, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[2];
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
@@ -242,7 +237,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 			f0 = f[1];
 			df = 0.5 * (-f[0] + f[2]);
@@ -264,7 +259,11 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(3 * wlength, double);
+					int len = 3 * wlength;
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
 					ww[0] = 0.0833333333333333333333333;
 					ww[1] = -0.666666666666666666666667;
 					ww[3] = 0.666666666666666666666667;
@@ -292,7 +291,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -325,7 +324,11 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(3 * wlength, double);
+					int len = 3 * wlength;
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
 					ww[0] = -0.0166666666666666666666667;
 					ww[1] = 0.15;
 					ww[2] = -0.75;
@@ -359,7 +362,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;
@@ -395,7 +398,11 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_2c6105c438980fcf3a3f8311ae71780a45886796)
 				if (!(w->wf[stenc])) {
-					double *ww = Calloc(4 * wlength, double);
+					int len = 4 * wlength;
+					double *ww = Malloc(len, double);
+					GMRFLib_dfill(len, 0.0, ww);
+					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
 					ww[0] = 0.00357142857142857142857143;
 					ww[1] = -0.0380952380952380952380952;
 					ww[2] = 0.20;
@@ -442,7 +449,7 @@ int GMRFLib_2order_approx_core(int thread_id, int lcache_idx, double *a, double 
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[nn];
 
 			int iref = n / 2L;

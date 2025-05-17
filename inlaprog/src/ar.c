@@ -235,7 +235,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	eq = 1;
 	for (int ii = 0; ii < def->p && eq; ii++) {

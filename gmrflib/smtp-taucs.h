@@ -88,6 +88,9 @@ size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
 void taucs_crs_free(taucs_crs_matrix * L);
+void GMRFLib_taucs_set_ctl(int block_size);
+GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void);
+
 
 __END_DECLS
 #endif

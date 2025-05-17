@@ -16,7 +16,7 @@ static int constr_store_debug = 0;
 
 int GMRFLib_init_constr_store(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	constr_store_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_use) {
 		if (constr_store_must_init) {
@@ -28,7 +28,7 @@ int GMRFLib_init_constr_store(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -40,7 +40,7 @@ static int constr_store_logdet_debug = 0;
 
 int GMRFLib_init_constr_store_logdet(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	constr_store_logdet_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_logdet_use) {
 		if (constr_store_logdet_must_init) {
@@ -52,7 +52,7 @@ int GMRFLib_init_constr_store_logdet(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -135,15 +135,14 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 
 	if (!storage) {
 #pragma omp critical (Name_e4b888063524c281c8bef772bc2579873731fa49)
-		{
-			if (!storage) {
-				storage = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
-			}
+		if (!storage) {
+			storage_t **tmp = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
+			storage = tmp;
 		}
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
 		storage[id] = Calloc(1, storage_t);
@@ -205,15 +204,14 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 
 	if (!storage) {
 #pragma omp critical (Name_756fb3e47fb1205cd5e595775867506d805d78f6)
-		{
-			if (!storage) {
-				storage = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
-			}
+		if (!storage) {
+			storage_t **tmp = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
+			storage = tmp;
 		}
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
 		storage[id] = Calloc(1, storage_t);
@@ -327,7 +325,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 
 	// if IDX >=0 then assume only b[idx] != 0, if IDX < 0, then assume a general B
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
@@ -347,7 +345,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x, &inc, F_ONE);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -355,7 +353,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 {
 	// solve Q x = b, b=x, for many 'nrhs' and correct for constraints
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
@@ -387,7 +385,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -396,10 +394,10 @@ int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp **problem,
 			 GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args, GMRFLib_constr_tp *constr, GMRFLib_stiles_idx_tp *stiles_idx,
 			 GMRFLib_smtp_tp *local_smtp)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_EWRAP1(GMRFLib_init_problem_store
 		       (thread_id, problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL, stiles_idx, local_smtp));
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -424,7 +422,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	GMRFLib_Qfunc_tp *sub_Qfunc = NULL;
 	GMRFLib_Qfunc_arg_tp *sub_Qfunc_arg = NULL;
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	GMRFLib_ASSERT(problem, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
@@ -517,7 +515,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		if (free_x) {
 			Free(x);
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -686,13 +684,9 @@ int GMRFLib_init_problem_store(int thread_id,
 			 * go further only if the constraint is still there: it might go away!!! 
 			 */
 			nc = (*problem)->sub_constr->nc;       /* shortname */
-
 			// we assume this is ok for INLA so we turn this off.
-
 			double *qi_at_m_store = NULL;	       /* possible reuse old results */
-
 			(*problem)->qi_at_m = Calloc(nc * sub_n, double);
-
 			if (qi_at_m_store == NULL) {
 				/*
 				 * compute it as usual 
@@ -783,7 +777,6 @@ int GMRFLib_init_problem_store(int thread_id,
 					yy[i] = xx[i * nc];
 				}
 			}
-
 			Free(tmp_vector);
 
 			GMRFLib_constr_tp *con = (*problem)->sub_constr;
@@ -837,9 +830,7 @@ int GMRFLib_init_problem_store(int thread_id,
 							printf("constr_store_logdet: store value %f\n", (*problem)->logdet_aat);
 						}
 #pragma omp critical (Name_8c313c5cb0ba5eb20ede5a81e455580200ca1348)
-						{
-							map_strd_set(&constr_store_logdet, Strdup((char *) con->sha), (*problem)->logdet_aat);
-						}
+						map_strd_set(&constr_store_logdet, Strdup((char *) con->sha), (*problem)->logdet_aat);
 					}
 				}
 			}
@@ -890,7 +881,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		Free(x);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -901,7 +892,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 
 	if (!problem)
 		return GMRFLib_SUCCESS;
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	n = problem->sub_graph->n;
 
@@ -923,7 +914,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 	 */
 	if (!problem->sub_constr || (problem->sub_constr && problem->sub_constr == 0)) {
 		problem->sub_logdens = -0.5 * n * log(2.0 * M_PI) + problem->log_normc - 0.5 * sqrterm;
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	} else {
 		/*
@@ -952,15 +943,15 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));     /* to compute the log-density */
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_evaluate(GMRFLib_problem_tp *problem)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	GMRFLib_EWRAP1(GMRFLib_evaluate__intern(problem, 0));
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1446,9 +1437,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *
 			printf("\t[%1d] constr_store: store constr 0x%p\n", omp_get_thread_num(), (void *) *new_constr);
 		}
 #pragma omp critical (Name_94faae67756d65c5760e5596c1b377f8844e3f00)
-		{
-			map_strvp_set(&constr_store, (char *) (*new_constr)->sha, (void *) *new_constr);
-		}
+		map_strvp_set(&constr_store, (char *) (*new_constr)->sha, (void *) *new_constr);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1463,7 +1452,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 	 * 
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int i, k, kk, n, ns, *in_use = NULL, *cmap = NULL, nc = 0;
 
@@ -1471,7 +1460,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 		if (new_constr) {
 			*new_constr = NULL;
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1492,7 +1481,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 		// this will add jfirst and jlen
 		GMRFLib_prepare_constr(*new_constr, graph, 0);
 
-		GMRFLib_LEAVE_ROUTINE;
+		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1554,7 +1543,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 
 	Free(in_use);
 	Free(cmap);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -2009,10 +1998,8 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 
 				if (debug) {
 #pragma omp critical (Name_4dc800d9b856792e63baa1e9a01d82865c857322)
-					{
-						printf("%s: reorder=[%s] \tnnz=%zu \tUseGlobalNodes=%1d cpu=%.4f\n",
-						       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);
-					}
+					printf("%s: reorder=[%s] \tnnz=%zu \tUseGlobalNodes=%1d cpu=%.4f\n",
+					       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);
 				}
 
 			} else {

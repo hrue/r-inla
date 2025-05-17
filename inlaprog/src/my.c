@@ -376,22 +376,21 @@ void my_lambert_W0s(int m, double *y, double *res)
 
 	if (!spline_lambert_W0) {
 #pragma omp critical (Name_8d6da91249d12a4b187c29c3d315ea60b99212fb)
-		{
-			if (!spline_lambert_W0) {
-				int n0 = 140;
-				int n = n0 + 1;
-				double dy = (logy_lim[1] - logy_lim[0]) / n0;
-				double *work = Calloc(2 * n, double);
-				double *xx = work;
-				double *yy = work + n;
+		if (!spline_lambert_W0) {
+			int n0 = 140;
+			int n = n0 + 1;
+			double dy = (logy_lim[1] - logy_lim[0]) / n0;
+			double *work = Calloc(2 * n, double);
+			double *xx = work;
+			double *yy = work + n;
 
-				for (int i = 0; i < n; i++) {
-					yy[i] = logy_lim[0] + i * dy;
-					xx[i] = log(gsl_sf_lambert_W0(exp(yy[i])));
-				}
-				spline_lambert_W0 = GMRFLib_spline_create(yy, xx, n);
-				Free(work);
+			for (int i = 0; i < n; i++) {
+				yy[i] = logy_lim[0] + i * dy;
+				xx[i] = log(gsl_sf_lambert_W0(exp(yy[i])));
 			}
+			GMRFLib_spline_tp *tspline = GMRFLib_spline_create(yy, xx, n);
+			Free(work);
+			spline_lambert_W0 = tspline;
 		}
 	}
 
@@ -428,14 +427,12 @@ double my_lbell(int y)
 
 	if (!lbell || y > ymax) {
 #pragma omp critical (Name_47ba9e44a455e20c4bf966b4712c6ece203cb147)
-		{
-			if (!lbell || y > ymax) {
-				int n = IMAX(2 * ymax, y);
-				double *lbell_tmp = my_compute_lbell(n);
+		if (!lbell || y > ymax) {
+			int n = IMAX(2 * ymax, y);
+			double *lbell_tmp = my_compute_lbell(n);
 
-				ymax = n;
-				lbell = lbell_tmp;
-			}
+			ymax = n;
+			lbell = lbell_tmp;
 		}
 	}
 

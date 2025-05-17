@@ -13,7 +13,7 @@ inla.getOption(
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
     "inla.mode", "malloc.lib", "fmesher.evolution", "fmesher.evolution.warn",
-    "fmesher.evolution.verbosity", "INLAjoint.features")
+    "fmesher.evolution.verbosity", "INLAjoint.features", "numa")
 )
 
 inla.setOption(...)
@@ -115,6 +115,8 @@ When set to "default" (default), "soft", "warn", or "stop", indicates the
 minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
 
 \item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
+
+\item{numa}{logical Enable NUMA features (Linux only)}
 }}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}

@@ -5,14 +5,14 @@
 \alias{inla.set.control.stiles.default}
 \title{control.stiles}
 \usage{
-control.stiles(verbose = FALSE, debug = FALSE)
+control.stiles(verbose = FALSE, tile.size = 0)
 
 inla.set.control.stiles.default(...)
 }
 \arguments{
 \item{verbose}{Show detailed output (default FALSE)}
 
-\item{debug}{Show internal debug output (default FALSE)}
+\item{tile.size}{The size of the tile (default 0 will chose automatically)}
 
 \item{...}{Named arguments passed on to the main function}
 }
@@ -41,11 +41,13 @@ Other control:
 \code{\link{control.lp.scale}()},
 \code{\link{control.mix}()},
 \code{\link{control.mode}()},
+\code{\link{control.numa}()},
 \code{\link{control.pardiso}()},
 \code{\link{control.pom}()},
 \code{\link{control.predictor}()},
 \code{\link{control.scopy}()},
 \code{\link{control.sem}()},
+\code{\link{control.taucs}()},
 \code{\link{control.update}()},
 \code{\link{control.vb}()}
 }

@@ -42,16 +42,16 @@ static fncall_timing_tp fncall_timing = {
 static GMRFLib_opt_trace_tp *opt_trace = NULL;
 
 static int GMRFLib_opt_smart_optim_part = 1;
-void GMRFLib_opt_set_smart_optim_part(int part) 
+void GMRFLib_opt_set_smart_optim_part(int part)
 {
 	if (part <= 1) {
-		GMRFLib_opt_smart_optim_part =  1;
+		GMRFLib_opt_smart_optim_part = 1;
 	} else {
-		GMRFLib_opt_smart_optim_part =  2;
+		GMRFLib_opt_smart_optim_part = 2;
 	}
 }
 
-int GMRFLib_opt_get_smart_optim_part(void) 
+int GMRFLib_opt_get_smart_optim_part(void)
 {
 	return (GMRFLib_opt_smart_optim_part);
 }
@@ -210,12 +210,12 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	/*
 	 * this function is called only for thread=0!!! 
 	 */
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
 }
@@ -226,7 +226,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	 * Evaluate nx function evaluations of f for configuration x[i][0]...x[i][..], in parallel.
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int i, tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
@@ -276,7 +276,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	Free(err);
 	GMRFLib_opt_get_latent(G.ai_store->mode);
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -287,7 +287,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	 * this version controls AI_STORE 
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int i;
 	const int debug = 0;
@@ -430,7 +430,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 		Free(bnew_ptr);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -448,7 +448,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	int tmax;
 	int debug = GMRFLib_DEBUG_IF();
@@ -650,7 +650,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		printf("\n");
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -661,7 +661,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	 * the best mode-configuration found. If a better is found, then return !GMRFLib_SUCCESS and this routine will be called once more.
 	 */
 
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 #define F1(result, idx, step, x_store)					\
 	if (1) {							\
@@ -1067,7 +1067,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 #undef ALLOC_XX_HOLD
 #undef FREE_XX_HOLD
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 
 }

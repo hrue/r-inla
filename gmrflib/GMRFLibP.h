@@ -1,13 +1,16 @@
 #ifndef __GMRFLibP_H__
 #define __GMRFLibP_H__
 
-#define _GNU_SOURCE 1
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
 
 #if defined(__linux__)
 #include <features.h>
+#endif
+
 #if defined(INLA_WITH_NUMA)
 #include <numa.h>
-#endif
 #endif
 
 #include <assert.h>
@@ -52,39 +55,39 @@ typedef int fortran_charlen_t;
 #endif
 
 #ifdef __GNUC__
-#define POSSIBLY_UNUSED_FUNCTION(x) __attribute__((__unused__)) x
+#define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
 #else
-#define POSSIBLY_UNUSED_FUNCTION(x) x
+#define POSSIBLY_UNUSED(x) x
 #endif
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(SQR) (double x) {
+static double POSSIBLY_UNUSED(SQR) (double x) {
 	return (x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ISQR) (int ix) {
+static int POSSIBLY_UNUSED(ISQR) (int ix) {
 	return (ix * ix);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(POW3) (double x) {
+static double POSSIBLY_UNUSED(POW3) (double x) {
 	return (x * x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IPOW3) (int ix) {
+static int POSSIBLY_UNUSED(IPOW3) (int ix) {
 	return (ix * ix * ix);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(POW4) (double x) {
+static double POSSIBLY_UNUSED(POW4) (double x) {
 	double xx = x * x;
 	return (xx * xx);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
+static int POSSIBLY_UNUSED(IPOW4) (int ix) {
 	int ixx = ix * ix;
 	return (ixx * ixx);
 }
@@ -99,34 +102,34 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
 #define DMIN(a_, b_) fmin(a_, b_)
 #else
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMAX) (double a, double b) {
+static double POSSIBLY_UNUSED(DMAX) (double a, double b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(DMIN) (double a, double b) {
+static double POSSIBLY_UNUSED(DMIN) (double a, double b) {
 	return ((a) < (b) ? (a) : (b));
 }
 #endif
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
+static int POSSIBLY_UNUSED(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IMIN) (int a, int b) {
+static int POSSIBLY_UNUSED(IMIN) (int a, int b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ITRUNCATE) (int x, int low, int high) {
+static int POSSIBLY_UNUSED(ITRUNCATE) (int x, int low, int high) {
 	// #define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 	return IMIN(IMAX(x, low), high);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(TRUNCATE) (double x, double low, double high) {
+static double POSSIBLY_UNUSED(TRUNCATE) (double x, double low, double high) {
 	// #define TRUNCATE(x, low, high) DMIN( DMAX(x, low), high) 
 	return DMIN(DMAX(x, low), high);
 }
@@ -279,9 +282,50 @@ typedef enum {
 		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName);	\
 	}
 
+#if defined(INLA_WITH_DEVEL)
+#define GMRFLib_CACHE_HITMISS_INIT()					\
+	static int hitmiss_ = -1;					\
+	static int *hitmiss_count_[2] = {NULL, NULL};			\
+	if (hitmiss_ < 0) {						\
+		_Pragma("omp critical (Name_cache_hitmiss_init)")	\
+			if (hitmiss_ <  0) {				\
+				int hm = GMRFLib_trace_cache_hitmiss(__GMRFLib_FuncName); \
+				if (hm > 0) {				\
+					hitmiss_count_[0] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
+					hitmiss_count_[1] = Calloc(GMRFLib_CACHE_LEN_NUMA(), int); \
+				}					\
+				hitmiss_ = hm;				\
+			}						\
+	}
+
+#define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_)			\
+	if (hitmiss_ > 0) {						\
+		val_ = GMRFLib_numa_cache_hitmiss_core(ptr_, numa, __FILE__, __LINE__); \
+		if (val_ >= 0) {						\
+			hitmiss_count_[val_][idx_]++;			\
+		}							\
+		double tot = hitmiss_count_[0][idx_] + hitmiss_count_[1][idx_];	\
+		if (hitmiss_ &&	tot > 0.0 && !(((int)tot - 1) % hitmiss_)) { \
+			printf("\t[%2.2d] %s:%1d NUMA-aware cache: idx[%4.4d] numa[%1d] n[%1d %1d] hit[%.1f%%] miss[%.1f%%]\n", \
+			       omp_get_thread_num(), __FILE__, __LINE__, \
+			       idx_, numa, hitmiss_count_[0][idx_], hitmiss_count_[1][idx_], 100.0 * hitmiss_count_[0][idx_] / tot, 100.0 * hitmiss_count_[1][idx_] / tot); \
+		}							\
+	}
+#else
+#define GMRFLib_CACHE_HITMISS_INIT()
+#define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_) val_ = 0
+#endif
+
+
+#if defined(INLA_WITH_DEVEL)
 #define GMRFLib_DEBUG_IF_TRUE() (debug_)
 #define GMRFLib_DEBUG_IF()      (debug_ > 0 && !((debug_count_ - 1) % debug_))
+#else
+#define GMRFLib_DEBUG_IF_TRUE() (0)
+#define GMRFLib_DEBUG_IF() (0)
+#endif
 
+#if defined(INLA_WITH_DEVEL)
 #define GMRFLib_DEBUG(msg_)						\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_); \
@@ -356,6 +400,24 @@ typedef enum {
 	if (trace_ && !((trace_count_ - 1) % trace_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
 	}
+
+#else
+#define GMRFLib_DEBUG(msg_)
+#define GMRFLib_DEBUG_i(msg_, i_)
+#define GMRFLib_DEBUG_ii(msg_, i_, ii_)
+#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_)
+#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_)
+#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_)
+#define GMRFLib_DEBUG_d(msg_, d_)
+#define GMRFLib_DEBUG_dd(msg_, d_, dd_)
+#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_)
+#define GMRFLib_DEBUG_id(msg_, i_, d_)
+#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_)
+#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_)
+#define GMRFLib_DEBUG_idddd(msg_, i_, d_, dd_, ddd_, dddd_)
+#define GMRFLib_TRACE_i(msg_, i_)
+#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_)
+#endif
 
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
@@ -502,26 +564,97 @@ typedef enum {
 #define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[thread_id])) : 1.0)
 #define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[thread_id])) : 1.0)
 
-#define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
-// assume _level() <= 2
-#define GMRFLib_CACHE_LEN() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
-#define GMRFLib_CACHE_SET_ID(__id)					\
+#define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
+#define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS2() * GMRFLib_NUMA_NODES())
+#define GMRFLib_CACHE_SET_IDX_NUMA(__id)				\
 	{								\
-		int level_ = omp_get_level();				\
+		int numa_node_ = GMRFLib_numa_get_node();		\
+		int level1_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
-		if (level_ <= 1) {					\
-			__id =  tnum_;					\
-		} else if (level_ == 2) {				\
-			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
-			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_; \
+		int mt_ = GMRFLib_MAX_THREADS();			\
+		int mt2_ = GMRFLib_MAX_THREADS2();			\
+		int numa_offset_ = numa_node_ * mt2_;			\
+		if (level1_ <= 1) {					\
+			__id =  tnum_ + numa_offset_;			\
+		} else if (level1_ == 2) {				\
+			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
+			assert(tnum2_ >= 0);				\
+			__id = mt_ + tnum2_ * mt_ + tnum_ + numa_offset_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\
 	}
 
+#define GMRFLib_CACHE_LEN_NO_NUMA() GMRFLib_MAX_THREADS2()
+#define GMRFLib_CACHE_SET_IDX_NO_NUMA(__id)				\
+	{								\
+		int level1_ = omp_get_level();				\
+		int tnum1_ = omp_get_thread_num();			\
+		int mt_ = GMRFLib_MAX_THREADS();			\
+		if (level1_ <= 1) {					\
+			__id =  tnum1_;					\
+		} else if (level1_ == 2) {				\
+			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
+			__id = mt_ + tnum1_ + tnum2_ * mt_;		\
+		} else {						\
+			assert(0 == 1);					\
+		}							\
+	}
+
+#define GMRFLib_CACHE_IDX_ADD_NUMA(__id)				\
+	__id += GMRFLib_numa_get_node() * GMRFLib_MAX_THREADS2(); \
+
+#define GMRFLib_ENSURE_NUMA_PTR(ptr_, len_, type_)			\
+	if (GMRFLib_numa_have()) {					\
+		int node_ptr_ = GMRFLib_numa_node_of_ptr(ptr_);		\
+		if (node_ptr_ != numa) {				\
+			size_t llen_ = (len_) * sizeof(type_);		\
+			type_ *ww_ = (type_ *) GMRFLib_numa_alloc_onnode(llen_, numa); \
+			if (!ww_) FIXME("NUMA_ALLOC_ONNODE fail");	\
+			if (ww_) {					\
+				Memset(ww_, 0, llen_);			\
+				if (GMRFLib_numa_node_of_ptr(ww_) != numa) { \
+					FIXME("NUMA_ALLOC_ONNODE gives ptr on wrong node. REVERT BACK"); \
+					GMRFLib_numa_free(ww_, llen_);	\
+					ww_ = NULL;			\
+				}					\
+			}						\
+			if (ww_) {					\
+				Free(ptr_);				\
+				ptr_ = ww_;				\
+			}						\
+		}							\
+	}
+
+
+#define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
+#define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
+
+#define SET_CACHE_IDX()							\
+	int POSSIBLY_UNUSED(cache_idx) = 0;				\
+	int POSSIBLY_UNUSED(cache_idx_numa) = 0;			\
+	int POSSIBLY_UNUSED(numa) = GMRFLib_numa_get_node();		\
+	int mt2_ = GMRFLib_MAX_THREADS2();				\
+	if (lcache_idx && *lcache_idx >= mt2_) {			\
+		/* re-evaluate the numa part of the index */		\
+		cache_idx = cache_idx % mt2_;				\
+		cache_idx_numa = cache_idx + numa * mt2_;		\
+	} else {							\
+		/* In this case, the lcache is (possibly) not numa_ready */ \
+		if (lcache_idx && *lcache_idx >= 0) {			\
+			cache_idx = *lcache_idx;			\
+		} else {						\
+			GMRFLib_CACHE_SET_IDX_NO_NUMA(cache_idx);	\
+			if (lcache_idx) {				\
+				*lcache_idx = cache_idx;		\
+			}						\
+		}							\
+		cache_idx_numa = cache_idx + numa * mt2_;		\
+	}
+
 // this use level1 only. set __id to -1 if we're on level2
 #define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
-#define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
+#define GMRFLib_CACHE_SET_IDX_LEVEL1_ONLY(__id)				\
 	__id = (omp_get_level() <= 1 ? omp_get_thread_num() : -1)
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
@@ -536,10 +669,10 @@ typedef enum {
 #define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
-#define CODE_BLOCK_INIT() \
+#define CODE_BLOCK_INIT()						\
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__) \
-		work__[t_num__] = Calloc(len_work__ * n_work__, double)
+		work__[t_num__] = Malloc(len_work__ * n_work__, double)
 
 #define CODE_BLOCK_INIT_X(work_tp_) \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \

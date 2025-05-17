@@ -52,7 +52,7 @@ static int csr_store_debug = 0;
 
 int GMRFLib_csr_init_store(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	csr_store_debug = GMRFLib_DEBUG_IF_TRUE();
 
 	if (csr_store_use) {
@@ -64,7 +64,7 @@ int GMRFLib_csr_init_store(void)
 			}
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -284,9 +284,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 			printf("\t[%1d] csr_store: store crs 0x%p\n", omp_get_thread_num(), (void *) Ms);
 		}
 #pragma omp critical (Name_488cde57983063f09dc9ddf7c473d77c79ea2929)
-		{
-			map_strvp_set(&csr_store, (char *) graph->sha, (void *) Ms);
-		}
+		map_strvp_set(&csr_store, (char *) graph->sha, (void *) Ms);
 	}
 
 	return (Ms);
@@ -294,7 +292,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 #define M (*csr)
 
@@ -346,13 +344,13 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	for (int i = 0; i < M->s->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
-			GMRFLib_LEAVE_ROUTINE;
+			GMRFLib_LEAVE_FUNCTION;
 			return !GMRFLib_SUCCESS;
 		}
 	}
 
 #undef M
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1152,10 +1150,10 @@ int GMRFLib_pardiso_pstores_do(GMRFLib_pardiso_store_tp **store)
 
 	int retval = -1;
 	int tnum = 0;
-	GMRFLib_CACHE_SET_ID(tnum);
+	GMRFLib_CACHE_SET_IDX(tnum);
 
 	// need critical, as we operate on the global variable S.static_...
-#pragma omp critical
+#pragma omp critical (Name_62af846ab39772752ebc33a713cb5579f0d0904e)
 	{
 		if (store && *store) {
 			if ((*store)->copy_pardiso_ptr) {
@@ -1276,7 +1274,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 		GMRFLib_pardiso_reorder(*nnew, old->graph);
 		return GMRFLib_SUCCESS;
 	}
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	if (copy_pardiso_ptr) {
 #define CP(_what) dup->_what = old->_what
@@ -1343,14 +1341,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 
 	if (S.static_pstores == NULL) {
 #pragma omp critical (Name_046c40f5fd2e202479d5c486dfdf986558c6e681)
-		{
-			if (S.static_pstores == NULL) {
-				if (S.s_verbose) {
-					printf("==> init static_pstores\n");
-				}
-				S.busy = Calloc(PSTORES_NUM, int);
-				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
+		if (S.static_pstores == NULL) {
+			if (S.s_verbose) {
+				printf("==> init static_pstores\n");
 			}
+			S.busy = Calloc(PSTORES_NUM, int);
+			S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
 		}
 	}
 
@@ -1406,6 +1402,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) nnew), ((void *) old), idx);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }

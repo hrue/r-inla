@@ -408,7 +408,7 @@ static int vector_bfgs4_set(void *vstate, gsl_multimin_function_fdf *fdf, const 
 #include "bfgs-param.h"
 	}
 
-	
+
 	return GSL_SUCCESS;
 }
 

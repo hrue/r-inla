@@ -298,10 +298,10 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tSystem memory = [%1zu Gb]\n", (size_t) getTotalSystemMemory() / 1024);
 		printf("\t\tL3 cache = [%1zu Mb]\n", GMRFLib_get_L3_cache());
 		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
-		if (GMRFLib_numa_is_available) {
+		if (GMRFLib_numa_have()) {
 			printf("\t\tNumber of NUMA nodes[%1d]\n", GMRFLib_numa_nodes());
 		} else {
-			printf("\t\tNUMA not available or one NUMA node\n");
+			printf("\t\tNUMA not available\n");
 		}
 		char a = -1;
 		signed char b = -1;
@@ -401,8 +401,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_ARMPL)
 		printf("\t\tCompiled with -DINLA_WITH_ARMPL\n");
 #endif
-#if defined(INLA_WITH_TESTIT)
-		printf("\t\tCompiled with -DINLA_WITH_TESTIT\n");
+#if defined(INLA_WITH_DEVEL)
+		printf("\t\tCompiled with -DINLA_WITH_DEVEL\n");
 #endif
 #if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 		printf("\t\tCompiled with -DINLA_WITH_FRAMEWORK_ACCELERATE\n");
@@ -1170,6 +1170,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	switch (ds->data_id) {
 	case L_SEM:
 		break;
@@ -1179,9 +1182,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
+				if (ds->data_observations.data_gaussian[numa][i].w <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_gaussian[i]);
+							ds->data_observations.data_gaussian[numa][i].w);
 					inla_error_general(msg);
 				}
 			}
@@ -1554,14 +1557,18 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_POISSON:
-	case L_NPOISSON:
 	case L_XPOISSON:
+	case L_NPOISSON:
 	{
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.E);
+
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.data_poisson[numa][i].E < 0.0 || ds->data_observations.data_poisson[numa][i].y < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
-							ds->data_observations.E[i], ds->data_observations.y[i]);
+							ds->data_observations.data_poisson[numa][i].E,
+							ds->data_observations.data_poisson[numa][i].y);
 					inla_error_general(msg);
 				}
 			}
@@ -1992,6 +1999,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				}
 			}
 		}
+
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.nb);
 	}
 		break;
 
@@ -7776,7 +7786,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -8532,10 +8541,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_LOGIT;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_logit;
-	} else if (!strcasecmp(ds->link_model, "TAN")) {
-		ds->link_id = LINK_TAN;
-		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_tan;
 	} else if (!strcasecmp(ds->link_model, "LOGOFFSET")) {
 		ds->link_id = LINK_LOGOFFSET;
 		ds->link_ntheta = 1;
@@ -8572,6 +8577,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_CIRCULAR;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_circular;
+	} else if (!strcasecmp(ds->link_model, "TAN")) {
+		ds->link_id = LINK_TAN;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_tan;
+	} else if (!strcasecmp(ds->link_model, "TAN.PI")) {
+		ds->link_id = LINK_TAN_PI;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_tan_pi;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -8743,6 +8756,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
+	case LINK_TAN_PI:
 	case LINK_CIRCULAR:
 		break;
 
@@ -18982,7 +18996,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = STILES
 	 */
 	char *secname = NULL;
-	int verbose, tile_size, debug;
+	int verbose, tile_size;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
@@ -18997,15 +19011,64 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
-	// for backward compatability (remove later, May 2025)
-	debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	assert(debug == 0);
+	// this assure backward compatibility
+	int debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	if (debug != 0) {
+		printf("\t\tverbose[%1d]\n", debug);
+	}
 
 	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
 	if (mb->verbose) {
-		printf("\t\t[%1d]\n", tile_size);
+		printf("\t\ttile.size[%1d]\n", tile_size);
 	}
 	GMRFLib_stiles_set_ctl(verbose, tile_size);
+
+	return INLA_OK;
+}
+
+int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
+{
+	/*
+	 * parse section = TAUCS
+	 */
+	char *secname = NULL;
+	int block_size;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_taucs...\n");
+	}
+	secname = Strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 0);
+	if (mb->verbose) {
+		printf("\t\tblock.size[%1d]\n", block_size);
+	}
+	GMRFLib_taucs_set_ctl(block_size);
+
+	return INLA_OK;
+}
+
+int inla_parse_numa(inla_tp *mb, dictionary *ini, int sec)
+{
+	/*
+	 * parse section = NUMA
+	 */
+	if (mb->verbose) {
+		printf("\tinla_parse_numa...\n");
+	}
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	int enable = iniparser_getint(ini, inla_string_join(secname, "ENABLE"), 0);
+	if (mb->verbose) {
+		printf("\t\tenable[%1d]\n", enable);
+	}
+	GMRFLib_numa_set_ctl(enable);
 
 	return INLA_OK;
 }

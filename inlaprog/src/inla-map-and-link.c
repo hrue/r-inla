@@ -358,7 +358,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 	delta = alpha / sqrt(1.0 + SQR(alpha));
 	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 	xi = -omega * delta * sqrt(2.0 / M_PI);
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	if (debug) {
 		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
 	}
@@ -1183,15 +1183,33 @@ double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 	 */
 	switch (typ) {
 	case MAP_FORWARD:
-		/*
-		 * extern = func(local) 
-		 */
+		// extern = func(local) 
 		return 2.0 * atan(x);
 	case MAP_BACKWARD:
-		/*
-		 * local = func(extern) 
-		 */
+		// local = func(extern) 
 		return tan(x / 2.0);
+	case MAP_DFORWARD:
+		return 2.0 / (1.0 + SQR(x));
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+	return 0.0;
+}
+
+double map_invtan_pi(double x, map_arg_tp typ, void *UNUSED(param))
+{
+	/*
+	 * y = 2*atan(x)+pi, so that y is 0..2pi
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		// extern = func(local) 
+		return 2.0 * atan(x) + M_PI;
+	case MAP_BACKWARD:
+		// local = func(extern) 
+		return tan((x - M_PI) / 2.0);
 	case MAP_DFORWARD:
 		return 2.0 / (1.0 + SQR(x));
 	case MAP_INCREASING:
@@ -1266,6 +1284,11 @@ double link_tan(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, do
 	return map_invtan(x, typ, param);
 }
 
+double link_tan_pi(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	return map_invtan_pi(x, typ, param);
+}
+
 double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1336,7 +1359,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 		}
 	}
 
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 	if (a != table[id]->a) {
 		int len, llen;
 		double *work = NULL, *x_ = NULL, *y = NULL, p_local;
@@ -1794,12 +1817,13 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 	if (!llcache) {
 #pragma omp critical (Name_2396789afcc20ddee4600d09ab8d0fe4a104e9f3)
 		if (!llcache) {
-			llcache = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+			llcache = tmp;
 		}
 	}
 
 	int cidx = 0;
-	GMRFLib_CACHE_SET_ID(cidx);
+	GMRFLib_CACHE_SET_IDX(cidx);
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_c393bf22256042fb97a79700a66d05c333658625)
 		if (!llcache[cidx]) {

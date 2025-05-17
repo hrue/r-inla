@@ -23,6 +23,8 @@
 \alias{inla.link.invccloglog}
 \alias{inla.link.tan}
 \alias{inla.link.invtan}
+\alias{inla.link.tan.pi}
+\alias{inla.link.invtan.pi}
 \alias{inla.link.identity}
 \alias{inla.link.invidentity}
 \alias{inla.link.inverse}
@@ -77,6 +79,10 @@ inla.link.invccloglog(x, inverse = FALSE)
 inla.link.tan(x, inverse = FALSE)
 
 inla.link.invtan(x, inverse = FALSE)
+
+inla.link.tan.pi(x, inverse = FALSE)
+
+inla.link.invtan.pi(x, inverse = FALSE)
 
 inla.link.identity(x, inverse = FALSE)
 

@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !defined(INLA_WITH_TESTIT)
+#if !defined(INLA_WITH_DEVEL)
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
 {
@@ -19,8 +19,8 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
-int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
-			 void *UNUSED(arg), char **UNUSED(arg_str))
+int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
+			 double *UNUSED(y_cdf), void *UNUSED(arg), char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -41,8 +41,8 @@ int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m,
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit1(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -61,8 +61,8 @@ int loglikelihood_testit1(int UNUSED(thread_id), double *logll, double *x, int m
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit2(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *arg, char **UNUSED(arg_str))
+int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *arg, char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -81,8 +81,8 @@ int loglikelihood_testit2(int UNUSED(thread_id), double *logll, double *x, int m
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit3(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
-			  void *UNUSED(arg), char **UNUSED(arg_str))
+int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *UNUSED(arg), char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -100,11 +100,11 @@ int loglikelihood_testit3(int UNUSED(thread_id), double *logll, double *x, int m
 
 int inla_testit_timer(void)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	int ret = system("sleep 1");
 	if (ret != 0)
 		exit(1);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return 0;
 }
 
@@ -1038,45 +1038,45 @@ int testit(int argc, char **argv)
 		double a, b, c, dd, x0 = 2.0;
 		int stencil;
 		int thread_id = 0;
-		int cache_idx = 0;
+		int cache_idx = -1;			       /* then it will be set at first call */
 
 		stencil = 3;
-		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 5;
-		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 7;
-		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 9;
-		GMRFLib_2order_taylor(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
 		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 
 		printf("\n");
 		stencil = 5;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 7;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 9;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 
 		printf("\n");
 		dd = 0.0;
 		stencil = 3;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 5;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 7;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 		stencil = 9;
-		GMRFLib_2order_approx(thread_id, cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 	}
 		break;
@@ -3051,9 +3051,7 @@ int testit(int argc, char **argv)
 #pragma omp parallel for
 		for (int i = -1; i <= 2057; i++) {
 #pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
-			{
-				printf("%d %.20g\n", i, my_lbell(i));
-			}
+			printf("%d %.20g\n", i, my_lbell(i));
 		}
 	}
 		break;
@@ -3919,7 +3917,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < NP; i++) {
 			x_user[i] = xp[i] * s + post_mean;
 		}
-		loglikelihood_testit1(0, loglik, x_user, NP, 0, NULL, NULL, (void *) &y, NULL);
+		loglikelihood_testit1(0, NULL, loglik, x_user, NP, 0, NULL, NULL, (void *) &y, NULL);
 
 		double tmp[5] = { 0, 0, 0, 0, 0 };
 
@@ -3943,7 +3941,8 @@ int testit(int argc, char **argv)
 		printf("d mu mu   : numeric1 %.16f  true %.16f  err %.16f\n", tmp[1], ee, ee - tmp[1]);
 		printf("d mu mu   : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], ee, ee - mm.coofs[2]);
 
-		GMRFLib_ai_vb_prepare_variance(0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec), NULL);
+		GMRFLib_ai_vb_prepare_variance(0, NULL, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec),
+					       NULL);
 
 		printf("d var     : numeric1 %.16f  true %.16f  err %.16f\n", tmp[2], 0.5 * ee, 0.5 * ee - tmp[2]);
 		printf("d var     : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], 0.5 * ee, 0.5 * ee - mm.coofs[1]);
@@ -4749,11 +4748,11 @@ int testit(int argc, char **argv)
 
 			GMRFLib_intern_flag = 0;
 			double lf_new;
-			loglikelihood_egp(0, &lf_new, &x, 1, 0, NULL, NULL, NULL, NULL);
+			loglikelihood_egp(0, NULL, &lf_new, &x, 1, 0, NULL, NULL, NULL, NULL);
 
 			GMRFLib_intern_flag = 1;
 			double lf;
-			loglikelihood_egp(0, &lf, &x, 1, 0, NULL, NULL, NULL, NULL);
+			loglikelihood_egp(0, NULL, &lf, &x, 1, 0, NULL, NULL, NULL, NULL);
 
 			printf("x lf lf_new %.12g %.12g %.12g\n", x, lf, lf_new);
 		}
@@ -4994,10 +4993,8 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			int c = -1, n = -1;
 			GMRFLib_numa_get(&c, &n);
-#pragma omp critical
-			{
-				printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
-			}
+#pragma omp critical (Name_bbc039e6c082e74f76e14604b3457c14112f1e69)
+			printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
 		}
 #else
 		printf("\n\tNUMA support is not included in this build.\n");
@@ -5386,6 +5383,65 @@ int testit(int argc, char **argv)
 		P(sqrt(err[3] / (double) (N * m)));
 	}
 		break;
+
+	case 171:
+	{
+#define CODE_BLOCK							\
+		for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {	\
+			CODE_BLOCK_INIT();				\
+			double *a = CODE_BLOCK_WORK_PTR(0);		\
+			a[0] = i;					\
+			int cpu = -1, numa = -1, numa_ptr = -1;		\
+			GMRFLib_numa_get(&cpu, &numa);			\
+			numa_ptr = GMRFLib_numa_node_of_ptr(a);		\
+			printf("thread %1d/%1d cpu %1d numa %1d numa_ptr %1d\n", omp_get_thread_num(), omp_get_num_threads(), \
+			       cpu, numa, numa_ptr);			\
+		}
+
+		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
+#undef CODE_BLOCK
+	}
+		break;
+
+	case 172:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		P(GMRFLib_MAX_THREADS());
+		GMRFLib_openmp_implement_strategy_special(n, m);
+		double s = 0.0;
+#pragma omp parallel for num_threads(n) schedule(static) reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			int tnum1 = omp_get_thread_num();
+			int cpu1 = 0;
+			GMRFLib_numa_get(&cpu1, NULL);
+#pragma omp parallel for num_threads(m) schedule(static)
+			for (int j = 0; j < m; j++) {
+				s += i * j + i;
+
+				int id = 0;
+				GMRFLib_CACHE_SET_IDX(id);
+
+				int level = omp_get_level();
+				int tnum2 = omp_get_thread_num();
+				int tnum12 = -1;
+				if (level == 2) {
+					tnum12 = omp_get_ancestor_thread_num(level - 1);
+				}
+
+				int cpu2 = 0;
+				GMRFLib_numa_get(&cpu2, NULL);
+
+				printf("id %1d i %1d j %1d level %1d tnum12 %1d tnum1 %1d tnum2 %1d cpu1 %1d cpu2 %1d\n", id, i, j, level, tnum12,
+				       tnum1, tnum2, cpu1, cpu2);
+			}
+		}
+		P(s);
+	}
+		break;
+
 
 	case 999:
 	{

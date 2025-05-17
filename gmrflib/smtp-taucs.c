@@ -10,6 +10,27 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "metis.h"
 
+// this is defined in sparse-interface.h
+// typedef struct 
+// {
+//      int block_size;
+// }
+//      GMRFLib_taucs_ctl_tp;
+
+static GMRFLib_taucs_ctl_tp taucs_ctl = {
+	.block_size = 0
+};
+
+void GMRFLib_taucs_set_ctl(int block_size)
+{
+	taucs_ctl.block_size = IMAX(0, block_size);
+}
+
+GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void)
+{
+	return &taucs_ctl;
+}
+
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {
@@ -45,7 +66,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
 	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
@@ -170,23 +191,23 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		int Lsize = L->sn_size[sn];				\
 		int Lubl = L->up_blocks_ld[sn];				\
 		int Lup_size = L->sn_up_size[sn];			\
-		double *Lsb = L->sn_blocks[sn];			\
-		double *Lub = L->up_blocks[sn];			\
+		double *Lsb = L->sn_blocks[sn];				\
+		double *Lub = L->up_blocks[sn];				\
 		for (int jp = 0; jp < Lsize; jp++) {			\
 			int j = Lss[jp];				\
 			int next = C->colptr[j];			\
-			double *Lsb_p = Lsb + jp * Lsbl;	\
-			double *Lub_p = Lub + jp * Lubl - Lsize; \
+			double *Lsb_p = Lsb + jp * Lsbl;		\
+			double *Lub_p = Lub + jp * Lubl - Lsize;	\
 			for (int ip = jp; ip < Lsize; ip++) {		\
 				int i = Lss[ip];			\
 				if (i >= j) {				\
-					C->values[next++] = Lsb_p[ip]; \
+					C->values[next++] = Lsb_p[ip];	\
 				}					\
 			}						\
 			for (int ip = Lsize; ip < Lup_size; ip++) {	\
 				int i = Lss[ip];			\
 				if (i >= j) {				\
-					C->values[next++] = Lub_p[ip]; \
+					C->values[next++] = Lub_p[ip];	\
 				}					\
 			}						\
 		}							\
@@ -216,13 +237,13 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		Free(len);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return C;
 }
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp **UNUSED(cache))
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 	// original version, with added unused argument
 
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
@@ -305,7 +326,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_tauc
 	}
 
 	Free(len);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return C;
 }
 
@@ -876,7 +897,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	if (dump_Q < 0) {
 #pragma omp critical (Name_29d46bdd6abbbf3b1bd5098a4281a9dd165fe114)
 		if (dump_Q < 0) {
-			dump_Q = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
+			int tmp = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
+			dump_Q = tmp;
 		}
 	}
 
@@ -1011,21 +1033,22 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_4e65f9abac12404e1d9633582ec69bc86e375bd2)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1062,7 +1085,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
 	if (r) {
-		// this is doing the full reordering, also the one in llt2
+		// this is doing the full reordering, also the one in llt2 that 'skip_reordering' handle
 		skip_reordering = 1;
 		GMRFLib_convert_to_mapped(work, rhs, &g, r);
 	} else {
@@ -1101,22 +1124,24 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_9c6d559b5470558ef474f5640951d6b63990a46d)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
+
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
@@ -1146,21 +1171,22 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_a3dba7d9a29b2dbf1981362774e31bd1c94148ec)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (graph->n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = graph->n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1189,16 +1215,15 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_ae25603ba826d85ac7ffa0b88a9f11d5c2246a83)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
 
 	int idx_new = remap[idx];
@@ -1207,9 +1232,11 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	x[idx_new] = 1.0;
 
 	if (n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	double *y = work;
@@ -1327,7 +1354,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
 	Qinv_L = Malloc(n, map_id *);
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 	for (int i = 0; i < n; i++) {
 		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
 		Qinv_L[i] = Calloc(1, map_id);
@@ -1392,7 +1419,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
 	 */
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 		for (int i = 0; i < n; i++) {
 			int inc = n;
 			int iii = inv_remap[i];
@@ -1675,21 +1702,22 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	static int *wwork_len = NULL;
 	if (!wwork) {
 #pragma omp critical (Name_adb454feb2a421a0a2effd2a5298f308a1c3f192)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
-				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
-			}
+		if (!wwork) {
+			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+			wwork = tmp;
 		}
 	}
 
 	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	if (n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
+		int numa_node = -1;
+		GMRFLib_numa_get(NULL, &numa_node);
+		GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Malloc(wwork_len[cache_idx], double);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
@@ -1828,7 +1856,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {
-	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_FUNCTION;
 
 	const int debug = 0;
 	taucs_crs_matrix *LL = Calloc(1, taucs_crs_matrix);
@@ -1927,7 +1955,7 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	}
 
 	Free(rowidx);
-	GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_FUNCTION;
 	return (LL);
 }
 

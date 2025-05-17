@@ -95,15 +95,14 @@ double inla_pcp_dof_d(double dof)
 	static GMRFLib_spline_tp **sspline = NULL;
 	if (!sspline) {
 #pragma omp critical (Name_f3f0c987d0742e1573765d7104c8e37045f88482)
-		{
-			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
-			}
+		if (!sspline) {
+			GMRFLib_spline_tp **tmp = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+			sspline = tmp;
 		}
 	}
 
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pcp_dof_create_spline();
 	}
@@ -134,15 +133,14 @@ double inla_pcp_dof_dof(double d)
 	static GMRFLib_spline_tp **sspline = NULL;
 	if (!sspline) {
 #pragma omp critical (Name_4f48f0fd388e49349a6f90a044c75f3c09eb4e84)
-		{
-			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
-			}
+		if (!sspline) {
+			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+			sspline = tspline;
 		}
 	}
 
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!sspline[idx]) {
 		double ldof_from = -5.0, ldof_to = 11.0, dof;
@@ -169,15 +167,14 @@ double inla_pc_sn_d(double skew, double *deriv)
 	static GMRFLib_spline_tp **sspline = NULL;
 	if (!sspline) {
 #pragma omp critical (Name_ab280d167e4b0884bba69b326db425701a278efa)
-		{
-			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
-			}
+		if (!sspline) {
+			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+			sspline = tspline;
 		}
 	}
 
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pc_sn_create_spline();
 	}
@@ -198,15 +195,14 @@ double inla_pc_sn_core(int code, double arg)
 
 	if (!sspline_s2a) {
 #pragma omp critical (Name_39fdc1ba34f6bdbf4ea179f308a32b93efb686d7)
-		{
-			if (!sspline_s2a) {
-				sspline_s2a = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
-				sspline_a2s = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
-			}
+		if (!sspline_s2a) {
+			sspline_a2s = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+			sspline_s2a = tspline;
 		}
 	}
 	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!sspline_s2a[idx]) {
 		int n = 1024, i;

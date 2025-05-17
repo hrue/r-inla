@@ -94,12 +94,13 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 	if (!cache) {
 #pragma omp critical (Name_05a52e84fdd11002deeb92bd0344f40bc9bac1a6)
 		if (!cache) {
-			cache = Calloc(GMRFLib_CACHE_LEN(), cache_tp *);
+			cache_tp **tmp = Calloc(GMRFLib_CACHE_LEN(), cache_tp *);
+			cache = tmp;
 		}
 	}
 
 	int id = 0;
-	GMRFLib_CACHE_SET_ID(id);
+	GMRFLib_CACHE_SET_IDX(id);
 
 	xi = DSIGN(xi) * DMAX(XI_MIN, ABS(xi));
 	double *c = NULL, *l_xi = NULL;			       // why keep both? they are the same...
