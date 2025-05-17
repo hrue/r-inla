@@ -10,6 +10,12 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 
 #if defined(__linux__) || defined(INLA_WITH_NUMA)
 #include <sched.h>
+#if defined(GMRFLib_GETCPU_FIX)
+int getcpu(unsigned *cpu, unsigned *node, void *tcache);
+#define GETCPU(a_, b_) getcpu(a_, b_, NULL)
+#else
+#define GETCPU(a_, b_) getcpu(a_, b_)
+#endif
 #endif
 
 #if defined(INLA_WITH_NUMA)
@@ -59,10 +65,10 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 	unsigned int unode;
 	if (cpu) {
 		unsigned int ucpu;
-		getcpu(&ucpu, &unode);
+		GETCPU(&ucpu, &unode);
 		*cpu = (int) ucpu;
 	} else {
-		getcpu(NULL, &unode);
+		GETCPU(NULL, &unode);
 	}
 		
 	if (numa_node) {
