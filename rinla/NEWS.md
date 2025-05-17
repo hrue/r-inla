@@ -1,4 +1,4 @@
-# INLA 25.05.17
+# INLA 25.05.18
 * New link function added for circular likelihoods: `tan.pi`
 * Code development for NUMA aware cache merged (default `off`)
 * General code improvement
