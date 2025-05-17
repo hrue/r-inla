@@ -1,6 +1,8 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+// >>>>>>>> LINUX ONLY <<<<<<<<
+
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
 static int POSSIBLY_UNUSED(NUMA_have) = -1;		       // we have (=1) NUMA support or not (=0)
 static int POSSIBLY_UNUSED(NUMA_nodes) = -1;		       // number of NUMA nodes. =1 if no NUMA */
@@ -8,17 +10,31 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #include "my-numa.h"
 
-#if defined(__linux__) || defined(INLA_WITH_NUMA)
-#include <sched.h>
-#if defined(GMRFLib_GETCPU_FIX)
-int getcpu(unsigned *cpu, unsigned *node, void *tcache);
-#define GETCPU(a_, b_) getcpu(a_, b_, NULL)
-#else
-#define GETCPU(a_, b_) getcpu(a_, b_)
-#endif
+#if defined(INLA_WITH_NUMA)
+
+#if !defined(__linux__)
+#error NUMA is for Linux only, please compile without 'INLA_WITH_NUMA'
 #endif
 
-#if defined(INLA_WITH_NUMA)
+#include <sched.h>
+
+// older linux (Rocky8 and older)
+#if defined(GMRFLib_GETCPU_FIX)
+int getcpu(unsigned int *cpu, unsigned int *node)
+{
+	unsigned int ucpu = sched_getcpu();
+	unsigned int unode = (unsigned int) numa_node_of_cpu((int) ucpu);
+	if (cpu) {
+		*cpu = ucpu;
+	}
+	if (node) {
+		*node = unode;
+	}
+	return 0;
+}
+#endif
+
+
 
 #if !defined(INLA_WITH_HWLOC)
 #define INLA_WITH_HWLOC
@@ -65,10 +81,10 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 	unsigned int unode;
 	if (cpu) {
 		unsigned int ucpu;
-		GETCPU(&ucpu, &unode);
+		getcpu(&ucpu, &unode);
 		*cpu = (int) ucpu;
 	} else {
-		GETCPU(NULL, &unode);
+		getcpu(NULL, &unode);
 	}
 		
 	if (numa_node) {
@@ -175,11 +191,7 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
-#if defined(__linux__)
 		*cpu = sched_getcpu();
-#else
-		*cpu = 0;
-#endif
 	}
 	if (numa_node) {
 		*numa_node = 0;
