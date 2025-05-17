@@ -10,13 +10,15 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #include "my-numa.h"
 
-#if defined(INLA_WITH_NUMA)
-
-#if !defined(__linux__)
-#error NUMA is for Linux only, please compile without 'INLA_WITH_NUMA'
+#if defined(INLA_WITH_NUMA) && !defined(__linux__)
+#undef INLA_WITH_NUMA
 #endif
 
+#if defined(INLA_WITH_NUMA)
+
 #include <sched.h>
+#include <numa.h>
+#include <numaif.h>
 
 // older linux (Rocky8 and older)
 #if defined(GMRFLib_GETCPU_FIX)
@@ -34,14 +36,9 @@ int getcpu(unsigned int *cpu, unsigned int *node)
 }
 #endif
 
-
-
 #if !defined(INLA_WITH_HWLOC)
 #define INLA_WITH_HWLOC
 #endif
-
-#include <numa.h>
-#include <numaif.h>
 
 void GMRFLib_numa_init(void)
 {
