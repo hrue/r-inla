@@ -9,10 +9,13 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 #include "my-numa.h"
 
 #if defined(__linux__) || defined(INLA_WITH_NUMA)
-#if __has_include(<linux/getcpu.h>)
-#include <linux/getcpu.h>
-#endif
 #include <sched.h>
+#if defined(GMRFLib_GETCPU_FIX)
+int getcpu(unsigned *cpu, unsigned *node, void *tcache);
+#define GETCPU(a_, b_) getcpu(a_, b_, NULL)
+#else
+#define GETCPU(a_, b_) getcpu(a_, b_)
+#endif
 #endif
 
 #if defined(INLA_WITH_NUMA)
