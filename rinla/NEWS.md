@@ -1,3 +1,9 @@
+# INLA 25.05.17
+* New link function added for circular likelihoods: `tan.pi`
+* Code development for NUMA aware cache merged (default `off`)
+* General code improvement
+* New overall CPU-time summary
+
 # INLA 25.05.07
 * Revise bfgs parameters into two steps corresponding to part I and II
   in the optimization
