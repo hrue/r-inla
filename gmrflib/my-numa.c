@@ -14,9 +14,12 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 #undef INLA_WITH_NUMA
 #endif
 
+#if defined(__linux__)
+#include <sched.h>
+#endif
+
 #if defined(INLA_WITH_NUMA)
 
-#include <sched.h>
 #include <numa.h>
 #include <numaif.h>
 
@@ -188,7 +191,11 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
+#if defined(__linux__)
 		*cpu = sched_getcpu();
+#else
+		*cpu = 0;
+#endif		
 	}
 	if (numa_node) {
 		*numa_node = 0;
