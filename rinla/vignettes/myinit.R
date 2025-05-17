@@ -1,4 +1,4 @@
-inla.setOption(num.threads = "4:1")
+inla.setOption(num.threads = "1:1")
 if (FALSE) {
     INLA:::inla.my.update()
     inla.setOption(inla.call="inla.mkl.work")
