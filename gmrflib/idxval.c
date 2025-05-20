@@ -85,9 +85,14 @@ int GMRFLib_val_create(GMRFLib_val_tp **hold)
 
 int GMRFLib_ptr_create(GMRFLib_ptr_tp **hold)
 {
+	return GMRFLib_ptr_create_x(hold, IDX_ALLOC_INITIAL);
+}
+
+int GMRFLib_ptr_create_x(GMRFLib_ptr_tp **hold, int len)
+{
 	*hold = Calloc(1, GMRFLib_ptr_tp);
-	(*hold)->ptr = Malloc(IDX_ALLOC_INITIAL, void *);
-	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
+	(*hold)->ptr = Malloc(len, void *);
+	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1383,7 +1388,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1505,7 +1510,7 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp **hold, int idx, double val)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_split_free(GMRFLib_ptr_tp *ptr) 
+int GMRFLib_idx_split_free(GMRFLib_ptr_tp *ptr)
 {
 	if (!ptr) {
 		return GMRFLib_SUCCESS;
@@ -1517,7 +1522,7 @@ int GMRFLib_idx_split_free(GMRFLib_ptr_tp *ptr)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_ptr_tp * GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size) 
+GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 {
 	// split IDX in SEL, into groups of SIZE.
 	// return a _ptr_tp of GMRFLib_idx_tp's, which can be free'd with _idx_split_free
@@ -1529,14 +1534,13 @@ GMRFLib_ptr_tp * GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	div_t d = div(sel->n, size);
 	int N = d.quot * size;
 	int NN = N + (d.rem > 0 ? 1 : 0);
-	GMRFLib_ptr_tp * ptr = NULL;
+	GMRFLib_ptr_tp *ptr = NULL;
+	GMRFLib_ptr_create_x(&ptr, NN);
 
-	for(int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++) {
 		GMRFLib_idx_tp *idx = NULL;
 		GMRFLib_idx_create_x(&idx, size);
-		for(int j = 0; j < size; j++) {
-			GMRFLib_idx_nadd(&idx, size, sel->idx + i * size);
-		}
+		GMRFLib_idx_nadd(&idx, size, sel->idx + i * size);
 		GMRFLib_ptr_add(&ptr, (void *) idx);
 	}
 	if (d.rem > 0) {

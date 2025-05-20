@@ -157,6 +157,7 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
 int GMRFLib_ptr_add(GMRFLib_ptr_tp ** hold, void *ptr);
 int GMRFLib_ptr_create(GMRFLib_ptr_tp ** hold);
+int GMRFLib_ptr_create_x(GMRFLib_ptr_tp **hold, int len);
 int GMRFLib_ptr_free(GMRFLib_ptr_tp * hold);
 int GMRFLib_ptr_nprune(GMRFLib_ptr_tp ** a, int n);
 int GMRFLib_ptr_prune(GMRFLib_ptr_tp * hold);
