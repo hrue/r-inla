@@ -51,7 +51,7 @@ typedef struct {
 	int n;
 	int n_alloc;
 	void **ptr;
-} GMRFLib_idxptr_tp;
+} GMRFLib_ptr_tp;
 
 typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
@@ -155,12 +155,12 @@ int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
-int GMRFLib_idxptr_add(GMRFLib_idxptr_tp ** hold, void *ptr);
-int GMRFLib_idxptr_create(GMRFLib_idxptr_tp ** hold);
-int GMRFLib_idxptr_free(GMRFLib_idxptr_tp * hold);
-int GMRFLib_idxptr_nprune(GMRFLib_idxptr_tp ** a, int n);
-int GMRFLib_idxptr_prune(GMRFLib_idxptr_tp * hold);
-int GMRFLib_idxptr_printf(FILE * fp, GMRFLib_idxptr_tp * hold, const char *msg);
+int GMRFLib_ptr_add(GMRFLib_ptr_tp ** hold, void *ptr);
+int GMRFLib_ptr_create(GMRFLib_ptr_tp ** hold);
+int GMRFLib_ptr_free(GMRFLib_ptr_tp * hold);
+int GMRFLib_ptr_nprune(GMRFLib_ptr_tp ** a, int n);
+int GMRFLib_ptr_prune(GMRFLib_ptr_tp * hold);
+int GMRFLib_ptr_printf(FILE * fp, GMRFLib_ptr_tp * hold, const char *msg);
 int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s);
 int GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
 int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match);

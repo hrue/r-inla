@@ -3106,7 +3106,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, spde->graph);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3222,7 +3222,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, spde2->graph);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3337,7 +3337,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, spde3->graph);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3584,7 +3584,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3693,7 +3693,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3785,7 +3785,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3882,7 +3882,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -3991,7 +3991,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -4249,7 +4249,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				if (setup) {
 					GMRFLib_graph_tp *gtmp = NULL;
 					GMRFLib_graph_duplicate(&gtmp, def->graph);
-					GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+					GMRFLib_ptr_add(&(setup->graphs), gtmp);
 					if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 						GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 					}
@@ -4435,7 +4435,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				if (setup) {
 					GMRFLib_graph_tp *gtmp = NULL;
 					GMRFLib_graph_duplicate(&gtmp, def->graph);
-					GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+					GMRFLib_ptr_add(&(setup->graphs), gtmp);
 					if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 						GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 					}
@@ -5128,7 +5128,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -5309,7 +5309,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -5424,7 +5424,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (setup) {
 				GMRFLib_graph_tp *gtmp = NULL;
 				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
-				GMRFLib_idxptr_add(&(setup->graphs), gtmp);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
 				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
 					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
 				}
@@ -7892,9 +7892,9 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 {
 	// easier to have this function here, although its more natural to call it as GMRFLib_stiles_get_graphs(mb)
 	inla_tp *mb = (inla_tp *) mbv;
-	GMRFLib_idxptr_tp *ptrs = NULL;
+	GMRFLib_ptr_tp *ptrs = NULL;
 	GMRFLib_idx_tp *iptrs = NULL;
-	GMRFLib_idxptr_add(&ptrs, mb->preopt->preopt_graph);
+	GMRFLib_ptr_add(&ptrs, mb->preopt->preopt_graph);
 	GMRFLib_idx_add(&iptrs, 1);
 	if (mb->preopt->latent_constr && mb->preopt->latent_constr->nc) {
 		GMRFLib_idx_add(&iptrs, mb->preopt->latent_constr->nc);

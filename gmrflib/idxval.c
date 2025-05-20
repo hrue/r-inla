@@ -1,3 +1,4 @@
+#include <time.h>
 #include <assert.h>
 #include <float.h>
 #include <signal.h>
@@ -82,9 +83,9 @@ int GMRFLib_val_create(GMRFLib_val_tp **hold)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_create(GMRFLib_idxptr_tp **hold)
+int GMRFLib_ptr_create(GMRFLib_ptr_tp **hold)
 {
-	*hold = Calloc(1, GMRFLib_idxptr_tp);
+	*hold = Calloc(1, GMRFLib_ptr_tp);
 	(*hold)->ptr = Malloc(IDX_ALLOC_INITIAL, void *);
 	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
@@ -201,12 +202,12 @@ GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 	}
 }
 
-GMRFLib_idxptr_tp **GMRFLib_idxptr_ncreate(int n)
+GMRFLib_ptr_tp **GMRFLib_ptr_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_idxptr_tp **a = Calloc(n, GMRFLib_idxptr_tp *);
+		GMRFLib_ptr_tp **a = Calloc(n, GMRFLib_ptr_tp *);
 		for (int i = 0; i < n; i++) {
-			GMRFLib_idxptr_create(&(a[i]));
+			GMRFLib_ptr_create(&(a[i]));
 		}
 		return a;
 	} else {
@@ -291,7 +292,7 @@ int GMRFLib_val_printf(FILE *fp, GMRFLib_val_tp *hold, const char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_printf(FILE *fp, GMRFLib_idxptr_tp *hold, const char *msg)
+int GMRFLib_ptr_printf(FILE *fp, GMRFLib_ptr_tp *hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -434,11 +435,11 @@ int GMRFLib_val_nprune(GMRFLib_val_tp **a, int n)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_nprune(GMRFLib_idxptr_tp **a, int n)
+int GMRFLib_ptr_nprune(GMRFLib_ptr_tp **a, int n)
 {
 	if (a) {
 		for (int i = 0; i < n; i++) {
-			GMRFLib_idxptr_prune(a[i]);
+			GMRFLib_ptr_prune(a[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -503,7 +504,7 @@ int GMRFLib_val_prune(GMRFLib_val_tp *hold)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_prune(GMRFLib_idxptr_tp *hold)
+int GMRFLib_ptr_prune(GMRFLib_ptr_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
@@ -1209,7 +1210,7 @@ int GMRFLib_val_free(GMRFLib_val_tp *hold)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_free(GMRFLib_idxptr_tp *hold)
+int GMRFLib_ptr_free(GMRFLib_ptr_tp *hold)
 {
 	if (hold) {
 		Free(hold->ptr);
@@ -1426,10 +1427,10 @@ int GMRFLib_val_add(GMRFLib_val_tp **hold, double val)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxptr_add(GMRFLib_idxptr_tp **hold, void *ptr)
+int GMRFLib_ptr_add(GMRFLib_ptr_tp **hold, void *ptr)
 {
 	if (*hold == NULL) {
-		GMRFLib_idxptr_create(hold);
+		GMRFLib_ptr_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
@@ -1502,4 +1503,49 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp **hold, int idx, double val)
 	(*hold)->n++;
 
 	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_split_free(GMRFLib_ptr_tp *ptr) 
+{
+	if (!ptr) {
+		return GMRFLib_SUCCESS;
+	}
+	for (int i = 0; i < ptr->n; i++) {
+		GMRFLib_idx_free((GMRFLib_idx_tp *) (ptr->ptr[i]));
+	}
+	GMRFLib_ptr_free(ptr);
+	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_ptr_tp * GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size) 
+{
+	// split IDX in SEL, into groups of SIZE.
+	// return a _ptr_tp of GMRFLib_idx_tp's, which can be free'd with _idx_split_free
+
+	if (size <= 0 || sel->n <= 0) {
+		return NULL;
+	}
+
+	div_t d = div(sel->n, size);
+	int N = d.quot * size;
+	int NN = N + (d.rem > 0 ? 1 : 0);
+	GMRFLib_ptr_tp * ptr = NULL;
+
+	for(int i = 0; i < N; i++) {
+		GMRFLib_idx_tp *idx = NULL;
+		GMRFLib_idx_create_x(&idx, size);
+		for(int j = 0; j < size; j++) {
+			GMRFLib_idx_nadd(&idx, size, sel->idx + i * size);
+		}
+		GMRFLib_ptr_add(&ptr, (void *) idx);
+	}
+	if (d.rem > 0) {
+		GMRFLib_idx_tp *idx = NULL;
+		GMRFLib_idx_create_x(&idx, d.rem);
+		GMRFLib_idx_nadd(&idx, d.rem, sel->idx + N * size);
+		GMRFLib_ptr_add(&ptr, (void *) idx);
+	}
+	assert(ptr->n == NN);
+
+	return ptr;
 }
