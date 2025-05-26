@@ -1,3 +1,6 @@
+# INLA 25.05.26
+* Fixed a regression in a special case (free-issue)
+
 # INLA 25.05.18
 * New link function added for circular likelihoods: `tan.pi`
 * Code development for NUMA aware cache merged (default `off`)
