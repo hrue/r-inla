@@ -285,6 +285,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 
 	/*
+	 * type = NUMA
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "NUMA")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[NUMA]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_numa(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * ...then parse the sections in this order: RLIB, EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
 	 * 
 	 * it is easier to do it like this, instead of insisting the user to write the section in a spesific order.
@@ -522,23 +539,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 			}
 			sec_read[sec] = 1;
 			inla_parse_taucs(mb, ini, sec);
-		}
-		Free(secname);
-		Free(sectype);
-	}
-
-	/*
-	 * type = NUMA
-	 */
-	for (sec = 0; sec < nsec; sec++) {
-		secname = Strdup(iniparser_getsecname(ini, sec));
-		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
-		if (!strcmp(sectype, "NUMA")) {
-			if (mb->verbose) {
-				printf("\tparse section=[%1d] name=[%s] type=[NUMA]\n", sec, iniparser_getsecname(ini, sec));
-			}
-			sec_read[sec] = 1;
-			inla_parse_numa(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
