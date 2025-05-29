@@ -1,3 +1,7 @@
+# INLA (development version)
+* Added support for `fmesher::fm_collect()` meshes to
+  `inla.spde2.pcmatern()` and `inla.spde2.matern()`.
+
 # INLA 25.05.26
 * Fixed a regression in a special case (free-issue)
 
