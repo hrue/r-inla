@@ -5322,8 +5322,8 @@ int testit(int argc, char **argv)
 
 		smtp = GMRFLib_smtp = GMRFLib_SMTP_STILES;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
-		GMRFLib_idxptr_tp *ptr = NULL;
-		GMRFLib_idxptr_add(&ptr, graph);
+		GMRFLib_ptr_tp *ptr = NULL;
+		GMRFLib_ptr_add(&ptr, graph);
 		GMRFLib_idx_tp *iptr = NULL;
 		GMRFLib_idx_add(&iptr, m);
 		GMRFLib_stiles_setup_tp setup = { ptr, iptr };

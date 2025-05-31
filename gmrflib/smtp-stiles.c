@@ -12,11 +12,11 @@
 
 static GMRFLib_stiles_ctl_tp *ctl = NULL;
 static GMRFLib_stiles_store_tp *store = NULL;
-static GMRFLib_idxptr_tp *free_ptrs = NULL;
+static GMRFLib_ptr_tp *free_ptrs = NULL;
 
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
-	GMRFLib_idxptr_tp *graphs = setup->graphs;
+	GMRFLib_ptr_tp *graphs = setup->graphs;
 	GMRFLib_idx_tp *nrhss = setup->nrhss;
 
 	GMRFLib_STOP_IF_NOT_SERIAL();
@@ -46,7 +46,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	for (int i = 0; i < ng; i++) {
 		GMRFLib_graph_tp *g = NULL;
 		GMRFLib_graph_duplicate(&g, (GMRFLib_graph_tp *) (graphs->ptr[i]));
-		GMRFLib_idxptr_add(&(store->graphs), g);
+		GMRFLib_ptr_add(&(store->graphs), g);
 		store->n[i] = g->n;
 		store->nnz[i] = g->nnz;
 	}
@@ -118,8 +118,8 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		// since sTiles wants the lower triangular matrix, we just swap 'idx_i' and 'idx_j'
 
 		sTiles_assign_graph(ig, store->obj, g->n, nz, idx_j, idx_i);	/* oops, yes we swap */
-		GMRFLib_idxptr_add(&free_ptrs, idx_i);
-		GMRFLib_idxptr_add(&free_ptrs, idx_j);
+		GMRFLib_ptr_add(&free_ptrs, idx_i);
+		GMRFLib_ptr_add(&free_ptrs, idx_j);
 
 		if (0) {
 			printf("\nUpper triangular format\n");
@@ -194,10 +194,10 @@ void GMRFLib_stiles_quit(void)
 		for (int i = 0; i < free_ptrs->n; i++) {
 			Free(free_ptrs->ptr[i]);
 		}
-		GMRFLib_idxptr_free(free_ptrs);
+		GMRFLib_ptr_free(free_ptrs);
 		free_ptrs = NULL;
 	}
-	GMRFLib_idxptr_free(store->graphs);
+	GMRFLib_ptr_free(store->graphs);
 
 	if (store->perm) {
 		for (int i = 0; i < store->n_in_group; i++) {
@@ -373,7 +373,7 @@ GMRFLib_stiles_setup_tp *GMRFLib_stiles_get_setup(void *mb)
 void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp *setup)
 {
 	if (setup) {
-		GMRFLib_idxptr_free(setup->graphs);
+		GMRFLib_ptr_free(setup->graphs);
 		GMRFLib_idx_free(setup->nrhss);
 		Free(setup);
 	}
@@ -664,11 +664,11 @@ int GMRFLib_stiles_test(void)
 	GMRFLib_graph_mk_linear(&(g[2]), n[2], 1, 0);
 	GMRFLib_graph_mk_linear(&(g[3]), n[3], 1, 0);
 
-	GMRFLib_idxptr_tp *graphs = NULL;
-	GMRFLib_idxptr_add(&graphs, g[0]);
-	GMRFLib_idxptr_add(&graphs, g[1]);
-	GMRFLib_idxptr_add(&graphs, g[2]);
-	GMRFLib_idxptr_add(&graphs, g[3]);
+	GMRFLib_ptr_tp *graphs = NULL;
+	GMRFLib_ptr_add(&graphs, g[0]);
+	GMRFLib_ptr_add(&graphs, g[1]);
+	GMRFLib_ptr_add(&graphs, g[2]);
+	GMRFLib_ptr_add(&graphs, g[3]);
 
 	GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 	GMRFLib_stiles_setup(&setup);
@@ -795,8 +795,8 @@ int GMRFLib_stiles_test2(void)
 
 	int thread_id = 0;
 
-	GMRFLib_idxptr_tp *graphs = NULL;
-	GMRFLib_idxptr_add(&graphs, graph);
+	GMRFLib_ptr_tp *graphs = NULL;
+	GMRFLib_ptr_add(&graphs, graph);
 	GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 	GMRFLib_stiles_setup(&setup);
 
@@ -893,10 +893,10 @@ int GMRFLib_stiles_test3(void)
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_graph_mk_linear(&graph, n, n - 1, 1);
 
-	GMRFLib_idxptr_tp *graphs = NULL;
+	GMRFLib_ptr_tp *graphs = NULL;
 	GMRFLib_idx_tp *rh = NULL;
 
-	GMRFLib_idxptr_add(&graphs, graph);
+	GMRFLib_ptr_add(&graphs, graph);
 	GMRFLib_idx_add(&rh, mm);
 	GMRFLib_idx_add(&rh, m);
 	GMRFLib_stiles_setup_tp setup = { graphs, rh };

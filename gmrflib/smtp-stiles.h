@@ -46,13 +46,13 @@ typedef struct {
 	int *rhss;
 	bool **Qinv_done;
 	bool **bind_done;
-	GMRFLib_idxptr_tp *graphs;
+	GMRFLib_ptr_tp *graphs;
 	sTiles_object *obj;
 } GMRFLib_stiles_store_tp;
 
 
 typedef struct {
-	GMRFLib_idxptr_tp *graphs;
+	GMRFLib_ptr_tp *graphs;
 	GMRFLib_idx_tp *nrhss;
 } GMRFLib_stiles_setup_tp;
 

@@ -2493,7 +2493,7 @@ int UTIL_countLogicalCores(void);
 int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 
-GMRFLib_idxptr_tp *inla_stiles_get_graphs(void *mbv);
+GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
 /* 
 ***
