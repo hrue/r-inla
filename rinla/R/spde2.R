@@ -652,8 +652,8 @@ param2.matern.orig <- function(mesh,
 #' @param \dots Additional parameters for special uses.
 #' @return An `inla.spde2` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso [inla.mesh.2d()], [inla.mesh.create()],
-#' [inla.mesh.1d()], [inla.mesh.basis()],
+#' @seealso [fmesher::fm_mesh_2d_inla()], [fmesher::fm_rcdt_2d_inla()],
+#' [fmesher::fm_mesh_1d()], [fmesher::fm_basis()],
 #' [inla.spde2.pcmatern()], [inla.spde2.generic()]
 #' @examples
 #'
@@ -664,7 +664,7 @@ param2.matern.orig <- function(mesh,
 #' idx.y <- rep(1:n, 2)
 #' y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 #'
-#' mesh <- inla.mesh.create(loc, refine = list(max.edge = 0.05))
+#' mesh <- fm_rcdt_2d_inla(loc, refine = list(max.edge = 0.05))
 #' spde <- inla.spde2.matern(mesh)
 #' data <- list(y = y, field = mesh$idx$loc[idx.y])
 #' formula <- y ~ -1 + f(field, model = spde)
@@ -1064,8 +1064,8 @@ inla.spde2.matern <- function(mesh,
 #' `sigma0` is used as a fixed range value.
 #' @return An `inla.spde2` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso [inla.mesh.2d()], [inla.mesh.create()],
-#' [inla.mesh.1d()], [inla.mesh.basis()],
+#' @seealso [fmesher::fm_mesh_2d_inla()], [fmesher::fm_rcdt_2d_inla()],
+#' [fmesher::fm_mesh_1d()], [fmesher::fm_basis()],
 #' [inla.spde2.matern()], [inla.spde2.generic()]
 #' @references Fuglstad, G.-A., Simpson, D., Lindgren, F., and Rue, H. (2016)
 #' Constructing Priors that Penalize the Complexity of Gaussian Random Fields.
@@ -1084,7 +1084,7 @@ inla.spde2.matern <- function(mesh,
 #' idx.y <- rep(1:n, 2)
 #' y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 #'
-#' mesh <- inla.mesh.2d(loc, max.edge = 0.05, cutoff = 0.01)
+#' mesh <- fm_mesh_2d_inla(loc, max.edge = 0.05, cutoff = 0.01)
 #' spde <- inla.spde2.pcmatern(mesh,
 #'     prior.range = c(0.01, 0.1), prior.sigma = c(100, 0.1)
 #' )
@@ -1149,7 +1149,7 @@ inla.spde2.matern <- function(mesh,
 #' y <- u + sigN * rnorm(nObs)
 #'
 #' ## Create the mesh and spde object
-#' mesh <- inla.mesh.2d(loc,
+#' mesh <- fm_mesh_2d_inla(loc,
 #'     max.edge = 0.05,
 #'     cutoff = 0.01
 #' )
@@ -1159,10 +1159,7 @@ inla.spde2.matern <- function(mesh,
 #' )
 #'
 #' ## Create projection matrix for observations
-#' A <- inla.spde.make.A(
-#'     mesh = mesh,
-#'     loc = loc
-#' )
+#' A <- fm_basis(mesh = mesh, loc = loc)
 #'
 #' ## Run model without any covariates
 #' idx <- 1:spde$n.spde

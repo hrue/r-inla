@@ -150,7 +150,7 @@ loc <- matrix(runif(n * 2), n, 2)
 idx.y <- rep(1:n, 2)
 y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 
-mesh <- inla.mesh.create(loc, refine = list(max.edge = 0.05))
+mesh <- fm_rcdt_2d_inla(loc, refine = list(max.edge = 0.05))
 spde <- inla.spde2.matern(mesh)
 data <- list(y = y, field = mesh$idx$loc[idx.y])
 formula <- y ~ -1 + f(field, model = spde)
@@ -180,8 +180,8 @@ plot(result.field$marginals.range.nominal[[1]])
 
 }
 \seealso{
-\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},
-\code{\link[=inla.mesh.1d]{inla.mesh.1d()}}, \code{\link[=inla.mesh.basis]{inla.mesh.basis()}},
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}},
+\code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}},
 \code{\link[=inla.spde2.pcmatern]{inla.spde2.pcmatern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }
 \author{
