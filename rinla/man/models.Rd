@@ -10729,11 +10729,11 @@ Number of hyperparmeters is 0.
 }
 Number of hyperparmeters is 0.
 }
-\item{Model 'tan.pi'.}{
+\item{Model 'tanpi'.}{
 \describe{
 \item{Properties:}{
 \describe{
-\item{doc = }{\verb{The tan.pi-link}}
+\item{doc = }{\verb{The tanpi-link}}
 \item{pdf = }{\verb{circular}}
 }
 }

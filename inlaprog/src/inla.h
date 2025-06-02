@@ -396,7 +396,7 @@ typedef enum {
 	LINK_CGEVIT,
 	LINK_QEXPPOWER,
 	LINK_CIRCULAR,
-	LINK_TAN_PI
+	LINK_TANPI
 } inla_component_tp;
 
 typedef enum {

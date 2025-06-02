@@ -13,7 +13,7 @@
                     doc = "Alternative interface to an fixed effect",
                     hyper = list(),
                     constr = FALSE,
-                    nrow.ncol = FALSE,
+                    nrow.ncol = FALSE, 
                     augmented = FALSE,
                     aug.factor = 1L,
                     aug.constr = NULL,
@@ -8907,8 +8907,8 @@
                     pdf = "circular"
                 ),
 
-                tan.pi = list(
-                    doc = "The tan.pi-link",
+                tanpi = list(
+                    doc = "The tanpi-link",
                     hyper = list(), 
                     pdf = "circular"
                 ),
