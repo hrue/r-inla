@@ -1,9 +1,7 @@
-# INLA (development version)
+# INLA 25.06.07
 * Added support for `fmesher::fm_collect()` meshes to
   `inla.spde2.pcmatern()` and `inla.spde2.matern()`.
-
-# INLA 25.05.26
-* Fixed a regression in a special case (free-issue)
+* Some name-changes in link 'gevit'
 
 # INLA 25.05.18
 * New link function added for circular likelihoods: `tan.pi`
