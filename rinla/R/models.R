@@ -9046,8 +9046,8 @@
                     hyper = list(
                         theta1 = list(
                             hyperid = 49033,
-                            name = "tail",
-                            short.name = "xi",
+                            name = "gev tail",
+                            short.name = "tail",
                             initial = 0.1,
                             fixed = FALSE,
                             prior = "pc.egptail",
@@ -9057,7 +9057,7 @@
                         ),
                         theta2 = list(
                             hyperid = 49034,
-                            name = "intercept",
+                            name = "gev p0",
                             short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,
@@ -9075,8 +9075,8 @@
                     hyper = list(
                         theta1 = list(
                             hyperid = 49035,
-                            name = "tail",
-                            short.name = "xi",
+                            name = "gev tail",
+                            short.name = "tail",
                             initial = -3,
                             fixed = FALSE,
                             prior = "pc.gevtail",
@@ -9086,7 +9086,7 @@
                         ),
                         theta2 = list(
                             hyperid = 49036,
-                            name = "intercept",
+                            name = "gev p0",
                             short.name = "p0",
                             initial = 0.0,
                             fixed = FALSE,

@@ -9216,10 +9216,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
 			if (ds->link_id == LINK_GEVIT) {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("gev intercept_intern", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("gev p0_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("gev p0", mb->ds);
 			} else {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev intercept_intern", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev p0_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("cgev p0", mb->ds);
 			}
 
