@@ -276,7 +276,7 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
                                freq.max = NULL) {
     inla.require("gsl", stop.on.error = TRUE)
     y <- cos(abs(x))
-    
+
     # TODO: use the error bounds to pick a freq.max; ok since gsl Legendre
     # polynomial evaluations are stable to high order
     if (is.null(freq.max)) {
@@ -293,13 +293,13 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
         covariance <- (covariance + (2 * k + 1) * spec[k + 1] *
                            gsl::legendre_Pl(l = k, x = y))
     }
-    
+
     if (norm.corr) {
         noise.variance <- 1 / covariance[1]
     } else {
         noise.variance <- 1
     }
-    
+
     return(covariance * noise.variance)
 }
 
@@ -320,10 +320,10 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
 #     #             TRUE ~ inla.matern.cov.s2(1,1,x,freq.max=40)))
 #     # ) +
 #     #   geom_line(aes(x,Cov,col=Type))
-#     
+#
 #     inla.require("orthopolynom", stop.on.error = TRUE)
 #     y <- cos(abs(x))
-#     
+#
 #     # TODO: use the error bounds to pick a freq.max; ok since gsl Legendre
 #     # polynomial evaluations are stable to high order
 #     if (is.null(freq.max)) {
@@ -340,13 +340,13 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
 #         covariance <- (covariance + (2 * k + 1) * spec[k + 1] *
 #                            orthopolynom::polynomial.values(leg[k + 1], y)[[1]])
 #     }
-#     
+#
 #     if (norm.corr) {
 #         noise.variance <- 1 / covariance[1]
 #     } else {
 #         noise.variance <- 1
 #     }
-#     
+#
 #     return(covariance * noise.variance)
 # }
 
@@ -632,7 +632,7 @@ inla.spde.make.index <- function(name, n.spde, n.group = 1, n.repl = 1, ...) {
 
 
 #' Row-wise Kronecker products
-#' 
+#'
 #' `r lifecycle::badge("deprecated")` in favour of `fmesher::fm_row_kron()`, which
 #' is typically an order of magnitude faster than the old `inla.row.kron()` implementation.
 #'  `inla.row.kron()` now calls `fm_row_kron()` internally instead.
@@ -943,7 +943,6 @@ inla.spde.make.A <-
         block.rescale <- match.arg(block.rescale)
 
         ## Handle group semantics:
-        ## TODO: FIXME!!! group, group.index, group.mesh, A.group, etc
         if (!is.null(A.group)) {
             if (!is.null(group) || !is.null(group.mesh)) {
                 warning("'A.group' has been specified; ignoring non-NULL 'group' or 'group.mesh'.")

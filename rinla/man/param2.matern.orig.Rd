@@ -18,8 +18,9 @@ param2.matern.orig(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}}
-object.}
+\item{mesh}{The mesh to build the model on, as an \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}
+object, or other \code{fmesher} mesh supporting \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}},
+\code{\link[fmesher:fm_manifold]{fmesher::fm_manifold_dim()}} and \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}}.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported.
 (\eqn{\nu=\alpha-d/2})}

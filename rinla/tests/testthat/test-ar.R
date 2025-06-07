@@ -14,14 +14,16 @@ test_that("Case 2", {
     n = 300
     phi = 0.9
     y = arima.sim(n, model = list(ar = phi))
-    y = scale(y)*2
+    y = scale(y)*2 + rnorm(n, sd = exp(-5/2))
     idx = 1:n
-    param.phi = c(0, 1)
-    param.prec = c(1, 0.01)
+    param.phi = c(0.99, 0.01)
+    param.prec = c(20, 0.01)
     r1 = inla(y ~ -1 + f(idx, model='ar1',
             hyper = list(
-                    prec = list(initial = 1, fixed=FALSE, param = param.prec),
-                    rho = list(initial = 3, fixed=FALSE, param = param.phi))),
+                    prec = list(initial = 1, fixed=FALSE, param = param.prec,
+                                model = "pc.prec"),
+                    rho = list(initial = 3, fixed=FALSE, param = param.phi,
+                               model = "pc.cor0"))),
             family = "gaussian", 
             control.family = list(initial = 5, fixed=TRUE), 
             data = data.frame(y, idx))
@@ -29,12 +31,19 @@ test_that("Case 2", {
     r = inla(y ~ -1 + f(idx, model='ar',
             order = 1, 
             hyper = list(
-                    prec = list(initial = 1, fixed=FALSE, param = param.prec),
-                    theta2 = list(initial = 3, fixed=FALSE, param = param.phi))), 
+                    prec = list(initial = 1, fixed=FALSE, param = param.prec,
+                                model = "pc.prec"),
+                    theta2 = list(initial = 3, fixed=FALSE, param = param.phi,
+                                  model = "pc.cor0"))), 
             family = "gaussian", 
             control.family = list(initial = 5, fixed=TRUE), 
             data = data.frame(y, idx)) 
     expect_true(all(abs(r1$summary.hyperpar[, "mean"] - r$summary.hyperpar[, "mean"]) < 0.001))
+    # rbind(r1$summary.hyperpar, r$summary.hyperpar)
+    # plot(r1$summary.random$idx$mean,
+    #      r1$summary.random$idx$mean - r$summary.random$idx$mean)
+    # plot(r1$summary.random$idx$sd,
+    #      r1$summary.random$idx$sd - r$summary.random$idx$sd)
 })
     
 test_that("Case 3", {

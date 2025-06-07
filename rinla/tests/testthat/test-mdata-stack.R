@@ -1,6 +1,6 @@
 context("test 'mdata through stack'")
 
-test_hat("Case 1: 0poisson", {
+test_that("Case 1: 0poisson", {
 
     sim.poisson <- function(prob, m) {
         stopifnot(length(prob) == length(m) && length(prob) > 0)

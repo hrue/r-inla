@@ -8581,8 +8581,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_id = LINK_TAN;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_tan;
-	} else if (!strcasecmp(ds->link_model, "TAN.PI")) {
-		ds->link_id = LINK_TAN_PI;
+	} else if (!strcasecmp(ds->link_model, "TANPI")) {
+		ds->link_id = LINK_TANPI;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_tan_pi;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
@@ -8617,6 +8617,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_qbinomial;
 		}
 			break;
+
 		case L_WEIBULL:
 		case L_WEIBULLSURV:
 		{
@@ -8756,7 +8757,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
-	case LINK_TAN_PI:
+	case LINK_TANPI:
 	case LINK_CIRCULAR:
 		break;
 
@@ -9215,10 +9216,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
 			if (ds->link_id == LINK_GEVIT) {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("gev intercept_intern", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("gev p0_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("gev p0", mb->ds);
 			} else {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev intercept_intern", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("cgev p0_intern", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("cgev p0", mb->ds);
 			}
 

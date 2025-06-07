@@ -46,8 +46,8 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
-		GMRFLib_idxptr_tp *graphs = NULL;
-		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_ptr_tp *graphs = NULL;
+		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
 		GMRFLib_stiles_bind(stiles_idx);
@@ -135,8 +135,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
-		GMRFLib_idxptr_tp *graphs = NULL;
-		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_ptr_tp *graphs = NULL;
+		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
 		GMRFLib_stiles_bind(stiles_idx);
@@ -264,8 +264,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
-		GMRFLib_idxptr_tp *graphs = NULL;
-		GMRFLib_idxptr_add(&graphs, (void *) graph);
+		GMRFLib_ptr_tp *graphs = NULL;
+		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
 		GMRFLib_stiles_bind(stiles_idx);

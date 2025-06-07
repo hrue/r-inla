@@ -10719,11 +10719,11 @@
 #'          }
 #'         Number of hyperparmeters is 0.
 #'        }
-#'       \item{Model 'tan.pi'.}{
+#'       \item{Model 'tanpi'.}{
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{The tan.pi-link}}
+#'               \item{doc = }{\verb{The tanpi-link}}
 #'               \item{pdf = }{\verb{circular}}
 #'              }
 #'            }
@@ -10921,8 +10921,8 @@
 #'           \item{Hyperparameter 'theta1'}{
 #'              \describe{
 #'             \item{hyperid = }{\verb{49033}}
-#'             \item{name = }{\verb{tail}}
-#'             \item{short.name = }{\verb{xi}}
+#'             \item{name = }{\verb{gev tail}}
+#'             \item{short.name = }{\verb{tail}}
 #'             \item{initial = }{\verb{0.1}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{pc.egptail}}
@@ -10934,7 +10934,7 @@
 #'           \item{Hyperparameter 'theta2'}{
 #'              \describe{
 #'             \item{hyperid = }{\verb{49034}}
-#'             \item{name = }{\verb{intercept}}
+#'             \item{name = }{\verb{gev p0}}
 #'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
@@ -10960,8 +10960,8 @@
 #'           \item{Hyperparameter 'theta1'}{
 #'              \describe{
 #'             \item{hyperid = }{\verb{49035}}
-#'             \item{name = }{\verb{tail}}
-#'             \item{short.name = }{\verb{xi}}
+#'             \item{name = }{\verb{gev tail}}
+#'             \item{short.name = }{\verb{tail}}
 #'             \item{initial = }{\verb{-3}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{pc.gevtail}}
@@ -10973,7 +10973,7 @@
 #'           \item{Hyperparameter 'theta2'}{
 #'              \describe{
 #'             \item{hyperid = }{\verb{49036}}
-#'             \item{name = }{\verb{intercept}}
+#'             \item{name = }{\verb{gev p0}}
 #'             \item{short.name = }{\verb{p0}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}

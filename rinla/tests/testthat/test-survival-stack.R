@@ -1,6 +1,6 @@
 context("test 'survival through stack'")
 
-test_hat("Case 1: weibullsurv", {
+test_that("Case 1: weibullsurv", {
 
     data(Leuk)
     Leuk$day <- Leuk$time / 365
@@ -66,7 +66,8 @@ test_hat("Case 1: weibullsurv", {
         }
 
     dstackS <- inla.stack(
-        data = list(sv[1:5]), 
+        data = list(DUMMY = sv[[1]]),
+                responses = list(sv), 
         effects = list(
             data.frame(
                 a0 = 1,
@@ -76,8 +77,6 @@ test_hat("Case 1: weibullsurv", {
     ## TO DO: make inla.stack() to collect the "names.ori"
     str(inla.stack.data(dstackS))
 
-    source("~/github/r-inla/rinla/R/working.inla.stack.R")
-        
     wdstackS <- winla.stack(
         data = list(sv[1:5]), 
         effects = list(
@@ -102,7 +101,7 @@ test_hat("Case 1: weibullsurv", {
 })
 
 
-test_hat("Case 2: coxph", {
+test_that("Case 2: coxph", {
 
     data(Leuk)
     Leuk$day <- Leuk$time / 365

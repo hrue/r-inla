@@ -18,8 +18,11 @@ inla.spde2.pcmatern(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}},
-\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}, or  \code{\link[fmesher:fm_mesh_3d]{fmesher::fm_mesh_3d()}} object.}
+\item{mesh}{The mesh to build the model on, as an \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}
+object, or other \code{fmesher} mesh supporting \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}},
+\code{\link[fmesher:fm_manifold]{fmesher::fm_manifold_dim()}} and \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}}, such as
+\code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_mesh_3d]{fmesher::fm_mesh_3d()}}, or
+\code{\link[fmesher:fm_collect]{fmesher::fm_collect()}}.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha <= 2}
 supported, for \eqn{\nu=\alpha-d/2>0}.}
@@ -132,7 +135,7 @@ loc <- matrix(runif(n * 2), n, 2)
 idx.y <- rep(1:n, 2)
 y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 
-mesh <- inla.mesh.2d(loc, max.edge = 0.05, cutoff = 0.01)
+mesh <- fm_mesh_2d_inla(loc, max.edge = 0.05, cutoff = 0.01)
 spde <- inla.spde2.pcmatern(mesh,
     prior.range = c(0.01, 0.1), prior.sigma = c(100, 0.1)
 )
@@ -197,7 +200,7 @@ sigN <- 0.1
 y <- u + sigN * rnorm(nObs)
 
 ## Create the mesh and spde object
-mesh <- inla.mesh.2d(loc,
+mesh <- fm_mesh_2d_inla(loc,
     max.edge = 0.05,
     cutoff = 0.01
 )
@@ -207,10 +210,7 @@ spde <- inla.spde2.pcmatern(mesh,
 )
 
 ## Create projection matrix for observations
-A <- inla.spde.make.A(
-    mesh = mesh,
-    loc = loc
-)
+A <- fm_basis(mesh = mesh, loc = loc)
 
 ## Run model without any covariates
 idx <- 1:spde$n.spde
@@ -241,8 +241,8 @@ Penalising model component complexity: A principled, practical approach to
 constructing priors. arXiv:1403.4630
 }
 \seealso{
-\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},
-\code{\link[=inla.mesh.1d]{inla.mesh.1d()}}, \code{\link[=inla.mesh.basis]{inla.mesh.basis()}},
+\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}},
+\code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}},
 \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }
 \author{
