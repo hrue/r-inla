@@ -142,7 +142,7 @@ void GMRFLib_remap_print(FILE *fp)
 			}
 			k++;
 		}
-		fprintf(fp, "\tTotal size[%.2f]Mb\n", tsiz / SQR(1024.0));
+		fprintf(fp, "\tTotal size[%.2fMb]\n", tsiz / SQR(1024.0));
 	}
 }
 

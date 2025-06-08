@@ -19,7 +19,7 @@
 #endif
 
 #define IDX_ALLOC_INITIAL 8
-#define IDX_ALLOC_ADD     128
+#define IDX_ALLOC_ADD     64
 #define IDX_ALLOC_NDIV    4
 #define IDX_ALLOC_INCREASE (IMAX(IDX_ALLOC_ADD, (*hold)->n / IDX_ALLOC_NDIV))
 
@@ -1277,7 +1277,6 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
 		assert((*hold)->idx);
 	}
-
 	Memcpy((*hold)->idx + (*hold)->n, idx, n * sizeof(int));
 	(*hold)->n += n;
 
@@ -1532,12 +1531,11 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	}
 
 	div_t d = div(sel->n, size);
-	int N = d.quot * size;
-	int NN = N + (d.rem > 0 ? 1 : 0);
+	int NN = d.quot + (d.rem > 0 ? 1 : 0);
 	GMRFLib_ptr_tp *ptr = NULL;
 	GMRFLib_ptr_create_x(&ptr, NN);
 
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < d.quot; i++) {
 		GMRFLib_idx_tp *idx = NULL;
 		GMRFLib_idx_create_x(&idx, size);
 		GMRFLib_idx_nadd(&idx, size, sel->idx + i * size);
@@ -1546,7 +1544,7 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	if (d.rem > 0) {
 		GMRFLib_idx_tp *idx = NULL;
 		GMRFLib_idx_create_x(&idx, d.rem);
-		GMRFLib_idx_nadd(&idx, d.rem, sel->idx + N * size);
+		GMRFLib_idx_nadd(&idx, d.rem, sel->idx + d.quot * size);
 		GMRFLib_ptr_add(&ptr, (void *) idx);
 	}
 	assert(ptr->n == NN);

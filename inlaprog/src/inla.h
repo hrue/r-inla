@@ -1762,7 +1762,7 @@ typedef struct {
 		_d_n = 0;						\
 	}
 #define Dclose()							\
-	if (1) {							\
+	{								\
 		if (_fp) {						\
 			if (_d_n) {					\
 				fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
@@ -1784,25 +1784,25 @@ typedef struct {
 	FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
 
 #define D1W_r(idx_, off_, a_)				\
-	if (1) {					\
+	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 	}
 #define D2W_r(idx_, off_, a_, b_)			\
-	if (1) {					\
+	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 	}
 #define D3W_r(idx_, off_, a_, b_, c_)			\
-	if (1) {					\
+	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 	}
 #define D4W_r(idx_, off_, a_, b_, c_, d_)		\
-	if (1) {					\
+	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
@@ -1810,7 +1810,7 @@ typedef struct {
 		_d_store[iidx_ + 3]= d_;		\
 	}
 #define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
-	if (1) {					\
+	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\

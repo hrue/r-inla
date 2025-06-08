@@ -60,17 +60,18 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	bool *inv = Malloc(ng2, bool);
 	GMRFLib_bfill(ng2, true, inv);
 
-	int nn = 1 + (nrhss ? nrhss->n : 0);
+	int nn = 3 + (nrhss ? nrhss->n : 0);
 	assert(nn > 0);
-	int *nrhs = Malloc(nn + 1, int);
+	int *nrhs = Calloc(nn, int);
 	nrhs[0] = nn;					       /* the first element is the number of different size of rhs's */
 	nrhs[1] = 1;					       /* always */
-	if (nrhss && nrhss->n) {
-		Memcpy(nrhs + 2, nrhss->idx, nrhss->n * sizeof(int));
-		GMRFLib_sort_i(nrhs + 1, nn);
+	nrhs[2] = IMAX(1, GMRFLib_stiles_get_tile_size());     /* always */
 
+	if (nrhss && nrhss->n) {
+		Memcpy(nrhs + 3, nrhss->idx, nrhss->n * sizeof(int));
+		GMRFLib_sort_i(nrhs + 1, nn - 1);
 		int nnew = 0, *nrhsnew = NULL;
-		GMRFLib_iuniques(&nnew, &nrhsnew, nrhs + 1, nn);
+		GMRFLib_iuniques(&nnew, &nrhsnew, nrhs + 1, nn - 1);
 		GMRFLib_sort_i(nrhsnew, nnew);
 		nrhs[0] = nnew;
 		Memcpy(nrhs + 1, nrhsnew, nnew * sizeof(int));
@@ -332,11 +333,6 @@ void GMRFLib_stiles_print(FILE *fp)
 	}
 }
 
-int GMRFLib_stiles_get_tile_size(void)
-{
-	return sTiles_return_tile_size();
-}
-
 int *GMRFLib_stiles_get_perm(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 	return store->perm[stiles_idx->in_group];
@@ -355,9 +351,17 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
 	ctl = Calloc(1, GMRFLib_stiles_ctl_tp);
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
 	ctl->tile_size = IMAX(0, tile_size);
-	if (ctl->tile_size) {
+#if defined(INLA_WITH_STILES)
+	if (ctl->tile_size == 0) {
+		// this function is not defined in 'stiles.h'
+		int get_auto_tile_size(void);
+		ctl->tile_size = get_auto_tile_size();
+	}
+#endif
+	if (ctl->tile_size > 0) {
 		sTiles_set_tile_size(ctl->tile_size);
 	}
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -588,9 +592,18 @@ int GMRFLib_stiles_verbose()
 	return (ctl ? ctl->verbose : 0);
 }
 
-int GMRFLib_stiles_set_tile_size(void)
+int GMRFLib_stiles_get_tile_size(void)
 {
+#if defined(INLA_WITH_STILES)
+	int get_auto_tile_size();
+	if (!ctl) {
+		return get_auto_tile_size();
+	} else {
+		return (ctl->tile_size > 0 ? ctl->tile_size : get_auto_tile_size());
+	}
+#else
 	return (ctl ? ctl->tile_size : 0);
+#endif
 }
 
 

@@ -31,6 +31,11 @@ GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void)
 	return &taucs_ctl;
 }
 
+int GMRFLib_taucs_get_block_size(void)
+{
+	return GMRFLib_taucs_get_ctl_ptr()->block_size;
+}
+
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)
 {
 	if (cache) {

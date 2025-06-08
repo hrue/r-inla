@@ -86,7 +86,7 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 	} else {
 		getcpu(NULL, &unode);
 	}
-		
+
 	if (numa_node) {
 		if (NUMA_enable) {
 			*numa_node = (int) unode;
@@ -195,7 +195,7 @@ void GMRFLib_numa_get(int *cpu, int *numa_node)
 		*cpu = sched_getcpu();
 #else
 		*cpu = 0;
-#endif		
+#endif
 	}
 	if (numa_node) {
 		*numa_node = 0;
