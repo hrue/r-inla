@@ -4065,14 +4065,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					int tnum = omp_get_thread_num();
 					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
 					double *Saa = Swork[tnum];
-					double *Sa = NULL;
-					GMRFLib_dfill(N * nrhs, 0.0, Saa);
+					GMRFLib_dfill(nn * nrhs, 0.0, Saa);
 
 					for (int inode = 0; inode < lnode_idx->n; inode++) {
 						int node = lnode_idx->idx[inode];
 						GMRFLib_idxval_tp *v = A_idx(node);
-						Sa = Saa + inode * N;
-						GMRFLib_unpack(v->n, v->val, Sa, v->idx);
+						GMRFLib_unpack(v->n, v->val, Saa + inode * nn, v->idx);
 					}
 					GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, NULL);
 
@@ -4111,8 +4109,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								Sa = Saa + inode * N;
-								GMRFLib_dot_product_INLINE(sum, v, Sa);
+								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4147,14 +4144,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					int tnum = omp_get_thread_num();
 					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
 					double *Saa = Swork[tnum];
-					double *Sa = NULL;
-					GMRFLib_dfill(N * nrhs, 0.0, Saa);
+					GMRFLib_dfill(nn * nrhs, 0.0, Saa);
 
 					for (int inode = 0; inode < lnode_idx->n; inode++) {
 						int node = lnode_idx->idx[inode];
 						GMRFLib_idxval_tp *v = A_idx(node);
-						Sa = Saa + inode * N;
-						GMRFLib_unpack(v->n, v->val, Sa, v->idx);
+						GMRFLib_unpack(v->n, v->val, Saa + inode * nn, v->idx);
 					}
 					GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, NULL);
 
@@ -4193,8 +4188,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								Sa = Saa + inode * N;
-								GMRFLib_dot_product_INLINE(sum, v, Sa);
+								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4235,13 +4229,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			for (int kk = 0; kk < split->n; kk++) {
 				GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
 				double *Saa = Swork[0];
-				GMRFLib_dfill(N * nrhs, 0.0, Saa);
+				GMRFLib_dfill(nn * nrhs, 0.0, Saa);
 
 //#pragma omp parallel for num_threads(nt_inner)
 				for (int inode = 0; inode < lnode_idx->n; inode++) {
 					int node = lnode_idx->idx[inode];
 					GMRFLib_idxval_tp *v = A_idx(node);
-					GMRFLib_unpack(v->n, v->val, Saa + inode * N, v->idx);
+					GMRFLib_unpack(v->n, v->val, Saa + inode * nn, v->idx);
 				}
 
 				GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, &stiles_idx);
@@ -4282,7 +4276,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						if (jj != ii) {
 							GMRFLib_idxval_tp *v = A_idx(nnode);
 							double sum = 0.0;
-							GMRFLib_dot_product_INLINE(sum, v, Saa + inode * N);
+							GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
 							double f = sd[node] * sd[nnode];
 							sum /= f;
 							double cov = TRUNCATE(sum, -1.0, 1.0) * f;

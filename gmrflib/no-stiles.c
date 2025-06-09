@@ -40,13 +40,13 @@ int sTiles_create_expert(sTiles_object **obj, int num_call_groups, const int *ca
 			 const int *cores_per_group, const int *factor_type_per_group,
 			 const bool *get_inverse, const int *rhs, const int *arrowhead_size,
 			 const int *arrowhead_size_per_group, const int *user_params) EMPTY_FUNCTION;
-void sTiles_set_tile_size(int tile_size) {}
-int sTiles_return_tile_size() { return 40; }
 void sTiles_map_group_call_to_group_call(sTiles_object **obj, int group_index1, int call_index1, int group_index2, int call_index2) EMPTY_FUNCTION;
 int sTiles_bind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNCTION;
 int sTiles_unbind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNCTION;
 
-//
+// exceptions
+void sTiles_set_tile_size(int tile_size) {}
+int sTiles_return_tile_size() { return 40; }
 
 #undef EMPTY_FUNCTION
 #pragma GCC diagnostic pop

@@ -1526,7 +1526,7 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	// split IDX in SEL, into groups of SIZE.
 	// return a _ptr_tp of GMRFLib_idx_tp's, which can be free'd with _idx_split_free
 
-	if (size <= 0 || sel->n <= 0) {
+	if (size <= 0 || !sel || sel->n <= 0) {
 		return NULL;
 	}
 
