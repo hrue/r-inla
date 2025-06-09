@@ -6281,6 +6281,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
 		GMRFLib_stiles_setup(setup);
+		if (mb->verbose) {
+			GMRFLib_stiles_print(stdout);
+		}
 	}
 
 	GMRFLib_overall_cpu[2] = GMRFLib_timer();

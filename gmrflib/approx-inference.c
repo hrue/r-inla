@@ -13,8 +13,7 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-// with this special case, we run the old code
-#define GCPO_RUN_BLOCK() (((GMRFLib_smtp == GMRFLib_SMTP_TAUCS) && (GMRFLib_taucs_get_block_size() == 1)) ? 0 : 1)
+#define GCPO_RUN_BLOCK() ((((GMRFLib_smtp == GMRFLib_SMTP_TAUCS) && (GMRFLib_taucs_get_block_size() == 1))) ? 0 : 1) 
 
 int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 {
@@ -3583,7 +3582,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					const int try_bypass = 0;
 
 					if (try_bypass) {
-#pragma omp parallel for schedule(dynamic) num_threads(nt_inner) if(nt_inner > 0)
+#pragma omp parallel for schedule(dynamic) num_threads(nt_inner)
 						for (int nnode = 0; nnode < Npred; nnode++) {
 							GMRFLib_idxval_tp *vv = A_idx(nnode);
 							if ((vv->idx[0] > Sa_high || vv->idx[vv->n - 1] < Sa_low)) {
@@ -3597,7 +3596,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 						}
 					} else {
-#pragma omp parallel for schedule(static) num_threads(nt_inner) if(nt_inner > 1)
+#pragma omp parallel for schedule(static) num_threads(nt_inner)
 						for (int nnode = 0; nnode < Npred; nnode++) {
 							GMRFLib_idxval_tp *vv = A_idx(nnode);
 							double sum = 0.0;
@@ -4041,136 +4040,266 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	TIMER_CHECK;
 
-	int nt_outer = -1;
-	int nt_inner = -1;
 	int serial = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())? 1 : 0);
 	int use_stiles = (GMRFLib_smtp == GMRFLib_SMTP_STILES ? 1 : 0);
-
-	if (use_stiles) {
-		if (serial) {
-			nt_outer = GMRFLib_openmp->max_threads_outer;
-			nt_inner = GMRFLib_openmp->max_threads_inner;
-		} else {
-			nt_outer = 1;
-			nt_inner = GMRFLib_openmp->max_threads_inner;
-		}
-	}
-	assert(nt_outer);
-	assert(nt_inner);
-
+	int nt_outer = GMRFLib_openmp->max_threads_nested[0];
+	int nt_inner = GMRFLib_openmp->max_threads_nested[1];
+	int nt_max = GMRFLib_MAX_THREADS();
+	
 	if (GCPO_RUN_BLOCK()) {
-		int nrhs = 1;
-		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			if (serial) {
-				nt_outer = GMRFLib_openmp->max_threads_outer;
-				nt_inner = GMRFLib_openmp->max_threads_inner;
-			} else {
-				nt_outer = 1;
-				nt_inner = GMRFLib_openmp->max_threads_inner;
-			}
-			nrhs = IMAX(1, GMRFLib_stiles_get_tile_size());
-		} else if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
-			if (serial) {
-				nt_outer = GMRFLib_MAX_THREADS();
-				nt_inner = 1;
-			} else {
-				nt_outer = GMRFLib_openmp->max_threads_inner;
-				nt_inner = 1;
-			}
-			nrhs = IMAX(1, GMRFLib_taucs_get_block_size());
-		}
+		// TAUCS|BAND|PARDISO code
+		if (!use_stiles) {
 
-		double **Swork = NULL;
-		Swork = Calloc(nt_outer, double *);
-		for (int i = 0; i < nt_outer; i++) {
-			Swork[i] = Malloc(N * nrhs, double);
-		}
-		GMRFLib_ptr_tp *split = GMRFLib_idx_split(node_idx, nrhs);
+			if (!serial) {
+				int nrhs = GMRFLib_taucs_get_block_size();
+				int Swork_len = nt_inner;
+				double **Swork = NULL;
+				Swork = Malloc(Swork_len, double *);
+				for (int i = 0; i < Swork_len; i++) {
+					Swork[i] = Malloc(nn * nrhs, double);
+				}
+				GMRFLib_ptr_tp *split = GMRFLib_idx_split(node_idx, nrhs);
 
-#pragma omp parallel for num_threads(nt_outer)
-		for (int kk = 0; kk < split->n; kk++) {
+#pragma omp parallel for num_threads(nt_inner)
+				for (int kk = 0; kk < split->n; kk++) {
+					int tnum = omp_get_thread_num();
+					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
+					double *Saa = Swork[tnum];
+					double *Sa = NULL;
+					GMRFLib_dfill(N * nrhs, 0.0, Saa);
+
+					for (int inode = 0; inode < lnode_idx->n; inode++) {
+						int node = lnode_idx->idx[inode];
+						GMRFLib_idxval_tp *v = A_idx(node);
+						Sa = Saa + inode * N;
+						GMRFLib_unpack(v->n, v->val, Sa, v->idx);
+					}
+					GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, NULL);
+
+					for (int inode = 0; inode < lnode_idx->n; inode++) {
+						int node = lnode_idx->idx[inode];
+						if (gcpo_param->verbose || detailed_output) {
+							if (skip[node]) {
+								printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+							} else {
+								printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+							}
+						}
+						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
+						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
+						gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+
+						if (gcpo[node]->idxs->n > 0) {
+							if (gcpo[node]->idx_node < 0) {
+								P(inode);
+								P(node);
+								P(gcpo[node]->idxs->n);
+								P(gcpo[node]->idx_node);
+								GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "gcpo[node]->idxs");
+							}
+							assert(gcpo[node]->idx_node >= 0);
+						}
+
+						for (int k = 0; k < groups->missing[node]->n; k++) {
+							int nnode = groups->missing[node]->idx[0][k];
+							int cm_idx = groups->missing[node]->idx[1][k];
+							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+							assert(ii >= 0 && jj >= 0);
+							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
+							if (jj != ii) {
+								GMRFLib_idxval_tp *v = A_idx(nnode);
+								double sum = 0.0;
+								Sa = Saa + inode * N;
+								GMRFLib_dot_product_INLINE(sum, v, Sa);
+								double f = sd[node] * sd[nnode];
+								sum /= f;
+								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
+								gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]);
+								gsl_matrix_set(mat, ii, jj, cov);
+								gsl_matrix_set(mat, jj, ii, cov);
+							}
+						}
+					}
+				}
+
+				for (int i = 0; i < Swork_len; i++) {
+					Free(Swork[i]);
+				}
+				Free(Swork);
+				GMRFLib_idx_split_free(split);
+
+			} else {
+				
+				// serial
+				int nrhs = GMRFLib_taucs_get_block_size();
+				int Swork_len = nt_max;
+				double **Swork = NULL;
+				Swork = Malloc(Swork_len, double *);
+				for (int i = 0; i < Swork_len; i++) {
+					Swork[i] = Malloc(nn * nrhs, double);
+				}
+				GMRFLib_ptr_tp *split = GMRFLib_idx_split(node_idx, nrhs);
+
+#pragma omp parallel for num_threads(nt_max)
+				for (int kk = 0; kk < split->n; kk++) {
+					int tnum = omp_get_thread_num();
+					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
+					double *Saa = Swork[tnum];
+					double *Sa = NULL;
+					GMRFLib_dfill(N * nrhs, 0.0, Saa);
+
+					for (int inode = 0; inode < lnode_idx->n; inode++) {
+						int node = lnode_idx->idx[inode];
+						GMRFLib_idxval_tp *v = A_idx(node);
+						Sa = Saa + inode * N;
+						GMRFLib_unpack(v->n, v->val, Sa, v->idx);
+					}
+					GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, NULL);
+
+					for (int inode = 0; inode < lnode_idx->n; inode++) {
+						int node = lnode_idx->idx[inode];
+						if (gcpo_param->verbose || detailed_output) {
+							if (skip[node]) {
+								printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+							} else {
+								printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+							}
+						}
+						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
+						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
+						gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+
+						if (gcpo[node]->idxs->n > 0) {
+							if (gcpo[node]->idx_node < 0) {
+								P(inode);
+								P(node);
+								P(gcpo[node]->idxs->n);
+								P(gcpo[node]->idx_node);
+								GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "gcpo[node]->idxs");
+							}
+							assert(gcpo[node]->idx_node >= 0);
+						}
+
+						for (int k = 0; k < groups->missing[node]->n; k++) {
+							int nnode = groups->missing[node]->idx[0][k];
+							int cm_idx = groups->missing[node]->idx[1][k];
+							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+							assert(ii >= 0 && jj >= 0);
+							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
+							if (jj != ii) {
+								GMRFLib_idxval_tp *v = A_idx(nnode);
+								double sum = 0.0;
+								Sa = Saa + inode * N;
+								GMRFLib_dot_product_INLINE(sum, v, Sa);
+								double f = sd[node] * sd[nnode];
+								sum /= f;
+								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
+								gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]);
+								gsl_matrix_set(mat, ii, jj, cov);
+								gsl_matrix_set(mat, jj, ii, cov);
+							}
+						}
+					}
+				}
+
+				for (int i = 0; i < Swork_len; i++) {
+					Free(Swork[i]);
+				}
+				Free(Swork);
+				GMRFLib_idx_split_free(split);
+			}
+			
+		} else {
+				
+			int nrhs = IMAX(1, GMRFLib_stiles_get_tile_size());
+			int Swork_len = 1;
+			double **Swork = NULL;
+			Swork = Malloc(Swork_len, double *);
+			for (int i = 0; i < Swork_len; i++) {
+				Swork[i] = Malloc(nn * nrhs, double);
+			}
+			GMRFLib_ptr_tp *split = GMRFLib_idx_split(node_idx, nrhs);
+
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			if (use_stiles) {
-				if (serial) {
-					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1);
-					GMRFLib_stiles_bind(&stiles_idx);
-				} else {
-					GMRFLib_stiles_set_idx(&stiles_idx, 1);
-					GMRFLib_stiles_bind(&stiles_idx);
-					assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group);
-					assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group);
-				}
+				GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
+				GMRFLib_stiles_bind(&stiles_idx);
+				assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group);
+				assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group);
 			}
 
-			GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
-			int tnum = omp_get_thread_num();
-			double *Saa = Swork[tnum];
-			double *Sa = NULL;
-			GMRFLib_dfill(N * nrhs, 0.0, Saa);
+			for (int kk = 0; kk < split->n; kk++) {
+				GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
+				double *Saa = Swork[0];
+				GMRFLib_dfill(N * nrhs, 0.0, Saa);
 
-			for (int inode = 0; inode < lnode_idx->n; inode++) {
-				int node = lnode_idx->idx[inode];
-				GMRFLib_idxval_tp *v = A_idx(node);
-				Sa = Saa + inode * N;
-				GMRFLib_unpack(v->n, v->val, Sa, v->idx);
-			}
-			GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, &stiles_idx);
-
-#pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1)
-			for (int inode = 0; inode < lnode_idx->n; inode++) {
-				int node = lnode_idx->idx[inode];
-				if (gcpo_param->verbose || detailed_output) {
-					if (skip[node]) {
-						printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
-					} else {
-						printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
-					}
-				}
-				gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
-				gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
-				gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
-
-				if (gcpo[node]->idxs->n > 0) {
-					if (gcpo[node]->idx_node < 0) {
-						P(inode);
-						P(node);
-						P(gcpo[node]->idxs->n);
-						P(gcpo[node]->idx_node);
-						GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "gcpo[node]->idxs");
-					}
-					assert(gcpo[node]->idx_node >= 0);
+//#pragma omp parallel for num_threads(nt_inner)
+				for (int inode = 0; inode < lnode_idx->n; inode++) {
+					int node = lnode_idx->idx[inode];
+					GMRFLib_idxval_tp *v = A_idx(node);
+					GMRFLib_unpack(v->n, v->val, Saa + inode * N, v->idx);
 				}
 
-				for (int k = 0; k < groups->missing[node]->n; k++) {
-					int nnode = groups->missing[node]->idx[0][k];
-					int cm_idx = groups->missing[node]->idx[1][k];
-					gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
-					int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
-					int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
-					assert(ii >= 0 && jj >= 0);
-					gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
-					if (jj != ii) {
-						GMRFLib_idxval_tp *v = A_idx(nnode);
-						double sum = 0.0;
-						Sa = Saa + inode * N;
-						GMRFLib_dot_product_INLINE(sum, v, Sa);
-						double f = sd[node] * sd[nnode];
-						sum /= f;
-						double cov = TRUNCATE(sum, -1.0, 1.0) * f;
-						gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]);
-						gsl_matrix_set(mat, ii, jj, cov);
-						gsl_matrix_set(mat, jj, ii, cov);
+				GMRFLib_Qsolves(Saa, nrhs, ai_store_id->problem, &stiles_idx);
+
+#pragma omp parallel for num_threads(nt_inner)
+				for (int inode = 0; inode < lnode_idx->n; inode++) {
+					int node = lnode_idx->idx[inode];
+					if (gcpo_param->verbose || detailed_output) {
+						if (skip[node]) {
+							printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+						} else {
+							printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
+						}
+					}
+					gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
+					gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
+					gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+
+					if (gcpo[node]->idxs->n > 0) {
+						if (gcpo[node]->idx_node < 0) {
+							P(inode);
+							P(node);
+							P(gcpo[node]->idxs->n);
+							P(gcpo[node]->idx_node);
+							GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "gcpo[node]->idxs");
+						}
+						assert(gcpo[node]->idx_node >= 0);
+					}
+
+					for (int k = 0; k < groups->missing[node]->n; k++) {
+						int nnode = groups->missing[node]->idx[0][k];
+						int cm_idx = groups->missing[node]->idx[1][k];
+						gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
+						int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+						int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+						assert(ii >= 0 && jj >= 0);
+						gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
+						if (jj != ii) {
+							GMRFLib_idxval_tp *v = A_idx(nnode);
+							double sum = 0.0;
+							GMRFLib_dot_product_INLINE(sum, v, Saa + inode * N);
+							double f = sd[node] * sd[nnode];
+							sum /= f;
+							double cov = TRUNCATE(sum, -1.0, 1.0) * f;
+							gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]);
+							gsl_matrix_set(mat, ii, jj, cov);
+							gsl_matrix_set(mat, jj, ii, cov);
+						}
 					}
 				}
 			}
+
+			for (int i = 0; i < Swork_len; i++) {
+				Free(Swork[i]);
+			}
+			Free(Swork);
+			GMRFLib_idx_split_free(split);
 		}
-
-		for (int i = 0; i < nt_outer; i++) {
-			Free(Swork[i]);
-		}
-		Free(Swork);
-		GMRFLib_idx_split_free(split);
-
 	} else {
 #define CODE_BLOCK							\
 		for (int inode = 0; inode < node_idx->n; inode++) {	\
@@ -4246,6 +4375,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 		if (node_idx) {
 			if (use_stiles) {
+				// NOT SURE ABOUT THIS ONE???
 				RUN_CODE_BLOCK(nt_outer, 2, N);
 			} else {
 				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
@@ -5083,9 +5213,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		assert(stiles_idx.within_group == omp_get_thread_num());
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS ||
-	     (GMRFLib_OPENMP_IN_INNER() && GMRFLib_openmp->max_threads_inner == 1))) {
-		// do many rhs at the same time
+	if ((GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS)) {
 		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *b_ = b + jj * graph->n;
@@ -6417,7 +6545,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for if(nc) num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int k = 0; k < klen; k++) {
 
 			int i = arr[k].i;

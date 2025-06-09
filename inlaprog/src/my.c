@@ -453,7 +453,7 @@ double *my_compute_lbell(int nmax)
 	for (int n = 2; n <= nmax; n++) {
 		int n1 = n - 1;
 
-#pragma omp parallel for if(n > 1024L)
+#pragma omp parallel for
 		for (int k = 0; k < n; k++) {
 			terms[k] = my_gsl_sf_lnchoose((unsigned int) n1, (unsigned int) k) + log_bell[k];
 		}

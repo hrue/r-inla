@@ -299,7 +299,7 @@ void GMRFLib_stiles_print(FILE *fp)
 			for (int j = 0; j < store->n[i]; j++) {
 				if (store->perm[i]) {
 					if (store->perm[i][j] != j || store->iperm[i][j] != j) {
-						fprintf(fp, "\t\tperm[%1d][%5d] = %5d  iperm[%1d][%5d] = %5d\n", i, j,
+						fprintf(fp, "\t\tperm[%1d][%1d] = %5d  iperm[%1d][%1d] = %5d\n", i, j,
 							store->perm[i][j], i, j, store->iperm[i][j]);
 						preview--;
 						perm_identity = 0;
@@ -444,7 +444,6 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
 	if (fast_copy) {
-		FIXME1("FAST COPY");
 		Memcpy(x, arg->Q->a, N * sizeof(double));
 	} else {
 		double *values = Calloc(1 + graph->max_nnbs, double);
