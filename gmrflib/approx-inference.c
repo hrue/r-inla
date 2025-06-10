@@ -4092,6 +4092,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int nt_inner = GMRFLib_openmp->max_threads_nested[1];
 	int nt_max = GMRFLib_MAX_THREADS();
 
+	// FIX LATER: What to follow, is four copies of the same basic code with minor changes due to paralellisation and solver
+	// type. Revisit this code at a later stage to merge it into one block of cleaner code. For now, its easier to keep the 4
+	// cases completely separate until stiles is properly (functionality) stable.
+
 	if (GCPO_RUN_BLOCK()) {
 		// TAUCS|BAND|PARDISO code
 		if (!use_stiles) {
