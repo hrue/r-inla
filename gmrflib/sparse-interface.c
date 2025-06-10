@@ -467,22 +467,24 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 							     sm_fact->bandwidth, work + offset);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
+		int block_size = GMRFLib_taucs_get_block_size();
 		if (nrhs == 1) {
-			// simple entry
+			// simple entry, part 1
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
+		} else if (nrhs > 1 && nrhs == block_size) {
+			// simple entry, part 2
+			GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
 		} else {
-
 			int ntt = -1;
 			if (omp_get_level() == 0) {
-				ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+				ntt = GMRFLib_openmp->max_threads_outer;
 			} else {
 				ntt = GMRFLib_openmp->max_threads_inner;
 			}
 
 			// default
-			int block_size = GMRFLib_taucs_get_block_size(); 
 			if (block_size <= 0) {
-				block_size = 8;
+				block_size = 32;
 			}
 
 			int target = IMAX(1, block_size);
@@ -500,6 +502,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				for (int i = 0; i < ntt; i++) {
 					if (GMRFLib_isum(ntt, csize) < nrhs) {
 						csize[i]++;
+					} else {
+						break;
 					}
 				}
 				assert(GMRFLib_isum(ntt, csize) == nrhs);

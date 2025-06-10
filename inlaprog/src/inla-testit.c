@@ -5442,22 +5442,22 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 173: 
+	case 173:
 	{
 		FIXME("omp");
 #pragma omp parallel for num_threads(4)
-		for(int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			P(GMRFLib_OPENMP_IN_INNER());
 			P(GMRFLib_OPENMP_IN_OUTER());
 		}
 
 		FIXME("no omp");
-		for(int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			P(GMRFLib_OPENMP_IN_INNER());
 			P(GMRFLib_OPENMP_IN_OUTER());
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{

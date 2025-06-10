@@ -45,8 +45,13 @@ int sTiles_bind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNC
 int sTiles_unbind(int group_index, int call_index, sTiles_object **obj) EMPTY_FUNCTION;
 
 // exceptions
-void sTiles_set_tile_size(int tile_size) {}
-int sTiles_return_tile_size() { return 40; }
+void sTiles_set_tile_size(int tile_size)
+{
+}
+int sTiles_return_tile_size()
+{
+	return 40;
+}
 
 #undef EMPTY_FUNCTION
 #pragma GCC diagnostic pop
