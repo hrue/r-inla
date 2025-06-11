@@ -148,11 +148,11 @@ that site selection and zero filling, important components of trend
 analyses, have already been conducted and this is the resulting data set.
 
 ```{r data, eval=T, cache=T}
-# get data
-download_dat <- read.csv(paste0(
-  "https://raw.github.com/tmeeha/inlaSVCBC",
-  "/master/code/modeling_data.csv"
-))
+# get data 
+## download_dat <- read.csv(paste0(
+##      "https://raw.github.com/tmeeha/inlaSVCBC",
+##      "/master/code/modeling_data.csv"))
+download_dat <- read.csv("data/modeling_data.csv")
 
 # select subset
 count_dat <- download_dat %>%
