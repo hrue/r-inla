@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <omp.h>
 #include <limits.h>
 
 #include "GMRFLib/GMRFLib.h"

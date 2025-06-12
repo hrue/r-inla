@@ -1,6 +1,10 @@
 #include <math.h>
-#include <strings.h>
+#include <omp.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
+#include <time.h>
 
 #include "rmath.h"
 #undef ISNAN

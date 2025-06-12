@@ -1,4 +1,11 @@
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "inla.h"

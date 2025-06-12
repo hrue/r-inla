@@ -16,10 +16,14 @@
     $Revision: 1.26 $
 */
 
+#include <assert.h>
+#include <limits.h>
+#include <omp.h>
 #include <stddef.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include "iniparser.h"
 #include "my-fix.h"
 #include "strlib.h"

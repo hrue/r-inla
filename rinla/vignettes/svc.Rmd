@@ -9,9 +9,13 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE, cache=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
 ```
+
+Note: See <https://inlabru-org.github.io/inlabru/articles/svc.html> for an updated
+version of this vignette that avoids manual handling of mesh indices, mapping matrices,
+and data stacks, by using the `inlabru` interface instead of plain `INLA`.
 
 ## Introduction
 
@@ -130,12 +134,15 @@ epsg6703km <- paste(
 )
 
 # make a base map
-states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE)) %>%
+states <- maps::map("state", plot = FALSE, fill = TRUE) %>%
+  sf::st_as_sf() %>%
   filter(ID %in% c(
     "texas", "oklahoma", "kansas", "missouri",
     "arkansas", "louisiana"
   )) %>%
-  st_transform(epsg6703km)
+  sf::st_make_valid() %>%
+  sf::st_transform(epsg6703km) %>%
+  sf::st_make_valid()
 ```
 
 ## Import data
@@ -147,12 +154,12 @@ US states) for this analysis to reduce computing time (~ 1 min). Note
 that site selection and zero filling, important components of trend 
 analyses, have already been conducted and this is the resulting data set.
 
-```{r data, eval=T, cache=T}
-# get data
-download_dat <- read.csv(paste0(
-  "https://raw.github.com/tmeeha/inlaSVCBC",
-  "/master/code/modeling_data.csv"
-))
+```{r data-init, eval=T, cache=FALSE}
+# get data 
+## download_dat <- read.csv(paste0(
+##      "https://raw.github.com/tmeeha/inlaSVCBC",
+##      "/master/code/modeling_data.csv"))
+download_dat <- read.csv("data/modeling_data.csv.gz")
 
 # select subset
 count_dat <- download_dat %>%
@@ -167,7 +174,14 @@ count_dat <- download_dat %>%
       "ARKANSAS", "LOUISIANA"
     ),
     year >= 1987
-  ) %>%
+  )
+```
+
+After loading the data, we filter out observation sites with less than 20 years of data, add
+index variables to uniquely index site and year information, and transform the
+coordinates to the `epsg6703km` CRS:
+```{r data-subset, eval=TRUE}
+count_dat <- count_dat %>%
   mutate(site_idx = as.numeric(factor(paste(circle, lon, lat)))) %>%
   group_by(site_idx) %>%
   mutate(n_years = n()) %>%
@@ -249,8 +263,8 @@ spatial term in the model. Fourth, we construct **projector matrices**
 or **A matrices** that create formulaic mappings between the observed
 data locations and the mesh nodes. Again, note that a separate set of
 projector matrices needs to be constructed for each spatial term in
-the model. The four corresponding INLA functions for these steps are:
-`inla.mesh.2D()`, `inla.spde2.pcmatern()`, `inla.spde.make.index()`,
+the model. The four corresponding functions for these steps are:
+`fmesher::fm_mesh_2d()`, `inla.spde2.pcmatern()`, `inla.spde.make.index()`,
 and `inla.spde.make.A()`.
 
 ## Modeling mesh
@@ -264,17 +278,21 @@ hull around the count sites, and then build a triangular mesh by
 specifying minimum and maximum edge lengths within and slightly 
 outside the hull.
 
-```{r mesh, warning=F, message=F, fig.pos='t', fig.align='center'}
+```{r mesh, cache=FALSE}
 # make a hull and mesh for spatial model
-hull <- inla.nonconvex.hull(
-  points = as.matrix(st_coordinates(count_dat)),
-  convex = 200, concave = 350
+hull <- fm_nonconvex_hull_inla(
+  count_dat,
+  convex = 200,
+  concave = 350
 )
-mesh <- inla.mesh.2d(
+mesh <- fm_mesh_2d(
   boundary = hull, max.edge = c(100, 600), # km inside and outside
-  cutoff = 50, offset = c(100, 300)
+  cutoff = 50, offset = c(100, 300),
+  crs = fm_crs(count_dat)
 ) # cutoff is min edge
+```
 
+```{r mesh-plot}
 # plot it
 ggplot() +
   gg(data = mesh) +
@@ -343,13 +361,13 @@ contexts.
 
 ```{r projector}
 # make projector matrices
-A_alpha <- inla.spde.make.A(mesh = mesh, loc = all_coords)
+A_alpha <- inla.spde.make.A(mesh = mesh, loc = count_dat)
 A_eps <- inla.spde.make.A(
-  mesh = mesh, loc = all_coords,
+  mesh = mesh, loc = count_dat,
   weights = count_dat$log_hrs
 ) # note weights argument
 A_tau <- inla.spde.make.A(
-  mesh = mesh, loc = all_coords,
+  mesh = mesh, loc = count_dat,
   weights = count_dat$std_yr
 ) # note weights argument
 ```
@@ -483,7 +501,7 @@ about 1 minutes on a standard laptop computer. Another option is to
 use the Variational Bayes approximation as detailed in Van Niekerk and
 Rue (2021) and Van Niekerk et. al. (2022).
 
-```{r run, eval=T, cache=TRUE}
+```{r run, eval=T, cache=FALSE}
 res <- inla(svc_form,
   family = "nbinomial",
   data = inla.stack.data(stack_fit), # stack the stack
@@ -546,14 +564,13 @@ grid to the modeling mesh.
 
 ```{r map_grid}
 # get easting and northing limits
-xlim <- range(hull$loc[, 1])
-ylim <- range(hull$loc[, 2])
-grd_dims <- round(c(x = diff(range(xlim)), y = diff(range(ylim))) / 25)
+bbox <- fm_bbox(hull[[1]])
+grd_dims <- round(c(x = diff(bbox[[1]]), y = diff(bbox[[2]])) / 25)
 
 # make mesh projector to get model summaries from the mesh to the mapping grid
-mesh_proj <- inla.mesh.projector(
+mesh_proj <- fm_evaluator(
   mesh,
-  xlim = xlim, ylim = ylim, dims = grd_dims
+  xlim = bbox[[1]], ylim = bbox[[2]], dims = grd_dims
 )
 ```
 
@@ -587,7 +604,7 @@ taus <- data.frame(
 # loop to get estimates on a mapping grid
 pred_grids <- lapply(
   list(alpha = alph, epsilon = epsi, tau = taus),
-  function(x) as.matrix(inla.mesh.project(mesh_proj, x))
+  function(x) as.matrix(fm_evaluate(mesh_proj, x))
 )
 ```
 
@@ -611,7 +628,12 @@ names(out_stk) <- c(
   "alpha_median", "alpha_range95", "epsilon_median",
   "epsilon_range95", "tau_median", "tau_range95"
 )
-out_stk <- terra::mask(out_stk, states, touches = FALSE)
+out_stk <- terra::mask(
+  out_stk,
+  terra::vect(sf::st_union(states)),
+  updatevalue = NA,
+  touches = FALSE
+)
 ```
 
 Finally, we plot the SVCs with the following code. We plot the posterior median and 95% uncertainty width ("range95")
@@ -624,9 +646,11 @@ make_plot_field <- function(data_stk, scale_label) {
     coord_sf(datum = NA) +
     geom_spatraster(data = data_stk) +
     labs(x = "", y = "") +
-    scale_fill_distiller(scale_label,
-                         palette = "Spectral",
-                         na.value = "transparent") +
+    scale_fill_distiller(
+      scale_label,
+      palette = "Spectral",
+      na.value = "transparent"
+    ) +
     theme_bw() +
     geom_sf(fill = NA)
 }

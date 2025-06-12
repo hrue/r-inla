@@ -19024,6 +19024,10 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	}
 	GMRFLib_stiles_set_ctl(verbose, tile_size);
 
+	if (mb->verbose) {
+		printf("\t\tdefault tile.size[%1d]\n", GMRFLib_stiles_get_tile_size());
+	}
+
 	return INLA_OK;
 }
 

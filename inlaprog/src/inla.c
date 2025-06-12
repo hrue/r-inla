@@ -16,11 +16,13 @@
 #if defined(__linux__)
 #include <getopt.h>
 #endif
-#include <float.h>
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <float.h>
+#include <ltdl.h>
 #include <math.h>
+#include <omp.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -30,7 +32,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include <ltdl.h>
 
 #if !defined(WINDOWS)
 #include <sys/resource.h>
@@ -302,6 +303,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 
 	/*
+	 * type = STILES
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = Strdup(iniparser_getsecname(ini, sec));
+		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "STILES")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[STILES]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_stiles(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * ...then parse the sections in this order: RLIB, EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
 	 * 
 	 * it is easier to do it like this, instead of insisting the user to write the section in a spesific order.
@@ -505,23 +523,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 			}
 			sec_read[sec] = 1;
 			inla_parse_pardiso(mb, ini, sec);
-		}
-		Free(secname);
-		Free(sectype);
-	}
-
-	/*
-	 * type = STILES
-	 */
-	for (sec = 0; sec < nsec; sec++) {
-		secname = Strdup(iniparser_getsecname(ini, sec));
-		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
-		if (!strcmp(sectype, "STILES")) {
-			if (mb->verbose) {
-				printf("\tparse section=[%1d] name=[%s] type=[STILES]\n", sec, iniparser_getsecname(ini, sec));
-			}
-			sec_read[sec] = 1;
-			inla_parse_stiles(mb, ini, sec);
 		}
 		Free(secname);
 		Free(sectype);
@@ -6281,6 +6282,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
 		GMRFLib_stiles_setup(setup);
+		if (mb->verbose) {
+			GMRFLib_stiles_print(stdout);
+		}
 	}
 
 	GMRFLib_overall_cpu[2] = GMRFLib_timer();
@@ -6456,6 +6460,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		if (d_mode) {
 			if (plain) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_plain(x);
@@ -6465,11 +6470,10 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 					z[i] = f;
 					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
-					if ((i == 0) || ldz[i] > ldz[i_max]) {
-						i_max = i;
-					}
 				}
+				GMRFLib_max_value(ldz, np, &i_max);
 			} else if (func) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_func(x);
@@ -6479,11 +6483,10 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 					z[i] = f;
 					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
-					if ((i == 0) || ldz[i] > ldz[i_max]) {
-						i_max = i;
-					}
 				}
+				GMRFLib_max_value(ldz, np, &i_max);
 			} else if (tfunc) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_tfunc(x);
@@ -6493,15 +6496,14 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 					z[i] = f;
 					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
-					if ((i == 0) || ldz[i] > ldz[i_max]) {
-						i_max = i;
-					}
 				}
+				GMRFLib_max_value(ldz, np, &i_max);
 			} else {
 				assert(0 == 1);
 			}
 		} else {
 			if (plain) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_plain(x);
@@ -6509,6 +6511,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					m2 += wp[i] * SQR(f);
 				}
 			} else if (func) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_func(x);
@@ -6516,6 +6519,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					m2 += wp[i] * SQR(f);
 				}
 			} else if (tfunc) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_tfunc(x);
@@ -6965,6 +6969,7 @@ int main(int argc, char **argv)
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 	int model_n_is_set = 0;
 
+	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
@@ -6986,7 +6991,6 @@ int main(int argc, char **argv)
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
 
-	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */

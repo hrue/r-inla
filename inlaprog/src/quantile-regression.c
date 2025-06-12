@@ -1,3 +1,9 @@
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "rmath.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"

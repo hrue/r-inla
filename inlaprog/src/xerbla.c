@@ -1,6 +1,9 @@
-#include <string.h>
-#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+#include <omp.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // need fortran_charlen_t
 #include "GMRFLib/GMRFLibP.h"

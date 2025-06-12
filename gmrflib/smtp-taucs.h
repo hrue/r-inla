@@ -21,6 +21,7 @@
 #endif
 
 __BEGIN_DECLS
+
 //
 //
 #if defined(INLA_WITH_PARDISO_WORKAROUND)
@@ -76,6 +77,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp ** cache);
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 
+int GMRFLib_taucs_get_block_size(void);
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int nrhs, double *work);
 int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs, double *w, int skip_reordering);
 

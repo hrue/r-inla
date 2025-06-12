@@ -1,6 +1,11 @@
-#include <time.h>
-#include <strings.h>
+#include <assert.h>
+#include <omp.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
+#include <time.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 

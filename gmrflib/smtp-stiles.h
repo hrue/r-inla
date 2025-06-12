@@ -1,7 +1,12 @@
+#include <omp.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <time.h>
+
 #ifndef __GMRFLib_SMTP_STILES_H__
 #define __GMRFLib_SMTP_STILES_H__
 
-#include <stdlib.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -90,6 +95,9 @@ void GMRFLib_stiles_quit(void);
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
+
+// this function is not defined in 'stiles.h'
+int get_auto_tile_size(void);
 
 __END_DECLS
 #endif

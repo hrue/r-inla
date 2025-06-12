@@ -1,11 +1,12 @@
-#include <stddef.h>
 #include <assert.h>
-#include <strings.h>
 #include <math.h>
+#include <omp.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -60,17 +61,18 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	bool *inv = Malloc(ng2, bool);
 	GMRFLib_bfill(ng2, true, inv);
 
-	int nn = 1 + (nrhss ? nrhss->n : 0);
+	int nn = 3 + (nrhss ? nrhss->n : 0);
 	assert(nn > 0);
-	int *nrhs = Malloc(nn + 1, int);
+	int *nrhs = Calloc(nn, int);
 	nrhs[0] = nn;					       /* the first element is the number of different size of rhs's */
 	nrhs[1] = 1;					       /* always */
-	if (nrhss && nrhss->n) {
-		Memcpy(nrhs + 2, nrhss->idx, nrhss->n * sizeof(int));
-		GMRFLib_sort_i(nrhs + 1, nn);
+	nrhs[2] = IMAX(1, GMRFLib_stiles_get_tile_size());     /* always */
 
+	if (nrhss && nrhss->n) {
+		Memcpy(nrhs + 3, nrhss->idx, nrhss->n * sizeof(int));
+		GMRFLib_sort_i(nrhs + 1, nn - 1);
 		int nnew = 0, *nrhsnew = NULL;
-		GMRFLib_iuniques(&nnew, &nrhsnew, nrhs + 1, nn);
+		GMRFLib_iuniques(&nnew, &nrhsnew, nrhs + 1, nn - 1);
 		GMRFLib_sort_i(nrhsnew, nnew);
 		nrhs[0] = nnew;
 		Memcpy(nrhs + 1, nrhsnew, nnew * sizeof(int));
@@ -298,7 +300,7 @@ void GMRFLib_stiles_print(FILE *fp)
 			for (int j = 0; j < store->n[i]; j++) {
 				if (store->perm[i]) {
 					if (store->perm[i][j] != j || store->iperm[i][j] != j) {
-						fprintf(fp, "\t\tperm[%1d][%5d] = %5d  iperm[%1d][%5d] = %5d\n", i, j,
+						fprintf(fp, "\t\tperm[%1d][%1d] = %5d  iperm[%1d][%1d] = %5d\n", i, j,
 							store->perm[i][j], i, j, store->iperm[i][j]);
 						preview--;
 						perm_identity = 0;
@@ -332,11 +334,6 @@ void GMRFLib_stiles_print(FILE *fp)
 	}
 }
 
-int GMRFLib_stiles_get_tile_size(void)
-{
-	return sTiles_return_tile_size();
-}
-
 int *GMRFLib_stiles_get_perm(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 	return store->perm[stiles_idx->in_group];
@@ -355,9 +352,15 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
 	ctl = Calloc(1, GMRFLib_stiles_ctl_tp);
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
 	ctl->tile_size = IMAX(0, tile_size);
-	if (ctl->tile_size) {
+#if defined(INLA_WITH_STILES)
+	if (ctl->tile_size == 0) {
+		ctl->tile_size = get_auto_tile_size();
+	}
+#endif
+	if (ctl->tile_size > 0) {
 		sTiles_set_tile_size(ctl->tile_size);
 	}
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -440,7 +443,6 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
 	if (fast_copy) {
-		FIXME1("FAST COPY");
 		Memcpy(x, arg->Q->a, N * sizeof(double));
 	} else {
 		double *values = Calloc(1 + graph->max_nnbs, double);
@@ -588,9 +590,18 @@ int GMRFLib_stiles_verbose()
 	return (ctl ? ctl->verbose : 0);
 }
 
-int GMRFLib_stiles_set_tile_size(void)
+int GMRFLib_stiles_get_tile_size(void)
 {
+#if defined(INLA_WITH_STILES)
+	int get_auto_tile_size(void);
+	if (!ctl) {
+		return get_auto_tile_size();
+	} else {
+		return (ctl->tile_size > 0 ? ctl->tile_size : get_auto_tile_size());
+	}
+#else
 	return (ctl ? ctl->tile_size : 0);
+#endif
 }
 
 

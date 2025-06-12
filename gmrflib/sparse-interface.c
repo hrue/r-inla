@@ -1,3 +1,11 @@
+#include <assert.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -158,6 +166,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 	{
 		ret = GMRFLib_build_sparse_matrix_BAND(thread_id, &(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -167,6 +176,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 	{
 		ret = GMRFLib_build_sparse_matrix_TAUCS(thread_id, &(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -180,6 +190,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 		}
 		ret = GMRFLib_pardiso_build(thread_id, sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -189,6 +200,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 	{
 		ret = GMRFLib_stiles_build(problem->stiles_idx, thread_id, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -213,6 +225,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	{
 		ret = GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -224,6 +237,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 		    GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->TAUCS_cache),
 							  &(sm_fact->finfo));
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -233,6 +247,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	{
 		ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -242,6 +257,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	{
 		ret = GMRFLib_stiles_chol(problem->stiles_idx);
 		if (ret != GMRFLib_SUCCESS) {
+			GMRFLib_LEAVE_FUNCTION;
 			return ret;
 		}
 	}
@@ -253,7 +269,6 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	}
 
 	GMRFLib_LEAVE_FUNCTION;
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -447,7 +462,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		}
 		wwork_len[cache_idx] = nw;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 
@@ -460,22 +475,25 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 							     sm_fact->bandwidth, work + offset);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
+		int block_size = GMRFLib_taucs_get_block_size();
 		if (nrhs == 1) {
-			// simple entry
+			// simple entry, part 1
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
+		} else if (nrhs > 1 && nrhs == block_size) {
+			// simple entry, part 2
+			GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
 		} else {
-
 			int ntt = -1;
 			if (omp_get_level() == 0) {
-				ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+				ntt = GMRFLib_openmp->max_threads_outer;
 			} else {
 				ntt = GMRFLib_openmp->max_threads_inner;
 			}
 
 			// default
-			int block_size = GMRFLib_taucs_get_ctl_ptr()->block_size;
-			if (block_size <= 0)
-				block_size = 8;
+			if (block_size <= 0) {
+				block_size = 32;
+			}
 
 			int target = IMAX(1, block_size);
 			ntt = IMIN(ntt, IMAX(1, nrhs / target));
@@ -492,6 +510,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				for (int i = 0; i < ntt; i++) {
 					if (GMRFLib_isum(ntt, csize) < nrhs) {
 						csize[i]++;
+					} else {
+						break;
 					}
 				}
 				assert(GMRFLib_isum(ntt, csize) == nrhs);

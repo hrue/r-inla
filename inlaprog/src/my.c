@@ -1,8 +1,14 @@
-#include <string.h>
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "inla.h"
@@ -453,7 +459,7 @@ double *my_compute_lbell(int nmax)
 	for (int n = 2; n <= nmax; n++) {
 		int n1 = n - 1;
 
-#pragma omp parallel for if(n > 1024L)
+#pragma omp parallel for
 		for (int k = 0; k < n; k++) {
 			terms[k] = my_gsl_sf_lnchoose((unsigned int) n1, (unsigned int) k) + log_bell[k];
 		}

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -86,9 +87,9 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 
 	int numa_node = -1;
 	GMRFLib_numa_get(NULL, &numa_node);
-	int *re = GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
-	int *re1 = Malloc(n * nrhs, int);
-	int *re2 = Malloc(n * nrhs, int);
+	int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
+	int *re1 = Calloc(n * nrhs, int);
+	int *re2 = Calloc(n * nrhs, int);
 
 	// two step mapping
 	for (int j = 0; j < nrhs; j++) {
@@ -142,7 +143,7 @@ void GMRFLib_remap_print(FILE *fp)
 			}
 			k++;
 		}
-		fprintf(fp, "\tTotal size[%.2f]Mb\n", tsiz / SQR(1024.0));
+		fprintf(fp, "\tTotal size[%.2fMb]\n", tsiz / SQR(1024.0));
 	}
 }
 

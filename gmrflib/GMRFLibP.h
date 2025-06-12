@@ -13,15 +13,6 @@
 #include <numa.h>
 #endif
 
-#include <assert.h>
-#include <stddef.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdbool.h>
-
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus

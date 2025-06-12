@@ -1,3 +1,7 @@
+#include <assert.h>
+#include <stddef.h>
+#include <omp.h>
+
 #include "dictionary.h"
 #include "iniparser.h"
 

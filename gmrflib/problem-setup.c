@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <omp.h>
 
 #include "GMRFLib/sha.h"
 #include "GMRFLib/GMRFLib.h"
@@ -349,7 +350,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
+int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
 	// solve Q x = b, b=x, for many 'nrhs' and correct for constraints
 
@@ -358,7 +359,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem)
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 
-	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, NULL);
+	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;

@@ -1,10 +1,11 @@
-#include <time.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
+#include <omp.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include <time.h>
 
 #if defined(WIN32) || defined(WINDOWS)
 #include <io.h>

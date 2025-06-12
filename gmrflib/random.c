@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <omp.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
