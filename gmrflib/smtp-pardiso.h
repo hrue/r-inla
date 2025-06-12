@@ -4,11 +4,12 @@
   \brief GMRFLib interface to the band-solver in the LAPACK library
 */
 
-#ifndef __GMRFLib_SMTP_PARDISO_H__
-#define __GMRFLib_SMTP_PARDISO_H__
-
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifndef __GMRFLib_SMTP_PARDISO_H__
+#define __GMRFLib_SMTP_PARDISO_H__
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS

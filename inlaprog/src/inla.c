@@ -16,11 +16,13 @@
 #if defined(__linux__)
 #include <getopt.h>
 #endif
-#include <float.h>
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <float.h>
+#include <ltdl.h>
 #include <math.h>
+#include <omp.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -30,7 +32,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include <ltdl.h>
 
 #if !defined(WINDOWS)
 #include <sys/resource.h>

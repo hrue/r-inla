@@ -1,3 +1,11 @@
+#include <assert.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -454,7 +462,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 		}
 		wwork_len[cache_idx] = nw;
-		wwork[cache_idx] = GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 	}
 	double *work = wwork[cache_idx];
 

@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <omp.h>
 
 #include "GMRFLib/sha.h"
 #include "GMRFLib/GMRFLib.h"

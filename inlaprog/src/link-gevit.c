@@ -1,3 +1,8 @@
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "inla.h"
 #include "rmath.h"
 #include "link-gevit.h"

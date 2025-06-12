@@ -1,3 +1,20 @@
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
+
+#include <assert.h>
+#include <stddef.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <stdbool.h>
+
+#if defined(__linux__)
+#include <features.h>
+#endif
+
 #ifndef __GMRFLib_H__
 #define __GMRFLib_H__
 
@@ -12,12 +29,6 @@
 #endif
 
 __BEGIN_DECLS
-#if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE 1
-#endif
-#if defined(__linux__)
-#include <features.h>
-#endif
 #define GMRFLib_VERSION_MAJOR    "3"
 #define GMRFLib_VERSION_MINOR    "0"
 #define GMRFLib_VERSION_REVISION "0-snapshot"

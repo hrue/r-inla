@@ -1,11 +1,12 @@
-#include <stddef.h>
 #include <assert.h>
-#include <strings.h>
 #include <math.h>
+#include <omp.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -353,8 +354,6 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
 	ctl->tile_size = IMAX(0, tile_size);
 #if defined(INLA_WITH_STILES)
 	if (ctl->tile_size == 0) {
-		// this function is not defined in 'stiles.h'
-		int get_auto_tile_size(void);
 		ctl->tile_size = get_auto_tile_size();
 	}
 #endif
@@ -594,7 +593,7 @@ int GMRFLib_stiles_verbose()
 int GMRFLib_stiles_get_tile_size(void)
 {
 #if defined(INLA_WITH_STILES)
-	int get_auto_tile_size();
+	int get_auto_tile_size(void);
 	if (!ctl) {
 		return get_auto_tile_size();
 	} else {

@@ -739,7 +739,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nnuma = GMRFLib_numa_nodes();
 		inla_llik_data_gaussian_tp **g = Calloc(nnuma, inla_llik_data_gaussian_tp *);
 		for (int knuma = 0; knuma < nnuma; knuma++) {
-			g[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_gaussian_tp), knuma);
+			g[knuma] = (inla_llik_data_gaussian_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_gaussian_tp), knuma);
 			for (i = 0; i < n; i++) {
 				g[knuma][i].y = ds->data_observations.y[i];
 				g[knuma][i].w = ds->data_observations.weight_gaussian[i];
@@ -755,7 +755,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nnuma = GMRFLib_numa_nodes();
 		inla_llik_data_poisson_tp **p = Calloc(nnuma, inla_llik_data_poisson_tp *);
 		for (int knuma = 0; knuma < nnuma; knuma++) {
-			p[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_poisson_tp), knuma);
+			p[knuma] = (inla_llik_data_poisson_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_poisson_tp), knuma);
 			for (i = 0; i < n; i++) {
 				for (i = 0; i < n; i++) {
 					p[knuma][i].y = ds->data_observations.y[i];
@@ -775,7 +775,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nnuma = GMRFLib_numa_nodes();
 		inla_llik_data_binomial_tp **b = Calloc(nnuma, inla_llik_data_binomial_tp *);
 		for (int knuma = 0; knuma < nnuma; knuma++) {
-			b[knuma] = GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_binomial_tp), knuma);
+			b[knuma] = (inla_llik_data_binomial_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_binomial_tp), knuma);
 			for (i = 0; i < n; i++) {
 				b[knuma][i].y = ds->data_observations.y[i];
 				b[knuma][i].nb = ds->data_observations.nb[i];

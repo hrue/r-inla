@@ -1,4 +1,8 @@
+#include <assert.h>
+#include <omp.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "GMRFLib/GMRFLib.h"
 
 // deprecated functions

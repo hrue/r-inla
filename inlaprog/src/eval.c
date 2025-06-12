@@ -1,8 +1,11 @@
-#include <stdlib.h>
-#include <stdarg.h>
+#include <assert.h>
 #include <math.h>
-#include <string.h>
+#include <omp.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 #if defined(INLA_WITH_MUPARSER)
 #include <muParser/muParserDLL.h>

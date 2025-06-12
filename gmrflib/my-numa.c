@@ -1,3 +1,12 @@
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
+#include <omp.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 

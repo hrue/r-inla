@@ -1,8 +1,14 @@
-#include <string.h>
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "inla.h"

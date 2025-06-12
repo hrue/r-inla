@@ -3,7 +3,9 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#if !defined(__cplusplus)
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#endif
 
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/fsort/fluxsort.h"

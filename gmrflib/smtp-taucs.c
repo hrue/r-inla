@@ -1,10 +1,12 @@
-#include <stddef.h>
 #include <assert.h>
-#include <strings.h>
 #include <math.h>
+#include <omp.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include <strings.h>
+#include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -1086,7 +1088,8 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 {
 	int n = graph->n;
 	int skip_reordering = 0;
-	GMRFLib_graph_tp g = {.n = n * nrhs };
+	GMRFLib_graph_tp g;
+	g.n = n * nrhs; 
 
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
 	if (r) {

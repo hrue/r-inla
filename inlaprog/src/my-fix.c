@@ -1,6 +1,8 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <omp.h>
+
 #include "my-fix.h"
 #include "iniparser.h"
 #include "GMRFLib/GMRFLib.h"
