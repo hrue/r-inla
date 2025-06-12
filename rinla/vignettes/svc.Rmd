@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE, cache=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
@@ -154,7 +154,7 @@ US states) for this analysis to reduce computing time (~ 1 min). Note
 that site selection and zero filling, important components of trend 
 analyses, have already been conducted and this is the resulting data set.
 
-```{r data-init, eval=T, cache=T}
+```{r data-init, eval=T, cache=FALSE}
 # get data 
 ## download_dat <- read.csv(paste0(
 ##      "https://raw.github.com/tmeeha/inlaSVCBC",
@@ -278,7 +278,7 @@ hull around the count sites, and then build a triangular mesh by
 specifying minimum and maximum edge lengths within and slightly 
 outside the hull.
 
-```{r mesh, cache=TRUE}
+```{r mesh, cache=FALSE}
 # make a hull and mesh for spatial model
 hull <- fm_nonconvex_hull_inla(
   count_dat,
@@ -501,7 +501,7 @@ about 1 minutes on a standard laptop computer. Another option is to
 use the Variational Bayes approximation as detailed in Van Niekerk and
 Rue (2021) and Van Niekerk et. al. (2022).
 
-```{r run, eval=T, cache=TRUE}
+```{r run, eval=T, cache=FALSE}
 res <- inla(svc_form,
   family = "nbinomial",
   data = inla.stack.data(stack_fit), # stack the stack
