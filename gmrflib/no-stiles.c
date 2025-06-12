@@ -1,6 +1,8 @@
-#include <strings.h>
+#include <omp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #if !defined(INLA_WITH_STILES)
 
