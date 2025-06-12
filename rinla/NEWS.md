@@ -1,3 +1,9 @@
+# INLA 25.06.13
+* Last (planned) build before summer
+* Improved gcpo performance (TAUCS)
+* More work on the sTiles integration (gcpo)
+* Code improvement and optimization
+
 # INLA 25.06.07
 * Added support for `fmesher::fm_collect()` meshes to
   `inla.spde2.pcmatern()` and `inla.spde2.matern()`.
