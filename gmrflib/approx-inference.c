@@ -4102,7 +4102,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		if (!use_stiles) {
 
 			if (!serial) {
-				int nrhs = GMRFLib_taucs_get_block_size();
+				int nrhs = IMAX(1, GMRFLib_taucs_get_block_size());
 				int Swork_len = nt_inner;
 				double **Swork = NULL;
 				Swork = Malloc(Swork_len, double *);
@@ -4186,7 +4186,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			} else {
 
 				// serial
-				int nrhs = GMRFLib_taucs_get_block_size();
+				int nrhs = IMAX(1, GMRFLib_taucs_get_block_size());
 				int Swork_len = nt_max;
 				double **Swork = NULL;
 				Swork = Malloc(Swork_len, double *);
