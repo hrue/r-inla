@@ -1,6 +1,14 @@
 #if !defined(TAUCS_TAUCS_H)
 #define TAUCS_TAUCS_H
 
+#include <assert.h>
+#include <stddef.h>
+#include <time.h>
+#include <omp.h>
+#if __has_include(<malloc.h>)
+#include <malloc.h>
+#endif
+
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -12,13 +20,6 @@
 #endif
 
 __BEGIN_DECLS
-#include <assert.h>
-#include <stddef.h>
-#include <time.h>
-#include <omp.h>
-#if __has_include(<malloc.h>)
-#include <malloc.h>
-#endif
 #ifdef __GNUC__
 //#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #define UNUSED(x) x __attribute__((__unused__))
@@ -52,6 +53,11 @@ typedef int fortran_charlen_t;
 #pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IMIN) (int a, int b) {
+	return ((a) < (b) ? (a) : (b));
 }
 
 #define DMAX(a_, b_) fmax(a_, b_)
