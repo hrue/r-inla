@@ -3606,7 +3606,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					double *Sa = Saa + ii * N;
 					double *cor = lwork[0];
 					double *cor_abs = lwork[1];
-					double eps = 1.0E-4 * min_sd / isd[node];
+					double eps = 1.0E-3 * min_sd / isd[node];
 					size_t *largest = (size_t *) lwork[2];
 
 					// remove this one later
@@ -3617,19 +3617,19 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							Sa[iii] = 0.0;
 					}
 
-					// can check if we can by-pass some of the inner-products. check this more later
-					// double fac = 0.1;
-					// int Sa_low = GMRFLib_find_nonzero(Sa, n, 1);
-					// int Sa_high = (Sa_low > fac * n ? GMRFLib_find_nonzero(Sa, n, -1) : n -1);
-					// int try_bypass = (Sa_low > fac * n) && (Sa_high < (1.0 - fac) * n);
-
-					// disable this for now
+					// can check if we can by-pass some of the inner-products. check this more later as it does
+					// not seems to be very successful
+					const int try_bypass = 0; 
 					int Sa_low = 0;
 					int Sa_high = n - 1;
-					const int try_bypass = 0;
+					
+					if (try_bypass) {
+						Sa_low = GMRFLib_find_nonzero(Sa, n, 1);
+						Sa_high = GMRFLib_find_nonzero(Sa, n, -1);
+					}
 
 					if (try_bypass) {
-#pragma omp parallel for schedule(dynamic) num_threads(nt_inner)
+#pragma omp parallel for num_threads(nt_inner)
 						for (int nnode = 0; nnode < Npred; nnode++) {
 							GMRFLib_idxval_tp *vv = A_idx(nnode);
 							if ((vv->idx[0] > Sa_high || vv->idx[vv->n - 1] < Sa_low)) {
