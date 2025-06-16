@@ -3538,12 +3538,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (GCPO_RUN_BLOCK()) {
 			int nrhs = 1;
 			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-				nrhs = IMAX(1, GMRFLib_stiles_get_tile_size());
+				nrhs = IMAX(nrhs, GMRFLib_stiles_get_tile_size());
 			} else if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
 				// make outer loop maximum parallel
 				nt_outer = nt_outer * nt_inner;
 				nt_inner = 1;
-				nrhs = IMAX(1, GMRFLib_taucs_get_block_size());
+				nrhs = IMAX(nrhs, GMRFLib_taucs_get_block_size());
 			}
 
 			double ***work = Calloc(nt_outer, double **);
