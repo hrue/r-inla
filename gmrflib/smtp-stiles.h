@@ -52,7 +52,7 @@ typedef struct {
 	bool **Qinv_done;
 	bool **bind_done;
 	GMRFLib_ptr_tp *graphs;
-	sTiles_object *obj;
+	void *obj;
 } GMRFLib_stiles_store_tp;
 
 

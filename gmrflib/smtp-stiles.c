@@ -119,7 +119,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		// ptr's are stored, contents not copied, so we need to free them later.
 		// since sTiles wants the lower triangular matrix, we just swap 'idx_i' and 'idx_j'
 
-		sTiles_assign_graph(ig, store->obj, g->n, nz, idx_j, idx_i);	/* oops, yes we swap */
+		sTiles_assign_graph(ig, &(store->obj), g->n, nz, idx_j, idx_i);	/* oops, yes we swap */
 		GMRFLib_ptr_add(&free_ptrs, idx_i);
 		GMRFLib_ptr_add(&free_ptrs, idx_j);
 
@@ -610,6 +610,7 @@ int GMRFLib_stiles_get_tile_size(void)
 // TEST FUNCTIONS GOES HERE
 //
 //
+#if defined(INLA_WITH_DEVEL)
 
 double GMRFLib_stiles_test_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *args)
 {
@@ -997,3 +998,5 @@ int GMRFLib_stiles_test3(void)
 	GMRFLib_stiles_quit();
 	return GMRFLib_SUCCESS;
 }
+
+#endif							       // defined(INLA_WITH_DEVEL)
