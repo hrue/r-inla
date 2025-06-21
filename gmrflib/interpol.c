@@ -11,15 +11,15 @@
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
-	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL12);
+	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL12, 0);
 }
 
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache)
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache, int skip_checks)
 {
 	/*
 	 * Return a spline interpolant for {(x,y)}
-	 *
-	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none. 
+	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none.
+	 * if skip_checks!=0, then skip check for sorted 'x' and to-close 'x'
 	 */
 
 	if (n < 3) {
@@ -31,9 +31,9 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
-	Calloc_init(2 * n, 2);
-	xx = Calloc_get(n);
-	yy = Calloc_get(n);
+	Malloc_init(2 * n, 2);
+	xx = Malloc_get(n);
+	yy = Malloc_get(n);
 	Memcpy(xx, x, n * sizeof(double));
 	Memcpy(yy, y, n * sizeof(double));
 
@@ -50,14 +50,17 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 			xx[i] = GMRFLib_logit(xx[i]);
 		}
 	}
-	// normally, 'xx' is sorted, but...
-	if (!GMRFLib_is_sorted_dinc(n, xx)) {
-		my_sort2_dd(xx, yy, n);
-	}
-	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
 
+	if (!skip_checks) {
+		// normally, 'xx' is sorted, but...
+		if (!GMRFLib_is_sorted_dinc(n, xx)) {
+			my_sort2_dd(xx, yy, n);
+		}
+		GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
+	}
+	
 	if (nn < 3) {
-		Calloc_free();
+		Malloc_free();
 		return NULL;
 	}
 
@@ -102,7 +105,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		// s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_akima), (unsigned int) nn);
 	}
 	gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
-	Calloc_free();
+	Malloc_free();
 
 	return s;
 }

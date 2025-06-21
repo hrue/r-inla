@@ -1284,6 +1284,46 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idx_find(int id, GMRFLib_idx_tp *h) 
+{
+	// return index for which h->idx[i]=id, -1 if none
+	for(int i = 0; i < h->n; i++) {
+		if (h->idx[i] == id) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int GMRFLib_idxval_find(int *id, double *val, GMRFLib_idxval_tp *h) 
+{
+	// return index for which h->idx[i]=id and/or h->val[i]=val, -1 if none
+
+	if (id && !val) {
+		for(int i = 0; i < h->n; i++) {
+			if (h->idx[i] == *id) {
+				return i;
+			}
+		}
+	} else if (!id && val) {
+		for(int i = 0; i < h->n; i++) {
+			if (ISEQUAL(h->val[i], *val)) {
+				return i;
+			}
+		}
+	} else if (id && val) {
+		for(int i = 0; i < h->n; i++) {
+			if (h->idx[i] == *id && ISEQUAL(h->val[i], *val)) {
+				return i;
+			}
+		}
+	} else {
+		return -1;
+	}
+
+	return -1;
+}
+
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
 	if (!h)

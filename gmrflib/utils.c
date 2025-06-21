@@ -657,16 +657,23 @@ int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps)
 
 int GMRFLib_unique_additive(int *n, double *x, double eps)
 {
-	/*
-	 * assume x is sorted, remove ties and change *n accordingly. use the median in each bin
-	 * 
-	 * ties are defined if |x_i and x_j|  <= eps
-	 * 
-	 */
-	int i = 0, j = 0, jj = 0;
+	// assume x is sorted, remove ties and change *n accordingly. use the median in each bin.
+	// ties are defined if |x_i and x_j|  <= eps
 
+	int ties = 0;
+	for (int k = 0; k < *n - 1; k++) {
+		if (ABS(x[k] - x[k+1]) <= eps) {
+			ties = 1;
+			break;
+		}
+	}
+	if (!ties) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i = 0, j = 0, jj = 0;
 	while (jj < *n) {
-		while (jj + 1 < *n && fabs(x[jj + 1] - x[j]) <= eps) {
+		while (jj + 1 < *n && ABS(x[jj + 1] - x[j]) <= eps) {
 			jj++;
 		}
 		x[i] = x[jj];
@@ -681,21 +688,27 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 {
-	/*
-	 * assume x is sorted, remove ties and change *n accordingly. use the median in each bin. make the same changes to y.
-	 * 
-	 * ties are defined if |x_i and x_j|  <= eps
-	 * 
-	 */
+	// assume x is sorted, remove ties and change *n accordingly. use the median in each bin. make the same changes to y.
+	// ties are defined if |x_i and x_j|  <= eps
 
 	if (!y) {
 		return GMRFLib_unique_additive(n, x, eps);
 	}
 
-	int i = 0, j = 0, jj = 0;
+	int ties = 0;
+	for (int k = 0; k < *n - 1; k++) {
+		if (ABS(x[k] - x[k+1]) <= eps) {
+			ties = 1;
+			break;
+		}
+	}
+	if (!ties) {
+		return GMRFLib_SUCCESS;
+	}
 
+	int i = 0, j = 0, jj = 0;
 	while (jj < *n) {
-		while (jj + 1 < *n && fabs(x[jj + 1] - x[j]) <= eps) {
+		while (jj + 1 < *n && ABS(x[jj + 1] - x[j]) <= eps) {
 			jj++;
 		}
 		x[i] = x[jj];
@@ -785,7 +798,7 @@ double GMRFLib_signed_pow(double x, double power)
 	if (ISZERO(x)) {
 		return 0.0;
 	} else {
-		return (x > 0.0 ? 1.0 : -1.0) * pow(fabs(x), power);
+		return (x > 0.0 ? 1.0 : -1.0) * pow(ABS(x), power);
 	}
 }
 
@@ -2390,14 +2403,10 @@ double GMRFLib_erfc_inv(double x)
 
 size_t GMRFLib_align(size_t n, size_t size)
 {
-	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bits boundary with an added buffer of GMRFLib_CACHELINESIZE bytes
-	// GMRFLib_CACHELINESIZE/size must be an integer
-
-	int m = GMRFLib_CACHELINESIZE / size;
+	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bytes boundary
 	int mm = GMRFLib_MEM_ALIGN / size;
 	div_t d = div(n, mm);
-
-	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
+	return n + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
 size_t GMRFLib_align_simple(size_t n, size_t size)

@@ -1952,7 +1952,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		assert(omp_get_thread_num() == 0);
 		GMRFLib_openmp_place_tp place = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
-		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl);
+		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl, d_idx);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 	overall_time_correct += GMRFLib_timer();
@@ -2187,7 +2187,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			if (!(GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1)) {
 				gcpo_theta[dens_count] =
-				    GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
+					GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
 						 loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
 			}
 		}
@@ -3311,7 +3311,7 @@ int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 }
 
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
-					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl))
+					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define W(node_) (gcpo_param->weights[node_])
@@ -3326,6 +3326,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
 	int n = preopt->latent_graph->n;
+	int dn = d_idx->n;
 	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->weights) || (gcpo_param->weights && gcpo_param->len_weights < Npred)) {
@@ -3507,10 +3508,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 		GMRFLib_idx_tp *selection = NULL;
 		if (!(gcpo_param->selection)) {
-			GMRFLib_idx_create_x(&selection, Npred);
-			for (int i = 0; i < Npred; i++) {
-				GMRFLib_idx_add(&selection, i);
-			}
+			selection = GMRFLib_idx_duplicate(d_idx);
 		} else {
 			GMRFLib_idx_create_x(&selection, gcpo_param->selection->n);
 			for (int i = 0; i < gcpo_param->selection->n; i++) {
@@ -3521,6 +3519,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}
+
 		if (gcpo_param->verbose || detailed_output) {
 			assert(selection);
 			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1g\n", __GMRFLib_FuncName,
@@ -3551,14 +3550,15 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			for (int i = 0; i < nt_outer; i++) {
 				work[i] = Calloc(work_n, double *);
 				for (int j = 0; j < work_n; j++) {
-					work[i][j] = Calloc(N, double);
+					work[i][j] = Calloc(dn, double);
 				}
 			}
+			assert(sizeof(size_t) <= sizeof(double)); /* for work[2] */
 
 			double **Swork = NULL;
 			Swork = Calloc(nt_outer, double *);
 			for (int i = 0; i < nt_outer; i++) {
-				Swork[i] = Malloc(N * nrhs, double);
+				Swork[i] = Malloc(n * nrhs, double);
 			}
 			GMRFLib_ptr_tp *split = GMRFLib_idx_split(selection, nrhs);
 
@@ -3579,15 +3579,15 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				double **lwork = work[tnum];
 				double *Saa = Swork[tnum];
 
-				GMRFLib_dfill(N * nrhs, 0.0, Saa);
+				GMRFLib_dfill(n * nrhs, 0.0, Saa);
 				for (int j = 0; j < 3; j++) {
-					GMRFLib_dfill(N, 0.0, lwork[j]);
+					GMRFLib_dfill(dn, 0.0, lwork[j]);
 				}
 
 				for (int ii = 0; ii < sel->n; ii++) {
 					int node = sel->idx[ii];
 					GMRFLib_idxval_tp *v = A_idx(node);
-					GMRFLib_unpack(v->n, v->val, Saa + N * ii, v->idx);
+					GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 				}
 
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
@@ -3602,77 +3602,56 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 				for (int ii = 0; ii < sel->n; ii++) {
 					int node = sel->idx[ii];
-
-					double *Sa = Saa + ii * N;
+					double *Sa = Saa + ii * n;
 					double *cor = lwork[0];
 					double *cor_abs = lwork[1];
 					double eps = 1.0E-3 * min_sd / isd[node];
 					size_t *largest = (size_t *) lwork[2];
 
-					// remove this one later
-					assert(n == build_ai_store->problem->sub_graph->n);
-#pragma omp simd
 					for (int iii = 0; iii < n; iii++) {
 						if (ABS(Sa[iii]) < eps)
 							Sa[iii] = 0.0;
 					}
 
-					// can check if we can by-pass some of the inner-products. check this more later as it does
-					// not seems to be very successful
-					const int try_bypass = 0; 
-					int Sa_low = 0;
-					int Sa_high = n - 1;
+					GMRFLib_dfill(dn, 0.0, cor);
+					GMRFLib_dfill(dn, 0.0, cor_abs);
 					
-					if (try_bypass) {
-						Sa_low = GMRFLib_find_nonzero(Sa, n, 1);
-						Sa_high = GMRFLib_find_nonzero(Sa, n, -1);
-					}
-
-					if (try_bypass) {
-#pragma omp parallel for num_threads(nt_inner)
-						for (int nnode = 0; nnode < Npred; nnode++) {
-							GMRFLib_idxval_tp *vv = A_idx(nnode);
-							if ((vv->idx[0] > Sa_high || vv->idx[vv->n - 1] < Sa_low)) {
-								cor[nnode] = cor_abs[nnode] = 0.0;
-							} else {
-								double sum = 0.0;
-								GMRFLib_dot_product_INLINE(sum, vv, Sa);
-								sum *= isd[node] * isd[nnode];
-								cor[nnode] = TRUNCATE(sum, -1.0, 1.0);
-								cor_abs[nnode] = ABS(cor[nnode]);
-							}
-						}
-					} else {
 #pragma omp parallel for schedule(static) num_threads(nt_inner)
-						for (int nnode = 0; nnode < Npred; nnode++) {
-							GMRFLib_idxval_tp *vv = A_idx(nnode);
-							double sum = 0.0;
-							GMRFLib_dot_product_INLINE(sum, vv, Sa);
-							sum *= isd[node] * isd[nnode];
-							cor[nnode] = TRUNCATE(sum, -1.0, 1.0);
-							cor_abs[nnode] = ABS(cor[nnode]);
+					for (int knode = 0; knode < dn; knode++) {
+						int nnode = d_idx->idx[knode];
+						GMRFLib_idxval_tp *vv = A_idx(nnode);
+						double sum = 0.0;
+						GMRFLib_dot_product_INLINE(sum, vv, Sa);
+						sum *= isd[node] * isd[nnode];
+						cor[knode] = TRUNCATE(sum, -1.0, 1.0);
+						cor_abs[knode] = ABS(cor[knode]);
+
+						if (node == nnode) {
+							// make sure its exact
+							cor[knode] = cor_abs[knode] = 1.0;
 						}
 					}
 
-					cor[node] = cor_abs[node] = 1.0;
 					int levels_ok = 0;
 					double levels_magnify = 1.0;
 
 					while (!levels_ok) {
 						groups[node]->n = 0;
-						int siz_g = IMIN(Npred, (int) (levels_magnify * (ABS(gcpo_param->num_level_sets) + 4L)));
+						int siz_g = IMIN(dn, (int) (levels_magnify * (ABS(gcpo_param->num_level_sets) + 4L)));
 						levels_magnify *= 4.0;
-						GMRFLib_DEBUG_idddd("node siz_g Npred num_level_sets levels_magnify", node, (double) siz_g,
-								    (double) Npred, gcpo_param->num_level_sets, levels_magnify);
-						gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred);
+						GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
+								    (double) dn, gcpo_param->num_level_sets, levels_magnify);
+						gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) dn);
 
 						double sumw = W(node);
-						int i_prev = (int) largest[0];
+						int i_prev_l = (int) largest[0];
+						int i_prev = d_idx->idx[i_prev_l];
 						double cor_abs_prev = 1.0;
 						GMRFLib_idxval_add(&(groups[node]), i_prev, cor_abs_prev);
 						for (int i = 1; i < siz_g && !levels_ok; i++) {
-							int i_new = (int) largest[i];
-							double cor_abs_new = cor_abs[i_new];
+							int i_new_l = (int) largest[i];
+							int i_new = d_idx->idx[i_new_l];
+							double cor_abs_new = cor_abs[i_new_l];
 							if (LEGAL_TO_ADD(i_new)) {
 								/*
 								 * we have to go to one more before we stop as we need to add all equal ones first 
@@ -3689,12 +3668,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 										cor_abs_prev = cor_abs_new;
 										GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new,
 												 cor_abs_new);
-										GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]);
+										GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
 									}
 								} else {
-									cor_abs[i_new] = cor_abs_prev;
-									cor[i_new] = DSIGN(cor[i_new]) * cor_abs_prev;
-									GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]);
+									cor_abs[i_new_l] = cor_abs_prev;
+									cor[i_new_l] = DSIGN(cor[i_new_l]) * cor_abs_prev;
+									GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
 									GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new,
 											 cor_abs_prev);
 									/*
@@ -3715,7 +3694,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									levels_ok = 1;
 								}
 							}
-							if (groups[node]->n >= Npred)
+							if (groups[node]->n >= dn)
 								levels_ok = 1;	/* emergency option */
 						}
 						if (levels_ok) {
@@ -3729,15 +3708,29 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						GMRFLib_DEBUG_d("found group with sum of weights", sumw);
 						GMRFLib_DEBUG_i("levels_ok", levels_ok);
 					}
+
 					if (gcpo_param->friends) {
+						// add friends nodes
 						int group_n = groups[node]->n;
 						for (int i = 0; i < group_n; i++) {
 							int new_node = groups[node]->idx[i];
 							if (new_node < gcpo_param->friends_n) {
 								for (int j = 0; j < gcpo_param->friends[new_node]->n; j++) {
 									int new_node2 = gcpo_param->friends[new_node]->idx[j];
-									if (LEGAL(new_node2, Npred)) {
-										GMRFLib_idxval_add(&(groups[node]), new_node2, cor[new_node2]);
+									if (LEGAL(new_node2, Npred) && (GMRFLib_idxval_find(&new_node2, NULL, groups[node]) < 0)) {
+										int idx_l = GMRFLib_idx_find(new_node2, d_idx);
+										if (idx_l >= 0) {
+											// then we have computed the correlation
+											GMRFLib_idxval_add(&(groups[node]), new_node2, cor[idx_l]);
+										} else {
+											// we do not have the correlation
+											GMRFLib_idxval_tp *vv = A_idx(new_node2);
+											double sum = 0.0;
+											GMRFLib_dot_product_INLINE(sum, vv, Sa);
+											sum *= isd[node] * isd[new_node2];
+											double corr = TRUNCATE(sum, -1.0, 1.0);
+											GMRFLib_idxval_add(&(groups[node]), new_node2, corr);
+										}
 									}
 								}
 							}
@@ -3748,19 +3741,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					 */
 					GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0);
 					/*
-					 * this can happen: ensure node is part of its own group, as it might have been thrown out 
-					 */
-					/*
-					 * due to max_size is reached or there are to many with |correlation| = 1 
+					 * this can happen: ensure node is part of its own group, as it might have been thrown out.
+					 * this due to max_size is reached or there are to many with |correlation| = 1
 					 */
 					if (GMRFLib_iwhich_sorted(node, groups[node]->idx, groups[node]->n) < 0) {
 						GMRFLib_idxval_add(&(groups[node]), node, 1.0);
 						GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0);
 					}
-					if (0)
-						P(node);
-					if (0)
-						GMRFLib_idxval_printf(stdout, groups[node], "after adding friends");
 				}
 			}
 			GMRFLib_idx_split_free(split);

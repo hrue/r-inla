@@ -41,7 +41,7 @@ typedef struct {
 } GMRFLib_spline_tp;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n);
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache);
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache, int skip_checks);
 GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M);
 double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s);
