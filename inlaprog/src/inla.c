@@ -7661,13 +7661,13 @@ int main(int argc, char **argv)
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) { \
 				double tot = 0.01 * (GMRFLib_overall_cpu[7] - GMRFLib_overall_cpu[0]); \
 				fprintf(fp_, "\nBreakdown of overall running time %.2f seconds in stages: \n", tot / 0.01); \
-				fprintf(fp_, "\tReading model    %5.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
-				fprintf(fp_, "\tBuilding model   %5.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
-				fprintf(fp_, "\tOptimising       %5.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
-				fprintf(fp_, "\tHessian          %5.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
-				fprintf(fp_, "\tIntegration      %5.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
-				fprintf(fp_, "\tPostprocessing   %5.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
-				fprintf(fp_, "\tOutput           %5.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
+				fprintf(fp_, "\tReading model    %7.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
+				fprintf(fp_, "\tBuilding model   %7.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
+				fprintf(fp_, "\tOptimising       %7.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
+				fprintf(fp_, "\tHessian          %7.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
+				fprintf(fp_, "\tIntegration      %7.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
+				fprintf(fp_, "\tPostprocessing   %7.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+				fprintf(fp_, "\tOutput           %7.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
 			}
 
 #define PEFF_OUTPUT(fp_)						\
