@@ -6347,7 +6347,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
 {
 	const int use_improved_mode = 1;
-	
+
 	// this require 'i_max', 'np', 'z' and 'ldz'
 #define COMPUTE_MODE()							\
 	if (d_mode) {							\

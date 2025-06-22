@@ -1089,7 +1089,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 	int n = graph->n;
 	int skip_reordering = 0;
 	GMRFLib_graph_tp g;
-	g.n = n * nrhs; 
+	g.n = n * nrhs;
 
 	int *r = GMRFLib_remap_get(remap, n, nrhs);
 	if (r) {

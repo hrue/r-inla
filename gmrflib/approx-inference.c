@@ -2187,7 +2187,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			if (!(GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1)) {
 				gcpo_theta[dens_count] =
-					GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
+				    GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
 						 loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
 			}
 		}
@@ -3553,7 +3553,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					work[i][j] = Calloc(dn, double);
 				}
 			}
-			assert(sizeof(size_t) <= sizeof(double)); /* for work[2] */
+			assert(sizeof(size_t) <= sizeof(double));	/* for work[2] */
 
 			double **Swork = NULL;
 			Swork = Calloc(nt_outer, double *);
@@ -3615,7 +3615,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 					GMRFLib_dfill(dn, 0.0, cor);
 					GMRFLib_dfill(dn, 0.0, cor_abs);
-					
+
 #pragma omp parallel for schedule(static) num_threads(nt_inner)
 					for (int knode = 0; knode < dn; knode++) {
 						int nnode = d_idx->idx[knode];
@@ -3717,7 +3717,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							if (new_node < gcpo_param->friends_n) {
 								for (int j = 0; j < gcpo_param->friends[new_node]->n; j++) {
 									int new_node2 = gcpo_param->friends[new_node]->idx[j];
-									if (LEGAL(new_node2, Npred) && (GMRFLib_idxval_find(&new_node2, NULL, groups[node]) < 0)) {
+									if (LEGAL(new_node2, Npred)
+									    && (GMRFLib_idxval_find(&new_node2, NULL, groups[node]) < 0)) {
 										int idx_l = GMRFLib_idx_find(new_node2, d_idx);
 										if (idx_l >= 0) {
 											// then we have computed the correlation

@@ -658,11 +658,11 @@ int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps)
 int GMRFLib_unique_additive(int *n, double *x, double eps)
 {
 	// assume x is sorted, remove ties and change *n accordingly. use the median in each bin.
-	// ties are defined if |x_i and x_j|  <= eps
+	// ties are defined if |x_i and x_j| <= eps
 
 	int ties = 0;
 	for (int k = 0; k < *n - 1; k++) {
-		if (ABS(x[k] - x[k+1]) <= eps) {
+		if (ABS(x[k] - x[k + 1]) <= eps) {
 			ties = 1;
 			break;
 		}
@@ -689,7 +689,7 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 {
 	// assume x is sorted, remove ties and change *n accordingly. use the median in each bin. make the same changes to y.
-	// ties are defined if |x_i and x_j|  <= eps
+	// ties are defined if |x_i and x_j| <= eps
 
 	if (!y) {
 		return GMRFLib_unique_additive(n, x, eps);
@@ -697,7 +697,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 
 	int ties = 0;
 	for (int k = 0; k < *n - 1; k++) {
-		if (ABS(x[k] - x[k+1]) <= eps) {
+		if (ABS(x[k] - x[k + 1]) <= eps) {
 			ties = 1;
 			break;
 		}
@@ -2261,9 +2261,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2283,15 +2283,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

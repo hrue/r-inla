@@ -21,7 +21,6 @@
 #endif
 
 __BEGIN_DECLS
-
 //
 //
 #if defined(INLA_WITH_PARDISO_WORKAROUND)

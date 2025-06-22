@@ -14,12 +14,13 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL12, 0);
 }
 
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache, int skip_checks)
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache,
+					   int skip_checks)
 {
 	/*
 	 * Return a spline interpolant for {(x,y)}
 	 * cache=0:cache only on level 1, if cache=1: cache on both levels, cache=2: serial cache, cache=3: none.
-	 * if skip_checks!=0, then skip check for sorted 'x' and to-close 'x'
+	 * if skip_checks!=0, then skip check for sorted 'x'
 	 */
 
 	if (n < 3) {
@@ -56,9 +57,9 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		if (!GMRFLib_is_sorted_dinc(n, xx)) {
 			my_sort2_dd(xx, yy, n);
 		}
-		GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
 	}
-	
+	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
+
 	if (nn < 3) {
 		Malloc_free();
 		return NULL;
