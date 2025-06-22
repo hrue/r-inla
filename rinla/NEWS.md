@@ -1,3 +1,7 @@
+# INLA 25.06.22
+* Improvement for 'gcpo' calculation
+* Code optimisation for some output calculations
+
 # INLA 25.06.13
 * Last (planned) build before summer
 * Improved gcpo performance (TAUCS)

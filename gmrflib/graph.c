@@ -1264,6 +1264,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
+	GMRFLib_ENTER_FUNCTION;
 	/*
 	 * convert from the real-world to the mapped world. source might be NULL. 
 	 */
@@ -1295,11 +1296,13 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		// for (int i = 0; i < graph->n; i++) destination[remap[i]] = work[i];
 		GMRFLib_unpack(graph->n, work, destination, remap);
 	}
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
+	GMRFLib_ENTER_FUNCTION;
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
@@ -1332,6 +1335,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		// for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
 		GMRFLib_pack(graph->n, work, remap, destination);
 	}
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 

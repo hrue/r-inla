@@ -5,12 +5,12 @@
 \alias{inla.set.control.taucs.default}
 \title{control.taucs}
 \usage{
-control.taucs(block.size = 12)
+control.taucs(block.size = 40)
 
 inla.set.control.taucs.default(...)
 }
 \arguments{
-\item{block.size}{Minimum number of rhs's in each parallel solve}
+\item{block.size}{Preferred number of rhs's in each parallel solve}
 
 \item{...}{Named arguments passed on to the main function}
 }

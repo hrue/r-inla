@@ -125,10 +125,7 @@ static double POSSIBLY_UNUSED(TRUNCATE) (double x, double low, double high) {
 	return DMIN(DMAX(x, low), high);
 }
 
-#define GMRFLib_CACHELINESIZE (GMRFLib_cachelinesize)
-#define GMRFLib_CACHELINESIZE_ND (GMRFLib_CACHELINESIZE / sizeof(double))
-#define GMRFLib_CACHELINESIZE_NI (GMRFLib_CACHELINESIZE / sizeof(int))
-#define GMRFLib_MEM_ALIGN (32L)
+#define GMRFLib_MEM_ALIGN (16L)
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
@@ -412,9 +409,8 @@ typedef enum {
 
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
-	size_t calloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_ND;		\
 	size_t calloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
-	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_mem_align_ * calloc_l1_cacheline_); \
+	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_mem_align_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
 	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
@@ -422,9 +418,8 @@ typedef enum {
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
-	size_t icalloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_NI;		\
 	size_t icalloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(int);	\
-	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_mem_align_ * icalloc_l1_cacheline_); \
+	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_mem_align_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
 	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int); \
@@ -432,9 +427,8 @@ typedef enum {
 
 #define Malloc_init(n_, m_)						\
 	size_t malloc_m_ = (m_);					\
-	size_t malloc_l1_cacheline_ = GMRFLib_CACHELINESIZE_ND;		\
 	size_t malloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
-	size_t malloc_len_ = (size_t)((n_) + malloc_m_ * malloc_mem_align_ * malloc_l1_cacheline_); \
+	size_t malloc_len_ = (size_t)((n_) + malloc_m_ * malloc_mem_align_); \
 	size_t malloc_offset_ = 0;					\
 	size_t malloc_m_count_ = 0;					\
 	double *malloc_work_ = Malloc(IMAX(1, malloc_len_), double);	\

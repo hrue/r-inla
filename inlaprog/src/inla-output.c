@@ -223,36 +223,28 @@ int inla_output(inla_tp *mb)
 	local_verbose = 0;
 
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
-		GMRFLib_openmp_implement_strategy_special(2, GMRFLib_MAX_THREADS() / 2);
+		GMRFLib_openmp_implement_strategy_special(1, GMRFLib_MAX_THREADS());
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int k = 0; k < 2; k++) {
-			switch (k) {
-			case 0:
-			{
-				int offset = offsets[0];
-				inla_output_detail(mb->dir, &(mb->density[offset]),
-						   NULL, mb->predictor_n + mb->predictor_m, 1,
-						   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor,
-						   NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
-				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
-						 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
-			}
-				break;
-
-			case 1:
-			{
-				char *sdir = NULL, *newtag = NULL;
-				int offset = offsets[0];
-				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
-				GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
-				inla_output_detail(mb->dir, &(mb->density[offset]),
-						   NULL, mb->predictor_n + mb->predictor_m, 1,
-						   mb->predictor_output, sdir, mb->output->return_marginals_predictor,
-						   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
-			}
-				break;
-			}
+		for (int k = 0; k < 1; k++) {
+			int offset = offsets[0];
+			inla_output_detail(mb->dir, &(mb->density[offset]),
+					   NULL, mb->predictor_n + mb->predictor_m, 1,
+					   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor,
+					   NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
+			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
+					 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
+		}
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		for (int k = 0; k < 1; k++) {
+			char *sdir = NULL, *newtag = NULL;
+			int offset = offsets[0];
+			GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
+			GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
+			inla_output_detail(mb->dir, &(mb->density[offset]),
+					   NULL, mb->predictor_n + mb->predictor_m, 1,
+					   mb->predictor_output, sdir, mb->output->return_marginals_predictor,
+					   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
+			inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 		}
 	} else {
 		GMRFLib_openmp_implement_strategy_special(1, GMRFLib_MAX_THREADS());

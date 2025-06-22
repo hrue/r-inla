@@ -1224,7 +1224,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments,
 				   GMRFLib_idx_tp * d_idx);
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
-					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl);
+					   GMRFLib_gcpo_param_tp * gcpo_param, int *fl, GMRFLib_idx_tp * d_idx);
 
 double inla_compute_saturated_loglik(int, int *, int, GMRFLib_logl_tp *, double *, void *);
 double GMRFLib_prior_mean_eval(int thread_id, GMRFLib_prior_mean_tp * pmean);

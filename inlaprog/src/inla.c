@@ -6346,6 +6346,8 @@ int inla_computed(GMRFLib_density_tp **d, int n)
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
 {
+	const int use_improved_mode = 1;
+
 	// this require 'i_max', 'np', 'z' and 'ldz'
 #define COMPUTE_MODE()							\
 	if (d_mode) {							\
@@ -6356,28 +6358,32 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			ii -= 2;					\
 		}							\
 		double zm = inla_interpolate_mode(z + ii, ldz + ii);	\
-		double zm_orig = zm;					\
-		int m = 5;						\
-		int low_ = IMAX(0, i_max - m);				\
-		int high_ = IMIN(np-1, i_max + m);			\
-		int len = high_ - low_ + 1;				\
-		GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL1); \
-		if (lds == NULL) {					\
-			*d_mode = zm_orig;				\
-		} else {						\
-			double step_size[] = {0.0, 0.0};		\
-			for(int iter = 0; iter < 2; iter++) {		\
-				step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
-				zm -= step_size[iter];			\
-			}						\
-			if ((ABS(step_size[0]) >= ABS(step_size[1]))) {	\
-				*d_mode = zm;				\
-			} else {					\
-				/* emergency option */			\
+		if (use_improved_mode) {				\
+			double zm_orig = zm;				\
+			int m = 5;					\
+			int low_ = IMAX(0, i_max - m);			\
+			int high_ = IMIN(np-1, i_max + m);		\
+			int len = high_ - low_ + 1;			\
+			GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 1); \
+			if (lds == NULL) {				\
 				*d_mode = zm_orig;			\
+			} else {					\
+				double step_size[] = {0.0, 0.0};	\
+				for(int iter = 0; iter < 2; iter++) {	\
+					step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
+					zm -= step_size[iter];		\
+				}					\
+				if ((ABS(step_size[0]) >= ABS(step_size[1]))) {	\
+					*d_mode = zm;			\
+				} else {				\
+					/* emergency option */		\
+					*d_mode = zm_orig;		\
+				}					\
+				GMRFLib_spline_free(lds);		\
 			}						\
-			GMRFLib_spline_free(lds);			\
-			}						\
+		} else {						\
+			*d_mode =  zm;					\
+		}							\
 	}
 
 #define _MAP_X(_x_user) (plain_case ? (_x_user) : \
@@ -6450,9 +6456,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		GMRFLib_ghq(&xp, &wp, np);
 
-		Calloc_init(2 * np, 2);
-		double *ldz = Calloc_get(np);
-		double *z = Calloc_get(np);
+		Malloc_init(2 * np, 2);
+		double *ldz = Malloc_get(np);
+		double *z = Malloc_get(np);
 
 		int i_max = 0;
 		m1 = 0.0;
@@ -6460,71 +6466,92 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		if (d_mode) {
 			if (plain) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
-					double f = _MAP_X_plain(x);
-					double df = _MAP_DX_plain(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
-
+					double f = x;
+					double tmp = wp[i] * f;
+					m1 += tmp;
+					m2 += tmp * f;
 					z[i] = f;
-					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					ldz[i] = -0.5 * SQR(xp[i]);
 				}
-				GMRFLib_max_value(ldz, np, &i_max);
 			} else if (func) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
-				for (int i = 0; i < np; i++) {
-					double x = xp[i] * stdev + mean;
-					double f = _MAP_X_func(x);
-					double df = _MAP_DX_func(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
-
-					z[i] = f;
-					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+				if ((void *) func == (void *) map_exp || (void *) func == (void *) link_log) {
+					// spell out the most common case
+					for (int i = 0; i < np; i++) {
+						double x = xp[i] * stdev + mean;
+						double f = exp(x);
+						double tmp = wp[i] * f;
+						m1 += tmp;
+						m2 += tmp * f;
+						z[i] = f;
+						ldz[i] = -0.5 * SQR(xp[i]) - x;
+					}
+				} else {
+					for (int i = 0; i < np; i++) {
+						double x = xp[i] * stdev + mean;
+						double f = _MAP_X_func(x);
+						double df = _MAP_DX_func(x);
+						double tmp = wp[i] * f;
+						m1 += tmp;
+						m2 += tmp * f;
+						z[i] = f;
+						ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					}
 				}
-				GMRFLib_max_value(ldz, np, &i_max);
 			} else if (tfunc) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
-				for (int i = 0; i < np; i++) {
-					double x = xp[i] * stdev + mean;
-					double f = _MAP_X_tfunc(x);
-					double df = _MAP_DX_tfunc(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
-
-					z[i] = f;
-					ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+				if ((void *) tfunc == (void *) map_exp || (void *) tfunc == (void *) link_log) {
+					// spell out the most common case
+					for (int i = 0; i < np; i++) {
+						double x = xp[i] * stdev + mean;
+						double f = exp(x);
+						double tmp = wp[i] * f;
+						m1 += tmp;
+						m2 += tmp * f;
+						z[i] = f;
+						ldz[i] = -0.5 * SQR(xp[i]) - x;
+					}
+				} else {
+					for (int i = 0; i < np; i++) {
+						double x = xp[i] * stdev + mean;
+						double f = _MAP_X_tfunc(x);
+						double df = _MAP_DX_tfunc(x);
+						double tmp = wp[i] * f;
+						m1 += tmp;
+						m2 += tmp * f;
+						z[i] = f;
+						ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+					}
 				}
-				GMRFLib_max_value(ldz, np, &i_max);
 			} else {
 				assert(0 == 1);
 			}
+			// this is common for all cases
+			GMRFLib_max_value(ldz, np, &i_max);
 		} else {
 			if (plain) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_plain(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
+					double tmp = wp[i] * f;
+					m1 += tmp;
+					m2 += tmp * f;
 				}
 			} else if (func) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_func(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
+					double tmp = wp[i] * f;
+					m1 += tmp;
+					m2 += tmp * f;
 				}
 			} else if (tfunc) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = _MAP_X_tfunc(x);
-					m1 += wp[i] * f;
-					m2 += wp[i] * SQR(f);
+					double tmp = wp[i] * f;
+					m1 += tmp;
+					m2 += tmp * f;
 				}
 			} else {
 				assert(0 == 1);
@@ -6535,14 +6562,14 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
 		COMPUTE_MODE();
-		Calloc_free();
+		Malloc_free();
 	} else {
-		Calloc_init(3 * npm + 4 * np, 7);
+		Malloc_init(3 * npm + 4 * np, 7);
 		low = density->x_min;
 		high = density->x_max;
 		dx = (high - low) / (np - 1.0);
-		xp = Calloc_get(np);
-		ld = Calloc_get(np);
+		xp = Malloc_get(np);
+		ld = Malloc_get(np);
 
 #pragma omp simd
 		for (int i = 0; i < np; i++) {
@@ -6551,8 +6578,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 
 		int i_max = 0;
-		double *z = Calloc_get(np);
-		double *ldz = Calloc_get(np);
+		double *z = Malloc_get(np);
+		double *ldz = Malloc_get(np);
 
 		if (d_mode) {
 			// reusing 'z' for x_user here
@@ -6584,8 +6611,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		}
 
 		// interpolate
-		xpm = Calloc_get(npm);
-		ldm = Calloc_get(npm);
+		xpm = Malloc_get(npm);
+		ldm = Malloc_get(npm);
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 			const double div3 = 1.0 / 3.0;
@@ -6624,7 +6651,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		}
 
 		GMRFLib_exp(npm, ldm, ldm);
-		xx = Calloc_get(npm);
+		xx = Malloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (plain) {
 			// for (int i = 0; i < npm; i++) {
@@ -6655,7 +6682,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
 		COMPUTE_MODE();
-		Calloc_free();
+		Malloc_free();
 	}
 
 #undef COMPUTE_MODE
@@ -7634,13 +7661,13 @@ int main(int argc, char **argv)
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) { \
 				double tot = 0.01 * (GMRFLib_overall_cpu[7] - GMRFLib_overall_cpu[0]); \
 				fprintf(fp_, "\nBreakdown of overall running time %.2f seconds in stages: \n", tot / 0.01); \
-				fprintf(fp_, "\tReading model    %5.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
-				fprintf(fp_, "\tBuilding model   %5.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
-				fprintf(fp_, "\tOptimising       %5.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
-				fprintf(fp_, "\tHessian          %5.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
-				fprintf(fp_, "\tIntegration      %5.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
-				fprintf(fp_, "\tPostprocessing   %5.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
-				fprintf(fp_, "\tOutput           %5.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
+				fprintf(fp_, "\tReading model    %7.2f seconds [%.1f%%]\n", TDIF(1), TDIF(1) / tot); \
+				fprintf(fp_, "\tBuilding model   %7.2f seconds [%.1f%%]\n", TDIF(2), TDIF(2) / tot); \
+				fprintf(fp_, "\tOptimising       %7.2f seconds [%.1f%%]\n", TDIF(3), TDIF(3) / tot); \
+				fprintf(fp_, "\tHessian          %7.2f seconds [%.1f%%]\n", TDIF(4), TDIF(4) / tot); \
+				fprintf(fp_, "\tIntegration      %7.2f seconds [%.1f%%]\n", TDIF(5), TDIF(5) / tot); \
+				fprintf(fp_, "\tPostprocessing   %7.2f seconds [%.1f%%]\n", TDIF(6), TDIF(6) / tot); \
+				fprintf(fp_, "\tOutput           %7.2f seconds [%.1f%%]\n", TDIF(7), TDIF(7) / tot); \
 			}
 
 #define PEFF_OUTPUT(fp_)						\
