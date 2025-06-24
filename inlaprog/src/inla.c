@@ -7000,8 +7000,8 @@ int main(int argc, char **argv)
 	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
-	GMRFLib_openmp->max_threads = host_max_threads;
-	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing
+	GMRFLib_openmp->max_threads = host_max_threads;				  // might be revised lated
+	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1); // for cache-indexing
 	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
@@ -7223,6 +7223,7 @@ int main(int argc, char **argv)
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS(), ntt[0] * ntt[1]);
+				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads * (GMRFLib_openmp->max_threads + 1);
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '4:1'\n");

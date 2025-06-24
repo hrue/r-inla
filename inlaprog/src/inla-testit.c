@@ -5459,6 +5459,32 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 174: 
+	{
+		int n = atoi(args[0]);
+		P(n);
+
+		double tref = -GMRFLib_timer();
+		double sum = 0.0;
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < i; j++) {
+				sum += sin(i+j)*cos(i-j);
+			}
+		}
+		printf("serial time %g sum %g\n", GMRFLib_timer() + tref, sum);
+		
+		tref = -GMRFLib_timer();
+		sum = 0.0;
+#pragma omp parallel for num_threads(1) reduction(+: sum)
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < i; j++) {
+				sum += sin(i+j)*cos(i-j);
+			}
+		}
+		printf("omp one thread time %g sum %g\n", GMRFLib_timer() + tref, sum);
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

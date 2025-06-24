@@ -2167,8 +2167,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		for (int i = 0; i < graph->n; i++) {
 			mean_corrected[i] = dens[i][dens_count]->user_mean;
 		}
-		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected);
-		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL);
+		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected, GMRFLib_openmp->max_threads_inner);
+		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL, GMRFLib_openmp->max_threads_inner);
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int i = 0; i < preopt->mnpred; i++) {
@@ -3495,11 +3495,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		double *isd = Calloc(mnpred, double);
-		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS((int) gcpo_param->num_level_sets), GMRFLib_openmp->max_threads_outer);
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS((int) gcpo_param->num_level_sets), IMIN(2, GMRFLib_MAX_THREADS()));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
-		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
+		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL, 0);
 		double min_sd = sqrt(GMRFLib_min_value(isd, Npred, NULL));
 #pragma omp simd
 		for (int i = 0; i < Npred; i++) {
@@ -5269,9 +5269,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
+	int num_threads;
+	if (GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()) {
+		num_threads = GMRFLib_MAX_THREADS();
+	} else {
+		num_threads = GMRFLib_openmp->max_threads_inner;
+	}
+
 	// need the idx's for the vb correction and the data locations
 	GMRFLib_idx_tp *vb_idx = NULL;
-
 	for (int i = 0; i < graph->n; i++) {
 		if (ai_par->vb_nodes_mean[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
@@ -5390,7 +5396,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}						\
 		}
 
-		RUN_CODE_BLOCK(IMIN(vb_idx->n, GMRFLib_MAX_THREADS()), 2, graph->n);
+		RUN_CODE_BLOCK(num_threads, 2, graph->n);
 #undef CODE_BLOCK
 	}
 
@@ -5418,10 +5424,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		// no need to compute the variance more than once since we're doing just the mean correction
 		if (iter == 0) {
-			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
+			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
 		}
 		// I know I compute the mean twice for iter=0, but then the timing gets right
-		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean);
+		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, num_threads);
 
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
@@ -5440,7 +5446,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
-		RUN_CODE_BLOCK_X(IMIN(d_idx->n, GMRFLib_MAX_THREADS()), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
+		RUN_CODE_BLOCK_X(num_threads, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
 #undef CODE_BLOCK
 #undef CODE_BLOCK_WORK_TP_FREE
 
@@ -5473,7 +5479,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
 				}					\
 			}
-			RUN_CODE_BLOCK_PLAIN(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK_PLAIN(num_threads, 0, 0);
 #undef CODE_BLOCK
 		}
 
@@ -5714,9 +5720,15 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
+	int num_threads;
+	if (GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()) {
+		num_threads = GMRFLib_MAX_THREADS();
+	} else {
+		num_threads = GMRFLib_openmp->max_threads_inner;
+	}
+
 	// need the idx's for the vb correction and the data locations
 	GMRFLib_idx_tp *vb_idx = NULL;
-
 	for (int i = 0; i < graph->n; i++) {
 		if (ai_par->vb_nodes_variance[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
@@ -5893,7 +5905,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				break;
 			}
 		}
-		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean);
+		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean, num_threads);
 
 		if (enable_tref_a) {
 			tref_a[1] -= GMRFLib_timer();
@@ -5916,7 +5928,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
+		RUN_CODE_BLOCK(num_threads, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN);
 #undef CODE_BLOCK
 		Free(cache_idx);
 
@@ -5971,7 +5983,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
+		RUN_CODE_BLOCK(num_threads, 2, graph->n);
 #undef CODE_BLOCK
 
 		if (enable_tref_a) {
@@ -6080,9 +6092,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 		if (hessian_full && (iter < hessian_update)) {
 			// as we in this case has a triagular double loop
-			RUN_CODE_BLOCK_DYNAMIC(GMRFLib_MAX_THREADS(), 1, graph->n);
+			RUN_CODE_BLOCK_DYNAMIC(num_threads, 1, graph->n);
 		} else {
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, graph->n);
+			RUN_CODE_BLOCK(num_threads, 1, graph->n);
 		}
 #undef CODE_BLOCK
 

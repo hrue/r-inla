@@ -1264,12 +1264,13 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean)
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean, int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
 
 	// compute the marginal mean and variance for the linear predictor
 	// either 'mean' and/or 'variance' could be NULL
+	// use 'num_threads' if possible
 	int npred = preopt->npred;
 	int mpred = preopt->mpred;
 	int mnpred = preopt->mnpred;
@@ -1277,15 +1278,20 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	int compute_mean = (mean ? 1 : 0);
 	int compute_variance = (variance ? 1 : 0);
 	int data_rich_case = (IMAX(preopt->mpred, preopt->npred) > preopt->n);
+	int err_count = 0;
 	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
 	if (compute_mean) {
-		Memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+		GMRFLib_dfill(mnpred, 0.0, mean);
 	}
 	if (compute_variance) {
-		Memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
+		GMRFLib_dfill(mnpred, 0.0, variance);
 	}
 
+	if (num_threads <= 0) {
+		num_threads = GMRFLib_MAX_THREADS();
+	}
+	
 	if (!compute_mean && !compute_variance) {
 		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
@@ -1304,7 +1310,6 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					}
 				}
 			} else {
-				// mean[i] = GMRFLib_dot_product(elm, mm); 
 #define CODE_BLOCK							\
 				for (int i = 0; i < mpred; i++) {	\
 					CODE_BLOCK_INIT();		\
@@ -1312,7 +1317,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					GMRFLib_dot_product_INLINE(mean[i], elm, mm); \
 				}
 
-				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+				RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 			}
 		} else {
@@ -1324,7 +1329,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				double m = 0.0, var = 0.0, *cov = NULL;	\
 				int k, j, kk, jj;			\
 				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-				for (k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
+				for (k = 0; k < preopt->pAA_idxval[i]->n; k++) { \
 					j = elm->idx[k];		\
 					if (compute_mean) {		\
 						m += elm->val[k] * mm[j]; \
@@ -1345,12 +1350,11 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				variance[i] = var;			\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 		}
 	}
 
-	int err_count = 0;
 	if (compute_mean && !compute_variance) {
 
 		// mean only
@@ -1372,7 +1376,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				GMRFLib_dot_product_INLINE_ADDTO(mean_offset[i], elm, mm); \
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 		}
 	} else {
@@ -1412,7 +1416,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			variance_offset[i] = var;			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 	}
 
