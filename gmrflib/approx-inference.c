@@ -644,13 +644,21 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						  GMRFLib_preopt_tp *preopt, GMRFLib_idx_tp *d_idx)
 {
 	// this is implicitely assumed
-	assert(mean == NULL);
-	assert(x);
+	assert(mean == NULL && x);
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_bind(&stiles_idx);
+	}
+
+	int num_threads;
+	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+		// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode 
+		// and level=0.
+		num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	} else {
+		num_threads = GMRFLib_openmp->max_threads_inner;
 	}
 
 	/*
@@ -813,22 +821,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
-		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode and
-			// level=0.
-			int nt = GMRFLib_PARDISO_MAX_NUM_THREADS_LIKE();
-			RUN_CODE_BLOCK_X(nt, 0, 0, int);
-			omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
-		} else {
-			int nt = GMRFLib_NUM_THREADS_LIKE();
-			RUN_CODE_BLOCK_X(nt, 0, 0, int);
-		}
+		RUN_CODE_BLOCK_X(num_threads, 0, 0, int);
 #undef CODE_BLOCK_WORK_TP_FREE
 #undef CODE_BLOCK
 
 		double *bb_use = NULL, *cc_use = NULL;
 		if (preopt) {
-			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
+			GMRFLib_preopt_update(thread_id, preopt, bb, cc, num_threads);
 			bb_use = preopt->total_b[thread_id];
 			GMRFLib_daddto(n, b, bb_use);
 			cc_use = c;			       /* that what is there from before */
@@ -930,16 +929,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      loglFunc_arg, &(optpar->step_len), &three, NULL); \
 			}
 
-			if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-				// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode 
-				// 
-				// and level=0.
-				int nt = GMRFLib_PARDISO_MAX_NUM_THREADS();
-				RUN_CODE_BLOCK_STATIC(nt, 0, 0);
-				omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
-			} else {
-				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 0, 0);
-			}
+			RUN_CODE_BLOCK_STATIC(num_threads, 0, 0);
 #undef CODE_BLOCK
 		}
 
@@ -2167,7 +2157,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		for (int i = 0; i < graph->n; i++) {
 			mean_corrected[i] = dens[i][dens_count]->user_mean;
 		}
-		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected, GMRFLib_openmp->max_threads_inner);
+		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected,
+						 GMRFLib_openmp->max_threads_inner);
 		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL, GMRFLib_openmp->max_threads_inner);
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
@@ -5457,7 +5448,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 		}
 
-		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
+		GMRFLib_preopt_update(thread_id, preopt, BB, CC, num_threads);
 #pragma omp simd
 		for (int ii = 0; ii < graph->n; ii++) {
 			prior_mean_tmp[ii] = x_mean[ii] - prior_mean_fix[ii];
@@ -5648,7 +5639,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	// we need to update those in any case
-	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save);
+	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save, num_threads);
 
 	// update the mean unless we're in an emergency
 	if (!emergency) {
@@ -6151,7 +6142,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 	}
 
-	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save);
+	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save, num_threads);
 	if (problem) {
 		GMRFLib_free_problem(ai_store->problem);
 		ai_store->problem = problem;

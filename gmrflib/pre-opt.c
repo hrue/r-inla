@@ -1097,15 +1097,15 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 }
 
 
-int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp *preopt)
+int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp *preopt, int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
-	GMRFLib_preopt_bnew_like(b, preopt->like_b[thread_id], preopt);
+	GMRFLib_preopt_bnew_like(b, preopt->like_b[thread_id], preopt, num_threads);
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *preopt)
+int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *preopt, int num_threads)
 {
 	// add to 'bnew' the contribution from the likelihood for preopt
 
@@ -1130,7 +1130,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+	RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1264,7 +1264,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean, int num_threads)
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean,
+				     int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
 
@@ -1291,7 +1292,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	if (num_threads <= 0) {
 		num_threads = GMRFLib_MAX_THREADS();
 	}
-	
+
 	if (!compute_mean && !compute_variance) {
 		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
@@ -1435,7 +1436,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like_b, double *like_c)
+int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like_b, double *like_c, int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
 	int np = preopt->Npred;
@@ -1451,7 +1452,7 @@ int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like
 		preopt->total_b[thread_id] = Calloc(preopt->n, double);
 	}
 	Memset(preopt->total_b[thread_id], 0, preopt->n * sizeof(double));
-	GMRFLib_preopt_bnew(thread_id, preopt->total_b[thread_id], preopt);
+	GMRFLib_preopt_bnew(thread_id, preopt->total_b[thread_id], preopt, num_threads);
 
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;

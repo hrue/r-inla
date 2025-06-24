@@ -134,8 +134,8 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *v
 double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc_k(int thread_id, int node, int k, double *UNUSED(values), void *arg);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);
+int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt, int num_threads);
+int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg, int num_threads);
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
@@ -150,7 +150,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp * preopt,
 				     GMRFLib_problem_tp * problem, double *optional_mean, int num_threads);
 int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp * preopt, double *like_b, double *like_c);
+int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp * preopt, double *like_b, double *like_c, int num_threads);
 int GMRFLib_preopt_test1(int n, int m);
 
 __END_DECLS
