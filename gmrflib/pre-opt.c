@@ -37,7 +37,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	GMRFLib_ENTER_FUNCTION;
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
-	int debug = 1+GMRFLib_DEBUG_IF_TRUE();
+	int debug = GMRFLib_DEBUG_IF_TRUE();
 	int nt = GMRFLib_openmp->max_threads_outer;
 	int nt_max = GMRFLib_MAX_THREADS();
 
