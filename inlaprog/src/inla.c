@@ -6181,12 +6181,12 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		for (int iter = 0; iter <= iter_max; iter++) {
 			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
-			GMRFLib_preopt_predictor(eta, x, preopt);
+			GMRFLib_preopt_predictor(eta, x, preopt, GMRFLib_openmp->max_threads_outer);
 			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0, eta, e);
 			norm = sqrt(GMRFLib_ddot(preopt->Npred, e, e) / preopt->Npred);
 			GMRFLib_preopt_bnew_like(bb, e, preopt, GMRFLib_openmp->max_threads_outer);
 			GMRFLib_mul(preopt->n, d, scale, d);
-			GMRFLib_preopt_predictor(Ad, d, preopt);
+			GMRFLib_preopt_predictor(Ad, d, preopt, GMRFLib_openmp->max_threads_outer);
 			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
 			sum2 = GMRFLib_ddot(preopt->Npred, Ad, Ad);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));

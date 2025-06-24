@@ -762,7 +762,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
 			}
-			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
+			GMRFLib_preopt_predictor(linear_predictor, mode, preopt, GMRFLib_openmp->max_threads_outer);
 		} else {
 			linear_predictor = mode;
 		}
@@ -914,7 +914,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			 */
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
-				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
+				GMRFLib_preopt_predictor(linear_predictor, mode, preopt, num_threads);
 			} else {
 				linear_predictor = mode;
 			}
@@ -2361,7 +2361,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
 	// GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
 	Memcpy(&(preopt->mode_x[preopt->mnpred]), x_mode, preopt->n * sizeof(double));
-	GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
+	GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt, GMRFLib_openmp->max_threads_outer);
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (timer) {

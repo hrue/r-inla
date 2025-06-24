@@ -2878,7 +2878,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
 		// GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
 		Memcpy(&(preopt->mode_x[preopt->mnpred]), x_mode, preopt->n * sizeof(double));
-		GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
+		GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt, GMRFLib_MAX_THREADS());
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);

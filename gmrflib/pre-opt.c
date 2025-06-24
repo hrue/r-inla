@@ -27,7 +27,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #define SHOW_TIME(_msg)							\
 	if (debug) {							\
-		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_timer() - tref); \
+		printf("\t\tGMRFLib_preopt_init: %-20s %7.2fs\n", _msg, GMRFLib_timer() - tref); \
 		tref =  GMRFLib_timer();				\
 	}
 
@@ -37,8 +37,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	GMRFLib_ENTER_FUNCTION;
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
-	int debug = GMRFLib_DEBUG_IF_TRUE();
+	int debug = 1+GMRFLib_DEBUG_IF_TRUE();
 	int nt = GMRFLib_openmp->max_threads_outer;
+	int nt_max = GMRFLib_MAX_THREADS();
 
 	const int debug_detailed = 0;
 	const int do_prune = 1;
@@ -387,9 +388,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		}
 	}
 
-	GMRFLib_idxval_prepare(At_idxval, N, GMRFLib_MAX_THREADS());
+	GMRFLib_idxval_prepare(At_idxval, N, nt);
 	if (do_prune) {
-		GMRFLib_idxval_nprune(At_idxval, N, GMRFLib_MAX_THREADS());
+		GMRFLib_idxval_nprune(At_idxval, N, nt);
 	}
 
 	SHOW_TIME("At_idxval");
@@ -427,9 +428,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			int j = pA->j[k];
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
-		GMRFLib_idxval_prepare(pA_idxval, nrow, GMRFLib_MAX_THREADS());
+		GMRFLib_idxval_prepare(pA_idxval, nrow, nt);
 		if (do_prune) {
-			GMRFLib_idxval_nprune(pA_idxval, nrow, GMRFLib_MAX_THREADS());
+			GMRFLib_idxval_nprune(pA_idxval, nrow, nt);
 		}
 		(*preopt)->pA = pA;
 		SHOW_TIME("create pA_idxval");
@@ -438,9 +439,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		pAA_pattern = Calloc(nrow, GMRFLib_idx_tp *);
 
 		// this will keep the working 'idxval' within the thread, and we can free it at the end
-		GMRFLib_idxval_tp **row_idxval_hold = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_idxval_tp *);
+		GMRFLib_idxval_tp **row_idxval_hold = Calloc(nt, GMRFLib_idxval_tp *);
 
-#pragma omp parallel for num_threads(nt)
+#pragma omp parallel for num_threads(nt_max)
 		for (int i = 0; i < nrow; i++) {
 			int thread = omp_get_thread_num();
 			GMRFLib_idxval_tp *row_idxval = row_idxval_hold[thread];
@@ -472,7 +473,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			GMRFLib_idxval_free(row_idxval);
 		}
 
-		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+		for (int i = 0; i < nt; i++) {
 			if (row_idxval_hold[i]) {
 				GMRFLib_idxval_free(row_idxval_hold[i]);
 			}
@@ -498,7 +499,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
 		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
 
-#pragma omp parallel for num_threads(nt)
+#pragma omp parallel for num_threads(nt_max)
 		for (int i = 0; i < nrow; i++) {
 			int *idx = pAA_pattern[i]->idx;
 			for (int k = 0; k < pAA_pattern[i]->n; k++) {
@@ -561,9 +562,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 			GMRFLib_idxval_free(row_idxval);
 		}
-		GMRFLib_idxval_prepare(pAA_idxval, nrow, GMRFLib_MAX_THREADS());
+		GMRFLib_idxval_prepare(pAA_idxval, nrow, nt);
 		if (do_prune) {
-			GMRFLib_idxval_nprune(pAA_idxval, nrow, GMRFLib_MAX_THREADS());
+			GMRFLib_idxval_nprune(pAA_idxval, nrow, nt);
 		}
 		SHOW_TIME("pAA_idxval");
 
@@ -574,9 +575,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				GMRFLib_idxval_add(&(pAAt_idxval[elm->idx[k]]), i, elm->val[k]);
 			}
 		}
-		GMRFLib_idxval_prepare(pAAt_idxval, N, GMRFLib_MAX_THREADS());
+		GMRFLib_idxval_prepare(pAAt_idxval, N, nt);
 		if (do_prune) {
-			GMRFLib_idxval_nprune(pAAt_idxval, N, GMRFLib_MAX_THREADS());
+			GMRFLib_idxval_nprune(pAAt_idxval, N, nt);
 		}
 		SHOW_TIME("pAAt_idxval");
 
@@ -659,13 +660,13 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	SHOW_TIME("like graph-2");
 
-	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
+	AtA_idxval = Malloc(gen_len_At, GMRFLib_idxval_tp **);
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-#pragma omp parallel for num_threads(nt)
+#pragma omp parallel for num_threads(nt_max)
 	for (int i = 0; i < gen_len_At; i++) {
 		int guess[2] = { 0, 0 };
 		int m = g->lnnbs[i];
@@ -1136,23 +1137,23 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
+int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
-	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
+	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1, num_threads);
 	GMRFLib_LEAVE_FUNCTION;
 	return val;
 }
 
-int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
+int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int num_threads)
 {
 	GMRFLib_ENTER_FUNCTION;
-	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
+	int val = GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0, num_threads);
 	GMRFLib_LEAVE_FUNCTION;
 	return val;
 }
 
-int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int likelihood_only)
+int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int likelihood_only, int num_threads)
 {
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
@@ -1199,7 +1200,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(2, 0, 0);
+			RUN_CODE_BLOCK(IMIN(2, num_threads), 0, 0);
 #undef CODE_BLOCK
 		} else {
 			// one loop
@@ -1223,7 +1224,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// pred_offset[i] = GMRFLib_dot_product(elm, latent); 
 			// pred[i] = GMRFLib_dot_product(elm, latent); 
 
-#pragma omp parallel num_threads(GMRFLib_MAX_THREADS())
+#pragma omp parallel num_threads(num_threads)
 			{
 #pragma omp for nowait
 				for (int i = 0; i < preopt->npred; i++) {
@@ -1249,7 +1250,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
 				}					\
 			}
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 		}
 	}
@@ -1624,7 +1625,7 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp *preopt)
 		lat[i] = GMRFLib_uniform();
 	}
 	cpu[0] = -GMRFLib_timer();
-	GMRFLib_preopt_full_predictor(pred, lat, preopt);
+	GMRFLib_preopt_full_predictor(pred, lat, preopt, GMRFLib_openmp->max_threads_outer);
 	cpu[0] += GMRFLib_timer();
 	Calloc_free();
 
