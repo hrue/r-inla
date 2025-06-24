@@ -1363,12 +1363,17 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 {
 	GMRFLib_ENTER_FUNCTION;
 
+	int num_threads;
+	if (GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()) {
+		num_threads = GMRFLib_MAX_THREADS();
+	} else {
+		num_threads = GMRFLib_openmp->max_threads_inner;
+	}
+
 	const int debug = 0;
 	int run_parallel = (GMRFLib_Qx_strategy != 0);
-	int max_t;
 	double *values = NULL, res;
 
-	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	assert(result);
 	GMRFLib_dfill(graph->n, 0.0, result);
 
@@ -1398,7 +1403,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				result[i] += sum;			\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(num_threads, 0, 0);
 #undef CODE_BLOCK
 		} else {
 			if (debug) {
@@ -1424,8 +1429,11 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				FIXME("Qx2: run block parallel");
 			}
 			int n1 = GMRFLib_align(graph->n, sizeof(int));
-			double *local_result = Calloc(max_t * n1, double);
-			char *used = Calloc(max_t, char);
+			double **local_result = Calloc(num_threads, double *);
+			for (int k = 0; k < num_threads; k++) {
+				local_result[k] = Calloc(n1, double);
+			}
+			char *used = Calloc(num_threads, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				CODE_BLOCK_INIT();			\
@@ -1434,7 +1442,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				/* may run in serial */			\
 				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
 				used[tnum] = 1;				\
-				r = local_result + tnum * n1;		\
+				r = local_result[tnum];			\
 				local_values = CODE_BLOCK_WORK_PTR_x(0, tnum);	\
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				double sum = (local_values[0] + diag[i]) * xi; \
@@ -1447,18 +1455,20 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				r[i] += sum;				\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m);
+			RUN_CODE_BLOCK(num_threads, 1, m);
 #undef CODE_BLOCK
 
-			for (int j = 0; j < max_t; j++) {
+			for (int j = 0; j < num_threads; j++) {
 				if (used[j]) {
-					int offset = j * n1;
-					double *r = local_result + offset;
+					double *r = local_result[j];
 					GMRFLib_daddto(graph->n, r, result);
 				}
 			}
 
 			Free(used);
+			for (int k = 0; k < num_threads; k++) {
+				Free(local_result[k]);
+			}
 			Free(local_result);
 		} else {
 			if (debug) {
