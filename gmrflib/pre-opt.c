@@ -38,7 +38,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
 	int debug = GMRFLib_DEBUG_IF_TRUE();
-	int num_threads = GMRFLib_openmp->max_threads_outer;
+	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	int num_threads_max = GMRFLib_MAX_THREADS();
 
 	const int debug_detailed = 0;
@@ -509,7 +509,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 		SHOW_TIME("init pAA_idxval");
 
-#pragma omp parallel for num_threads(num_threads)
+#pragma omp parallel for num_threads(num_threads_max)
 		for (int i = 0; i < nrow; i++) {
 			int step;
 			int steps[] = { 262144, 32768, 4096, 512, 64, 8, 1 };
@@ -713,6 +713,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
+
 #pragma omp parallel for num_threads(num_threads)
 	for (int i = 0; i < g->n; i++) {
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
@@ -752,15 +753,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
 
 	SHOW_TIME("graph-union");
-
-	static int write_graph = -1;
-	if (write_graph < 0) {
-#pragma omp critical (Name_31e81e1b3b565490a6c6d611d9de4707f32faca3)
-		if (write_graph < 0) {
-			int res = (getenv("INLA_INTERNAL_DUMP_GRAPH") ? 1 : 0);
-			write_graph = res;
-		}
-	}
 
 	if (getenv("INLA_INTERNAL_DUMP_GRAPH")) {
 		char *filename = NULL;

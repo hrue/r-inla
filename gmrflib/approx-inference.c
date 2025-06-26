@@ -5413,6 +5413,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			gsl_matrix_set_zero(MM);
 		}
 
+		// can optimise here, as I only need mean/var for the linear.predictor with data...does seems to be a tiny gain
+		// only, but let's keep this in mind.
+
 		// no need to compute the variance more than once since we're doing just the mean correction
 		if (iter == 0) {
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
