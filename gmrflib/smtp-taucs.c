@@ -76,7 +76,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
-	int do_sort_idx = 1;				       /* = 0 will turn off sorting */
+	const int do_sort_idx = 0;			       /* = 0 will turn off sorting */
 
 	int n = L->n;
 	if (n == 0) {
@@ -224,6 +224,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 #undef CODE_BLOCK
 
 	if (do_sort_idx && cache && (*cache)->sort2) {
+		// if used, clean up this code...
 		double *work = Malloc(nnz, double);
 		int nn = (*cache)->sort2->n;
 		int *jj = (*cache)->sort2->idx[0];
@@ -231,7 +232,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 		Memcpy(C->rowind, (*cache)->rowind_sorted, nnz * sizeof(int));
 		Memcpy(work, C->values, nnz * sizeof(double));
-
 		for (int j = 0; j < nn; j++) {
 			C->values[jj[j]] = work[ss[j]];
 		}
