@@ -50,10 +50,13 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 		}
 		if (nc->nnz && cache->rowind) {
 			nc->rowind = Malloc(nc->nnz, int);
-			nc->rowind_sorted = Malloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
-			Memcpy(nc->rowind_sorted, cache->rowind_sorted, nc->nnz * sizeof(int));
-			nc->sort2 = GMRFLib_idx2_duplicate(cache->sort2);
+			if (cache->perm) {
+				nc->rowind_sorted = Malloc(nc->nnz, int);
+				Memcpy(nc->rowind_sorted, cache->rowind_sorted, nc->nnz * sizeof(int));
+				nc->perm = Malloc(nc->nnz, int);
+				Memcpy(nc->perm, cache->perm, nc->nnz * sizeof(int));
+			}
 		}
 		return nc;
 	}
@@ -66,7 +69,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 		Free(cache->len);
 		Free(cache->rowind);
 		Free(cache->rowind_sorted);
-		GMRFLib_idx2_free(cache->sort2);
+		Free(cache->perm);
 		Free(cache);
 	}
 }
@@ -76,7 +79,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
-	const int do_sort_idx = 0;			       /* = 0 will turn off sorting */
+	// sort indices after conversion turns out to be to much work for the gain...
+	const int do_sort_idx = 0;
 
 	int n = L->n;
 	if (n == 0) {
@@ -158,37 +162,26 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
-		(*cache)->rowind_sorted = Malloc(nnz, int);
-		Memcpy((*cache)->rowind_sorted, C->rowind, nnz * sizeof(int));
-
-		int *s = Malloc(nnz, int);
-		for (int j = 0; j < nnz; j++) {
-			s[j] = j;
-		}
-
-		// do not do this in parallel, maybe to much false-sharing
-		for (int i = 0; i < C->n; i++) {
-			int m = C->colptr[i + 1] - C->colptr[i];
-			int j = C->colptr[i];
-			my_sort2_ii((*cache)->rowind_sorted + j, s + j, m);
-		}
-
 		(*cache)->rowind = Malloc(nnz, int);
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 
-		int nchange = 0;
-		for (int j = 0; j < nnz; j++) {
-			nchange += (s[j] != j);
-		}
-		GMRFLib_idx2_tp *idx2 = NULL;
-		GMRFLib_idx2_create_x(&idx2, nchange);
-		for (int j = 0; j < nnz; j++) {
-			if (s[j] != j) {
-				GMRFLib_idx2_add(&idx2, j, s[j]);
+		if (do_sort_idx) {
+			(*cache)->rowind_sorted = Malloc(nnz, int);
+			Memcpy((*cache)->rowind_sorted, C->rowind, nnz * sizeof(int));
+
+			int *perm = Malloc(nnz, int);
+#pragma omp simd
+			for (int j = 0; j < nnz; j++) {
+				perm[j] = j;
 			}
+
+			for (int i = 0; i < C->n; i++) {
+				int m = C->colptr[i + 1] - C->colptr[i];
+				int j = C->colptr[i];
+				my_sort2_ii((*cache)->rowind_sorted + j, perm + j, m);
+			}
+			(*cache)->perm = perm;
 		}
-		(*cache)->sort2 = idx2;
-		Free(s);
 	}
 #define CODE_BLOCK							\
 	for (int sn = 0; sn < L->n_sn; sn++) {				\
@@ -223,18 +216,11 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
-	if (do_sort_idx && cache && (*cache)->sort2) {
-		// if used, clean up this code...
+	if (do_sort_idx && cache && (*cache)->perm) {
 		double *work = Malloc(nnz, double);
-		int nn = (*cache)->sort2->n;
-		int *jj = (*cache)->sort2->idx[0];
-		int *ss = (*cache)->sort2->idx[1];
-
 		Memcpy(C->rowind, (*cache)->rowind_sorted, nnz * sizeof(int));
 		Memcpy(work, C->values, nnz * sizeof(double));
-		for (int j = 0; j < nn; j++) {
-			C->values[jj[j]] = work[ss[j]];
-		}
+		GMRFLib_pack(nnz, work, (*cache)->perm, C->values);
 		Free(work);
 	} else {
 		Memcpy(C->rowind, (*cache)->rowind, nnz * sizeof(int));
