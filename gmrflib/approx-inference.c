@@ -2924,11 +2924,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				}
 				marginal_likelihood->marginal_likelihood_integration = log(integral) + log_jacobian + log_dens_mode;
 			}
-			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Marginal likelihood: Integration %.3f Gaussian-approx %.3f\n",
-					marginal_likelihood->marginal_likelihood_integration,
-					marginal_likelihood->marginal_likelihood_gaussian_approx);
-			}
 		} else {
 			/*
 			 * nhyper = 0 
@@ -2936,6 +2931,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			marginal_likelihood->marginal_likelihood_gaussian_approx = log_dens_mode;
 			marginal_likelihood->marginal_likelihood_integration = log_dens_mode;
 		}
+		if (ai_par->fp_log) {
+			fprintf(ai_par->fp_log, "Marginal likelihood: Integration %.3f Gaussian-approx %.3f\n",
+				marginal_likelihood->marginal_likelihood_integration,
+				marginal_likelihood->marginal_likelihood_gaussian_approx);
+			}
 	}
 
 	/*
