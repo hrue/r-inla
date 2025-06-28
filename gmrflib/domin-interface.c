@@ -218,7 +218,15 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
-	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
+	if (GMRFLib_OPENMP_IN_SERIAL() && GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		// need sTiles within a parallel loop, even with num_threads=1
+#pragma omp parallel for num_threads(1) 
+		for(int k = 0; k < 1; k++) {
+			GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
+		}
+	} else {
+		GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
+	}
 	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
