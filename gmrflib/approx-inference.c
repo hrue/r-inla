@@ -653,10 +653,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	}
 
 	int num_threads;
-	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
-		// this is the exception of the rule, as we want to run this in parallel if we are in adaptive-mode 
-		// and level=0.
-		num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	if (omp_get_level() == 0) {
+		if (GMRFLib_openmp->adaptive) {
+			num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
+		} else {
+			num_threads = GMRFLib_openmp->max_threads_outer;
+		}
 	} else {
 		num_threads = GMRFLib_openmp->max_threads_inner;
 	}
@@ -1824,19 +1826,19 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		// just fill with 1's
 		if (misc_output) {
 			// these are now computed, hence we use the Gaussian approximation
-			misc_output->stdev_corr_pos = Calloc(nhyper, double);
-			misc_output->stdev_corr_neg = Calloc(nhyper, double);
-			stdev_corr_pos = Calloc(nhyper, double);
-			stdev_corr_neg = Calloc(nhyper, double);
-			for (int k = 0; k < nhyper; k++) {
-				stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] = misc_output->stdev_corr_neg[k] = 1.0;
-			}
+			misc_output->stdev_corr_pos = Malloc(nhyper, double);
+			misc_output->stdev_corr_neg = Malloc(nhyper, double);
+			stdev_corr_pos = Malloc(nhyper, double);
+			stdev_corr_neg = Malloc(nhyper, double);
+			GMRFLib_dfill(nhyper, 1.0, misc_output->stdev_corr_pos);
+			GMRFLib_dfill(nhyper, 1.0, misc_output->stdev_corr_neg);
+			GMRFLib_dfill(nhyper, 1.0, stdev_corr_pos);
+			GMRFLib_dfill(nhyper, 1.0, stdev_corr_neg);
 		} else {
-			stdev_corr_pos = Calloc(nhyper, double);
-			stdev_corr_neg = Calloc(nhyper, double);
-			for (int k = 0; k < nhyper; k++) {
-				stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
-			}
+			stdev_corr_pos = Malloc(nhyper, double);
+			stdev_corr_neg = Malloc(nhyper, double);
+			GMRFLib_dfill(nhyper, 1.0, stdev_corr_pos);
+			GMRFLib_dfill(nhyper, 1.0, stdev_corr_neg);
 		}
 
 		int thread_id = 0;

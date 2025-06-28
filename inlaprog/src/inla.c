@@ -7177,10 +7177,10 @@ int main(int argc, char **argv)
 				}
 
 				// a hidden option...  enable also if ntt[1] > 1, not only if < 0.
-				if (ntt[1] > 1 || ntt[1] < 0) {
-					ntt[1] = IABS(ntt[1]);
+				if (IMAX(ntt[0], ntt[1]) > 1) {
 					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
 				}
+				ntt[1] = IABS(ntt[1]);
 
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
