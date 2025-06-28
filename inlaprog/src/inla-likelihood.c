@@ -770,6 +770,27 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// Free(ds->data_observations.E);
 	}
 
+	if (ds->data_id == L_NBINOMIAL) {
+		n = mb->predictor_ndata;
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_nbinomial_tp **b = Calloc(nnuma, inla_llik_data_nbinomial_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			b[knuma] = (inla_llik_data_nbinomial_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_nbinomial_tp), knuma);
+			for (i = 0; i < n; i++) {
+				b[knuma][i].y = ds->data_observations.y[i];
+				b[knuma][i].E = ds->data_observations.E[i];
+				b[knuma][i].S = ds->data_observations.S[i];
+				b[knuma][i].cache[0] = NAN;
+				b[knuma][i].cache[1] = NAN;
+			}
+		}
+		ds->data_observations.data_nbinomial = b;
+		// Free later when checking input
+		// Free(ds->data_observations.y);
+		// Free(ds->data_observations.E);
+		// Free(ds->data_observations.S);
+	}
+
 	if (ds->data_id == L_BINOMIAL) {
 		n = mb->predictor_ndata;
 		int nnuma = GMRFLib_numa_nodes();
@@ -787,6 +808,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// Free(ds->data_observations.y);
 		// Free(ds->data_observations.nb);
 	}
+
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -4412,23 +4434,29 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = -1;
+	GMRFLib_numa_get(NULL, &numa);
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx];
-	double E = ds->data_observations.E[idx];
-	double S = ds->data_observations.S[idx];
+	inla_llik_data_nbinomial_tp * d = &(ds->data_observations.data_nbinomial[numa][idx]);
+	double y = d->y;
+	double E = d->E;
+	double S = d->S;
+
 	double size = (ds->variant == 0 ? 1.0 : (ds->variant == 1 ? E : S)) * exp(ds->data_observations.log_size[thread_id][0]);
 
 	LINK_INIT;
-	if (G_norm_const_compute[idx]) {
-		double *cache = Calloc(2, double);
-		G_norm_const_v[idx] = (void *) cache;
-		cache[0] = my_gsl_sf_lnfact((int) y);
-		cache[1] = y * log(E);
-		G_norm_const_compute[idx] = 0;
+	if (ISNAN(d->cache[0])) {
+#pragma omp critical (Name_882810d4fb8223d6a3d948a1f764f3de8bc599da) 
+		{
+			if (ISNAN(d->cache[0])) {
+				ds->data_observations.data_nbinomial[numa][idx].cache[1] = y * log(E);
+				ds->data_observations.data_nbinomial[numa][idx].cache[0] = my_gsl_sf_lnfact((int) y);
+			}
+		}
 	}
-	double *cache = (double *) G_norm_const_v[idx];
-	double normc = cache[0];
-	double y_log_E = cache[1];
+	double normc = d->cache[0];
+	double y_log_E = d->cache[1];
 
 	// there is a tradeoff in the computations, either we can use lgamma() functions or a sum of log()'s.
 	static int calibrate = 1;

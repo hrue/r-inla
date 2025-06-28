@@ -1172,7 +1172,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	int numa = -1;
 	GMRFLib_numa_get(NULL, &numa);
-
+	
 	switch (ds->data_id) {
 	case L_SEM:
 		break;
@@ -1813,16 +1813,22 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	case L_NBINOMIAL:
 	{
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.E);
+		Free(ds->data_observations.S);
+		
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Poisson-like data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
-							ds->data_observations.E[i], ds->data_observations.y[i]);
+				if (ds->data_observations.data_nbinomial[numa][i].E <= 0.0 ||
+				    ds->data_observations.data_nbinomial[numa][i].y < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: nbinomial data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.data_nbinomial[numa][i].E, 
+							ds->data_observations.data_nbinomial[numa][i].y);
 					inla_error_general(msg);
 				}
-				if (ds->data_observations.S[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Poisson-like data[%1d] S = %g is void\n", secname, i,
-							ds->data_observations.S[i]);
+				if (ds->data_observations.data_nbinomial[numa][i].S <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: nbinomial data[%1d] S = %g is void\n", secname, i,
+							ds->data_observations.data_nbinomial[numa][i].S);
 					inla_error_general(msg);
 				}
 			}

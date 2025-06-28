@@ -448,6 +448,13 @@ typedef struct {
 
 typedef struct {
 	double y;
+	double E;
+	double S;
+	double cache[2];
+} inla_llik_data_nbinomial_tp;
+
+typedef struct {
+	double y;
 	double nb;
 	double normc;
 } inla_llik_data_binomial_tp;
@@ -480,6 +487,7 @@ typedef struct {
 	/*
 	 * nbinomial
 	 */
+	inla_llik_data_nbinomial_tp **data_nbinomial;
 	double *S;
 
 	/*
