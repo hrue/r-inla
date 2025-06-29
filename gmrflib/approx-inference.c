@@ -6214,7 +6214,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 			double *wtmp = NULL;
 			GMRFLib_ghq(&xp, &wtmp, np);	       /* just give ptr to storage */
 			int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
-			xp1 = Calloc(5 * nn, double);
+			xp1 = Malloc(5 * nn, double);
 			xp2 = xp1 + 1 * nn;
 			xp3 = xp1 + 2 * nn;
 			xp4 = xp1 + 3 * nn;
@@ -6233,15 +6233,12 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 		}
 	}
 
-
 	int nn = GMRFLib_align((size_t) np, sizeof(double));
 	double x_user[5 * nn];
 	double *loglik = x_user + nn;
 	double *wloglik = x_user + 2 * nn;
 	double *wloglik_sym = x_user + 3 * nn;
 	double *wloglik_asym = x_user + 4 * nn;
-	// GMRFLib_spline_tp *spline = NULL;
-
 	double fit_mean = mean, fit_log_var = log(SQR(sd)), prior_var_inv = 1.0 / SQR(sd), step = 0.0;
 	int max_iter = 100;
 
