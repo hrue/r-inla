@@ -809,6 +809,24 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// Free(ds->data_observations.nb);
 	}
 
+	if (ds->data_id == L_BETABINOMIAL) {
+		n = mb->predictor_ndata;
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_betabinomial_tp **b = Calloc(nnuma, inla_llik_data_betabinomial_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			b[knuma] = (inla_llik_data_betabinomial_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_betabinomial_tp), knuma);
+			for (i = 0; i < n; i++) {
+				b[knuma][i].y = (int) ds->data_observations.y[i];
+				b[knuma][i].nb = (int) ds->data_observations.nb[i];
+				b[knuma][i].normc = NAN;
+			}
+		}
+		ds->data_observations.data_betabinomial = b;
+		// Free later when checking input
+		// Free(ds->data_observations.y);
+		// Free(ds->data_observations.nb);
+	}
+
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -6997,19 +7015,20 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = GMRFLib_numa_get_node();
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int y = (int) ds->data_observations.y[idx];
-	int n = (int) ds->data_observations.nb[idx];
+	inla_llik_data_betabinomial_tp *d = &(ds->data_observations.data_betabinomial[numa][idx]);
+	int y = d->y;
+	int n = d->nb;
 
 	double rho = map_probability_forward(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b;
 	double normc;
 
-	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
-		G_norm_const_compute[idx] = 0;
+	if (ISNAN(d->normc)) {
+		d->normc = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
 	}
-	normc = G_norm_const[idx];
+	normc = d->normc;
 
 	LINK_INIT;
 	if (m > 0) {

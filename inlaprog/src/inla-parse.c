@@ -2046,13 +2046,29 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case L_BETABINOMIAL:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.nb[i] <= 0.0 ||
+				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
+							i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		Free(ds->data_observations.y);
+		Free(ds->data_observations.nb);
+	}
+		break;
+
 	case L_ZEROINFLATEDBINOMIAL0:
 	case L_ZEROINFLATEDBINOMIAL1:
 	case L_ZEROINFLATEDBINOMIAL2:
 	case L_ZEROINFLATEDBETABINOMIAL0:
 	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
-	case L_BETABINOMIAL:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {

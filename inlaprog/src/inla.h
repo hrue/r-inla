@@ -460,6 +460,12 @@ typedef struct {
 } inla_llik_data_binomial_tp;
 
 typedef struct {
+	int y;
+	int nb;
+	double normc;
+} inla_llik_data_betabinomial_tp;
+
+typedef struct {
 	double *d;					       /* the d-array */
 	int ndata;					       /* length of data (from file) */
 	double *y;					       /* general responce */
@@ -489,6 +495,9 @@ typedef struct {
 	 */
 	inla_llik_data_nbinomial_tp **data_nbinomial;
 	double *S;
+
+	// betabinomial
+	inla_llik_data_betabinomial_tp **data_betabinomial;
 
 	/*
 	 * y ~ BinomialRE()
