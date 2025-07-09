@@ -94,15 +94,15 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_EXPPOWER:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_gaussian = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_BC_GAUSSIAN:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.bc_mean = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.bc_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.bc_mean = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.bc_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -115,50 +115,50 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_SIMPLEX:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_simplex = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_simplex = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_IID_GAMMA:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.iid_gamma_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.iid_gamma_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_LOGISTIC:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_logistic = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_logistic = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_SKEWNORMAL:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.sn_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.sn_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_GEV:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_gev = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_T:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_t = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_TSTRATA:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.weight_tstrata = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.strata_tstrata = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_tstrata = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.strata_tstrata = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -183,51 +183,51 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_BELL:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.E = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_NBINOMIAL:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.S = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_CENPOISSON2:
 	{
 		idiv = 5;
-		a[0] = ds->data_observations.E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.cen_low = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.cen_high = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_CENNBINOMIAL2:
 	{
 		idiv = 6;
-		a[0] = ds->data_observations.E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.S = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.cen_low = Malloc(mb->predictor_ndata, double);
-		a[3] = ds->data_observations.cen_high = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
+		a[3] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_CBINOMIAL:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.cbinomial_k = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.cbinomial_n = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.cbinomial_n = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_GAUSSIANJW:
 	{
 		idiv = 5;
-		a[0] = ds->data_observations.gjw_n = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.gjw_df = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.gjw_var = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.gjw_n = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.gjw_df = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.gjw_var = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -235,7 +235,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_MGAMMA:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.gamma_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -273,30 +273,30 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_BETA:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.beta_weight = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.beta_weight = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_OBETA:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.obeta_weight = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.obeta_weight = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_BETABINOMIALNA:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.nb = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.betabinomialnb_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.betabinomialnb_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_XBINOMIAL:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.nb = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.p_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.p_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -313,7 +313,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_ZERO_N_INFLATEDBINOMIAL3:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -321,8 +321,8 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_ZEROINFLATEDNBINOMIAL1STRATA3:
 	{
 		idiv = 4;
-		a[0] = ds->data_observations.E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.strata = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.strata = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -346,14 +346,14 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		na = ds->data_observations.cure_ncov = ncol_data_all - 6;
 		assert(na >= 0);
 
-		a[0] = ds->data_observations.event = Malloc(mb->predictor_ndata, double);	/* the failure code */
-		a[1] = ds->data_observations.truncation = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.lower = Malloc(mb->predictor_ndata, double);
-		a[3] = ds->data_observations.upper = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
+		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.lower = Calloc(mb->predictor_ndata, double);
+		a[3] = ds->data_observations.upper = Calloc(mb->predictor_ndata, double);
 
 		if (na) {
 			// we'll wrap this around at the end of this function
-			ds->data_observations.cure_cov = Malloc(mb->predictor_ndata * na, double);
+			ds->data_observations.cure_cov = Calloc(mb->predictor_ndata * na, double);
 			for (i = 0; i < na; i++) {
 				a[4 + i] = ds->data_observations.cure_cov + i * mb->predictor_ndata;
 			}
@@ -364,28 +364,28 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_CIRCULAR_NORMAL:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_circular_normal = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_circular_normal = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_WRAPPED_CAUCHY:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.weight_wrapped_cauchy = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.weight_wrapped_cauchy = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_TWEEDIE:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.tweedie_w = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.tweedie_w = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
 	case L_FMRI:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.fmri_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.fmri_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -395,9 +395,9 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// the 'fl_c' matrix is transposed at a later stage
 		int m = L_FL_NC;
 		idiv = m + 2;
-		ds->data_observations.fl_c = Malloc(m, double *);
+		ds->data_observations.fl_c = Calloc(m, double *);
 		for (k = 0; k < m; k++) {
-			a[k] = ds->data_observations.fl_c[k] = Malloc(mb->predictor_ndata, double);
+			a[k] = ds->data_observations.fl_c[k] = Calloc(mb->predictor_ndata, double);
 		}
 
 		// only this is supported for the moment
@@ -413,17 +413,17 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// of replicated data is in the 'a' below.
 		assert(ncol_data_all >= 3L + NMIX_MMAX && ncol_data_all < _DIM_A);
 		idiv = ncol_data_all;
-		ds->data_observations.nmix_x = Malloc(NMIX_MMAX, double *);
+		ds->data_observations.nmix_x = Calloc(NMIX_MMAX, double *);
 		dim_y = ncol_data_all - NMIX_MMAX - 2L;
-		ds->data_observations.nmix_y = Malloc(dim_y + 1, double *);	/* yes, its +1 */
+		ds->data_observations.nmix_y = Calloc(dim_y + 1, double *);	/* yes, its +1 */
 		for (i = 0; i < NMIX_MMAX; i++) {
-			a[i] = ds->data_observations.nmix_x[i] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.nmix_x[i] = Calloc(mb->predictor_ndata, double);
 		}
 		for (i = 0; i < dim_y; i++) {
-			a[i + NMIX_MMAX] = ds->data_observations.nmix_y[i] = Malloc(mb->predictor_ndata, double);
+			a[i + NMIX_MMAX] = ds->data_observations.nmix_y[i] = Calloc(mb->predictor_ndata, double);
 		}
 		// fill the fake column of NA's so we know when to stop
-		ds->data_observations.nmix_y[dim_y] = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.nmix_y[dim_y] = Calloc(mb->predictor_ndata, double);
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			ds->data_observations.nmix_y[dim_y][i] = NAN;
 		}
@@ -441,10 +441,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		ds->data_observations.occ_nbeta = m;
 		ds->data_observations.occ_ny_max = ny;
 		for (i = 0; i < ny; i++) {
-			a[i] = Malloc(mb->predictor_ndata, double);
+			a[i] = Calloc(mb->predictor_ndata, double);
 		}
 		for (i = 0; i < nx; i++) {
-			a[i + ny] = Malloc(mb->predictor_ndata, double);
+			a[i + ny] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -454,10 +454,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
-		ds->data_observations.bgev_x = Malloc(na, double *);
-		a[0] = ds->data_observations.bgev_scale = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.bgev_x = Calloc(na, double *);
+		a[0] = ds->data_observations.bgev_scale = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
-			a[i] = ds->data_observations.bgev_x[i - 1] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.bgev_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -467,9 +467,9 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int four = 4;
 		assert(ncol_data_all == four + 2);
 		idiv = ncol_data_all;
-		ds->data_observations.agaussian = Malloc(four, double *);
+		ds->data_observations.agaussian = Calloc(four, double *);
 		for (i = 0; i < four; i++) {
-			ds->data_observations.agaussian[i] = Malloc(mb->predictor_ndata, double);
+			ds->data_observations.agaussian[i] = Calloc(mb->predictor_ndata, double);
 			a[i] = ds->data_observations.agaussian[i];
 		}
 	}
@@ -482,13 +482,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nbeta = ncol_data_all - 5;
 		na = 3 + nbeta;
 		ds->data_observations.rcp_nbeta = nbeta;
-		a[0] = ds->data_observations.rcp_E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.rcp_event = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.rcp_offset = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.rcp_E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.rcp_event = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.rcp_offset = Calloc(mb->predictor_ndata, double);
 		if (nbeta > 0) {
-			ds->data_observations.rcp_x = Malloc(nbeta, double *);
+			ds->data_observations.rcp_x = Calloc(nbeta, double *);
 			for (i = 0; i < nbeta; i++) {
-				a[3 + i] = ds->data_observations.rcp_x[i] = Malloc(mb->predictor_ndata, double);
+				a[3 + i] = ds->data_observations.rcp_x[i] = Calloc(mb->predictor_ndata, double);
 			}
 		} else {
 			ds->data_observations.rcp_x = NULL;
@@ -503,13 +503,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nbeta = ncol_data_all - 5;
 		na = 3 + nbeta;
 		ds->data_observations.tp_nbeta = nbeta;
-		a[0] = ds->data_observations.tp_E = Malloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.tp_event = Malloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.tp_offset = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.tp_E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.tp_event = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.tp_offset = Calloc(mb->predictor_ndata, double);
 		if (nbeta > 0) {
-			ds->data_observations.tp_x = Malloc(nbeta, double *);
+			ds->data_observations.tp_x = Calloc(nbeta, double *);
 			for (i = 0; i < nbeta; i++) {
-				a[3 + i] = ds->data_observations.tp_x[i] = Malloc(mb->predictor_ndata, double);
+				a[3 + i] = ds->data_observations.tp_x[i] = Calloc(mb->predictor_ndata, double);
 			}
 		} else {
 			ds->data_observations.tp_x = NULL;
@@ -523,10 +523,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.ggaussian_nbeta = na - 1;
-		ds->data_observations.ggaussian_x = Malloc(na, double *);
-		a[0] = ds->data_observations.ggaussian_scale = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.ggaussian_x = Calloc(na, double *);
+		a[0] = ds->data_observations.ggaussian_scale = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
-			a[i] = ds->data_observations.ggaussian_x[i - 1] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.ggaussian_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -537,10 +537,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.ggaussian_nbeta = na - 1;
-		ds->data_observations.ggaussian_x = Malloc(na, double *);
-		a[0] = ds->data_observations.ggaussian_offset = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.ggaussian_x = Calloc(na, double *);
+		a[0] = ds->data_observations.ggaussian_offset = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
-			a[i] = ds->data_observations.ggaussian_x[i - 1] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.ggaussian_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -552,10 +552,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.poisson0_nbeta = na - 1;
-		ds->data_observations.poisson0_x = Malloc(na, double *);
-		a[0] = ds->data_observations.poisson0_E = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.poisson0_x = Calloc(na, double *);
+		a[0] = ds->data_observations.poisson0_E = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
-			a[i] = ds->data_observations.poisson0_x[i - 1] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.poisson0_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -567,10 +567,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.binomial0_nbeta = na - 1;
-		ds->data_observations.binomial0_x = Malloc(na, double *);
-		a[0] = ds->data_observations.binomial0_Ntrials = Malloc(mb->predictor_ndata, double);
+		ds->data_observations.binomial0_x = Calloc(na, double *);
+		a[0] = ds->data_observations.binomial0_Ntrials = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
-			a[i] = ds->data_observations.binomial0_x[i - 1] = Malloc(mb->predictor_ndata, double);
+			a[i] = ds->data_observations.binomial0_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -581,7 +581,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		for (i = 0; i < na; i++) {
-			a[i] = Malloc(mb->predictor_ndata, double);
+			a[i] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -589,7 +589,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_VM:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.vm_scale = Malloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.vm_scale = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -603,8 +603,8 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		inla_error_file_numelm(__GMRFLib_FuncName, ds->data_file.name, n, idiv);
 	}
 	ds->data_observations.ndata = n / idiv;
-	ds->data_observations.y = Malloc(mb->predictor_ndata, double);
-	ds->data_observations.d = Malloc(mb->predictor_ndata, double);
+	ds->data_observations.y = Calloc(mb->predictor_ndata, double);
+	ds->data_observations.d = Calloc(mb->predictor_ndata, double);
 
 	double *w = NULL;
 	int nw = 0;
@@ -616,7 +616,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	double *lp_scale_d = NULL;			       /* I need a tmp one to be double */
 	int n_lp_scale = 0;
-	int *lp_scale = Malloc(mb->predictor_ndata, int);
+	int *lp_scale = Calloc(mb->predictor_ndata, int);
 
 	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
@@ -714,7 +714,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		ds->data_observations.binmix_dat = Calloc(mb->predictor_ndata, double *);
 		ds->data_observations.binmix_m = (int) (na - 5) / 2L;
 		for (i = 0; i < mb->predictor_ndata; i++) {
-			ds->data_observations.binmix_dat[i] = Malloc(na, double);
+			ds->data_observations.binmix_dat[i] = Calloc(na, double);
 			for (k = 0; k < na; k++) {
 				ds->data_observations.binmix_dat[i][k] = a[k][i];
 			}
@@ -846,9 +846,9 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int ny_max = ds->data_observations.occ_ny_max;
 		int nd = mb->predictor_ndata;
 
-		double **X = ds->data_observations.occ_x = Malloc(nd, double *);
-		int **Y = ds->data_observations.occ_y = Malloc(nd, int *);
-		int *ny = ds->data_observations.occ_ny = Malloc(nd, int);
+		double **X = ds->data_observations.occ_x = Calloc(nd, double *);
+		int **Y = ds->data_observations.occ_y = Calloc(nd, int *);
+		int *ny = ds->data_observations.occ_ny = Calloc(nd, int);
 
 		for (i = 0; i < nd; i++) {
 
