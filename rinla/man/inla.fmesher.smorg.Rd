@@ -65,7 +65,8 @@ I/O files on disk.}
 A list of generated named quantities.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use the methods in the \code{fmesher} package
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use the methods in the \code{fmesher} package
 instead; see details below.
 
 Low level function for computing finite element matrices, spherical

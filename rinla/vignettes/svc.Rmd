@@ -280,7 +280,7 @@ outside the hull.
 
 ```{r mesh, cache=FALSE}
 # make a hull and mesh for spatial model
-hull <- fm_nonconvex_hull_inla(
+hull <- fm_nonconvex_hull(
   count_dat,
   convex = 200,
   concave = 350
