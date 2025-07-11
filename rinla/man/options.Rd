@@ -106,7 +106,8 @@ Further levels may be added as the package development progresses.}
 \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
 shows deprecation messages for many CRS and mesh
-related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.}
+related methods, pointing to their \verb{fm_*} replacements. Default
+since July 2025 is \code{TRUE}.}
 
 \item{fmesher.evolution.verbosity}{logical or character; at what minimum
 severity to show warnings about deprecated

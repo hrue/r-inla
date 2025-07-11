@@ -72,7 +72,7 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 25.05.26.9000
+Version: 25.07.11.9000
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 StagedInstall: no
