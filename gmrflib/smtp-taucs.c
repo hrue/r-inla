@@ -912,11 +912,13 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			fwrite((void *) &dnz, sizeof(double), (size_t) 1, fp);
 
 			int *itmp = Malloc(nz, int);
+#pragma omp simd
 			for (int i = 0; i < nz; i++) {
 				itmp[i] = QQ->colind[i] + 1;
 			}
 			fwrite((void *) itmp, sizeof(int), (size_t) nz, fp);
 
+#pragma omp simd
 			for (int i = 0; i < QQ->n + 1; i++) {
 				itmp[i] = QQ->rowptr[i] + 1;
 			}
