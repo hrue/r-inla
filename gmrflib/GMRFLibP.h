@@ -938,6 +938,25 @@ typedef enum {
 #define __GMRFLib_symbol_to_string(x_) __GMRFLib_symbol_to_string2(x_)
 #define __GMRFLib_symbol_to_string2(x_) #x_
 
+// option to override malloc with calloc (devel)
+#if defined(INLA_WITH_CALLOC)
+
+#undef Malloc_init
+#define Malloc_init(n_, m_) Calloc_init(n_, m_)
+
+#undef Malloc_get
+#define Malloc_get(n_) Calloc_get(n_)
+
+#undef Malloc_check
+#define Malloc_check() Calloc_check()
+
+#undef Malloc_free
+#define Malloc_free() Calloc_free()
+
+#undef Malloc
+#define Malloc(n_, type_) Calloc(n_, type_)
+
+#endif // defined(INLA_WITH_CALLOC)
 
 __END_DECLS
 #endif

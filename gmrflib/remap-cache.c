@@ -94,6 +94,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	// two step mapping
 	for (int j = 0; j < nrhs; j++) {
 		int offset = j * n;
+#pragma omp simd
 		for (int i = 0; i < n; i++) {
 			re1[offset + i] = remap[i] + offset;
 			re2[offset + i] = i * nrhs + j;
