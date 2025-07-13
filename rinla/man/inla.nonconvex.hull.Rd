@@ -44,11 +44,13 @@ details.}
 \item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
 }
 \value{
-An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.
+An \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla()}} or
-\code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}} instead.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use
+\code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}} with argument \code{format = "fm"} instead, or
+no special argument to get \code{sf} output.
 
 Constructs a nonconvex boundary for a point set using morphological
 operations.
@@ -69,7 +71,7 @@ specified radii.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.nonconvex.hull.basic()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+\item \code{inla.nonconvex.hull.basic()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}
 Use \code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla_basic()}} instead.
 
 }}

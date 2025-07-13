@@ -28,7 +28,8 @@ fmesher_deprecate <- function(level = NULL,
     level <- match.arg(level, c("default", "soft", "warn", "stop"))
     
     details <- c(details,
-                 "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html")
+                 "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html",
+                 "To silence these deprecation messages in old legacy code, set `inla.setOption(fmesher.evolution.warn = FALSE)`.")
 
     if (identical(level, "stop") || (w && identical(verb, "stop"))) {
         lifecycle::deprecate_stop(

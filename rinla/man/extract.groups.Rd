@@ -18,7 +18,8 @@ the input will be replaced by \code{groups.new[k]} in the output.}
 \item{\dots}{Additional arguments, passed on to other methods.}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
 
 Extract boundary or internal segments tagged by group id:s.
 }

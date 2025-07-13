@@ -96,7 +96,8 @@ specification for each location in \code{loc}, \code{boundary/interior}
 An \code{inla.mesh} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}}.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}
+in favour of \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}}.
 
 Create a constrained refined Delaunay triangulation (CRDT) for a set of
 spatial locations.
@@ -112,7 +113,8 @@ Delaunay tringulation.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.delaunay()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_delaunay_2d()}} instead.
+\item \code{inla.delaunay()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_delaunay_2d()}} instead.
 
 }}
 \examples{

@@ -19,7 +19,7 @@ Depends:
 Imports:
     graphics,
     grDevices,
-    fmesher (>= 0.0.9.9026),
+    fmesher (>= 0.5.0),
     lifecycle,
     methods,
     parallel,
@@ -72,7 +72,7 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 25.04.10
+Version: 25.07.11.9000
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 StagedInstall: no
