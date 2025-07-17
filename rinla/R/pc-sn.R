@@ -100,12 +100,19 @@ inla.pc.sn.cache <- function(force = FALSE, write.files = FALSE) {
         alphas <- c(-rev(alphas), 0, alphas)
         alphas.pos <- alphas[which(alphas >= 0)]
         alphas.neg <- alphas[which(alphas <= 0)]
-        dist.pos <- dist(alphas.pos)$dist
-        dist.neg <- rev(dist.pos)
 
-        skews <- sn.skew(alphas)
+        d <- dist(alphas.pos)
+        dist.pos <- d$dist
+        alphas.pos <- d$alpha
         skews.pos <- sn.skew(alphas.pos)
+
+        d <- dist(alphas.neg)
+        dist.neg <- d$dist
+        alphas.neg <- d$alpha
         skews.neg <- sn.skew(alphas.neg)
+
+        alphas <- unique(sort(c(alphas.neg, alphas.pos)))
+        skews <- sn.skew(alphas)
 
         if (write.files) {
             print("write file [s-sn-pc-prior.dat]")
@@ -119,24 +126,24 @@ inla.pc.sn.cache <- function(force = FALSE, write.files = FALSE) {
 
         m <- "monoH.FC"
         assign(tag,
-            list(
-                skews.range = range(skews),
-                dist.max = max(dist.pos),
-                pos = list(
-                    x = skews.pos,
-                    a = splinefun(skews.pos, alphas.pos, method = m),
-                    dist = splinefun(skews.pos, dist.pos, method = m),
-                    idist = splinefun(dist.pos, skews.pos, method = m)
-                ),
-                neg = list(
-                    x = skews.neg,
-                    a = splinefun(skews.neg, alphas.neg, method = m),
-                    dist = splinefun(skews.neg, dist.neg, method = m),
-                    idist = splinefun(dist.neg, skews.neg, method = m)
-                )
-            ),
-            envir = inla.get.inlaEnv()
-        )
+               list(
+                   skews.range = range(skews),
+                   dist.max = min(max(dist.neg), max(dist.pos)), 
+                   pos = list(
+                       x = skews.pos,
+                       a = splinefun(skews.pos, alphas.pos, method = m),
+                       dist = splinefun(skews.pos, dist.pos, method = m),
+                       idist = splinefun(dist.pos, skews.pos, method = m)
+                   ),
+                   neg = list(
+                       x = skews.neg,
+                       a = splinefun(skews.neg, alphas.neg, method = m),
+                       dist = splinefun(skews.neg, dist.neg, method = m),
+                       idist = splinefun(dist.neg, skews.neg, method = m)
+                   )
+               ),
+               envir = inla.get.inlaEnv()
+               )
     }
     return(get(tag, envir = inla.get.inlaEnv()))
 }
