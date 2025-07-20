@@ -2274,7 +2274,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			ll_info = Calloc(3 * preopt->Npred, double);
 			int *llcache_idx = Malloc(GMRFLib_openmp->max_threads_inner, int);
 			GMRFLib_ifill(GMRFLib_openmp->max_threads_inner, -1, llcache_idx);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j;
 				double local_aa;
@@ -3399,10 +3399,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			if (gcpo_param->keep) {
 				int *visited = Calloc(gcpo_param->keep->n, int);
 				// create a new default
-#pragma omp simd
-				for (int i = 0; i < nn; i++) {
-					diag[i] = big;
-				}
+				GMRFLib_dfill(nn, big, diag);
 				GMRFLib_dfill(nn, 0.0, mask);
 
 				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
@@ -3446,11 +3443,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			preopt->gcpo_diag = diag;
 
 			GMRFLib_problem_tp *problem = NULL;
-			double *c = Calloc(nn, double);
-#pragma omp simd
-			for (int i = 0; i < nn; i++) {
-				c[i] = gcpo_param->prior_diagonal;
-			}
+			double *c = Malloc(nn, double);
+			GMRFLib_dfill(nn,  gcpo_param->prior_diagonal, c);
 
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
 			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -6695,11 +6689,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int k = 0; k < klen; k++) {
-
 			int i = arr[k].i;
 			int j = arr[k].j;
 			int ij_from, ij_to;
-
 			ij_from = IMAX(cross_store[i].from_idx, cross_store[j].from_idx);
 			ij_to = IMIN(cross_store[i].to_idx, cross_store[j].to_idx);
 
