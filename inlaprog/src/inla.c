@@ -7008,6 +7008,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested[1] = 1;
 	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
 	GMRFLib_openmp->schedule = omp_sched_guided;
+	GMRFLib_openmp->chunk_size = 0;			       /* guided schedule only */
 	GMRFLib_openmp->likelihood_nt = 0;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);

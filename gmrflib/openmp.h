@@ -86,6 +86,7 @@ typedef struct {
 	int adaptive;
 	// default schedule
 	omp_sched_t schedule;
+	int chunk_size;
 	// optimal number of threads for likelihood computations
 	int likelihood_nt;
 } GMRFLib_openmp_tp;
