@@ -240,7 +240,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 
 	GMRFLib_ENTER_FUNCTION;
 
-	int i, tmax, *err = NULL;
+	int tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
@@ -252,8 +252,8 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	 * This is the copy that is to be copied 
 	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (i = 0; i < nx; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+	for (int i = 0; i < nx; i++) {
 		int thread_id = omp_get_thread_num();
 		int local_err = 0;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -274,12 +274,12 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 		GMRFLib_stiles_unbind_all();
 	}
 
-	for (i = 0; i < nx; i++) {
+	for (int i = 0; i < nx; i++) {
 		*ierr = *ierr || err[i];
 	}
 
 	GMRFLib_free_ai_store(ai_store_reference);
-	for (i = 0; i < tmax; i++) {
+	for (int i = 0; i < tmax; i++) {
 		if (ai_store[i]) {
 			GMRFLib_free_ai_store(ai_store[i]);
 		}
