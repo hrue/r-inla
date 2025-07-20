@@ -494,8 +494,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_sched_t kind;
 	int chunk_size;
 	omp_get_schedule(&kind, &chunk_size);
-	if (kind != GMRFLib_openmp->schedule) {
-		omp_set_schedule(GMRFLib_openmp->schedule, 0);
+	if (kind != GMRFLib_openmp->schedule || chunk_size != GMRFLib_openmp->chunk_size) {
+		omp_set_schedule(GMRFLib_openmp->schedule, GMRFLib_openmp->chunk_size);
 	}
 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
