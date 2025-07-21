@@ -16,7 +16,19 @@ test_that("Case 1", {
             control.inla = list(int.strategy = "grid", diff.logdens = 5, dz=.75))
     cs = r$misc$configs
     for (i in 1:length(cs$contents$tag)) {
-        idx = seq(cs$contents$start[i],  length.out = cs$contents$len[i])
+        if (cs$contents$tag[i] %in% c("APredictor", "Predictor")) {
+            ## With the compact inla.mode, the predictors aren't here.
+            next
+        }
+        start <- cs$contents$start[i]
+        if ("APredictor" %in% cs$contents$tag) {
+            start <- start - cs$contents$len[cs$contents$tag == "APredictor"]
+        }
+        if ("Predictor" %in% cs$contents$tag) {
+            start <- start - cs$contents$len[cs$contents$tag == "Predictor"]
+        }
+        idx = seq(start,  length.out = cs$contents$len[i])
+
         mean = 0
         psum = 0
         for(k in 1:cs$nconfig) {

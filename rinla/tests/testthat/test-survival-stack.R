@@ -75,9 +75,11 @@ test_that("Case 1: weibullsurv", {
         A = list(1))
 
     ## TO DO: make inla.stack() to collect the "names.ori"
+    ## 2025-07-21: inla.stack has been updated to handle inla.surv objects,
+    ## so the comments here are outdated.
     str(inla.stack.data(dstackS))
 
-    wdstackS <- winla.stack(
+    wdstackS <- inla.stack(
         data = list(sv[1:5]), 
         effects = list(
             data.frame(
@@ -86,6 +88,9 @@ test_that("Case 1: weibullsurv", {
         A = list(1))
 
     str(wdstackS)
+
+    ## 2025-07-21: inla.stack has been updated to handle inla.surv objects,
+    ## so the comments here are outdated.
 
     ## problem: how do user use this to fit the model ???
     ## for now the problem is that we have to use the
