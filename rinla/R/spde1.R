@@ -80,7 +80,7 @@ inla.spde1.create <-
              model = c("matern", "imatern", "matern.osc"),
              param = NULL,
              ...) {
-        inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+        inla.require.inherits(mesh, "fm_mesh_2d", "'mesh'")
 
         model <- match.arg(model)
         if (is.null(param)) {

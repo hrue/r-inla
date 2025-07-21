@@ -963,7 +963,7 @@ inla.mesh.query <- function(mesh, ...) {
     details = "Does not yet have an `fmesher` alternative."
   )
 
-  inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+  inla.require.inherits(mesh, "fm_mesh_2d", "'mesh'")
 
   not.known <- function(mesh, queryname) {
     stop(paste("Query '", queryname,

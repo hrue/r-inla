@@ -1,7 +1,7 @@
 test_that("Spherical harmonics", {
     local_edition(3)
     
-    m <- inla.mesh.create(globe = 1)
+    m <- fmesher::fm_rcdt_2d_inla(globe = 1)
     sph0 <- inla.mesh.basis(m, type = "sph.harm", rot.inv = TRUE)
     
     expect_equal(dim(sph0), c(12, 4))
