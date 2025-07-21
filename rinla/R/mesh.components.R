@@ -3,8 +3,9 @@
 #' `r lifecycle::badge("deprecated")` Compute subsets of vertices and triangles
 #' in an inla.mesh object that are
 #' connected by edges. This function is deprecated from INLA `25.4.10` when
-#' fmesher version `0.3.0.9005` or later is installed, which has
-#' `fm_mesh_components()`.
+#' fmesher version `0.3.0.9005` or later is installed, which had
+#' `fm_mesh_components()`, replaced from fmesher `0.4.0.9001` by
+#' [fmesher::fm_components()].
 #'
 #'
 #' @return A list with elements `vertex` and `triangle`, vectors of
@@ -40,15 +41,33 @@
 #' conn2$info
 #' @export
 inla.mesh.components <- function(mesh) {
+    if (utils::packageVersion("fmesher") >= "0.4.0.9001") {
+        fmesher_deprecate(
+            "warn",
+            2L,
+            when = "25.04.10",
+            what = "inla.mesh.components()",
+            with = "fmesher::fm_components()",
+            details =
+                paste0("Use the `fmesher::fm_components()` method instead, ",
+                       "from `fmesher` version `0.4.0.9001`.")
+        )
+        return(eval(parse(
+            text = paste0("fmesher::fm_components(mesh = mesh)")
+        )))
+    }
     if (utils::packageVersion("fmesher") >= "0.3.0.9005") {
         fmesher_deprecate(
             "warn",
             2L,
             when = "25.04.10",
             what = "inla.mesh.components()",
-            with = "fmesher::fm_mesh_components()",
-            details = paste0("Use the `fmesher` function instead, ",
-                             "from `fmesher` version `0.3.0.9005`.")
+            with = "fmesher::fm_components()",
+            details =
+                paste0("Use the `fmesher::fm_components()` method instead, ",
+                       "from `fmesher` version `0.4.0.9001`, or from ",
+                       "`0.3.0.9005` to `0.4.0`, ",
+                       "`fmesher::fm_mesh_components()`.")
         )
         return(eval(parse(
             text = paste0("fmesher::fm_mesh_components(mesh = mesh)")

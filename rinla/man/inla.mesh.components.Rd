@@ -26,8 +26,9 @@ initiated.}
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Compute subsets of vertices and triangles
 in an inla.mesh object that are
 connected by edges. This function is deprecated from INLA \verb{25.4.10} when
-fmesher version \verb{0.3.0.9005} or later is installed, which has
-\code{fm_mesh_components()}.
+fmesher version \verb{0.3.0.9005} or later is installed, which had
+\code{fm_mesh_components()}, replaced from fmesher \verb{0.4.0.9001} by
+\code{\link[fmesher:fm_components]{fmesher::fm_components()}}.
 }
 \examples{
 
