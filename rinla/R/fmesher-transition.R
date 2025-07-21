@@ -53,7 +53,7 @@ fmesher_deprecate <- function(level = NULL,
         details,
         "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html",
         "To silence these deprecation messages in old legacy code, set `inla.setOption(fmesher.evolution.warn = FALSE)`.",
-        "To ensure visibility of these messages in package tests, also set `inla.setOption(fmesher.evolution.verbosity = 'warn')`.",
+        "To ensure visibility of these messages in package tests, also set `inla.setOption(fmesher.evolution.verbosity = 'warn')`."
     )
     
     if (w) {
