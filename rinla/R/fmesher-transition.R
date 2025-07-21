@@ -1,3 +1,24 @@
+## Helpers to avoid a runtime dependency on testthat.
+## See documentation ?testthat::is_testing
+testthat_is_testing <- function() {
+    identical(Sys.getenv("TESTTHAT"), "true")
+}
+testthat_is_snapshot <- function() {
+    identical(Sys.getenv("TESTTHAT_IS_SNAPSHOT"), "true")
+}
+testthat_is_checking <- function() 
+{
+    identical(Sys.getenv("TESTTHAT_IS_CHECKING"), "true")
+}
+testthat_is_parallel <- function() 
+{
+    identical(Sys.getenv("TESTTHAT_IS_PARALLEL"), "true")
+}
+testthat_testing_package <- function() 
+{
+    Sys.getenv("TESTTHAT_PKG")
+}
+
 fmesher_deprecate_allow <- function(evo = NULL,
                                     env = rlang::caller_env(),
                                     user_env = rlang::caller_env(2)) {
@@ -22,23 +43,24 @@ fmesher_deprecate <- function(level = NULL,
     }
     
     w <- isTRUE(inla.getOption("fmesher.evolution.warn")) ||
-        identical(Sys.getenv("TESTTHAT"), "true")
+        (testthat_is_testing() && !testthat_is_snapshot())
     verb <- inla.getOption("fmesher.evolution.verbosity")
     
     verb <- match.arg(verb, c("default", "soft", "warn", "stop"))
     level <- match.arg(level, c("default", "soft", "warn", "stop"))
     
-    details <- c(details,
-                 "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html",
-                 "To silence these deprecation messages in old legacy code, set `inla.setOption(fmesher.evolution.warn = FALSE)`.",
-                 "To ensure visibility of these messages in package tests, also set `inla.setOption(fmesher.evolution.verbosity = 'warn')`.",)
+    details <- c(
+        details,
+        "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html",
+        "To silence these deprecation messages in old legacy code, set `inla.setOption(fmesher.evolution.warn = FALSE)`.",
+        "To ensure visibility of these messages in package tests, also set `inla.setOption(fmesher.evolution.verbosity = 'warn')`.",
+    )
     
     if (w) {
         if (identical(verb, "default")) {
             verb <- "soft"
         }
-        if (identical(Sys.getenv("TESTTHAT"), "true") &&
-            identical(verb, "soft")) {
+        if (identical(verb, "soft") && testthat_is_testing()) {
             verb <- "warn"
         }
         withr::local_options(
@@ -73,7 +95,9 @@ fmesher_deprecate <- function(level = NULL,
             with = with,
             details = details,
             id = id,
-            always = always || identical(Sys.getenv("TESTTHAT"), "true"),
+            always = always ||
+                (testthat_is_testing() &&
+                     !testthat_is_snapshot()),
             env = env,
             user_env = user_env
         )
