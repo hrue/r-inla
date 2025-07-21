@@ -36,8 +36,8 @@ test_that("Case 1: weibullsurv", {
                     fit2$mode$theta) < 0.1)
 
     sv <- inla.surv(Leuk$day, Leuk$cens)
-    class(sv)
-    str(sv)
+    ## class(sv)
+    ## str(sv)
 
     attr(sv, "names.ori")
     sapply(attr(sv, "names.ori"), as.character)
@@ -148,8 +148,5 @@ test_that("Case 2: coxph", {
         family = "coxph",
         data = inla.stack.data(dstack))
 
-    expect_true(abs(fit1$mode$theta -
-                    fit2$mode$theta) < 0.1)
-
+    expect_equal(fit2$mode$theta, fit1$mode$theta, tolerance = 1e-4)
 })
-
