@@ -68,7 +68,7 @@ inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
         proj_len
     }
     mesh.proj <- function(mesh, dims) {
-        fm_evaluator(mesh, dims = dims)
+        fmesher::fm_evaluator(mesh, dims = dims)
     }
     mesh.spde <- function(mesh, alpha) {
         INLA::inla.spde2.pcmatern(mesh,

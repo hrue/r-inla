@@ -207,7 +207,7 @@ inla.spde3.matern.sd.basis =
 inla.internal.test.spde3.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, compensate=FALSE)
 {
     alpha=2
-    mesh = fm_rcdt_2d_inla(globe=globe)
+    mesh = fmesher::fm_rcdt_2d_inla(globe=globe)
 
     B.common = inla.mesh.basis(mesh, "b.spline", n=3)
     B.common = cbind(B.common, B.common[,1]*(mesh$loc[,3]>0))
@@ -902,5 +902,9 @@ inla.spde3.models = function()
 
 
 ## spde.common-connections:
+#' @method inla.spde.precision inla.spde3
+#' @noRd inla.spde.precision
 inla.spde.precision.inla.spde3 = inla.spde3.precision
+#' @method inla.spde.result inla.spde3
+#' @noRd
 inla.spde.result.inla.spde3 = inla.spde3.result
