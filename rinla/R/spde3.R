@@ -902,9 +902,9 @@ inla.spde3.models = function()
 
 
 ## spde.common-connections:
-#' @method inla.spde.precision inla.spde3
+#' @exportS3Method inla.spde.precision inla.spde3
 #' @noRd
 inla.spde.precision.inla.spde3 = inla.spde3.precision
-#' @method inla.spde.result inla.spde3
+#' @exportS3Method inla.spde.result inla.spde3
 #' @noRd
 inla.spde.result.inla.spde3 = inla.spde3.result
