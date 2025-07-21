@@ -809,6 +809,24 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// Free(ds->data_observations.nb);
 	}
 
+	if (ds->data_id == L_BETABINOMIAL) {
+		n = mb->predictor_ndata;
+		int nnuma = GMRFLib_numa_nodes();
+		inla_llik_data_betabinomial_tp **b = Calloc(nnuma, inla_llik_data_betabinomial_tp *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			b[knuma] = (inla_llik_data_betabinomial_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_betabinomial_tp), knuma);
+			for (i = 0; i < n; i++) {
+				b[knuma][i].y = (int) ds->data_observations.y[i];
+				b[knuma][i].nb = (int) ds->data_observations.nb[i];
+				b[knuma][i].normc = NAN;
+			}
+		}
+		ds->data_observations.data_betabinomial = b;
+		// Free later when checking input
+		// Free(ds->data_observations.y);
+		// Free(ds->data_observations.nb);
+	}
+
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -1512,8 +1530,7 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 			}
 		}
 
-		size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-		double eta[mm];
+		double eta[m];
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = c[0] + c[1] * eta[i];
@@ -2559,9 +2576,8 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 			if ((PREDICTOR_SCALE == 1.0)) {
 				const int mkl_lim = 4L;
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double xx[mm];
-					double exp_x[mm];
+					double xx[m];
+					double exp_x[m];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
@@ -2915,9 +2931,8 @@ int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *__restric
 
 	LINK_INIT;
 	if (m > 0) {
-		size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-		double mean[mm];
-		double lambda[mm];
+		double mean[m];
+		double lambda[m];
 #pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i], off);
@@ -3115,8 +3130,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
 			if (ny >= mkl_lim) {
-				size_t mm = GMRFLib_align_simple((size_t) ny, sizeof(double));
-				double w[mm], ww[mm];
+				double w[m], ww[m];
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
 					double Xbeta = GMRFLib_ddot(nb, beta, xx);
@@ -3159,8 +3173,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					double elogll0 = exp(logll0);
 					if (m >= mkl_lim) {
-						size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-						double xx[mm], exx[mm];
+						double xx[m], exx[m];
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							xx[i] = x[i] + off;
@@ -3202,8 +3215,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 			} else {
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					if (m >= mkl_lim) {
-						size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-						double w[mm], ww[mm];
+						double w[m], ww[m];
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							w[i] = -(x[i] + off);
@@ -4553,9 +4565,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 						}
 					}
 				} else {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double xx[mm], ex[mm], lx[mm];
-
+					double xx[m], ex[m], lx[m];
 					GMRFLib_cdaddto(m, x, off, xx);
 					GMRFLib_exp(m, xx, ex);
 					GMRFLib_dscale(m, E / size, ex);
@@ -5197,8 +5207,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			if (ISZERO(y)) {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double v_eta[mm], v_ee[mm], v_lee[mm];
+					double v_eta[m], v_ee[m], v_lee[m];
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -5228,8 +5237,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 				}
 			} else if (ISZERO(ny)) {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double v_eta[mm], v_ee[mm], v_lee[mm];
+					double v_eta[m], v_ee[m], v_lee[m];
 
 					if (fast) {
 #pragma omp simd
@@ -5260,8 +5268,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 				}
 			} else {
 				if (m >= mkl_lim) {
-					size_t mm = GMRFLib_align_simple((size_t) m, sizeof(double));
-					double v_eta[mm], v_meta[mm], v_ee[mm], v_iee[mm], v_lee[mm], v_liee[mm];
+					double v_eta[m], v_meta[m], v_ee[m], v_iee[m], v_lee[m], v_liee[m];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
@@ -7008,19 +7015,20 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+	int numa = GMRFLib_numa_get_node();
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int y = (int) ds->data_observations.y[idx];
-	int n = (int) ds->data_observations.nb[idx];
+	inla_llik_data_betabinomial_tp *d = &(ds->data_observations.data_betabinomial[numa][idx]);
+	int y = d->y;
+	int n = d->nb;
 
 	double rho = map_probability_forward(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b;
 	double normc;
 
-	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
-		G_norm_const_compute[idx] = 0;
+	if (ISNAN(d->normc)) {
+		d->normc = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
 	}
-	normc = G_norm_const[idx];
+	normc = d->normc;
 
 	LINK_INIT;
 	if (m > 0) {

@@ -1718,10 +1718,16 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					for (int i = 0; i < n; i++) {
 						if (density[i]) {
 							double kld;
-							// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean,
-							// density[i]->std_stdev, GMRFLib_FALSE);
-							gd->std_mean = density[i]->std_mean;
-							gd->std_stdev = density[i]->std_stdev;
+							if (0) {
+								// old code
+								// GMRFLib_density_tp *gd = NULL;
+								// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev, GMRFLib_FALSE);
+							} else {
+								gd->std_mean = density[i]->std_mean;
+								gd->std_stdev = density[i]->std_stdev;
+								gd->user_mean = gd->std_stdev * gd->mean + gd->std_mean;
+								gd->user_stdev = gd->std_stdev * gd->stdev;
+							}
 							if (G.fast_mode) {
 								GMRFLib_mkld_sym(&kld, gd, density[i]);
 							} else {
