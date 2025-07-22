@@ -36,12 +36,12 @@ fmesher version \verb{0.3.0.9005} or later is installed, which had
 library(fmesher)
 loc <- matrix(c(0, 1, 0, 1), 2, 2)
 mesh1 <- fm_mesh_2d(loc = loc, max.edge = 0.1)
-bnd <- fm_nonconvex_hull_inla(loc, 0.3)
+bnd <- fm_nonconvex_hull(loc, 0.3)
 mesh2 <- fm_mesh_2d(boundary = bnd, max.edge = 0.1)
 
 # Compute connectivity information:
-conn1 <- inla.mesh.components(mesh1)
-conn2 <- inla.mesh.components(mesh2)
+conn1 <- fm_components(mesh1)
+conn2 <- fm_components(mesh2)
 # One component, simply connected mesh
 conn1$info
 # Two disconnected components

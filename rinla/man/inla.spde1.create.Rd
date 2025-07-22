@@ -63,7 +63,7 @@ W(u)}\deqn{ x(u))=W(u)}{(-Delta)^(alpha/2) (tau(u) x(u)) = W(u)}
 Matrix of basis functions for \eqn{\log\tau(u)}{log tau(u)} }
 }
 \examples{
-
+\dontrun{
 n <- 100
 field.fcn <- function(loc) (10 * cos(2 * pi * 2 * (loc[, 1] + loc[, 2])))
 loc <- matrix(runif(n * 2), n, 2)
@@ -71,7 +71,7 @@ loc <- matrix(runif(n * 2), n, 2)
 idx.y <- rep(1:n, 2)
 y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 
-mesh <- inla.mesh.create(loc, refine = list(max.edge = 0.05))
+mesh <- fmesher::fm_rcdt_2d_inla(loc, refine = list(max.edge = 0.05))
 spde <- inla.spde1.create(mesh, model = "matern")
 data <- list(y = y, field = mesh$idx$loc[idx.y])
 formula <- y ~ -1 + f(field, model = spde)
@@ -79,7 +79,8 @@ result <- inla(formula, data = data, family = "normal")
 
 ## Plot the mesh structure:
 plot(mesh)
-\donttest{
+}
+\dontrun{
 if (require(rgl)) {
     ## Plot the posterior mean:
     plot(mesh,

@@ -72,7 +72,7 @@ specified radii.
 \section{Functions}{
 \itemize{
 \item \code{inla.nonconvex.hull.basic()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}
-Use \code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla_basic()}} instead.
+Use \code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}} with \code{concave = 0} instead.
 
 }}
 \note{
