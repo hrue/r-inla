@@ -28,14 +28,16 @@ meshbuilder.app <- function() {
         if (points) {
             c(
                 "matrix",
-                "inla.mesh",
-                "inla.mesh.segment",
+                "fm_mesh_2d",
+                "fm_segm",
                 "SpatialPoints", "SpatialPointsDataFrame",
                 "SpatialLines", "SpatialLinesDataFrame",
                 "SpatialPolygons", "SpatialPolygonsDataFrame"
             )
         } else {
             c(
+                "fm_mesh_2d",
+                "fm_segm",
                 "inla.mesh",
                 "inla.mesh.segment",
                 "SpatialLines", "SpatialLinesDataFrame",
@@ -98,7 +100,7 @@ meshbuilder.app <- function() {
                 code <- 'as(%%%, "SpatialPolygons")'
             }
             code <- paste0("as(", code, ', "SpatialPoints")')
-        } else if (inherits(sp, "inla.mesh.segment") || inherits(sp, "inla.mesh")) {
+        } else if (inherits(sp, "fm_segm") || inherits(sp, "fm_mesh_2d")) {
             coord <- sp$loc
             if (is.null(sp$crs)) {
                 crs <- sp::CRS()
@@ -129,10 +131,10 @@ meshbuilder.app <- function() {
         )) > 0) {
             out <- fmesher::fm_as_segm(sp)
             code <- "fmesher::fm_as_segm(%%%)"
-        } else if (inherits(sp, "inla.mesh")) {
+        } else if (inherits(sp, "fm_mesh_2d")) {
             out <- do.call(inla.mesh.segment, inla.mesh.boundary(sp))
             code <- "do.call(inla.mesh.segment, inla.mesh.boundary(%%%))"
-        } else if (inherits(sp, "inla.mesh.segment")) {
+        } else if (inherits(sp, "fm_segm")) {
             out <- sp
             code <- "%%%"
         } else {

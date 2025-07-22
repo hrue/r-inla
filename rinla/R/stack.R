@@ -92,7 +92,7 @@ ensure.canonical.response.objects <- function(responses) {
 }
 
 #' @noRd
-rbind.inla.stack.responses <- function(l) {
+rbind_inla_stack_responses <- function(l) {
     l <- ensure.canonical.response.objects(l)    
     
     classes <- lapply(l, class)
@@ -932,7 +932,7 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
                                     }
                                 }))
     if (isFALSE(multi.family)) {
-        responses <- rbind.inla.stack.responses(responses)
+        responses <- rbind_inla_stack_responses(responses)
     }
     if (isTRUE(multi.family)) {
         responses <- expand.inla.stack.responses(responses)

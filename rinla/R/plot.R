@@ -1220,16 +1220,16 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         to.theta <- inla.models()$latent$fgn$hyper$theta2$to.theta
         from.theta <- inla.models()$latent$fgn$hyper$theta2$from.theta
 
-        logdet.FGN.OLD <- function(H, n) {
-            ans <- c()
-            Hseq <- H
-            for (H in Hseq) {
-                r <- inla.acvfFGN(H, n - 1)
-                res <- HKprocess::ltzc(r, rep(0, n))
-                ans <- c(ans, as.numeric(res[2]))
-            }
-            return(ans)
-        }
+        ## logdet.FGN.OLD <- function(H, n) {
+        ##     ans <- c()
+        ##     Hseq <- H
+        ##     for (H in Hseq) {
+        ##         r <- inla.acvfFGN(H, n - 1)
+        ##         res <- HKprocess::ltzc(r, rep(0, n))
+        ##         ans <- c(ans, as.numeric(res[2]))
+        ##     }
+        ##     return(ans)
+        ## }
         logdet.FGN <- function(H, n) {
             ans <- c()
             Hseq <- H

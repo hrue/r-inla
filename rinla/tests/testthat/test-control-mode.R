@@ -13,7 +13,7 @@ test_that("Case 1", {
     r = inla(formula, data = data.frame(y, idx),
             control.inla = list(int.strategy = "eb"))
     rr = inla(formula, data = data.frame(y, idx),
-            control.mode = list(result = r,  fixed=TRUE))
+            control.mode = list(result = r,  fixed=TRUE, restart=FALSE))
     expect_true(all(abs(r$summary.random[[1]] - rr$summary.random[[1]]) < 1e-8))
     expect_true(all(abs(r$summary.fixed - rr$summary.fixed) < 1e-8))
 })

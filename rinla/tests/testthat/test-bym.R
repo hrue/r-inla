@@ -23,7 +23,11 @@ test_that("Case 1", {
     result1.bym = inla(formula1.bym,family="poisson",data=Germany,E=E, 
             control.predictor = list(compute=TRUE))
     
-    expect_true(mean(abs(result1$summary.linear.predictor$mean -
-                         result1.bym$summary.linear.predictor$mean)) < 1e-4)
+    expect_equal(result1$summary.linear.predictor$sd,
+                 result1.bym$summary.linear.predictor$sd,
+                 tolerance = 1e-4)
+    ## 2025-07-21: Differences likely due to the VB corrections...
+    expect_lt(mean(abs(result1$summary.linear.predictor$mean -
+                           result1.bym$summary.linear.predictor$mean)),
+              1e-4)
 })
-

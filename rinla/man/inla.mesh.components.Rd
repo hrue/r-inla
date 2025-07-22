@@ -26,8 +26,9 @@ initiated.}
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Compute subsets of vertices and triangles
 in an inla.mesh object that are
 connected by edges. This function is deprecated from INLA \verb{25.4.10} when
-fmesher version \verb{0.3.0.9005} or later is installed, which has
-\code{fm_mesh_components()}.
+fmesher version \verb{0.3.0.9005} or later is installed, which had
+\code{fm_mesh_components()}, replaced from fmesher \verb{0.4.0.9001} by
+\code{\link[fmesher:fm_components]{fmesher::fm_components()}}.
 }
 \examples{
 
@@ -35,12 +36,12 @@ fmesher version \verb{0.3.0.9005} or later is installed, which has
 library(fmesher)
 loc <- matrix(c(0, 1, 0, 1), 2, 2)
 mesh1 <- fm_mesh_2d(loc = loc, max.edge = 0.1)
-bnd <- fm_nonconvex_hull_inla(loc, 0.3)
+bnd <- fm_nonconvex_hull(loc, 0.3)
 mesh2 <- fm_mesh_2d(boundary = bnd, max.edge = 0.1)
 
 # Compute connectivity information:
-conn1 <- inla.mesh.components(mesh1)
-conn2 <- inla.mesh.components(mesh2)
+conn1 <- fm_components(mesh1)
+conn2 <- fm_components(mesh2)
 # One component, simply connected mesh
 conn1$info
 # Two disconnected components

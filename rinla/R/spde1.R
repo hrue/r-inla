@@ -41,7 +41,7 @@ NULL
 #' @seealso [inla.spde2.matern()], [inla.mesh.2d()],
 #' [inla.mesh.basis()]
 #' @examples
-#'
+#' \dontrun{
 #' n <- 100
 #' field.fcn <- function(loc) (10 * cos(2 * pi * 2 * (loc[, 1] + loc[, 2])))
 #' loc <- matrix(runif(n * 2), n, 2)
@@ -49,7 +49,7 @@ NULL
 #' idx.y <- rep(1:n, 2)
 #' y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 #'
-#' mesh <- inla.mesh.create(loc, refine = list(max.edge = 0.05))
+#' mesh <- fmesher::fm_rcdt_2d_inla(loc, refine = list(max.edge = 0.05))
 #' spde <- inla.spde1.create(mesh, model = "matern")
 #' data <- list(y = y, field = mesh$idx$loc[idx.y])
 #' formula <- y ~ -1 + f(field, model = spde)
@@ -57,7 +57,8 @@ NULL
 #'
 #' ## Plot the mesh structure:
 #' plot(mesh)
-#' \donttest{
+#' }
+#' \dontrun{
 #' if (require(rgl)) {
 #'     ## Plot the posterior mean:
 #'     plot(mesh,
@@ -80,7 +81,7 @@ inla.spde1.create <-
              model = c("matern", "imatern", "matern.osc"),
              param = NULL,
              ...) {
-        inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+        inla.require.inherits(mesh, "fm_mesh_2d", "'mesh'")
 
         model <- match.arg(model)
         if (is.null(param)) {
@@ -163,11 +164,7 @@ inla.spde1.create <-
 
             spde$internal <- (c(
                 spde$internal,
-                inla.fmesher.smorg(mesh$loc,
-                    mesh$graph$tv,
-                    fem = 2,
-                    output = list("c0", "g1", "g2")
-                )
+                fmesher::fm_fem(mesh, order = 2)
             ))
 
             if (param$alpha == 2) {
