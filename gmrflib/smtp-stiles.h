@@ -32,7 +32,7 @@ __BEGIN_DECLS
 typedef struct {
 	int in_group;
 	int within_group;
-	int sidx;
+	int nrhs;
 } GMRFLib_stiles_idx_tp;
 #endif
 

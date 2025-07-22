@@ -239,38 +239,24 @@ void GMRFLib_stiles_quit(void)
 
 void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp)
 {
-	fprintf(fp, "%s:%1d stiles_idx: in_group=%1d within_group=%1d sidx=%1d\n",
-		__FILE__, __LINE__, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->sidx);
+	fprintf(fp, "%s:%1d stiles_idx: in_group=%1d within_group=%1d nrhs=%1d\n",
+		__FILE__, __LINE__, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->nrhs);
 }
 
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->within_group using thread_num(), and set sidx
+	// rewrite ->within_group using thread_num()
 	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
-	if (nrhs >= 0) {
-		if ((stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs)) < 0) {
-			fprintf(stderr, "\n%s: %1d: nrhs = %1d not found. continue with nrhs=1\n\n", __FILE__, __LINE__, nrhs);
-			stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs);
-		}
-	} else {
-		stiles_idx->sidx = -1;
-	}
+	stiles_idx->nrhs = nrhs;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->in_group and ->within_group into the corresponding copy, and set sidx
+	// rewrite ->in_group and ->within_group into the corresponding copy
 	stiles_idx->in_group = store->offset_copy + stiles_idx->within_group;
 	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
-	if (nrhs >= 0) {
-		if ((stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs)) < 0) {
-			fprintf(stderr, "\n%s: %1d: nrhs = %1d not found\n\n", __FILE__, __LINE__, nrhs);
-			stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs);
-		}
-	} else {
-		stiles_idx->sidx = -1;
-	}
+	stiles_idx->nrhs = nrhs;
 	return GMRFLib_SUCCESS;
 }
 
@@ -473,22 +459,19 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_LLT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_LLT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_L(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_L(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_LT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_LT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
