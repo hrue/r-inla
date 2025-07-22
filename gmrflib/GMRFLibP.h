@@ -692,6 +692,7 @@ typedef enum {
 		Free(work__);						\
         }
 
+
 #define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
 		int need_work__ = (n_work_ * len_work_ > 0);		\
@@ -791,7 +792,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+			_Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
