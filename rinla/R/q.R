@@ -113,11 +113,15 @@ NULL
         INLA_VERSION = inla.version("version")
     )
     if (inla.os("windows")) {
-        vars <- c(vars,
-            INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
-            INLA_CYGWIN_HOME = inla.getOption("cygwin.home"),
-            INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME()))
+        lifecycle::deprecate_stop(
+            when = "23.06.11",
+            what = I("Remote execution via `cygwin`")
         )
+        ## vars <- c(vars,
+        ##     INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
+        ##     INLA_CYGWIN_HOME = inla.getOption("cygwin.home"),
+        ##     INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME()))
+        ## )
     } else {
         vars <- c(vars,
             INLA_HOME = inla.get.HOME()
@@ -132,7 +136,11 @@ NULL
 
     inla.call <- system.file("bin/remote/inla.q", package = "INLA")
     if (inla.os("windows")) {
-        inla.call <- paste(inla.call, ".cygwin", sep = "")
+        lifecycle::deprecate_stop(
+          when = "23.06.11",
+          what = I("Remote execution via `cygwin`")
+        )
+        ## inla.call <- paste(inla.call, ".cygwin", sep = "")
     }
 
     if (!missing(id) && is.list(id)) {
