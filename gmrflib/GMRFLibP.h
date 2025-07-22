@@ -681,7 +681,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-                        _Pragma("omp parallel for num_threads(nt__) schedule(guided)") \
+                        _Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
@@ -691,6 +691,7 @@ typedef enum {
 		}							\
 		Free(work__);						\
         }
+
 
 #define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
@@ -707,7 +708,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-                        _Pragma("omp parallel for num_threads(nt__) schedule(guided)") \
+                        _Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
@@ -791,7 +792,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+			_Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
@@ -938,6 +939,25 @@ typedef enum {
 #define __GMRFLib_symbol_to_string(x_) __GMRFLib_symbol_to_string2(x_)
 #define __GMRFLib_symbol_to_string2(x_) #x_
 
+// option to override malloc with calloc (devel)
+#if defined(INLA_WITH_CALLOC)
+
+#undef Malloc_init
+#define Malloc_init(n_, m_) Calloc_init(n_, m_)
+
+#undef Malloc_get
+#define Malloc_get(n_) Calloc_get(n_)
+
+#undef Malloc_check
+#define Malloc_check() Calloc_check()
+
+#undef Malloc_free
+#define Malloc_free() Calloc_free()
+
+#undef Malloc
+#define Malloc(n_, type_) Calloc(n_, type_)
+
+#endif // defined(INLA_WITH_CALLOC)
 
 __END_DECLS
 #endif

@@ -621,13 +621,8 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
 		assert(n_lp_scale == mb->predictor_ndata);
-#pragma omp simd
 		for (int i3 = 0; i3 < n_lp_scale; i3++) {
-			if (ISNAN(lp_scale_d[i3])) {
-				lp_scale[i3] = -1;
-			} else {
-				lp_scale[i3] = (int) lp_scale_d[i3] - 1;
-			}
+			lp_scale[i3] = (ISNAN(lp_scale_d[i3]) ? -1 : (int) lp_scale_d[i3] - 1);
 		}
 	} else {
 		GMRFLib_ifill(mb->predictor_ndata, -1, lp_scale);
