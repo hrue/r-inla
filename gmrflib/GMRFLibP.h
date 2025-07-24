@@ -681,7 +681,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-                        _Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
+                        _Pragma("omp parallel for num_threads(nt__)")	\
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
@@ -792,7 +792,7 @@ typedef enum {
 		assert(work__);						\
 									\
 		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
+			_Pragma("omp parallel for num_threads(nt__)")   \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
