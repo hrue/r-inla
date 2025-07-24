@@ -17,10 +17,13 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
+	GMRFLib_STOP_IF_NOT_SERIAL();
+
 	GMRFLib_ptr_tp *graphs = setup->graphs;
 	GMRFLib_idx_tp *nrhss = setup->nrhss;
-
-	GMRFLib_STOP_IF_NOT_SERIAL();
+	if (store) {
+		GMRFLib_stiles_quit();
+	}
 
 	if (!ctl) {
 		GMRFLib_stiles_set_ctl(0, 0);
@@ -35,9 +38,6 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	assert(nt_inner > 0);
 	assert(ng > 0);
 
-	if (store) {
-		GMRFLib_stiles_quit();
-	}
 	store = Calloc(1, GMRFLib_stiles_store_tp);
 	store->n = Calloc(ng2, int);
 	store->nnz = Calloc(ng2, int);
@@ -370,6 +370,11 @@ void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp *setup)
 
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 {
+#if 0
+	FIXME("CHOL ENTER");
+	double tref = -GMRFLib_timer();
+#endif
+	
 	int in_group = stiles_idx->in_group;
 	int within_group = stiles_idx->within_group;
 
@@ -378,6 +383,15 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 		fprintf(stderr, "\n\n*** ERROR *** sTiles_chol %d \n\n", status);
 		fflush(stderr);
 	}
+
+#if 0
+#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)	
+	{
+		tref += GMRFLib_timer();
+		printf("CHOL LEAVE thread %d num_threads %d time %f\n", omp_get_thread_num(), omp_get_num_threads(), tref);
+	}
+#endif
+	
 	return (status ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
 
@@ -568,7 +582,7 @@ void GMRFLib_stiles_unbind_all(void)
 	}
 }
 
-int GMRFLib_stiles_verbose()
+int GMRFLib_stiles_get_verbose()
 {
 	return (ctl ? ctl->verbose : 0);
 }

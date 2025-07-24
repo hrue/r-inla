@@ -459,10 +459,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		} else if (!strcasecmp(smtp, "STILES")) {
 			GMRFLib_smtp = GMRFLib_SMTP_STILES;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
-			if (GMRFLib_openmp->adaptive) {
-				FIXME("set ->adaptive = FALSE due to sTiles");
-				GMRFLib_openmp->adaptive = FALSE;
-			}
+			GMRFLib_openmp->adaptive = FALSE;
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_ok < 0) {
 				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);

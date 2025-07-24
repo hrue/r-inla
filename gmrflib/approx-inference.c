@@ -657,7 +657,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (GMRFLib_openmp->adaptive) {
 			num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
 		} else {
-			num_threads = GMRFLib_openmp->max_threads_outer;
+			num_threads = GMRFLib_openmp->max_threads_inner;
 		}
 	} else {
 		num_threads = GMRFLib_openmp->max_threads_inner;
