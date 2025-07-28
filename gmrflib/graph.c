@@ -1377,7 +1377,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 	assert(result);
 	GMRFLib_dfill(graph->n, 0.0, result);
 
-	int m = 1 + GMRFLib_graph_max_nnbs(graph); 
+	int m = 1 + GMRFLib_graph_max_nnbs(graph);
 	Calloc_init(m + (!diag ? graph->n : 0), 2);
 	values = Calloc_get(m);
 	assert(values);
@@ -1428,7 +1428,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			if (debug) {
 				FIXME("Qx2: run block parallel");
 			}
-			int n1 = graph->n; 
+			int n1 = graph->n;
 			double **local_result = Calloc(num_threads, double *);
 			for (int k = 0; k < num_threads; k++) {
 				local_result[k] = Calloc(n1, double);
@@ -1534,7 +1534,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner);
 
 	int ncol = result->size2;
-	int len = 1 + GMRFLib_graph_max_nnbs(graph); 
+	int len = 1 + GMRFLib_graph_max_nnbs(graph);
 	int **indx = Calloc(nt, int *);
 	double **values = Calloc(nt, double *);
 	double **dot_values = Calloc(nt, double *);
@@ -1549,9 +1549,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < graph->n; i++) {
 			int tnum = omp_get_thread_num();
-			double *val = values[tnum]; 
-			double *dval = dot_values[tnum]; 
-			int *id = indx[tnum]; 
+			double *val = values[tnum];
+			double *dval = dot_values[tnum];
+			int *id = indx[tnum];
 
 			int nelm = 0;
 			GMRFLib_get_Qrow(thread_id, i, &nelm, id, val, graph, Qfunc, Qfunc_arg);
@@ -1601,10 +1601,10 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 		}
 	}
 
-	for(int k = 0; k < nt; k++) {
+	for (int k = 0; k < nt; k++) {
 		Free(indx[k]);
-		Free(values[k]); 
-		Free(dot_values[k]); 
+		Free(values[k]);
+		Free(dot_values[k]);
 	}
 	Free(indx);
 	Free(values);

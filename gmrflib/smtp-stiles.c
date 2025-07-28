@@ -374,7 +374,7 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 	FIXME("CHOL ENTER");
 	double tref = -GMRFLib_timer();
 #endif
-	
+
 	int in_group = stiles_idx->in_group;
 	int within_group = stiles_idx->within_group;
 
@@ -383,15 +383,14 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 		fprintf(stderr, "\n\n*** ERROR *** sTiles_chol %d \n\n", status);
 		fflush(stderr);
 	}
-
 #if 0
-#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)	
+#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)
 	{
 		tref += GMRFLib_timer();
 		printf("CHOL LEAVE thread %d num_threads %d time %f\n", omp_get_thread_num(), omp_get_num_threads(), tref);
 	}
 #endif
-	
+
 	return (status ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
 

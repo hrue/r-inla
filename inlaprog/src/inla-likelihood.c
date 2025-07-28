@@ -821,7 +821,6 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		// Free(ds->data_observations.y);
 		// Free(ds->data_observations.nb);
 	}
-
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
@@ -4445,7 +4444,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 	GMRFLib_numa_get(NULL, &numa);
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	inla_llik_data_nbinomial_tp * d = &(ds->data_observations.data_nbinomial[numa][idx]);
+	inla_llik_data_nbinomial_tp *d = &(ds->data_observations.data_nbinomial[numa][idx]);
 	double y = d->y;
 	double E = d->E;
 	double S = d->S;
@@ -4454,7 +4453,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 
 	LINK_INIT;
 	if (ISNAN(d->cache[0])) {
-#pragma omp critical (Name_882810d4fb8223d6a3d948a1f764f3de8bc599da) 
+#pragma omp critical (Name_882810d4fb8223d6a3d948a1f764f3de8bc599da)
 		{
 			if (ISNAN(d->cache[0])) {
 				ds->data_observations.data_nbinomial[numa][idx].cache[1] = y * log(E);
@@ -5958,9 +5957,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

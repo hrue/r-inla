@@ -34,7 +34,7 @@ int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph);
 int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged);
 int GMRFLib_ged_free(GMRFLib_ged_tp * ged);
 int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph);
-int GMRFLib_ged_init2(GMRFLib_ged_tp **ged, int n);
+int GMRFLib_ged_init2(GMRFLib_ged_tp ** ged, int n);
 int GMRFLib_ged_insert_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_node);
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_i_node, int at_j_node);
 

@@ -1006,7 +1006,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						}
 					}
 					retval =
-						GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
+					    GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
 											  fl, loglFunc, loglFunc_arg, graph, Qfunc,
 											  Qfunc_arg, constr, &new_optpar,
 											  blockupdate_par, store, aa, bb, cc, cmin,
@@ -2935,9 +2935,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Marginal likelihood: Integration %.3f Gaussian-approx %.3f\n",
-				marginal_likelihood->marginal_likelihood_integration,
-				marginal_likelihood->marginal_likelihood_gaussian_approx);
-			}
+				marginal_likelihood->marginal_likelihood_integration, marginal_likelihood->marginal_likelihood_gaussian_approx);
+		}
 	}
 
 	/*
@@ -3443,7 +3442,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			GMRFLib_problem_tp *problem = NULL;
 			double *c = Malloc(nn, double);
-			GMRFLib_dfill(nn,  gcpo_param->prior_diagonal, c);
+			GMRFLib_dfill(nn, gcpo_param->prior_diagonal, c);
 
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
 			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {

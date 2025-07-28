@@ -263,7 +263,7 @@ int inla_output(inla_tp *mb)
 	if (mb->nf) {
 		int div = IMIN(GMRFLib_MAX_THREADS(), IMIN(4, mb->nf));
 		GMRFLib_openmp_implement_strategy_special(div, GMRFLib_MAX_THREADS() / div);
-#pragma omp parallel for num_threads(div) 
+#pragma omp parallel for num_threads(div)
 		for (int ii = 0; ii < mb->nf; ii++) {
 			int offset = offsets[ii + 1];
 			inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -1721,7 +1721,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							if (0) {
 								// old code
 								// GMRFLib_density_tp *gd = NULL;
-								// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev, GMRFLib_FALSE);
+								// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean,
+								// density[i]->std_stdev, GMRFLib_FALSE);
 							} else {
 								gd->std_mean = density[i]->std_mean;
 								gd->std_stdev = density[i]->std_stdev;

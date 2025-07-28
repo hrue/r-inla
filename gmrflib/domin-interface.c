@@ -221,8 +221,9 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		// need sTiles within a parallel loop, even with num_threads=1
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_nested[0]) schedule(static)
-		for(int k = 0; k < GMRFLib_openmp->max_threads_nested[0]; k++) {
-			if (k == 0) GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
+		for (int k = 0; k < GMRFLib_openmp->max_threads_nested[0]; k++) {
+			if (k == 0)
+				GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
 		}
 	} else {
 		GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);

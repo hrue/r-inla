@@ -957,7 +957,7 @@ typedef enum {
 #undef Malloc
 #define Malloc(n_, type_) Calloc(n_, type_)
 
-#endif // defined(INLA_WITH_CALLOC)
+#endif							       // defined(INLA_WITH_CALLOC)
 
 __END_DECLS
 #endif
