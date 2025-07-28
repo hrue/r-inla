@@ -173,7 +173,7 @@ int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp **ai_par_new, GMRFLib_ai_para
 		return GMRFLib_SUCCESS;
 	}
 
-	*ai_par_new = Calloc(1, GMRFLib_ai_param_tp);
+	*ai_par_new = Malloc(1, GMRFLib_ai_param_tp);
 	Memcpy((void *) *ai_par_new, (void *) ai_par, sizeof(GMRFLib_ai_param_tp));
 
 	if (ai_par->optimise_use_directions_m) {
@@ -181,7 +181,7 @@ int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp **ai_par_new, GMRFLib_ai_para
 	}
 
 	if (ai_par->adapt_strategy) {
-		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_strategy_tp);
+		(*ai_par_new)->adapt_strategy = Malloc(ai_par->adapt_len, GMRFLib_ai_strategy_tp);
 		Memcpy((void *) (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy, sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
 	}
 
@@ -421,7 +421,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	if (!nnr_step_factor_first_time_only) {
 #pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
 		if (!nnr_step_factor_first_time_only) {
-			int *itmp = Calloc(GMRFLib_CACHE_LEN(), int);
+			int *itmp = Malloc(GMRFLib_CACHE_LEN(), int);
 			GMRFLib_ifill(GMRFLib_CACHE_LEN(), 1, itmp);
 			nnr_step_factor_first_time_only = itmp;
 		}
@@ -506,7 +506,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	 * if store, then store the mode to use as the initial point at later calls 
 	 */
 	Free(ai_store->mode);
-	ai_store->mode = Calloc(n, double);
+	ai_store->mode = Malloc(n, double);
 	Memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
 	if (mean == NULL) {
@@ -589,7 +589,7 @@ int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z,
 
 	assert(z);
 	assert(nhyper > 0);
-	u = Calloc(nhyper, double);
+	u = Malloc(nhyper, double);
 	for (i = 0; i < (size_t) nhyper; i++) {
 		u[i] = z[i] / gsl_vector_get(sqrt_eigen_values, i);
 	}
@@ -618,7 +618,7 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 	double tmp, *u = NULL;
 
 	assert(nhyper > 0);
-	u = Calloc(nhyper, double);
+	u = Malloc(nhyper, double);
 	for (i = 0; i < (size_t) nhyper; i++) {
 		u[i] = theta[i] - theta_mode[i];
 	}
@@ -699,18 +699,17 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	}
 	if (!aa) {
 		free_aa = 1;
-		aa = Calloc(Npred, double);
+		aa = Malloc(Npred, double);
 	}
 	if (!bb) {
 		free_bb = 1;
-		bb = Calloc(Npred, double);
+		bb = Malloc(Npred, double);
 	}
 	if (!cc) {
 		free_cc = 1;
-		cc = Calloc(Npred, double);
+		cc = Malloc(Npred, double);
 	}
-	mode = Calloc(n, double);
-
+	mode = Malloc(n, double);
 	Memcpy(mode, x, n * sizeof(double));
 
 	int free_d_idx = 0;
@@ -745,9 +744,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	int catch_error = 0;
 
 	GMRFLib_problem_tp *lproblem = NULL;
-	double *mode_initial = Calloc(n, double);
 	double err_previous = 0;
 
+	double *mode_initial = Malloc(n, double);
 	Memcpy(mode_initial, mode, n * sizeof(double));	       /* store the starting value */
 
 	double *linear_predictor = NULL;
@@ -994,7 +993,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				double lambda = 10000.0,       /* first value for lambda */
 				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
 				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
-				double *c_new = Calloc(graph->n, double);
+				double *c_new = Malloc(graph->n, double);
 
 				for (int kk = 0; kk < ntimes; kk++) {
 					for (int i = 0; i < graph->n; i++) {
@@ -1007,7 +1006,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						}
 					}
 					retval =
-					    GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
+						GMRFLib_init_GMRF_approximation_store__intern(thread_id, problem, x, b, c_new, mean, d,
 											  fl, loglFunc, loglFunc_arg, graph, Qfunc,
 											  Qfunc_arg, constr, &new_optpar,
 											  blockupdate_par, store, aa, bb, cc, cmin,
@@ -1719,7 +1718,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				stdev_corr_pos[i] = 1.0;
 			}
 		} else {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+			int nt = IMIN(nhyper, GMRFLib_openmp->max_threads_outer);
+#pragma omp parallel for num_threads(nt)
 			for (int k = 0; k < nhyper; k++) {
 				int thread_id = omp_get_thread_num();
 				double step = M_SQRT2;
@@ -3323,7 +3323,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->weights) || (gcpo_param->weights && gcpo_param->len_weights < Npred)) {
-		double *w = Calloc(Npred, double);
+		double *w = Malloc(Npred, double);
 		GMRFLib_dfill(Npred, 1.0, w);
 		if (gcpo_param->weights) {
 			// use those who already are defined
@@ -3348,9 +3348,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR) {
 
 			int nn = ai_store->problem->n;
-			double *mask = Calloc(nn, double);
-			double *diag = Calloc(nn, double);
-
 			int n_offset = 0;
 			int idx_offset = 0;
 			if (!strcmp(gcpo_param->idx_tag[0], "APredictor")) {
@@ -3365,6 +3362,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			double big = 1.0 / GSL_DBL_EPSILON;
 
+			double *mask = Malloc(nn, double);
+			double *diag = Malloc(nn, double);
 			GMRFLib_dfill(nn, 1.0, mask);
 			GMRFLib_dfill(nn, 0.0, diag);
 
@@ -3481,11 +3480,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(build_ai_store != NULL);
 
-		double *isd = Calloc(mnpred, double);
 		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS((int) gcpo_param->num_level_sets), IMIN(2, GMRFLib_MAX_THREADS()));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
+		double *isd = Malloc(mnpred, double);
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL, 0);
 		double min_sd = sqrt(GMRFLib_min_value(isd, Npred, NULL));
 #pragma omp simd
@@ -3748,7 +3747,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 			Free(work);
 
-			Swork = Calloc(nt_outer, double *);
 			for (int i = 0; i < nt_outer; i++) {
 				Free(Swork[i]);
 			}

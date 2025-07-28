@@ -486,7 +486,8 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double *f = Calloc(G.nhyper + 1, double);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		int nt = IMIN(G.nhyper + 1, GMRFLib_openmp->max_threads_outer);
+#pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
 
@@ -558,7 +559,8 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		int nt = IMIN(2 * G.nhyper, GMRFLib_openmp->max_threads_outer);
+#pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
 
@@ -786,8 +788,9 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	char first_entry = 1;
 	int replace_from = -1;
 	int replace_to = 2 * n;
+	int nt = IMIN(2 * n + 1, GMRFLib_openmp->max_threads_outer);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(nt)
 	for (int ii = 0; ii < 2 * n + 1; ii++) {
 
 		// make sure i=2*n is always in the first round, so we swap first index with 2*n
@@ -929,7 +932,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			}
 
 			int enable_early_stop = 0;	       /* this must be enabled for early_stop to work here */
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+			nt = IMIN(nn, GMRFLib_openmp->max_threads_outer);
+#pragma omp parallel for num_threads(nt)
 			for (int k = 0; k < nn; k++) {
 				int thread_id = omp_get_thread_num();
 

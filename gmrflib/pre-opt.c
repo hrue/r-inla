@@ -687,6 +687,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				}
 			}
 		}
+
+		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
+		if (do_prune) {
+			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 1);
+		}
 	}
 
 	SHOW_TIME("AtA_idxval");
@@ -713,15 +718,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			}
 		}
 	}
-
-#pragma omp parallel for num_threads(num_threads)
-	for (int i = 0; i < g->n; i++) {
-		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
-		if (do_prune) {
-			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 1);
-		}
-	}
-	SHOW_TIME("prune AtA_idxval");
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;

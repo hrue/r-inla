@@ -200,7 +200,7 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
-#if defined(__linux__)
+#if 0 && defined(__linux__)
 		*cpu = sched_getcpu();
 #else
 		*cpu = 0;
