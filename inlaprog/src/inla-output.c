@@ -224,7 +224,7 @@ int inla_output(inla_tp *mb)
 
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
 		GMRFLib_openmp_implement_strategy_special(1, GMRFLib_MAX_THREADS());
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			int offset = offsets[0];
 			inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -234,7 +234,7 @@ int inla_output(inla_tp *mb)
 			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
 					 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
 		}
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			char *sdir = NULL, *newtag = NULL;
 			int offset = offsets[0];
