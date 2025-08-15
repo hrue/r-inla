@@ -5485,6 +5485,12 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 175: 
+	{
+		GMRFLib_openmp_timing();
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

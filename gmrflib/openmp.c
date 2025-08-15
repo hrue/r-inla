@@ -515,3 +515,64 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+
+void GMRFLib_openmp_chunk(int n, double *A_vec, double *b_vec)
+{
+	double *AA = Malloc(ISQR(n), double);
+	Memcpy(AA, A_vec, ISQR(n) * sizeof(double));
+	gsl_matrix_view m = gsl_matrix_view_array(AA, n, n);
+	gsl_vector_view b = gsl_vector_view_array(b_vec, n);
+	gsl_vector *x = gsl_vector_alloc(n);
+	int s;
+	for(int i = 0; i < n; i++) {
+		gsl_matrix_set(&m.matrix, i, i, n);
+	}
+	gsl_permutation * p = gsl_permutation_alloc(n);
+	gsl_linalg_LU_decomp(&m.matrix, p, &s);
+	gsl_linalg_LU_solve(&m.matrix, p, &b.vector, x);
+	gsl_permutation_free(p);
+	gsl_vector_free(x);
+}
+
+void GMRFLib_openmp_timing(void) 
+{
+	int nmax = 128;
+	int nrep = 100;
+	int nt_max = 16;
+	double s = 1.0E6;
+	
+	double *A = Malloc(ISQR(nmax), double);
+	double *b = Malloc(nmax, double);
+	for(int i = 0; i < ISQR(nmax); i++) {
+		A[i] = GMRFLib_stdnormal();
+	}
+	for(int i = 0; i < nmax; i++) {
+		b[i] = GMRFLib_stdnormal();
+	}
+	
+	for(int n = 1; n <= nmax; n *= 2){
+		double tref = -GMRFLib_timer();
+		for(int r = 0; r < nrep; r++) {
+			for(int k = 0; k < nt_max; k++) {
+				GMRFLib_openmp_chunk(n, A, b);
+			}
+		}
+		tref += GMRFLib_timer();
+		printf("seri n %1d time %.8f\n", n, s * tref);
+	}
+	printf("\n");
+	for(int nt = 1; nt <= nt_max; nt *= 2) {
+		for(int n = 1; n <= nmax; n *= 2){
+			double tref = -GMRFLib_timer();
+			for(int r = 0; r < nrep; r++) {
+#pragma omp parallel for num_threads(nt) schedule(static)
+				for(int k = 0; k < nt_max; k++) {
+					GMRFLib_openmp_chunk(n, A, b);
+				}
+			}
+			tref += GMRFLib_timer();
+			printf("nt %1d n %1d time %.8f\n", nt, n, s * tref);
+		}
+		printf("\n");
+	}
+}

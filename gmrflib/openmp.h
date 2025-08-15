@@ -121,5 +121,9 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner);
 void MKL_Set_Num_Threads(int);
 #endif
 
+void GMRFLib_openmp_chunk(int n, double *A, double *b);
+void GMRFLib_openmp_timing(void);
+
+
 __END_DECLS
 #endif
