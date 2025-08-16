@@ -86,6 +86,7 @@ Collate:
     'binary.install.R'
     'cgeneric.R'
     'changelog.R'
+    'cloglike.R'
     'collect.results.R'
     'compare.results.R'
     'control.R'

@@ -449,6 +449,19 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_C_LOGLIKE:
+	{
+		int ny = (int) attr[0];
+		assert(ny + 1 == ncol_data_all);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		for (i = 0; i < na; i++) {
+			a[i] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
+
 	case L_BGEV:
 	{
 		assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
@@ -904,6 +917,29 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 				}
 			}
 		}
+	}
+
+	if (ds->data_id == L_C_LOGLIKE) {
+		n = mb->predictor_ndata;
+		int m = n * (na + 1);
+		int nnuma = GMRFLib_numa_nodes();
+		double **Y = Calloc(nnuma, double *);
+		for (int knuma = 0; knuma < nnuma; knuma++) {
+			Y[knuma] = (double *) GMRFLib_numa_alloc_onnode(m * sizeof(double), knuma);
+			for (i = 0; i < n; i++) {
+				double *yy = Y[knuma] + i * (na + 1);
+				yy[na] = ds->data_observations.y[i];
+				for (int kk = 0; kk < na; kk++) {
+					yy[kk] = a[kk][i];
+				}
+			}
+		}
+		ds->data_observations.cloglike_Y = Y;
+		ds->data_observations.cloglike_nY = na + 1;
+		for (i = 0; i < na; i++) {
+			Free(a[i]);
+		}
+		Free(ds->data_observations.y);
 	}
 
 	Free(w);
@@ -2568,7 +2604,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			if ((PREDICTOR_SCALE == 1.0)) {
-				const int mkl_lim = 4L;
+				const int mkl_lim = 8L;
 				if (m >= mkl_lim) {
 					double xx[m];
 					double exp_x[m];
@@ -3119,7 +3155,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 	}
 
 	if (m > 0) {
-		const int mkl_lim = 4L;
+		const int mkl_lim = 8L;
 		double logll0 = 0.0;
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
@@ -5194,7 +5230,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 		}
 		res.val = normc;
 
-		const int mkl_lim = 4L;
+		const int mkl_lim = 8L;
 		int fast = (PREDICTOR_SCALE == 1.0);
 
 		// special code for this case
@@ -5957,9 +5993,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -8133,5 +8169,79 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 #undef PREDICTOR_INVERSE_LINK_XX
 
 	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+{
+#define MAXTH 8
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	inla_cgeneric_data_tp *data = ds->data_observations.cloglike_data;
+	LINK_INIT;
+
+	int ntheta = ds->data_ntheta;
+	int ny = ds->data_observations.cloglike_nY;
+	int numa = GMRFLib_numa_get_node();
+	double *Y = ds->data_observations.cloglike_Y[numa] + idx * ny;
+	double ***theta = ds->data_observations.cloglike_theta;
+	double th_vec[MAXTH];
+	double *th = th_vec;
+
+	if (!(data->processed)) {
+#pragma omp critical (Name_4623344a016140fe19b65e7121bf71eb7b5dcb54)
+		if (!(data->processed)) {
+			// is 'debug' enabled?
+			if ((data->n_ints > 0) && (!strcmp(data->ints[0]->name, "debug")) &&
+			    (data->ints[0]->len > 0) && (data->ints[0]->ints[0] != 0)) {
+				inla_cgeneric_data_print(stdout, data);
+				data->processed = 1;
+			}
+		}
+	}
+
+	if (0) {
+#pragma omp critical (Name_f9d7650ba91946ed2fde588551e86410ab397a3e)
+		{
+			printf("Y[%1d][] = [", idx);
+			for (int i = 0; i < ny; i++) {
+				printf(" %.4f", Y[i]);
+			}
+			printf("]\n");
+		}
+	}
+
+	if (ntheta) {
+		if (ntheta > MAXTH) {
+			th = Malloc(ntheta, double);
+		}
+#pragma omp simd
+		for (int i = 0; i < ntheta; i++) {
+			th[i] = theta[i][thread_id][0];
+		}
+	}
+
+	int mm = IABS(m);
+	double xx[mm];
+#pragma omp simd
+	for (int i = 0; i < mm; i++) {
+		xx[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+	}
+
+	if (m > 0) {
+		ds->data_observations.cloglike_func(INLA_CLOGLIKE_LOGLIKE, th, ds->data_observations.cloglike_data, ny, Y, mm, xx, logll);
+	} else {
+		assert(y_cdf == NULL);
+		ds->data_observations.cloglike_func(INLA_CLOGLIKE_CDF, th, ds->data_observations.cloglike_data, ny, Y, mm, xx, logll);
+	}
+
+	if (ntheta > MAXTH) {
+		Free(th);
+	}
+
 	return GMRFLib_SUCCESS;
 }

@@ -15,6 +15,14 @@ __BEGIN_DECLS
 /* 
  *
  */
+// same definition as in GMRFLibP.h...
+#if !defined(POSSIBLY_UNUSED)
+#ifdef __GNUC__
+#define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
+#else
+#define POSSIBLY_UNUSED(x) x
+#endif
+#endif
     typedef enum {
 	INLA_CGENERIC_VOID = 0,
 	INLA_CGENERIC_Q,
@@ -26,14 +34,27 @@ __BEGIN_DECLS
 	INLA_CGENERIC_QUIT
 } inla_cgeneric_cmd_tp;
 
-#define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_VOID ? "void" : \
-				      ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
+typedef enum {
+	INLA_CLOGLIKE_INITIAL = 1,
+	INLA_CLOGLIKE_LOG_PRIOR,
+	INLA_CLOGLIKE_LOGLIKE,
+	INLA_CLOGLIKE_CDF,
+	INLA_CLOGLIKE_QUIT
+} inla_cloglike_cmd_tp;
+
+#define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
 				       ((cmd_) == INLA_CGENERIC_GRAPH ? "graph" : \
 					((cmd_) == INLA_CGENERIC_MU ? "mu" : \
 					 ((cmd_) == INLA_CGENERIC_INITIAL ? "initial" : \
 					  ((cmd_) == INLA_CGENERIC_LOG_NORM_CONST ? "log_norm_const" : \
 					   ((cmd_) == INLA_CGENERIC_LOG_PRIOR ? "log_prior" : \
-					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)"))))))))
+					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)")))))))
+
+#define INLA_CLOGLIKE_CMD_NAME(cmd_) ((cmd_) == INLA_CLOGLIKE_INITIAL ? "initial" : \
+				      ((cmd_) == INLA_CLOGLIKE_LOG_PRIOR ? "log_prior" : \
+				       ((cmd_) == INLA_CLOGLIKE_LOGLIKE ? "log_like" : \
+					((cmd_) == INLA_CLOGLIKE_LOGLIKE ? "CDF" : \
+					 ((cmd_) == INLA_CLOGLIKE_QUIT ? "quit" : "(***ERROR***)")))))
 
 /*
  *      matrix storage is stored row by row.
@@ -141,6 +162,7 @@ typedef struct {
 	int n_smats;
 	inla_cgeneric_smat_tp **smats;
 
+	int processed;
 	void *cache;
 } inla_cgeneric_data_tp;
 
@@ -148,29 +170,64 @@ typedef struct {
 // tools useful for creating a cache
 #include <omp.h>
 #define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
-#define MAX_THREADS(data_) ((data_)->threads.max)
-#define CGENERIC_CACHE_LEN(data_) (IMAX_(1, MAX_THREADS(data_)) * (IMAX_(1, MAX_THREADS(data_)) + 1))
+#define MAX_THREADS_(data_) IMAX_(1, ((data_)->threads.max))
+#define CGENERIC_CACHE_LEN(data_) (MAX_THREADS_(data_) * (MAX_THREADS_(data_) + 1))
 #define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
-        if (1) {                                                        \
-                int level_ = omp_get_level();                           \
-                int tnum_ = omp_get_thread_num();                       \
-                if (level_ <= 1)        {                               \
-                        idx_ =  tnum_;                                  \
-                } else if (level_ == 2) {                               \
-                        int level2_ = omp_get_ancestor_thread_num(level_ -1); \
-			idx_ = IMAX_(1, 1 + level2_) * IMAX_(1, MAX_THREADS(data_)) + tnum_; \
-                } else {                                                \
-                        assert(0 == 1);                                 \
-                }                                                       \
-        }
+        {								\
+		int level1_ = omp_get_level();				\
+		int tnum1_ = omp_get_thread_num();			\
+		if (level1_ <= 1) {					\
+			idx_ =  tnum1_;					\
+		} else if (level1_ == 2) {				\
+			int mt_ = MAX_THREADS_(data_);			\
+			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
+			idx_ = mt_ + tnum1_ + tnum2_ * mt_;		\
+		} else {						\
+			assert(0 == 1);					\
+		}							\
+	}
 #endif
 
 typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
+typedef double *inla_cloglike_func_tp(inla_cloglike_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data,
+				      int ny, double *y, int nx, double *x, double *result);
 
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug);
 inla_cgeneric_func_tp inla_cgeneric_iid_model;
 inla_cgeneric_func_tp inla_cgeneric_ar1_model;
 inla_cgeneric_func_tp inla_cgeneric_generic0_model;
+
+static void POSSIBLY_UNUSED(inla_cgeneric_data_print) (FILE * fp, inla_cgeneric_data_tp * data) {
+	fp = (fp ? fp : stdout);
+
+	fprintf(fp, "\nContent of cgeneric_data\n");
+	fprintf(fp, "\tthread.max   = [%1d]\n", data->threads.max);
+	fprintf(fp, "\tthread.outer = [%1d]\n", data->threads.outer);
+	fprintf(fp, "\tthread.inner = [%1d]\n", data->threads.inner);
+
+	fprintf(fp, "\tnumber of ints = [%1d]\n", data->n_ints);
+	for (int i = 0; i < data->n_ints; i++) {
+		fprintf(fp, "\t\tname[%s] length[%1d]\n", data->ints[i]->name, data->ints[i]->len);
+	}
+	fprintf(fp, "\tnumber of doubles = [%1d]\n", data->n_doubles);
+	for (int i = 0; i < data->n_doubles; i++) {
+		fprintf(fp, "\t\tname[%s] length[%1d]\n", data->doubles[i]->name, data->doubles[i]->len);
+	}
+	fprintf(fp, "\tnumber of chars = [%1d]\n", data->n_chars);
+	for (int i = 0; i < data->n_chars; i++) {
+		fprintf(fp, "\t\tname[%s] length[%1d] value[%s]\n", data->chars[i]->name, data->chars[i]->len, data->chars[i]->chars);
+	}
+	fprintf(fp, "\tnumber of matrices = [%1d]\n", data->n_mats);
+	for (int i = 0; i < data->n_mats; i++) {
+		fprintf(fp, "\t\tname[%s] dimension[%1d x %1d]\n", data->mats[i]->name, data->mats[i]->nrow, data->mats[i]->ncol);
+	}
+	fprintf(fp, "\tnumber of sparse matrices = [%1d]\n", data->n_smats);
+	for (int i = 0; i < data->n_smats; i++) {
+		fprintf(fp, "\t\tname[%s] dimension[%1d x %1d] nelements[%1d]\n", data->smats[i]->name, data->smats[i]->nrow, data->smats[i]->ncol,
+			data->smats[i]->n);
+	}
+	fprintf(fp, "\n");
+}
 
 __END_DECLS
 #endif

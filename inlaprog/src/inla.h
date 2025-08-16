@@ -240,6 +240,7 @@ typedef enum {
 	L_OBETA,
 	L_DGOMPERTZSURV,
 	L_VM,
+	L_C_LOGLIKE,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -873,6 +874,13 @@ typedef struct {
 	// vm
 	double **vm_lprec;
 	double *vm_scale;
+
+	double ***cloglike_theta;
+	inla_cloglike_func_tp *cloglike_func;
+	inla_cgeneric_data_tp *cloglike_data;
+	double **cloglike_Y;
+	int cloglike_nY;
+	int cloglike_debug;
 } Data_tp;
 
 typedef struct {
@@ -2294,6 +2302,8 @@ int loglikelihood_cenpoisson(int thread_id, int *lcache_idx, double *logll, doub
 			     char **arg_str);
 int loglikelihood_cenpoisson2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			      char **arg_str);
+int loglikelihood_cloglike(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   char **arg_str);
 int loglikelihood_circular_normal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				  char **arg_str);
 int loglikelihood_contpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
@@ -2371,8 +2381,8 @@ int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			     char **arg_str);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
-													     int *, void *), char **arg_str);
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
+													      int *, void *), char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,

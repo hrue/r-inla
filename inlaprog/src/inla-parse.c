@@ -748,6 +748,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = DATA 
 	 */
 
+	static int ltdl_init = 1;
 	char *secname = NULL, *msg = NULL, *ctmp = NULL;
 	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), discrete_data = 0;
 	int beta_delayed_error = 0;
@@ -1137,6 +1138,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "VM")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_vm;
 		ds->data_id = L_VM;
+		discrete_data = 0;
+	} else if (!strcasecmp(ds->data_likelihood, "CLOGLIKE")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cloglike;
+		ds->data_id = L_C_LOGLIKE;
 		discrete_data = 0;
 	} else {
 		FIXME("FOUND");
@@ -1551,6 +1556,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		// will initialize the cache, not strictly needed but its convenient to do this here 
 		my_lbell(ymax);
 	}
+		break;
+
+	case L_C_LOGLIKE:
 		break;
 
 	case L_POISSON:
@@ -8498,6 +8506,135 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
+		}
+	}
+		break;
+
+	case L_C_LOGLIKE:
+	{
+		const char *emsg = NULL;
+		char *cloglike_shlib = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.SHLIB"), NULL);
+		assert(cloglike_shlib);
+
+		char *cloglike_model = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.MODEL"), NULL);
+		assert(cloglike_model);
+
+		ds->data_observations.cloglike_debug = iniparser_getboolean(ini, inla_string_join(secname, "CLOGLIKE.DEBUG"), 0);
+
+		char *cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.DATA"), NULL);
+		assert(cdata_fnm);
+		ds->data_observations.cloglike_data = inla_cgeneric_read_data(cdata_fnm, ds->data_observations.cloglike_debug);
+
+		if (mb->verbose) {
+			printf("\t\tcloglike.shlib  [%s]\n", cloglike_shlib);
+			printf("\t\tcloglike.model  [%s]\n", cloglike_model);
+			printf("\t\tcloglike.data   [%s]\n", cdata_fnm);
+			printf("\t\tcloglike.debug  [%1d]\n", ds->data_observations.cloglike_debug);
+		}
+
+		int POSSIBLY_UNUSED(n_attr) = ds->data_observations.n_attr;
+		assert(n_attr == 1);
+		double *x_out = NULL;
+
+		if (ltdl_init) {
+			lt_dlinit();
+			if ((emsg = lt_dlerror())) {
+				GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			ltdl_init = 0;
+			lt_dlerror();
+		}
+
+		lt_dlhandle handle = lt_dlopen(cloglike_shlib);
+		if (!handle) {
+			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cloglike_shlib, lt_dlerror());
+			inla_error_general(msg);
+			assert(0 != 1);
+			exit(1);
+		}
+		lt_dlerror();
+
+		inla_cloglike_func_tp *model_func = (inla_cloglike_func_tp *) lt_dlsym(handle, cloglike_model);
+		if ((emsg = lt_dlerror())) {
+			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
+			inla_error_general(msg);
+			assert(0 != 1);
+			exit(1);
+		}
+		lt_dlerror();
+		ds->data_observations.cloglike_func = model_func;
+
+		int ntheta = 0;
+		double *initial = NULL;
+
+		x_out = model_func(INLA_CLOGLIKE_INITIAL, NULL, ds->data_observations.cloglike_data, 0, NULL, 0, NULL, NULL);
+		ntheta = (int) x_out[0];
+		if (ntheta) {
+			initial = Calloc(ntheta, double);
+			Memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
+		}
+		Free(x_out);
+		ds->data_ntheta = ntheta;
+
+		if (mb->verbose) {
+			printf("\t\tntheta = [%1d]\n", ntheta);
+			for (int ii = 0; ii < ntheta; ii++) {
+				printf("\t\tinitial[%1d] = %g\n", ii, initial[ii]);
+			}
+		}
+
+		if (ntheta > 0) {
+			ds->data_nfixed = Calloc(ntheta, int);
+			ds->data_observations.cloglike_theta = Calloc(ntheta, double **);
+		} else {
+			ds->data_observations.cloglike_theta = NULL;
+		}
+
+		for (i = 0; i < ntheta; i++) {
+			double theta_initial = initial[i];
+
+			if (mb->mode_use_mode) {
+				theta_initial = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed) {
+					ds->data_nfixed[i] = 1;
+				}
+			}
+			HYPER_NEW(ds->data_observations.cloglike_theta[i], theta_initial);
+			if (mb->verbose) {
+				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
+				printf("\t\tfixed[%1d]=[%1d]\n", i, ds->data_nfixed[i]);
+			}
+
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = NULL;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, secname);
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, secname);
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i + 1);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup("function(x) x");
+			mb->theta_to[mb->ntheta] = Strdup("function(x) x");
+
+			mb->theta[mb->ntheta] = ds->data_observations.cloglike_theta[i];
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
 		}
 	}
 		break;

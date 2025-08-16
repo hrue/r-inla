@@ -19213,6 +19213,21 @@ Number of hyperparmeters is 1.
 }
 }
 }
+\item{Model 'cloglike'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{\verb{User-defined likelihood}}
+\item{experimental = }{\verb{TRUE}}
+\item{survival = }{\verb{FALSE}}
+\item{discrete = }{\verb{FALSE}}
+\item{link = }{\verb{default identity}}
+\item{pdf = }{\verb{cloglike}}
+}
+}
+}
+Number of hyperparmeters is 0.
+}
 }
 }
 

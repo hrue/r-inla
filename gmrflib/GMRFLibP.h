@@ -575,10 +575,10 @@ typedef enum {
 	{								\
 		int level1_ = omp_get_level();				\
 		int tnum1_ = omp_get_thread_num();			\
-		int mt_ = GMRFLib_MAX_THREADS();			\
 		if (level1_ <= 1) {					\
 			__id =  tnum1_;					\
 		} else if (level1_ == 2) {				\
+			int mt_ = GMRFLib_MAX_THREADS();		\
 			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
 			__id = mt_ + tnum1_ + tnum2_ * mt_;		\
 		} else {						\

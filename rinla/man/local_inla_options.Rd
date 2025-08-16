@@ -28,22 +28,25 @@ when the calling function terminates, like \code{\link[withr:with_options]{withr
 global R options.
 }
 \examples{
+print(paste0("Before: ", INLA::inla.getOption("num.threads")))
 local({
-  fun1 <- function() { INLA::inla.getOption("num.threads" = "1:1") }
+  fun1 <- function() { INLA::inla.setOption("num.threads" = "1:1") }
   fun2 <- function() {
     local_inla_options(num.threads = NULL, .save_only = TRUE)
-    print(paste0("fun2.a: ", INLA::inla.getOption("num.threads")))
+    print(paste0("Local value: ", INLA::inla.getOption("num.threads")))
     fun1()
-    print(paste0("fun2.b: ", INLA::inla.getOption("num.threads"))
+    print(paste0("Local changed value: ",
+                 INLA::inla.getOption("num.threads")))
     invisible()
   }
   
-  print(paste0("a: ", INLA::inla.getOption("num.threads")))
   fun2()
-  print(paste0("b: ", INLA::inla.getOption("num.threads")))
+  print(paste0("Restored: ", INLA::inla.getOption("num.threads")))
   local_inla_options(num.threads = "2:1")
-  print(paste0("c: ", INLA::inla.getOption("num.threads")))
+  print(paste0("Change: ", INLA::inla.getOption("num.threads")))
   fun2()
-  print(paste0("d: ", INLA::inla.getOption("num.threads")))
+  print(paste0("Restored: ",
+               INLA::inla.getOption("num.threads")))
 })
+print(paste0("After: ", INLA::inla.getOption("num.threads")))
 }

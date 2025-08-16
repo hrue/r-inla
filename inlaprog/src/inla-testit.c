@@ -5485,11 +5485,11 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 175: 
+	case 175:
 	{
 		GMRFLib_openmp_timing();
 	}
-	break;
+		break;
 
 	case 999:
 	{

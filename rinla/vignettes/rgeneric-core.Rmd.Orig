@@ -1,5 +1,5 @@
 ---
-title: "Defining a latent model in R or C"
+title: "Defining models in R or C"
 author: "Haavard Rue `(hrue@r-inla.org)`"
 date: \today
 output: rmarkdown::pdf_document
@@ -24,15 +24,22 @@ knitr::opts_chunk$set(fig.path="figures/rgeneric/")
 
 # Introduction
 
-This is a class of generic models allows the user to define latent
+This document describes how to a user can define latent
 model component in `R` or `C`, for cases where the requested model is
-not yet implemented in `INLA`. The model component implemented in `R`
+not implemented in `INLA`. The model component implemented in `R`
 will run slower, whereas the model component implemented in `C` will
 run just slightly slower, compared to a similar model implemented in
-`INLA`,
+`INLA`.
 
 We will first describe the more accessible `R` interface, then at the
 end, the `C` interface as it is buildt on the same ideas.
+
+In Aug-2025, we added the functionality for likelihood models as well
+for `C` only. (Otherwise it will simply be to slow.) The
+implementation is similar to a latent model and described at the end
+of this vignette. 
+
+
 
 # Defining a latent model in `R`
 
@@ -892,7 +899,7 @@ The header file `cgeneric.h` needs to be included in any
 implementation as it defines the data types and definitions needed, like
 ```{r eval=FALSE}
 typedef enum {
-	INLA_CGENERIC_VOID = 0,
+	INLA_CGENERIC_VOID=0,
 	INLA_CGENERIC_Q,
 	INLA_CGENERIC_GRAPH,
 	INLA_CGENERIC_MU,
@@ -929,12 +936,6 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	assert(N > 0);
 
 	switch (cmd) {
-	case INLA_CGENERIC_VOID:
-	{
-		assert(!(cmd == INLA_CGENERIC_VOID));
-	}
-		break;
-
 	case INLA_CGENERIC_GRAPH:
 	{
 		// return a vector of indices with format
@@ -1011,6 +1012,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	}
 		break;
 
+	case INLA_CGENERIC_VOID:
 	case INLA_CGENERIC_QUIT:
 	default:
 		break;
@@ -1058,12 +1060,6 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	assert(N > 0);
 
 	switch (cmd) {
-	case INLA_CGENERIC_VOID:
-	{
-		assert(!(cmd == INLA_CGENERIC_VOID));
-	}
-		break;
-
 	case INLA_CGENERIC_GRAPH:
 	{
 		// return a vector of indices with format
@@ -1160,6 +1156,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	}
 		break;
 
+	case INLA_CGENERIC_VOID:
 	case INLA_CGENERIC_QUIT:
 	default:
 		break;
@@ -1228,7 +1225,7 @@ typedef struct {
 where \texttt{A} and \texttt{B} are what is defined in the
 \texttt{inla}-argument \texttt{num.threads}. Note that the
 \texttt{cgeneric} function needs to be thread-safe, and that number of
-threads used within this function should be \texttt{data->threads.inner}.
+threads used to call this function should be \texttt{data->threads.inner}.
 
 You may store cached variables in \texttt{data}-struct
 ```{r eval=FALSE}
@@ -1337,13 +1334,16 @@ typedef struct {
 R-objects not of the above types cannot be handled, but one can
 always, for example, store them in a file and pass the filename.
 
-
-
 Adding the option `debug=TRUE` to `inla.cgeneric.define` will turn on
 debug-output and the contents of `inla_cgeneric_data_tp * data` is
 displayed. Only use this option for small size problems as the output
 can be excessive.
 
+The C-function (defined in `cgeneric.h`)
+```{r eval=FALSE}
+static void inla_cgeneric_data_print(FILE * fp, inla_cgeneric_data_tp * data);
+```
+can be used to list the contents of `data` if needed.
 
 ## Reimplementing model `generic0`
 
@@ -1417,4 +1417,524 @@ Log precision for idx
                                                  [,1]
 log marginal-likelihood (integration) 2.070899825e-07
 log marginal-likelihood (Gaussian)    1.150937410e-05
+```
+
+
+# Adding a likelihood function in `C`
+
+As of Aug-2025, we added (experimental) support for user-supplied
+likelihoods. These acts like a normal `likelihood` with fixed name
+"cloglike", so we can have several of these and these can be mixed
+with others likelihood models as well.
+
+The usage follows the use of the `cgeneric`, so to fix ideas we start
+with a small example. 
+```{r eval=FALSE}
+n <- 55
+cloglike <- inla.cloglike.define(model = "inla_cloglike_gaussian",
+                                 shlib = "cloglike-demo-gaussian.so",
+                                 debug = FALSE)
+rr <- inla(y ~ 1, 
+          data = data.frame(y = Y[, 1]),
+          family = "gaussian",
+          control.family = list(hyper = list(prec = list(param = c(1, 1)))))
+r <- inla(Y ~ 1, 
+          data = list(Y = Y),
+          family = "cloglike",
+          control.family = list(cloglike = cloglike))
+r$mlik - rr$mlik
+r$mode$theta - rr$mode$theta
+max(r$mode$x - rr$mode$x)
+```
+This example reimplements the Gaussian/Normal likelihood, and running
+the example we can verify the results are the same.
+```{r eval=FALSE}
+                                                  [,1]
+log marginal-likelihood (integration) -8.809738432e-07
+log marginal-likelihood (Gaussian)     3.487834164e-07
+Theta1 for INLA.Data1 
+     -6.021477074e-07 
+[1] -3.261696468e-13
+```
+The interface is similar to `cgeneric`. First we need to define the
+model, and we need the name of the function in the shared object and
+the name of the object itself.
+```{r eval=FALSE}
+cloglike <- inla.cloglike.define(model = "inla_cloglike_gaussian",
+                                 shlib = "cloglike-demo-gaussian.so",
+                                 debug = FALSE)
+```
+as the other `define`-functions, we could here add other `R`
+variables, like vectors, matrices, etc, and we just add them in the
+`define`-call. These will then be available, just as for `cgeneric` in
+the `data` argument that is passed through to the likelihood function,
+using the same data-type definition.
+
+To use the user-defined likelihood, we use the name "cloglike" and
+pass the information in the `control.family` using argument `cloglike`.
+
+The information we need from the likelihood function, is the log-likelihood
+\begin{displaymath}
+	\log \pi(y | x, \theta)
+\end{displaymath}
+and the cummulative distribution function
+\begin{displaymath}
+	\text{Prob}(Y < y | theta, x)
+\end{displaymath}
+for a given set of hyperparameters $theta$, linear predictor $x$, and observation $y$.
+
+To pass the observations of `cloglike`, we use `inla.mdata()`, which
+essentially define the observations $Y$ as matrix/data.frame, and the
+$i$'th row of $Y$ is passed to the user-function to evaluate the
+log-likelihood from the $i$th observation(s). 
+
+In the example above, we only pass one observation
+```{r eval=FALSE}
+y <- rnorm(n)
+Y <- inla.mdata(y)
+```
+but if we have different scalings of the precision in the Normal, 
+or we want to pass in the number trials in the Binomial, we
+can append another column
+```{r eval=FALSE}
+Y <- inla.mdata(cbind(y, w))
+```
+Note that we `cbind` them together into one object. To evaluate the
+$i$th log-likelihood, then observations $(y_i, w_i)$ are passed into
+the user function. There are no restrictions to how many columns we
+can use in the `inla.mdata`-call. 
+
+## Normal example
+
+Here is a simple implementation of the Normal likelihood.
+```{r eval=FALSE}
+#include <stdio.h>
+#include <assert.h>
+#include <math.h>
+#include <stdlib.h>
+#include <strings.h>
+
+#include "cgeneric.h"
+
+#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#define Malloc(n_, type_)  (type_ *)malloc((n_) * sizeof(type_))
+#define SQR(x_) ((x_)*(x_))
+
+double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
+			       inla_cgeneric_data_tp *data, 
+				   int ny, double *y, int nx, double *x, double *result)
+{
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
+#define CDF(x_) (0.5 * (1.0 + erf(M_SQRT1_2 * (x_))))
+
+	double *ret = NULL, prec, lprec;
+
+	if (theta) {
+		lprec = theta[0];
+		prec = exp(lprec);
+	} else {
+		prec = lprec = NAN;
+	}
+
+	switch (cmd) {
+	case INLA_CLOGLIKE_INITIAL:
+	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
+
+		ret = Malloc(2, double);
+		ret[0] = 1;
+		ret[1] = 4.0;
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOG_PRIOR:
+	{
+		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
+		ret = Malloc(1, double);
+		ret[0] = -prec + lprec;
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOGLIKE:
+	{
+		// y[0] ~ N(x[i], prec)
+		for (int i = 0; i < nx; i++) {
+			result[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y[0] - x[i]) * prec));
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_CDF:
+	{
+		// Prob(y[0] < x[i]) when y[0] ~ N(x[i], prec)
+		double sprec = sqrt(prec);
+		for (int i = 0; i < nx; i++) {
+			double z = (y[0] - x[i]) * sprec;
+			result[i] = CDF(z);
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_QUIT:
+		break;
+	}
+
+#undef LOG_NORMC_GAUSSIAN
+#undef CDF
+	return (ret);
+}
+```
+
+Let us discuss each part in more detail.
+Always include this header-file:
+```{r eval=FALSE}
+#include "cgeneric.h"
+```
+
+
+This is the definition that needs to be used. 
+```{r eval=FALSE}
+double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
+			       inla_cgeneric_data_tp *data, 
+				   int ny, double *y, int nx, double *x, double *result)
+```
+The `cmd` is what is being requested. 
+`theta` is a vector of theta-values to be used. 
+The `data` is same as for `cgeneric` and note that the same type is
+used.  `ny` is the number of columns in the `inla.mdata()` call to define the
+data for this likelihood, hence `ny` is the number of columns. `y` is
+a vector with one of the rows of these data. `nx` is the number of
+linear predictors `x` that needs to be evaluated, and the result is
+written in `result`. Note that some requests require information
+which passed back directly, while other requests using the `result`
+vector. This is made to optimize its use and to make it similar to the
+`cgeneric` whenever possible. 
+
+The `inla_cloglike_cmd_tp` definition is defined the the
+header-file and contains the different requests that we need.
+```{r eval=FALSE}
+typedef enum {
+        INLA_CLOGLIKE_INITIAL = 1,
+        INLA_CLOGLIKE_LOG_PRIOR,
+        INLA_CLOGLIKE_LOGLIKE,
+        INLA_CLOGLIKE_CDF,
+        INLA_CLOGLIKE_QUIT
+} inla_cloglike_cmd_tp;
+```
+
+Normally, we would map `theta` values to interpretable parameters,
+which is done here as
+```{r eval=FALSE}
+	if (theta) {
+		lprec = theta[0];
+		prec = exp(lprec);
+	} else {
+		prec = lprec = NAN;
+	}
+```
+Note that `theta` might be `NULL` as some requests do not need its
+values, so its wise to check for a `NULL` `theta`. 
+
+The first action is the return the initial values for `theta`. We give
+the number of `theta`'s as the first argument and then the initial
+values. With no hyperparameters, then we just return `r[0]=0`. Note
+that this `r` is `free`'d in the main program, hence it must be
+alloc'ed dynamically. 
+```{r eval=FALSE}
+	switch (cmd) {
+	case INLA_CLOGLIKE_INITIAL:
+	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
+
+		ret = Malloc(2, double);
+		ret[0] = 1;
+		ret[1] = 4.0;
+	}
+		break;
+```
+The next request is the log-prior for `theta`, which is the same as
+for `cgeneric`. Note, this is the log-prior for `theta` and NOT the
+log-prior for the interpretable parameters. 
+```{r eval=FALSE}
+	case INLA_CLOGLIKE_LOG_PRIOR:
+	{
+		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, 
+		// this is the log prior for the log(precision).
+		ret = Malloc(1, double);
+		ret[0] = -prec + lprec;
+	}
+		break;
+```
+Again, we return it in a new alloc'ed vector. 
+
+Next up is the log-likelihood itself.
+```{r eval=FALSE}
+	case INLA_CLOGLIKE_LOGLIKE:
+	{
+		// y[0] ~ N(x[i], prec)
+		for (int i = 0; i < nx; i++) {
+			result[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y[0] - x[i]) * prec));
+		}
+	}
+		break;
+```
+This is just the log of the Normal density itself. Note that the
+observation is `y[0]` and that we need to loop it over `nx`
+evaluations using the same observation `y[0]` and the `nx` values of
+the vector `x`. The result is written directly to the vector `result`. 
+
+The CDF (cummulative distribution function) is up next and it is
+similar to the log-likelihood.
+```{r eval=FALSE}
+	case INLA_CLOGLIKE_CDF:
+	{
+		// Prob(y[0] < x[i]) when y[0] ~ N(x[i], prec)
+		double sprec = sqrt(prec);
+		for (int i = 0; i < nx; i++) {
+			double z = (y[0] - x[i]) * sprec;
+			result[i] = CDF(z);
+		}
+	}
+		break;
+```
+We hided the `CDF` for the Normal in the macro `CDF`, which is defined
+earlier as
+```{r eval=FALSE}
+#define CDF(x_) (0.5 * (1.0 + erf(M_SQRT1_2 * (x_))))
+```
+taking advantage of the C-function `erf`. If the `CDF` is not
+available, the you can just set `result[i] = NAN`. Then some results
+in the output will not be available (like PIT values).
+
+The last entry, is
+```{r eval=FALSE}
+	case INLA_CLOGLIKE_QUIT:
+		break;
+```
+which is called in the end in case of any cleanup is needed. 
+
+## Poisson example 
+
+Here is another example using the Poisson likelihood.
+```{r eval=FALSE}
+n <- 55
+y <- rpois(n, exp(1))
+Y <- inla.mdata(cbind(y))
+
+cloglike <- inla.cloglike.define(model = "inla_cloglike_poisson", 
+	shlib = "cloglike-demo-poisson.so")
+rr <- inla(y ~ 1, data = list(y = Y[, 1]), family = "poisson")
+r <- inla(Y ~ 1, data = list(Y = Y), family = "cloglike", 
+	control.family = list(cloglike = cloglike))
+## we add it back here
+(r$mlik - sum(log(factorial(y)))) - rr$mlik
+max(r$mode$x - rr$mode$x)
+
+## section try: precompute the normalizing constant and 
+## add it as the 2nd column in the data
+Y <- inla.mdata(cbind(y, lfactorial(y)))
+cloglike <- inla.cloglike.define(model = "inla_cloglike_poisson", 
+	shlib = "cloglike-demo-poisson.so")
+r <- inla(Y ~ 1, data = list(Y = Y), family = "cloglike", 
+	control.family = list(cloglike = cloglike))
+r$mlik - rr$mlik
+max(r$mode$x - rr$mode$x)
+
+## use the cache-version, see the C-code
+Y <- inla.mdata(cbind(y))
+cloglike <- inla.cloglike.define(model = "inla_cloglike_poisson_cache", 
+	shlib = "cloglike-demo-poisson.so")
+r <- inla(Y ~ 1, data = list(Y = Y), family = "cloglike", 
+	control.family = list(cloglike = cloglike))
+r$mlik - rr$mlik
+max(r$mode$x - rr$mode$x)
+```
+which gives these results
+```{r eval=FALSE}
+                                                 [,1]
+log marginal-likelihood (integration) -3.848811048e-09
+log marginal-likelihood (Gaussian)    -3.848811048e-09
+[1] -8.679723607e-13
+                                                  [,1]
+log marginal-likelihood (integration) -1.184289999e-09
+log marginal-likelihood (Gaussian)    -1.184289999e-09
+[1] -2.147837463e-12
+                                                 [,1]
+log marginal-likelihood (integration) 8.881215763e-10
+log marginal-likelihood (Gaussian)    8.881215763e-10
+[1] -7.382983114e-13
+```
+
+This example implement various variations, including how to cache
+expensive operations so we do not need to compute them again.
+
+Here is the code. Both demo's are available in the repository as
+`cloglike-demo-gaussian.c` and `cloglike-demo-poisson.c`, but included
+here as well.
+```{r eval=FALSE}
+#include <stdio.h>
+#include <assert.h>
+#include <math.h>
+#include <stdlib.h>
+#include <strings.h>
+
+#include "cgeneric.h"
+
+#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#define Malloc(n_, type_)  (type_ *)malloc((n_) * sizeof(type_))
+#define SQR(x_) ((x_)*(x_))
+
+double poisson_cdf(int y, double lambda)
+{
+	// simple standalone code. of course it is better to compute 
+	// it using the incomplete Gamma-distribution/external library.
+	double res = 0.0;
+	if (y >= 0) {
+		double p = exp(-lambda);
+		res = p;
+		for (int yy = 1; yy <= y; yy++) {
+			p *= lambda / yy;
+			res += p;
+		}
+	}
+	return res;
+}
+
+double *inla_cloglike_poisson(inla_cloglike_cmd_tp cmd, double *theta,
+			      inla_cgeneric_data_tp *data, 
+				  int ny, double *y, int nx, double *x, double *result)
+{
+	double *ret = NULL;
+
+	switch (cmd) {
+	case INLA_CLOGLIKE_INITIAL:
+	{
+		ret = Malloc(1, double);
+		ret[0] = 0;
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOG_PRIOR:
+	{
+		// not in use
+		assert(0 == 1);
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOGLIKE:
+	{
+		// if ny=2, then the 2nd column is log(y[0]!), otherwise, we 
+		// ignore the constant normalizing constant (which only
+		// involves the marginal likelihood calculations)
+		if (ny == 1) {
+			for (int i = 0; i < nx; i++) {
+				result[i] = x[i] * y[0] - exp(x[i]);
+			}
+		} else if (ny == 2) {
+			for (int i = 0; i < nx; i++) {
+				result[i] = x[i] * y[0] - exp(x[i]) - y[1];
+			}
+		} else {
+			assert(0 == 1);
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_CDF:
+	{
+		for (int i = 0; i < nx; i++) {
+			result[i] = poisson_cdf(y[0], exp(x[i]));
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_QUIT:
+		break;
+	}
+
+	return (ret);
+}
+
+double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
+				    inla_cgeneric_data_tp *data, 
+					int ny, double *y, int nx, double *x, double *result)
+{
+	// this code shows how to 'cache' expensive calculations, in this case log(y[0]!)
+
+	typedef struct {
+		int ymax;
+		double *lfactorial;
+	} Cache_tp;
+
+	if (!(data->cache)) {
+		// use a random name
+#pragma omp critical (Name_e2814d0ff0cb393dee01d0eb049e6e976f56cce8)
+		if (!(data->cache)) {
+			Cache_tp *c = Malloc(1, Cache_tp);
+			c->ymax = 1024;			       /* or something */
+			c->lfactorial = Malloc(c->ymax + 1, double);
+			c->lfactorial[0] = 0.0;
+			for (int k = 1; k <= c->ymax; k++) {
+				c->lfactorial[k] = c->lfactorial[k - 1] + log(k);
+			}
+			// IMPORTANT: need to assign data->cache as the last 
+			// expression within this 'if(!(data->cache))',
+			// otherwise, we can run into race-conditions
+			*((Cache_tp **) (&data->cache)) = c;
+		}
+	}
+	Cache_tp *cache = *((Cache_tp **) (&data->cache));
+
+	double *ret = NULL;
+	switch (cmd) {
+	case INLA_CLOGLIKE_INITIAL:
+	{
+		// no hyperparameters
+		ret = Malloc(1, double);
+		ret[0] = 0;
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOG_PRIOR:
+	{
+		// not in use
+		assert(0 == 1);
+	}
+		break;
+
+	case INLA_CLOGLIKE_LOGLIKE:
+	{
+		// if y[0] is to large, we have to rebuild the cache...
+		int iy = (int) y[0];
+		assert(iy <= cache->ymax);
+		double lfac = cache->lfactorial[iy];
+
+		if (iy == 0) {
+			for (int i = 0; i < nx; i++) {
+				result[i] = -exp(x[i]) - lfac;
+			}
+		} else {
+			for (int i = 0; i < nx; i++) {
+				result[i] = x[i] * iy - exp(x[i]) - lfac;
+			}
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_CDF:
+	{
+		for (int i = 0; i < nx; i++) {
+			result[i] = poisson_cdf(y[0], exp(x[i]));
+		}
+	}
+		break;
+
+	case INLA_CLOGLIKE_QUIT:
+		break;
+	}
+
+	return (ret);
+}
 ```

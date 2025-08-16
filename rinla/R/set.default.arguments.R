@@ -578,7 +578,10 @@ control.gcpo <-
              control.link = INLA::control.link(),
 
              #' @param control.sem Parameters for likelihood `sem`
-             control.sem = NULL
+             control.sem = NULL, 
+
+             #' @param cloglike An `inla.cloglike` object for likelihood `cloglike`
+             cloglike = NULL
              ) {
         ctrl_object(as.list(environment()), "family", check = FALSE)
     }

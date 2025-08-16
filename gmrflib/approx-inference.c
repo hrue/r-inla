@@ -822,7 +822,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
+		// static double tref = 0.0; static double count = 0; tref -= GMRFLib_timer();
+
 		RUN_CODE_BLOCK_X(num_threads, 0, 0, int);
+
+		// tref += GMRFLib_timer(); P(tref/++count * 1.0E06);
+
 #undef CODE_BLOCK_WORK_TP_FREE
 #undef CODE_BLOCK
 

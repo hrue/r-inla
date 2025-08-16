@@ -137,7 +137,7 @@ int R_load_INLA = 0;
 #define LINK_INIT							\
 	double off = OFFSET(idx);					\
 	double *_link_covariates = NULL;				\
-	Link_param_tp *predictor_invlinkfunc_arg = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
+	Link_param_tp *POSSIBLY_UNUSED(predictor_invlinkfunc_arg) = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
@@ -257,6 +257,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
 		inla_error_general(msg);
+	}
+	if (1) {
+		iniparser_dump(ini, stdout);
 	}
 	nsec = iniparser_getnsec(ini);
 	if (mb->verbose) {
@@ -734,6 +737,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (mb->verbose) {
 		printf("%s: check for unused entries in[%s]\n", __GMRFLib_FuncName, dict_filename);
 	}
+	// iniparser_dump(ini, stdout);
 	if ((count = dictionary_dump_unused(ini, stderr))) {
 		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries. PLEASE CHECK\n", dict_filename, count);
 		exit(EXIT_FAILURE);
@@ -1652,6 +1656,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
+
+			case L_C_LOGLIKE:
+			{
+				if (ds->data_ntheta > 0) {
+					if (!ds->data_nfixed[0]) {
+						double *ret = ds->data_observations.cloglike_func(INLA_CLOGLIKE_LOG_PRIOR, theta + count,
+												  ds->data_observations.cloglike_data, 0, NULL, 0,
+												  NULL, NULL);
+						val += *ret;
+						Free(ret);
+						count += ds->data_ntheta;
+					}
+				}
+			}
+				break;
 
 			case L_SEM:
 				break;
