@@ -1431,6 +1431,8 @@ The usage follows the use of the `cgeneric`, so to fix ideas we start
 with a small example. 
 ```{r eval=FALSE}
 n <- 55
+y <- rnorm(n)
+Y <- inla.mdata(y)
 cloglike <- inla.cloglike.define(model = "inla_cloglike_gaussian",
                                  shlib = "cloglike-demo-gaussian.so",
                                  debug = FALSE)
