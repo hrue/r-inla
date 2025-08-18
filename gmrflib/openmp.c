@@ -532,14 +532,16 @@ void GMRFLib_openmp_chunk(int n, double *A_vec, double *b_vec)
 	gsl_linalg_LU_solve(&m.matrix, p, &b.vector, x);
 	gsl_permutation_free(p);
 	gsl_vector_free(x);
+	Free(AA);
 }
 
 void GMRFLib_openmp_timing(void)
 {
-	int nmax = 128;
-	int nrep = 100;
-	int nt_max = 16;
-	double s = 1.0E6;
+	int nmax = 32;
+	int nrep = 10;
+	int m = 500;
+	int ntimes = 1000;
+	//double s = 1.0E6;
 
 	double *A = Malloc(ISQR(nmax), double);
 	double *b = Malloc(nmax, double);
@@ -550,29 +552,24 @@ void GMRFLib_openmp_timing(void)
 		b[i] = GMRFLib_stdnormal();
 	}
 
-	for (int n = 1; n <= nmax; n *= 2) {
-		double tref = -GMRFLib_timer();
-		for (int r = 0; r < nrep; r++) {
-			for (int k = 0; k < nt_max; k++) {
-				GMRFLib_openmp_chunk(n, A, b);
-			}
-		}
-		tref += GMRFLib_timer();
-		printf("seri n %1d time %.8f\n", n, s * tref);
-	}
-	printf("\n");
-	for (int nt = 1; nt <= nt_max; nt *= 2) {
-		for (int n = 1; n <= nmax; n *= 2) {
+	int tt[] = {1, 8, 12, 16, 20};
+	int nn = sizeof(tt)/sizeof(int);
+
+	for (int i = 0; i < nn; i++) {
+		int nt = tt[i];
+		fprintf(stderr, "nt = %1d\n", nt);
+		for (int t = 0; t < ntimes; t++) {
 			double tref = -GMRFLib_timer();
 			for (int r = 0; r < nrep; r++) {
 #pragma omp parallel for num_threads(nt) schedule(static)
-				for (int k = 0; k < nt_max; k++) {
-					GMRFLib_openmp_chunk(n, A, b);
+				for (int k = 0; k < m; k++) {
+					GMRFLib_openmp_chunk(nmax, A, b);
 				}
 			}
 			tref += GMRFLib_timer();
-			printf("nt %1d n %1d time %.8f\n", nt, n, s * tref);
+			printf("nt %1d nt*time %.8f\n", nt, tref * nt / nrep);
 		}
-		printf("\n");
 	}
 }
+
+
