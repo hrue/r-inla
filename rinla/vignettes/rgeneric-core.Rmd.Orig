@@ -1458,22 +1458,24 @@ Theta1 for INLA.Data1
      -6.021477074e-07 
 [1] -3.261696468e-13
 ```
-The interface is similar to `cgeneric`. First we need to define the
-model, and we need the name of the function in the shared object and
-the name of the object itself.
+First we need to define the model, and we need the name of the
+function in the shared object and the name of the object itself.
 ```{r eval=FALSE}
 cloglike <- inla.cloglike.define(model = "inla_cloglike_gaussian",
                                  shlib = "cloglike-demo-gaussian.so",
                                  debug = FALSE)
 ```
-as the other `define`-functions, we could here add other `R`
-variables, like vectors, matrices, etc, and we just add them in the
-`define`-call. These will then be available, just as for `cgeneric` in
-the `data` argument that is passed through to the likelihood function,
-using the same data-type definition.
 
-To use the user-defined likelihood, we use the name "cloglike" and
-pass the information in the `control.family` using argument `cloglike`.
+Just like the other `define`-functions, we could here add other `R`
+variables, like vectors, matrices etc, that the likelihood requires.
+These will then be available, just as for `cgeneric`, in the `data`
+argument that is passed through to the likelihood function, using the
+same data-type definition `inla_cgeneric_data_tp` which is described
+ealier.
+
+To use the user-defined likelihood, we use the fixed-name "cloglike"
+and pass the information in the `control.family` using argument
+`cloglike`.
 
 The information we need from the likelihood function, is the log-likelihood
 \begin{displaymath}
@@ -1481,30 +1483,33 @@ The information we need from the likelihood function, is the log-likelihood
 \end{displaymath}
 and the cummulative distribution function
 \begin{displaymath}
-	\text{Prob}(Y < y | theta, x)
+	\text{Prob}(\tilde Y < y | \theta, x)
 \end{displaymath}
-for a given set of hyperparameters $theta$, linear predictor $x$, and observation $y$.
+for a given set of hyperparameters $theta$, linear predictor $x$, and
+observation $y$. We also need to know the number of hyperparameters
+$\theta$ (or `theta`) and their joint prior. 
 
 To pass the observations of `cloglike`, we use `inla.mdata()`, which
-essentially define the observations $Y$ as matrix/data.frame, and the
-$i$'th row of $Y$ is passed to the user-function to evaluate the
-log-likelihood from the $i$th observation(s). 
+essentially define the observations $Y$ as data.frame, and the $i$'th
+row of $Y$ is passed to the user-function to evaluate the
+log-likelihood from the $i$th observation(s).
 
 In the example above, we only pass one observation
 ```{r eval=FALSE}
 y <- rnorm(n)
 Y <- inla.mdata(y)
 ```
-but if we have different scalings of the precision in the Normal, 
-or we want to pass in the number trials in the Binomial, we
+but if we have scaling-parameters in the precision in the Normal, 
+or we need the number trials in the Binomial distribution, we
 can append another column
 ```{r eval=FALSE}
 Y <- inla.mdata(cbind(y, w))
 ```
-Note that we `cbind` them together into one object. To evaluate the
-$i$th log-likelihood, then observations $(y_i, w_i)$ are passed into
-the user function. There are no restrictions to how many columns we
-can use in the `inla.mdata`-call. 
+
+Note that we need `cbind` them together into one object. To evaluate
+the $i$th log-likelihood, then observations $(y_i, w_i)$ are passed
+into the user function as the "$y$". There are no restrictions to how
+many columns we can use in the `inla.mdata`-call.
 
 ## Normal example
 
@@ -1589,29 +1594,29 @@ double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 ```
 
 Let us discuss each part in more detail.
+
 Always include this header-file:
 ```{r eval=FALSE}
 #include "cgeneric.h"
 ```
 
-
-This is the definition that needs to be used. 
+This is the definition that needs to be used.
 ```{r eval=FALSE}
 double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 			       inla_cgeneric_data_tp *data, 
-				   int ny, double *y, int nx, double *x, double *result)
+				   int ny, double *y, int nx, double *x, double *result);
 ```
-The `cmd` is what is being requested. 
-`theta` is a vector of theta-values to be used. 
-The `data` is same as for `cgeneric` and note that the same type is
-used.  `ny` is the number of columns in the `inla.mdata()` call to define the
-data for this likelihood, hence `ny` is the number of columns. `y` is
-a vector with one of the rows of these data. `nx` is the number of
-linear predictors `x` that needs to be evaluated, and the result is
-written in `result`. Note that some requests require information
-which passed back directly, while other requests using the `result`
-vector. This is made to optimize its use and to make it similar to the
-`cgeneric` whenever possible. 
+
+The `cmd` is what is being requested. `theta` is a vector of
+theta-values to be used. The `data` is same as for `cgeneric` and note
+that the same type is used. `ny` is the number of columns in the
+`inla.mdata()` call to define the data for this likelihood, hence `ny`
+is the number of columns. `y` is a vector of the $i$'th row of $Y$.
+`nx` is the number of linear predictors `x` that needs to be
+evaluated, and the result is written directly into `result`. Note that
+some requests require information which passed back directly, while
+other requests using the `result` vector. This is made to optimize its
+use and to make it similar to the `cgeneric` whenever possible.
 
 The `inla_cloglike_cmd_tp` definition is defined the the
 header-file and contains the different requests that we need.
@@ -1636,13 +1641,14 @@ which is done here as
 	}
 ```
 Note that `theta` might be `NULL` as some requests do not need its
-values, so its wise to check for a `NULL` `theta`. 
+values, so we need to check for a `NULL` `theta`. 
 
-The first action is the return the initial values for `theta`. We give
-the number of `theta`'s as the first argument and then the initial
-values. With no hyperparameters, then we just return `r[0]=0`. Note
-that this `r` is `free`'d in the main program, hence it must be
-alloc'ed dynamically. 
+The first action to return the initial values for `theta`. This
+includes the number of hyperparameters that is used as well. We return
+the number of `theta`'s as the first index and then the initial values
+sequentially. With no hyperparameters, then we just return `ret[0]=0`.
+Note that this `r` is `free`'d in the main program, hence it must be
+alloc'ed dynamically.
 ```{r eval=FALSE}
 	switch (cmd) {
 	case INLA_CLOGLIKE_INITIAL:
@@ -1656,9 +1662,10 @@ alloc'ed dynamically.
 	}
 		break;
 ```
+
 The next request is the log-prior for `theta`, which is the same as
-for `cgeneric`. Note, this is the log-prior for `theta` and NOT the
-log-prior for the interpretable parameters. 
+for `cgeneric`. Be aware that this is the log-prior for `theta` and
+NOT the log-prior for the interpretable parameters.
 ```{r eval=FALSE}
 	case INLA_CLOGLIKE_LOG_PRIOR:
 	{
@@ -1682,13 +1689,15 @@ Next up is the log-likelihood itself.
 	}
 		break;
 ```
-This is just the log of the Normal density itself. Note that the
-observation is `y[0]` and that we need to loop it over `nx`
-evaluations using the same observation `y[0]` and the `nx` values of
-the vector `x`. The result is written directly to the vector `result`. 
+
+This is just the log of the Normal density. Note that the observation
+is `y[0]` and that we need to loop over `nx` evaluations using the
+same observation `y[0]` for each of the `nx` values of the vector `x`.
+The result is written directly to the vector `result`.
 
 The CDF (cummulative distribution function) is up next and it is
 similar to the log-likelihood.
+
 ```{r eval=FALSE}
 	case INLA_CLOGLIKE_CDF:
 	{
@@ -1701,25 +1710,30 @@ similar to the log-likelihood.
 	}
 		break;
 ```
-We hided the `CDF` for the Normal in the macro `CDF`, which is defined
+
+We hide the `CDF` for the Normal in the macro `CDF`, which is defined
 earlier as
 ```{r eval=FALSE}
 #define CDF(x_) (0.5 * (1.0 + erf(M_SQRT1_2 * (x_))))
-```
+``` 
+
 taking advantage of the C-function `erf`. If the `CDF` is not
-available, the you can just set `result[i] = NAN`. Then some results
-in the output will not be available (like PIT values).
+available, the you can just set `result[i] = NAN` and then some
+results in the output will not be available (like PIT values).
 
 The last entry, is
+
 ```{r eval=FALSE}
 	case INLA_CLOGLIKE_QUIT:
 		break;
 ```
-which is called in the end in case of any cleanup is needed. 
+
+which is called in the end in case of any cleanup is needed.
 
 ## Poisson example 
 
 Here is another example using the Poisson likelihood.
+
 ```{r eval=FALSE}
 n <- 55
 y <- rpois(n, exp(1))
@@ -1772,9 +1786,9 @@ log marginal-likelihood (Gaussian)    8.881215763e-10
 This example implement various variations, including how to cache
 expensive operations so we do not need to compute them again.
 
-Here is the code. Both demo's are available in the repository as
-`cloglike-demo-gaussian.c` and `cloglike-demo-poisson.c`, but included
-here as well.
+Here is the code. The comments in the code also explains what is going
+on. (Both `C`-files are available in the repository as
+`cloglike-demo-gaussian.c` and `cloglike-demo-poisson.c`).
 ```{r eval=FALSE}
 #include <stdio.h>
 #include <assert.h>
