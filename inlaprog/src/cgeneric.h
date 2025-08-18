@@ -12,6 +12,12 @@
 #endif
 __BEGIN_DECLS
 
+#include <assert.h>
+#include <math.h>
+#include <stdio.h>
+#include <omp.h>
+#include <stdio.h>
+
 /* 
  *
  */
@@ -168,7 +174,6 @@ typedef struct {
 
 #if defined(_OPENMP)
 // tools useful for creating a cache
-#include <omp.h>
 #define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
 #define MAX_THREADS_(data_) IMAX_(1, ((data_)->threads.max))
 #define CGENERIC_CACHE_LEN(data_) (MAX_THREADS_(data_) * (MAX_THREADS_(data_) + 1))
