@@ -1965,14 +1965,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
-		mb->gcpo_param->num_level_sets = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1.0);
+		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
 		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
 		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
-
+		mb->gcpo_param->type_cv = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.TYPECV"), 0);
 		mb->gcpo_param->sqrt_epsilon = sqrt(mb->gcpo_param->epsilon);
 
 		char *str = NULL;
@@ -2060,15 +2060,12 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
 				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
-				int mx = GMRFLib_iamax_value(buffer, len, NULL);
-				mb->gcpo_param->type = Calloc(mx, char);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
 					int idx = IABS(buffer[i]) - 1;	/* to C indexing */
 					GMRFLib_idx_add(&(mb->gcpo_param->selection), idx);
-					mb->gcpo_param->type[i] = (buffer[i] > 0 ? 0 : 1);
 				}
 				fclose(fp);
 				Free(buffer);
@@ -2226,7 +2223,8 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		printf("\t\toutput:\n");
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
-			printf("\t\t\t\tnum.level.sets=[%1g]\n", mb->gcpo_param->num_level_sets);
+			printf("\t\t\t\ttype.cv=[%s]\n", (mb->gcpo_param->type_cv == 0 ? "single" : "joint"));
+			printf("\t\t\t\tnum.level.sets=[%1d]\n", mb->gcpo_param->num_level_sets);
 			printf("\t\t\t\tsize.max=[%1d]\n", mb->gcpo_param->size_max);
 			printf("\t\t\t\tstrategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
 			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);

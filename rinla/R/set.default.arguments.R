@@ -309,7 +309,9 @@ control.gcpo <-
              #' @param remove TODO
              remove = NULL,
              #' @param remove.fixed TODO
-             remove.fixed = TRUE
+             remove.fixed = TRUE,
+             #' @param type The type of cv, either "single" (default) or "joint"
+             type.cv = "single"
              ) {
         ctrl_object(as.list(environment()), "gcpo", check = FALSE)
     }

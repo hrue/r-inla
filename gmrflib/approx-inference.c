@@ -3484,7 +3484,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(build_ai_store != NULL);
 
-		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS((int) gcpo_param->num_level_sets), IMIN(2, GMRFLib_MAX_THREADS()));
+		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS(gcpo_param->num_level_sets), IMIN(2, GMRFLib_MAX_THREADS()));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -3512,7 +3512,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 		if (gcpo_param->verbose || detailed_output) {
 			assert(selection);
-			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1g\n", __GMRFLib_FuncName,
+			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1d\n", __GMRFLib_FuncName,
 			       omp_get_thread_num(), selection->n, gcpo_param->num_level_sets);
 		}
 		assert(selection);
@@ -3557,7 +3557,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
 
 				// special case
-				if (gcpo_param->num_level_sets == -1.0) {
+				if (gcpo_param->num_level_sets == -1) {
 					for (int ii = 0; ii < sel->n; ii++) {
 						int node = sel->idx[ii];
 						GMRFLib_idxval_add(&(groups[node]), node, 1.0);
@@ -3627,10 +3627,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 					while (!levels_ok) {
 						groups[node]->n = 0;
-						int siz_g = IMIN(dn, (int) (levels_magnify * (ABS(gcpo_param->num_level_sets) + 4L)));
+						int siz_g = IMIN(dn, (int) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
 						levels_magnify *= 4.0;
 						GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
-								    (double) dn, gcpo_param->num_level_sets, levels_magnify);
+								    (double) dn, (double) gcpo_param->num_level_sets, levels_magnify);
 						gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) dn);
 
 						double sumw = W(node);
@@ -3647,7 +3647,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 								 * we have to go to one more before we stop as we need to add all equal ones first 
 								 */
 								if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param)) {
-									if ((sumw >= gcpo_param->num_level_sets)) {
+									if ((sumw >= IABS(gcpo_param->num_level_sets))) {
 										/*
 										 * then we will go over if adding, then skip 
 										 */
@@ -3679,7 +3679,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 								}
 							}
 							if (!levels_ok) {
-								if ((sumw > gcpo_param->num_level_sets) ||
+								if ((sumw > IABS(gcpo_param->num_level_sets)) ||
 								    (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max)) {
 									levels_ok = 1;
 								}
@@ -3760,7 +3760,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			for(int ii = 0;	ii < selection->n; ii++) {	\
 									\
 				int node = selection->idx[ii];		\
-				if (gcpo_param->num_level_sets == -1.0) { \
+				if (gcpo_param->num_level_sets == -1) { \
 					GMRFLib_idxval_add(&(groups[node]), node, 1.0);	\
 					continue;			\
 				}					\
@@ -3808,10 +3808,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									\
 				while (!levels_ok) {			\
 					groups[node]->n = 0;		\
-					int siz_g = IMIN(Npred, (int) (levels_magnify * (ABS(gcpo_param->num_level_sets) + 4L))); \
+					int siz_g = IMIN(Npred, (int) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L))); \
 					levels_magnify *= 4.0;		\
 					GMRFLib_DEBUG_idddd("node siz_g Npred num_level_sets levels_magnify", node, (double) siz_g, (double) Npred, \
-							    gcpo_param->num_level_sets, levels_magnify); \
+							    (double) gcpo_param->num_level_sets, levels_magnify); \
 					gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
 									\
 					double sumw = W(node);		\
@@ -3824,7 +3824,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						if (LEGAL_TO_ADD(i_new)) { \
 							/* we have to go to one more before we stop as we need to add all equal ones first */ \
 							if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param)) { \
-								if ((sumw >= gcpo_param->num_level_sets)) { \
+								if (sumw >= IABS(gcpo_param->num_level_sets)) { \
 									/* then we will go over if adding, then skip */ \
 									levels_ok = 1; \
 								} else { \
@@ -3848,7 +3848,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}		\
 						}			\
 						if (!levels_ok) {	\
-							if ((sumw > gcpo_param->num_level_sets) || \
+							if ((sumw > IABS(gcpo_param->num_level_sets)) || \
 							    (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max)) { \
 								levels_ok = 1; \
 							}		\
@@ -3912,7 +3912,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS((int) gcpo_param->num_level_sets));
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), 1 + IABS(gcpo_param->num_level_sets));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -3924,7 +3924,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	TIMER_CHECK;
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS((int) gcpo_param->num_level_sets));
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, 1 + IABS(gcpo_param->num_level_sets));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
@@ -4801,7 +4801,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
 									\
-		if (d[node] && (!(gcpo_param->type) || gcpo_param->type[node] == 0)) { \
+		if (d[node] && gcpo_param->type_cv == 0) {		\
 			/* do the integral by approximating phi(x)*exp(ll(x)) with a normal, and */ \
 			/* then do the GHQ with respect to that normal as the kernel, with the */ \
 			/* ``errors'' as the function */		\
@@ -4836,7 +4836,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			if (corr_hyper) {				\
 				gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
 			}						\
-		} else if (d[node] && gcpo_param->type && gcpo_param->type[node] != 0) { \
+		} else if (d[node] && gcpo_param->type_cv != 0) { \
 			/* x = B z + mean_old */			\
 			/* zmean */					\
 			/* SS = cov(z), QQ=prec(z) */			\

@@ -1481,6 +1481,8 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
     cat("gcpo.prior.diagonal =", max(0, gcpo$prior.diagonal), "\n", file = file, append = TRUE)
+    gcpo$type <- match.arg(gcpo$type, c("single", "joint"))
+    inla.write.boolean.field("gcpo.typecv", if (gcpo$type.cv == "single") 0 else 1, file)
 
     if (!is.null(gcpo$keep) && !is.null(gcpo$remove)) {
         stop("control.gcpo$keep and $remove cannot be used at the same time.")
@@ -1524,8 +1526,15 @@ inla.parse.Bmatrix.test <- function() {
         fp.binary <- file(file.groups, "wb")
         len <- length(gcpo$groups)
         for(i in seq_len(len)) {
-            if (length(gcpo$groups[[i]]) > 0) {
-                gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
+            if (is.list(gcpo$groups[[i]]) && all(names(r$gcpo$groups[[1]]) == c("idx", "corr"))) {
+                ## this will make the r$gcpo$groups from an internal gcpo-calculation, also work. in
+                ## this case groups[[i]] is a list(idx=..., corr=...) and we use 'idx' only.
+                gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]$idx))
+            } else {
+                ## in this case groups[[i]] is just a vector
+                if (length(gcpo$groups[[i]]) > 0) {
+                    gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
+                }
             }
         }
 
@@ -1563,11 +1572,11 @@ inla.parse.Bmatrix.test <- function() {
         ## gsiz = -1 is CPO,  gsiz = 0 or gsiz < -1 means the default value 1
         gsiz <- gcpo$num.level.sets
         if (gsiz <= 0) gsiz <- -1
-        cat("gcpo.num.level.sets", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
+        cat("gcpo.num.level.sets", "=", as.integer(gsiz), "\n", sep = " ", file = file, append = TRUE)
 
         gsiz.max <- round(gcpo$size.max)
         if (gsiz.max <= 0) gsiz.max <- -1
-        cat("gcpo.size.max", "=", gsiz.max, "\n", sep = " ", file = file, append = TRUE)
+        cat("gcpo.size.max", "=", as.integer(gsiz.max), "\n", sep = " ", file = file, append = TRUE)
 
         if (!is.null(gcpo$selection)) {
             selection <- gcpo$selection[!is.na(gcpo$selection)]
