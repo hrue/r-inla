@@ -228,7 +228,8 @@
     return(ss)
 }
 
-`inla.plot.inla.surv.1` <- function(object, legend = TRUE, ...) {
+`inla.plot.inla.surv.1` <- function(object, legend = TRUE, ...)
+{
     time <- object$time
     upper <- object$upper
     lower <- object$lower
