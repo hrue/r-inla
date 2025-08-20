@@ -630,8 +630,10 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 					obj->try_next_nt = IMAX(1, obj->best_nt - step);
 				} else {
 					if (time_try_next < time_best) {
-						printf("\nFound new best (%.1g, %1d) < (%.1g, %1d)\n\n", time_try_next * 1E6, obj->try_next_nt,
-						       time_best * 1E6, obj->best_nt);
+						if (debug) {
+							printf("\nFound new best (%.1g, %1d) < (%.1g, %1d)\n\n", time_try_next * 1E6, obj->try_next_nt,
+							       time_best * 1E6, obj->best_nt);
+						}
 						int itmp = obj->try_next_nt;
 						obj->try_next_nt = IMAX(1, IMIN(obj->max_nt, itmp - step));
 						obj->best_nt = itmp;

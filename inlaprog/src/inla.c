@@ -258,7 +258,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
 		inla_error_general(msg);
 	}
-	if (1) {
+	if (0) {
 		iniparser_dump(ini, stdout);
 	}
 	nsec = iniparser_getnsec(ini);
