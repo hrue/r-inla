@@ -12,7 +12,8 @@ control.expert(
   jp = NULL,
   dot.product.gain = FALSE,
   globalconstr = list(A = NULL, e = NULL),
-  opt.solve = FALSE
+  opt.solve = FALSE,
+  opt.num.threads = FALSE
 )
 
 inla.set.control.expert.default(...)
@@ -39,6 +40,10 @@ correct the normalisation constant.
 
 \item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
 (EXPERIMENTAL OPTION: DO NOT USE)}
+
+\item{opt.num.threads}{Reduce the number of threads adaptively if needed at
+critical places to optimize wall-clock time
+(EXPERIMENTAL OPTION)}
 
 \item{...}{Named arguments passed on to the main function}
 }
