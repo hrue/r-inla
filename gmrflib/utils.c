@@ -1008,7 +1008,7 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 	if (!vec || vec->size == 0) {
 		*out = NULL;
 	} else {
-		*out = Calloc(vec->size, double);
+		*out = Malloc(vec->size, double);
 		for (size_t i = 0; i < vec->size; i++) {
 			(*out)[i] = gsl_vector_get(vec, i);
 		}
@@ -1021,7 +1021,7 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
 		*out = NULL;
 	} else {
-		*out = Calloc(mat->size1 * mat->size2, double);
+		*out = Malloc(mat->size1 * mat->size2, double);
 		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
 			for (size_t i = 0; i < mat->size1; i++) {
@@ -2261,9 +2261,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2283,15 +2283,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

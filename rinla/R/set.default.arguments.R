@@ -263,7 +263,12 @@
 
              #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).
              #' (EXPERIMENTAL OPTION: DO NOT USE)
-             opt.solve = FALSE
+             opt.solve = FALSE, 
+   
+             #' @param opt.num.threads Reduce the number of threads adaptively if needed at
+             #' critical places to optimize wall-clock time
+             #' (EXPERIMENTAL OPTION)
+             opt.num.threads = FALSE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }
@@ -309,7 +314,9 @@ control.gcpo <-
              #' @param remove TODO
              remove = NULL,
              #' @param remove.fixed TODO
-             remove.fixed = TRUE
+             remove.fixed = TRUE,
+             #' @param type The type of cv, either "single" (default) or "joint"
+             type.cv = "single"
              ) {
         ctrl_object(as.list(environment()), "gcpo", check = FALSE)
     }
@@ -578,7 +585,10 @@ control.gcpo <-
              control.link = INLA::control.link(),
 
              #' @param control.sem Parameters for likelihood `sem`
-             control.sem = NULL
+             control.sem = NULL, 
+
+             #' @param cloglike An `inla.cloglike` object for likelihood `cloglike`
+             cloglike = NULL
              ) {
         ctrl_object(as.list(environment()), "family", check = FALSE)
     }

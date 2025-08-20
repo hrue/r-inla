@@ -40,11 +40,13 @@ test_that("Case 1", {
             family = "gaussian",
             control.predictor = list(compute=TRUE),
             control.family = list(initial = log(1/sd^2), fixed = TRUE))
-    h = inla.hyperpar(r,  diff.logdens = 10)
-    hh = inla.hyperpar(rr,  diff.logdens=10)
     
-    expect_true(abs(h$summary.hyperpar[2,"mean"] -
-                    hh$summary.hyperpar[2,"mean"]) < 0.02)
+    ## Only for inla.mode='classic'
+    ## h = inla.hyperpar(r,  diff.logdens = 10)
+    ## hh = inla.hyperpar(rr,  diff.logdens=10)
+    
+    ## expect_true(abs(h$summary.hyperpar[2,"mean"] -
+    ##                 hh$summary.hyperpar[2,"mean"]) < 0.02)
 })
 
 

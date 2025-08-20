@@ -50,7 +50,7 @@ test_that("Case 1: 0poisson", {
     mdtest <- inla.mdata(
         cbind(dataf$y, dataf$E),
         cbind(1, dataf$x1, dataf$x2))
-    str(mdtest)
+    # str(mdtest)
     
     if(!any(attr(mdtest, "class") == "list")) {
         attr(mdtest, "class") <- c("inla.mdata", "list")
@@ -58,14 +58,31 @@ test_that("Case 1: 0poisson", {
         
     
     datas <- inla.stack(
-        data = mdtest, 
+        data = list(dummy = rep(NA, NROW(mdtest[[1]]))),
+        response = list(mdtest), 
         effects = list(
-            data.frame(a0y = 1,
+            data.frame(Intercept = 1,
+                       a0y = 1,
                        x1y = dataf$x1y,
                        x2y = dataf$x2y)),
         A = list(1))
 
-    ## TO DO: make inla.stack() to collect the "names.ori"
-    str(inla.stack.data(datas))
-    
+    ff2 <- RESPONSE ~ 0 + Intercept + x1y + x2y
+    fit2 <- inla(
+        formula = ff2,
+        data = inla.stack.data(datas, .response.name = "RESPONSE"),
+        control.predictor = list(A = inla.stack.A(datas)),
+        family = "0poisson")
+
+    expect_equal(
+        fit2$summary.hyperpar[, 1:2],
+        fit1$summary.hyperpar[, 1:2],
+        tolerance = 1e-5
+    )
+    rownames(fit2$summary.fixed)[1] <- "(Intercept)"
+    expect_equal(
+        fit2$summary.fixed[, 1:2],
+        fit1$summary.fixed[, 1:2],
+        tolerance = 1e-5
+    )
 })

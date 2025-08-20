@@ -8,7 +8,8 @@
 #' @title Constraint segments for inla.mesh
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_segm()] instead.
+#' `r lifecycle::badge("deprecated")`  since `23.08.18`.
+#' Use [fmesher::fm_segm()] instead.
 #'
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
@@ -56,7 +57,8 @@ inla.mesh.segment <- function(...) {
 #' @title Draw `inla.mesh.segment` objects.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::lines.fm_segm()] or
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::lines.fm_segm()] or
 #' [fmesher::lines_rgl()] instead.
 #'
 #' Draws a [inla.mesh.segment()] object with generic or `rgl`
@@ -119,7 +121,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
 #' @title Generate text RGB color specifications.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_generate_colors()]
+#' `r lifecycle::badge("deprecated")`  since `23.08.18`.
+#' Use [fmesher::fm_generate_colors()]
 #' instead.
 #'
 #' Generates a tex RGB color specification matrix based on a color palette.
@@ -161,7 +164,8 @@ inla.generate.colors <- function(color,
 #' @title Low level triangulation mesh plotting
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::plot_rgl()] instead.
+#' `r lifecycle::badge("deprecated")`  since `23.08.18`.
+#' Use [fmesher::plot_rgl()] instead.
 #'
 #' Plots a triangulation mesh using `rgl`.
 #'
@@ -236,7 +240,8 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
 #' @title Draw a triangulation mesh object
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::plot.fm_mesh_2d()] or
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::plot.fm_mesh_2d()] or
 #' [fmesher::plot_rgl()] instead.
 #'
 #' Plots an [inla.mesh()] object using either standard graphics or
@@ -282,11 +287,11 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
 #' @export
 plot.inla.mesh <- function(x,
                            col = "white",
-                           t.sub = 1:nrow(mesh$graph$tv),
+                           t.sub = 1:nrow(x$graph$tv),
                            add = FALSE,
                            lwd = 1,
-                           xlim = range(mesh$loc[, 1]),
-                           ylim = range(mesh$loc[, 2]),
+                           xlim = range(x$loc[, 1]),
+                           ylim = range(x$loc[, 2]),
                            main = NULL,
                            rgl = FALSE,
                            size = 2,
@@ -358,7 +363,8 @@ plot.inla.mesh <- function(x,
 
 #' @export
 #' @describeIn inla.mesh.map
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_mesh_2d_map_lim()]
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_mesh_2d_map_lim()]
 #' instead.
 #'
 #' Projection extent limit calculations
@@ -379,7 +385,8 @@ inla.mesh.map.lim <- function(loc = NULL,
 #' @title Coordinate mappings for `inla.mesh` projections.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_mesh_2d_map()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_mesh_2d_map()] instead.
 #'
 #' Calculates coordinate mappings for `inla.mesh` projections.
 #'
@@ -420,7 +427,8 @@ inla.mesh.map <- function(loc,
 #' @title Lattice grids for inla.mesh
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_lattice_2d()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_lattice_2d()] instead.
 #'
 #' Construct a lattice grid for [inla.mesh()]
 #'
@@ -495,7 +503,8 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
 #' @title Extract tagged boundary/internal segments.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_segm()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_segm()] instead.
 #'
 #' Extract boundary or internal segments tagged by group id:s.
 #'
@@ -538,7 +547,8 @@ inla.mesh <- function(...) {
 #' @title Low level function for high-quality triangulations
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_rcdt_2d_inla()].
+#' `r lifecycle::badge("deprecated")` since `23.08.18`
+#' in favour of [fmesher::fm_rcdt_2d_inla()].
 #'
 #' Create a constrained refined Delaunay triangulation (CRDT) for a set of
 #' spatial locations.
@@ -670,7 +680,8 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
 #' @title Constraint segment extraction for inla.mesh
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_segm()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_segm()] instead.
 #'
 #' Constructs an list of `inla.mesh.segment` object from boundary or
 #' interior constraint information in an [inla.mesh()] object.
@@ -734,7 +745,8 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
 #' @title High-quality triangulations
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_mesh_2d_inla()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_mesh_2d_inla()] instead.
 #'
 #' Create a triangle mesh based on initial point locations, specified or
 #' automatic boundaries, and mesh quality parameters.
@@ -844,7 +856,8 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
 #' @title High-quality triangulations
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_mesh_2d_inla()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_mesh_2d_inla()] instead.
 #'
 #' Create a triangle mesh based on initial point locations, specified or
 #' automatic boundaries, and mesh quality parameters.
@@ -886,7 +899,8 @@ inla.mesh.create.helper <- function(points = NULL, points.domain = NULL, ...) {
 
 #' @export
 #' @describeIn inla.mesh.create
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_delaunay_2d()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_delaunay_2d()] instead.
 inla.delaunay <- function(loc, ...) {
   fmesher_deprecate(
     "soft",
@@ -949,7 +963,7 @@ inla.mesh.query <- function(mesh, ...) {
     details = "Does not yet have an `fmesher` alternative."
   )
 
-  inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+  inla.require.inherits(mesh, "fm_mesh_2d", "'mesh'")
 
   not.known <- function(mesh, queryname) {
     stop(paste("Query '", queryname,
@@ -1226,7 +1240,8 @@ print.summary.inla.mesh <- function(x, ...) {
 #' @title Methods for projecting to/from an inla.mesh
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_evaluate()] and
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_evaluate()] and
 #' [fmesher::fm_evaluator()] instead.
 #'
 #' Calculate a lattice projection to/from an [inla.mesh()].
@@ -1292,7 +1307,8 @@ inla.mesh.projector <- function(...) {
 #' @title Basis functions for inla.mesh
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_raw_basis()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_raw_basis()] instead.
 #'
 #' Calculate basis functions on a 1d or 2d [inla.mesh()]
 #'
@@ -1403,7 +1419,8 @@ inla.parse.queries <- function(...) {
 #' @title Compute various mesh related quantities.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use the methods in the `fmesher` package
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use the methods in the `fmesher` package
 #' instead; see details below.
 #'
 #' Low level function for computing finite element matrices, spherical
@@ -1552,7 +1569,8 @@ inla.parse.queries <- function(...) {
 #' @title Function space definition objects for 1D SPDE models.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_mesh_1d()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_mesh_1d()] instead.
 #'
 #' Create a 1D mesh specification `inla.mesh.1d` object, that defines a
 #' function space for 1D SPDE models.
@@ -1599,6 +1617,7 @@ inla.mesh.1d <- function(loc,
 
 #' @export inla.mesh.1d.bary
 #' @describeIn inla.mesh.1d.A `r lifecycle::badge("deprecated")`
+#' since `23.08.18`.
 #' Use [fmesher::fm_bary()] instead.
 inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
   fmesher_deprecate(
@@ -1628,7 +1647,7 @@ inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
   result <- list(
     index = index,
     t = index,
-    bary = result$bary
+    bary = if (!is.null(result$bary)) result$bary else result$where
   )
   return(result)
 }
@@ -1637,7 +1656,8 @@ inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
 #' @title Mapping matrix for 1D meshes
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_basis()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_basis()] instead.
 #'
 #' Calculates barycentric coordinates and weight matrices for
 #' [inla.mesh.1d()] objects.
@@ -1685,7 +1705,7 @@ inla.mesh.1d.A <- function(mesh, loc,
 
 #' @param mesh An inla.mesh.1d object
 #' @export
-#' @describeIn inla.mesh.1d `r lifecycle::badge("deprecated")`
+#' @describeIn inla.mesh.1d `r lifecycle::badge("deprecated")` since `23.08.18`.
 #' Use [fmesher::fm_fem()] instead.
 inla.mesh.1d.fem <- function(mesh) {
   fmesher_deprecate(
@@ -1704,7 +1724,8 @@ inla.mesh.1d.fem <- function(mesh) {
 #' @title Diameter of a point set
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_diameter()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_diameter()] instead.
 #'
 #' Find an upper bound to the convex hull of a point set
 #'
@@ -1739,7 +1760,8 @@ inla.diameter <- function(x, ...) {
 #' @title Finite element matrices
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_fem()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_fem()] instead.
 #'
 #' Constructs finite element matrices for [inla.mesh()] and
 #' [inla.mesh.1d()] objects.
@@ -1774,7 +1796,8 @@ inla.mesh.fem <- function(mesh, order = 2) {
 #' @title Directional derivative matrices for functions on meshes.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_basis()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_basis()] instead.
 #'
 #' Calculates directional derivative matrices for functions on
 #' [inla.mesh()] objects.
@@ -1802,7 +1825,8 @@ inla.mesh.deriv <- function(mesh, loc) {
 #' @title Recursive curve simplification.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_simplify_helper()]
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use [fmesher::fm_simplify_helper()]
 #' instead.
 #'
 #' Attempts to simplify a polygonal curve by joining nearly colinear segments.
@@ -1839,7 +1863,8 @@ inla.simplify.curve <- function(loc, idx, eps) {
 
 
 #' @export
-#' @describeIn inla.mesh.segment `r lifecycle::badge("deprecated")` Use
+#' @describeIn inla.mesh.segment `r lifecycle::badge("deprecated")`
+#' since `23.08.18`. Use
 #'   [fmesher::fm_segm_contour_helper()] instead.
 inla.contour.segment <- function(...) {
   fmesher_deprecate(
@@ -1876,8 +1901,10 @@ inla.contour.segment <- function(...) {
 #' @title Nonconvex set extensions.
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` Use [fmesher::fm_nonconvex_hull_inla()] or
-#' [fmesher::fm_nonconvex_hull()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`.
+#' Use
+#' [fmesher::fm_nonconvex_hull()] with argument `format = "fm"` instead, or
+#' no special argument to get `sf` output.
 #'
 #' Constructs a nonconvex boundary for a point set using morphological
 #' operations.
@@ -1911,7 +1938,7 @@ inla.contour.segment <- function(...) {
 #' the resulting boundary curve.  See [inla.simplify.curve()] for
 #' details.
 #' @param crs An optional `CRS` or `inla.CRS` object
-#' @return An [inla.mesh.segment()] object.
+#' @return An [fmesher::fm_segm()] object.
 #' @note Requires `nndistF` from the `splancs` package.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
@@ -1934,22 +1961,24 @@ inla.nonconvex.hull <- function(points,
     2L,
     "23.08.18",
     "inla.nonconvex.hull()",
-    I("`fmesher::fm_nonconvex_hull()` or `fmesher::fm_nonconvex_hull_inla()`")
+    I("`fmesher::fm_nonconvex_hull()`")
   )
-  return(fmesher::fm_nonconvex_hull_inla(
+  return(fmesher::fm_nonconvex_hull(
     x = points,
     convex = convex,
     concave = concave,
     resolution = resolution,
     eps = eps,
-    crs = crs
+    crs = crs,
+    format = "fm",
+    method = "fm"
   ))
 }
 
 #' @export
 #' @describeIn inla.nonconvex.hull
-#' `r lifecycle::badge("deprecated")`
-#' Use [fmesher::fm_nonconvex_hull_inla_basic()] instead.
+#' `r lifecycle::badge("deprecated")` since `23.08.18`
+#' Use [fmesher::fm_nonconvex_hull()] with `concave = 0` instead.
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
 inla.nonconvex.hull.basic <- function(points,
@@ -1963,15 +1992,17 @@ inla.nonconvex.hull.basic <- function(points,
     "23.08.18",
     "inla.nonconvex.hull.basic()",
     I(paste0(
-      "`fmesher::fm_nonconvex_hull()` or ",
-      "`fmesher::fm_nonconvex_hull_inla_basic()`"
+      "`fmesher::fm_nonconvex_hull(concave = 0, format = 'fm', method = 'fm')`"
     ))
   )
-  return(fmesher::fm_nonconvex_hull_inla_basic(
+  return(fmesher::fm_nonconvex_hull(
     x = points,
     convex = convex,
+    concave = 0,
     resolution = resolution,
     eps = eps,
-    crs = crs
+    crs = crs,
+    format = "fm",
+    method = "fm"
   ))
 }

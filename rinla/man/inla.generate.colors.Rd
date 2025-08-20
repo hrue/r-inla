@@ -28,7 +28,8 @@ limits.}
 \item{alpha}{Transparency/opaqueness values.}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_generate_colors]{fmesher::fm_generate_colors()}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}  since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_generate_colors]{fmesher::fm_generate_colors()}}
 instead.
 
 Generates a tex RGB color specification matrix based on a color palette.

@@ -22,7 +22,8 @@ A scalar, upper bound for the diameter of the convex hull of the
 point set.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_diameter]{fmesher::fm_diameter()}} instead.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_diameter]{fmesher::fm_diameter()}} instead.
 
 Find an upper bound to the convex hull of a point set
 }

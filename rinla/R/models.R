@@ -15824,6 +15824,16 @@
                     discrete = FALSE,
                     link = c("default", "circular", "tan", "tan.pi", "identity"),
                     pdf = "vm"
+                ),
+
+                cloglike = list(
+                    doc = "User-defined likelihood",
+                    hyper = list(),
+                    experimental = TRUE, 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity"),
+                    pdf = "cloglike"
                 )
             )
     )

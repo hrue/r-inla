@@ -779,12 +779,13 @@ typedef enum {
 						  "UNKNOWN"))
 
 typedef struct {
+	int type_cv;
 	int size_max;
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;
 	int len_weights;				       /* need to check later for Npred... */
-	double num_level_sets;
+	int num_level_sets;
 	double epsilon;
 	double sqrt_epsilon;
 	double prior_diagonal;
@@ -793,7 +794,6 @@ typedef struct {
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
 	GMRFLib_idx_tp *group_selection;
-	char *type;					       /* 0: normal, != joint */
 
 	GMRFLib_idx_tp **friends;
 	int friends_n;

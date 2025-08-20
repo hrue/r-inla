@@ -23,7 +23,8 @@ control.family(
   control.mix = NULL,
   control.pom = NULL,
   control.link = INLA::control.link(),
-  control.sem = NULL
+  control.sem = NULL,
+  cloglike = NULL
 )
 
 inla.set.control.family.default(...)
@@ -74,6 +75,8 @@ likelihoods).}
 \item{control.link}{See \code{?control.link}}
 
 \item{control.sem}{Parameters for likelihood \code{sem}}
+
+\item{cloglike}{An \code{inla.cloglike} object for likelihood \code{cloglike}}
 
 \item{...}{Named arguments passed on to the main function}
 }

@@ -21,7 +21,8 @@ control.gcpo(
   correct.hyperpar = TRUE,
   keep = NULL,
   remove = NULL,
-  remove.fixed = TRUE
+  remove.fixed = TRUE,
+  type.cv = "single"
 )
 
 inla.set.control.gcpo.default(...)
@@ -60,6 +61,8 @@ inla.set.control.gcpo.default(...)
 \item{remove.fixed}{TODO}
 
 \item{...}{Named arguments passed on to the main function}
+
+\item{type}{The type of cv, either "single" (default) or "joint"}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.

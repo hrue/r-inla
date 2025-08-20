@@ -421,6 +421,74 @@ inla.parse.Bmatrix.test <- function() {
         cat("control.sem.idx =", as.integer(control$control.sem$idx)-1, "\n", file = file, append = TRUE)
     }
 
+    if (inla.one.of(family, "cloglike")) {
+        stopifnot(!is.null(control$cloglike))
+        stopifnot(inherits(control$cloglike, "inla.cloglike"))
+
+        if (inla.os.type() == "windows") {
+            suffix <- ".dll"
+        } else if (inla.os.type() == "linux") {
+            suffix <- ".so"
+        } else if (inla.os.type() == "mac" || inla.os.type() == "mac.arm64") {
+            ## mac
+            suffix <- ".dylib"
+        } else {
+            stop("SHOULD NOT HAPPEN")
+        }
+
+        shlib <- inla.copy.file.for.section(control$cloglike$cloglike$shlib, data.dir, suffix = suffix)
+        shlib <- gsub(data.dir, "$inladatadir", shlib, fixed = TRUE)
+        cat("cloglike.shlib =", shlib, "\n", file = file, append = TRUE)
+        cat("cloglike.model =", control$cloglike$cloglike$model, "\n", file = file, append = TRUE)
+        inla.write.boolean.field("cloglike.debug", control$cloglike$cloglike$debug, file)
+
+        data <- control$cloglike$cloglike$data
+        file.data <- inla.tempfile(tmpdir = data.dir)
+        fd <- file(file.data, "wb")
+
+        writeBin(as.integer(length(data$ints)), fd)
+        for(idx in seq_along(data$ints)) {
+            writeBin(as.integer(nchar(names(data$ints)[idx])), fd)
+            writeBin(as.character(names(data$ints)[idx]), fd)
+            writeBin(as.integer(length(data$ints[idx][[1]])), fd)
+            writeBin(as.integer(data$ints[idx][[1]]), fd)
+        }
+        writeBin(as.integer(length(data$doubles)), fd)
+        for(idx in seq_along(data$doubles)) {
+            writeBin(as.integer(nchar(names(data$doubles)[idx])), fd)
+            writeBin(as.character(names(data$doubles)[idx]), fd)
+            writeBin(as.integer(length(data$doubles[idx][[1]])), fd)
+            writeBin(as.double(data$doubles[idx][[1]]), fd)
+        }
+        writeBin(as.integer(length(data$characters)), fd)
+        for(idx in seq_along(data$characters)) {
+            writeBin(as.integer(nchar(names(data$characters)[idx])), fd)
+            writeBin(as.character(names(data$characters)[idx]), fd)
+            writeBin(as.integer(nchar(data$characters[idx][[1]])), fd)
+            writeBin(as.character(data$characters[idx][[1]]), fd)
+        }
+        writeBin(as.integer(length(data$matrices)), fd)
+        for(idx in seq_along(data$matrices)) {
+            writeBin(as.integer(nchar(names(data$matrices)[idx])), fd)
+            writeBin(as.character(names(data$matrices)[idx]), fd)
+            writeBin(as.integer(data$matrices[idx][[1]][1:2]), fd)
+            writeBin(as.double(data$matrices[idx][[1]][-(1:2)]), fd)
+        }
+        writeBin(as.integer(length(data$smatrices)), fd)
+        for(idx in seq_along(data$smatrices)) {
+            writeBin(as.integer(nchar(names(data$smatrices)[idx])), fd)
+            writeBin(as.character(names(data$smatrices)[idx]), fd)
+            writeBin(as.integer(data$smatrices[idx][[1]][1:3]), fd)
+            nn <- as.integer(data$smatrices[idx][[1]][3])
+            writeBin(as.integer(data$smatrices[idx][[1]][3 + 1:nn]), fd)
+            writeBin(as.integer(data$smatrices[idx][[1]][3 + nn + 1:nn]), fd)
+            writeBin(as.double(data$smatrices[idx][[1]][3 + 2*nn + 1:nn]), fd)
+        }
+        close(fd)
+        file.data <- gsub(data.dir, "$inladatadir", file.data, fixed = TRUE)
+        cat("cloglike.data =", file.data, "\n", file = file, append = TRUE)
+    }
+        
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
@@ -1413,6 +1481,8 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
     cat("gcpo.prior.diagonal =", max(0, gcpo$prior.diagonal), "\n", file = file, append = TRUE)
+    gcpo$type <- match.arg(gcpo$type, c("single", "joint"))
+    inla.write.boolean.field("gcpo.typecv", if (gcpo$type.cv == "single") 0 else 1, file)
 
     if (!is.null(gcpo$keep) && !is.null(gcpo$remove)) {
         stop("control.gcpo$keep and $remove cannot be used at the same time.")
@@ -1456,8 +1526,15 @@ inla.parse.Bmatrix.test <- function() {
         fp.binary <- file(file.groups, "wb")
         len <- length(gcpo$groups)
         for(i in seq_len(len)) {
-            if (length(gcpo$groups[[i]]) > 0) {
-                gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
+            if (is.list(gcpo$groups[[i]]) && all(names(r$gcpo$groups[[1]]) == c("idx", "corr"))) {
+                ## this will make the r$gcpo$groups from an internal gcpo-calculation, also work. in
+                ## this case groups[[i]] is a list(idx=..., corr=...) and we use 'idx' only.
+                gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]$idx))
+            } else {
+                ## in this case groups[[i]] is just a vector
+                if (length(gcpo$groups[[i]]) > 0) {
+                    gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
+                }
             }
         }
 
@@ -1495,11 +1572,11 @@ inla.parse.Bmatrix.test <- function() {
         ## gsiz = -1 is CPO,  gsiz = 0 or gsiz < -1 means the default value 1
         gsiz <- gcpo$num.level.sets
         if (gsiz <= 0) gsiz <- -1
-        cat("gcpo.num.level.sets", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
+        cat("gcpo.num.level.sets", "=", as.integer(gsiz), "\n", sep = " ", file = file, append = TRUE)
 
         gsiz.max <- round(gcpo$size.max)
         if (gsiz.max <= 0) gsiz.max <- -1
-        cat("gcpo.size.max", "=", gsiz.max, "\n", sep = " ", file = file, append = TRUE)
+        cat("gcpo.size.max", "=", as.integer(gsiz.max), "\n", sep = " ", file = file, append = TRUE)
 
         if (!is.null(gcpo$selection)) {
             selection <- gcpo$selection[!is.na(gcpo$selection)]
@@ -1777,6 +1854,7 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("disable.gaussian.check", args$disable.gaussian.check, file)
     inla.write.boolean.field("dot.product.gain", args$dot.product.gain, file)
     inla.write.boolean.field("opt.solve", args$opt.solve, file)
+    inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
 
     gconstr <- args$globalconstr
     if (!is.null(gconstr) && !is.null(gconstr$A)) {

@@ -105,7 +105,7 @@ grid <- st_sf(
 
 ## non-convex boundaries around the map
 library(fmesher)
-bnd1 <- fm_nonconvex_hull_inla(
+bnd1 <- fm_nonconvex_hull(
     grid,
     convex = rr * 0.05,
     concave = rr * 0.1)

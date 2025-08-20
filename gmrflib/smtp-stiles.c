@@ -17,10 +17,13 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
+	GMRFLib_STOP_IF_NOT_SERIAL();
+
 	GMRFLib_ptr_tp *graphs = setup->graphs;
 	GMRFLib_idx_tp *nrhss = setup->nrhss;
-
-	GMRFLib_STOP_IF_NOT_SERIAL();
+	if (store) {
+		GMRFLib_stiles_quit();
+	}
 
 	if (!ctl) {
 		GMRFLib_stiles_set_ctl(0, 0);
@@ -35,9 +38,6 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	assert(nt_inner > 0);
 	assert(ng > 0);
 
-	if (store) {
-		GMRFLib_stiles_quit();
-	}
 	store = Calloc(1, GMRFLib_stiles_store_tp);
 	store->n = Calloc(ng2, int);
 	store->nnz = Calloc(ng2, int);
@@ -239,38 +239,24 @@ void GMRFLib_stiles_quit(void)
 
 void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp)
 {
-	fprintf(fp, "%s:%1d stiles_idx: in_group=%1d within_group=%1d sidx=%1d\n",
-		__FILE__, __LINE__, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->sidx);
+	fprintf(fp, "%s:%1d stiles_idx: in_group=%1d within_group=%1d nrhs=%1d\n",
+		__FILE__, __LINE__, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->nrhs);
 }
 
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->within_group using thread_num(), and set sidx
+	// rewrite ->within_group using thread_num()
 	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
-	if (nrhs >= 0) {
-		if ((stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs)) < 0) {
-			fprintf(stderr, "\n%s: %1d: nrhs = %1d not found. continue with nrhs=1\n\n", __FILE__, __LINE__, nrhs);
-			stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs);
-		}
-	} else {
-		stiles_idx->sidx = -1;
-	}
+	stiles_idx->nrhs = nrhs;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->in_group and ->within_group into the corresponding copy, and set sidx
+	// rewrite ->in_group and ->within_group into the corresponding copy
 	stiles_idx->in_group = store->offset_copy + stiles_idx->within_group;
 	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
-	if (nrhs >= 0) {
-		if ((stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs)) < 0) {
-			fprintf(stderr, "\n%s: %1d: nrhs = %1d not found\n\n", __FILE__, __LINE__, nrhs);
-			stiles_idx->sidx = GMRFLib_find_ivalue(store->rhss, store->nrhss, 1, nrhs);
-		}
-	} else {
-		stiles_idx->sidx = -1;
-	}
+	stiles_idx->nrhs = nrhs;
 	return GMRFLib_SUCCESS;
 }
 
@@ -384,6 +370,11 @@ void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp *setup)
 
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 {
+#if 0
+	FIXME("CHOL ENTER");
+	double tref = -GMRFLib_timer();
+#endif
+
 	int in_group = stiles_idx->in_group;
 	int within_group = stiles_idx->within_group;
 
@@ -392,6 +383,14 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 		fprintf(stderr, "\n\n*** ERROR *** sTiles_chol %d \n\n", status);
 		fflush(stderr);
 	}
+#if 0
+#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)
+	{
+		tref += GMRFLib_timer();
+		printf("CHOL LEAVE thread %d num_threads %d time %f\n", omp_get_thread_num(), omp_get_num_threads(), tref);
+	}
+#endif
+
 	return (status ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
 
@@ -473,22 +472,19 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_LLT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_LLT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_L(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_L(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
-	assert(stiles_idx->sidx >= 0);
-	sTiles_solve_LT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->sidx);
+	sTiles_solve_LT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	return GMRFLib_SUCCESS;
 }
 
@@ -585,7 +581,7 @@ void GMRFLib_stiles_unbind_all(void)
 	}
 }
 
-int GMRFLib_stiles_verbose()
+int GMRFLib_stiles_get_verbose()
 {
 	return (ctl ? ctl->verbose : 0);
 }

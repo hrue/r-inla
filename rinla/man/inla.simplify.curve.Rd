@@ -18,7 +18,8 @@ An index vector into \code{loc} specifying the simplified polygonal
 curve.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_simplify_helper]{fmesher::fm_simplify_helper()}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_simplify_helper]{fmesher::fm_simplify_helper()}}
 instead.
 
 Attempts to simplify a polygonal curve by joining nearly colinear segments.

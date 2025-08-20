@@ -28,7 +28,7 @@ __BEGIN_DECLS
     typedef struct {
 	int in_group;
 	int within_group;
-	int sidx;
+	int nrhs;
 } GMRFLib_stiles_idx_tp;
 
 // this is from smtp-taucs.h
@@ -109,7 +109,7 @@ typedef struct {
 	int *len;
 	int *rowind;
 	int *rowind_sorted;
-	GMRFLib_idx2_tp *sort2;
+	int *perm;
 } GMRFLib_taucs_cache_tp;
 
 

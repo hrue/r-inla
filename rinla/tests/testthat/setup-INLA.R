@@ -1,9 +1,17 @@
-# Save the num.threads option so it can be restored
-testthat_inla_num_threads <- INLA::inla.getOption("num.threads")
-# Set num.threads = "1:1" to ensure within-system repeatability
-INLA::inla.setOption(num.threads = "1:1")
+testthat_eval_env <- environment()
+testthat_eval_env <- tryCatch(
+    teardown_env(),
+    error = function(e) { testthat_eval_env }
+)
 
-withr::defer(
-    INLA::inla.setOption(num.threads = testthat_inla_num_threads),
-    teardown_env()
+withr::local_options(
+    lifecycle_verbosity = "warning",
+    .local_envir = testthat_eval_env
+)
+
+local_inla_options(
+    num.threads = "1:1",
+    fmesher.evolution.warn = TRUE,
+    fmesher.evolution.verbosity = "warn",
+    .envir = testthat_eval_env
 )

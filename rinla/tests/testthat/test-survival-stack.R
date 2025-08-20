@@ -36,34 +36,43 @@ test_that("Case 1: weibullsurv", {
                     fit2$mode$theta) < 0.1)
 
     sv <- inla.surv(Leuk$day, Leuk$cens)
-    class(sv)
-    str(sv)
+    ## class(sv)
+    ## str(sv)
 
     attr(sv, "names.ori")
     sapply(attr(sv, "names.ori"), as.character)
-
-    ## hack 1: to work for the names
-    attr(sv, 'class') <- c("inla.surv", "data.frame")
-    is.data.frame(sv)
-
-    ## This is weird as the vectors in the output of `inla.surv()`
-    ##  does not have all the same length.
-    ## This may be solved if the inla.stack() methods consider
-    ##  first `list` then `data.frame`:
-    ##  then we only need as.list.inla.surv() 
-    ##  and will not need the next hack.
-
-    ## hack 2: to properly extract the data
-    ## (weird to have to do it if it "is" `data.frame` already)
-    as.data.frame.inla.surv <-
-        function(x, ...) {
-            class(x) <- "list"
-            n <- length(x$time)
-            nn <- lapply(x, length)
-            return(as.data.frame(
-                x[nn == n], ### is this always OK???
-                ...))
-        }
+    
+    ## 2025-07-21: inla.stack has been updated to handle inla.surv objects,
+    ## so the comments here are outdated.
+    ## There is NO reason to use these hacks. The inla.surv object construction
+    ## _itself_ should be modified if needed, e.g. to a tibble (to handle
+    ## matrix valued "cure")
+    ## NOTE: See test-mdata-stack.R for a similar case.
+    
+    if (FALSE) {
+        ## hack 1: to work for the names
+        attr(sv, 'class') <- c("inla.surv", "data.frame")
+        is.data.frame(sv)
+        
+        ## This is weird as the vectors in the output of `inla.surv()`
+        ##  does not have all the same length.
+        ## This may be solved if the inla.stack() methods consider
+        ##  first `list` then `data.frame`:
+        ##  then we only need as.list.inla.surv() 
+        ##  and will not need the next hack.
+        
+        ## hack 2: to properly extract the data
+        ## (weird to have to do it if it "is" `data.frame` already)
+        as.data.frame.inla.surv <-
+            function(x, ...) {
+                class(x) <- "list"
+                n <- length(x$time)
+                nn <- lapply(x, length)
+                return(as.data.frame(
+                    x[nn == n], ### is this always OK???
+                    ...))
+            }
+    }
 
     dstackS <- inla.stack(
         data = list(DUMMY = sv[[1]]),
@@ -74,10 +83,17 @@ test_that("Case 1: weibullsurv", {
                 Leuk[c("age", "sex", "wbc", "tpi")])),
         A = list(1))
 
+    ## 2025-07-21: inla.stack has been updated to handle inla.surv objects,
+    ## so the comments here are outdated.
+    
     ## TO DO: make inla.stack() to collect the "names.ori"
+    ## FL: Why? The original names are not used inside inla(), and the names.ori
+    ## information is passed on through the inla.stack "response" feature.
+
+    if (FALSE) {
     str(inla.stack.data(dstackS))
 
-    wdstackS <- winla.stack(
+    wdstackS <- inla.stack(
         data = list(sv[1:5]), 
         effects = list(
             data.frame(
@@ -97,7 +113,7 @@ test_that("Case 1: weibullsurv", {
 ###       names.ori <- as.list(match.call())[-1]
     ## and add this BEFORE the LAST line of inla.surv() code:
 ###       attr(ret, "names.ori") <- names.ori
-    
+    }
 })
 
 
@@ -132,8 +148,5 @@ test_that("Case 2: coxph", {
         family = "coxph",
         data = inla.stack.data(dstack))
 
-    expect_true(abs(fit1$mode$theta -
-                    fit2$mode$theta) < 0.1)
-
+    expect_equal(fit2$mode$theta, fit1$mode$theta, tolerance = 1e-4)
 })
-

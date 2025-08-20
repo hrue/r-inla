@@ -7,11 +7,11 @@
 \method{plot}{inla.mesh}(
   x,
   col = "white",
-  t.sub = 1:nrow(mesh$graph$tv),
+  t.sub = 1:nrow(x$graph$tv),
   add = FALSE,
   lwd = 1,
-  xlim = range(mesh$loc[, 1]),
-  ylim = range(mesh$loc[, 2]),
+  xlim = range(x$loc[, 1]),
+  ylim = range(x$loc[, 2]),
   main = NULL,
   rgl = FALSE,
   size = 2,
@@ -64,7 +64,8 @@ edges more prominently.}
 plotting systems.}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:plot.fm_mesh_2d]{fmesher::plot.fm_mesh_2d()}} or
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
+Use \code{\link[fmesher:plot.fm_mesh_2d]{fmesher::plot.fm_mesh_2d()}} or
 \code{\link[fmesher:plot_rgl]{fmesher::plot_rgl()}} instead.
 
 Plots an \code{\link[=inla.mesh]{inla.mesh()}} object using either standard graphics or

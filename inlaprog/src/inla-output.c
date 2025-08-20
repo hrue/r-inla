@@ -224,7 +224,7 @@ int inla_output(inla_tp *mb)
 
 	if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
 		GMRFLib_openmp_implement_strategy_special(1, GMRFLib_MAX_THREADS());
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			int offset = offsets[0];
 			inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -234,7 +234,7 @@ int inla_output(inla_tp *mb)
 			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
 					 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
 		}
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			char *sdir = NULL, *newtag = NULL;
 			int offset = offsets[0];
@@ -263,7 +263,7 @@ int inla_output(inla_tp *mb)
 	if (mb->nf) {
 		int div = IMIN(GMRFLib_MAX_THREADS(), IMIN(4, mb->nf));
 		GMRFLib_openmp_implement_strategy_special(div, GMRFLib_MAX_THREADS() / div);
-#pragma omp parallel for num_threads(div) schedule(dynamic)
+#pragma omp parallel for num_threads(div)
 		for (int ii = 0; ii < mb->nf; ii++) {
 			int offset = offsets[ii + 1];
 			inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -339,7 +339,7 @@ int inla_output(inla_tp *mb)
 		GMRFLib_openmp_implement_strategy_special(GMRFLib_MAX_THREADS() / 4, 4);
 	}
 
-#pragma omp parallel for num_threads(div) schedule(dynamic) ordered
+#pragma omp parallel for num_threads(div)
 	for (int k = 0; k < 8; k++) {
 		switch (k) {
 		case 0:
@@ -1718,10 +1718,17 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					for (int i = 0; i < n; i++) {
 						if (density[i]) {
 							double kld;
-							// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean,
-							// density[i]->std_stdev, GMRFLib_FALSE);
-							gd->std_mean = density[i]->std_mean;
-							gd->std_stdev = density[i]->std_stdev;
+							if (0) {
+								// old code
+								// GMRFLib_density_tp *gd = NULL;
+								// GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean,
+								// density[i]->std_stdev, GMRFLib_FALSE);
+							} else {
+								gd->std_mean = density[i]->std_mean;
+								gd->std_stdev = density[i]->std_stdev;
+								gd->user_mean = gd->std_stdev * gd->mean + gd->std_mean;
+								gd->user_stdev = gd->std_stdev * gd->stdev;
+							}
 							if (G.fast_mode) {
 								GMRFLib_mkld_sym(&kld, gd, density[i]);
 							} else {
@@ -1958,14 +1965,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
-		mb->gcpo_param->num_level_sets = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1.0);
+		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
 		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
 		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
-
+		mb->gcpo_param->type_cv = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.TYPECV"), 0);
 		mb->gcpo_param->sqrt_epsilon = sqrt(mb->gcpo_param->epsilon);
 
 		char *str = NULL;
@@ -2053,15 +2060,12 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
 				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
-				int mx = GMRFLib_iamax_value(buffer, len, NULL);
-				mb->gcpo_param->type = Calloc(mx, char);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
 					int idx = IABS(buffer[i]) - 1;	/* to C indexing */
 					GMRFLib_idx_add(&(mb->gcpo_param->selection), idx);
-					mb->gcpo_param->type[i] = (buffer[i] > 0 ? 0 : 1);
 				}
 				fclose(fp);
 				Free(buffer);
@@ -2219,7 +2223,8 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		printf("\t\toutput:\n");
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
-			printf("\t\t\t\tnum.level.sets=[%1g]\n", mb->gcpo_param->num_level_sets);
+			printf("\t\t\t\ttype.cv=[%s]\n", (mb->gcpo_param->type_cv == 0 ? "single" : "joint"));
+			printf("\t\t\t\tnum.level.sets=[%1d]\n", mb->gcpo_param->num_level_sets);
 			printf("\t\t\t\tsize.max=[%1d]\n", mb->gcpo_param->size_max);
 			printf("\t\t\t\tstrategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
 			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);

@@ -95,6 +95,7 @@ extern int GMRFLib_gaussian_data;
 extern int GMRFLib_testit_mode;
 extern int GMRFLib_testit_debug;
 extern int GMRFLib_opt_solve;
+extern int GMRFLib_opt_num_threads;
 
 extern int GMRFLib_intern_flag;
 extern int GMRFLib_cachelinesize;

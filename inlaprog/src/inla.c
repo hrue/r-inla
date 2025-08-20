@@ -137,7 +137,7 @@ int R_load_INLA = 0;
 #define LINK_INIT							\
 	double off = OFFSET(idx);					\
 	double *_link_covariates = NULL;				\
-	Link_param_tp *predictor_invlinkfunc_arg = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
+	Link_param_tp *POSSIBLY_UNUSED(predictor_invlinkfunc_arg) = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
@@ -257,6 +257,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
 		inla_error_general(msg);
+	}
+	if (0) {
+		iniparser_dump(ini, stdout);
 	}
 	nsec = iniparser_getnsec(ini);
 	if (mb->verbose) {
@@ -734,6 +737,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (mb->verbose) {
 		printf("%s: check for unused entries in[%s]\n", __GMRFLib_FuncName, dict_filename);
 	}
+	// iniparser_dump(ini, stdout);
 	if ((count = dictionary_dump_unused(ini, stderr))) {
 		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries. PLEASE CHECK\n", dict_filename, count);
 		exit(EXIT_FAILURE);
@@ -1652,6 +1656,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
+
+			case L_C_LOGLIKE:
+			{
+				if (ds->data_ntheta > 0) {
+					if (!ds->data_nfixed[0]) {
+						double *ret = ds->data_observations.cloglike_func(INLA_CLOGLIKE_LOG_PRIOR, theta + count,
+												  ds->data_observations.cloglike_data, 0, NULL, 0,
+												  NULL, NULL);
+						val += *ret;
+						Free(ret);
+						count += ds->data_ntheta;
+					}
+				}
+			}
+				break;
 
 			case L_SEM:
 				break;
@@ -6181,12 +6200,12 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		for (int iter = 0; iter <= iter_max; iter++) {
 			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
-			GMRFLib_preopt_predictor(eta, x, preopt);
+			GMRFLib_preopt_predictor(eta, x, preopt, GMRFLib_openmp->max_threads_outer);
 			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0, eta, e);
 			norm = sqrt(GMRFLib_ddot(preopt->Npred, e, e) / preopt->Npred);
-			GMRFLib_preopt_bnew_like(bb, e, preopt);
+			GMRFLib_preopt_bnew_like(bb, e, preopt, GMRFLib_openmp->max_threads_outer);
 			GMRFLib_mul(preopt->n, d, scale, d);
-			GMRFLib_preopt_predictor(Ad, d, preopt);
+			GMRFLib_preopt_predictor(Ad, d, preopt, GMRFLib_openmp->max_threads_outer);
 			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
 			sum2 = GMRFLib_ddot(preopt->Npred, Ad, Ad);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));
@@ -7000,7 +7019,7 @@ int main(int argc, char **argv)
 	GMRFLib_malloc_debug_check();
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
-	GMRFLib_openmp->max_threads = host_max_threads;
+	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
 	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing
 	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
@@ -7008,6 +7027,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested[1] = 1;
 	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
 	GMRFLib_openmp->schedule = omp_sched_guided;
+	GMRFLib_openmp->chunk_size = 0;			       /* guided schedule only */
 	GMRFLib_openmp->likelihood_nt = 0;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -7017,6 +7037,7 @@ int main(int argc, char **argv)
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
+	GMRFLib_opt_num_threads = 0;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
@@ -7177,10 +7198,10 @@ int main(int argc, char **argv)
 				}
 
 				// a hidden option...  enable also if ntt[1] > 1, not only if < 0.
-				if (ntt[1] > 1 || ntt[1] < 0) {
-					ntt[1] = IABS(ntt[1]);
+				if (IMAX(ntt[0], ntt[1]) > 1) {
 					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
 				}
+				ntt[1] = IABS(ntt[1]);
 
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
@@ -7223,6 +7244,7 @@ int main(int argc, char **argv)
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS(), ntt[0] * ntt[1]);
+				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads * (GMRFLib_openmp->max_threads + 1);
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '4:1'\n");
@@ -7712,6 +7734,7 @@ int main(int argc, char **argv)
 			}
 			if (verbose) {
 				GMRFLib_remap_print(stdout);
+				GMRFLib_openmp_dynamic_print(stdout);
 				printf("\nWall-clock time used on [%s]\n", model_ini);
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {

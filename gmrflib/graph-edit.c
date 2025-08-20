@@ -21,7 +21,8 @@ int GMRFLib_ged_init2(GMRFLib_ged_tp **ged, int n)
 	(*ged)->n = 0;
 	(*ged)->n_alloc = (IMAX(0, n) / GED_GROW + 1) * GED_GROW;
 	(*ged)->Q = Calloc((*ged)->n_alloc, map_ii);
-	for (int i = 0; i < (*ged)->n_alloc; i++) {
+
+	for (int i = 0; i < IMAX(n, (*ged)->n_alloc); i++) {
 		map_ii_init_hint(&((*ged)->Q[i]), (size_t) GED_INIT);
 	}
 	if (n > 0) {

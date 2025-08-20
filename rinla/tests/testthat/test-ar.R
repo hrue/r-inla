@@ -38,7 +38,18 @@ test_that("Case 2", {
             family = "gaussian", 
             control.family = list(initial = 5, fixed=TRUE), 
             data = data.frame(y, idx)) 
-    expect_true(all(abs(r1$summary.hyperpar[, "mean"] - r$summary.hyperpar[, "mean"]) < 0.001))
+
+    ## These fail 2025-07-21, with differences greater than warranted by the
+    ## std.dev.:
+    ## 0.257 - 0.395 == -0.138 vs std.dev 0.0496262 and 0.04657347
+    ## 0.851 - 0.788 == 0.0631 vs std.dev 0.02879653 and 0.02456266
+    expect_equal(r$summary.hyperpar["Precision for idx", "mean"],
+                 r1$summary.hyperpar["Precision for idx", "mean"],
+                 tolerance = 0.001)
+    expect_equal(r$summary.hyperpar["PACF1 for idx", "mean"],
+                 r1$summary.hyperpar["Rho for idx", "mean"],
+                 tolerance = 0.001)
+
     # rbind(r1$summary.hyperpar, r$summary.hyperpar)
     # plot(r1$summary.random$idx$mean,
     #      r1$summary.random$idx$mean - r$summary.random$idx$mean)

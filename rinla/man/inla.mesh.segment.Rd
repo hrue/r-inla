@@ -17,14 +17,16 @@ replacement \code{fmesher} functions.}
 An \code{fm_segm} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}  since \verb{23.08.18}.
+Use \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}} instead.
 
 Constructs \code{inla.mesh.segment} objects that can be used to specify
 boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.contour.segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use
+\item \code{inla.contour.segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+since \verb{23.08.18}. Use
 \code{\link[fmesher:fm_segm_contour_helper]{fmesher::fm_segm_contour_helper()}} instead.
 
 }}

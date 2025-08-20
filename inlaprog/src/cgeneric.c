@@ -33,7 +33,9 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	data->threads.inner = GMRFLib_openmp->max_threads_nested[1];
 
 	fp = fopen(filename, "rb");
-	assert(fp);
+	if (!fp) {
+		return data;
+	}
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);

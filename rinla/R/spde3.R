@@ -147,12 +147,12 @@ inla.spde3.matern.sd.basis =
     p.sd = ncol(B.sd)-1L
     p.kappa = ncol(B.range)-1L
 
-    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    d = fmesher::fm_manifold_dim(mesh)
     nu = alpha-d/2
     nu.nominal = max(0.5, nu)
     alpha.nominal = max(nu.nominal+d/2, alpha)
 
-    n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
+    n.spde = fmesher::fm_dof(mesh)
 
     ## log(kappa) = 0.5*log(8*nu) - log(range)
     B.kappa = (cbind(log(8*nu.nominal)/2 - B.range[,1],
@@ -207,7 +207,7 @@ inla.spde3.matern.sd.basis =
 inla.internal.test.spde3.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, compensate=FALSE)
 {
     alpha=2
-    mesh = inla.mesh.create(globe=globe)
+    mesh = fmesher::fm_rcdt_2d_inla(globe=globe)
 
     B.common = inla.mesh.basis(mesh, "b.spline", n=3)
     B.common = cbind(B.common, B.common[,1]*(mesh$loc[,3]>0))
@@ -293,19 +293,20 @@ param2.matern.orig =
     ## NOTE: For d==1, degree==2, the B.* must be given per basis
     ## function, not per knot.
 
-    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
+    ## No need to know what object class it is.
+    ##    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     if (is.null(B.tau))
         stop("B.tau must not be NULL.")
     if (is.null(B.kappa))
         stop("B.kappa must not be NULL.")
     is.stationary = (nrow(B.kappa)==1) && (nrow(B.tau)==1)
 
-    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    d = fmesher::fm_manifold_dim(mesh)
     nu = alpha-d/2
     nu.nominal = max(0.5, nu)
     alpha.nominal = max(nu.nominal+d/2, alpha)
 
-    n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
+    n.spde = fmesher::fm_dof(mesh)
     n.theta = ncol(B.kappa)-1L
 
     B.kappa = inla.spde.homogenise_B_matrix(B.kappa, n.spde, n.theta)
@@ -411,7 +412,7 @@ inla.spde3.matern =
              theta.prior.mean = NULL,
              theta.prior.prec = 0.1)
 {
-    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
+    # inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     fractional.method = match.arg(fractional.method)
 
     if (is.null(param)) {
@@ -445,12 +446,12 @@ inla.spde3.matern =
         }
     }
 
-    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    d = fmesher::fm_manifold_dim(mesh)
     nu = alpha-d/2
     nu.nominal = max(0.5, nu)
     alpha.nominal = max(nu.nominal+d/2, alpha)
 
-    n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
+    n.spde = fmesher::fm_dof(mesh)
     n.theta = ncol(B.kappa)-1L
 
     fem = fmesher::fm_fem(mesh, order = 2)
@@ -583,10 +584,10 @@ inla.spde3.iheat =
     ## (1 - gamma.E Laplacian)^(alpha.E/2) E = W/sqrt(gamma.s)
     ## gamma.E and alpha.E known
 
-    inla.require.inherits(mesh.space, c("inla.mesh", "inla.mesh.1d"),
-                          "'mesh.space'")
-    inla.require.inherits(mesh.time, c("inla.mesh.1d"),
-                          "'mesh.time'")
+        ## inla.require.inherits(mesh.space, c("inla.mesh", "inla.mesh.1d"),
+        ##                       "'mesh.space'")
+        ## inla.require.inherits(mesh.time, c("inla.mesh.1d"),
+        ##                   "'mesh.time'")
 
     if (is.null(param)) {
         stop("Use param3.iheat() to construct the prior parameter settings")
@@ -901,5 +902,9 @@ inla.spde3.models = function()
 
 
 ## spde.common-connections:
+#' @exportS3Method inla.spde.precision inla.spde3
+#' @noRd
 inla.spde.precision.inla.spde3 = inla.spde3.precision
+#' @exportS3Method inla.spde.result inla.spde3
+#' @noRd
 inla.spde.result.inla.spde3 = inla.spde3.result

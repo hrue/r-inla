@@ -55,11 +55,10 @@
     }
 
     ## Input verification
-    stopifnot(inherits(mesh, "inla.mesh"))
+    stopifnot(inherits(mesh, "fm_mesh_2d"))
     stopifnot(range.fraction > 0.000001)
 
     if (enable.INLAspacetime && requireNamespace("INLAspacetime")) {
-	warning("Using implementation from the `INLAspacetime` package")
 	return(INLAspacetime::barrierModel.define(
                                   mesh = mesh,
                                   barrier.triangles = barrier.triangles,
@@ -67,9 +66,11 @@
                                   prior.sigma = prior.sigma,
                                   range.fraction = range.fraction))
     } else {
-	warning(paste(
+	warning(paste0(
             "Please install the `INLAspacetime` package\n",
-            "which contains an implementation that runs faster!"))
+            "which contains an implementation that runs faster!\n",
+            "Call INLAspacetime::barrierModel.define(), or enable with\n",
+            "`inla.barrier.pcmatern(..., enable.INLAspacetime = TRUE`)"))
     }
 
     ## ## ## FUNCTIONS FOR RGENERIC MODEL SETUP ## ## ##
@@ -230,7 +231,7 @@
 #' @details * `inla.barrier.polygon` This function constructs SpatialPolygons for the different subdomains (areas)
 `inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega = NULL) {
     ## Requires an inla mesh to work
-    stopifnot(inherits(mesh, "inla.mesh"))
+    stopifnot(inherits(mesh, "fm_mesh_2d"))
     ## Requires sf for combining polygons
     inla.require("sf", stop.on.error = TRUE)
 
@@ -343,7 +344,7 @@
 #' @export
 #' @rdname inla.barrier
 `inla.barrier.fem` <- function(mesh, barrier.triangles, Omega = NULL) {
-    stopifnot(inherits(mesh, "inla.mesh"))
+    stopifnot(inherits(mesh, "fm_mesh_2d"))
 
     if (missing(barrier.triangles) && is.null(Omega)) stop("Input barrier triangles")
 

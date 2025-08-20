@@ -86,7 +86,10 @@
              #' which is in effect if both `keep` and `remove` are `NULL`. If
              #' `TRUE`, it will remove (or condition on) all fixed effects when
              #' computing the groups. See the vignette for details.
-             remove.fixed = TRUE)
+             remove.fixed = TRUE,
+
+             #' @param type.cv Type of cv, either "single" (default) or "joint"
+             type.cv = "single")
 {
     stopifnot(!missing(result))
     stopifnot(inherits(result, "inla"))
@@ -118,7 +121,8 @@
                       correct.hyperpar = FALSE, 
                       keep = keep, 
                       remove = remove, 
-                      remove.fixed = remove.fixed)
+                      remove.fixed = remove.fixed,
+                      type.cv = type.cv)
 
     r <- result
     r$.args$control.compute$control.gcpo <- cont.gcpo

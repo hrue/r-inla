@@ -16,7 +16,19 @@
 __BEGIN_DECLS
 //
 //
-    typedef enum {
+    typedef struct {
+	char *tag;
+	int max_nt;
+	int best_nt;
+	int min_num_try;
+	int try_next_nt;
+	int done;
+	double tot_times;
+	double *ntimes;
+	double *acc_wtime;
+} GMRFLib_openmp_dynamic_num_threads_tp;
+
+typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
@@ -86,6 +98,7 @@ typedef struct {
 	int adaptive;
 	// default schedule
 	omp_sched_t schedule;
+	int chunk_size;
 	// optimal number of threads for likelihood computations
 	int likelihood_nt;
 } GMRFLib_openmp_tp;
@@ -95,15 +108,8 @@ typedef struct {
 
 // Might replace `4' in the generic pardiso control statement later (if that happens)
 #define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
-					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2) : \
+					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 4) : \
 					   GMRFLib_openmp->max_threads_nested[1])
-
-#define GMRFLib_PARDISO_MAX_NUM_THREADS_LIKE() (GMRFLib_openmp->likelihood_nt > 0 ? \
-						IMIN(GMRFLib_openmp->likelihood_nt, GMRFLib_PARDISO_MAX_NUM_THREADS()) : \
-						GMRFLib_PARDISO_MAX_NUM_THREADS())
-
-#define GMRFLib_NUM_THREADS_LIKE() IMAX(1, (GMRFLib_openmp->likelihood_nt > 0 ? IMIN(GMRFLib_openmp->likelihood_nt, GMRFLib_openmp->max_threads_inner) : \
-					    GMRFLib_openmp->max_threads_inner))
 
 #define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
 #define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())
@@ -126,6 +132,14 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner);
 #if defined(INLA_WITH_MKL)
 void MKL_Set_Num_Threads(int);
 #endif
+
+void GMRFLib_openmp_chunk(int n, double *A, double *b);
+void GMRFLib_openmp_timing(void);
+
+void GMRFLib_openmp_dynamic_init(int max_levels);
+int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads);
+void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime);
+void GMRFLib_openmp_dynamic_print(FILE * fp);
 
 __END_DECLS
 #endif

@@ -32,7 +32,7 @@ __BEGIN_DECLS
 typedef struct {
 	int in_group;
 	int within_group;
-	int sidx;
+	int nrhs;
 } GMRFLib_stiles_idx_tp;
 #endif
 
@@ -84,7 +84,7 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_test(void);
 int GMRFLib_stiles_test2(void);
 int GMRFLib_stiles_test3(void);
-int GMRFLib_stiles_verbose();
+int GMRFLib_stiles_get_verbose();
 void *GMRFLib_stiles_get_store_ptr(void);
 void GMRFLib_stiles_Qinv(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp * stiles_idx);

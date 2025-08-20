@@ -48,7 +48,11 @@ r = inla(
   num.threads = "1:1" # Protect package testing from parallel execution
 )
 \donttest{
-rr = inla.cpo(r, force=TRUE)
+rr = inla.cpo(
+  r,
+  force=TRUE,
+  mc.cores = 1 # Protect package testing from parallel execution
+)
 }
 
 }

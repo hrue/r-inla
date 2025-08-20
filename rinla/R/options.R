@@ -93,7 +93,8 @@
 #' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 #' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
 #' shows deprecation messages for many CRS and mesh
-#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.}
+#' related methods, pointing to their `fm_*` replacements. Default
+#' since July 2025 is `TRUE`.}
 #' 
 #' \item{fmesher.evolution.verbosity}{logical or character; at what minimum
 #' severity to show warnings about deprecated
@@ -143,7 +144,7 @@ NULL
             inla.mode = "compact",
             malloc.lib = "mi", 
             fmesher.evolution = 2L,
-            fmesher.evolution.warn = FALSE,
+            fmesher.evolution.warn = TRUE,
             fmesher.evolution.verbosity = "default",
             INLAjoint.features = FALSE,
             numa = FALSE
