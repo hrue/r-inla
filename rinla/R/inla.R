@@ -611,7 +611,7 @@
             family = cph$family,
             contrasts = contrasts,
             quantiles = quantiles,
-            E = E..coxph, 
+            E = cph.data$E..coxph, 
             offset = offset..coxph, 
             scale = scale..coxph,
             weights = weights..coxph, 
