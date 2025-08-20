@@ -653,7 +653,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	}
 
 	int num_threads;
-	if (omp_get_level() == 0) {
+	int level = omp_get_level();
+	int tnum = omp_get_thread_num();
+	if (level == 0) {
 		if (GMRFLib_openmp->adaptive) {
 			num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
 		} else {
@@ -731,7 +733,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	GMRFLib_ENTER_FUNCTION;
 
 	if (optpar && optpar->fp)
-		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
+		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", tnum);
 	int iter, itmax = optpar->max_iter;
 
 	/*
@@ -822,11 +824,20 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
-		// static double tref = 0.0; static double count = 0; tref -= GMRFLib_timer();
+		static char *tag = NULL;
+		if (!tag) {
+#pragma omp critical (Name_f1960abe894993a101b52417d792ba11a8bb3595)
+			if (!tag) {
+				GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+			}
+		}
+		int nt_opt = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+		double tref = -GMRFLib_timer();
 
-		RUN_CODE_BLOCK_X(num_threads, 0, 0, int);
+		RUN_CODE_BLOCK_X(nt_opt, 0, 0, int);
 
-		// tref += GMRFLib_timer(); P(tref/++count * 1.0E06);
+		tref += GMRFLib_timer();
+		GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
 
 #undef CODE_BLOCK_WORK_TP_FREE
 #undef CODE_BLOCK
@@ -935,7 +946,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      loglFunc_arg, &(optpar->step_len), &three, NULL); \
 			}
 
-			RUN_CODE_BLOCK_STATIC(num_threads, 0, 0);
+			RUN_CODE_BLOCK_STATIC(nt_opt, 0, 0);
 #undef CODE_BLOCK
 		}
 
@@ -5258,11 +5269,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
-	int num_threads;
+	int num_threads, num_threads2;
 	if (GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()) {
-		num_threads = GMRFLib_MAX_THREADS();
+		num_threads = num_threads2 = GMRFLib_MAX_THREADS();
 	} else {
-		num_threads = GMRFLib_openmp->max_threads_inner;
+		num_threads = num_threads2 = GMRFLib_openmp->max_threads_inner;
 	}
 
 	// need the idx's for the vb correction and the data locations
@@ -5291,6 +5302,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double *pmean = Calloc_get(preopt->mnpred);
 	double *pvar = Calloc_get(preopt->mnpred);
 
+	int level = omp_get_level();
+	int tnum = omp_get_thread_num();
+
 	for (int i = 0; i < graph->n; i++) {
 		if (density[i][dens_count]) {
 			x_mean[i] = density[i][dens_count]->user_mean;
@@ -5301,7 +5315,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	Memcpy(x_mean_orig, x_mean, graph->n * sizeof(double));
 	if (debug) {
 		for (int i = 0; i < graph->n; i++) {
-			printf("[%1d] x_mean[%1d] = %.12g\n", omp_get_thread_num(), i, x_mean[i]);
+			printf("[%1d] x_mean[%1d] = %.12g\n", tnum, i, x_mean[i]);
 		}
 	}
 
@@ -5348,7 +5362,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		GMRFLib_stiles_set_idx_copy(&stiles_idx, GMRFLib_stiles_get_tile_size());
 		GMRFLib_stiles_bind(&stiles_idx);
 		assert(stiles_idx.in_group == GMRFLib_stiles_get_offset_copy());
-		assert(stiles_idx.within_group == omp_get_thread_num());
+		assert(stiles_idx.within_group == tnum);
 	}
 
 	if ((GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS)) {
@@ -5418,8 +5432,22 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (iter == 0) {
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
 		}
+
+		static char *tag = NULL;
+		if (!tag) {
+#pragma omp critical (Name_74f6df2c6fdf60a5d97b7425d4dece6a2a8f85e1)
+			if (!tag) {
+				GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+			}
+		}
+		int nt_local = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+		double tref = -GMRFLib_timer();
+
 		// I know I compute the mean twice for iter=0, but then the timing gets right
-		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, num_threads);
+		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, nt_local);
+
+		tref += GMRFLib_timer();
+		GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
 
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
@@ -5438,7 +5466,20 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
 		}
 
-		RUN_CODE_BLOCK_X(num_threads, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
+		static char *tag1 = NULL;
+		if (!tag1) {
+#pragma omp critical (Name_cac84abf93b64cff64efe5594606fcb7cd184cba)
+			if (!tag1) {
+				GMRFLib_sprintf(&tag1, "%s:%1d", __FILE__, __LINE__);
+			}
+		}
+		int nt_loc1 = GMRFLib_openmp_dynamic_get_nt(tag1, tnum, level, num_threads);
+		double tref1 = -GMRFLib_timer();
+
+		RUN_CODE_BLOCK_X(nt_loc1, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
+
+		tref1 += GMRFLib_timer();
+		GMRFLib_openmp_dynamic_update(tag1, tnum, level, tref1);
 #undef CODE_BLOCK
 #undef CODE_BLOCK_WORK_TP_FREE
 
@@ -5449,7 +5490,21 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 		}
 
-		GMRFLib_preopt_update(thread_id, preopt, BB, CC, num_threads);
+		static char *tag2 = NULL;
+		if (!tag2) {
+#pragma omp critical (Name_52981f1efc676db84ff4fa65de8c45e37fff72a3)
+			if (!tag2) {
+				GMRFLib_sprintf(&tag2, "%s:%1d", __FILE__, __LINE__);
+			}
+		}
+		int nt_loc2 = GMRFLib_openmp_dynamic_get_nt(tag2, tnum, level, num_threads);
+		double tref2 = -GMRFLib_timer();
+
+		GMRFLib_preopt_update(thread_id, preopt, BB, CC, nt_loc2);
+
+		tref2 += GMRFLib_timer();
+		GMRFLib_openmp_dynamic_update(tag2, tnum, level, tref2);
+
 #pragma omp simd
 		for (int ii = 0; ii < graph->n; ii++) {
 			prior_mean_tmp[ii] = x_mean[ii] - prior_mean_fix[ii];
@@ -5615,7 +5670,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct[MEAN] in total[%.3fs] cyclic[%s]\n",
-					omp_get_thread_num(), iter, niter, (GMRFLib_timer() - tref), (flag_cyclic ? Strdup("Yes") : Strdup("No")));
+					tnum, iter, niter, (GMRFLib_timer() - tref), (flag_cyclic ? Strdup("Yes") : Strdup("No")));
 				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {

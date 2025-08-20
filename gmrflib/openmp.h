@@ -16,6 +16,21 @@
 __BEGIN_DECLS
 //
 //
+
+typedef struct 
+{
+	char *tag;
+	int max_nt;
+	int best_nt;
+	int min_num_try;
+	int try_next_nt;
+	int done;
+	double tot_times;
+	double *ntimes;
+	double *acc_wtime;
+}
+	GMRFLib_openmp_dynamic_num_threads_tp;
+
     typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
@@ -124,6 +139,10 @@ void MKL_Set_Num_Threads(int);
 void GMRFLib_openmp_chunk(int n, double *A, double *b);
 void GMRFLib_openmp_timing(void);
 
+void GMRFLib_openmp_dynamic_init(int max_levels);
+int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads);
+void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime);
+void GMRFLib_openmp_dynamic_print(FILE *fp);
 
 __END_DECLS
 #endif
