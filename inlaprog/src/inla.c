@@ -7037,6 +7037,7 @@ int main(int argc, char **argv)
 	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
+	GMRFLib_opt_num_threads = 0;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */

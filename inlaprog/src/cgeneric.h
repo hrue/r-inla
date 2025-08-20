@@ -11,7 +11,6 @@
 #define __END_DECLS					       /* empty */
 #endif
 __BEGIN_DECLS
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>

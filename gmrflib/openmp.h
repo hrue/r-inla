@@ -16,9 +16,7 @@
 __BEGIN_DECLS
 //
 //
-
-typedef struct 
-{
+    typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;
@@ -28,10 +26,9 @@ typedef struct
 	double tot_times;
 	double *ntimes;
 	double *acc_wtime;
-}
-	GMRFLib_openmp_dynamic_num_threads_tp;
+} GMRFLib_openmp_dynamic_num_threads_tp;
 
-    typedef enum {
+typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
@@ -142,7 +139,7 @@ void GMRFLib_openmp_timing(void);
 void GMRFLib_openmp_dynamic_init(int max_levels);
 int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads);
 void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime);
-void GMRFLib_openmp_dynamic_print(FILE *fp);
+void GMRFLib_openmp_dynamic_print(FILE * fp);
 
 __END_DECLS
 #endif

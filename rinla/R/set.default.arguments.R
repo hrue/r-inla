@@ -263,7 +263,12 @@
 
              #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).
              #' (EXPERIMENTAL OPTION: DO NOT USE)
-             opt.solve = FALSE
+             opt.solve = FALSE, 
+   
+             #' @param opt.num.threads Reduce the number of threads adaptively if needed at
+             #' critical places to optimize wall-clock time
+             #' (EXPERIMENTAL OPTION)
+             opt.num.threads = FALSE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }

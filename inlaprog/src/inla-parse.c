@@ -19380,9 +19380,11 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
+	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 0);
 
 	if (mb->verbose) {
 		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
+		printf("\t\t\tOptimise num.threads  = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
 	}
 
 	/*
