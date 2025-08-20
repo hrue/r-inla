@@ -1,3 +1,15 @@
+# INLA 25.08.21
+* Improved openmp code
+* Code cleanup and improvement
+* Improved data-storage
+* sTiles integration work
+* Fixed a regression in KLD calculations (in output summaries)
+* fmesher deprecation info update
+* Added argument `type.cv` for group-cv
+* Fixed a regression in family `coxph`
+* Added adaptive `num.threads` control at critical places (default `off`)
+* Added `cloglike`: user-likelihood code in `C` (experimental)
+
 # INLA 25.06.22
 * Improvement for 'gcpo' calculation
 * Code optimisation for some output calculations
