@@ -48,6 +48,7 @@ double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 	case INLA_CLOGLIKE_LOGLIKE:
 	{
 		// y[0] ~ N(x[i], prec)
+#pragma omp simd
 		for (int i = 0; i < nx; i++) {
 			result[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y[0] - x[i]) * prec));
 		}

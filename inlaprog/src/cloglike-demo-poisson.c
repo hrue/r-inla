@@ -50,10 +50,12 @@ double *inla_cloglike_poisson(inla_cloglike_cmd_tp cmd, double *theta,
 		// if ny=2, then the 2nd column is log(y[0]!), otherwise, we ignore the constant normalizing constant (which only
 		// involves the marginal likelihood calculations)
 		if (ny == 1) {
+#pragma omp simd
 			for (int i = 0; i < nx; i++) {
 				result[i] = x[i] * y[0] - exp(x[i]);
 			}
 		} else if (ny == 2) {
+#pragma omp simd
 			for (int i = 0; i < nx; i++) {
 				result[i] = x[i] * y[0] - exp(x[i]) - y[1];
 			}
@@ -131,10 +133,12 @@ double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
 		double lfac = cache->lfactorial[iy];
 
 		if (iy == 0) {
+#pragma omp simd
 			for (int i = 0; i < nx; i++) {
 				result[i] = -exp(x[i]) - lfac;
 			}
 		} else {
+#pragma omp simd
 			for (int i = 0; i < nx; i++) {
 				result[i] = x[i] * iy - exp(x[i]) - lfac;
 			}
