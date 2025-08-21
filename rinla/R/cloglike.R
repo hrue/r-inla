@@ -37,7 +37,7 @@
         )
     )
     class(cmodel) <- "inla.cloglike"
-    class(cmodel$cloglike) <- "inla.cloglike"
+
     return(cmodel)
 }
 

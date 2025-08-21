@@ -221,10 +221,14 @@
                 #' @param scale A scaling vector. Its meaning depends on the model.
                 scale = NULL,
 
-                #' @param rgeneric A object of class `inla.rgeneric` which defines the model. (EXPERIMENTAL!)
+                #' @param rgeneric A object of class `inla.rgeneric.f`,
+                #' which defines the model. Not needed if a `inla.rgeneric` model
+                #' object is supplied as the `model` argument. (EXPERIMENTAL!)
                 rgeneric = NULL,
 
-                #' @param cgeneric A object of class `inla.cgeneric` which defines the model. (EXPERIMENTAL!)
+                #' @param cgeneric A object of class `inla.cgeneric.f`,
+                #' which defines the model. Not needed if a `inla.cgeneric` model
+                #' object is supplied as the `model` argument. (EXPERIMENTAL!)
                 cgeneric = NULL,
 
                 #' @param scale.model Logical. If `TRUE` then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is `inla.getOption("scale.model.default")`
@@ -982,21 +986,87 @@
         }
     }
 
-    if (model %in% "rgeneric") {
-        if (inla.is.element("f", rgeneric) && inla.is.element("rgeneric", rgeneric$f)) {
-            rgeneric <- rgeneric$f$rgeneric
+    # Helper function to ensure the rgeneric and cgeneric arguments are
+    # "inla.rgeneric.f" and "inla.cgeneric.f" classes, respectively.
+    # "inla.rgeneric" and "inla.cgeneric" are deprecated, but allowed, giving
+    # a lifecycle warning. The 'model' argument should be given an
+    # "inla.rgeneric" or "inla.cgeneric" object, and the contained
+    # $f$rgeneric or $f$cgeneric object should be of class "inla.rgeneric.f" or
+    # "inla.cgeneric.f", respectively.
+    # generic: a rgeneric or cgeneric input
+    # type = "r" or "c"
+    rcgeneric_input_check <- function(generic, type) {
+        type <- match.arg(type, c("r", "c"), several.ok = FALSE)
+        nm <- paste0(type, "generic")
+        cls <- paste0("inla.", nm)
+        cls_f <- paste0(cls, ".f")
+        msg <- NULL
+        if (inla.is.element("f", generic) &&
+            inla.is.element("generic", generic$f)) {
+            generic <- generic$f[[nm]]
+            if (inherits(generic, cls) && !inherits(generic, cls_f)) {
+                msg <- I(paste0("`", nm, "$f$", nm, "` object of class '",
+                                cls, "'"))
+                class(generic) <- c(cls_f, class(generic))
+            }
         }
+        if (!inherits(generic, cls_f)) {
+            if (!inherits(generic, cls)) {
+                stop(paste0(
+                    "`",
+                    nm,
+                    "` should be of class '",
+                    cls_f,
+                    "', not ",
+                    "(",
+                    paste0(class(generic), collapse = ", "),
+                    ")"
+                ))
+            }
+            msg <- I(paste0("`", nm, "` object of class '", cls, "'"))
+            class(generic) <- c(cls_f, class(generic))
+        }
+        if (!is.null(msg)) {
+            lifecycle::deprecate_warn(
+                when = "25.08.22",
+                what = msg,
+                with = I(
+                    paste0(
+                        " a `model` argument of class '",
+                        cls,
+                        "', with a `$f$",
+                        nm,
+                        "` object of class '",
+                        cls_f,
+                        "'"
+                    )
+                ),
+                details = c(
+                    "Inform the relevant package authors to use `class = '",
+                    cls_f,
+                    "'` for the `$f$",
+                    nm,
+                    "` object.",
+                    "To temporarily support older INLA versions, using `c('",
+                    cls_f,
+                    "', '",
+                    cls,
+                    "')` is allowed."
+                )
+            )
+        }
+        return(generic)
+    }
+    
+    if (model %in% "rgeneric") {
+        rgeneric <- rcgeneric_input_check(rgeneric, "r")
         R.init <- rgeneric$R.init
-        stopifnot(inherits(rgeneric, "inla.rgeneric"))
         ## add an 'Id' so we know who we are
         rgeneric <- list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
 
     if (model %in% "cgeneric") {
-        if (inla.is.element("f", cgeneric) && inla.is.element("cgeneric", cgeneric$f)) {
-            cgeneric <- cgeneric$f$cgeneric
-        }
-        stopifnot(inherits(cgeneric, "inla.cgeneric"))
+        cgeneric <- rcgeneric_input_check(cgeneric, "c")
         ## add an 'Id' so we know who we are
         cgeneric <- list(model = cgeneric, Id = vars[[1]])
     }

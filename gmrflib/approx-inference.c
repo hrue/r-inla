@@ -5433,21 +5433,21 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
 		}
 
-		static char *tag = NULL;
-		if (!tag) {
+		static char *tag0 = NULL;
+		if (!tag0) {
 #pragma omp critical (Name_74f6df2c6fdf60a5d97b7425d4dece6a2a8f85e1)
-			if (!tag) {
-				GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+			if (!tag0) {
+				GMRFLib_sprintf(&tag0, "%s:%1d", __FILE__, __LINE__);
 			}
 		}
-		int nt_local = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
-		double tref = -GMRFLib_timer();
+		int nt_local0 = GMRFLib_openmp_dynamic_get_nt(tag0, tnum, level, num_threads);
+		double tref0 = -GMRFLib_timer();
 
 		// I know I compute the mean twice for iter=0, but then the timing gets right
-		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, nt_local);
+		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, nt_local0);
 
-		tref += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
+		tref0 += GMRFLib_timer();
+		GMRFLib_openmp_dynamic_update(tag0, tnum, level, tref0);
 
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\

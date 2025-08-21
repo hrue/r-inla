@@ -341,19 +341,30 @@ NULL
     parent.env(env) <- .GlobalEnv
     environment(model) <- env
 
-    rmodel <- list(
-        f = list(
-            model = "rgeneric",
-            n = dim(model(cmd = "graph", theta = NULL))[1],
-            rgeneric = list(
-                definition = if (compile) compiler::cmpfun(model, options = list(optimize = 3L)) else model, 
-                debug = debug,
-                optimize = optimize
+    rmodel <- structure(
+        list(
+            f = list(
+                model = "rgeneric",
+                n = dim(model(cmd = "graph", theta = NULL))[1],
+                rgeneric = structure(
+                    list(
+                        definition = if (compile) {
+                            compiler::cmpfun(
+                                model,
+                                options = list(optimize = 3L)
+                            )
+                        } else {
+                          model
+                        },
+                        debug = debug,
+                        optimize = optimize
+                    ),
+                    class = "inla.rgeneric.f"
+                )
             )
-        )
+        ),
+        class = "inla.rgeneric"
     )
-    class(rmodel) <- "inla.rgeneric"
-    class(rmodel$f$rgeneric) <- "inla.rgeneric"
     return(rmodel)
 }
 
@@ -371,7 +382,7 @@ NULL
     if (is.character(model)) {
         model <- get(model, envir = parent.frame())
     }
-    stopifnot(inherits(model, "inla.rgeneric"))
+    stopifnot(inherits(model, "inla.rgeneric.f"))
 
     debug <- ifelse(is.null(model$debug) || !model$debug, FALSE, TRUE)
     if (is.character(model.orig)) {
