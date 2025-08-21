@@ -46,7 +46,7 @@ the linear predictor in the model should be plotted}
 
 \item{plot.q}{Boolean indicating if precision matrix should be displayed}
 
-\item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
+\item{plot.cpo}{Boolean indicating if CPO/PIT values should be plotted}
 
 \item{plot.prior}{Plot also the prior density for the hyperparameters}
 

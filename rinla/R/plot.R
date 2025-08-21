@@ -16,7 +16,7 @@
 #' @param plot.predictor Boolean indicating if posterior mean and quantiles for
 #' the linear predictor in the model should be plotted
 #' @param plot.q Boolean indicating if precision matrix should be displayed
-#' @param plot.cpo Boolean indicating if CPO/PIT valuesshould be plotted
+#' @param plot.cpo Boolean indicating if CPO/PIT values should be plotted
 #' @param plot.prior Plot also the prior density for the hyperparameters
 #' @param plot.opt.trace Plot optimization trace
 #' @param single Boolean indicating if there should be more than one plot per
