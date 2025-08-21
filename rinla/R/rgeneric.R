@@ -382,7 +382,7 @@ NULL
     if (is.character(model)) {
         model <- get(model, envir = parent.frame())
     }
-    stopifnot(inherits(model, "inla.rgeneric"))
+    stopifnot(inherits(model, "inla.rgeneric.f"))
 
     debug <- ifelse(is.null(model$debug) || !model$debug, FALSE, TRUE)
     if (is.character(model.orig)) {
