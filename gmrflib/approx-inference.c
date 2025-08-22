@@ -1257,9 +1257,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			if (fl[j]) {
 				continue;
 			}
-			cpo_theta[j] = Calloc(dens_max, double);
-			pit_theta[j] = Calloc(dens_max, double);
-			failure_theta[j] = Calloc(dens_max, double);
+			double *w0 = Calloc(3 * dens_max, double);
+			cpo_theta[j] = w0;
+			pit_theta[j] = w0 + dens_max;
+			failure_theta[j] = w0 + 2 * dens_max;
 		}
 	}
 	if (po) {
@@ -1275,9 +1276,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			if (fl[j]) {
 				continue;
 			}
-			po_theta[j] = Calloc(dens_max, double);
-			po2_theta[j] = Calloc(dens_max, double);
-			po3_theta[j] = Calloc(dens_max, double);
+			double *w = Calloc(3 * dens_max, double);
+			po_theta[j] = w;
+			po2_theta[j] = w + dens_max;
+			po3_theta[j] = w + 2 * dens_max;
 		}
 	}
 	if (dic) {
@@ -2232,7 +2234,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 
 		if (!early_stop[dens_count] && (cpo || dic || po)) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				int i = d_idx->idx[ii];
 				if (fl[i]) {
@@ -2624,20 +2626,23 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 
 	if (cpo) {
-		double *Z = Calloc(preopt->Npred, double);
+		double *Z = Calloc(d_idx->n, double);
+		double *w0 = Calloc(d_idx->n, double);
+		double *w1 = Calloc(d_idx->n, double);
+		double *w2 = Calloc(d_idx->n, double);
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
-		for (int j = 0; j < preopt->Npred; j++) {
+		for (int j = 0; j < d_idx->n; j++) {
 			double evalue, evalue2, evalue_one = 1.0;
-			int ii = j;
+			int ii = d_idx->idx[j];
 
 			if (cpo_theta[ii]) {
 				for (int jjj = 0; jjj < probs->n; jjj++) {
 					int jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
-						Z[ii] += probs->val[jjj] / cpo_theta[ii][jj];
+						Z[j] += probs->val[jjj] / cpo_theta[ii][jj];
 				}
-				(*cpo)->value[ii] = Calloc(1, double);
+				(*cpo)->value[ii] = w0 + j;
 				if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 					evalue = 0.0;
 					for (int jjj = 0; jjj < probs->n; jjj++) {
@@ -2652,8 +2657,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					for (int jjj = 0; jjj < probs->n; jjj++) {
 						int jj = probs->idx[jjj];
 						if (!ISNAN(cpo_theta[ii][jj])) {
-							evalue += cpo_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
-							evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
+							evalue += cpo_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[j];
+							evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[j];
 						}
 					}
 				}
@@ -2667,14 +2672,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 
 			if (cpo_theta[ii]) {
-				(*cpo)->pit_value[ii] = Calloc(1, double);
-				(*cpo)->failure[ii] = Calloc(1, double);
+				(*cpo)->pit_value[ii] = w1 + j;
+				(*cpo)->failure[ii] = w2 + j;
 				evalue = evalue2 = evalue_one = 0.0;
 				for (int jjj = 0; jjj < probs->n; jjj++) {
 					int jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj])) {
-						evalue += pit_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
-						evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
+						evalue += pit_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[j];
+						evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[j];
 					}
 					/*
 					 * this is defined over the unadjusted weights 
@@ -2735,14 +2740,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	if (po) {
 		SET_MODE;
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
-		for (int j = 0; j < preopt->Npred; j++) {
-			double evalue, evalue2, evalue3, evalue_one;
-			int ii = j;
+		double *w0 = Calloc(2 * d_idx->n, double);
+
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) 
+		for (int j = 0; j < d_idx->n; j++) {
+			double evalue = 0.0, evalue2 = 0.0, evalue3 = 0.0, evalue_one = 1.0;
+			int ii = d_idx->idx[j];
 			if (po_theta[ii]) {
-				(*po)->value[ii] = Calloc(2, double);
-				evalue_one = 1.0;
-				evalue = evalue2 = evalue3 = 0.0;
+				(*po)->value[ii] = w0 + 2 * j;
 				for (int jjj = 0; jjj < probs->n; jjj++) {
 					int jj = probs->idx[jjj];
 					if (po_theta[ii][jj]) {
@@ -3180,44 +3185,32 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	Free(z);
 	Free(lpred);
 
-	if (cpo_theta) {
-		for (int i = 0; i < preopt->Npred; i++) {
-			int j = i;
-			if (d[j]) {
-				Free(cpo_theta[j]);
-			}
-		}
-		Free(cpo_theta);
-	}
 	if (po_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
 			int j = i;
 			if (d[j]) {
 				Free(po_theta[j]);
-				Free(po2_theta[j]);
-				Free(po3_theta[j]);
+				break;
 			}
 		}
 		Free(po_theta);
 		Free(po2_theta);
 		Free(po3_theta);
 	}
-	if (pit_theta) {
+	if (cpo_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
 			int j = i;
 			if (d[j]) {
-				Free(pit_theta[j]);
+				Free(cpo_theta[j]);
+				break;
 			}
 		}
+		Free(cpo_theta);
+	}
+	if (pit_theta) {
 		Free(pit_theta);
 	}
 	if (failure_theta) {
-		for (int i = 0; i < preopt->Npred; i++) {
-			int j = i;
-			if (d[j]) {
-				Free(failure_theta[j]);
-			}
-		}
 		Free(failure_theta);
 	}
 	if (deviance_theta) {
@@ -7322,50 +7315,6 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 	res[1] = integral_sat;
 
 	return res;
-}
-
-int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp *cpo)
-{
-	int i;
-
-	if (!cpo) {
-		return GMRFLib_SUCCESS;
-	}
-	if (cpo->value) {
-		for (i = 0; i < cpo->n; i++) {
-			if (cpo->value[i]) {
-				Free(cpo->value[i]);
-			}
-			if (cpo->pit_value[i]) {
-				Free(cpo->pit_value[i]);
-			}
-		}
-		Free(cpo->value);
-		Free(cpo->pit_value);
-	}
-	Free(cpo);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_ai_po_free(GMRFLib_ai_po_tp *po)
-{
-	int i;
-
-	if (!po) {
-		return GMRFLib_SUCCESS;
-	}
-	if (po->value) {
-		for (i = 0; i < po->n; i++) {
-			if (po->value[i]) {
-				Free(po->value[i]);
-			}
-		}
-		Free(po->value);
-	}
-	Free(po);
-
-	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
