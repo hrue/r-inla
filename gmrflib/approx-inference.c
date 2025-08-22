@@ -5517,17 +5517,34 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (update_MM) {
+			// this part would likely require all threads available, so its a question if we should adapt this one. at
+			// worst, it will done one call only with num_threads-2 threads
+			int enable3 = 1;	
+			static char *tag3 = NULL;
+			if (enable3 && !tag3) {
+#pragma omp critical (Name_3781a6d8d63c453af3ccbb128d59370d733087f8)
+				if (!tag3) {
+					GMRFLib_sprintf(&tag3, "%s:%1d", __FILE__, __LINE__);
+				}
+			}
+			int nt_local3 = (enable3 ? GMRFLib_openmp_dynamic_get_nt(tag3, tnum, level, num_threads) : num_threads);
+			double tref3 = (enable3 ? -GMRFLib_timer() : 0.0);
+
 #define CODE_BLOCK	{						\
 				CODE_BLOCK_INIT();			\
-				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
-				if (nt__ > 1) {				\
-					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, nt__); \
+				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg, &(tmax__)); \
+				if (tmax__ > 1) {			\
+					gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, tmax__); \
 				} else {				\
 					gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
 				}					\
 			}
-			RUN_CODE_BLOCK_PLAIN(num_threads, 0, 0);
+			RUN_CODE_BLOCK_PLAIN(nt_local3, 0, 0);
 #undef CODE_BLOCK
+			if (enable3) {
+				tref3 += GMRFLib_timer();
+				GMRFLib_openmp_dynamic_update(tag3, tnum, level, tref3);
+			}
 		}
 
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);

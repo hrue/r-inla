@@ -619,11 +619,20 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 		obj->ntimes[obj->try_next_nt]++;
 		obj->acc_wtime[obj->try_next_nt] += wtime;
 
+		if (!(obj->done) && obj->max_nt == 1) {
+			obj->done = 1;
+		}
+
 		if (!(obj->done)) {
-			if (obj->ntimes[obj->try_next_nt] >= obj->min_num_try) {
+			double time_try_next = obj->acc_wtime[obj->try_next_nt] / obj->ntimes[obj->try_next_nt];
+			double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
+
+			if (obj->ntimes[obj->try_next_nt] < obj->min_num_try && time_try_next > time_best) {
+				// no point of trying more, abort early
+				obj->try_next_nt = obj->best_nt;
+				obj->done = 1;
+			} else if (obj->ntimes[obj->try_next_nt] >= obj->min_num_try) {
 				int step = 2;
-				double time_try_next = obj->acc_wtime[obj->try_next_nt] / obj->ntimes[obj->try_next_nt];
-				double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
 
 				if (obj->best_nt == obj->max_nt && obj->ntimes[obj->try_next_nt] == obj->min_num_try) {
 					// when its all started, this happens, as we always start with _nt = max_nt
@@ -657,6 +666,7 @@ void GMRFLib_openmp_dynamic_print(FILE *fp)
 	if (GMRFLib_opt_num_threads) {
 		fp = (fp ? fp : stdout);
 		fprintf(fp, "\nDump of dyn_nt\n");
+		double tot_save = 0.0;
 		for (int i = 0; i < dyn_nt_max_levels; i++) {
 			for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
 				if (dyn_nt[i][j]) {
@@ -673,11 +683,14 @@ void GMRFLib_openmp_dynamic_print(FILE *fp)
 							double tsave = (r->acc_wtime[r->max_nt] / r->ntimes[r->max_nt]) * ntimes - wtime;
 							fprintf(fp, "\t[%s][lev=%1d][th=%1d] best=%1d max=%1d wtime=%.3fs n=%1d (save=%.3fs)\n",
 								r->tag, i, j, r->best_nt, r->max_nt, wtime, ntimes, tsave);
+
+							tot_save += tsave;
 						}
 					}
 				}
 			}
 		}
+		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3f saved\n", tot_save, tot_save / GMRFLib_openmp->max_threads_nested[0]);
 		fprintf(fp, "\n");
 	}
 }

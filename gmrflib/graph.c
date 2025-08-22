@@ -1525,13 +1525,18 @@ int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
+int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, int *nt_opt)
 {
 	GMRFLib_ENTER_FUNCTION;
 
-	// taken from GMRFLibP.h
+	// this is the default option (taken from GMRFLibP.h)
 	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())?
 		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner);
+
+	// unless we know otherwise...
+	if (nt_opt) {
+		nt = *nt_opt;
+	}
 
 	int ncol = result->size2;
 	int len = 1 + GMRFLib_graph_max_nnbs(graph);
@@ -1546,7 +1551,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 
 	gsl_matrix_set_zero(result);
 	if (nt > 1) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < graph->n; i++) {
 			int tnum = omp_get_thread_num();
 			double *val = values[tnum];
