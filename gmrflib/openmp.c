@@ -690,7 +690,7 @@ void GMRFLib_openmp_dynamic_print(FILE *fp)
 				}
 			}
 		}
-		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3f saved\n", tot_save, tot_save / GMRFLib_openmp->max_threads_nested[0]);
+		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3fs saved\n", tot_save, tot_save / GMRFLib_openmp->max_threads_nested[0]);
 		fprintf(fp, "\n");
 	}
 }
