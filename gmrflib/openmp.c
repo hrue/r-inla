@@ -597,72 +597,87 @@ int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int defa
 		obj->tag = Strdup(tag);
 		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->min_num_try = 2;
-		obj->done = 0;
 		// code below assumes we need to start with default_num_threads
-		obj->max_nt = obj->best_nt = obj->try_next_nt = default_num_threads;
+		obj->max_nt = obj->best_nt = obj->try_nt = default_num_threads;
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		map_strvp_set(dyn_nt[level][thread_num], obj->tag, (void *) obj);
+		obj->done = (default_num_threads == 1 ? 1 : 0);
+		obj->step = (obj->max_nt > 8 ? 4 : 2);
 	} else {
 		obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
 	}
-	return obj->try_next_nt;
+	return obj->try_nt;
 }
 
 void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime)
 {
+	GMRFLib_DEBUG_INIT();
+	int debug = GMRFLib_DEBUG_IF_TRUE();
+
 	if (GMRFLib_opt_num_threads) {
-		int debug = 1;
+		double fac = 1.0E6;
 		void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
 		assert(p);
 		GMRFLib_openmp_dynamic_num_threads_tp *obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
-		obj->tot_times++;
-		obj->ntimes[obj->try_next_nt]++;
-		obj->acc_wtime[obj->try_next_nt] += wtime;
 
-		if (!(obj->done) && obj->max_nt == 1) {
+		obj->tot_times++;
+		obj->ntimes[obj->try_nt]++;
+		obj->acc_wtime[obj->try_nt] += wtime;
+
+		double time_try = obj->acc_wtime[obj->try_nt] / obj->ntimes[obj->try_nt];
+		double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
+
+		if (obj->done) {
+			return;
+		}
+		
+		if (debug) {
+			printf("tag [%s][%1d:%1d] Enter with try = (%1d %.3f) best = (%1d %.3f)\n",
+			       obj->tag, level, thread_num, 
+			       obj->try_nt, time_try * fac, obj->best_nt, time_best * fac);
+		}
+		
+		if (obj->max_nt == 1) {
+			if (debug) {
+				printf("tag [%s][%1d:%1d] Done as max.nt == 1\n", obj->tag, level, thread_num);
+			}
 			obj->done = 1;
 		}
 
-		if (!(obj->done)) {
-			double time_try_next = obj->acc_wtime[obj->try_next_nt] / obj->ntimes[obj->try_next_nt];
-			double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
-
-			if (obj->ntimes[obj->try_next_nt] < obj->min_num_try && time_try_next > time_best) {
-				// no point of trying more, abort early
-
-				if (debug) {
-					printf("[%s][%1d][%1d] EARLY STOP: next.nt %1d best.nt %1d best.time*1E6 %1g\n", obj->tag, level, thread_num,
-					       obj->try_next_nt, obj->best_nt, 1.0E6 * obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt]);
-				}
-
-				obj->try_next_nt = obj->best_nt;
-				obj->done = 1;
-
-			} else if (obj->ntimes[obj->try_next_nt] >= obj->min_num_try) {
-				int step = 2;
-
-				if (obj->best_nt == obj->max_nt && obj->ntimes[obj->try_next_nt] == obj->min_num_try) {
-					// when its all started, this happens, as we always start with _nt = max_nt
-					obj->try_next_nt = IMAX(1, obj->best_nt - step);
-				} else {
-					if (time_try_next < time_best) {
-						if (debug) {
-							printf("\nFound new best (%.1g, %1d) < (%.1g, %1d)\n\n", time_try_next * 1E6, obj->try_next_nt,
-							       time_best * 1E6, obj->best_nt);
-						}
-						int itmp = obj->try_next_nt;
-						obj->try_next_nt = IMAX(1, IMIN(obj->max_nt, itmp - step));
-						obj->best_nt = itmp;
-					} else {
-						// its over...
-						obj->try_next_nt = obj->best_nt;
-						obj->done = 1;
-					}
-				}
+		int allow_early_stop = 1;
+		if (allow_early_stop && (obj->ntimes[obj->try_nt] < obj->min_num_try) && (time_try > time_best)) {
+			// no point of trying more, abort early
+			if (debug) {
+				printf("tag [%s][%1d:%1d] Early stop as 1st try was not successful\n", obj->tag, level, thread_num);
 			}
-			if (debug && !(obj->done)) {
-				printf("[%s][%1d][%1d] UPDATE: next.nt %1d best.nt %1d best.time*1E6 %1g\n", obj->tag, level, thread_num,
-				       obj->try_next_nt, obj->best_nt, 1.0E6 * obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt]);
+			obj->try_nt = obj->best_nt;
+			obj->done = 1;
+
+		} else if (obj->ntimes[obj->try_nt] >= obj->min_num_try) {
+			if (obj->best_nt == obj->max_nt && obj->ntimes[obj->try_nt] == obj->min_num_try) {
+				// when its all started, this happens, as we always start with _nt = max_nt
+				obj->try_nt = IMAX(1, obj->best_nt - obj->step);
+				if (debug) {
+					printf("tag [%s][%1d:%1d] First time: Move to try.nt %1d\n", obj->tag, level, thread_num,
+					       obj->try_nt);
+				}
+			} else {
+				if (time_try < time_best) {
+					int itmp = obj->try_nt;
+					obj->try_nt = IMAX(1, IMIN(obj->max_nt, itmp - obj->step));
+					obj->best_nt = itmp;
+					if (debug) {
+						printf("tag [%s][%1d:%1d] Found new best (%1d %.3f)\n", obj->tag, level, thread_num,
+						       obj->best_nt,  fac * time_try);
+					}
+				} else {
+					if (debug) {
+						printf("tag [%s][%1d:%1d] Increasing time, stop with  best (%1d %.3f)\n", obj->tag, level, thread_num,
+						       obj->best_nt,  fac * time_best);
+					}
+					obj->try_nt = obj->best_nt;
+					obj->done = 1;
+				}
 			}
 		}
 	}

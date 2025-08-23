@@ -21,8 +21,9 @@ __BEGIN_DECLS
 	int max_nt;
 	int best_nt;
 	int min_num_try;
-	int try_next_nt;
+	int try_nt;
 	int done;
+	int step;
 	double tot_times;
 	double *ntimes;
 	double *acc_wtime;
@@ -108,7 +109,7 @@ typedef struct {
 
 // Might replace `4' in the generic pardiso control statement later (if that happens)
 #define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
-					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 4) : \
+					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2) : \
 					   GMRFLib_openmp->max_threads_nested[1])
 
 #define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
