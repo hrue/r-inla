@@ -595,14 +595,15 @@ int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int defa
 	if (!p) {
 		obj = Calloc(1, GMRFLib_openmp_dynamic_num_threads_tp);
 		obj->tag = Strdup(tag);
-		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->min_num_try = 2;
-		// code below assumes we need to start with default_num_threads
+		// code in the functions below assumes we need to start with default_num_threads
 		obj->max_nt = obj->best_nt = obj->try_nt = default_num_threads;
+
+		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		map_strvp_set(dyn_nt[level][thread_num], obj->tag, (void *) obj);
 		obj->done = (default_num_threads == 1 ? 1 : 0);
-		obj->step = (obj->max_nt > 8 ? 4 : 2);
+		obj->step = (obj->max_nt >= 32 ? 8 : (obj->max_nt > 8 ? 4 : 2));
 	} else {
 		obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
 	}

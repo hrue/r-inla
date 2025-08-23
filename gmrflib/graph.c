@@ -489,40 +489,29 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
-int *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
+#if 1
+int *GMRFLib_bsearch(int key, int n, int *array) 
 {
-	int mid, top, val, *piv = NULL, *base = array;
-	int low = 0;
-
-	if (array[guess[0]] <= key) {
-		low = guess[0];
-	}
-
-	base += low;
-	mid = top = n - low;
-
-	while (mid) {
-		mid = top / 2;
-		piv = base + mid;
-		val = key - *piv;
-		if (val == 0) {
-			guess[0] = piv - array;
-			return piv;
-		}
-		if (val > 0) {
-			base = piv;
-		}
-		top -= mid;
-	}
-
-	return NULL;
+	// based on 'monobound_binary_search'-code from https://github.com/scandum/binary_search
+	if (n == 0) return NULL;
+        unsigned int bot = 0, mid, top = (unsigned int) n;
+        while (top > 1) {
+                mid = top / 2;
+                if (key >= array[bot + mid]) {
+                        bot += mid;
+                }
+                top -= mid;
+        }
+        if (key == array[bot]) {
+                return array + bot;
+        }
+        return NULL;
 }
-
+#else
 int *GMRFLib_bsearch(int key, int n, int *array)
 {
-	int mid = n;
-	int top = n;
-
+	// old code
+	unsigned int mid = (unsigned int) n, top = mid;
 	while (mid) {
 		mid = top / 2;
 		int *piv = array + mid;
@@ -535,31 +524,9 @@ int *GMRFLib_bsearch(int key, int n, int *array)
 		}
 		top -= mid;
 	}
-
 	return NULL;
 }
-
-int GMRFLib_graph_is_nb_ORIG(int node, int nnode, GMRFLib_graph_tp *graph)
-{
-	int imin, imax;
-	if (node < nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
-	}
-
-	int m = graph->lnnbs[imin];
-	if (m) {
-		int *nb = graph->lnbs[imin];
-		if (imax <= nb[m - 1]) {
-			return (GMRFLib_bsearch(imax, m, nb) != NULL);
-		}
-	}
-
-	return 0;
-}
+#endif
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
@@ -584,32 +551,13 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 			return 0;
 		}
 	} else {
-		if (node != nnode) {
-			return (GMRFLib_graph_is_nb(nnode, node, graph));
+		if (node > nnode) {
+			return GMRFLib_graph_is_nb(nnode, node, graph);
 		} else {
 			return 0;
 		}
 	}
 
-	return 0;
-}
-
-int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
-{
-	/*
-	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
-	 * then they are not neighbours.
-	 */
-
-	assert(node < nnode);
-
-	int m = graph->lnnbs[node];
-	if (m) {
-		int *nb = graph->lnbs[node];
-		if (nnode <= nb[m - 1]) {
-			return (GMRFLib_bsearch2(nnode, m, nb, g) != NULL);
-		}
-	}
 	return 0;
 }
 

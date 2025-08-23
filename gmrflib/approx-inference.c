@@ -1276,10 +1276,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			if (fl[j]) {
 				continue;
 			}
-			double *w = Calloc(3 * dens_max, double);
-			po_theta[j] = w;
-			po2_theta[j] = w + dens_max;
-			po3_theta[j] = w + 2 * dens_max;
+			double *w0 = Calloc(3 * dens_max, double);
+			po_theta[j] = w0;
+			po2_theta[j] = w0 + dens_max;
+			po3_theta[j] = w0 + 2 * dens_max;
 		}
 	}
 	if (dic) {
@@ -5511,10 +5511,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (update_MM) {
-			// this part would likely require all threads available, so its a question if we should adapt this one. at
-			// worst, it will done one call only with num_threads-2 threads
 			int enable3 = 1;	
-
 			static char *tag3 = NULL;
 			if (enable3 && !tag3) {
 #pragma omp critical (Name_3781a6d8d63c453af3ccbb128d59370d733087f8)
@@ -5524,10 +5521,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 			int nt_local3 = (enable3 ? GMRFLib_openmp_dynamic_get_nt(tag3, tnum, level, num_threads) : num_threads);
 			double tref3 = (enable3 ? -GMRFLib_timer() : 0.0);
-
-			// no need to use
-			// gsl_blas_dgemm_omp(CblasTrans, CblasNoTrans, one, M, QM, zero, MM, tmax__);
-			// as its already there
 
 #define CODE_BLOCK	{						\
 				CODE_BLOCK_INIT();			\
