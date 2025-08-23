@@ -611,7 +611,7 @@ int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int defa
 void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime)
 {
 	if (GMRFLib_opt_num_threads) {
-		int debug = 0;
+		int debug = 1;
 		void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
 		assert(p);
 		GMRFLib_openmp_dynamic_num_threads_tp *obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
@@ -629,8 +629,15 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 
 			if (obj->ntimes[obj->try_next_nt] < obj->min_num_try && time_try_next > time_best) {
 				// no point of trying more, abort early
+
+				if (debug) {
+					printf("[%s][%1d][%1d] EARLY STOP: next.nt %1d best.nt %1d best.time*1E6 %1g\n", obj->tag, level, thread_num,
+					       obj->try_next_nt, obj->best_nt, 1.0E6 * obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt]);
+				}
+
 				obj->try_next_nt = obj->best_nt;
 				obj->done = 1;
+
 			} else if (obj->ntimes[obj->try_next_nt] >= obj->min_num_try) {
 				int step = 2;
 
@@ -654,7 +661,7 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 				}
 			}
 			if (debug && !(obj->done)) {
-				printf("[%s][%1d][%1d] UPDATE: next.nt %1d best.nt %1d time*1E6 %1g\n", obj->tag, level, thread_num,
+				printf("[%s][%1d][%1d] UPDATE: next.nt %1d best.nt %1d best.time*1E6 %1g\n", obj->tag, level, thread_num,
 				       obj->try_next_nt, obj->best_nt, 1.0E6 * obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt]);
 			}
 		}
