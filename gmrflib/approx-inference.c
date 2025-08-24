@@ -2742,7 +2742,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		SET_MODE;
 		double *w0 = Calloc(2 * d_idx->n, double);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) 
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < d_idx->n; j++) {
 			double evalue = 0.0, evalue2 = 0.0, evalue3 = 0.0, evalue_one = 1.0;
 			int ii = d_idx->idx[j];
@@ -4120,7 +4120,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
+						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx),
+									  (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4138,9 +4139,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4204,7 +4207,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
+						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx),
+									  (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4222,9 +4226,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4300,7 +4306,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
+						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx),
+									  (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4318,9 +4325,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4390,7 +4399,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
+						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx),
+									  (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4408,9 +4418,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
+							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										  (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -5511,7 +5523,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (update_MM) {
-			int enable3 = 1;	
+			int enable3 = 1;
 			static char *tag3 = NULL;
 			if (enable3 && !tag3) {
 #pragma omp critical (Name_3781a6d8d63c453af3ccbb128d59370d733087f8)

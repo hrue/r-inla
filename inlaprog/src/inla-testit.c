@@ -2641,10 +2641,7 @@ int testit(int argc, char **argv)
 
 			if (k == m - 1)
 				printf("n.lookups= %1d  Time for iwhich= %.4g iwhich_g2= %.4g ratio /g2= %.4f\n",
-				       key,
-				       (finish - start) / (k + 1.0),
-				       (finish2 - start2) / (k + 1.0),
-				       (finish - start) / (finish2 - start2));
+				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
 		}
 	}
 		break;

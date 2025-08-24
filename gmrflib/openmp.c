@@ -631,13 +631,12 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 		if (obj->done) {
 			return;
 		}
-		
+
 		if (debug) {
 			printf("tag [%s][%1d:%1d] Enter with try = (%1d %.3f) best = (%1d %.3f)\n",
-			       obj->tag, level, thread_num, 
-			       obj->try_nt, time_try * fac, obj->best_nt, time_best * fac);
+			       obj->tag, level, thread_num, obj->try_nt, time_try * fac, obj->best_nt, time_best * fac);
 		}
-		
+
 		if (obj->max_nt == 1) {
 			if (debug) {
 				printf("tag [%s][%1d:%1d] Done as max.nt == 1\n", obj->tag, level, thread_num);
@@ -659,8 +658,7 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 				// when its all started, this happens, as we always start with _nt = max_nt
 				obj->try_nt = IMAX(1, obj->best_nt - obj->step);
 				if (debug) {
-					printf("tag [%s][%1d:%1d] First time: Move to try.nt %1d\n", obj->tag, level, thread_num,
-					       obj->try_nt);
+					printf("tag [%s][%1d:%1d] First time: Move to try.nt %1d\n", obj->tag, level, thread_num, obj->try_nt);
 				}
 			} else {
 				if (time_try < time_best) {
@@ -669,12 +667,12 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 					obj->best_nt = itmp;
 					if (debug) {
 						printf("tag [%s][%1d:%1d] Found new best (%1d %.3f)\n", obj->tag, level, thread_num,
-						       obj->best_nt,  fac * time_try);
+						       obj->best_nt, fac * time_try);
 					}
 				} else {
 					if (debug) {
-						printf("tag [%s][%1d:%1d] Increasing time, stop with  best (%1d %.3f)\n", obj->tag, level, thread_num,
-						       obj->best_nt,  fac * time_best);
+						printf("tag [%s][%1d:%1d] Increasing time, stop with  best (%1d %.3f)\n", obj->tag, level,
+						       thread_num, obj->best_nt, fac * time_best);
 					}
 					obj->try_nt = obj->best_nt;
 					obj->done = 1;
@@ -713,7 +711,8 @@ void GMRFLib_openmp_dynamic_print(FILE *fp)
 				}
 			}
 		}
-		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3fs saved\n", tot_save, tot_save / GMRFLib_openmp->max_threads_nested[0]);
+		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3fs saved\n", tot_save,
+			tot_save / GMRFLib_openmp->max_threads_nested[0]);
 		fprintf(fp, "\n");
 	}
 }

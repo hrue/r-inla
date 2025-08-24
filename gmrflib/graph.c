@@ -490,22 +490,23 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 }
 
 #if 1
-int *GMRFLib_bsearch(int key, int n, int *array) 
+int *GMRFLib_bsearch(int key, int n, int *array)
 {
 	// based on 'monobound_binary_search'-code from https://github.com/scandum/binary_search
-	if (n == 0) return NULL;
-        unsigned int bot = 0, mid, top = (unsigned int) n;
-        while (top > 1) {
-                mid = top / 2;
-                if (key >= array[bot + mid]) {
-                        bot += mid;
-                }
-                top -= mid;
-        }
-        if (key == array[bot]) {
-                return array + bot;
-        }
-        return NULL;
+	if (n == 0)
+		return NULL;
+	unsigned int bot = 0, mid, top = (unsigned int) n;
+	while (top > 1) {
+		mid = top / 2;
+		if (key >= array[bot + mid]) {
+			bot += mid;
+		}
+		top -= mid;
+	}
+	if (key == array[bot]) {
+		return array + bot;
+	}
+	return NULL;
 }
 #else
 int *GMRFLib_bsearch(int key, int n, int *array)

@@ -316,7 +316,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted_g2_dummy(int key, int *__restrict ix, unsigned int len, unsigned int *UNUSED(dummy)) 
+int GMRFLib_iwhich_sorted_g2_dummy(int key, int *__restrict ix, unsigned int len, unsigned int *UNUSED(dummy))
 {
 	return GMRFLib_iwhich_sorted(key, ix, len);
 }
@@ -324,19 +324,20 @@ int GMRFLib_iwhich_sorted_g2_dummy(int key, int *__restrict ix, unsigned int len
 int GMRFLib_iwhich_sorted(int key, int *__restrict ix, unsigned int len)
 {
 	// see ``GMRFLib_bsearch''
-	if (len == 0) return -1;
-        unsigned int bot = 0, mid, top = len;
-        while (top > 1) {
-                mid = top / 2;
-                if (key >= ix[bot + mid]) {
-                        bot += mid;
-                }
-                top -= mid;
-        }
-        if (key == ix[bot]) {
-                return bot;
-        }
-        return -1;
+	if (len == 0)
+		return -1;
+	unsigned int bot = 0, mid, top = len;
+	while (top > 1) {
+		mid = top / 2;
+		if (key >= ix[bot + mid]) {
+			bot += mid;
+		}
+		top -= mid;
+	}
+	if (key == ix[bot]) {
+		return bot;
+	}
+	return -1;
 }
 
 int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, unsigned int len, unsigned int *__restrict guess)
@@ -345,7 +346,8 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, unsigned int len, unsi
 	// guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe This is a simpler interface
 	// than the guess[2] that was before. it MUST SATISFY: guess[0] and guess[1] < LEN, this is NOT checked for.
 
-	if (len == 0) return -1;
+	if (len == 0)
+		return -1;
 	unsigned int low = (val >= ix[guess[0]] ? guess[0] : 0);
 	unsigned int high = (val <= ix[guess[1]] ? guess[1] : len - 1);
 
@@ -363,7 +365,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, unsigned int len, unsi
 			guess[1] = high;
 			return -1;
 		} else {
-			unsigned mid = low + range / 2L;	       /* integer division */
+			unsigned mid = low + range / 2L;       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {
@@ -2212,9 +2214,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2234,15 +2236,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
