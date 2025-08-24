@@ -3317,7 +3317,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define W(node_) (gcpo_param->weights[node_])
 #define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
-			     GMRFLib_iwhich_sorted(node_, gcpo_param->group_selection->idx, gcpo_param->group_selection->n) >= 0)
+		GMRFLib_iwhich_sorted(node_, gcpo_param->group_selection->idx, (unsigned int) gcpo_param->group_selection->n) >= 0)
 
 	GMRFLib_ENTER_FUNCTION;
 	TIMER_INIT(0, 1);
@@ -3739,7 +3739,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					 * this can happen: ensure node is part of its own group, as it might have been thrown out.
 					 * this due to max_size is reached or there are to many with |correlation| = 1
 					 */
-					if (GMRFLib_iwhich_sorted(node, groups[node]->idx, groups[node]->n) < 0) {
+					if (GMRFLib_iwhich_sorted(node, groups[node]->idx, (unsigned int) groups[node]->n) < 0) {
 						GMRFLib_idxval_add(&(groups[node]), node, 1.0);
 						GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0);
 					}
@@ -3887,7 +3887,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
 				/* this can happen: ensure node is part of its own group, as it might have been thrown out */ \
 				/* due to max_size is reached or there are to many with |correlation| = 1 */ \
-				if (GMRFLib_iwhich_sorted(node, groups[node]->idx, groups[node]->n) < 0) { \
+				if (GMRFLib_iwhich_sorted(node, groups[node]->idx, (unsigned int) groups[node]->n) < 0) { \
 					GMRFLib_idxval_add(&(groups[node]), node, 1.0);	\
 					GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
 				}					\
@@ -4120,7 +4120,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4138,9 +4138,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4204,7 +4204,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4222,9 +4222,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4300,7 +4300,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4318,9 +4318,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4390,7 +4390,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 						gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 						gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
 						gcpo[node]->idx_node =
-						    GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
+							GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
 
 						if (gcpo[node]->idxs->n > 0) {
 							if (gcpo[node]->idx_node < 0) {
@@ -4408,9 +4408,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
 							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n);
+								GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4466,7 +4466,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			}						\
 			gcpo[node]->node_min = gcpo[node]->idxs->idx[0]; \
 			gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
-			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
+			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n); \
 									\
 			if (gcpo[node]->idxs->n > 0) {			\
 				if (gcpo[node]->idx_node < 0) {		\
@@ -4484,8 +4484,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				int nnode = groups->missing[node]->idx[0][k]; \
 				int cm_idx = groups->missing[node]->idx[1][k]; \
 				gsl_matrix *mat = gcpo[cm_idx]->cov_mat; \
-				int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
-				int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
+				int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n); \
+				int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, (unsigned int) gcpo[cm_idx]->idxs->n); \
 				assert(ii >= 0 && jj >= 0);		\
 				gsl_matrix_set(mat, ii, ii, lpred_variance[node]); \
 				if (jj != ii) {				\

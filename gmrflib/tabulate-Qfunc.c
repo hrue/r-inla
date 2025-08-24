@@ -27,7 +27,7 @@
 		double *dp = NULL;					\
 		if (args->Q) {						\
 			int offset = args->Q->s->ia[imin];		\
-			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, args->Q->s->ia[imin + 1] - offset); \
+			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, (unsigned int) args->Q->s->ia[imin + 1] - offset); \
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
 			int ii = -1;					\

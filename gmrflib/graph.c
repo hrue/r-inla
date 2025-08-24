@@ -632,7 +632,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row2col[k++] = Q(i, i, 0);
 			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 				int j = graph->snbs[i][jj];
-				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], (unsigned int) graph->lnnbs[j]);
 				row2col[k++] = Q(i, j, kk);
 			}
 		}
@@ -648,7 +648,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row2col[k++] = Q(i, i, 0);
 			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 				int j = graph->snbs[i][jj];
-				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], (unsigned int) graph->lnnbs[j]);
 				row2col[k++] = Q(i, j, kk);
 			}
 		}
