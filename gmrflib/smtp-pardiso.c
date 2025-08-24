@@ -317,6 +317,20 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		// a bit more manual work
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
+
+			static char *tag = NULL;
+			if (!tag) {
+#pragma omp critical (Name_7600f798b7727e8eb5fbed77a2db305e4db69365)
+				if (!tag) {
+					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+				}
+			}
+			int level = omp_get_level();
+			int tnum = omp_get_thread_num();
+			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int nt_loc = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+			double tref = -GMRFLib_timer();
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
 				CODE_BLOCK_INIT();			\
@@ -326,9 +340,26 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				}					\
 			}
 
-			RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
+			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
+			tref += GMRFLib_timer();
+			GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
+
 		} else {
+
+			static char *tag = NULL;
+			if (!tag) {
+#pragma omp critical (Name_5d44f84bdfc2d2b324a71dbddd46ed4c72f4fba7)
+				if (!tag) {
+					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+				}
+			}
+			int level = omp_get_level();
+			int tnum = omp_get_thread_num();
+			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int nt_loc = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+			double tref = -GMRFLib_timer();
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
 				CODE_BLOCK_INIT();			\
@@ -336,8 +367,11 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
 
-			RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
+			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
+			tref += GMRFLib_timer();
+			GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
+
 		}
 	}
 
