@@ -530,35 +530,7 @@ int *GMRFLib_bsearch(int key, int n, int *array)
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
-	if (node < nnode) {
-		if (graph->lnnbs[node] <= graph->lnnbs[nnode]) {
-			int m = graph->lnnbs[node];
-			if (m) {
-				int *nb = graph->lnbs[node];
-				if (nnode <= nb[m - 1]) {
-					return (GMRFLib_bsearch(nnode, m, nb) != NULL);
-				}
-			}
-			return 0;
-		} else {
-			int m = graph->snnbs[nnode];
-			if (m) {
-				int *nb = graph->snbs[nnode];
-				if (node >= nb[0]) {
-					return (GMRFLib_bsearch(node, m, nb) != NULL);
-				}
-			}
-			return 0;
-		}
-	} else {
-		if (node > nnode) {
-			return GMRFLib_graph_is_nb(nnode, node, graph);
-		} else {
-			return 0;
-		}
-	}
-
-	return 0;
+	return (GMRFLib_bsearch(node, graph->nnbs[nnode], graph->nbs[nnode]) != NULL);
 }
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)

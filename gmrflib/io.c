@@ -375,6 +375,7 @@ int GMRFLib_io_write(GMRFLib_io_tp *io, const void *buf, size_t len)
 	return GMRFLib_SUCCESS;
 }
 
+#if 0
 intmax_t GMRFLib_io_file_size(const char *filename)
 {
 	// this function is pretty slow. I don't know what is happening
@@ -392,3 +393,4 @@ intmax_t GMRFLib_io_file_size(const char *filename)
 		return (0);
 	}
 }
+#endif
