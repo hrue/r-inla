@@ -507,10 +507,10 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
 
-	static char init_dynamic = 1;
-	if (init_dynamic) {
-		GMRFLib_openmp_dynamic_init(omp_max_max_nested());
-		init_dynamic = 0;
+	static char init_adapt_nt = 1;
+	if (init_adapt_nt) {
+		GMRFLib_adapt_nt_init(omp_max_max_nested());
+		init_adapt_nt = 0;
 	}
 
 	if (debug) {
@@ -561,39 +561,39 @@ void GMRFLib_openmp_timing(void)
 	int nt_def = GMRFLib_MAX_THREADS();
 	char *tag = Strdup("8117db4e4a6ae84f37bb33bd6760734bcf122e0b");
 	while (1) {
-		int nt = GMRFLib_openmp_dynamic_get_nt(tag, 0, 0, nt_def);
+		int nt = GMRFLib_adapt_nt_get(tag, 0, 0, nt_def);
 		double tref = -GMRFLib_timer();
 #pragma omp parallel for num_threads(nt) schedule(static)
 		for (int k = 0; k < m; k++) {
 			GMRFLib_openmp_chunk(nmax, A, b);
 		}
 		tref += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag, 0, 0, tref);
+		GMRFLib_adapt_nt_update(tag, 0, 0, tref);
 	}
 }
 
-static map_strvp ***dyn_nt = NULL;
-static int dyn_nt_max_levels = -1;
+static map_strvp ***adapt_nt = NULL;
+static int adapt_nt_max_levels = -1;
 
-void GMRFLib_openmp_dynamic_init(int max_levels)
+void GMRFLib_adapt_nt_init(int max_levels)
 {
-	dyn_nt_max_levels = max_levels;
-	dyn_nt = Calloc(max_levels, map_strvp **);
+	adapt_nt_max_levels = max_levels;
+	adapt_nt = Calloc(max_levels, map_strvp **);
 	for (int i = 0; i < max_levels; i++) {
-		dyn_nt[i] = Calloc(1 + GMRFLib_MAX_THREADS(), map_strvp *);
+		adapt_nt[i] = Calloc(1 + GMRFLib_MAX_THREADS(), map_strvp *);
 		for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
-			dyn_nt[i][j] = Calloc(1, map_strvp);
-			map_strvp_init(dyn_nt[i][j]);
+			adapt_nt[i][j] = Calloc(1, map_strvp);
+			map_strvp_init(adapt_nt[i][j]);
 		}
 	}
 }
 
-int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads)
+int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_threads)
 {
-	void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
-	GMRFLib_openmp_dynamic_num_threads_tp *obj = NULL;
+	void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
+	GMRFLib_adapt_nt_tp *obj = NULL;
 	if (!p) {
-		obj = Calloc(1, GMRFLib_openmp_dynamic_num_threads_tp);
+		obj = Calloc(1, GMRFLib_adapt_nt_tp);
 		obj->tag = Strdup(tag);
 		obj->min_num_try = 2;
 		// code in the functions below assumes we need to start with default_num_threads
@@ -601,25 +601,25 @@ int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int defa
 
 		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
-		map_strvp_set(dyn_nt[level][thread_num], obj->tag, (void *) obj);
+		map_strvp_set(adapt_nt[level][thread_num], obj->tag, (void *) obj);
 		obj->done = (default_num_threads == 1 ? 1 : 0);
 		obj->step = (obj->max_nt >= 32 ? 8 : (obj->max_nt > 8 ? 4 : 2));
 	} else {
-		obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
+		obj = *((GMRFLib_adapt_nt_tp **) p);
 	}
 	return obj->try_nt;
 }
 
-void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime)
+void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 {
 	GMRFLib_DEBUG_INIT();
 	int debug = GMRFLib_DEBUG_IF_TRUE();
 
 	if (GMRFLib_opt_num_threads) {
 		double fac = 1.0E6;
-		void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
+		void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
 		assert(p);
-		GMRFLib_openmp_dynamic_num_threads_tp *obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
+		GMRFLib_adapt_nt_tp *obj = *((GMRFLib_adapt_nt_tp **) p);
 
 		obj->tot_times++;
 		obj->ntimes[obj->try_nt]++;
@@ -682,18 +682,18 @@ void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double 
 	}
 }
 
-void GMRFLib_openmp_dynamic_print(FILE *fp)
+void GMRFLib_adapt_nt_print(FILE *fp)
 {
 	if (GMRFLib_opt_num_threads) {
 		fp = (fp ? fp : stdout);
-		fprintf(fp, "\nDump of dyn_nt\n");
+		fprintf(fp, "\nDump of adapt_nt\n");
 		double tot_save = 0.0;
-		for (int i = 0; i < dyn_nt_max_levels; i++) {
+		for (int i = 0; i < adapt_nt_max_levels; i++) {
 			for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
-				if (dyn_nt[i][j]) {
+				if (adapt_nt[i][j]) {
 					map_strvp_storage *ptr = NULL;
-					for (ptr = NULL; (ptr = map_strvp_nextptr(dyn_nt[i][j], ptr)) != NULL;) {
-						GMRFLib_openmp_dynamic_num_threads_tp *r = ((GMRFLib_openmp_dynamic_num_threads_tp *) ptr->value);
+					for (ptr = NULL; (ptr = map_strvp_nextptr(adapt_nt[i][j], ptr)) != NULL;) {
+						GMRFLib_adapt_nt_tp *r = ((GMRFLib_adapt_nt_tp *) ptr->value);
 						if (r) {
 							double wtime = 0.0;
 							int ntimes = 0.0;

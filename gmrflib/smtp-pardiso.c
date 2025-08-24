@@ -328,7 +328,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int level = omp_get_level();
 			int tnum = omp_get_thread_num();
 			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
-			int nt_loc = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
 #define CODE_BLOCK							\
@@ -343,7 +343,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
 			tref += GMRFLib_timer();
-			GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
+			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 
 		} else {
 
@@ -357,7 +357,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int level = omp_get_level();
 			int tnum = omp_get_thread_num();
 			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
-			int nt_loc = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
 #define CODE_BLOCK							\
@@ -370,8 +370,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
 			tref += GMRFLib_timer();
-			GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
-
+			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 		}
 	}
 

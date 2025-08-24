@@ -831,13 +831,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
 			}
 		}
-		int nt_opt = GMRFLib_openmp_dynamic_get_nt(tag, tnum, level, num_threads);
+		int nt_opt = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 		double tref = -GMRFLib_timer();
 
 		RUN_CODE_BLOCK_X(nt_opt, 0, 0, int);
 
 		tref += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag, tnum, level, tref);
+		GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 
 #undef CODE_BLOCK_WORK_TP_FREE
 #undef CODE_BLOCK
@@ -5446,14 +5446,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				GMRFLib_sprintf(&tag0, "%s:%1d", __FILE__, __LINE__);
 			}
 		}
-		int nt_local0 = GMRFLib_openmp_dynamic_get_nt(tag0, tnum, level, num_threads);
+		int nt_local0 = GMRFLib_adapt_nt_get(tag0, tnum, level, num_threads);
 		double tref0 = -GMRFLib_timer();
 
 		// I know I compute the mean twice for iter=0, but then the timing gets right
 		GMRFLib_preopt_predictor_moments(pmean, NULL, preopt, ai_store->problem, x_mean, nt_local0);
 
 		tref0 += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag0, tnum, level, tref0);
+		GMRFLib_adapt_nt_update(tag0, tnum, level, tref0);
 
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
@@ -5479,13 +5479,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				GMRFLib_sprintf(&tag1, "%s:%1d", __FILE__, __LINE__);
 			}
 		}
-		int nt_loc1 = GMRFLib_openmp_dynamic_get_nt(tag1, tnum, level, num_threads);
+		int nt_loc1 = GMRFLib_adapt_nt_get(tag1, tnum, level, num_threads);
 		double tref1 = -GMRFLib_timer();
 
 		RUN_CODE_BLOCK_X(nt_loc1, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
 
 		tref1 += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag1, tnum, level, tref1);
+		GMRFLib_adapt_nt_update(tag1, tnum, level, tref1);
 #undef CODE_BLOCK
 #undef CODE_BLOCK_WORK_TP_FREE
 
@@ -5503,13 +5503,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				GMRFLib_sprintf(&tag2, "%s:%1d", __FILE__, __LINE__);
 			}
 		}
-		int nt_loc2 = GMRFLib_openmp_dynamic_get_nt(tag2, tnum, level, num_threads);
+		int nt_loc2 = GMRFLib_adapt_nt_get(tag2, tnum, level, num_threads);
 		double tref2 = -GMRFLib_timer();
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC, nt_loc2);
 
 		tref2 += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag2, tnum, level, tref2);
+		GMRFLib_adapt_nt_update(tag2, tnum, level, tref2);
 
 #pragma omp simd
 		for (int ii = 0; ii < graph->n; ii++) {
@@ -5531,7 +5531,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 					GMRFLib_sprintf(&tag3, "%s:%1d", __FILE__, __LINE__);
 				}
 			}
-			int nt_local3 = (enable3 ? GMRFLib_openmp_dynamic_get_nt(tag3, tnum, level, num_threads) : num_threads);
+			int nt_local3 = (enable3 ? GMRFLib_adapt_nt_get(tag3, tnum, level, num_threads) : num_threads);
 			double tref3 = (enable3 ? -GMRFLib_timer() : 0.0);
 
 #define CODE_BLOCK	{						\
@@ -5543,7 +5543,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 			if (enable3) {
 				tref3 += GMRFLib_timer();
-				GMRFLib_openmp_dynamic_update(tag3, tnum, level, tref3);
+				GMRFLib_adapt_nt_update(tag3, tnum, level, tref3);
 			}
 		}
 
