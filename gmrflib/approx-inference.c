@@ -3584,12 +3584,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 				}
 
-				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+				GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
 					GMRFLib_stiles_bind(&stiles_idx);
-					assert(stiles_idx.in_group >= GMRFLib_stiles_get_offset_copy());
-					assert(stiles_idx.within_group == omp_get_thread_num());
 				}
 
 				GMRFLib_Qsolves(Saa, nrhs, build_ai_store->problem, &stiles_idx);
@@ -3772,12 +3770,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				CODE_BLOCK_INIT();			\
 				CODE_BLOCK_ALL_WORK_ZERO();		\
 									\
-				GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0 }; \
+				GMRFLib_stiles_idx_tp stiles_idx = {0, -1, 0 }; \
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) { \
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
 					GMRFLib_stiles_bind(&stiles_idx); \
-					assert(stiles_idx.in_group == GMRFLib_stiles_get_offset_copy()); \
-					assert(stiles_idx.within_group == omp_get_thread_num()); \
 				}					\
 									\
 				GMRFLib_idxval_tp *v = A_idx(node);	\
@@ -4275,7 +4271,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #pragma omp parallel for num_threads(nt_outer)
 				for (int kk = 0; kk < split->n; kk++) {
 
-					GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+					GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
 					GMRFLib_stiles_bind(&stiles_idx);
 
@@ -4457,7 +4453,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			double *Sa = CODE_BLOCK_WORK_PTR(1);		\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
 									\
-			GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0};	\
+			GMRFLib_stiles_idx_tp stiles_idx = {0, -1, 0}; \
 			if (use_stiles) {				\
 				if (serial) {				\
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
@@ -5363,15 +5359,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 
-	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_set_idx_copy(&stiles_idx, GMRFLib_stiles_get_tile_size());
 		GMRFLib_stiles_bind(&stiles_idx);
-		assert(stiles_idx.in_group == GMRFLib_stiles_get_offset_copy());
-		assert(stiles_idx.within_group == tnum);
+		//GMRFLib_stiles_print_idx(&stiles_idx, stdout);
+		//GMRFLib_stiles_print(stdout);
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS)) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
 		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *b_ = b + jj * graph->n;
@@ -5632,18 +5628,18 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			{
 				if (delta_is_NAN) {
 					fprintf(stderr,
-						"\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
-						thread_id, delta_is_NAN - 1);
+						"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+						thread_id, omp_get_thread_num(), delta_is_NAN - 1);
 				}
 				if (diverge) {
 					fprintf(stderr,
-						"\n\n\t***[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
-						thread_id);
+						"\n\n\t***[%1d] thread_num[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
+						thread_id, omp_get_thread_num());
 				}
 				if (max_corr_flag) {
 					fprintf(stderr,
-						"\n\n\t***[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
-						thread_id, max_correction, ai_par->vb_emergency);
+						"\n\n\t***[%1d] thread_num[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+						thread_id, omp_get_thread_num(), max_correction, ai_par->vb_emergency);
 					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
 						ai_par->vb_emergency);
 					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
@@ -5652,24 +5648,24 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 				if (fp != stderr) {
 					if (delta_is_NAN) {
-						fprintf(fp,
-							"\n\n\t***[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
-							thread_id, delta_is_NAN - 1);
+						fprintf(stderr,
+							"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
+							thread_id, omp_get_thread_num(), delta_is_NAN - 1);
 					}
 					if (diverge) {
-						fprintf(fp,
-							"\n\n\t***[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
-							thread_id);
+						fprintf(stderr,
+							"\n\n\t***[%1d] thread_num[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
+							thread_id, omp_get_thread_num());
 					}
 					if (max_corr_flag) {
-						fprintf(fp,
-							"\n\n\t*** warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
-							max_correction, ai_par->vb_emergency);
-						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
+						fprintf(stderr,
+							"\n\n\t***[%1d] thread_num[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
+							thread_id, omp_get_thread_num(), max_correction, ai_par->vb_emergency);
+						fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
 							ai_par->vb_emergency);
-						fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+						fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 					}
-					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+					fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 				}
 			}
 			emergency = 1;

@@ -538,7 +538,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			s_idx.in_group = problem->stiles_idx->in_group;
 		}
 
-		int err = GMRFLib_stiles_set_idx(&s_idx, nrhs);
+		int err = GMRFLib_stiles_set_idx(&s_idx, nrhs); 
 		if (err == GMRFLib_SUCCESS) {
 			GMRFLib_stiles_solve_LLT(&s_idx, rhs);
 		} else {

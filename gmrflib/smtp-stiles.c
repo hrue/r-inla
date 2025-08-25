@@ -245,18 +245,30 @@ void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp)
 
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->within_group using thread_num()
+	// rewrite ->within_group using omp_get_thread_num(), keep in_group fixed
+
 	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
 	stiles_idx->nrhs = nrhs;
+
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	// rewrite ->in_group and ->within_group into the corresponding copy
+	// rewrite ->in_group the corresponding copy, keep within_group fixed if >= 0
+
+	if (!(stiles_idx->in_group < store->offset_copy)) {
+		P(stiles_idx->in_group);
+		P(store->offset_copy);
+		assert(stiles_idx->in_group < store->offset_copy);
+	}
+
 	stiles_idx->in_group = store->offset_copy + stiles_idx->within_group;
-	stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
+	if (stiles_idx->within_group < 0) {
+		stiles_idx->within_group = (omp_get_thread_num() % store->n_within_group[stiles_idx->in_group]);
+	}
 	stiles_idx->nrhs = nrhs;
+
 	return GMRFLib_SUCCESS;
 }
 

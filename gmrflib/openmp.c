@@ -598,12 +598,11 @@ int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_t
 		obj->min_num_try = 2;
 		// code in the functions below assumes we need to start with default_num_threads
 		obj->max_nt = obj->best_nt = obj->try_nt = default_num_threads;
-
 		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
-		map_strvp_set(adapt_nt[level][thread_num], obj->tag, (void *) obj);
 		obj->done = (default_num_threads == 1 ? 1 : 0);
-		obj->step = (obj->max_nt >= 32 ? 8 : (obj->max_nt > 8 ? 4 : 2));
+		obj->step = (obj->max_nt >= 24 ? 8 : (obj->max_nt > 8 ? 4 : 2));
+		map_strvp_set(adapt_nt[level][thread_num], obj->tag, (void *) obj);
 	} else {
 		obj = *((GMRFLib_adapt_nt_tp **) p);
 	}
@@ -665,6 +664,7 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 					int itmp = obj->try_nt;
 					obj->try_nt = IMAX(1, IMIN(obj->max_nt, itmp - obj->step));
 					obj->best_nt = itmp;
+					obj->step = (obj->best_nt >= 24 ? 8 : (obj->best_nt > 8 ? 4 : 2));
 					if (debug) {
 						printf("tag [%s][%1d:%1d] Found new best (%1d %.3f)\n", obj->tag, level, thread_num,
 						       obj->best_nt, fac * time_try);

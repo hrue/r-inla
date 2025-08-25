@@ -38,8 +38,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
 	int debug = GMRFLib_DEBUG_IF_TRUE();
-	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
-	int num_threads_max = GMRFLib_MAX_THREADS();
 
 	const int debug_detailed = 0;
 	const int do_prune = 1;
@@ -259,6 +257,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	SHOW_TIME("whattype");
+
+	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
+	int num_threads_max = (npred >= 1E5 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : num_threads);
 
 	// build up structure for the likelihood part
 
@@ -796,6 +797,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 #undef  SHOW_TIME
 
 	GMRFLib_LEAVE_FUNCTION;
+
 	return GMRFLib_SUCCESS;
 }
 
