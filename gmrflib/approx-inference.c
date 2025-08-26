@@ -646,23 +646,17 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	// this is implicitely assumed
 	assert(mean == NULL && x);
 
-	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_set_idx(&stiles_idx, 1);
-		GMRFLib_stiles_bind(&stiles_idx);
-	}
-
-	int num_threads;
 	int level = omp_get_level();
 	int tnum = omp_get_thread_num();
-	if (level == 0) {
-		if (GMRFLib_openmp->adaptive) {
-			num_threads = GMRFLib_PARDISO_MAX_NUM_THREADS();
-		} else {
-			num_threads = GMRFLib_openmp->max_threads_inner;
-		}
-	} else {
-		num_threads = GMRFLib_openmp->max_threads_inner;
+	int num_threads = (GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_PARDISO_MAX_NUM_THREADS() :  GMRFLib_openmp->max_threads_inner);
+
+	GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0};
+	GMRFLib_stiles_set_idx(&stiles_idx, 1);
+
+	if (GMRFLib_OPENMP_IN_SERIAL()) {
+		FIXME("ENTER SERIAL");
+		P(stiles_idx.in_group);
+		P(num_threads);
 	}
 
 	/*
@@ -1743,13 +1737,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double step = M_SQRT2;
 				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 				GMRFLib_ai_store_tp *s = NULL;
-
+				
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-					GMRFLib_stiles_set_idx(&stiles_idx, 1);
-					GMRFLib_stiles_bind(&stiles_idx);
-				}
-
+				GMRFLib_stiles_set_idx(&stiles_idx, 1);
+				
 				zz = Calloc(nhyper, double);
 				ttheta = Calloc(nhyper, double);
 				GMRFLib_dfill(nhyper, 0.0, zz);
@@ -1825,10 +1816,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				Free(zz);
 				Free(ttheta);
-			}
-
-			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-				GMRFLib_stiles_unbind_group(0);
 			}
 		}
 
@@ -2008,11 +1995,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		tref = GMRFLib_timer();
 
 		GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			GMRFLib_stiles_set_idx(&stiles_idx, 1);
-			GMRFLib_stiles_bind(&stiles_idx);
-		}
-
+		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		double *z_local = NULL, *theta_local = NULL, log_dens_orig;
 		GMRFLib_ai_store_tp *ai_store_id = NULL;
 		GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
@@ -2350,9 +2333,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		Free(c_corrected);
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_unbind_group(0);		       /* this is needed */
-	}
 	// now we add the the gcpo-computations we took out and run it without openmp
 	if (gcpo && (GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1)) {
 		gcpo_theta[0] = GMRFLib_gcpo(0, ai_store, stiles_tmp_store->lpred_mean, stiles_tmp_store->lpred_mode,
@@ -2477,7 +2457,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			(*density)[i] = dens_combine;
 
-			for (int k = 0; k < probs_combine->n; k++) {
+			for (int k = 0; k < dens_max; k++) {
 				GMRFLib_free_density(lpred[i][k]);
 				lpred[i][k] = NULL;
 			}
@@ -2493,7 +2473,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
 
-			for (int k = 0; k < probs_combine->n; k++) {
+			for (int k = 0; k < dens_max; k++) {
 				GMRFLib_free_density(dens[i][k]);
 				dens[i][k] = NULL;
 			}
@@ -3187,11 +3167,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	if (po_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
-			int j = i;
-			if (d[j]) {
-				Free(po_theta[j]);
-				break;
-			}
+			Free(po_theta[i]);
 		}
 		Free(po_theta);
 		Free(po2_theta);
@@ -3199,11 +3175,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 	if (cpo_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
-			int j = i;
-			if (d[j]) {
-				Free(cpo_theta[j]);
-				break;
-			}
+			Free(cpo_theta[i]);
 		}
 		Free(cpo_theta);
 	}
@@ -3215,11 +3187,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 	if (deviance_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
-			int j = i;
-			if (d[j]) {
-				Free(deviance_theta[j][0]);
-				Free(deviance_theta[j]);
+			if (deviance_theta[i]) {
+				for(int j = 0; j < dens_max; j++) {
+					Free(deviance_theta[i][j]);
+				}
 			}
+			Free(deviance_theta[i]);
 		}
 		Free(deviance_theta);
 	}
@@ -3454,11 +3427,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_dfill(nn, gcpo_param->prior_diagonal, c);
 
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
-			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-				GMRFLib_stiles_set_idx(&stiles_idx, 1);
-				GMRFLib_stiles_bind(&stiles_idx);
-			}
+			GMRFLib_stiles_set_idx(&stiles_idx, 1);
 
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				FIXME("NOT SURE STILES IS SUPPORTED HERE. PLEASE CHECK...");
+				abort();
+			}
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
 					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg,
 					     preopt->latent_constr, &stiles_idx, NULL);
@@ -3478,7 +3452,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
 				GMRFLib_stiles_set_idx(&stiles_idx, 1);
-				GMRFLib_stiles_bind(&stiles_idx);
 				if (build_ai_store->problem->stiles_idx) {
 					assert(build_ai_store->problem->stiles_idx->in_group == stiles_idx.in_group);
 					assert(build_ai_store->problem->stiles_idx->within_group == stiles_idx.within_group);
@@ -3584,11 +3557,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 				}
 
-				GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
-				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-					GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
-					GMRFLib_stiles_bind(&stiles_idx);
-				}
+				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+				GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
 
 				GMRFLib_Qsolves(Saa, nrhs, build_ai_store->problem, &stiles_idx);
 
@@ -3770,10 +3740,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				CODE_BLOCK_INIT();			\
 				CODE_BLOCK_ALL_WORK_ZERO();		\
 									\
-				GMRFLib_stiles_idx_tp stiles_idx = {0, -1, 0 }; \
+				GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0 }; \
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) { \
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
-					GMRFLib_stiles_bind(&stiles_idx); \
 				}					\
 									\
 				GMRFLib_idxval_tp *v = A_idx(node);	\
@@ -4271,9 +4240,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #pragma omp parallel for num_threads(nt_outer)
 				for (int kk = 0; kk < split->n; kk++) {
 
-					GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
+					GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 					GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
-					GMRFLib_stiles_bind(&stiles_idx);
 
 					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
 					double *Saa = Swork[0];
@@ -4363,7 +4331,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 				GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
-				GMRFLib_stiles_bind(&stiles_idx);
 				assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group);
 				assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group);
 
@@ -4453,17 +4420,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			double *Sa = CODE_BLOCK_WORK_PTR(1);		\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
 									\
-			GMRFLib_stiles_idx_tp stiles_idx = {0, -1, 0}; \
+			GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0}; \
 			if (use_stiles) {				\
-				if (serial) {				\
-					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
-					GMRFLib_stiles_bind(&stiles_idx); \
-				} else {				\
-					GMRFLib_stiles_set_idx(&stiles_idx, 1); \
-					GMRFLib_stiles_bind(&stiles_idx); \
-					assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group); \
-					assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group); \
-				}					\
+				GMRFLib_stiles_set_idx(&stiles_idx, 1); \
 			}						\
 			if (gcpo_param->verbose || detailed_output) {	\
 				if (skip[node]) {			\
@@ -5359,12 +5318,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 
-	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_set_idx_copy(&stiles_idx, GMRFLib_stiles_get_tile_size());
-		GMRFLib_stiles_bind(&stiles_idx);
-		//GMRFLib_stiles_print_idx(&stiles_idx, stdout);
-		//GMRFLib_stiles_print(stdout);
+		GMRFLib_stiles_set_idx(&stiles_idx, GMRFLib_stiles_get_tile_size());
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
@@ -7311,7 +7267,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 		Calloc_free();
 	}
 
-	double *res = Calloc(2, double);
+	double *res = Malloc(2, double);
 	res[0] = integral;
 	res[1] = integral_sat;
 

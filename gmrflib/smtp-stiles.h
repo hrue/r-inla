@@ -37,12 +37,14 @@ typedef struct {
 #endif
 
 typedef struct {
+	int ng;
+	int ng2;
 	int n_in_group;
-	int offset_copy;
 	int *n_within_group;
 	int *n_cores_group;
 	int nt_outer;
 	int nt_inner;
+	int nt_special;
 	int **perm;
 	int **iperm;
 	int *n;
@@ -72,11 +74,11 @@ int *GMRFLib_stiles_get_perm(GMRFLib_stiles_idx_tp * stiles_idx);
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp * stiles_idx, int thread_id, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp * stiles_idx);
-int GMRFLib_stiles_get_offset_copy(void);
 int GMRFLib_stiles_get_tile_size(void);
 int GMRFLib_stiles_set_ctl(int verbose, int tile_size);
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
-int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
+int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs);
+int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs);
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp * setup);
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);

@@ -5253,8 +5253,6 @@ int testit(int argc, char **argv)
 
 	case 169:
 	{
-		int GMRFLib_stiles_test3(void);
-		GMRFLib_stiles_test3();
 	}
 		break;
 

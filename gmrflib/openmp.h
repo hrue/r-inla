@@ -111,6 +111,8 @@ typedef struct {
 #define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
 					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2) : \
 					   GMRFLib_openmp->max_threads_nested[1])
+#define GMRFLib_PARDISO_MAX_NUM_THREADS() GMRFLib_MAX_THREADS()
+
 
 #define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
 #define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())

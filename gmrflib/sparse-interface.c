@@ -65,7 +65,18 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 
 		case GMRFLib_SMTP_STILES:
 		{
-			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+			int k = -1;
+			GMRFLib_stiles_store_tp *p = (GMRFLib_stiles_store_tp *) GMRFLib_stiles_get_store_ptr();
+			for(int i = 0; i < p->graphs->n; i++) {
+				GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) (p->graphs->ptr[i]);
+				if (strcmp((const char *) graph->sha, (const char *) g->sha) == 0) {
+					k = i;
+					break;
+				}
+			}
+			assert(k >= 0);
+
+			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
 			Memcpy((void *) sm_fact->remap, (void *) GMRFLib_stiles_get_perm(&stiles_idx), graph->n * sizeof(int));
 		}
@@ -436,6 +447,8 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph,
 				    GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
+	P(nrhs);
+
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
@@ -538,15 +551,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			s_idx.in_group = problem->stiles_idx->in_group;
 		}
 
-		int err = GMRFLib_stiles_set_idx(&s_idx, nrhs); 
-		if (err == GMRFLib_SUCCESS) {
-			GMRFLib_stiles_solve_LLT(&s_idx, rhs);
-		} else {
-			GMRFLib_stiles_set_idx(&s_idx, 1);
-			for (int k = 0; k < nrhs; k++) {
-				GMRFLib_stiles_solve_LLT(&s_idx, rhs + k * graph->n);
-			}
-		}
+		GMRFLib_stiles_set_idx(&s_idx, nrhs); 
+		GMRFLib_stiles_solve_LLT(&s_idx, rhs);
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}

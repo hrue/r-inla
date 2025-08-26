@@ -218,16 +218,7 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		// need sTiles within a parallel loop, even with num_threads=1
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_nested[0]) schedule(static)
-		for (int k = 0; k < GMRFLib_openmp->max_threads_nested[0]; k++) {
-			if (k == 0)
-				GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
-		}
-	} else {
-		GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
-	}
+	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
 	GMRFLib_LEAVE_FUNCTION;
 
 	return GMRFLib_SUCCESS;
@@ -269,10 +260,6 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 		}
 		GMRFLib_opt_f_intern(thread_id, x[i], &f[i], &local_err, ais, NULL, NULL);
 		err[i] = err[i] || local_err;
-	}
-
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_unbind_group(0);
 	}
 
 	for (int i = 0; i < nx; i++) {
@@ -488,6 +475,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		double *f = Calloc(G.nhyper + 1, double);
 
 		int nt = IMIN(G.nhyper + 1, GMRFLib_openmp->max_threads_outer);
+		//nt = GMRFLib_openmp->max_threads_outer;
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
@@ -524,10 +512,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				GMRFLib_opt_f_intern(thread_id, xx, &f[G.nhyper], &err, ais, NULL, NULL);
 			}
 			Free(xx);
-		}
-
-		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			GMRFLib_stiles_unbind_group(0);
 		}
 
 		/*
@@ -608,10 +592,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				}
 			}
 			Free(xx);
-		}
-
-		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			GMRFLib_stiles_unbind_group(0);
 		}
 
 		if (use_five_point) {
@@ -877,10 +857,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 	Free(order);
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_unbind_group(0);
-	}
-
 	if (early_stop) {
 		if (G.ai_par->fp_log)
 			fprintf(G.ai_par->fp_log,
@@ -1019,10 +995,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				}
 			}
 			Free(idx);
-
-			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-				GMRFLib_stiles_unbind_group(0);
-			}
 		}
 #undef CHECK_FOR_EARLY_STOP
 

@@ -153,7 +153,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 	}
 	Free(nbs);
 	Free(nnbs);
-	Free(g);
+	GMRFLib_graph_free(g);
 
 	return GMRFLib_SUCCESS;
 }
