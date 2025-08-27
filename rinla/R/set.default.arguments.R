@@ -276,46 +276,47 @@
 
 #' @title control.gcpo
 #' @inherit control.update params description seealso
+#' @inheritParams inla.group.cv
 #' @family control
 #' @export
 #' @details (For experts only!) Set control variables for the gcpo in [control.compute].
-#' The intended use is to use `inla.group.cv`.
-#' Refer to `?inla.group.cv` and the vignette for details.
+#' The intended use is to use [inla.group.cv()].
+#' Refer to [inla.group.cv()] and the vignette for details.
 control.gcpo <-
     function(
-             #' @param enable TODO
+             # @param enable TODO
              enable = FALSE,
-             #' @param num.level.sets TODO
+             # @param num.level.sets TODO
              num.level.sets = -1,
-             #' @param size.max TODO
+             # @param size.max TODO
              size.max = 32,
-             #' @param strategy TODO
+             # @param strategy TODO
              strategy = c("posterior", "prior"),
-             #' @param groups TODO
+             # @param groups TODO
              groups = NULL,
-             #' @param selection TODO
+             # @param selection TODO
              selection = NULL,
-             #' @param group.selection TODO
+             # @param group.selection TODO
              group.selection = NULL,
-             #' @param friends TODO
+             # @param friends TODO
              friends = NULL,
-             #' @param weights TODO
+             # @param weights TODO
              weights = NULL, 
-             #' @param verbose TODO
+             # @param verbose TODO
              verbose = FALSE,
-             #' @param epsilon TODO
+             # @param epsilon TODO
              epsilon = 0.005,
-             #' @param prior.diagonal TODO
+             # @param prior.diagonal TODO
              prior.diagonal = 1e-4,
-             #' @param correct.hyperpar TODO
+             # @param correct.hyperpar TODO
              correct.hyperpar = TRUE,
-             #' @param keep TODO
+             # @param keep TODO
              keep = NULL,
-             #' @param remove TODO
+             # @param remove TODO
              remove = NULL,
-             #' @param remove.fixed TODO
+             # @param remove.fixed TODO
              remove.fixed = TRUE,
-             #' @param type The type of cv, either "single" (default) or "joint"
+             # @param type The type of cv, either "single" (default) or "joint"
              type.cv = "single"
              ) {
         ctrl_object(as.list(environment()), "gcpo", check = FALSE)
