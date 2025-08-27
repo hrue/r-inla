@@ -28,41 +28,62 @@ control.gcpo(
 inla.set.control.gcpo.default(...)
 }
 \arguments{
-\item{enable}{TODO}
+\item{num.level.sets}{Number of level.sets to use. The default value
+\code{-1} corresponds to leave-one-out cross-validation. If argument \code{weights} is
+used, then this is threshold for the sum of the weights defining a group.}
 
-\item{num.level.sets}{TODO}
+\item{size.max}{The maximum size (measure in the number of nodes) of a group. If the computed
+group-size is larger, it will be truncated to \code{size.max}. Note that: If
+\code{weights} are in use, then
+this still corresponds to the number of nodes in the group, and not the sum of the
+weights. This is ment as an emergency option to avoid the size of the
+group to go nuts.}
 
-\item{size.max}{TODO}
+\item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
+vignette for details.}
 
-\item{strategy}{TODO}
+\item{groups}{An (optional) predefined list of groups.  See the vignette for
+details.}
 
-\item{groups}{TODO}
+\item{selection}{An optional list of data-indices to use. If not given, then
+all data are used.}
 
-\item{selection}{TODO}
+\item{group.selection}{An optional list of data-indices to use when building the
+groups. If given, each group beyond the observation itself, must be a subset of
+\code{group.selection}. If not given, then all data are used.}
 
-\item{group.selection}{TODO}
+\item{friends}{An optional list of lists of indices to use a friends}
 
-\item{friends}{TODO}
+\item{weights}{An optional positive weight attached to each datapoint. The sume
+of the weights define the size of the group. If \code{NULL}, then unit weight is
+used.}
 
-\item{weights}{TODO}
+\item{verbose}{Run with \code{verbose} output of some of the internals in
+the calculations. This option will also enable \code{inla(..., verbose=TRUE)} if its not enabled already.}
 
-\item{verbose}{TODO}
+\item{epsilon}{Two correlations with a difference less than \code{epsilon},
+will be classified as identical.}
 
-\item{epsilon}{TODO}
+\item{prior.diagonal}{When \code{strategy="prior"}, \code{prior.diagonal} is
+added to the diagonal of the prior precision matrix to avoid singularities}
 
-\item{prior.diagonal}{TODO}
+\item{keep}{For \code{strategy="prior"}, then this gives a vector of the
+name of model-components TO USE when computing the groups. See the vignette
+for details. Not both of \code{keep} and \code{remove} can be defined.}
 
-\item{correct.hyperpar}{TODO}
+\item{remove}{For \code{strategy="prior"}, then this gives a vector of the
+name of model-components NOT TO USE when computing the groups. See the
+vignette for details. Not both of \code{keep} and \code{remove} can be
+defined.}
 
-\item{keep}{TODO}
+\item{remove.fixed}{For \code{strategy="prior"}, this is the default option
+which is in effect if both \code{keep} and \code{remove} are \code{NULL}. If
+\code{TRUE}, it will remove (or condition on) all fixed effects when
+computing the groups. See the vignette for details.}
 
-\item{remove}{TODO}
-
-\item{remove.fixed}{TODO}
+\item{type.cv}{Type of cv, either "single" (default) or "joint"}
 
 \item{...}{Named arguments passed on to the main function}
-
-\item{type}{The type of cv, either "single" (default) or "joint"}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.
@@ -72,8 +93,8 @@ specific input arguments.
 }
 \details{
 (For experts only!) Set control variables for the gcpo in \link{control.compute}.
-The intended use is to use \code{inla.group.cv}.
-Refer to \code{?inla.group.cv} and the vignette for details.
+The intended use is to use \code{\link[=inla.group.cv]{inla.group.cv()}}.
+Refer to \code{\link[=inla.group.cv]{inla.group.cv()}} and the vignette for details.
 }
 \seealso{
 Other control: 
