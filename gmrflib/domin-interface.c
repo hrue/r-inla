@@ -475,7 +475,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		double *f = Calloc(G.nhyper + 1, double);
 
 		int nt = IMIN(G.nhyper + 1, GMRFLib_openmp->max_threads_outer);
-		//nt = GMRFLib_openmp->max_threads_outer;
+		// nt = GMRFLib_openmp->max_threads_outer;
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();

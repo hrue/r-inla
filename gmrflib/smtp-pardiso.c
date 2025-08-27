@@ -327,7 +327,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			}
 			int level = omp_get_level();
 			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
@@ -356,7 +356,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			}
 			int level = omp_get_level();
 			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
@@ -507,7 +507,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp **store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	s->iparm_default[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
 
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
@@ -570,7 +570,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
-	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:

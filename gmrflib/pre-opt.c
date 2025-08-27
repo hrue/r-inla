@@ -259,7 +259,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("whattype");
 
 	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
-	int num_threads_max = (npred >= 1E5 ? GMRFLib_PARDISO_MAX_NUM_THREADS() : num_threads);
+	int num_threads_max = (npred >= 1E5 ? GMRFLib_ADAPTIVE_NUM_THREADS() : num_threads);
 
 	// build up structure for the likelihood part
 
@@ -672,7 +672,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		unsigned int guess[2] = { 0, 0 };
 		unsigned int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
-		int (*fun)(int, int *, unsigned int, unsigned int *) =(m > 32 ? GMRFLib_iwhich_sorted_g2 : GMRFLib_iwhich_sorted_g2_dummy);
+		int (*fun)(int, int *, unsigned int, unsigned int *) = (m > 32 ? GMRFLib_iwhich_sorted_g2 : GMRFLib_iwhich_sorted_g2_dummy);
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {

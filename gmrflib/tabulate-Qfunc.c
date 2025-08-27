@@ -408,22 +408,23 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 * 
 	 */
 
-	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-
+	const int off = 0;
 	/*
 	 * step 1. build the graph 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
-
 	GMRFLib_ged_init(&ged, NULL);
 
+#if 0
+	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	for (i = 0; i < ntriples; i++) {
 		imin = IMIN(imin, ilist[i]);
 		jmin = IMIN(jmin, jlist[i]);
 	}
 	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
 	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+#endif
 
 	/*
 	 * to fix the dimension, possibly padding with zero's 
@@ -433,7 +434,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 		GMRFLib_ged_add(ged, dim - 1, dim - 1);
 	}
 
-	for (i = 0; i < ntriples; i++) {
+	for (int i = 0; i < ntriples; i++) {
 		GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
 	}
 
@@ -454,7 +455,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
-		for (i = 0; i < tmax; i++) {
+		for (int i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
 	} else {
@@ -465,26 +466,23 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc((*graph)->n, map_id);
-	for (i = 0; i < (*graph)->n; i++) {
+	for (int i = 0; i < (*graph)->n; i++) {
 		arg->values[i] = work + i;
 	}
 
-//#pragma omp parallel for private(i)
-	for (i = 0; i < (*graph)->n; i++) {
-		int j, jj;
+	for (int i = 0; i < (*graph)->n; i++) {
 		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);
-		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
-			j = (*graph)->lnbs[i][jj];
+		for (int jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
+			int j = (*graph)->lnbs[i][jj];
 			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
 
-	for (i = 0; i < ntriples; i++) {
-		int ii, jj;
+	for (int i = 0; i < ntriples; i++) {
 		if (ilist[i] <= jlist[i]) {
-			ii = ilist[i] - off;
-			jj = jlist[i] - off;
+			int ii = ilist[i] - off;
+			int jj = jlist[i] - off;
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
@@ -504,15 +502,18 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	 * 
 	 */
 
-	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-
-	for (i = 0; i < ntriples; i++) {
+	const int off = 0;
+#if 0
+	int imin = INT_MAX, jmin = INT_MAX, off;
+	for (int i = 0; i < ntriples; i++) {
 		imin = IMIN(imin, ilist[i]);
 		jmin = IMIN(jmin, jlist[i]);
 	}
 	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
 	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+	assert(off == 0);
+#endif
 
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
@@ -524,7 +525,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	if (log_prec_omp != NULL) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
-		for (i = 0; i < tmax; i++) {
+		for (int i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
 	} else {
@@ -535,25 +536,20 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc(graph->n, map_id);
-	for (i = 0; i < graph->n; i++) {
+	for (int i = 0; i < graph->n; i++) {
 		arg->values[i] = work + i;
-	}
-	for (i = 0; i < graph->n; i++) {
-		int j, jj;
-
 		map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);
-		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
-			j = graph->lnbs[i][jj];
+		for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+			int j = graph->lnbs[i][jj];
 			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
 
-	for (i = 0; i < ntriples; i++) {
-		int ii, jj;
+	for (int i = 0; i < ntriples; i++) {
 		if (ilist[i] <= jlist[i]) {
-			ii = ilist[i] - off;
-			jj = jlist[i] - off;
+			int ii = ilist[i] - off;
+			int jj = jlist[i] - off;
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}

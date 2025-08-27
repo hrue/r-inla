@@ -51,7 +51,7 @@ int inla_INLA(inla_tp *mb)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_ADAPTIVE_NUM_THREADS());
 		}
 		if (GMRFLib_openmp->blas_num_threads_force) {
 			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
@@ -609,7 +609,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_ADAPTIVE_NUM_THREADS());
 		}
 		if (GMRFLib_openmp->blas_num_threads_force) {
 			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
@@ -789,7 +789,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_ADAPTIVE_NUM_THREADS());
 		}
 		if (GMRFLib_openmp->blas_num_threads_force) {
 			printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);

@@ -5239,15 +5239,11 @@ int testit(int argc, char **argv)
 
 	case 167:
 	{
-		int GMRFLib_stiles_test(void);
-		GMRFLib_stiles_test();
 	}
 		break;
 
 	case 168:
 	{
-		int GMRFLib_stiles_test2(void);
-		GMRFLib_stiles_test2();
 	}
 		break;
 
@@ -5335,6 +5331,7 @@ int testit(int argc, char **argv)
 			GMRFLib_stiles_bind(&stiles_idx);
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph,
 					     NULL, &stiles_idx, (GMRFLib_smtp_tp *) & smtp);
+			GMRFLib_stiles_unbind(&stiles_idx);
 		}
 		GMRFLib_stiles_print(stdout);
 

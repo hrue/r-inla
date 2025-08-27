@@ -17,6 +17,7 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
+	double tref = GMRFLib_timer();
 	GMRFLib_STOP_IF_NOT_SERIAL();
 
 	GMRFLib_ptr_tp *graphs = setup->graphs;
@@ -31,7 +32,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 
 	int nt_outer = GMRFLib_openmp->max_threads_nested[0];
 	int nt_inner = GMRFLib_openmp->max_threads_nested[1];
-	int nt_special = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	int nt_special = GMRFLib_ADAPTIVE_NUM_THREADS();
 	int ng = graphs->n;
 	int ng2 = 2 * ng;
 
@@ -57,7 +58,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	int *cores_g = Malloc(ng2, int);
 	int *zeros = Calloc(ng2, int);
 	GMRFLib_ifill(ng, nt_outer, calls_g);
-	GMRFLib_ifill(ng, nt_inner * nt_outer, cores_g);      /* yes, the total number of threads for one group of matrices */
+	GMRFLib_ifill(ng, nt_inner * nt_outer, cores_g);       /* yes, the total number of threads for one group of matrices */
 	GMRFLib_ifill(ng, 1, calls_g + ng);
 	GMRFLib_ifill(ng, nt_special * 1, cores_g + ng);
 
@@ -101,6 +102,11 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		GMRFLib_bfill(store->n_within_group[i], false, store->bind_done[i]);
 	}
 
+	// prepare for parallel, but it seems not worth it at the moment.
+	// anyway, we build first, then store
+	int **sidx_i = Calloc(ng, int *);
+	int **sidx_j = Calloc(ng, int *);
+
 	for (int ig = 0; ig < ng; ig++) {
 		GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) (graphs->ptr[ig]);
 		int nz = g->n + g->nnz / 2;
@@ -110,7 +116,6 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		for (int i = 0; i < g->n; i++) {
 			idx_i[k] = i;
 			idx_j[k++] = i;
-
 			int m = g->lnnbs[i];
 			if (m) {
 				GMRFLib_ifill(m, i, idx_i + k);
@@ -119,34 +124,39 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 			}
 		}
 		assert(k == nz);
-
-		// ptr's are stored, contents not copied, so we need to free them later.
-		// since sTiles wants the lower triangular matrix, we just swap 'idx_i' and 'idx_j'
-
-		sTiles_assign_graph(ig, &(store->obj), g->n, nz, idx_j, idx_i);	/* oops, yes we swap */
-		sTiles_assign_graph(ig + ng, &(store->obj), g->n, nz, idx_j, idx_i);	/* oops, yes we swap */
-		GMRFLib_ptr_add(&free_ptrs, idx_i);
-		GMRFLib_ptr_add(&free_ptrs, idx_j);
+		sidx_i[ig] = idx_i;
+		sidx_j[ig] = idx_j;
 	}
 
-	for (int i = 0; i < ng2; i++) {
-		sTiles_init_group(i, &(store->obj));
+	// ptr's are stored, contents not copied, so we need to free them later.
+	// since sTiles wants the lower triangular matrix, we just swap 'idx_i' and 'idx_j'
+	for (int ig = 0; ig < ng; ig++) {
+		GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) (graphs->ptr[ig]);
+		int nz = g->n + g->nnz / 2;
+		sTiles_assign_graph(ig, &(store->obj), g->n, nz, sidx_j[ig], sidx_i[ig]);	/* oops, yes we swap */
+		sTiles_assign_graph(ig + ng, &(store->obj), g->n, nz, sidx_j[ig], sidx_i[ig]);	/* oops, yes we swap */
+		GMRFLib_ptr_add(&free_ptrs, sidx_i[ig]);
+		GMRFLib_ptr_add(&free_ptrs, sidx_j[ig]);
 	}
+	Free(sidx_i);
+	Free(sidx_j);
+
+	sTiles_init(&(store->obj));
 
 	store->perm = Calloc(ng2, int *);
 	store->iperm = Calloc(ng2, int *);
 	for (int i = 0; i < ng2; i++) {
 		int *p = sTiles_return_perm_vec(i, &(store->obj));
+		int *pi = sTiles_return_iperm_vec(i, &(store->obj));
 		store->perm[i] = Malloc(store->n[i], int);
-		Memcpy(store->perm[i], p, store->n[i] * sizeof(int));
-		
-		p = sTiles_return_iperm_vec(i, &(store->obj));
 		store->iperm[i] = Malloc(store->n[i], int);
-		Memcpy(store->iperm[i], p, store->n[i] * sizeof(int));
+		Memcpy(store->perm[i], p, store->n[i] * sizeof(int));
+		Memcpy(store->iperm[i], pi, store->n[i] * sizeof(int));
 	}
 
 	Free(zeros);
 	Free(inv);
+	store->wtime = GMRFLib_timer() - tref;
 
 	if (ctl->verbose) {
 		GMRFLib_stiles_print(stdout);
@@ -165,14 +175,9 @@ void GMRFLib_stiles_quit(void)
 	// int nt_outer = store->nt_outer;
 	// int nt_inner = store->nt_inner;
 
-	for (int g = 0; g < store->n_in_group; g++) {
-		for (int k = 0; k < store->n_within_group[g]; k++) {
-			GMRFLib_stiles_idx_tp stiles_idx = { g, k, -1 };
-			GMRFLib_stiles_unbind(&stiles_idx);
-		}
-	}
-
+	GMRFLib_stiles_unbind_all();
 	sTiles_quit();
+
 	if (free_ptrs) {
 		for (int i = 0; i < free_ptrs->n; i++) {
 			Free(free_ptrs->ptr[i]);
@@ -224,24 +229,25 @@ void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp)
 		__FILE__, __LINE__, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->nrhs);
 }
 
-int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs) 
+int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	return GMRFLib_stiles_set_idx(stiles_idx,  nrhs);
+	return GMRFLib_stiles_set_idx(stiles_idx, nrhs);
 }
 
-int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs) 
+int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
 	GMRFLib_stiles_idx_tp lidx;
 	Memcpy(&lidx, stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
 	lidx.in_group += store->ng;
 	return GMRFLib_stiles_set_idx(&lidx, nrhs);
 }
-	
+
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 {
-	
+
 	// rewrite ->within_group using omp_get_thread_num(), keep in_group fixed
-	if (!store) return GMRFLib_SUCCESS;
+	if (!store)
+		return GMRFLib_SUCCESS;
 
 	int nt = omp_get_thread_num();
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -255,7 +261,7 @@ int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 			stiles_idx->within_group = nt;
 		}
 	}
-	
+
 	stiles_idx->within_group = (nt % store->n_within_group[stiles_idx->in_group]);
 	stiles_idx->nrhs = nrhs;
 
@@ -271,9 +277,10 @@ void GMRFLib_stiles_print(FILE *fp)
 {
 #pragma omp critical (Name_4c8dac87b14702b8de3511c972d6b27af33cc04c)
 	{
-		fprintf(fp, "\n\ncontent of 'store':\n");
-		fprintf(fp, "\t\tngroup[%1d] verbose[%1d] tile.size[%1d] ng[%1d] ng2[%1d]\n", store->n_in_group, ctl->verbose, GMRFLib_stiles_get_tile_size(), store->ng, store->ng2);
-		fprintf(fp, "\t\tnt_outer[%1d] nt_inner[%1d] nt_special[%1d]\n", store->nt_outer, store->nt_inner, store->nt_special);
+		fprintf(fp, "\n\ncontent of 'store' (computed in %.3fs):\n", store->wtime);
+		fprintf(fp, "\tngroup[%1d] verbose[%1d] tile.size[%1d] ng[%1d] ng2[%1d]\n", store->n_in_group, ctl->verbose,
+			GMRFLib_stiles_get_tile_size(), store->ng, store->ng2);
+		fprintf(fp, "\tnt_outer[%1d] nt_inner[%1d] nt_special[%1d]\n", store->nt_outer, store->nt_inner, store->nt_special);
 
 		for (int i = 0; i < store->n_in_group; i++) {
 			fprintf(fp, "\tgroup[%1d]: n[%1d] nnz[%1d] n_within_group[%1d] n_cores_group[%1d]\n",
@@ -302,7 +309,7 @@ void GMRFLib_stiles_print(FILE *fp)
 				if (perm_identity) {
 					fprintf(fp, "\t\tperm[%1d] = identity\n", i);
 				}
-			} 
+			}
 
 			printf("\t\tQinv_done: ");
 			for (int j = 0; j < store->n_within_group[i]; j++) {
@@ -371,7 +378,7 @@ void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp *setup)
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 #if 0
-	FIXME("CHOL ENTER");
+	// FIXME("CHOL ENTER");
 	double tref = -GMRFLib_timer();
 #endif
 
@@ -388,7 +395,7 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 		fflush(stderr);
 	}
 #if 0
-#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)
+//#pragma omp critical (Name_a59d65352b63a2cd6aac7d155e2f7f307080c4d0)
 	{
 		tref += GMRFLib_timer();
 		printf("CHOL LEAVE thread %d num_threads %d time %f\n", omp_get_thread_num(), omp_get_num_threads(), tref);
@@ -487,7 +494,6 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	Memcpy(&lidx, stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
 	lidx.within_group = omp_get_thread_num();
 	GMRFLib_stiles_bind(&lidx);
-	P(stiles_idx->nrhs);
 	sTiles_solve_LLT(stiles_idx->in_group, stiles_idx->within_group, &(store->obj), rhs, stiles_idx->nrhs);
 	GMRFLib_stiles_unbind(&lidx);
 
@@ -628,287 +634,3 @@ int GMRFLib_stiles_get_tile_size(void)
 	return (ctl ? ctl->tile_size : 0);
 #endif
 }
-
-
-//
-//
-// TEST FUNCTIONS GOES HERE. not sure they are correc anymore...
-//
-//
-#if defined(INLA_WITH_DEVEL)
-
-double GMRFLib_stiles_test_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *args)
-{
-	if (j < 0)
-		return NAN;
-
-	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) args;
-	return (double) ((i == j) ? ISQR(g->n) + 2 * i : -(1 + IMIN(i, j)));
-}
-
-double GMRFLib_stiles_test_Qfunc2(int thread_id, int i, int j, double *values, void *args)
-{
-	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) args;
-	if (j < 0) {
-		int k = 0;
-		values[k++] = GMRFLib_stiles_test_Qfunc(thread_id, i, i, NULL, args);
-		for (int jj = 0; jj < g->lnnbs[i]; jj++) {
-			j = g->lnbs[i][jj];
-			values[k++] = GMRFLib_stiles_test_Qfunc(thread_id, i, j, NULL, args);
-		}
-	} else {
-		return GMRFLib_stiles_test_Qfunc(thread_id, i, j, NULL, args);
-	}
-	return 0.0;
-}
-
-double GMRFLib_stiles_test_Qfunc3(int thread_id, int i, int j, double *values, void *args)
-{
-	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) args;
-	int n = g->n;
-	double n2 = n * 2.0;
-
-	if (j < 0) {
-		int k = 0;
-		values[k++] = (2.0 * n + 1.0 + thread_id) / n2;
-		for (int jj = 0; jj < g->lnnbs[i]; jj++) {
-			j = g->lnbs[i][jj];
-			values[k++] = -1.0 / n2;
-		}
-	} else {
-		if (i == j) {
-			return (2.0 * n + 1.0 + thread_id) / n2;
-		} else {
-			return -1.0 / n2;
-		}
-	}
-	return 0.0;
-}
-
-int GMRFLib_stiles_test(void)
-{
-	GMRFLib_STOP_IF_NOT_SERIAL();
-
-	GMRFLib_stiles_idx_tp *stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
-
-	GMRFLib_stiles_set_ctl(0, 0);
-
-	int n[4] = { 7, 7, 7, 7 };
-	GMRFLib_graph_tp *g[4] = { NULL, NULL, NULL, NULL };
-
-	GMRFLib_graph_mk_linear(&(g[0]), n[0], 1, 0);
-	GMRFLib_graph_mk_linear(&(g[1]), n[1], 1, 0);
-	GMRFLib_graph_mk_linear(&(g[2]), n[2], 1, 0);
-	GMRFLib_graph_mk_linear(&(g[3]), n[3], 1, 0);
-
-	GMRFLib_ptr_tp *graphs = NULL;
-	GMRFLib_ptr_add(&graphs, g[0]);
-	GMRFLib_ptr_add(&graphs, g[1]);
-	GMRFLib_ptr_add(&graphs, g[2]);
-	GMRFLib_ptr_add(&graphs, g[3]);
-
-	GMRFLib_stiles_setup_tp setup = { graphs, NULL };
-	GMRFLib_stiles_setup(&setup);
-
-	if (0) {
-		GMRFLib_printf_graph(stdout, g[0]);
-		GMRFLib_printf_graph(stdout, g[1]);
-		GMRFLib_printf_graph(stdout, g[2]);
-		GMRFLib_printf_graph(stdout, g[3]);
-	}
-
-	GMRFLib_tabulate_Qfunc_tp *tab[2] = { NULL, NULL };
-	GMRFLib_tabulate_Qfunc(0, &(tab[0]), g[0], GMRFLib_stiles_test_Qfunc, (void *) g[0], NULL);
-	GMRFLib_tabulate_Qfunc(0, &(tab[1]), g[1], GMRFLib_stiles_test_Qfunc2, (void *) g[1], NULL);
-
-	stiles_idx->in_group = 0;
-	GMRFLib_stiles_build(stiles_idx, 0, GMRFLib_stiles_test_Qfunc, (void *) g[0]);
-	stiles_idx->in_group = 1;
-	GMRFLib_stiles_build(stiles_idx, 0, GMRFLib_stiles_test_Qfunc2, (void *) g[1]);
-	stiles_idx->in_group = 2;
-	GMRFLib_stiles_build(stiles_idx, 0, tab[0]->Qfunc, tab[0]->Qfunc_arg);
-	stiles_idx->in_group = 3;
-	GMRFLib_stiles_build(stiles_idx, 0, tab[1]->Qfunc, tab[1]->Qfunc_arg);
-
-	double *rhs = Malloc(n[0], double);
-
-	stiles_idx->in_group = 0;
-	sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
-	GMRFLib_stiles_chol(stiles_idx);
-
-	for (int i = 0; i < n[0]; i++) {
-		rhs[i] = i;
-	}
-
-	stiles_idx->in_group = 0;
-	GMRFLib_stiles_solve_LLT(stiles_idx, rhs);
-	for (int i = 0; i < n[0]; i++) {
-		printf("solve_LLT[%1d] = %f\n", i, rhs[i]);
-	}
-
-	for (int i = 0; i < n[0]; i++) {
-		rhs[i] = i;
-		printf("rhs[%1d] = %f\n", i, rhs[i]);
-	}
-	GMRFLib_stiles_solve_L(stiles_idx, rhs);
-	for (int i = 0; i < n[0]; i++) {
-		printf("solve_L[%1d] = %f\n", i, rhs[i]);
-	}
-
-	for (int i = 0; i < n[0]; i++) {
-		rhs[i] = i;
-		printf("rhs[%1d] = %f\n", i, rhs[i]);
-	}
-	GMRFLib_stiles_solve_LT(stiles_idx, rhs);
-	for (int i = 0; i < n[0]; i++) {
-		printf("solve_LT[%1d] = %f\n", i, rhs[i]);
-	}
-
-	stiles_idx->in_group = 1;
-	sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
-	GMRFLib_stiles_chol(stiles_idx);
-
-	stiles_idx->in_group = 2;
-	sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
-	GMRFLib_stiles_chol(stiles_idx);
-
-	stiles_idx->in_group = 3;
-	sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
-	GMRFLib_stiles_chol(stiles_idx);
-
-	for (int i = 0; i < n[0]; i++) {
-		printf("perm[%1d] = %1d iperm = %1d\n", i, store->perm[0][i], store->iperm[0][i]);
-	}
-
-	stiles_idx->in_group = 0;
-	printf("Q[0]->logdet %f\n", GMRFLib_stiles_logdet(stiles_idx));
-	stiles_idx->in_group = 1;
-	printf("Q[1]->logdet %f\n", GMRFLib_stiles_logdet(stiles_idx));
-	stiles_idx->in_group = 2;
-	printf("Q[2]->logdet %f\n", GMRFLib_stiles_logdet(stiles_idx));
-	stiles_idx->in_group = 3;
-	printf("Q[3]->logdet %f\n", GMRFLib_stiles_logdet(stiles_idx));
-
-	stiles_idx->in_group = 0;
-	GMRFLib_stiles_Qinv(stiles_idx);
-	for (int i = 0; i < g[0]->n; i++) {
-		printf("Qinv[%1d, %1d] = %.8f\n", i, i, GMRFLib_stiles_Qinv_get(i, i, stiles_idx));
-		for (int jj = 0; jj < g[0]->nnbs[i]; jj++) {
-			int j = g[0]->nbs[i][jj];
-			printf("\tQinv[%1d, %1d] = %.8f\n", i, j, GMRFLib_stiles_Qinv_get(i, j, stiles_idx));
-		}
-	}
-
-	FILE *fp = fopen("Q1.txt", "w");
-	GMRFLib_printf_Qfunc(0, fp, g[0], GMRFLib_stiles_test_Qfunc, (void *) g[0]);
-	fclose(fp);
-
-	GMRFLib_stiles_print(stdout);
-
-	GMRFLib_stiles_quit();
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_stiles_test2(void)
-{
-	GMRFLib_STOP_IF_NOT_SERIAL();
-
-	GMRFLib_graph_tp *graph = NULL;
-	GMRFLib_graph_read(&graph, "germany.graph");
-	int n = graph->n;
-
-	GMRFLib_constr_tp *constr = NULL;
-	GMRFLib_make_empty_constr(&constr);
-	int nc = 5;
-	constr->a_matrix = Calloc(nc * n, double);
-	constr->e_vector = Calloc(nc, double);
-	for (int i = 0; i < n * nc; i++) {
-		constr->a_matrix[i] = GMRFLib_uniform();
-	}
-	for (int i = 0; i < nc; i++) {
-		constr->e_vector[i] = GMRFLib_uniform();
-	}
-	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
-
-	int thread_id = 0;
-
-	GMRFLib_ptr_tp *graphs = NULL;
-	GMRFLib_ptr_add(&graphs, graph);
-	GMRFLib_stiles_setup_tp setup = { graphs, NULL };
-	GMRFLib_stiles_setup(&setup);
-
-	GMRFLib_stiles_idx_tp *stiles_idx;
-	stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
-	stiles_idx->in_group = 0;
-	stiles_idx->within_group = 0;
-
-	double *b = Malloc(n, double);
-	for (int i = 0; i < n; i++) {
-		b[i] = n * (i - n / 2.0);		       // / (double) n;
-	}
-
-	GMRFLib_smtp_tp smtp = GMRFLib_SMTP_TAUCS;
-	GMRFLib_problem_tp *problem = NULL;
-	GMRFLib_init_problem(thread_id, &problem, NULL, b, NULL, NULL, graph, GMRFLib_stiles_test_Qfunc, (void *) graph, constr, stiles_idx, &smtp);
-	GMRFLib_compute_Qinv_TAUCS(problem);
-	double *v = Malloc(n, double);
-	for (int i = 0; i < n; i++) {
-		v[i] = *GMRFLib_Qinv_get(problem, i, i);
-	}
-
-	smtp = GMRFLib_SMTP_STILES;
-	GMRFLib_problem_tp *problem2 = NULL;
-
-	GMRFLib_stiles_bind(stiles_idx);
-	GMRFLib_init_problem(thread_id, &problem2, NULL, b, NULL, NULL, graph, GMRFLib_stiles_test_Qfunc, (void *) graph, constr,
-			     stiles_idx, &smtp);
-
-	GMRFLib_compute_Qinv(problem2);
-	P(sTiles_get_selinv_elm(stiles_idx->in_group, stiles_idx->within_group, 0, 0, &(store->obj)));
-	P(*GMRFLib_Qinv_get(problem2, 0, 0));
-
-	GMRFLib_compute_Qinv(problem2);
-	P(sTiles_get_selinv_elm(stiles_idx->in_group, stiles_idx->within_group, 0, 0, &(store->obj)));
-	P(*GMRFLib_Qinv_get(problem2, 0, 0));
-
-
-	double *v2 = Malloc(n, double);
-	for (int i = 0; i < n; i++) {
-		v2[i] = *GMRFLib_Qinv_get(problem2, i, i);
-	}
-
-	double err_diff_mean = 0.0;
-	double err_diff_var = 0.0;
-	for (int i = 0; i < n; i++) {
-		err_diff_mean += SQR(problem->mean_constr[i] - problem2->mean_constr[i]);
-		err_diff_var += SQR(1.0 - v2[i] / v[i]);
-	}
-
-	P(sqrt(err_diff_mean / n));
-	P(sqrt(err_diff_var / n));
-
-	for (int k = 0; k < 100; k++) {
-		b = Malloc(n, double);
-
-		GMRFLib_stiles_bind(stiles_idx);
-		GMRFLib_init_problem(thread_id, &problem2, NULL, b, NULL, NULL, graph, GMRFLib_stiles_test_Qfunc, (void *) graph,
-				     constr, stiles_idx, &smtp);
-		GMRFLib_compute_Qinv(problem2);
-		P(*GMRFLib_Qinv_get(problem2, 0, 0));
-
-		for (int i = 0; i < n; i++)
-			b[i] = GMRFLib_uniform();
-		GMRFLib_solve_llt_sparse_matrix(b, 1, &(problem2->sub_sm_fact), graph, problem2, NULL);
-		GMRFLib_solve_lt_sparse_matrix(b, 1, &(problem2->sub_sm_fact), graph, problem2);
-		GMRFLib_solve_l_sparse_matrix(b, 1, &(problem2->sub_sm_fact), graph, problem2);
-		for (int i = 0; i < n; i++)
-			assert(!ISNAN(b[i]));
-		Free(b);
-
-		GMRFLib_free_problem(problem2);
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
-#endif							       // defined(INLA_WITH_DEVEL)

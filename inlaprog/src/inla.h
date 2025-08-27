@@ -2253,6 +2253,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
 int inla_sread(void *x, int nx, const char *str, int code);
 int inla_sread_colon_ints(int *i, int *j, const char *str);
+int inla_sread_colon_ints3(int *i, int *j, int *k, const char *str);
 int inla_sread_doubles(double *x, int nx, const char *str);
 int inla_sread_doubles_q(double **x, int *nx, const char *str);
 int inla_sread_ints(int *x, int nx, const char *str);
@@ -2381,8 +2382,8 @@ int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			     char **arg_str);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *), char **arg_str);
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *), char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,

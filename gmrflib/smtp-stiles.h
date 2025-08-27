@@ -55,6 +55,7 @@ typedef struct {
 	bool **bind_done;
 	GMRFLib_ptr_tp *graphs;
 	void *obj;
+	double wtime;
 } GMRFLib_stiles_store_tp;
 
 
@@ -66,9 +67,6 @@ typedef struct {
 GMRFLib_stiles_setup_tp *GMRFLib_stiles_get_setup(void *mb);
 double GMRFLib_stiles_Qinv_get(int i, int j, GMRFLib_stiles_idx_tp * stiles_idx);
 double GMRFLib_stiles_logdet(GMRFLib_stiles_idx_tp * stiles_idx);
-double GMRFLib_stiles_test_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *args);
-double GMRFLib_stiles_test_Qfunc2(int thread_id, int i, int j, double *values, void *args);
-double GMRFLib_stiles_test_Qfunc3(int thread_id, int i, int j, double *values, void *args);
 int *GMRFLib_stiles_get_iperm(GMRFLib_stiles_idx_tp * stiles_idx);
 int *GMRFLib_stiles_get_perm(GMRFLib_stiles_idx_tp * stiles_idx);
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp * problem);
@@ -77,15 +75,12 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp * stiles_idx);
 int GMRFLib_stiles_get_tile_size(void);
 int GMRFLib_stiles_set_ctl(int verbose, int tile_size);
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
-int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs);
-int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs);
+int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
+int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp * setup);
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
-int GMRFLib_stiles_test(void);
-int GMRFLib_stiles_test2(void);
-int GMRFLib_stiles_test3(void);
 int GMRFLib_stiles_get_verbose();
 void *GMRFLib_stiles_get_store_ptr(void);
 void GMRFLib_stiles_Qinv(GMRFLib_stiles_idx_tp * stiles_idx);

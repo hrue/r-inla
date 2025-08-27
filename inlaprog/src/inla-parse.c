@@ -459,7 +459,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		} else if (!strcasecmp(smtp, "STILES")) {
 			GMRFLib_smtp = GMRFLib_SMTP_STILES;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
-			GMRFLib_openmp->adaptive = TRUE;
+			if (!GMRFLib_openmp->adaptive) {
+				GMRFLib_openmp->adaptive = IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2);
+			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_ok < 0) {
 				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
@@ -17290,8 +17292,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		// save the indices for the graph, as we need them repeatedly
 		def->len_list = graph->nnz / 2 + graph->n;
-		def->ilist = Calloc(def->len_list, int);
-		def->jlist = Calloc(def->len_list, int);
+		def->ilist = Malloc(def->len_list, int);
+		def->jlist = Malloc(def->len_list, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
 			def->ilist[k] = i;
 			def->jlist[k] = i;
@@ -17306,8 +17308,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		def_orig->len_list = def->len_list;
-		def_orig->ilist = Calloc(def_orig->len_list, int);
-		def_orig->jlist = Calloc(def_orig->len_list, int);
+		def_orig->ilist = Malloc(def_orig->len_list, int);
+		def_orig->jlist = Malloc(def_orig->len_list, int);
 		Memcpy(def_orig->ilist, def->ilist, def->len_list * sizeof(int));
 		Memcpy(def_orig->jlist, def->jlist, def->len_list * sizeof(int));
 

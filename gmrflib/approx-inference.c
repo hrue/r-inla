@@ -648,16 +648,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	int level = omp_get_level();
 	int tnum = omp_get_thread_num();
-	int num_threads = (GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_PARDISO_MAX_NUM_THREADS() :  GMRFLib_openmp->max_threads_inner);
+	int num_threads = (GMRFLib_OPENMP_IN_SERIAL()? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
 
-	GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0};
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 	GMRFLib_stiles_set_idx(&stiles_idx, 1);
-
-	if (GMRFLib_OPENMP_IN_SERIAL()) {
-		FIXME("ENTER SERIAL");
-		P(stiles_idx.in_group);
-		P(num_threads);
-	}
 
 	/*
 	 * This is copy of the original routine but with optional arguments 
@@ -1737,10 +1731,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double step = M_SQRT2;
 				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 				GMRFLib_ai_store_tp *s = NULL;
-				
+
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 				GMRFLib_stiles_set_idx(&stiles_idx, 1);
-				
+
 				zz = Calloc(nhyper, double);
 				ttheta = Calloc(nhyper, double);
 				GMRFLib_dfill(nhyper, 0.0, zz);
@@ -3188,7 +3182,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	if (deviance_theta) {
 		for (int i = 0; i < preopt->Npred; i++) {
 			if (deviance_theta[i]) {
-				for(int j = 0; j < dens_max; j++) {
+				for (int j = 0; j < dens_max; j++) {
 					Free(deviance_theta[i][j]);
 				}
 			}
@@ -4103,12 +4097,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int nnode = groups->missing[node]->idx[0][k];
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
-							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
-							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4190,12 +4182,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int nnode = groups->missing[node]->idx[0][k];
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
-							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
-							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4288,12 +4278,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int nnode = groups->missing[node]->idx[0][k];
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
-							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
-							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
@@ -4380,12 +4368,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							int nnode = groups->missing[node]->idx[0][k];
 							int cm_idx = groups->missing[node]->idx[1][k];
 							gsl_matrix *mat = gcpo[cm_idx]->cov_mat;
-							int ii =
-							    GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
-							int jj =
-							    GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
-										  (unsigned int) gcpo[cm_idx]->idxs->n);
+							int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
+							int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx,
+										       (unsigned int) gcpo[cm_idx]->idxs->n);
 							assert(ii >= 0 && jj >= 0);
 							gsl_matrix_set(mat, ii, ii, lpred_variance[node]);
 							if (jj != ii) {
