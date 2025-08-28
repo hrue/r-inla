@@ -448,6 +448,10 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 
 	smtp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
 					  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ? Strdup("PARDISO") : Strdup("DEFAULT"))));
+	if (GMRFLib_force_stiles) {
+		smtp = Strdup("STILES");
+	}
+
 	if (smtp) {
 		if (!strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;

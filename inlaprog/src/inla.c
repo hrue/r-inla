@@ -7054,8 +7054,15 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "d:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
 		switch (opt) {
+		case 'E': 
+		{
+			GMRFLib_force_stiles = 1;
+			printf("force the use sTiles\n");
+		}
+		break;
+		
 		case 'P':
 		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
