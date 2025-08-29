@@ -431,7 +431,6 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
 	int rebuild, id = 0;
-	const int debug = 0;
 
 	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -442,76 +441,44 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 	}
 
 	if (rebuild) {
-		int *ilist = NULL, *jlist = NULL, n, len, k = 0;
-		double *Qijlist = NULL, *x_out = NULL;
+		int n, len, k = 0;
 		rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 		if (!rebuild) {
 			for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
 				rebuild = (a->param[id][ii] != a->theta[ii][thread_id][0]);
-				if (debug) {
-					printf("\t\tid= %1d thread_id=%1d theta[%1d] %.12f\n", id, thread_id, ii, a->theta[ii][thread_id][0]);
-				}
 			}
 		}
 
 		if (rebuild) {
-			if (debug) {
-				printf("Qfunc_cgeneric: Rebuild Q-hash for id %d thread_id %d\n", id, thread_id);
-			}
 			if (a->Q[id]) {
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
 			}
-			double *a_tmp = Calloc(a->ntheta, double);
+			double *a_tmp = Malloc(a->ntheta, double);
 			for (int jj = 0; jj < a->ntheta; jj++) {
 				a_tmp[jj] = a->theta[jj][thread_id][0];
-				if (debug) {
-					printf("\ttheta[%1d] %.12f\n", jj, a_tmp[jj]);
-				}
 			}
 
-			if (debug) {
-				printf("\tCall cgeneric\n");
-			}
-			x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
+			double *x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
 			if (a->debug) {
 				inla_cgeneric_debug(stdout, a->secname, INLA_CGENERIC_Q, x_out);
 			}
 
 			assert(a->graph);
 			assert((int) x_out[0] == -1);	       /* ONLY SUPPORT THIS, as its the same in any case... */
-			if ((int) x_out[0] == -1) {
-				// optimized output
-				k = 1;
-				len = (int) x_out[k++];
-				assert(len == a->len_list);
-				n = a->graph->n;
-				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
-			} else {
-				k = 0;
-				n = (int) x_out[k++];
-				len = (int) x_out[k++];
 
-				// we can overlay these arrays to avoid allocating new ones, since x_out is double
-				ilist = (int *) &(x_out[k]);
-				jlist = (int *) &(x_out[k + len]);
-				Qijlist = (double *) &(x_out[k + 2 * len]);
-				for (int jj = 0; jj < len; jj++) {
-					ilist[jj] = (int) x_out[k + jj];
-					jlist[jj] = (int) x_out[k + len + jj];
-				}
+			// optimized output
+			k = 1;
+			len = (int) x_out[k++];
+			assert(len == a->len_list);
+			n = a->graph->n;
+			GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
 
-				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL);
-				assert(a->graph->n == a->n);
-			}
 			Free(x_out);
 			if (a->param[id]) {
 				Memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
 				Free(a_tmp);
 			} else {
 				a->param[id] = a_tmp;
-			}
-			if (debug) {
-				printf("\tRebuild for id %1d done\n", id);
 			}
 		}
 	}
@@ -632,7 +599,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 			if (n > 0) {
 				assert(n == a->n);
 				if (!(a->mu[id])) {
-					a->mu[id] = Calloc(n, double);
+					a->mu[id] = Malloc(n, double);
 				}
 				Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 				a->mu_zero = 0;

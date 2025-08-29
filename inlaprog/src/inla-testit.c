@@ -2621,9 +2621,8 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			double sum = 0.0;
 			start += GMRFLib_timer();
-			int low = 0;
 			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted_g(i, idx, n, &low);
+				int p = GMRFLib_iwhich_sorted(i, idx, (unsigned int) n);
 				if (p >= 0)
 					sum += idx[p];
 			}
@@ -2631,15 +2630,17 @@ int testit(int argc, char **argv)
 
 			double sum2 = 0.0;
 			start2 += GMRFLib_timer();
-			int guess[2] = { 0, 0 };
+			unsigned int guess[2] = { 0, 0 };
 			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted_g2(i, idx, n, guess);
+				int p = GMRFLib_iwhich_sorted_g2(i, idx, (unsigned int) n, guess);
 				if (p >= 0)
 					sum2 += idx[p];
 			}
 			finish2 += GMRFLib_timer();
+			assert(sum == sum2);
+
 			if (k == m - 1)
-				printf("n.lookups= %1d  Time for iwhich_g= %.4g iwhich_g2= %.4g ratio g/g2= %.4f\n",
+				printf("n.lookups= %1d  Time for iwhich= %.4g iwhich_g2= %.4g ratio /g2= %.4f\n",
 				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
 		}
 	}
@@ -5238,22 +5239,16 @@ int testit(int argc, char **argv)
 
 	case 167:
 	{
-		int GMRFLib_stiles_test(void);
-		GMRFLib_stiles_test();
 	}
 		break;
 
 	case 168:
 	{
-		int GMRFLib_stiles_test2(void);
-		GMRFLib_stiles_test2();
 	}
 		break;
 
 	case 169:
 	{
-		int GMRFLib_stiles_test3(void);
-		GMRFLib_stiles_test3();
 	}
 		break;
 
@@ -5336,6 +5331,7 @@ int testit(int argc, char **argv)
 			GMRFLib_stiles_bind(&stiles_idx);
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, testit_Qfunc, (void *) graph,
 					     NULL, &stiles_idx, (GMRFLib_smtp_tp *) & smtp);
+			GMRFLib_stiles_unbind(&stiles_idx);
 		}
 		GMRFLib_stiles_print(stdout);
 

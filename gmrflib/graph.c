@@ -444,6 +444,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->colptr);
 	Free(graph->rowidx);
 	Free(graph->colidx);
+	Free(graph->row2col);
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
@@ -489,40 +490,30 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
-int *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
+#if 1
+int *GMRFLib_bsearch(int key, int n, int *array)
 {
-	int mid, top, val, *piv = NULL, *base = array;
-	int low = 0;
-
-	if (array[guess[0]] <= key) {
-		low = guess[0];
-	}
-
-	base += low;
-	mid = top = n - low;
-
-	while (mid) {
+	// based on 'monobound_binary_search'-code from https://github.com/scandum/binary_search
+	if (n == 0)
+		return NULL;
+	unsigned int bot = 0, mid, top = (unsigned int) n;
+	while (top > 1) {
 		mid = top / 2;
-		piv = base + mid;
-		val = key - *piv;
-		if (val == 0) {
-			guess[0] = piv - array;
-			return piv;
-		}
-		if (val > 0) {
-			base = piv;
+		if (key >= array[bot + mid]) {
+			bot += mid;
 		}
 		top -= mid;
 	}
-
+	if (key == array[bot]) {
+		return array + bot;
+	}
 	return NULL;
 }
-
+#else
 int *GMRFLib_bsearch(int key, int n, int *array)
 {
-	int mid = n;
-	int top = n;
-
+	// old code
+	unsigned int mid = (unsigned int) n, top = mid;
 	while (mid) {
 		mid = top / 2;
 		int *piv = array + mid;
@@ -535,82 +526,13 @@ int *GMRFLib_bsearch(int key, int n, int *array)
 		}
 		top -= mid;
 	}
-
 	return NULL;
 }
-
-int GMRFLib_graph_is_nb_ORIG(int node, int nnode, GMRFLib_graph_tp *graph)
-{
-	int imin, imax;
-	if (node < nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
-	}
-
-	int m = graph->lnnbs[imin];
-	if (m) {
-		int *nb = graph->lnbs[imin];
-		if (imax <= nb[m - 1]) {
-			return (GMRFLib_bsearch(imax, m, nb) != NULL);
-		}
-	}
-
-	return 0;
-}
+#endif
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
-	if (node < nnode) {
-		if (graph->lnnbs[node] <= graph->lnnbs[nnode]) {
-			int m = graph->lnnbs[node];
-			if (m) {
-				int *nb = graph->lnbs[node];
-				if (nnode <= nb[m - 1]) {
-					return (GMRFLib_bsearch(nnode, m, nb) != NULL);
-				}
-			}
-			return 0;
-		} else {
-			int m = graph->snnbs[nnode];
-			if (m) {
-				int *nb = graph->snbs[nnode];
-				if (node >= nb[0]) {
-					return (GMRFLib_bsearch(node, m, nb) != NULL);
-				}
-			}
-			return 0;
-		}
-	} else {
-		if (node != nnode) {
-			return (GMRFLib_graph_is_nb(nnode, node, graph));
-		} else {
-			return 0;
-		}
-	}
-
-	return 0;
-}
-
-int GMRFLib_graph_is_nb_g_________NOT_IN_USE(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
-{
-	/*
-	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
-	 * then they are not neighbours.
-	 */
-
-	assert(node < nnode);
-
-	int m = graph->lnnbs[node];
-	if (m) {
-		int *nb = graph->lnbs[node];
-		if (nnode <= nb[m - 1]) {
-			return (GMRFLib_bsearch2(nnode, m, nb, g) != NULL);
-		}
-	}
-	return 0;
+	return (GMRFLib_bsearch(node, graph->nnbs[nnode], graph->nbs[nnode]) != NULL);
 }
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
@@ -712,7 +634,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row2col[k++] = Q(i, i, 0);
 			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 				int j = graph->snbs[i][jj];
-				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], (unsigned int) graph->lnnbs[j]);
 				row2col[k++] = Q(i, j, kk);
 			}
 		}
@@ -728,7 +650,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 			row2col[k++] = Q(i, i, 0);
 			for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 				int j = graph->snbs[i][jj];
-				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
+				int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], (unsigned int) graph->lnnbs[j]);
 				row2col[k++] = Q(i, j, kk);
 			}
 		}
@@ -1525,13 +1447,18 @@ int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
+int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, int *nt_opt)
 {
 	GMRFLib_ENTER_FUNCTION;
 
-	// taken from GMRFLibP.h
+	// this is the default option (taken from GMRFLibP.h)
 	int nt = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())?
 		  IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner);
+
+	// unless we know otherwise...
+	if (nt_opt) {
+		nt = *nt_opt;
+	}
 
 	int ncol = result->size2;
 	int len = 1 + GMRFLib_graph_max_nnbs(graph);
@@ -1546,7 +1473,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 
 	gsl_matrix_set_zero(result);
 	if (nt > 1) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < graph->n; i++) {
 			int tnum = omp_get_thread_num();
 			double *val = values[tnum];

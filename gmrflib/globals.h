@@ -103,6 +103,8 @@ extern int GMRFLib_cachelinesize;
 extern int GMRFLib_model_idx;
 extern int GMRFLib_model_n;
 
+extern int GMRFLib_force_stiles;
+
 extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];

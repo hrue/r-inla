@@ -507,10 +507,10 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
 
-	static char init_dynamic = 1;
-	if (init_dynamic) {
-		GMRFLib_openmp_dynamic_init(omp_max_max_nested());
-		init_dynamic = 0;
+	static char init_adapt_nt = 1;
+	if (init_adapt_nt) {
+		GMRFLib_adapt_nt_init(omp_max_max_nested());
+		init_adapt_nt = 0;
 	}
 
 	if (debug) {
@@ -561,108 +561,139 @@ void GMRFLib_openmp_timing(void)
 	int nt_def = GMRFLib_MAX_THREADS();
 	char *tag = Strdup("8117db4e4a6ae84f37bb33bd6760734bcf122e0b");
 	while (1) {
-		int nt = GMRFLib_openmp_dynamic_get_nt(tag, 0, 0, nt_def);
+		int nt = GMRFLib_adapt_nt_get(tag, 0, 0, nt_def);
 		double tref = -GMRFLib_timer();
 #pragma omp parallel for num_threads(nt) schedule(static)
 		for (int k = 0; k < m; k++) {
 			GMRFLib_openmp_chunk(nmax, A, b);
 		}
 		tref += GMRFLib_timer();
-		GMRFLib_openmp_dynamic_update(tag, 0, 0, tref);
+		GMRFLib_adapt_nt_update(tag, 0, 0, tref);
 	}
 }
 
-static map_strvp ***dyn_nt = NULL;
-static int dyn_nt_max_levels = -1;
+static map_strvp ***adapt_nt = NULL;
+static int adapt_nt_max_levels = -1;
 
-void GMRFLib_openmp_dynamic_init(int max_levels)
+void GMRFLib_adapt_nt_init(int max_levels)
 {
-	dyn_nt_max_levels = max_levels;
-	dyn_nt = Calloc(max_levels, map_strvp **);
+	adapt_nt_max_levels = max_levels;
+	adapt_nt = Calloc(max_levels, map_strvp **);
 	for (int i = 0; i < max_levels; i++) {
-		dyn_nt[i] = Calloc(1 + GMRFLib_MAX_THREADS(), map_strvp *);
+		adapt_nt[i] = Calloc(1 + GMRFLib_MAX_THREADS(), map_strvp *);
 		for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
-			dyn_nt[i][j] = Calloc(1, map_strvp);
-			map_strvp_init(dyn_nt[i][j]);
+			adapt_nt[i][j] = Calloc(1, map_strvp);
+			map_strvp_init(adapt_nt[i][j]);
 		}
 	}
 }
 
-int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads)
+int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_threads)
 {
-	void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
-	GMRFLib_openmp_dynamic_num_threads_tp *obj = NULL;
+	void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
+	GMRFLib_adapt_nt_tp *obj = NULL;
 	if (!p) {
-		obj = Calloc(1, GMRFLib_openmp_dynamic_num_threads_tp);
+		obj = Calloc(1, GMRFLib_adapt_nt_tp);
 		obj->tag = Strdup(tag);
-		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->min_num_try = 2;
-		obj->done = 0;
-		// code below assumes we need to start with default_num_threads
-		obj->max_nt = obj->best_nt = obj->try_next_nt = default_num_threads;
+		// code in the functions below assumes we need to start with default_num_threads
+		obj->max_nt = obj->best_nt = obj->try_nt = default_num_threads;
+		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
-		map_strvp_set(dyn_nt[level][thread_num], obj->tag, (void *) obj);
+		obj->done = (default_num_threads == 1 ? 1 : 0);
+		obj->step = (obj->max_nt >= 24 ? 8 : (obj->max_nt > 8 ? 4 : 2));
+		map_strvp_set(adapt_nt[level][thread_num], obj->tag, (void *) obj);
 	} else {
-		obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
+		obj = *((GMRFLib_adapt_nt_tp **) p);
 	}
-	return obj->try_next_nt;
+	return obj->try_nt;
 }
 
-void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime)
+void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 {
+	GMRFLib_DEBUG_INIT();
+	int debug = GMRFLib_DEBUG_IF_TRUE();
+
 	if (GMRFLib_opt_num_threads) {
-		int debug = 0;
-		void **p = map_strvp_ptr(dyn_nt[level][thread_num], tag);
+		double fac = 1.0E6;
+		void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
 		assert(p);
-		GMRFLib_openmp_dynamic_num_threads_tp *obj = *((GMRFLib_openmp_dynamic_num_threads_tp **) p);
+		GMRFLib_adapt_nt_tp *obj = *((GMRFLib_adapt_nt_tp **) p);
+
 		obj->tot_times++;
-		obj->ntimes[obj->try_next_nt]++;
-		obj->acc_wtime[obj->try_next_nt] += wtime;
+		obj->ntimes[obj->try_nt]++;
+		obj->acc_wtime[obj->try_nt] += wtime;
 
-		if (!(obj->done)) {
-			if (obj->ntimes[obj->try_next_nt] >= obj->min_num_try) {
-				int step = 2;
-				double time_try_next = obj->acc_wtime[obj->try_next_nt] / obj->ntimes[obj->try_next_nt];
-				double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
+		double time_try = obj->acc_wtime[obj->try_nt] / obj->ntimes[obj->try_nt];
+		double time_best = obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt];
 
-				if (obj->best_nt == obj->max_nt && obj->ntimes[obj->try_next_nt] == obj->min_num_try) {
-					// when its all started, this happens, as we always start with _nt = max_nt
-					obj->try_next_nt = IMAX(1, obj->best_nt - step);
-				} else {
-					if (time_try_next < time_best) {
-						if (debug) {
-							printf("\nFound new best (%.1g, %1d) < (%.1g, %1d)\n\n", time_try_next * 1E6, obj->try_next_nt,
-							       time_best * 1E6, obj->best_nt);
-						}
-						int itmp = obj->try_next_nt;
-						obj->try_next_nt = IMAX(1, IMIN(obj->max_nt, itmp - step));
-						obj->best_nt = itmp;
-					} else {
-						// its over...
-						obj->try_next_nt = obj->best_nt;
-						obj->done = 1;
+		if (obj->done) {
+			return;
+		}
+
+		if (debug) {
+			printf("tag [%s][%1d:%1d] Enter with try = (%1d %.3f) best = (%1d %.3f)\n",
+			       obj->tag, level, thread_num, obj->try_nt, time_try * fac, obj->best_nt, time_best * fac);
+		}
+
+		if (obj->max_nt == 1) {
+			if (debug) {
+				printf("tag [%s][%1d:%1d] Done as max.nt == 1\n", obj->tag, level, thread_num);
+			}
+			obj->done = 1;
+		}
+
+		int allow_early_stop = 1;
+		if (allow_early_stop && (obj->ntimes[obj->try_nt] < obj->min_num_try) && (time_try > time_best)) {
+			// no point of trying more, abort early
+			if (debug) {
+				printf("tag [%s][%1d:%1d] Early stop as 1st try was not successful\n", obj->tag, level, thread_num);
+			}
+			obj->try_nt = obj->best_nt;
+			obj->done = 1;
+
+		} else if (obj->ntimes[obj->try_nt] >= obj->min_num_try) {
+			if (obj->best_nt == obj->max_nt && obj->ntimes[obj->try_nt] == obj->min_num_try) {
+				// when its all started, this happens, as we always start with _nt = max_nt
+				obj->try_nt = IMAX(1, obj->best_nt - obj->step);
+				if (debug) {
+					printf("tag [%s][%1d:%1d] First time: Move to try.nt %1d\n", obj->tag, level, thread_num, obj->try_nt);
+				}
+			} else {
+				if (time_try < time_best) {
+					int itmp = obj->try_nt;
+					obj->try_nt = IMAX(1, IMIN(obj->max_nt, itmp - obj->step));
+					obj->best_nt = itmp;
+					obj->step = (obj->best_nt >= 24 ? 8 : (obj->best_nt > 8 ? 4 : 2));
+					if (debug) {
+						printf("tag [%s][%1d:%1d] Found new best (%1d %.3f)\n", obj->tag, level, thread_num,
+						       obj->best_nt, fac * time_try);
 					}
+				} else {
+					if (debug) {
+						printf("tag [%s][%1d:%1d] Increasing time, stop with  best (%1d %.3f)\n", obj->tag, level,
+						       thread_num, obj->best_nt, fac * time_best);
+					}
+					obj->try_nt = obj->best_nt;
+					obj->done = 1;
 				}
 			}
-			if (debug && !(obj->done)) {
-				printf("[%s][%1d][%1d] UPDATE: next.nt %1d best.nt %1d time*1E6 %1g\n", obj->tag, level, thread_num,
-				       obj->try_next_nt, obj->best_nt, 1.0E6 * obj->acc_wtime[obj->best_nt] / obj->ntimes[obj->best_nt]);
-			}
 		}
 	}
 }
 
-void GMRFLib_openmp_dynamic_print(FILE *fp)
+void GMRFLib_adapt_nt_print(FILE *fp)
 {
 	if (GMRFLib_opt_num_threads) {
 		fp = (fp ? fp : stdout);
-		fprintf(fp, "\nDump of dyn_nt\n");
-		for (int i = 0; i < dyn_nt_max_levels; i++) {
+		fprintf(fp, "\nDump of adapt_nt\n");
+		double tot_save = 0.0;
+		for (int i = 0; i < adapt_nt_max_levels; i++) {
 			for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
-				if (dyn_nt[i][j]) {
+				if (adapt_nt[i][j]) {
 					map_strvp_storage *ptr = NULL;
-					for (ptr = NULL; (ptr = map_strvp_nextptr(dyn_nt[i][j], ptr)) != NULL;) {
-						GMRFLib_openmp_dynamic_num_threads_tp *r = ((GMRFLib_openmp_dynamic_num_threads_tp *) ptr->value);
+					for (ptr = NULL; (ptr = map_strvp_nextptr(adapt_nt[i][j], ptr)) != NULL;) {
+						GMRFLib_adapt_nt_tp *r = ((GMRFLib_adapt_nt_tp *) ptr->value);
 						if (r) {
 							double wtime = 0.0;
 							int ntimes = 0.0;
@@ -673,11 +704,15 @@ void GMRFLib_openmp_dynamic_print(FILE *fp)
 							double tsave = (r->acc_wtime[r->max_nt] / r->ntimes[r->max_nt]) * ntimes - wtime;
 							fprintf(fp, "\t[%s][lev=%1d][th=%1d] best=%1d max=%1d wtime=%.3fs n=%1d (save=%.3fs)\n",
 								r->tag, i, j, r->best_nt, r->max_nt, wtime, ntimes, tsave);
+
+							tot_save += tsave;
 						}
 					}
 				}
 			}
 		}
+		fprintf(fp, "\tTotal wtime saved = %.3fs, estimated wtime = %.3fs saved\n", tot_save,
+			tot_save / GMRFLib_openmp->max_threads_nested[0]);
 		fprintf(fp, "\n");
 	}
 }

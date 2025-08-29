@@ -1412,9 +1412,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	const int debug = 0;
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-	if (!setup && GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_set_idx(&stiles_idx, 1);
-	}
+	GMRFLib_stiles_set_idx(&stiles_idx, 1);
 
 	int theta_free = 0;
 	if (!theta && ntheta > 0) {
@@ -3142,7 +3140,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3258,7 +3255,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3373,7 +3369,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3621,7 +3616,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3730,7 +3724,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3822,7 +3815,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -3918,7 +3910,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -4028,7 +4019,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				while (!ok) {
@@ -4285,7 +4275,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 					if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 						stiles_idx.in_group++;
-						GMRFLib_stiles_bind(&stiles_idx);
 					}
 
 					while (!ok) {
@@ -4471,7 +4460,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 					if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 						stiles_idx.in_group++;
-						GMRFLib_stiles_bind(&stiles_idx);
 					}
 
 					while (!ok) {
@@ -5157,7 +5145,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
@@ -5338,7 +5325,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
@@ -5453,7 +5439,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 					stiles_idx.in_group++;
-					GMRFLib_stiles_bind(&stiles_idx);
 				}
 
 				GMRFLib_init_problem_store(thread_id, &(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i],
@@ -5958,11 +5943,12 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
 		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			printf("\tsTiles tile-size........... [%1d]\n", GMRFLib_stiles_get_tile_size());
+		}
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)..... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
-		}
+		printf("\tnum.threads (adaptive)..... [%1d]\n", GMRFLib_openmp->adaptive);
 		if (GMRFLib_openmp->blas_num_threads_force) {
 			printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads_force);
 		} else {
@@ -7025,7 +7011,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
-	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
+	GMRFLib_openmp->adaptive = 0;
 	GMRFLib_openmp->schedule = omp_sched_guided;
 	GMRFLib_openmp->chunk_size = 0;			       /* guided schedule only */
 	GMRFLib_openmp->likelihood_nt = 0;
@@ -7068,8 +7054,15 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "d:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
 		switch (opt) {
+		case 'E': 
+		{
+			GMRFLib_force_stiles = 1;
+			printf("force the use sTiles\n");
+		}
+		break;
+		
 		case 'P':
 		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
@@ -7191,15 +7184,29 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			int na = 0;
+			if (inla_sread_colon_ints3(&ntt[0], &ntt[1], &na, optarg) == INLA_OK) {
+				assert(na >= 0);
+			}
+
+			if (na || inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
-					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
+					printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], na, GMRFLib_openmp->max_threads);
 				}
 
 				// a hidden option...  enable also if ntt[1] > 1, not only if < 0.
-				if (IMAX(ntt[0], ntt[1]) > 1) {
-					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
+				if (IMAX(ntt[0], ntt[1]) > 1 || na > 0) {
+					if (na > 0) {
+						GMRFLib_openmp->adaptive = IMIN(na, GMRFLib_MAX_THREADS());
+					} else {
+						if (GMRFLib_openmp->max_threads_nested[1] > 1) {
+							GMRFLib_openmp->adaptive =
+							    IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2);
+						} else {
+							GMRFLib_openmp->adaptive = 1;
+						}
+					}
 				}
 				ntt[1] = IABS(ntt[1]);
 
@@ -7358,13 +7365,6 @@ int main(int argc, char **argv)
 		default:
 			_USAGE;
 			exit(EXIT_FAILURE);
-		}
-	}
-
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		if (GMRFLib_openmp->adaptive) {
-			FIXME("set ->adaptive = FALSE due to sTiles");
-			GMRFLib_openmp->adaptive = FALSE;
 		}
 	}
 
@@ -7734,7 +7734,7 @@ int main(int argc, char **argv)
 			}
 			if (verbose) {
 				GMRFLib_remap_print(stdout);
-				GMRFLib_openmp_dynamic_print(stdout);
+				GMRFLib_adapt_nt_print(stdout);
 				printf("\nWall-clock time used on [%s]\n", model_ini);
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {

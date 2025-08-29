@@ -1,3 +1,8 @@
+# INLA 25.08.29
+* More work on the sTiles integration
+* Improved some documentation
+* Code cleanup and improvement
+
 # INLA 25.08.21
 * Improved openmp code
 * Code cleanup and improvement

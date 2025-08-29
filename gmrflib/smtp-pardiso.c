@@ -317,6 +317,20 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		// a bit more manual work
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
+
+			static char *tag = NULL;
+			if (!tag) {
+#pragma omp critical (Name_7600f798b7727e8eb5fbed77a2db305e4db69365)
+				if (!tag) {
+					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+				}
+			}
+			int level = omp_get_level();
+			int tnum = omp_get_thread_num();
+			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+			double tref = -GMRFLib_timer();
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
 				CODE_BLOCK_INIT();			\
@@ -326,9 +340,26 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				}					\
 			}
 
-			RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
+			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
+			tref += GMRFLib_timer();
+			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+
 		} else {
+
+			static char *tag = NULL;
+			if (!tag) {
+#pragma omp critical (Name_5d44f84bdfc2d2b324a71dbddd46ed4c72f4fba7)
+				if (!tag) {
+					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+				}
+			}
+			int level = omp_get_level();
+			int tnum = omp_get_thread_num();
+			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+			double tref = -GMRFLib_timer();
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < M->s->n; i++) {		\
 				CODE_BLOCK_INIT();			\
@@ -336,8 +367,10 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
 
-			RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
+			RUN_CODE_BLOCK(nt_loc, 0, 0);
 #undef CODE_BLOCK
+			tref += GMRFLib_timer();
+			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 		}
 	}
 
@@ -474,7 +507,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp **store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	s->iparm_default[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
 
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
@@ -537,7 +570,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
-	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
+	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:

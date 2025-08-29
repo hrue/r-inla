@@ -316,109 +316,62 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restrict guess)
+int GMRFLib_iwhich_sorted_g2_dummy(int key, int *__restrict ix, unsigned int len, unsigned int *UNUSED(dummy))
+{
+	return GMRFLib_iwhich_sorted(key, ix, len);
+}
+
+int GMRFLib_iwhich_sorted(int key, int *__restrict ix, unsigned int len)
+{
+	// see ``GMRFLib_bsearch''
+	if (len == 0)
+		return -1;
+	unsigned int bot = 0, mid, top = len;
+	while (top > 1) {
+		mid = top / 2;
+		if (key >= ix[bot + mid]) {
+			bot += mid;
+		}
+		top -= mid;
+	}
+	if (key == ix[bot]) {
+		return bot;
+	}
+	return -1;
+}
+
+int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, unsigned int len, unsigned int *__restrict guess)
 {
 	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' is an initial
 	// guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe This is a simpler interface
 	// than the guess[2] that was before. it MUST SATISFY: guess[0] and guess[1] < LEN, this is NOT checked for.
 
-	int low = (val >= ix[guess[0]] ? guess[0] : 0);
-	int high = (val <= ix[guess[1]] ? guess[1] : len - 1);
+	if (len == 0)
+		return -1;
+	unsigned int low = (val >= ix[guess[0]] ? guess[0] : 0);
+	unsigned int high = (val <= ix[guess[1]] ? guess[1] : len - 1);
 
 	while (1) {
-		int range = high - low;
+		unsigned int range = high - low;
 		if (range < 4L) {
-			for (int i = low; i <= high; i++) {
+			for (unsigned int i = low; i <= high; i++) {
 				if (ix[i] == val) {
 					guess[0] = i;
 					guess[1] = high;
-					return i;
+					return (int) i;
 				}
 			}
 			guess[0] = low;
 			guess[1] = high;
 			return -1;
 		} else {
-			int mid = low + range / 2L;	       /* integer division */
+			unsigned mid = low + range / 2L;       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {
 				low = mid;
 			}
 		}
-	}
-	return -1;
-}
-
-int GMRFLib_iwhich_sorted_g(int val, int *__restrict ix, int len, int *__restrict low_guess)
-{
-	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. low_guess is an estimate
-	// of the lower-bound of the index, it might be updated and must be thread safe. This is a much simplified interface than the guess[2]
-	// that was before. it MUST SATISFY: *low_guess < LEN, this is NOT checked for.
-
-	int low = *low_guess, high = len - 1, range, mid;
-
-	if (val < ix[low]) {
-		low = 0;
-	}
-	while ((range = high - low) > 2) {
-		mid = low + range / 2;
-		if (ix[mid] > val) {
-			high = mid;
-		} else {
-			low = mid;
-		}
-	}
-
-	for (int i = low; i < high + 1; i++) {
-		if (ix[i] == val) {
-			*low_guess = i + 1;
-			return i;
-		}
-	}
-	*low_guess = low;
-	return -1;
-}
-
-int GMRFLib_iwhich_sorted_g_new_____NOT_IN_USE(int key, int *__restrict ix, int len, int *__restrict low_guess)
-{
-	int low = *low_guess, mid, top, val, *piv = NULL, *base = ix;
-	if (key < ix[low]) {
-		low = 0;
-	}
-	base += low;
-	mid = top = len - low;
-	while (mid) {
-		mid = top / 2;
-		piv = base + mid;
-		val = key - *piv;
-		if (val == 0) {
-			*low_guess = piv - ix + 1;
-			return piv - ix;
-		}
-		if (val > 0) {
-			base = piv;
-		}
-		top -= mid;
-	}
-	*low_guess = piv - ix;
-	return -1;
-}
-
-int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
-{
-	int mid = len, top = len, *base = ix;
-	while (mid) {
-		mid = top / 2;
-		int *piv = base + mid;
-		int val = key - *piv;
-		if (val == 0) {
-			return piv - ix;
-		}
-		if (val > 0) {
-			base = piv;
-		}
-		top -= mid;
 	}
 	return -1;
 }

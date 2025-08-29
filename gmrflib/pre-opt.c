@@ -38,8 +38,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	int N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, nrow = 0, ncol = 0;
 	int debug = GMRFLib_DEBUG_IF_TRUE();
-	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
-	int num_threads_max = GMRFLib_MAX_THREADS();
 
 	const int debug_detailed = 0;
 	const int do_prune = 1;
@@ -259,6 +257,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	}
 
 	SHOW_TIME("whattype");
+
+	int num_threads = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
+	int num_threads_max = (npred >= 1E5 ? GMRFLib_ADAPTIVE_NUM_THREADS() : num_threads);
 
 	// build up structure for the likelihood part
 
@@ -668,10 +669,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 #pragma omp parallel for num_threads(num_threads_max)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[2] = { 0, 0 };
-		int m = g->lnnbs[i];
+		unsigned int guess[2] = { 0, 0 };
+		unsigned int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
-
+		int (*fun)(int, int *, unsigned int, unsigned int *) = (m > 32 ? GMRFLib_iwhich_sorted_g2 : GMRFLib_iwhich_sorted_g2_dummy);
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
@@ -679,7 +680,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				if (j >= i) {
 					int index = 0;
 					if (i != j) {
-						index = 1 + GMRFLib_iwhich_sorted_g2(j, arr, m, guess);
+						index = 1 + fun(j, arr, m, guess);
 						assert(index > 0);
 					}
 					double value = gen_At[i]->val[kk] * gen_A[k]->val[jj];
@@ -687,7 +688,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				}
 			}
 		}
-
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
 		if (do_prune) {
 			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 1);
@@ -797,6 +797,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 #undef  SHOW_TIME
 
 	GMRFLib_LEAVE_FUNCTION;
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -923,7 +924,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		// value = GMRFLib_dot_product(elm, lc);
 		GMRFLib_dot_product_INLINE(value, elm, lc);
 	} else {
-		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
+		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], (unsigned int) a->like_graph->lnnbs[node]);
 		elm = a->AtA_idxval[node][k];
 		// value = GMRFLib_dot_product(elm, lc);
 		GMRFLib_dot_product_INLINE(value, elm, lc);

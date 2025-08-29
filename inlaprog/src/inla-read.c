@@ -214,6 +214,22 @@ int inla_sread_colon_ints(int *i, int *j, const char *str)
 	}
 }
 
+int inla_sread_colon_ints3(int *i, int *j, int *k, const char *str)
+{
+	/*
+	 * read integer I and J and K from STR using format I:J:K, I,J,K or I J K
+	 */
+	if (sscanf(str, "%d:%d:%d", i, j, k) == 3) {
+		return INLA_OK;
+	} else if (sscanf(str, "%d,%d,%d", i, j, k) == 3) {
+		return INLA_OK;
+	} else if (sscanf(str, "%d %d %d", i, j, k) == 3) {
+		return INLA_OK;
+	} else {
+		return INLA_FAIL;
+	}
+}
+
 int inla_sread(void *x, int nx, const char *str, int code)
 {
 	/*

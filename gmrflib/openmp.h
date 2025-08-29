@@ -21,12 +21,13 @@ __BEGIN_DECLS
 	int max_nt;
 	int best_nt;
 	int min_num_try;
-	int try_next_nt;
+	int try_nt;
 	int done;
+	int step;
 	double tot_times;
 	double *ntimes;
 	double *acc_wtime;
-} GMRFLib_openmp_dynamic_num_threads_tp;
+} GMRFLib_adapt_nt_tp;
 
 typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
@@ -106,10 +107,7 @@ typedef struct {
 #define GMRFLib_MAX_THREADS() (GMRFLib_openmp->max_threads)
 #define GMRFLib_MAX_THREADS2() (GMRFLib_openmp->max_threads2)
 
-// Might replace `4' in the generic pardiso control statement later (if that happens)
-#define GMRFLib_PARDISO_MAX_NUM_THREADS() (GMRFLib_openmp->adaptive ?	\
-					   IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 4) : \
-					   GMRFLib_openmp->max_threads_nested[1])
+#define GMRFLib_ADAPTIVE_NUM_THREADS() (GMRFLib_openmp->adaptive ? GMRFLib_openmp->adaptive : GMRFLib_openmp->max_threads_nested[1])
 
 #define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
 #define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())
@@ -136,10 +134,10 @@ void MKL_Set_Num_Threads(int);
 void GMRFLib_openmp_chunk(int n, double *A, double *b);
 void GMRFLib_openmp_timing(void);
 
-void GMRFLib_openmp_dynamic_init(int max_levels);
-int GMRFLib_openmp_dynamic_get_nt(char *tag, int thread_num, int level, int default_num_threads);
-void GMRFLib_openmp_dynamic_update(char *tag, int thread_num, int level, double wtime);
-void GMRFLib_openmp_dynamic_print(FILE * fp);
+void GMRFLib_adapt_nt_init(int max_levels);
+int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_threads);
+void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime);
+void GMRFLib_adapt_nt_print(FILE * fp);
 
 __END_DECLS
 #endif

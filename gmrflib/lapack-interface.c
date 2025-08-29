@@ -1566,8 +1566,12 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 	 */
 	if (beta == 0.0) {
 		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				C[ldc * i + j] = 0.0;
+			if (1) {
+				GMRFLib_dfill(n2, 0.0, C + ldc * i);
+			} else {
+				for (int j = 0; j < n2; j++) {
+					C[ldc * i + j] = 0.0;
+				}
 			}
 		}
 	} else if (beta != 1.0) {
@@ -1590,7 +1594,7 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		FIXME("OPTIMIZE CODE");
 		abort();
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 		for (int i = 0; i < n1; i++) {
 			for (int k = 0; k < K; k++) {
 				double temp = alpha * F[ldf * i + k];
@@ -1611,7 +1615,7 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		FIXME("OPTIMIZE CODE");
 		abort();
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 		for (int i = 0; i < n1; i++) {
 			for (int j = 0; j < n2; j++) {
 				double temp = 0.0;
@@ -1624,7 +1628,7 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 
 	} else if (TransF == CblasTrans && TransG == CblasNoTrans) {
 
-#pragma omp parallel for num_threads(num_threads)
+#pragma omp parallel for num_threads(num_threads) schedule(static)
 		for (int i = 0; i < n1; i++) {
 			for (int k = 0; k < K; k++) {
 				double temp = alpha * F[ldf * k + i];
@@ -1640,7 +1644,7 @@ void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
 		FIXME("OPTIMIZE CODE");
 		abort();
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 		for (int i = 0; i < n1; i++) {
 			for (int j = 0; j < n2; j++) {
 				double temp = 0.0;
