@@ -59,6 +59,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 			return (GMRFLib_exp(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _exp");
+			abort();
 		}
 
 #if defined(INLA_WITH_MKL)
@@ -151,6 +152,7 @@ void GMRFLib_log(int n, double *x, double *y)
 			return (GMRFLib_log(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _log");
+			abort();
 		}
 
 #if defined(INLA_WITH_MKL)
@@ -233,6 +235,7 @@ void GMRFLib_log1p(int n, double *x, double *y)
 			return (GMRFLib_log1p(n - 1, x + 1, y + 1));
 		} else {
 			FIXME("miss alignment in _log1p");
+			abort();
 		}
 
 #if defined(INLA_WITH_MKL)

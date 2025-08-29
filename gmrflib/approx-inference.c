@@ -6532,13 +6532,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		cross_store = Calloc(nlin, cross_tp);
 	}
 
-	int nt;
-	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		FIXME("sTiles:  IMPROVE THIS LATER");
-		nt = 1;
-	} else {
-		nt = GMRFLib_openmp->max_threads_inner;
-	}
+	int nt = GMRFLib_openmp->max_threads_inner;
 #pragma omp parallel for num_threads(nt)
 	for (int i = 0; i < nlin; i++) {
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
