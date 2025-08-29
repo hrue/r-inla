@@ -460,6 +460,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+			if (!GMRFLib_openmp->adaptive) {
+				GMRFLib_openmp->adaptive = IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2);
+			}
 		} else if (!strcasecmp(smtp, "STILES")) {
 			GMRFLib_smtp = GMRFLib_SMTP_STILES;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_STILES;

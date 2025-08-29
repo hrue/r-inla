@@ -507,7 +507,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp **store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
+	s->iparm_default[2] = IMAX(GMRFLib_openmp->max_threads_nested[1], GMRFLib_ADAPTIVE_NUM_THREADS());
 
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
@@ -570,7 +570,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
-	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_ADAPTIVE_NUM_THREADS();
+	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_openmp->max_threads_nested[2]; 
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
@@ -712,8 +712,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 			// level=0.
 			omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		} else {
-			omp_set_num_threads(IMIN(GMRFLib_openmp->max_threads_inner, store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]));
-			// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 		}
 	}
 
@@ -1142,8 +1141,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp *store)
 		// level=0.
 		omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	} else {
-		omp_set_num_threads(IMIN(GMRFLib_openmp->max_threads_inner, store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]));
-		// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
 	GMRFLib_csr_tp *Qinv = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv;
 
@@ -1404,7 +1402,9 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_par
 	}
 	if (!ok) {
 		P(S.static_pstores[idx]->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		P(GMRFLib_openmp->max_threads_nested[0]);
 		P(GMRFLib_openmp->max_threads_nested[1]);
+		P(GMRFLib_openmp->max_threads_nested[2]);
 		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_nested[1]");
 	}
 
