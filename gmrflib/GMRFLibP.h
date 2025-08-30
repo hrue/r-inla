@@ -153,11 +153,6 @@ typedef struct {
 	int copy_only;
 } GMRFLib_csr_tp;
 
-typedef struct {
-	double *x;
-	int free;
-} GMRFLib_vec_tp;
-
 typedef enum {
 	INLA_B_STRATEGY_SKIP = 0,
 	INLA_B_STRATEGY_KEEP = 1

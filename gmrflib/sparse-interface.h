@@ -188,5 +188,16 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 					   int toindx, int remapped, GMRFLib_problem_tp * problem);
 int GMRFLib_valid_smtp(int smtp);
 
+int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
+int GMRFLib_csr_check(GMRFLib_csr_tp * M);
+int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, int skeleton);
+int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
+int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);
+int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr);
+
 __END_DECLS
 #endif
