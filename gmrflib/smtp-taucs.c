@@ -1864,9 +1864,9 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	int n = L->n;
 	int nnz = L->colptr[n];
 
-	LL->rowptr = Malloc(n + 1, int);
-	LL->colind = Malloc(nnz, int);
-	LL->values = Malloc(nnz, double);
+	LL->rowptr = Calloc(n + 1, int);
+	LL->colind = Calloc(nnz, int);
+	LL->values = Calloc(nnz, double);
 
 	// number of elements pr column
 	int *clen = Calloc(n, int);
