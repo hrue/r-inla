@@ -36,6 +36,7 @@ int GMRFLib_csr_free(GMRFLib_csr_tp **csr)
 {
 	if (*csr) {
 		// Free((*csr)->s->iwork);
+		// Free((*csr)->s->iwork1);
 		if ((*csr)->copy_only) {
 			// do not free
 		} else {
@@ -87,12 +88,18 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
 		(*csr_to)->s->n = n;
 		(*csr_to)->s->na = na;
-		(*csr_to)->s->iwork = Calloc(2 * llen, int);
+		(*csr_to)->s->iwork = Malloc(llen, int);
 		(*csr_to)->s->ia = (*csr_to)->s->iwork;
 		(*csr_to)->s->ja = (*csr_to)->s->iwork + n1;
-		(*csr_to)->s->ia1 = (*csr_to)->s->iwork + llen;
-		(*csr_to)->s->ja1 = (*csr_to)->s->iwork + llen + n1;
-		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) (2 * llen) * sizeof(int));
+		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) llen * sizeof(int));
+#if defined(INLA_WITH_PARDISO)
+		(*csr_to)->s->iwork1 = Malloc(llen, int);
+		(*csr_to)->s->ia1 = (*csr_to)->s->iwork1;
+		(*csr_to)->s->ja1 = (*csr_to)->s->iwork1 + n1;
+		Memcpy((void *) ((*csr_to)->s->iwork1), (void *) (csr_from->s->iwork1), (size_t) llen * sizeof(int));
+#else
+		(*csr_to)->s->iwork1 = (*csr_to)->s->ia1 = (*csr_to)->s->ja1 =  NULL;
+#endif
 	}
 
 	if (csr_from->a) {
@@ -117,14 +124,18 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 
 int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
+#if defined(INLA_WITH_PARDISO)
 	assert(M);
-	const int mtype = -2;
+	int mtype = -2;
 	int error = 0;
 	pardiso_chkmatrix(&mtype, &(M->s->n), M->a, M->s->ia1, M->s->ja1, &error);
 	if (error != 0) {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
-
+#else
+	assert(M->s->ia1 == NULL);
+	assert(M->s->ja1 == NULL);
+#endif	
 	return GMRFLib_SUCCESS;
 }
 
@@ -132,6 +143,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
 	int n, na, len, n1, llen;
+
 	if (csr_store_use && graph->sha) {
 		void **p = NULL;
 		p = map_strvp_ptr(&csr_store, (char *) graph->sha);
@@ -164,12 +176,16 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	llen = GMRFLib_align(len, sizeof(int));
 	Ms->na = na;
 	Ms->n = n;
-	Ms->iwork = Malloc(2 * llen, int);
+	Ms->iwork = Malloc(llen, int);
 	Ms->ia = Ms->iwork;
 	Ms->ja = Ms->iwork + n1;
-	Ms->ia1 = Ms->iwork + llen;
-	Ms->ja1 = Ms->iwork + llen + n1;
-
+#if defined(INLA_WITH_PARDISO)
+	Ms->iwork1 = Malloc(llen, int);
+	Ms->ia1 = Ms->iwork1;
+	Ms->ja1 = Ms->iwork1 + n1;
+#else
+	Ms->iwork1 = Ms->ia1 = Ms->ja1 =NULL;
+#endif	
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Malloc(n, int);
 	Ms->ia[0] = 0;
@@ -194,15 +210,17 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 #undef CODE_BLOCK
 	Free(k_arr);
 
-#pragma GCC ivdep
+#if defined(INLA_WITH_PARDISO)
+#pragma omp simd
 	for (int i = 0; i < n + 1; i++) {
 		Ms->ia1[i] = Ms->ia[i] + 1;
 	}
-#pragma GCC ivdep
+#pragma omp sim
 	for (int i = 0; i < na; i++) {
 		Ms->ja1[i] = Ms->ja[i] + 1;
 	}
-
+#endif
+	
 	if (csr_store_use && graph->sha) {
 		if (csr_store_debug) {
 			printf("\t[%1d] csr_store: store crs 0x%p\n", omp_get_thread_num(), (void *) Ms);
@@ -318,8 +336,12 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 	GMRFLib_io_write(io, (const void *) &(csr->s->na), sizeof(int));
 	GMRFLib_io_write(io, (const void *) (csr->s->ia), sizeof(int) * (csr->s->n + 1));
 	GMRFLib_io_write(io, (const void *) (csr->s->ja), sizeof(int) * csr->s->na);
+#if defined(INLA_WITH_PARDISO)
 	GMRFLib_io_write(io, (const void *) (csr->s->ia1), sizeof(int) * (csr->s->n + 1));
 	GMRFLib_io_write(io, (const void *) (csr->s->ja1), sizeof(int) * csr->s->na);
+#else
+	csr->s->ia1 = csr->s->ja1 = NULL;
+#endif	
 	GMRFLib_io_write(io, (const void *) (csr->a), sizeof(double) * csr->s->na);
 	GMRFLib_io_close(io);
 
@@ -339,16 +361,20 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 	GMRFLib_io_read(io, (void *) &(M->s->na), sizeof(int));
 
 	int len = M->s->n + 1 + M->s->na;
-	M->s->iwork = Malloc(2 * len, int);
+	M->s->iwork = Malloc(len, int);
 	M->s->ia = M->s->iwork;
 	GMRFLib_io_read(io, (void *) (M->s->ia), sizeof(int) * (M->s->n + 1));
 	M->s->ja = M->s->iwork + M->s->n + 1;
 	GMRFLib_io_read(io, (void *) (M->s->ja), sizeof(int) * M->s->na);
-
-	M->s->ia1 = M->s->iwork + len;
+#if defined(INLA_WITH_PARDISO)
+	M->s->iwork1 = Malloc(len, int);
+	M->s->ia1 = M->s->iwork1;
 	GMRFLib_io_read(io, (void *) (M->s->ia1), sizeof(int) * (M->s->n + 1));
-	M->s->ja1 = M->s->iwork + len + M->s->n + 1;
+	M->s->ja1 = M->s->iwork1 + M->s->n + 1;
 	GMRFLib_io_read(io, (void *) (M->s->ja1), sizeof(int) * M->s->na);
+#else
+	M->s->iwork1 = M->s->ia1 = M->s->ja1 = NULL;
+#endif	
 
 	M->a = Malloc(M->s->na, double);
 	GMRFLib_io_read(io, (void *) (M->a), sizeof(double) * M->s->na);

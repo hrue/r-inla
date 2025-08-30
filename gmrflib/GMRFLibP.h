@@ -140,10 +140,11 @@ typedef struct {
 	int n;
 	int na;
 	int *ia;
-	int *ia1;
 	int *ja;
-	int *ja1;
 	int *iwork;
+	int *ia1;
+	int *ja1;
+	int *iwork1;
 	unsigned char *sha;
 } GMRFLib_csr_skeleton_tp;
 
