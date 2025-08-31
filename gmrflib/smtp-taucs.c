@@ -938,11 +938,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 	iperm = remap;					       /* yes, this is correct */
 
-	// 'perm' is not used in the taucs_ccs_permute_symmetrically, so we can just pass NULL
-
-	// int *perm = Calloc(n, int);
-	// for (int i = 0; i < n; i++) perm[iperm[i]] = i;
-
+	// we can cache here some of the computations and store in graph, if 'iperm' is the same. maybe for later
 	*L = taucs_ccs_permute_symmetrically(Q, NULL, iperm);  /* permute the matrix */
 	taucs_ccs_free(Q);
 
