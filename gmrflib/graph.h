@@ -132,6 +132,11 @@ typedef struct {
 	int *rowidx;
 
 	int max_nnbs;
+
+	unsigned char *perm_sha;
+	int *perm_rowind;
+	int *perm_colptr;
+	int *perm_vperm;
 } GMRFLib_graph_tp;
 
 typedef struct {

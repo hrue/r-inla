@@ -445,6 +445,10 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->rowidx);
 	Free(graph->colidx);
 	Free(graph->row2col);
+	Free(graph->perm_sha);
+	Free(graph->perm_rowind);
+	Free(graph->perm_colptr);
+	Free(graph->perm_vperm);
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
