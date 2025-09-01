@@ -1032,7 +1032,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			graph->perm_vperm = vperm;
 
 			Free(graph->perm_sha);
-			graph->perm_sha = Strdup((const char *) md);
+			graph->perm_sha = (unsigned char *) Strdup((const char *) md);
 		}
 	}
 	
