@@ -449,6 +449,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->perm_rowind);
 	Free(graph->perm_colptr);
 	Free(graph->perm_vperm);
+	Free(graph->perm_vperm2);
 	Free(graph);
 
 	return GMRFLib_SUCCESS;

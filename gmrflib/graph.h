@@ -137,6 +137,7 @@ typedef struct {
 	int *perm_rowind;
 	int *perm_colptr;
 	int *perm_vperm;
+	int *perm_vperm2;
 } GMRFLib_graph_tp;
 
 typedef struct {
