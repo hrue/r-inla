@@ -406,7 +406,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	 * free a graph build with ``GMRFLib_graph_read'' 
 	 */
 	int i;
-	GMRFLib_DEBUG_INIT();
 
 	if (!graph) {
 		return GMRFLib_SUCCESS;
