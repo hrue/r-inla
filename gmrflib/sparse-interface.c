@@ -215,7 +215,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	for (int i = 0; i < n + 1; i++) {
 		Ms->ia1[i] = Ms->ia[i] + 1;
 	}
-#pragma omp sim
+#pragma omp simd
 	for (int i = 0; i < na; i++) {
 		Ms->ja1[i] = Ms->ja[i] + 1;
 	}
