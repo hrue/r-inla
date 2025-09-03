@@ -11,7 +11,7 @@
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
-	//return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL12, 0);
+	// return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL12, 0);
 	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 0);
 }
 

@@ -6986,7 +6986,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report issues/bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0, 0, 0}, err;
+	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0, 0, 0 }, err;
 #if !defined(WINDOWS)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
@@ -7057,13 +7057,13 @@ int main(int argc, char **argv)
 #endif
 	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
 		switch (opt) {
-		case 'E': 
+		case 'E':
 		{
 			GMRFLib_force_stiles = 1;
 			printf("force the use sTiles\n");
 		}
-		break;
-		
+			break;
+
 		case 'P':
 		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {

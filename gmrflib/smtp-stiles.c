@@ -592,22 +592,21 @@ void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 	double tt = -GMRFLib_timer();
 	assert(store);
 #endif
-	
+
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 	if (*p == false) {
 		sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
 		*p = true;
 	}
-
 #if 0
 	int tnum = omp_get_thread_num();
 	tt += GMRFLib_timer();
 	tref[tnum] += tt;
 	if (tnum == 0) {
-#pragma omp critical 
+#pragma omp critical
 		{
 			printf("BIND ");
-			for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 				printf(" %.3f", tref[i]);
 			}
 			printf("\n");

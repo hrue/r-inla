@@ -833,7 +833,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 
 taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *invperm, int **vperm)
 {
-	taucs_ccs_matrix * PAPT = NULL;
+	taucs_ccs_matrix *PAPT = NULL;
 
 	int n = A->n;
 	int nnz = A->colptr[n];
@@ -879,7 +879,7 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 }
 
 int GMRFLib_build_sparse_matrix_TAUCS_OLD(int thread_id, taucs_ccs_matrix **L, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph,
-				      int *remap)
+					  int *remap)
 {
 	int n = 0, nnz = 0, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
@@ -985,20 +985,19 @@ int GMRFLib_build_sparse_matrix_TAUCS_OLD(int thread_id, taucs_ccs_matrix **L, G
 
 	iperm = remap;					       /* yes, this is correct */
 	assert(iperm);
-	
+
 	// static double tref = 0.0;
 	// static double trefc = 0;
 	// tref += -GMRFLib_timer();
-	
+
 	if (0) {
 		// old code
 		*L = taucs_ccs_permute_symmetrically(Q, NULL, iperm);
 		taucs_ccs_free(Q);
 		return GMRFLib_SUCCESS;
-	} 
-
+	}
 	// new code
-		
+
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
@@ -1017,16 +1016,16 @@ int GMRFLib_build_sparse_matrix_TAUCS_OLD(int thread_id, taucs_ccs_matrix **L, G
 		int *vperm = NULL;
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
-#pragma omp critical (Name_f434d346edc8468fa1b092e1a2d5b16eaaca7b37) 
+#pragma omp critical (Name_f434d346edc8468fa1b092e1a2d5b16eaaca7b37)
 		{
 			if (!graph->perm_rowind) {
 				graph->perm_rowind = Malloc(nnz, int);
 			}
 			if (!graph->perm_colptr) {
-				graph->perm_colptr = Malloc(n+1, int);
+				graph->perm_colptr = Malloc(n + 1, int);
 			}
 			Memcpy(graph->perm_rowind, (*L)->rowind, nnz * sizeof(int));
-			Memcpy(graph->perm_colptr, (*L)->colptr, (n+1) * sizeof(int));
+			Memcpy(graph->perm_colptr, (*L)->colptr, (n + 1) * sizeof(int));
 
 			Free(graph->perm_vperm);
 			graph->perm_vperm = vperm;
@@ -1035,10 +1034,10 @@ int GMRFLib_build_sparse_matrix_TAUCS_OLD(int thread_id, taucs_ccs_matrix **L, G
 			graph->perm_sha = (unsigned char *) Strdup((const char *) md);
 		}
 	}
-	
+
 	// tref += GMRFLib_timer();
 	// P(tref/++trefc);
-	
+
 	Free(md);
 	taucs_ccs_free(Q);
 	return GMRFLib_SUCCESS;
@@ -1121,7 +1120,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 	iperm = remap;					       /* yes, this is correct */
 	assert(iperm);
-	
+
 	if (graph->perm_sha && graph->perm_rowind && graph->perm_colptr && graph->perm_vperm &&
 	    (strcmp((const char *) graph->perm_sha, (const char *) md) == 0)) {
 		// we can reuse
@@ -1133,26 +1132,26 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		int *vperm = NULL;
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
-#pragma omp critical (Name_fc68445c2e8e67ff5ac8e224402a110ffcc38f15) 
+#pragma omp critical (Name_fc68445c2e8e67ff5ac8e224402a110ffcc38f15)
 		{
 			if (!graph->perm_rowind) {
 				graph->perm_rowind = Malloc(nnz, int);
 			}
 			if (!graph->perm_colptr) {
-				graph->perm_colptr = Malloc(n+1, int);
+				graph->perm_colptr = Malloc(n + 1, int);
 			}
 			Memcpy(graph->perm_rowind, (*L)->rowind, nnz * sizeof(int));
-			Memcpy(graph->perm_colptr, (*L)->colptr, (n+1) * sizeof(int));
+			Memcpy(graph->perm_colptr, (*L)->colptr, (n + 1) * sizeof(int));
 
 			Free(graph->perm_vperm2);
 			int *iv = Malloc(nnz, int);
-			for(int i = 0; i < nnz; i++) {
+			for (int i = 0; i < nnz; i++) {
 				iv[i] = graph->row2col[vperm[i]];
 			}
 			graph->perm_vperm2 = iv;
-			
+
 			if (0) {
-				for(int i = 0; i < nnz; i++) {
+				for (int i = 0; i < nnz; i++) {
 					assert((*L)->values[i] == arg->Q->a[iv[i]]);
 				}
 			}
@@ -1163,12 +1162,12 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			} else {
 				Free(vperm);
 			}
-			
+
 			Free(graph->perm_sha);
 			graph->perm_sha = (unsigned char *) Strdup((const char *) md);
 		}
 	}
-	
+
 	Free(md);
 	taucs_ccs_free(Q);
 	return GMRFLib_SUCCESS;

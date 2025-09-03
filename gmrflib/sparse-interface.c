@@ -98,7 +98,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 		(*csr_to)->s->ja1 = (*csr_to)->s->iwork1 + n1;
 		Memcpy((void *) ((*csr_to)->s->iwork1), (void *) (csr_from->s->iwork1), (size_t) llen * sizeof(int));
 #else
-		(*csr_to)->s->iwork1 = (*csr_to)->s->ia1 = (*csr_to)->s->ja1 =  NULL;
+		(*csr_to)->s->iwork1 = (*csr_to)->s->ia1 = (*csr_to)->s->ja1 = NULL;
 #endif
 	}
 
@@ -135,7 +135,7 @@ int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 #else
 	assert(M->s->ia1 == NULL);
 	assert(M->s->ja1 == NULL);
-#endif	
+#endif
 	return GMRFLib_SUCCESS;
 }
 
@@ -184,8 +184,8 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	Ms->ia1 = Ms->iwork1;
 	Ms->ja1 = Ms->iwork1 + n1;
 #else
-	Ms->iwork1 = Ms->ia1 = Ms->ja1 =NULL;
-#endif	
+	Ms->iwork1 = Ms->ia1 = Ms->ja1 = NULL;
+#endif
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Malloc(n, int);
 	Ms->ia[0] = 0;
@@ -220,7 +220,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 		Ms->ja1[i] = Ms->ja[i] + 1;
 	}
 #endif
-	
+
 	if (csr_store_use && graph->sha) {
 		if (csr_store_debug) {
 			printf("\t[%1d] csr_store: store crs 0x%p\n", omp_get_thread_num(), (void *) Ms);
@@ -341,7 +341,7 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 	GMRFLib_io_write(io, (const void *) (csr->s->ja1), sizeof(int) * csr->s->na);
 #else
 	csr->s->ia1 = csr->s->ja1 = NULL;
-#endif	
+#endif
 	GMRFLib_io_write(io, (const void *) (csr->a), sizeof(double) * csr->s->na);
 	GMRFLib_io_close(io);
 
@@ -374,7 +374,7 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 	GMRFLib_io_read(io, (void *) (M->s->ja1), sizeof(int) * M->s->na);
 #else
 	M->s->iwork1 = M->s->ia1 = M->s->ja1 = NULL;
-#endif	
+#endif
 
 	M->a = Malloc(M->s->na, double);
 	GMRFLib_io_read(io, (void *) (M->a), sizeof(double) * M->s->na);
