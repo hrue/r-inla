@@ -140,10 +140,11 @@ typedef struct {
 	int n;
 	int na;
 	int *ia;
-	int *ia1;
 	int *ja;
-	int *ja1;
 	int *iwork;
+	int *ia1;
+	int *ja1;
+	int *iwork1;
 	unsigned char *sha;
 } GMRFLib_csr_skeleton_tp;
 
@@ -152,11 +153,6 @@ typedef struct {
 	double *a;
 	int copy_only;
 } GMRFLib_csr_tp;
-
-typedef struct {
-	double *x;
-	int free;
-} GMRFLib_vec_tp;
 
 typedef enum {
 	INLA_B_STRATEGY_SKIP = 0,

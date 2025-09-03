@@ -68,12 +68,13 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 
-taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L);
-taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix * LL);
 int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L);
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L);
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp ** cache);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp ** cache);
+taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix * A, int *invperm, int **vperm);
+taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix * LL);
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 
 int GMRFLib_taucs_get_block_size(void);

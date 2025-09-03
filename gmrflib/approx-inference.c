@@ -6256,10 +6256,6 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 		GMRFLib_daxpb(np, s, xp, fit_mean, x_user);
 		loglFunc(thread_id, &cache_idx, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-		// don't know if I should interpolate and use that one
-		// spline = GMRFLib_spline_create_x(x_user, loglik, np, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_SIMPLE);
-		// GMRFLib_spline_eval_x(np, x_user, spline, loglik);
-
 		GMRFLib_mul(np, loglik, wp, wloglik);
 		wloglik_sym[0] = wloglik[nnp];
 		wloglik_asym[0] = wloglik[nnp];

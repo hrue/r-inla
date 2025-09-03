@@ -772,6 +772,8 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	if (!mo) {
 		return INLA_OK;
 	}
+	GMRFLib_ENTER_FUNCTION;
+
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "misc");
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
@@ -1220,7 +1222,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	}
 	Free(nnndir);
 
-
+	GMRFLib_LEAVE_FUNCTION;
 	return INLA_OK;
 }
 

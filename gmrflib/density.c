@@ -680,12 +680,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
-
-		if (GMRFLib_save_memory) {
-			density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_NONE, 1);
-		} else {
-			density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL1, 1);
-		}
+		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_NONE, 1);
 		density->P = NULL;
 	}
 
@@ -1404,12 +1399,7 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 			for (int ii = 0; ii < n; ii++) {
 				ldens[ii] += 0.5 * SQR(xx[ii]);	/* ldens is now the correction */
 			}
-			if (GMRFLib_save_memory) {
-				(*density)->log_correction =
-				    GMRFLib_spline_create_x(xx, ldens, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 1);
-			} else {
-				(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
-			}
+			(*density)->log_correction = GMRFLib_spline_create_x(xx, ldens, n, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 1);
 			GMRFLib_init_density(*density, lookup_tables);
 		}
 			break;

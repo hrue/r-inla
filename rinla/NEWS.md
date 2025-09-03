@@ -1,3 +1,7 @@
+# INLA 25.09.03
+* Improved sTiles integration
+* Code optimisation and cleanup
+
 # INLA 25.08.29
 * More work on the sTiles integration
 * Improved some documentation
