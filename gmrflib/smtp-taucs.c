@@ -847,10 +847,10 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 	int *len = Calloc(n, int);
 
 	for (int j = 0; j < n; j++) {
-		int JJ = invperm[j];
+		int iJJ = invperm[j];
 		for (int ip = A->colptr[j]; ip < A->colptr[j + 1]; ip++) {
-			int I = invperm[A->rowind[ip]];
-			len[IMIN(I, JJ)]++;
+			int iI = invperm[A->rowind[ip]];
+			len[IMIN(iI, iJJ)]++;
 		}
 	}
 
@@ -860,16 +860,16 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 
 	memcpy((void *) len, (void *) (PAPT->colptr), (size_t) (n * sizeof(int)));
 	for (int j = 0, k = 0; j < n; j++) {
-		int JJ = invperm[j];
+		int iJJ = invperm[j];
 		for (int ip = A->colptr[j]; ip < A->colptr[j + 1]; ip++) {
 			double AIJ = A->values[ip];
-			int II = invperm[A->rowind[ip]];
-			int I = IMAX(II, JJ);
-			int J = IMIN(II, JJ);
-			(PAPT->rowind)[len[J]] = I;
-			(PAPT->values)[len[J]] = AIJ;
-			(*vperm)[len[J]] = ip;
-			len[J]++;
+			int iII = invperm[A->rowind[ip]];
+			int iI = IMAX(iII, iJJ);
+			int iJ = IMIN(iII, iJJ);
+			(PAPT->rowind)[len[iJ]] = iI;
+			(PAPT->values)[len[iJ]] = AIJ;
+			(*vperm)[len[iJ]] = ip;
+			len[iJ]++;
 			k++;
 		}
 	}
