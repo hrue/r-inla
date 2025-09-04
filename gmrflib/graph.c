@@ -431,7 +431,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 			break;				       /* new memory layout, only `free' the first!!! */
 		}
 	}
-	
+
 	Free(graph->nbs);
 	Free(graph->nnbs);
 	Free(graph->lnbs);
@@ -445,7 +445,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->colidx);
 	Free(graph->row2col);
 	if (graph->cache) {
-		for(int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+		for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			if (graph->cache[i]) {
 				Free(graph->cache[i]->sha);
 				Free(graph->cache[i]->rowind);

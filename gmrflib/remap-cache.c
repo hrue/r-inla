@@ -54,7 +54,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	void **p = map_strvp_ptr(remap_store, (char *) sha);
 
 	if (remap_store_debug) {
-		
+
 		unsigned char *sh = GMRFLib_prettify_sha(Strdup_sha(sha));
 		if (p) {
 			printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sh);

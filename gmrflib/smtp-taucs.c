@@ -888,9 +888,9 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 	int idx;
 	GMRFLib_CACHE_SET_IDX(idx);
-	
+
 	if (!graph->cache) {
-#pragma omp critical (Name_3bb059d0e37a96b7b4c11c25699da957edec7f61) 
+#pragma omp critical (Name_3bb059d0e37a96b7b4c11c25699da957edec7f61)
 		if (!graph->cache) {
 			GMRFLib_graph_perm_cache_tp **p = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_graph_perm_cache_tp *);
 			graph->cache = p;
@@ -973,8 +973,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	iperm = remap;					       /* yes, this is correct */
 	assert(iperm);
 
-	if (cache->sha && cache->rowind && cache->colptr && cache->vperm &&
-	    (strcmp((const char *) cache->sha, (const char *) md) == 0)) {
+	if (cache->sha && cache->rowind && cache->colptr && cache->vperm && (strcmp((const char *) cache->sha, (const char *) md) == 0)) {
 		// we can reuse
 		*L = taucs_dccs_create(n, n, nnz);
 		Memcpy((*L)->rowind, cache->rowind, nnz * sizeof(int));

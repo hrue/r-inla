@@ -70,15 +70,13 @@ typedef double GMRFLib_Qfunc_tp(int thread_id, int node, int nnode, double *valu
   \brief Define the graph-type
  */
 
-typedef struct 
-{
+typedef struct {
 	unsigned char *sha;				       /* this is the sha for the (inverse) permutation */
 	int *rowind;
 	int *colptr;
 	int *vperm;
 	int *vperm2;
-}
-	GMRFLib_graph_perm_cache_tp;
+} GMRFLib_graph_perm_cache_tp;
 
 typedef struct {
 
