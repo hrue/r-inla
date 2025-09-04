@@ -983,36 +983,33 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		int *vperm = NULL;
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
-#pragma omp critical (Name_fc68445c2e8e67ff5ac8e224402a110ffcc38f15)
-		{
-			if (!cache->rowind) {
-				cache->rowind = Malloc(nnz, int);
-			}
-			Memcpy(cache->rowind, (*L)->rowind, nnz * sizeof(int));
-
-			if (!cache->colptr) {
-				cache->colptr = Malloc(n + 1, int);
-			}
-			Memcpy(cache->colptr, (*L)->colptr, (n + 1) * sizeof(int));
-
-			Free(cache->vperm2);
-			int *iv = Malloc(nnz, int);
-			for (int i = 0; i < nnz; i++) {
-				iv[i] = graph->row2col[vperm[i]];
-			}
-			cache->vperm2 = iv;
-
-			if (!fast_copy) {
-				cache->vperm = vperm;
-			} else {
-				cache->vperm = NULL;
-				Free(vperm);
-			}
-
-			unsigned char *mdc = Strdup_sha(md);
-			Free(cache->sha);
-			cache->sha = (unsigned char *) mdc;
+		if (!cache->rowind) {
+			cache->rowind = Malloc(nnz, int);
 		}
+		Memcpy(cache->rowind, (*L)->rowind, nnz * sizeof(int));
+
+		if (!cache->colptr) {
+			cache->colptr = Malloc(n + 1, int);
+		}
+		Memcpy(cache->colptr, (*L)->colptr, (n + 1) * sizeof(int));
+
+		Free(cache->vperm2);
+		int *iv = Malloc(nnz, int);
+		for (int i = 0; i < nnz; i++) {
+			iv[i] = graph->row2col[vperm[i]];
+		}
+		cache->vperm2 = iv;
+
+		if (!fast_copy) {
+			cache->vperm = vperm;
+		} else {
+			cache->vperm = NULL;
+			Free(vperm);
+		}
+
+		unsigned char *mdc = Strdup_sha(md);
+		Free(cache->sha);
+		cache->sha = (unsigned char *) mdc;
 	}
 
 	Free(md);
