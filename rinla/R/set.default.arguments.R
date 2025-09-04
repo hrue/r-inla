@@ -268,7 +268,7 @@
              #' @param opt.num.threads Reduce the number of threads adaptively if needed at
              #' critical places to optimize wall-clock time
              #' (EXPERIMENTAL OPTION)
-             opt.num.threads = FALSE
+             opt.num.threads = TRUE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }

@@ -33,6 +33,8 @@ __BEGIN_DECLS
 
 
 char *Strdup(const char *s);
+unsigned char *Strdup_sha(unsigned char *sha);
+unsigned char *GMRFLib_prettify_sha(unsigned char *sha);
 
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno);
 char *GMRFLib_rindex(const char *p, int ch);

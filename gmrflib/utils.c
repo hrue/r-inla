@@ -22,11 +22,45 @@
 
 static int malloc_debug = -1;
 
-// better with function then macro...
+// better with function than macro...
 char *Strdup(const char *s)
 {
 	return (s ? strdup(s) : (char *) NULL);
 }
+
+unsigned char *Strdup_sha(unsigned char *sha) 
+{
+	if (!sha) {
+		return NULL;
+	}
+	unsigned char *new = Calloc(GMRFLib_SHA_DIGEST_LEN + 1,  unsigned char);
+	Memcpy(new, sha, GMRFLib_SHA_DIGEST_LEN);
+	new[GMRFLib_SHA_DIGEST_LEN] = '\0';
+
+	return new;
+}
+
+unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
+{
+	if (!sha) {
+		return NULL;
+	}
+	
+	// THIS FUNCTION OVERWRITE SHA
+	// we do a non-invertible compression to make it more pretty for output (do not need to be precise)
+	int len = 'z' - 'a' + 1;
+	for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
+		sha[i] = ((int) sha[i] % len) + 'a';
+		if (sha[i] == '\0') {
+			// otherwise strlen() etc cannot be used
+			sha[i] = 'z';
+		}
+	}
+	sha[GMRFLib_SHA_DIGEST_LEN] = '\0';
+
+	return sha;
+}
+
 
 /*
  * Measures the current (and peak) resident and virtual memories

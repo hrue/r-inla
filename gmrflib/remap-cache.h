@@ -31,7 +31,6 @@ __BEGIN_DECLS
 
 int *GMRFLib_remap_get(int *remap, int n, int nrhs);
 int GMRFLib_remap_init_store(void);
-unsigned char *GMRFLib_remap_prettify_sha(unsigned char *sha);
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs);
 void GMRFLib_remap_print(FILE * fp);
 

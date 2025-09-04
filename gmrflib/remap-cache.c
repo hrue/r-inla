@@ -44,17 +44,6 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	return (md);
 }
 
-unsigned char *GMRFLib_remap_prettify_sha(unsigned char *sha)
-{
-	// THIS FUNCTION OVERWRITE SHA
-	// we do a non-invertible compression to make it more pretty for output (do not need to be precise)
-	int len = 'z' - 'a' + 1;
-	for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
-		sha[i] = ((int) sha[i] % len) + 'a';
-	}
-	return sha;
-}
-
 int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 {
 	if (!remap_store_use) {
@@ -65,9 +54,8 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	void **p = map_strvp_ptr(remap_store, (char *) sha);
 
 	if (remap_store_debug) {
-		unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-		Memcpy(sh, sha, GMRFLib_SHA_DIGEST_LEN + 1);
-		sh = GMRFLib_remap_prettify_sha(sh);
+		
+		unsigned char *sh = GMRFLib_prettify_sha(Strdup_sha(sha));
 		if (p) {
 			printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sh);
 		} else {
@@ -132,15 +120,11 @@ void GMRFLib_remap_print(FILE *fp)
 		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				// unsigned char *sh = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-				// Memcpy(sh, r->sha, GMRFLib_SHA_DIGEST_LEN + 1);
-				// sh = GMRFLib_remap_prettify_sha(sh);
 				int nn = r->n * r->nrhs;
 				fprintf(fp, "\tSlot[%2.2d] n[%1d] rhs[%1d] numa.node[%1d] count[%1d] remap[%1d %1d %1d...]\n",
 					k, r->n, r->nrhs, r->numa_node, r->count, r->remap[0], r->remap[IMIN(nn - 1, 1)],
 					r->remap[IMIN(nn - 1, 2)]);
 				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
-				// Free(sh);
 			}
 			k++;
 		}
