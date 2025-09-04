@@ -1,3 +1,7 @@
+# INLA 25.09.04
+* Fixed a regression for 25.09.03
+* Made `opt.num.threads` default `TRUE`
+
 # INLA 25.09.03
 * Improved sTiles integration
 * Code optimisation and cleanup
