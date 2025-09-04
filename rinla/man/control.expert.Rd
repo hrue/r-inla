@@ -13,7 +13,7 @@ control.expert(
   dot.product.gain = FALSE,
   globalconstr = list(A = NULL, e = NULL),
   opt.solve = FALSE,
-  opt.num.threads = FALSE
+  opt.num.threads = TRUE
 )
 
 inla.set.control.expert.default(...)

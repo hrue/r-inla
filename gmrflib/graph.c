@@ -405,7 +405,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	/*
 	 * free a graph build with ``GMRFLib_graph_read'' 
 	 */
-	int i;
 
 	if (!graph) {
 		return GMRFLib_SUCCESS;
@@ -426,12 +425,13 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 		}
 	}
 
-	for (i = 0; i < graph->n; i++) {
+	for (int i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
 			Free(graph->nbs[i]);
 			break;				       /* new memory layout, only `free' the first!!! */
 		}
 	}
+
 	Free(graph->nbs);
 	Free(graph->nnbs);
 	Free(graph->lnbs);
@@ -444,11 +444,18 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->rowidx);
 	Free(graph->colidx);
 	Free(graph->row2col);
-	Free(graph->perm_sha);
-	Free(graph->perm_rowind);
-	Free(graph->perm_colptr);
-	Free(graph->perm_vperm);
-	Free(graph->perm_vperm2);
+	if (graph->cache) {
+		for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+			if (graph->cache[i]) {
+				Free(graph->cache[i]->sha);
+				Free(graph->cache[i]->rowind);
+				Free(graph->cache[i]->colptr);
+				Free(graph->cache[i]->vperm);
+				Free(graph->cache[i]->vperm2);
+			}
+		}
+		Free(graph->cache);
+	}
 	Free(graph);
 
 	return GMRFLib_SUCCESS;

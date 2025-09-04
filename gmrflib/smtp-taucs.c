@@ -878,171 +878,6 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 	return PAPT;
 }
 
-int GMRFLib_build_sparse_matrix_TAUCS_OLD(int thread_id, taucs_ccs_matrix **L, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph,
-					  int *remap)
-{
-	int n = 0, nnz = 0, *iperm = NULL, nan_error = 0;
-	taucs_ccs_matrix *Q = NULL;
-
-	if (!graph || graph->n == 0) {
-		*L = NULL;
-		return GMRFLib_SUCCESS;
-	}
-
-	n = graph->n;
-	nnz = n + graph->nnz / 2;
-	Q = taucs_ccs_create(n, n, n + graph->nnz / 2, TAUCS_DOUBLE | TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
-	Q->colptr[0] = 0;
-
-	GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
-	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
-
-	if (fast_copy) {
-		Memcpy(Q->rowind, graph->rowidx, nnz * sizeof(int));
-		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
-		GMRFLib_pack(nnz, arg->Q->a, graph->row2col, Q->values);
-	} else {
-		int *ic_idx = Malloc(n, int);
-		for (int i = 0, ic = 0; i < n; i++) {
-			Q->rowind[ic] = i;
-			ic_idx[i] = ic;
-			ic++;
-			Memcpy(&(Q->rowind[ic]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
-			ic += graph->snnbs[i];
-			Q->colptr[i + 1] = Q->colptr[i] + graph->snnbs[i] + 1;
-		}
-
-#define CODE_BLOCK							\
-		for (int i = 0; i < n; i++) {				\
-			CODE_BLOCK_INIT();				\
-			int ic = ic_idx[i];				\
-			double val = Qfunc(thread_id, i, i, NULL, Qfunc_arg); \
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
-			Q->values[ic++] = val;				\
-			for (int k = 0; k < graph->snnbs[i]; k++) {	\
-				int j = graph->snbs[i][k];		\
-				val = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-				GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
-				Q->values[ic++] = val;			\
-			}						\
-		}
-
-		RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
-#undef CODE_BLOCK
-
-		Free(ic_idx);
-	}
-
-	static int dump_Q = -1;
-	if (dump_Q < 0) {
-#pragma omp critical (Name_29d46bdd6abbbf3b1bd5098a4281a9dd165fe114)
-		if (dump_Q < 0) {
-			int tmp = (getenv("INLA_INTERNAL_DUMP_Q") ? 1 : 0);
-			dump_Q = tmp;
-		}
-	}
-
-	if (dump_Q > 0) {
-		// write matrix to file
-#pragma omp critical (Name_e9854d763a7a40f3e47e8b55bd2e61a67241870d)
-		{
-			taucs_crs_matrix *QQ = GMRFLib_ccs2crs(Q);
-			char *filename = NULL;
-			GMRFLib_sprintf(&filename, "./inla_Qmatrix_XXXXXX");
-			int fd = mkstemp(filename);
-			close(fd);
-
-			FILE *fp = fopen(filename, "wb");
-			double dn = (double) QQ->n, dnz = (double) nnz;
-			fwrite((void *) &dn, sizeof(double), (size_t) 1, fp);
-			fwrite((void *) &dnz, sizeof(double), (size_t) 1, fp);
-
-			int *itmp = Malloc(nnz, int);
-#pragma omp simd
-			for (int i = 0; i < nnz; i++) {
-				itmp[i] = QQ->colind[i] + 1;
-			}
-			fwrite((void *) itmp, sizeof(int), (size_t) nnz, fp);
-
-#pragma omp simd
-			for (int i = 0; i < QQ->n + 1; i++) {
-				itmp[i] = QQ->rowptr[i] + 1;
-			}
-			fwrite((void *) itmp, sizeof(int), (size_t) QQ->n + 1, fp);
-
-			fwrite((void *) (QQ->values), sizeof(double), (size_t) nnz, fp);
-			fclose(fp);
-			Free(itmp);
-			taucs_crs_free(QQ);
-			fprintf(stderr, "\n\t*** write Q-matrix to file [%s]\n", filename);
-		}
-	}
-
-	if (nan_error) {
-		return !GMRFLib_SUCCESS;
-	}
-
-	iperm = remap;					       /* yes, this is correct */
-	assert(iperm);
-
-	// static double tref = 0.0;
-	// static double trefc = 0;
-	// tref += -GMRFLib_timer();
-
-	if (0) {
-		// old code
-		*L = taucs_ccs_permute_symmetrically(Q, NULL, iperm);
-		taucs_ccs_free(Q);
-		return GMRFLib_SUCCESS;
-	}
-	// new code
-
-	GMRFLib_SHA_TP c;
-	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
-	GMRFLib_SHA_Init(&c);
-	GMRFLib_SHA_IUPDATE(iperm, n, c);
-	GMRFLib_SHA_Final(md, &c);
-	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
-
-	if (graph->perm_sha && graph->perm_rowind && graph->perm_colptr && (strcmp((const char *) graph->perm_sha, (const char *) md) == 0)) {
-		// we can reuse
-		*L = taucs_dccs_create(n, n, nnz);
-		Memcpy((*L)->rowind, graph->perm_rowind, nnz * sizeof(int));
-		Memcpy((*L)->colptr, graph->perm_colptr, (n + 1) * sizeof(int));
-		GMRFLib_pack(nnz, Q->values, graph->perm_vperm, (*L)->values);
-	} else {
-		int *vperm = NULL;
-		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
-
-#pragma omp critical (Name_f434d346edc8468fa1b092e1a2d5b16eaaca7b37)
-		{
-			if (!graph->perm_rowind) {
-				graph->perm_rowind = Malloc(nnz, int);
-			}
-			if (!graph->perm_colptr) {
-				graph->perm_colptr = Malloc(n + 1, int);
-			}
-			Memcpy(graph->perm_rowind, (*L)->rowind, nnz * sizeof(int));
-			Memcpy(graph->perm_colptr, (*L)->colptr, (n + 1) * sizeof(int));
-
-			Free(graph->perm_vperm);
-			graph->perm_vperm = vperm;
-
-			Free(graph->perm_sha);
-			graph->perm_sha = (unsigned char *) Strdup((const char *) md);
-		}
-	}
-
-	// tref += GMRFLib_timer();
-	// P(tref/++trefc);
-
-	Free(md);
-	taucs_ccs_free(Q);
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph,
 				      int *remap)
 {
@@ -1050,6 +885,24 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		*L = NULL;
 		return GMRFLib_SUCCESS;
 	}
+
+	int idx;
+	GMRFLib_CACHE_SET_IDX(idx);
+
+	if (!graph->cache) {
+#pragma omp critical (Name_3bb059d0e37a96b7b4c11c25699da957edec7f61)
+		if (!graph->cache) {
+			GMRFLib_graph_perm_cache_tp **p = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_graph_perm_cache_tp *);
+			graph->cache = p;
+		}
+	}
+
+	GMRFLib_graph_perm_cache_tp *cache = NULL;
+
+	if (!graph->cache[idx]) {
+		graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
+	}
+	cache = graph->cache[idx];
 
 	int nan_error = 0;
 	int *iperm = remap;
@@ -1063,18 +916,17 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 	GMRFLib_SHA_IUPDATE(iperm, n, c);
 	GMRFLib_SHA_Final(md, &c);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
-	if (fast_copy && graph->perm_sha && graph->perm_rowind && graph->perm_colptr && graph->perm_vperm2 &&
-	    (strcmp((const char *) graph->perm_sha, (const char *) md) == 0)) {
+	if (fast_copy && cache->sha && cache->rowind && cache->colptr && cache->vperm2 &&
+	    (strcmp((const char *) cache->sha, (const char *) md) == 0)) {
 		*L = taucs_dccs_create(n, n, nnz);
-		Memcpy((*L)->rowind, graph->perm_rowind, nnz * sizeof(int));
-		Memcpy((*L)->colptr, graph->perm_colptr, (n + 1) * sizeof(int));
-		GMRFLib_pack(nnz, arg->Q->a, graph->perm_vperm2, (*L)->values);
+		Memcpy((*L)->rowind, cache->rowind, nnz * sizeof(int));
+		Memcpy((*L)->colptr, cache->colptr, (n + 1) * sizeof(int));
+		GMRFLib_pack(nnz, arg->Q->a, cache->vperm2, (*L)->values);
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1121,55 +973,51 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	iperm = remap;					       /* yes, this is correct */
 	assert(iperm);
 
-	if (graph->perm_sha && graph->perm_rowind && graph->perm_colptr && graph->perm_vperm &&
-	    (strcmp((const char *) graph->perm_sha, (const char *) md) == 0)) {
+	if (cache->sha && cache->rowind && cache->colptr && cache->vperm && (strcmp((const char *) cache->sha, (const char *) md) == 0)) {
 		// we can reuse
 		*L = taucs_dccs_create(n, n, nnz);
-		Memcpy((*L)->rowind, graph->perm_rowind, nnz * sizeof(int));
-		Memcpy((*L)->colptr, graph->perm_colptr, (n + 1) * sizeof(int));
-		GMRFLib_pack(nnz, Q->values, graph->perm_vperm, (*L)->values);
+		Memcpy((*L)->rowind, cache->rowind, nnz * sizeof(int));
+		Memcpy((*L)->colptr, cache->colptr, (n + 1) * sizeof(int));
+		GMRFLib_pack(nnz, Q->values, cache->vperm, (*L)->values);
 	} else {
 		int *vperm = NULL;
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
 #pragma omp critical (Name_fc68445c2e8e67ff5ac8e224402a110ffcc38f15)
 		{
-			if (!graph->perm_rowind) {
-				graph->perm_rowind = Malloc(nnz, int);
+			if (!cache->rowind) {
+				cache->rowind = Malloc(nnz, int);
 			}
-			if (!graph->perm_colptr) {
-				graph->perm_colptr = Malloc(n + 1, int);
-			}
-			Memcpy(graph->perm_rowind, (*L)->rowind, nnz * sizeof(int));
-			Memcpy(graph->perm_colptr, (*L)->colptr, (n + 1) * sizeof(int));
+			Memcpy(cache->rowind, (*L)->rowind, nnz * sizeof(int));
 
-			Free(graph->perm_vperm2);
+			if (!cache->colptr) {
+				cache->colptr = Malloc(n + 1, int);
+			}
+			Memcpy(cache->colptr, (*L)->colptr, (n + 1) * sizeof(int));
+
+			Free(cache->vperm2);
 			int *iv = Malloc(nnz, int);
 			for (int i = 0; i < nnz; i++) {
 				iv[i] = graph->row2col[vperm[i]];
 			}
-			graph->perm_vperm2 = iv;
+			cache->vperm2 = iv;
 
-			if (0) {
-				for (int i = 0; i < nnz; i++) {
-					assert((*L)->values[i] == arg->Q->a[iv[i]]);
-				}
-			}
-
-			Free(graph->perm_vperm);
 			if (!fast_copy) {
-				graph->perm_vperm = vperm;
+				cache->vperm = vperm;
 			} else {
+				cache->vperm = NULL;
 				Free(vperm);
 			}
 
-			Free(graph->perm_sha);
-			graph->perm_sha = (unsigned char *) Strdup((const char *) md);
+			unsigned char *mdc = Strdup_sha(md);
+			Free(cache->sha);
+			cache->sha = (unsigned char *) mdc;
 		}
 	}
 
 	Free(md);
 	taucs_ccs_free(Q);
+
 	return GMRFLib_SUCCESS;
 }
 
