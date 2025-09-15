@@ -1,8 +1,8 @@
-#' Bayesian analysis of structured additive models
+#' @title inla
 #' 
+#' @description
 #' `inla` performs a full Bayesian analysis of additive models using
 #' Integrated Nested Laplace approximation
-#' 
 #' 
 #' @param formula A `inla` formula like `y ~1 + z + f(ind,
 #' model="iid")` + f(ind2, weights, model="ar1") This is much like the formula
@@ -2839,11 +2839,26 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     }
 }
 
-`inla.run.many` <- function(n.models = 1,
+#' @title inla.run.many
+#' @export
+#' @details A special `inla()`-function to run many models (of a particular type)
+#' used by package `INLAjoint` (for details,  check the `INLAjoint` implementation)
+`inla.run.many` <- function(
+                            #' @param n.models Number of models to run
+                            n.models = 1,
+                            
+                            #' @param working.directory Where to store results
                             working.directory = NULL,
+
+                            #' @param verbose Run in verbose mode or not
                             verbose = inla.getOption("verbose"),
+
+                            #' @param num.threads Number of threads to be used
                             num.threads = inla.getOption("num.threads"),
-                            cleanup = FALSE)
+
+                            #' @param cleanup Cleanup result files or leave them behind?
+                            cleanup = FALSE
+                            )
 {
     inla.call <- inla.getOption('inla.call')
     stopifnot(inla.call != "remote")
