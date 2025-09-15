@@ -465,7 +465,6 @@
     return(as.character(u))
 }
 
-
 `inla.eval` <- function(command,
                         envir = parent.frame(),
                         enclos = if (is.list(envir) || is.pairlist(envir)) {
@@ -474,19 +473,6 @@
                             baseenv()
                         }) {
     return(eval(parse(text = command), envir, enclos))
-}
-
-
-`inla.tempdir` <- function() {
-    ## just replace \ in Windows with /
-    t.dir <- tempfile()
-    inla.dir.create(t.dir)
-    return(gsub("\\\\", "/", t.dir))
-}
-
-`inla.tempfile` <- function(pattern = "file", tmpdir = tempdir()) {
-    ## just replace \ in Windows with /
-    return(gsub("\\\\", "/", tempfile(pattern, tmpdir)))
 }
 
 `inla.formula2character` <- function(formula) {
