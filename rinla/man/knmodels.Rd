@@ -73,7 +73,7 @@ It implements the models in Knorr-Held, L. (2000) with three different
 constraint approaches: sum-to-zero, contrast or diagonal add.
 }
 \examples{
-\dontshow{if (require("sp")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (require("sp")) withAutoprint(\{ # examplesIf}
 
 ### define space domain as a grid
 grid <- sp::SpatialGrid(sp::GridTopology(c(0,0), c(1, 1), c(4, 5)))

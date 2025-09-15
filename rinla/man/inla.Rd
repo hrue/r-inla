@@ -2,7 +2,7 @@
 % Please edit documentation in R/inla.R
 \name{inla}
 \alias{inla}
-\title{Bayesian analysis of structured additive models}
+\title{inla}
 \usage{
 inla(
   formula = NULL,
