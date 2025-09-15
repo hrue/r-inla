@@ -33,11 +33,11 @@ unsigned char *Strdup_sha(unsigned char *sha)
 	if (!sha) {
 		return NULL;
 	}
-	unsigned char *new = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-	Memcpy(new, sha, GMRFLib_SHA_DIGEST_LEN);
-	new[GMRFLib_SHA_DIGEST_LEN] = '\0';
+	unsigned char *nnew = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	Memcpy(nnew, sha, GMRFLib_SHA_DIGEST_LEN);
+	nnew[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
-	return new;
+	return nnew;
 }
 
 unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
