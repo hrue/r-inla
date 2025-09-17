@@ -5487,6 +5487,43 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 176:
+	{
+		double std_mean = GMRFLib_uniform();
+		double std_stdev = GMRFLib_uniform();
+
+		double mean = GMRFLib_uniform();
+		double stdev = GMRFLib_uniform();
+
+		int n = 131;
+		double *x = Calloc(n, double);
+		double *ld = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			x[i] = stdev * (-5.0 + 10.0 / (n - 1.0) * i) + mean;
+			ld[i] = -0.5 * SQR((x[i] - mean) / stdev);
+		}
+		GMRFLib_density_tp *d = NULL;
+		GMRFLib_density_create(&d, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, std_mean, std_stdev, 1);
+		GMRFLib_density_printf(stdout, d);
+
+		double user_mean = std_stdev * mean + std_mean;
+		double user_stdev = std_stdev * stdev;
+		P(std_mean);
+		P(std_stdev);
+		P(mean);
+		P(stdev);
+		P(user_mean);
+		P(user_stdev);
+
+		printf("\n");
+		double new_user_mean = GMRFLib_uniform();
+		P(new_user_mean);
+		GMRFLib_density_tp *dd = NULL;
+		GMRFLib_density_new_std_mean(&dd, d, d->std_mean + (new_user_mean - d->user_mean));
+		GMRFLib_density_printf(stdout, dd);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

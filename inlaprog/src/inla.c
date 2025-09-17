@@ -6320,8 +6320,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
 			} else {
-				// this I do not understand
-				GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
+				GMRFLib_density_new_std_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
 				GMRFLib_free_density(d);
 			}
 		}

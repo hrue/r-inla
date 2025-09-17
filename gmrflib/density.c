@@ -1413,10 +1413,10 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_new_mean(GMRFLib_density_tp **new_density, GMRFLib_density_tp *density, double new_mean)
+int GMRFLib_density_new_std_mean(GMRFLib_density_tp **new_density, GMRFLib_density_tp *density, double new_std_mean)
 {
 	/*
-	 * return a new density, which the density with the given new mean 
+	 * return a new density, which the density with the given new ***std_mean***
 	 */
 #define N (60)
 #define M (4)
@@ -1429,52 +1429,19 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp **new_density, GMRFLib_density_t
 
 	for (i = 0; i < M; i++) {
 		GMRFLib_density_Pinv(&x[i], eps[i], density);
-		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
+		GMRFLib_density_Pinv(&x[n - 1 - i], 1.0 - eps[i], density);
 	}
 	for (i = 0; i < N; i++) {
 		double delta = eps[M - 1] * 2.0;
 		alpha = delta + (1.0 - 2.0 * delta) * i * (1.0 / (double) (N - 1.0));
-		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
+		GMRFLib_density_Pinv(&x[M + i], alpha, density);
 	}
 	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
-	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, density->std_stdev, GMRFLib_TRUE);
-
+	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_std_mean, density->std_stdev, GMRFLib_TRUE);
 	Calloc_free();
 #undef N
 #undef M
 
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_density_new_meansd(GMRFLib_density_tp **new_density, GMRFLib_density_tp *density, double new_mean, double new_stdev)
-{
-	/*
-	 * return a new density, which the density with the given new mean and stdev
-	 */
-
-#define N (30)
-#define M (4)
-	int i, n = N + 2 * M;
-	double *x = NULL, *ld = NULL, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
-
-	Calloc_init(2 * n, 2);
-	x = Calloc_get(n);
-	ld = Calloc_get(n);
-
-	for (i = 0; i < M; i++) {
-		GMRFLib_density_Pinv(&x[i], eps[i], density);
-		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
-	}
-	for (i = 0; i < N; i++) {
-		alpha = 0.01 + 0.98 * (1.0 / (double) N) * i;
-		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
-	}
-	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
-	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, new_stdev, GMRFLib_TRUE);
-
-	Calloc_free();
-#undef N
-#undef M
 	return GMRFLib_SUCCESS;
 }
 
@@ -1551,9 +1518,9 @@ int GMRFLib_density_printf(FILE *fp, GMRFLib_density_tp *density)
 			break;
 		}
 
-		for (int i = 0; i < 8; i++) {
-			fprintf(fp, "Flag %1d = %1d\n", i, GMRFLib_getbit(density->flags, i));
-		}
+		// for (int i = 0; i < 8; i++) {
+		// fprintf(fp, "Flag %1d = %1d\n", i, GMRFLib_getbit(density->flags, i));
+		// }
 	}
 	return GMRFLib_SUCCESS;
 }
