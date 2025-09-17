@@ -449,7 +449,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			if (row_idxval) {
 				// we do not free it, we can just pretend its empty and use it again
 				row_idxval->n = 0;
+			} else {
+				GMRFLib_idxval_create(&row_idxval);
+				row_idxval_hold[thread] = row_idxval;
 			}
+
 			// last argument = 0, as we do not need to sort it
 			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA, 0);
 
@@ -471,10 +475,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				// GMRFLib_idx_add(&(pAA_pattern[i]), k); }
 			}
 			GMRFLib_idx_uniq(pAA_pattern[i]);      /* this also sorts */
-			GMRFLib_idxval_free(row_idxval);
 		}
 
-		for (int i = 0; i < num_threads; i++) {
+		for (int i = 0; i < num_threads_max; i++) {
 			if (row_idxval_hold[i]) {
 				GMRFLib_idxval_free(row_idxval_hold[i]);
 			}
