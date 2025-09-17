@@ -6315,11 +6315,15 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		GMRFLib_density_tp *d = NULL;
 		if (mb->density[i] && !ISZERO(OFFSET3(i))) {
-			d = mb->density[i];
-			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
-			GMRFLib_free_density(d);
+			GMRFLib_density_tp *d = mb->density[i];
+			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
+			} else {
+				// this I do not understand
+				GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
+				GMRFLib_free_density(d);
+			}
 		}
 	}
 
@@ -7612,7 +7616,7 @@ int main(int argc, char **argv)
 				} else {
 					mb->theta_file = NULL;
 				}
-				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
+				mb->x_file = Malloc(mb->preopt->n + mb->preopt->mnpred, double);
 				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
 				for (i = 0; i < mb->preopt->mnpred; i++) {
 					mb->x_file[i] += OFFSET3(i);

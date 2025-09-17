@@ -21,6 +21,7 @@
 #define IDX_ALLOC_ADD     512
 
 static int malloc_debug = -1;
+static int malloc_debug_show_free = 0;			       /* print 'free' or not */
 
 // better with function than macro...
 char *Strdup(const char *s)
@@ -224,7 +225,7 @@ void GMRFLib_malloc_debug_check(void)
 		char *def = getenv("INLA_MALLOC_DEBUG");
 		if (def) {
 			int val = atoi(def);
-			malloc_debug = (val > 0 ? 1 : 0);
+			malloc_debug = (val > 0 ? val : 0);
 		} else {
 			malloc_debug = 0;
 		}
@@ -239,7 +240,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	assert(nmemb * size < PTRDIFF_MAX);
 	ptr = calloc(nmemb, size);
 
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && nmemb * size >= malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
 		       ptr);
 	}
@@ -262,7 +263,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	assert(size < PTRDIFF_MAX);
 	ptr = malloc(size);
 
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && size >= malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
 	}
 
@@ -288,7 +289,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && size >= malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
 		       old_ptr, ptr);
 	}
@@ -307,7 +308,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 {
 	if (ptr) {
-		if (malloc_debug > 0) {
+		if (malloc_debug_show_free && malloc_debug > 0) {
 			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
 		}
 		free(ptr);
