@@ -240,7 +240,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	assert(nmemb * size < PTRDIFF_MAX);
 	ptr = calloc(nmemb, size);
 
-	if (malloc_debug > 0 && nmemb * size >= malloc_debug) {
+	if (malloc_debug > 0 && nmemb * size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
 		       ptr);
 	}
@@ -263,7 +263,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	assert(size < PTRDIFF_MAX);
 	ptr = malloc(size);
 
-	if (malloc_debug > 0 && size >= malloc_debug) {
+	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
 	}
 
@@ -289,7 +289,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
-	if (malloc_debug > 0 && size >= malloc_debug) {
+	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
 		       old_ptr, ptr);
 	}
