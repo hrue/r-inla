@@ -21,6 +21,7 @@
 #define IDX_ALLOC_ADD     512
 
 static int malloc_debug = -1;
+static int malloc_debug_show_free = 0;			       /* print 'free' or not */
 
 // better with function than macro...
 char *Strdup(const char *s)
@@ -33,11 +34,11 @@ unsigned char *Strdup_sha(unsigned char *sha)
 	if (!sha) {
 		return NULL;
 	}
-	unsigned char *new = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
-	Memcpy(new, sha, GMRFLib_SHA_DIGEST_LEN);
-	new[GMRFLib_SHA_DIGEST_LEN] = '\0';
+	unsigned char *nnew = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	Memcpy(nnew, sha, GMRFLib_SHA_DIGEST_LEN);
+	nnew[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
-	return new;
+	return nnew;
 }
 
 unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
@@ -224,7 +225,7 @@ void GMRFLib_malloc_debug_check(void)
 		char *def = getenv("INLA_MALLOC_DEBUG");
 		if (def) {
 			int val = atoi(def);
-			malloc_debug = (val > 0 ? 1 : 0);
+			malloc_debug = (val > 0 ? val : 0);
 		} else {
 			malloc_debug = 0;
 		}
@@ -239,7 +240,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	assert(nmemb * size < PTRDIFF_MAX);
 	ptr = calloc(nmemb, size);
 
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && nmemb * size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
 		       ptr);
 	}
@@ -262,7 +263,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	assert(size < PTRDIFF_MAX);
 	ptr = malloc(size);
 
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
 	}
 
@@ -288,7 +289,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
-	if (malloc_debug > 0) {
+	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
 		       old_ptr, ptr);
 	}
@@ -307,7 +308,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 {
 	if (ptr) {
-		if (malloc_debug > 0) {
+		if (malloc_debug_show_free && malloc_debug > 0) {
 			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
 		}
 		free(ptr);
@@ -2247,9 +2248,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2269,15 +2270,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {

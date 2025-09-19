@@ -1,6 +1,19 @@
-## Nothing to export
+#' @title inla.tempdir
+#' @export
+#' @details Return the name, and create, a temporary directory for storing intermediate results.
+#'     This function is exported as it is also used by package `INLAjoint` (for details, check the `INLAjoint`
+#'     implementation)
+`inla.tempdir` <- function() {
+    ## just replace \ in Windows with /
+    t.dir <- tempfile()
+    inla.dir.create(t.dir)
+    return(gsub("\\\\", "/", t.dir))
+}
 
-## Various utility functions
+`inla.tempfile` <- function(pattern = "file", tmpdir = tempdir()) {
+    ## just replace \ in Windows with /
+    return(gsub("\\\\", "/", tempfile(pattern, tmpdir)))
+}
 
 `inla.numlen` <- function(x) {
     ## number of digits required to represent a integers 'x'
@@ -452,7 +465,6 @@
     return(as.character(u))
 }
 
-
 `inla.eval` <- function(command,
                         envir = parent.frame(),
                         enclos = if (is.list(envir) || is.pairlist(envir)) {
@@ -462,19 +474,6 @@
                         }) {
     return(eval(parse(text = command), envir, enclos))
 }
-
-`inla.tempfile` <- function(pattern = "file", tmpdir = tempdir()) {
-    ## just replace \ in Windows with /
-    return(gsub("\\\\", "/", tempfile(pattern, tmpdir)))
-}
-
-`inla.tempdir` <- function() {
-    ## just replace \ in Windows with /
-    t.dir <- tempfile()
-    inla.dir.create(t.dir)
-    return(gsub("\\\\", "/", t.dir))
-}
-
 
 `inla.formula2character` <- function(formula) {
     ## convert a formula to characters without the 500 character
