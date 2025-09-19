@@ -865,12 +865,7 @@ typedef enum {
 	}								\
 
 
-/* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
-
-   Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the
-   name of the function currently being defined.  This is broken in G++ before version 2.6.  C9x has
-   a similar variable called __func__, but prefer the GCC one since it demangles C++ function names.
-*/
+/* from /usr/include/assert.h */
 #ifndef __GNUC_PRERQ
 #if defined __GNUC__ && defined __GNUC_MINOR__
 #define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -880,7 +875,7 @@ typedef enum {
 #endif
 #if defined __GNUC__
 #if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#define  __GMRFLib_FuncName   __PRETTY_FUNCTION__
+#define  __GMRFLib_FuncName   __FUNCTION__
 #else
 #if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #define __GMRFLib_FuncName  __func__
