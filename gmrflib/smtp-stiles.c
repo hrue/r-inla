@@ -17,7 +17,6 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
-	double tref = GMRFLib_timer();
 	GMRFLib_STOP_IF_NOT_SERIAL();
 
 	GMRFLib_ptr_tp *graphs = setup->graphs;
@@ -26,6 +25,8 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		GMRFLib_stiles_quit();
 	}
 
+	GMRFLib_ENTER_FUNCTION;
+	double tref = GMRFLib_timer();
 	if (!ctl) {
 		GMRFLib_stiles_set_ctl(0, 0);
 	}
@@ -162,6 +163,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		GMRFLib_stiles_print(stdout);
 	}
 
+	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
