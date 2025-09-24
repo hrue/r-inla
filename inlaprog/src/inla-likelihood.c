@@ -1566,21 +1566,21 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 			logll[i] = c[0] + c[1] * eta[i];
 		}
 
-		if (!ISZERO(c[2])) {
+		if (ISNONZERO(c[2])) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-0.5 * c[2] * SQR(c[3] - eta[i]));
 			}
 		}
 
-		if (!ISZERO(c[4])) {
+		if (ISNONZERO(c[4])) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-c[4] * exp(c[5] + c[6] * eta[i]));
 			}
 		}
 
-		if (!ISZERO(c[7])) {
+		if (ISNONZERO(c[7])) {
 			double sign = DSIGN(c[8]);
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-c[7] * log(expm1(c[8] * eta[i]) / (sign * PUSH_AWAY(eta[i]))));
@@ -2670,7 +2670,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(y));
+					assert(ISNONZERO(y));
 				}
 			} else {
 				double mean = E * lambda;
@@ -3821,7 +3821,7 @@ int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *__
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(iy));
+					assert(ISNONZERO(iy));
 				}
 			} else {
 				if (int_low < 0) {
@@ -3889,7 +3889,7 @@ int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__r
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(iy));
+					assert(ISNONZERO(iy));
 				}
 			} else {
 				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
@@ -7565,7 +7565,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 
 		case SURV_EVENT_RIGHT:
 		{
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);
@@ -7627,7 +7627,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 
 		case SURV_EVENT_INTERVAL:
 		{
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);
@@ -7665,7 +7665,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 		case SURV_EVENT_ININTERVAL:
 		{
 			assert(lower >= truncation);
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);

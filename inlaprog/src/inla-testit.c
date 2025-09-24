@@ -4227,7 +4227,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < n; k++) {
 			int iszero = 1;
 			for (int i = 0; i < n; i++) {
-				if (!ISZERO(x[i])) {
+				if (ISNONZERO(x[i])) {
 					iszero = 0;
 					break;
 				}
@@ -5529,6 +5529,17 @@ int testit(int argc, char **argv)
 		printf("[%s]\n", __GMRFLib_FuncName);
 	}
 	break;
+
+	case 178: 
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(n, double);
+		printf("%d\n", GMRFLib_is_zero(x, n));
+		x[n-1] = 1;
+		printf("%d\n", GMRFLib_is_zero(x, n));
+	}
+		break;
+		
 
 	case 999:
 	{

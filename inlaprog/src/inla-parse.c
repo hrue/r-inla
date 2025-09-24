@@ -17864,7 +17864,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				k = 0;
 				for (i = 0; i < mb->f_N[mb->nf]; i++) {
 					double a = mb->f_constr[mb->nf]->a_matrix[i * nnc + j];
-					if (!ISZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
+					if (ISNONZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
 						printf("\t\t\tA[%1d] = %f\n", i, a);
 						k++;
 					}

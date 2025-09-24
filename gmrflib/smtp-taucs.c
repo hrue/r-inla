@@ -1641,7 +1641,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		if (j == 0) {
 			// the first chunk we have to do 'manually'
 			for (int k = 0; k < nrhs; k++) {
-				if (!ISZERO(xx[k])) {
+				if (ISNONZERO(xx[k])) {
 					found = 1;
 					break;
 				}

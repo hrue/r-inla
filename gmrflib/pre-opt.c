@@ -290,7 +290,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			int off = idx_map_f[jj];
 
 			val = ww[jj][i];
-			if (c[jj][i] >= 0 && !ISZERO(val)) {
+			if (c[jj][i] >= 0 && ISNONZERO(val)) {
 				idx = c[jj][i] + off;
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
@@ -320,7 +320,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 					for (int ii = 0; ii < iv->n; ii++) {
 						val = iv->val[ii];
-						if (!ISZERO(val)) {
+						if (ISNONZERO(val)) {
 							idx = iv->idx[ii] + off;
 							GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 						}
@@ -331,7 +331,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 		for (int jj = 0; jj < nbeta; jj++) {
 			val = covariate[jj][i];
-			if (!ISZERO(val)) {
+			if (ISNONZERO(val)) {
 				idx = idx_map_beta[jj];
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}

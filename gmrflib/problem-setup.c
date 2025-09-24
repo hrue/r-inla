@@ -1277,13 +1277,13 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix + i;
 		for (int j = 0; j < n; j++) {
-			if (!ISZERO(a[j * nc])) {
+			if (ISNONZERO(a[j * nc])) {
 				constr->jfirst[i] = j;
 				break;
 			}
 		}
 		for (int j = n - 1; j >= 0; j--) {
-			if (!ISZERO(a[j * nc])) {
+			if (ISNONZERO(a[j * nc])) {
 				constr->jlen[i] = j - constr->jfirst[i] + 1;
 				break;
 			}
@@ -1295,7 +1295,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 		double *a = constr->a_matrix;
 		for (int j = 0; j < n; j++) {
 			int k = i + j * nc;
-			if (!ISZERO(a[k])) {
+			if (ISNONZERO(a[k])) {
 				GMRFLib_idxval_add(&(constr->idxval[i]), j, a[k]);
 			}
 		}
