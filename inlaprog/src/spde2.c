@@ -199,7 +199,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	const int lim2 = 64;
 	int dij_size = (1 + nb) * 3;
 	int max_stack_size = lim1;			       // Conservative limit
-	double stack_arrays[lim2 + lim1];			       // theta + dij on stack
+	double stack_arrays[lim2 + lim1];		       // theta + dij on stack
 	double *theta, *dij;
 
 	if (nc <= lim2 && dij_size <= max_stack_size) {

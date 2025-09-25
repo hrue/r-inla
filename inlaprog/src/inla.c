@@ -5974,7 +5974,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			printf("\t                                serial.mkl[%4.1f] group.mkl[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
 #endif
 #if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
-			printf("\tOptimizing dot-products.... serial.opt[%.3f] group.opt[%.3f] group.prefetch[%.3f]\n", time_loop[0], time_loop[1], time_loop[2]);
+			printf("\tOptimizing dot-products.... serial.opt[%.3f] group.opt[%.3f] group.prefetch[%.3f]\n", time_loop[0], time_loop[1],
+			       time_loop[2]);
 			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[3]);
 			printf("\t                                serial.opt[%4.1f] group.opt[%4.1f] group.prefetch[%4.1f]\n",
 			       100 * time_loop[4], 100 * time_loop[5], 100 * time_loop[6]);

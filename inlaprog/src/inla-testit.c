@@ -5524,23 +5524,23 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 177: 
+	case 177:
 	{
 		printf("[%s]\n", __GMRFLib_FuncName);
 	}
-	break;
+		break;
 
-	case 178: 
+	case 178:
 	{
 		int n = atoi(args[0]);
 		double *x = Calloc(n, double);
 		printf("%d\n", GMRFLib_is_zero(x, n));
-		x[n-1] = 1;
+		x[n - 1] = 1;
 		printf("%d\n", GMRFLib_is_zero(x, n));
 	}
 		break;
-		
-	case 179: 
+
+	case 179:
 	{
 		int n = atoi(args[0]);
 		double *x = Calloc(n, double);
@@ -5554,7 +5554,7 @@ int testit(int argc, char **argv)
 		P(GMRFLib_dsum(n, x));
 	}
 		break;
-		
+
 
 	case 999:
 	{

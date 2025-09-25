@@ -1429,8 +1429,9 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 
 double GMRFLib_dsum_optimized(int n, double *__restrict a)
 {
-	if (__builtin_expect(n <= 0, 0)) return 0.0;
-    
+	if (__builtin_expect(n <= 0, 0))
+		return 0.0;
+
 	if (n <= 8) {
 		double s = 0.0;
 #pragma omp simd reduction(+: s)
@@ -1441,13 +1442,13 @@ double GMRFLib_dsum_optimized(int n, double *__restrict a)
 	} else {
 		// Use Kahan summation for better numerical accuracy
 		double sum = 0.0;
-		double c = 0.0;  // Compensation for lost low-order bits
-        
+		double c = 0.0;				       // Compensation for lost low-order bits
+
 #pragma omp simd reduction(+: sum) reduction(+: c)
 		for (int i = 0; i < n; i++) {
-			double y = a[i] - c;    // Compensated value
-			double t = sum + y;     // New sum
-			c = (t - sum) - y;      // Update compensation
+			double y = a[i] - c;		       // Compensated value
+			double t = sum + y;		       // New sum
+			c = (t - sum) - y;		       // Update compensation
 			sum = t;
 		}
 		return sum;
@@ -1456,30 +1457,31 @@ double GMRFLib_dsum_optimized(int n, double *__restrict a)
 
 double GMRFLib_dsum_idx_optimized(int n, double *__restrict a, int *__restrict idx)
 {
-	if (__builtin_expect(n <= 0, 0)) return 0.0;
-    
+	if (__builtin_expect(n <= 0, 0))
+		return 0.0;
+
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	int i = 0;
-    
+
 	// Unroll by 8 for better pipeline utilization
 	for (; i + 8 <= n; i += 8) {
 		__builtin_prefetch(idx + i + 8, 0, 3);
-        
+
 		s0 += a[idx[i]];
-		s1 += a[idx[i+1]];
-		s2 += a[idx[i+2]];
-		s3 += a[idx[i+3]];
-		s0 += a[idx[i+4]];
-		s1 += a[idx[i+5]];
-		s2 += a[idx[i+6]];
-		s3 += a[idx[i+7]];
+		s1 += a[idx[i + 1]];
+		s2 += a[idx[i + 2]];
+		s3 += a[idx[i + 3]];
+		s0 += a[idx[i + 4]];
+		s1 += a[idx[i + 5]];
+		s2 += a[idx[i + 6]];
+		s3 += a[idx[i + 7]];
 	}
-    
+
 	// Handle remaining elements
 	for (; i < n; i++) {
 		s0 += a[idx[i]];
 	}
-    
+
 	return s0 + s1 + s2 + s3;
 }
 

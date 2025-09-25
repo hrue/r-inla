@@ -18,18 +18,16 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-
 #define GMRFLib_DOT_GROUP_NLIM 256
-
 double GMRFLib_ddot(int n, double *x, double *y);
 double GMRFLib_ddot_idx(int n, double *v, double *a, int *idx);
 double GMRFLib_ddot_idx_mkl(int n, double *v, double *a, int *idx);
 double GMRFLib_dot_product_group_mkl_opt(GMRFLib_idxval_tp * ELM_, double *ARR_);
-double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_group_serial_opt(GMRFLib_idxval_tp * ELM_, double *ARR_);
-double GMRFLib_dot_product_optimized(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_optimized(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * ELM_, double *ARR_);
-double GMRFLib_dot_product_serial_optimized(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dot_product_serial_optimized(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 void GMRFLib_chose_threshold_ddot(void);
 
 double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx);

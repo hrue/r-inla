@@ -136,20 +136,20 @@ void GMRFLib_delay_random(int msec_low, int msec_high)
 
 char *GMRFLib_vec2char(double *x, int len)
 {
-	size_t estimated_size = IMAX(1, len * 32); // More conservative estimate
+	size_t estimated_size = IMAX(1, len * 32);	       // More conservative estimate
 	char *str = Calloc(estimated_size, char);
-    
+
 	size_t offset = 0;
 	for (int i = 0; i < len; i++) {
-		int written = snprintf(str + offset, estimated_size - offset, 
+		int written = snprintf(str + offset, estimated_size - offset,
 				       (i < len - 1 ? "%.8g," : "%.8g"), x[i]);
-		if (written >= (int)(estimated_size - offset)) {
+		if (written >= (int) (estimated_size - offset)) {
 			estimated_size *= 2;
 			str = Realloc(str, estimated_size, char);
 		}
 		offset += written;
 	}
- 
+
 	size_t j = 0;
 	for (size_t i = 0; i < strlen(str); i++) {
 		if (str[i] != ' ')
@@ -1060,13 +1060,14 @@ int GMRFLib_is_zero(double *x, int n)
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
 	int nonzero = 0;
-	
+
 #pragma omp simd reduction(|:nonzero)
 	for (int i = 0; i < m; i++) {
 		nonzero |= ISNONZERO(x[i]);
 	}
-	if (nonzero) return 0;
-	
+	if (nonzero)
+		return 0;
+
 	if (n > m) {
 		for (int offset = nstart; offset < n; offset += offset) {
 			int len = IMIN(offset, n - offset);
@@ -1098,7 +1099,6 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 			return x[0];
 		}
 	}
-
 	// sometimes the max is at the boundary
 	assert(x);
 	if (idx) {
@@ -1150,7 +1150,6 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 			return x[0];
 		}
 	}
-
 	// sometimes the min is at the boundary
 	assert(x);
 	if (idx) {
@@ -2252,9 +2251,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2274,15 +2273,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
