@@ -1530,17 +1530,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				double dm = 0.0, ds = 0.0;		\
 				if (density[i]) {			\
 					inla_integrate_func(&dm, &ds, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
-					if (locations) {		\
-						D3W_r(i, 0, locations[i % ndiv], dm, ds); \
-					} else {			\
-						D3W_r(i, 0, i, dm, ds);	\
-					}				\
+					D3W_r(i, 0, (locations ? locations[i % ndiv] : i), dm, ds); \
 				} else {				\
-					if (locations) {		\
-						D3W_r(i, 0, locations[i % ndiv], NAN, NAN); \
-					} else {			\
-						D3W_r(i, 0, i, NAN, NAN); \
-					}				\
+					D3W_r(i, 0, (locations ? locations[i % ndiv] : i), NAN, NAN); \
 				}					\
 			}
 
@@ -1571,11 +1563,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					double *dens = CODE_BLOCK_WORK_PTR(1); \
 					double *xx = CODE_BLOCK_WORK_PTR(2); \
 					if (density[i]) {		\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
@@ -1588,11 +1576,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							off += 2;	\
 						}			\
 					} else {			\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						D1W_r(i, off, nn);	\
 						off++;			\
@@ -1616,11 +1600,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					double *dens = CODE_BLOCK_WORK_PTR(1); \
 					double *xx = CODE_BLOCK_WORK_PTR(2); \
 					if (density[i]) {		\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
@@ -1633,11 +1613,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							off += 2;	\
 						}			\
 					} else {			\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						D1W_r(i, off, nn);	\
 						off++;			\
@@ -1661,11 +1637,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					double *dens = CODE_BLOCK_WORK_PTR(1); \
 					double *xx = CODE_BLOCK_WORK_PTR(2); \
 					if (density[i]) {		\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
@@ -1678,11 +1650,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							off += 2;	\
 						}			\
 					} else {			\
-						if (locations) {	\
-							D1W_r(i, off, locations[i % ndiv]); \
-						} else {		\
-							D1W_r(i, off, i); \
-						}			\
+						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
 						D1W_r(i, off, nn);	\
 						off++;			\
@@ -1736,18 +1704,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 							} else {
 								GMRFLib_kld_sym(&kld, gd, density[i]);
 							}
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(kld);
 						} else {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(NAN);
 						}
 					}
@@ -1768,11 +1728,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					for (int i = 0; i < n; i++) {
 						double xp, p;
 						if (density[i]) {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->nquantiles);
 							for (int j = 0; j < output->nquantiles; j++) {
 								p = output->quantiles[j];
@@ -1785,11 +1741,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 								D2W(p, _MAP_X(x_user, i));
 							}
 						} else {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->nquantiles);
 							for (int j = 0; j < output->nquantiles; j++) {
 								D2W(NAN, NAN);
@@ -1810,18 +1762,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					Dinit_core(n * (1 + 3), nndir);
 					for (int i = 0; i < n; i++) {
 						if (density[i]) {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D3W(1.0, NAN, d_mode[i]);
 						} else {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D3W(1.0, NAN, NAN);
 						}
 					}
@@ -1840,11 +1784,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					for (int i = 0; i < n; i++) {
 						double xp, x, p;
 						if (density[i]) {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->ncdf);
 							for (int j = 0; j < output->ncdf; j++) {
 								xp = output->cdf[j];
@@ -1856,11 +1796,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 								D2W(_MAP_X(xp, i), p);
 							}
 						} else {
-							if (locations) {
-								D1W(locations[i % ndiv]);
-							} else {
-								D1W(i);
-							}
+							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->ncdf);
 							for (int j = 0; j < output->ncdf; j++) {
 								D2W(NAN, NAN);
