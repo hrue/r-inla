@@ -64,7 +64,18 @@ typedef struct {
 	double **row_v;
 } inla_spde2_tp;
 
+
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg);
+double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *UNUSED(values), void *arg);
+void apply_exponentials(double *__restrict dij, int nb);
+void apply_single_transform(int transform, double *d2);
+void apply_transform_vectorized(int transform, double *__restrict dij, int nb);
+void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id);
+void compute_d_values_optimized(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc, int nc2, int use_ddot_lim);
+void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb);
+void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n);
+
+double inla_spde2_Qfunction___ORIG(int thread_id, int ii, int jj, double *values, void *arg);
 double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *values, void *arg);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
 int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);
