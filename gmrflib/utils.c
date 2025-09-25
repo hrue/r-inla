@@ -136,7 +136,7 @@ void GMRFLib_delay_random(int msec_low, int msec_high)
 
 char *GMRFLib_vec2char(double *x, int len)
 {
-	size_t estimated_size = len * 32; // More conservative estimate
+	size_t estimated_size = IMAX(1, len * 32); // More conservative estimate
 	char *str = Calloc(estimated_size, char);
     
 	size_t offset = 0;

@@ -414,7 +414,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, oorder);
 
 			if (amin < GMRFLib_min_value(hold_alpha, hold_n, NULL) || amin > GMRFLib_max_value(hold_alpha, hold_n, NULL)) {
-				int idx_min;
+				int idx_min = 0;
 				GMRFLib_min_value(hold_func, hold_n, &idx_min);
 				amin = hold_alpha[idx_min];
 				robust_regression = 0;

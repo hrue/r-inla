@@ -5893,29 +5893,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_sort2_dd_cut_off = 128;		       // override value found 
 	}
 
-#if 0
-	// report timings
-	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
-		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-			for (j = 0; j < 13; j++) {
-				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
-			}
-		}
-		double time_sum = GMRFLib_dsum(6, time_loop);
-		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(6, time_sum, time_loop);
-			time_loop[6] *= time_sum;
-		}
-		time_sum = GMRFLib_dsum(6, time_loop + 7);
-		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(6, time_sum, time_loop + 7);
-		}
-	}
-#endif
-#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
+#if defined(INLA_WITH_MKL)
 	// report timings
 	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
@@ -5934,6 +5912,28 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
 			GMRFLib_dscale(2, time_sum, time_loop + 3);
+		}
+	}
+#endif
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
+	// report timings
+	double time_loop[7] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
+		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+			for (j = 0; j < 7; j++) {
+				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
+			}
+		}
+		double time_sum = GMRFLib_dsum(3, time_loop);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(3, time_sum, time_loop);
+			time_loop[3] *= time_sum;
+		}
+		time_sum = GMRFLib_dsum(3, time_loop + 4);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(3, time_sum, time_loop + 4);
 		}
 	}
 #endif
@@ -5968,21 +5968,16 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if 0
-			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1],
-			       time_loop[2]);
-			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4],
-			       time_loop[5]);
-			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[6]);
-			printf("\t                                serial[%4.1f] serial.mkl[%4.1f] serial.mkl.alt[%4.1f]\n",
-			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);
-			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
-			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
+#if defined(INLA_WITH_MKL)
+			printf("\tOptimizing dot-products.... serial.mkl[%.3f] group.mkl [%.3f]\n", time_loop[0], time_loop[1]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[2]);
+			printf("\t                                serial.mkl[%4.1f] group.mkl[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
 #endif
 #if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
-			printf("\tOptimizing dot-products.... serial[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
-			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[2]);
-			printf("\t                                serial[%4.1f] group[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
+			printf("\tOptimizing dot-products.... serial.opt[%.3f] group.opt[%.3f] group.prefetch[%.3f]\n", time_loop[0], time_loop[1], time_loop[2]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[3]);
+			printf("\t                                serial.opt[%4.1f] group.opt[%4.1f] group.prefetch[%4.1f]\n",
+			       100 * time_loop[4], 100 * time_loop[5], 100 * time_loop[6]);
 #endif
 		}
 	}
@@ -7352,14 +7347,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
 	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-		// GMRFLib_dot_product_optim_report[i] = Calloc(13, double);
-		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(7, double);
 	}
-#endif
 
 #if !defined(WINDOWS)
 	/*

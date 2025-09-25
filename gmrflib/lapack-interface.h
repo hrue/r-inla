@@ -51,6 +51,8 @@ GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_dssqr(int n, double *x);
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_dsum_idx(int n, double *a, int *idx);
+double GMRFLib_dsum_optimized(int n, double *x);
+double GMRFLib_dsum_idx_optimized(int n, double *a, int *idx);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
 double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity, GMRFLib_gsl_ldnorm_store_tp * store);

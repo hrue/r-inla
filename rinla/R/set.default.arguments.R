@@ -252,7 +252,8 @@
              jp = NULL,
 
              #' @param dot.product.gain Output the gain in
-             #' optimizing dot-products? (Default `FALSE`)
+             #' optimizing dot-products? (Default `FALSE`).
+             #' This options needs developer version,  otherwise its disabled.
              dot.product.gain = FALSE,
 
              #' @param globalconstr Add a global constraint (see `?f` and argument

@@ -2350,7 +2350,7 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_group_mkl(h, xx);
+			sum2 = GMRFLib_dot_product_group_mkl_opt(h, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -2576,11 +2576,11 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_optimized(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_timer();
 
 			tref3 -= GMRFLib_timer();
-			sum3 = GMRFLib_ddot_idx_mkl_alt(h->n, h->val, xx, h->idx);
+			sum3 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref3 += GMRFLib_timer();
 
 			tref4 -= GMRFLib_timer();
@@ -2595,7 +2595,7 @@ int testit(int argc, char **argv)
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f mkl %.3f mkl_alt %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		printf("dot_idx %.3f dot.opt %.3f mkl %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
 		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
 		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
@@ -2920,11 +2920,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product(h, xx);
+			sum1 = GMRFLib_dot_product_optimized(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product(hh, xx);
+			sum2 = GMRFLib_dot_product_optimized(hh, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -5537,6 +5537,21 @@ int testit(int argc, char **argv)
 		printf("%d\n", GMRFLib_is_zero(x, n));
 		x[n-1] = 1;
 		printf("%d\n", GMRFLib_is_zero(x, n));
+	}
+		break;
+		
+	case 179: 
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(n, double);
+		double sum = 0.0;
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			sum += x[i];
+		}
+
+		P(sum);
+		P(GMRFLib_dsum(n, x));
 	}
 		break;
 		
