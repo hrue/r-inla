@@ -74,10 +74,22 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 	if (__builtin_expect(n <= 0, 0))
 		return 0.0;
 
-	if (__builtin_expect(n <= 4, 0)) {
+	if (__builtin_expect(n <= 8, 0)) {
 		// Small arrays - manual unroll
 		double r = 0.0;
 		switch (n) {
+		case 8:
+			r += x[7] * y[7];
+			__attribute__((fallthrough));
+		case 7:
+			r += x[6] * y[6];
+			__attribute__((fallthrough));
+		case 6:
+			r += x[5] * y[5];
+			__attribute__((fallthrough));
+		case 5:
+			r += x[4] * y[4];
+			__attribute__((fallthrough));
 		case 4:
 			r += x[3] * y[3];
 			__attribute__((fallthrough));
@@ -128,7 +140,6 @@ double GMRFLib_ddot_idx_optimized(int n, double *__restrict v, double *__restric
 		__builtin_prefetch(v + i + roll, 0, 3);
 		__builtin_prefetch(idx + i + roll, 0, 3);
 
-		// Manual unroll with better instruction scheduling
 		const double *vv = v + i;
 		const int *iidx = idx + i;
 
@@ -151,7 +162,6 @@ double GMRFLib_ddot_idx_optimized(int n, double *__restrict v, double *__restric
 		s7 += vv[15] * a[iidx[15]];
 	}
 
-	// Handle remaining elements
 	for (; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
@@ -160,7 +170,7 @@ double GMRFLib_ddot_idx_optimized(int n, double *__restrict v, double *__restric
 }
 
 #if defined(__linux__) && defined(__AVX2__)
-// AVX2 optimized version for very large arrays. Need timing!!!
+// AVX2 optimized version for very large arrays. Need to time this properly!!!
 double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	if (n <= 0)
