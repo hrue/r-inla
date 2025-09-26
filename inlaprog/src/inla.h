@@ -2161,6 +2161,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, int *lcache_idx, double **x, do
 int inla_mix_int_simpson_mloggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
+void inla_remove_dir(char *dirname);
 
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);

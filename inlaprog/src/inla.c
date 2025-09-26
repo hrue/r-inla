@@ -6999,7 +6999,8 @@ int main(int argc, char **argv)
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 	int model_n_is_set = 0;
-
+	int disable_output = 0;
+	
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_malloc_debug_check();
 
@@ -7054,8 +7055,14 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:W")) != -1) {
 		switch (opt) {
+		case 'W':
+		{
+			disable_output = 1;
+		}
+		break;
+		
 		case 'E':
 		{
 			GMRFLib_force_stiles = 1;
@@ -7642,7 +7649,8 @@ int main(int argc, char **argv)
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-			inla_output(mb);
+			if (!disable_output)
+				inla_output(mb);
 
 			GMRFLib_overall_cpu[7] = GMRFLib_timer();
 			time_used[2] = GMRFLib_timer() - time_used[2];
@@ -7765,7 +7773,7 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 
-			if (mb->dir) {
+			if (!disable_output && mb->dir) {
 				// just a copy of what is above
 				char *nfile = NULL;
 				GMRFLib_sprintf(&nfile, "%s/cpu-intern", mb->dir);
@@ -7821,16 +7829,22 @@ int main(int argc, char **argv)
 				fclose(fp);
 				Free(nfile);
 			}
-			if (mb) {
+			if (!disable_output && mb) {
 				inla_output_ok(mb->dir);
+			}
+			if (disable_output && mb) {
+				inla_remove_dir(mb->dir);
 			}
 			inla_tp_free(mb);
 			mb = NULL;
 		}
 	}
 
-	if (mb) {
+	if (!disable_output && mb) {
 		inla_output_ok(mb->dir);
+	}
+	if (disable_output && mb) {
+		inla_remove_dir(mb->dir);
 	}
 
 	return EXIT_SUCCESS;

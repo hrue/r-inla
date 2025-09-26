@@ -14,7 +14,7 @@ double GMRFLib_dot_product_optimized(GMRFLib_idxval_tp *__restrict ELM_, double 
 {
 	// Use __builtin_expect for better branch prediction on hot path
 	if (__builtin_expect(ELM_->dot_product_func != NULL, 1)) {
-#if defined(INLA_WITH_DEVEL) && !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
+#if defined(INLA_WITH_DEVEL) && !defined(INLA_WITH_ARMPL)
 		if (__builtin_expect(GMRFLib_dot_product_gain >= 0.0, 0)) {
 			_Pragma("omp atomic")
 			    GMRFLib_dot_product_gain += ELM_->cpu_gain;
