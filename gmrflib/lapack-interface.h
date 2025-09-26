@@ -134,6 +134,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
 void daxpyi_(int *, double *, double *, int *, double *);
+void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
 __END_DECLS
 #endif

@@ -5544,6 +5544,83 @@ int testit(int argc, char **argv)
 		break;
 
 
+	case 180:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		aligned_double(*x) = Calloc(n + 1, double);
+		aligned_double(*y) = Calloc(n + 1, double);
+		aligned_double(*yy) = Calloc(n + 1, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = yy[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			aligned_double(a) = GMRFLib_uniform();
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, a, x, y);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd aligned(x, yy: GMRFLib_MEM_ALIGN)
+			for (int j = 0; j < n; j++) {
+				yy[j] = a * x[j] + yy[j];
+			}
+			tref[1] += GMRFLib_timer();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("daxpy:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 181:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		aligned_double(*x) = Calloc(n + 1, double);
+		aligned_double(*y) = Calloc(n + 1, double);
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			aligned_double(a) = GMRFLib_uniform();
+			for (int j = 0; j < n; j++) {
+				x[j] = y[j] = GMRFLib_uniform();
+			}
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_dscale(n, a, x);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd aligned(y: GMRFLib_MEM_ALIGN)
+			for (int j = 0; j < n; j++) {
+				y[j] *= a;
+			}
+			tref[1] += GMRFLib_timer();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - x[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("dscale:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

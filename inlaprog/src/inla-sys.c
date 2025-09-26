@@ -37,7 +37,9 @@ void inla_remove_dir(char *dirname)
 	nftw(dirname, inla_remove_dir_callback, 10, FTW_DEPTH | FTW_PHYS);
 }
 #else
-void inla_remove_dir(char *UNUSED(dirname)) {}
+void inla_remove_dir(char *UNUSED(dirname))
+{
+}
 #endif
 
 int inla_mkdir(const char *dirname)

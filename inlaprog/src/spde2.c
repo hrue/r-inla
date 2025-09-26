@@ -17,9 +17,9 @@ void compute_d_values_optimized(double *__restrict d, double *__restrict vals, d
 {
 	if (nc < use_ddot_lim) {
 		// Manual vectorized loop for small nc
-		aligned_double(d0) = 0.0; 
-		aligned_double(d1) = 0.0; 
-		aligned_double(d2) = 0.0; 
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			aligned_double(theta_k) = theta[k];
@@ -371,9 +371,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	double *vals_j = vals_j_p->V;
 
 	if (nc < use_ddot_lim) {
-		aligned_double(d0) = 0.0; 
-		aligned_double(d1) = 0.0; 
-		aligned_double(d2) = 0.0; 
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_j[k] * theta[k];

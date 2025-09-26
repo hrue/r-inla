@@ -13,11 +13,9 @@
 
 
 __BEGIN_DECLS
-
 #include <assert.h>
 #include <omp.h>
-
-typedef struct {
+    typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;

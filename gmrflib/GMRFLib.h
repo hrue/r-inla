@@ -2,6 +2,7 @@
 #define _GNU_SOURCE 1
 #endif
 
+#include <errno.h>
 #include <assert.h>
 #include <stddef.h>
 #include <math.h>
@@ -29,15 +30,15 @@
 #endif
 
 __BEGIN_DECLS
-#define GMRFLib_VERSION_MAJOR    "3"
+#define GMRFLib_VERSION_MAJOR    "0"
 #define GMRFLib_VERSION_MINOR    "0"
-#define GMRFLib_VERSION_REVISION "0-snapshot"
-#define GMRFLib_VERSION          "3.0-0-snapshot"
+#define GMRFLib_VERSION_REVISION "0"
+#define GMRFLib_VERSION          "0.0-0"
+
 #if defined(WINDOWS)
 #define GMRFLib_NEED_DRAND48  1				       /* include implementation of drand48() */
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
-void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
 /* 
  *  include files we need from GSL
@@ -73,7 +74,6 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_types.h>
 #include <gsl/gsl_vector.h>
-
 
 /* 
  * include all the include-files in GMRFLib

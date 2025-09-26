@@ -27,7 +27,6 @@ __BEGIN_DECLS
 
 /* 
  */
-
 #if __GNUC__ > 7
 typedef size_t fortran_charlen_t;
 #else
@@ -110,7 +109,17 @@ static int POSSIBLY_UNUSED(IMAX) (int a, int b) {
 }
 
 #pragma omp declare simd
+static size_t POSSIBLY_UNUSED(sMAX) (size_t a, size_t b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
 static int POSSIBLY_UNUSED(IMIN) (int a, int b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static size_t POSSIBLY_UNUSED(sMIN) (size_t a, size_t b) {
 	return ((a) < (b) ? (a) : (b));
 }
 

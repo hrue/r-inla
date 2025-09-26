@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
@@ -1304,8 +1303,39 @@ double GMRFLib_dssqr(int n, double *x)
 int GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	int one = 1;
-	return (dscal_(&n, &a, x, &one));
+	if (n <= 24) {
+		aligned_int(roll) = 4;
+		aligned_double(aa) = a;
+		div_t d = div(n, roll);
+		int m = d.quot * roll;
+
+		if (m) {
+			if (GMRFLib_is_aligned(x)) {
+#pragma omp simd aligned(x: GMRFLib_MEM_ALIGN)
+				for (int i = 0; i < m; i += roll) {
+					x[i] *= aa;
+					x[i + 1] *= aa;
+					x[i + 2] *= aa;
+					x[i + 3] *= aa;
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i += roll) {
+					x[i] *= aa;
+					x[i + 1] *= aa;
+					x[i + 2] *= aa;
+					x[i + 3] *= aa;
+				}
+			}
+		}
+		for (int i = m; i < n; i++) {
+			x[i] *= aa;
+		}
+		return 0;
+	} else {
+		int one = 1;
+		return (dscal_(&n, &a, x, &one));
+	}
 }
 
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
@@ -1315,19 +1345,37 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
-	if (GMRFLib_is_aligned2(x, y)) {
+	aligned_int(roll) = 4;
+	aligned_double(aa) = a;
+	aligned_double(bb) = b;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+	if (m) {
+		if (GMRFLib_is_aligned2(x, y)) {
 #pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
-		for (int i = 0; i < n; i++) {
-			y[i] = a * x[i] + b * y[i];
+			for (int i = 0; i < m; i += roll) {
+				y[i] = aa * x[i] + bb * y[i];
+				y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
+				y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
+				y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i += roll) {
+				y[i] = aa * x[i] + bb * y[i];
+				y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
+				y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
+				y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
+			}
 		}
-	} else {
-#pragma omp simd		
-		for (int i = 0; i < n; i++) {
-			y[i] = a * x[i] + b * y[i];
-		}
+	}
+	for (int i = m; i < n; i++) {
+		y[i] = aa * x[i] + bb * y[i];
 	}
 #endif
 }
+
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 {
 	// z = a * x + b * y
@@ -1346,46 +1394,77 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
 
-	if (1) {
-		GMRFLib_dfill(n, b, y);
-		GMRFLib_daxpy(n, a, x, y);
-	} else {
-		const int roll = 4L;
+	if (n <= 32) {
+		aligned_double(aa) = a;
+		aligned_double(bb) = b;
+		aligned_int(roll) = 4;
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
 
-		aligned_double(a_) = a;
-		aligned_double(b_) = b;
-		
-		if (GMRFLib_is_aligned2(x, y)) {
+		if (m) {
+			if (GMRFLib_is_aligned2(x, y)) {
 #pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < m; i += roll) {
-				y[i] = a_ * x[i] + b_;
-				y[i + 1] = a_ * x[i + 1] + b_;
-				y[i + 2] = a_ * x[i + 2] + b_;
-				y[i + 3] = a_ * x[i + 3] + b_;
-			}
-		} else {
+				for (int i = 0; i < m; i += roll) {
+					y[i] = aa * x[i] + bb;
+					y[i + 1] = aa * x[i + 1] + bb;
+					y[i + 2] = aa * x[i + 2] + bb;
+					y[i + 3] = aa * x[i + 3] + bb;
+				}
+			} else {
 #pragma omp simd
-			for (int i = 0; i < m; i += roll) {
-				y[i] = a_ * x[i] + b_;
-				y[i + 1] = a_ * x[i + 1] + b_;
-				y[i + 2] = a_ * x[i + 2] + b_;
-				y[i + 3] = a_ * x[i + 3] + b_;
+				for (int i = 0; i < m; i += roll) {
+					y[i] = aa * x[i] + bb;
+					y[i + 1] = aa * x[i + 1] + bb;
+					y[i + 2] = aa * x[i + 2] + bb;
+					y[i + 3] = aa * x[i + 3] + bb;
+				}
 			}
 		}
-#pragma omp simd
 		for (int i = m; i < n; i++) {
-			y[i] = a_ * x[i] + b_;
+			y[i] = aa * x[i] + bb;
 		}
+	} else {
+		GMRFLib_dfill(n, b, y);
+		GMRFLib_daxpy(n, a, x, y);
 	}
 }
 
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-	// y += a*x
-	int inc = 1;
-	daxpy_(&n, &a, x, &inc, y, &inc);
+	// y = a * x + y
+
+	if (n <= 24) {
+		aligned_int(roll) = 4;
+		aligned_double(aa) = a;
+		div_t d = div(n, roll);
+		int m = d.quot * roll;
+
+		if (m) {
+			if (GMRFLib_is_aligned2(x, y)) {
+#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
+				for (int i = 0; i < m; i += roll) {
+					y[i] = aa * x[i] + y[i];
+					y[i + 1] = aa * x[i + 1] + y[i + 1];
+					y[i + 2] = aa * x[i + 2] + y[i + 2];
+					y[i + 3] = aa * x[i + 3] + y[i + 3];
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i += roll) {
+					y[i] = aa * x[i] + y[i];
+					y[i + 1] = aa * x[i + 1] + y[i + 1];
+					y[i + 2] = aa * x[i + 2] + y[i + 2];
+					y[i + 3] = aa * x[i + 3] + y[i + 3];
+				}
+			}
+		}
+		for (int i = m; i < n; i++) {
+			y[i] = aa * x[i] + y[i];
+		}
+	} else {
+		int inc = 1;
+		daxpy_(&n, &a, x, &inc, y, &inc);
+	}
 }
 
 int GMRFLib_isum(int n, int *ix)
@@ -1408,20 +1487,45 @@ int GMRFLib_isum(int n, int *ix)
 
 double GMRFLib_dsum(int n, double *x)
 {
-	aligned_double(s) = 0.0;
+	return GMRFLib_dsum_optimized(n, x);
+}
 
-	if (GMRFLib_is_aligned(x)) {
-#pragma omp simd reduction(+: s) aligned(x: GMRFLib_MEM_ALIGN)
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
-	} else {
+double GMRFLib_dsum_optimized(int n, double *__restrict a)
+{
+	if (__builtin_expect(n <= 0, 0))
+		return 0.0;
+
+	if (n <= 8) {
+		aligned_double(s) = 0.0;
 #pragma omp simd reduction(+: s)
 		for (int i = 0; i < n; i++) {
-			s += x[i];
+			s += a[i];
 		}
+		return s;
+	} else {
+		// Use Kahan summation for better numerical accuracy
+		aligned_double(sum) = 0.0;
+		aligned_double(c) = 0.0;		       // Compensation for lost low-order bits
+
+		if (GMRFLib_is_aligned(a)) {
+#pragma omp simd reduction(+: sum) reduction(+: c) aligned(a: GMRFLib_MEM_ALIGN)
+			for (int i = 0; i < n; i++) {
+				aligned_double(y) = a[i] - c;  // Compensated value
+				aligned_double(t) = sum + y;   // New sum
+				c = (t - sum) - y;	       // Update compensation
+				sum = t;
+			}
+		} else {
+#pragma omp simd reduction(+: sum) reduction(+: c)
+			for (int i = 0; i < n; i++) {
+				aligned_double(y) = a[i] - c;  // Compensated value
+				aligned_double(t) = sum + y;   // New sum
+				c = (t - sum) - y;	       // Update compensation
+				sum = t;
+			}
+		}
+		return sum;
 	}
-	return s;
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
@@ -1452,44 +1556,6 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	}
 
 	return s0 + s1 + s2 + s3;
-}
-
-double GMRFLib_dsum_optimized(int n, double *__restrict a)
-{
-	if (__builtin_expect(n <= 0, 0))
-		return 0.0;
-
-	if (n <= 8) {
-		aligned_double(s) = 0.0;
-#pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += a[i];
-		}
-		return s;
-	} else {
-		// Use Kahan summation for better numerical accuracy
-		aligned_double(sum) = 0.0;
-		aligned_double(c) = 0.0;			       // Compensation for lost low-order bits
-
-		if (GMRFLib_is_aligned(a)) {
-#pragma omp simd reduction(+: sum) reduction(+: c) aligned(a: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < n; i++) {
-				aligned_double(y) = a[i] - c;		       // Compensated value
-				aligned_double(t) = sum + y;		       // New sum
-				c = (t - sum) - y;		       // Update compensation
-				sum = t;
-			}
-		} else {
-#pragma omp simd reduction(+: sum) reduction(+: c)
-			for (int i = 0; i < n; i++) {
-				aligned_double(y) = a[i] - c;		       // Compensated value
-				aligned_double(t) = sum + y;		       // New sum
-				c = (t - sum) - y;		       // Update compensation
-				sum = t;
-			}
-		}
-		return sum;
-	}
 }
 
 double GMRFLib_dsum_idx_optimized(int n, double *__restrict a, int *__restrict idx)
