@@ -93,10 +93,17 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 		return r;
 	} else if (__builtin_expect(n < 64, 0)) {
 		// Medium arrays - OpenMP SIMD
-		double r = 0.0;
-#pragma omp simd reduction(+: r) aligned(x, y: 16)
-		for (int i = 0; i < n; i++) {
-			r += x[i] * y[i];
+		aligned_double(r) = 0.0;
+		if (GMRFLib_is_aligned2(x, y)) {
+#pragma omp simd reduction(+: r) aligned(x, y: GMRFLib_MEM_ALIGN)
+			for (int i = 0; i < n; i++) {
+				r += x[i] * y[i];
+			}
+		} else {
+#pragma omp simd reduction(+: r)
+			for (int i = 0; i < n; i++) {
+				r += x[i] * y[i];
+			}
 		}
 		return r;
 	} else {
@@ -245,11 +252,18 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	if (n <= 4L) {
-		double r = 0.0;
+	if (n <= 8L) {
+		aligned_double(r) = 0.0;
+		if (GMRFLib_is_aligned2(x, y)) {
+#pragma omp simd reduction(+: r) aligned(x, y: GMRFLib_MEM_ALIGN)
+			for (int i = 0; i < n; i++) {
+				r += x[i] * y[i];
+			}
+		} else {
 #pragma omp simd reduction(+: r)
-		for (int i = 0; i < n; i++) {
-			r += x[i] * y[i];
+			for (int i = 0; i < n; i++) {
+				r += x[i] * y[i];
+			}
 		}
 		return r;
 	} else {

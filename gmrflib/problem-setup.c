@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-#include "GMRFLib/sha.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int error_check_validate_constr1 = 0;
 

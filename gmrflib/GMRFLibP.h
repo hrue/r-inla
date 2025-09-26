@@ -27,6 +27,7 @@ __BEGIN_DECLS
 
 /* 
  */
+
 #if __GNUC__ > 7
 typedef size_t fortran_charlen_t;
 #else
@@ -124,8 +125,6 @@ static double POSSIBLY_UNUSED(TRUNCATE) (double x, double low, double high) {
 	// #define TRUNCATE(x, low, high) DMIN( DMAX(x, low), high) 
 	return DMIN(DMAX(x, low), high);
 }
-
-#define GMRFLib_MEM_ALIGN (16L)
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
@@ -432,19 +431,19 @@ typedef enum {
 
 #define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
-	calloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
+	calloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(double));	\
 	calloc_m_count_++;						\
 	Calloc_check()
 
 #define iCalloc_get(_n)							\
 	icalloc_work_ + icalloc_offset_;				\
-	icalloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(int));	\
+	icalloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(int));	\
 	icalloc_m_count_++;						\
 	iCalloc_check()
 
 #define Malloc_get(_n)							\
 	malloc_work_ + malloc_offset_;					\
-	malloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
+	malloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(double));	\
 	malloc_m_count_++;						\
 	Malloc_check()
 
@@ -465,26 +464,33 @@ typedef enum {
 #define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_);}
 
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+
 #if 0
+
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__); ptr=NULL;}
 #define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
+
 #else
+
 #undef  GMRFLib_TRACE_MEMORY
-#define Calloc(n, type)         (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
-#define Malloc(n, type)         (type *)malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
-#define Realloc(ptr, n, type)   ((ptr) ? \
-				 (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : \
-				 (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type)))
+#define Calloc(n, type)         (type *)calloc_intern(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
+#define Malloc(n, type)         (type *)malloc_intern(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), type))
+#define Realloc(ptr, n, type)   ((ptr) ? (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : (type *)Calloc(n, type))
 #define Free(ptr)               if (ptr) {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
+
 #endif
+
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
+
+#define aligned_double(a_) double a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_int(a_)    int    a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
 
 #define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}

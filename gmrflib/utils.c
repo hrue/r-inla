@@ -14,7 +14,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
 #define IDX_ALLOC_INITIAL 64
@@ -2387,43 +2386,3 @@ double GMRFLib_erfc_inv(double x)
 }
 
 
-/////////////////////////////////////////////////////////////////////////
-// 
-/////////////////////////////////////////////////////////////////////////
-
-size_t GMRFLib_align(size_t n, size_t size)
-{
-	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bytes boundary
-	int mm = GMRFLib_MEM_ALIGN / size;
-	div_t d = div(n, mm);
-	return n + (d.rem == 0 ? 0 : mm - d.rem);
-}
-
-size_t GMRFLib_align_simple(size_t n, size_t size)
-{
-	// return the length so we are a 16 bytes boundary at the end, ie x[n] is at a 16 byte boundary.
-	// that means steps of 2 for double and 4 for ints
-
-	if (size == 8L) {
-		ldiv_t d = ldiv(n, 2L);
-		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
-	} else if (size == 4L) {
-		ldiv_t d = ldiv(n, 4L);
-		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
-	} else if (size == 2L) {
-		ldiv_t d = ldiv(n, 8L);
-		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
-	} else if (size == 16L) {
-		return n;
-	} else {
-		fprintf(stderr, "\nADD CODE HERE\n");
-		assert(0 == 1);
-	}
-}
-
-int GMRFLib_is_aligned(void *ptr)
-{
-	return (((intptr_t) ptr & 0xF) == 0);
-	// size_t alignment = 16L;
-	// return ((uintptr_t)ptr % alignment) == 0; 
-}

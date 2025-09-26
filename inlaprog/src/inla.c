@@ -7184,8 +7184,9 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg);
-			if (ntt[2] > 0 || inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
+			    inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK ||
+			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (ntt[0] <= 0) {
 					ntt[0] = GMRFLib_MAX_THREADS();
@@ -7194,9 +7195,8 @@ int main(int argc, char **argv)
 					ntt[1] = 1;
 				}
 				if (ntt[2] <= 0) {
-					ntt[2] = ntt[1];
-				}
-
+					ntt[2] = (ntt[1] == 1 ? IMAX(1, ntt[0] / 2) : IMAX(ntt[0], ntt[1]));
+				} 
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], ntt[2], GMRFLib_openmp->max_threads);
 				}
@@ -7231,7 +7231,7 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
 			} else {
 				fprintf(stderr, "Fail to read A:B[:C] from [%s]\n", optarg);
-				fprintf(stderr, "Will continue with '4:1:1'\n");
+				fprintf(stderr, "Will continue with '4:1:2'\n");
 				ntt[0] = 4;
 				ntt[1] = 1;
 				ntt[2] = 2;

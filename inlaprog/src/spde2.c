@@ -144,7 +144,7 @@ double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *
 	int use_ddot_lim = 16;
 	int nc2 = 2 * nc;
 	int lim2 = 64;
-	double d_storage[6] __attribute__((aligned(32))) = { 0, 0, 0, 0, 0, 0 };
+	double d_storage[6] __attribute__((aligned(GMRFLib_MEM_ALIGN))) = { 0, 0, 0, 0, 0, 0 };
 	double *__restrict d_i = d_storage;
 	double *__restrict d_j = d_storage + 3;
 

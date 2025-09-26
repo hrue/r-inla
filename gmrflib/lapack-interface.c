@@ -1315,9 +1315,16 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
-		y[i] = a * x[i] + b * y[i];
+	if (GMRFLib_is_aligned2(x, y)) {
+#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
+		for (int i = 0; i < n; i++) {
+			y[i] = a * x[i] + b * y[i];
+		}
+	} else {
+#pragma omp simd		
+		for (int i = 0; i < n; i++) {
+			y[i] = a * x[i] + b * y[i];
+		}
 	}
 #endif
 }
@@ -1330,15 +1337,9 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 
 void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z)
 {
-	if (0) {
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			z[i] = a * x[i] + b * y[i] + c;
-		}
-	} else {
-		GMRFLib_daxpb(n, b, y, c, z);
-		GMRFLib_daxpy(n, a, x, z);
-	}
+	// z[i] = a * x[i] + b * y[i] + c;
+	GMRFLib_daxpb(n, b, y, c, z);
+	GMRFLib_daxpy(n, a, x, z);
 }
 
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
@@ -1353,17 +1354,29 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
 
+		aligned_double(a_) = a;
+		aligned_double(b_) = b;
+		
+		if (GMRFLib_is_aligned2(x, y)) {
+#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
+			for (int i = 0; i < m; i += roll) {
+				y[i] = a_ * x[i] + b_;
+				y[i + 1] = a_ * x[i + 1] + b_;
+				y[i + 2] = a_ * x[i + 2] + b_;
+				y[i + 3] = a_ * x[i + 3] + b_;
+			}
+		} else {
 #pragma omp simd
-		for (int i = 0; i < m; i += roll) {
-			y[i] = a * x[i] + b;
-			y[i + 1] = a * x[i + 1] + b;
-			y[i + 2] = a * x[i + 2] + b;
-			y[i + 3] = a * x[i + 3] + b;
+			for (int i = 0; i < m; i += roll) {
+				y[i] = a_ * x[i] + b_;
+				y[i + 1] = a_ * x[i + 1] + b_;
+				y[i + 2] = a_ * x[i + 2] + b_;
+				y[i + 3] = a_ * x[i + 3] + b_;
+			}
 		}
-
 #pragma omp simd
 		for (int i = m; i < n; i++) {
-			y[i] = a * x[i] + b;
+			y[i] = a_ * x[i] + b_;
 		}
 	}
 }
@@ -1377,22 +1390,36 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 
 int GMRFLib_isum(int n, int *ix)
 {
-	int s = 0;
+	aligned_int(s) = 0;
 
+	if (GMRFLib_is_aligned(ix)) {
+#pragma omp simd reduction(+: s) aligned(ix: GMRFLib_MEM_ALIGN)
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
+	} else {
 #pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += ix[i];
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
 	}
 	return s;
 }
 
 double GMRFLib_dsum(int n, double *x)
 {
-	double s = 0.0;
+	aligned_double(s) = 0.0;
 
+	if (GMRFLib_is_aligned(x)) {
+#pragma omp simd reduction(+: s) aligned(x: GMRFLib_MEM_ALIGN)
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
+	} else {
 #pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += x[i];
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
 	}
 	return s;
 }
@@ -1433,7 +1460,7 @@ double GMRFLib_dsum_optimized(int n, double *__restrict a)
 		return 0.0;
 
 	if (n <= 8) {
-		double s = 0.0;
+		aligned_double(s) = 0.0;
 #pragma omp simd reduction(+: s)
 		for (int i = 0; i < n; i++) {
 			s += a[i];
@@ -1441,15 +1468,25 @@ double GMRFLib_dsum_optimized(int n, double *__restrict a)
 		return s;
 	} else {
 		// Use Kahan summation for better numerical accuracy
-		double sum = 0.0;
-		double c = 0.0;				       // Compensation for lost low-order bits
+		aligned_double(sum) = 0.0;
+		aligned_double(c) = 0.0;			       // Compensation for lost low-order bits
 
+		if (GMRFLib_is_aligned(a)) {
+#pragma omp simd reduction(+: sum) reduction(+: c) aligned(a: GMRFLib_MEM_ALIGN)
+			for (int i = 0; i < n; i++) {
+				aligned_double(y) = a[i] - c;		       // Compensated value
+				aligned_double(t) = sum + y;		       // New sum
+				c = (t - sum) - y;		       // Update compensation
+				sum = t;
+			}
+		} else {
 #pragma omp simd reduction(+: sum) reduction(+: c)
-		for (int i = 0; i < n; i++) {
-			double y = a[i] - c;		       // Compensated value
-			double t = sum + y;		       // New sum
-			c = (t - sum) - y;		       // Update compensation
-			sum = t;
+			for (int i = 0; i < n; i++) {
+				aligned_double(y) = a[i] - c;		       // Compensated value
+				aligned_double(t) = sum + y;		       // New sum
+				c = (t - sum) - y;		       // Update compensation
+				sum = t;
+			}
 		}
 		return sum;
 	}
@@ -1528,8 +1565,8 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
 #endif
@@ -1541,8 +1578,8 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
 #endif
@@ -1555,165 +1592,15 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	if (n > 4L) {
 		vdPowx(n, x, a, y);
 	} else {
-		_Pragma("omp simd")
-		    for (int i = 0; i < n; i++) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
 			y[i] = pow(x[i], a);
 		}
 	}
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[i] = pow(x[i], a);
 	}
 #endif
-}
-
-int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
-		       double alpha, gsl_matrix *A, gsl_matrix *B, double beta, gsl_matrix *C, int num_threads)
-{
-	size_t M = C->size1;
-	size_t N = C->size2;
-	size_t MA = (TransA == CblasNoTrans) ? A->size1 : A->size2;
-	size_t NA = (TransA == CblasNoTrans) ? A->size2 : A->size1;
-	size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
-	size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
-
-	if (M == MA && N == NB && NA == MB) {		       /* [MxN] = [MAxNA][MBxNB] */
-		cblas_dgemm_omp(CblasRowMajor, TransA, TransB, (int) M, (int) N, (int) NA,
-				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta, C->data, (int) C->tda, num_threads);
-		return GSL_SUCCESS;
-	} else {
-		GSL_ERROR("invalid length", GSL_EBADLEN);
-	}
-}
-
-void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
-		     enum CBLAS_TRANSPOSE TransB, int M, int N,
-		     int K, double alpha, double *A, int lda, double *B, int ldb, double beta, double *C, int ldc, int num_threads)
-{
-	int n1, n2;
-	int ldf, ldg;
-	int TransF, TransG;
-	double *F = NULL, *G = NULL;
-
-	if (alpha == 0.0 && beta == 1.0)
-		return;
-
-	if (Order == CblasRowMajor) {
-		n1 = M;
-		n2 = N;
-		F = A;
-		ldf = lda;
-		TransF = (TransA == CblasConjTrans) ? CblasTrans : TransA;
-		G = B;
-		ldg = ldb;
-		TransG = (TransB == CblasConjTrans) ? CblasTrans : TransB;
-	} else {
-		n1 = N;
-		n2 = M;
-		F = B;
-		ldf = ldb;
-		TransF = (TransB == CblasConjTrans) ? CblasTrans : TransB;
-		G = A;
-		ldg = lda;
-		TransG = (TransA == CblasConjTrans) ? CblasTrans : TransA;
-	}
-
-	/*
-	 * form y := beta*y 
-	 */
-	if (beta == 0.0) {
-		for (int i = 0; i < n1; i++) {
-			if (1) {
-				GMRFLib_dfill(n2, 0.0, C + ldc * i);
-			} else {
-				for (int j = 0; j < n2; j++) {
-					C[ldc * i + j] = 0.0;
-				}
-			}
-		}
-	} else if (beta != 1.0) {
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				C[ldc * i + j] *= beta;
-			}
-		}
-	}
-
-	if (alpha == 0.0)
-		return;
-
-	if (TransF == CblasNoTrans && TransG == CblasNoTrans) {
-
-		/*
-		 * form C := alpha*A*B + C 
-		 */
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int k = 0; k < K; k++) {
-				double temp = alpha * F[ldf * i + k];
-				if (temp != 0.0) {
-					for (int j = 0; j < n2; j++) {
-						C[ldc * i + j] += temp * G[ldg * k + j];
-					}
-				}
-			}
-		}
-
-	} else if (TransF == CblasNoTrans && TransG == CblasTrans) {
-
-		/*
-		 * form C := alpha*A*B' + C 
-		 */
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				double temp = 0.0;
-				for (int k = 0; k < K; k++) {
-					temp += F[ldf * i + k] * G[ldg * j + k];
-				}
-				C[ldc * i + j] += alpha * temp;
-			}
-		}
-
-	} else if (TransF == CblasTrans && TransG == CblasNoTrans) {
-
-#pragma omp parallel for num_threads(num_threads) schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int k = 0; k < K; k++) {
-				double temp = alpha * F[ldf * k + i];
-				if (temp != 0.0) {
-					// C[ldc * i + j] += temp * G[ldg * k + j];
-					GMRFLib_daxpy(n2, temp, G + ldg * k, C + ldc * i);
-				}
-			}
-		}
-
-	} else if (TransF == CblasTrans && TransG == CblasTrans) {
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				double temp = 0.0;
-				for (int k = 0; k < K; k++) {
-					temp += F[ldf * k + i] * G[ldg * j + k];
-				}
-				C[ldc * i + j] += alpha * temp;
-			}
-		}
-
-	} else {
-		assert(0 == 1);
-	}
 }

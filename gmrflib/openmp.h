@@ -11,12 +11,13 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-//#include <omp.h>
 
 __BEGIN_DECLS
-//
-//
-    typedef struct {
+
+#include <assert.h>
+#include <omp.h>
+
+typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;

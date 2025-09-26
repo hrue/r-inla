@@ -1,3 +1,4 @@
+#include <time.h>
 #include <assert.h>
 #include <omp.h>
 #include <stdio.h>

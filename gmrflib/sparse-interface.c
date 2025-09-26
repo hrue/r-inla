@@ -78,9 +78,9 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 	} else {
 		int n = csr_from->s->n;
 		int na = csr_from->s->na;
-		int n1 = GMRFLib_align(n + 1, sizeof(int));
+		int n1 = GMRFLib_align_len(n + 1, sizeof(int));
 		int len = n1 + na;
-		int llen = GMRFLib_align(len, sizeof(int));
+		int llen = GMRFLib_align_len(len, sizeof(int));
 
 		(*csr_to)->copy_only = csr_from->copy_only;
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
@@ -171,9 +171,9 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	}
 	n = graph->n;
 	na = graph->nnz / 2 + n;			       // only upper triangular. yes, integer division
-	n1 = GMRFLib_align(n + 1, sizeof(int));
+	n1 = GMRFLib_align_len(n + 1, sizeof(int));
 	len = n1 + na;
-	llen = GMRFLib_align(len, sizeof(int));
+	llen = GMRFLib_align_len(len, sizeof(int));
 	Ms->na = na;
 	Ms->n = n;
 	Ms->iwork = Malloc(llen, int);
