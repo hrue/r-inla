@@ -17,11 +17,12 @@ void compute_d_values_optimized(double *__restrict d, double *__restrict vals, d
 {
 	if (nc < use_ddot_lim) {
 		// Manual vectorized loop for small nc
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
-
+		aligned_double(d0) = 0.0; 
+		aligned_double(d1) = 0.0; 
+		aligned_double(d2) = 0.0; 
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
-			double theta_k = theta[k];
+			aligned_double(theta_k) = theta[k];
 			d0 += vals[k] * theta_k;
 			d1 += vals[k + nc] * theta_k;
 			d2 += vals[k + nc2] * theta_k;
@@ -94,7 +95,7 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	case SPDE2_TRANSFORM_LOG:
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
-			int off = 2 + i * 3;
+			aligned_int(off) = 2 + i * 3;
 			dij[off] = 2.0 * exp(dij[off]) - 1.0;
 		}
 		break;
@@ -102,7 +103,7 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	case SPDE2_TRANSFORM_LOGIT:
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
-			int off = 2 + i * 3;
+			aligned_int(off) = 2 + i * 3;
 			dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
 		}
 		break;
@@ -114,25 +115,25 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 
 void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
 {
-	double d_i0 = dij[0];
-	double d_i1 = dij[1];
-	double d_i2 = dij[2];
+	aligned_double(d_i0) = dij[0];
+	aligned_double(d_i1) = dij[1];
+	aligned_double(d_i2) = dij[2];
 
 #pragma omp simd
 	for (int kk = 0; kk <= nb; kk++) {
-		int v_off = kk * 4;
-		int d_off = kk * 3;
+		aligned_int(v_off) = kk * 4;
+		aligned_int(d_off) = kk * 3;
 
-		double d_j0 = dij[d_off];
-		double d_j1 = dij[d_off + 1];
-		double d_j2 = dij[d_off + 2];
+		aligned_double(d_j0) = dij[d_off];
+		aligned_double(d_j1) = dij[d_off + 1];
+		aligned_double(d_j2) = dij[d_off + 2];
 
-		double v0 = v[v_off];
-		double v1 = v[v_off + 1];
-		double v2 = v[v_off + 2];
-		double v3 = v[v_off + 3];
+		aligned_double(v0) = v[v_off];
+		aligned_double(v1) = v[v_off + 1];
+		aligned_double(v2) = v[v_off + 2];
+		aligned_double(v3) = v[v_off + 3];
 
-		double inner = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
+		aligned_double(inner) = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
 		values[kk] = d_i0 * d_j0 * inner;
 	}
 }
@@ -288,7 +289,6 @@ double inla_spde2_Qfunction__ORIG(int thread_id, int ii, int jj, double *values,
 
 		// for (int kk = 0; kk < 1 + nb; kk++, vv += 4, d_j += 3) 
 		// values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
-#pragma omp simd
 		for (int kk = 0; kk < 1 + nb; kk++) {
 			values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
 			vv += 4;
@@ -319,7 +319,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	}
 
 	if (nc < use_ddot_lim) {
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_i[k] * theta[k];
@@ -369,7 +371,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	double *vals_j = vals_j_p->V;
 
 	if (nc < use_ddot_lim) {
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		aligned_double(d0) = 0.0; 
+		aligned_double(d1) = 0.0; 
+		aligned_double(d2) = 0.0; 
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_j[k] * theta[k];

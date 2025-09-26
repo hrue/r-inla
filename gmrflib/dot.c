@@ -76,7 +76,7 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 
 	if (__builtin_expect(n <= 8, 0)) {
 		// Small arrays - manual unroll
-		double r = 0.0;
+		aligned_double(r) = 0.0;
 		switch (n) {
 		case 8:
 			r += x[7] * y[7];
@@ -262,6 +262,8 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
+	return GMRFLib_ddot_optimized(n, x, y);
+#if 0
 	if (n <= 8L) {
 		aligned_double(r) = 0.0;
 		if (GMRFLib_is_aligned2(x, y)) {
@@ -280,8 +282,8 @@ double GMRFLib_ddot(int n, double *x, double *y)
 		int one = 1;
 		return ddot_(&n, x, &one, y, &one);
 	}
+#endif
 }
-
 
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {

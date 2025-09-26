@@ -4273,7 +4273,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		double ssum = 0.0;
 		for (int k = 0; k < m; k++) {
-			double sum = 0.0;
+			aligned_double(sum) = 0.0;
 
 			tref[0] -= GMRFLib_timer();
 #pragma omp simd reduction(+: sum)
@@ -4298,7 +4298,7 @@ int testit(int argc, char **argv)
 			ssum += sum / n;
 
 			tref[3] -= GMRFLib_timer();
-			sum = GMRFLib_ddot(n, x + 1, y);
+			sum = GMRFLib_ddot_optimized(n, x + 1, y);
 			tref[3] += GMRFLib_timer();
 			ssum -= sum / n;
 		}
