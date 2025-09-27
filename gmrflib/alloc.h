@@ -4,7 +4,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#if defined(__linux) && defined(__AVX2__)
+// disable 32u for the moment
+#if 0 && defined(__linux) && defined(__AVX2__)
 #define GMRFLib_MEM_ALIGN 32u
 #else
 #define GMRFLib_MEM_ALIGN 16u
