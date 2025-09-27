@@ -6,16 +6,14 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-// set to 0 to disable
-#define USE_ALIGNMENT 1
-
-// as most allocators align by default at 16, there is a quick alternative as well
+// set to 1 to enable and 0 to disable
+#define USE_ALIGNMENT 0
 
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
 	
-#if GMRFLib_MEM_ALIGN == 16u
+#if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
 	// quick alternative as most allocators align by default at 16
 	p = malloc(size);
 	assert(p);
@@ -43,7 +41,7 @@ void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
 	
-#if GMRFLib_MEM_ALIGN == 16u
+#if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
 	p = calloc(nmemb, size);
 	assert(p);
 	if (GMRFLib_is_aligned(p)){
