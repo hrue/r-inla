@@ -938,9 +938,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
 			} else {
 				// split work in ntt threads each doing a chunk
-				int *iwork = Malloc(2 * ntt, int);
+				int len = GMRFLib_align_len(ntt, sizeof(int));
+				int *iwork = Malloc(2 * len, int);
 				int *csize = iwork;
-				int *offset = iwork + ntt;
+				int *offset = iwork + len;
 
 				GMRFLib_ifill(ntt, chunk_size, csize);
 				for (int i = 0; i < ntt; i++) {

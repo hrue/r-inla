@@ -1418,13 +1418,18 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	/*
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
+
 	Qinv_L = Malloc(n, map_id *);
-#pragma omp parallel for schedule(static)
-	for (int i = 0; i < n; i++) {
-		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
-		Qinv_L[i] = Calloc(1, map_id);
-		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
+#define CODE_BLOCK		      \
+	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
+		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp); \
+		Qinv_L[i] = Calloc(1, map_id);				\
+		map_id_init_hint(Qinv_L[i], nnbsQ[i]);			\
 	}
+
+	RUN_CODE_BLOCK(IMIN(2, GMRFLib_OPENMP_NUM_THREADS_LEVEL()), 0, 0);
+#undef CODE_BLOCK
 
 	double *Zj = Calloc(n, double);
 	double *d = L->values;

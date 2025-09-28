@@ -500,6 +500,8 @@ typedef enum {
 
 #define aligned_double(a_) double a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
 #define aligned_int(a_)    int    a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_void(a_)   void   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_char(a_)   char   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
 
 #define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
@@ -846,8 +848,7 @@ typedef enum {
 #define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
-#define GMRFLib_INT_GHQ_POINTS_PAD (1)			       /* So the _ALLOC_LEN is aligned well */
-#define GMRFLib_INT_GHQ_ALLOC_LEN (GMRFLib_INT_GHQ_POINTS + GMRFLib_INT_GHQ_POINTS_PAD)
+#define GMRFLib_INT_GHQ_ALLOC_LEN (16)			       /* This must align with MEM_ALIGN */
 
 #define TIMER_INIT(use_, n_)				\
 	static double timer_[2 + (n_)];			\

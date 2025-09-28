@@ -752,7 +752,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 			low = -deriv_log_dens_cond - 1.0;
 			high = -deriv_log_dens_cond + 1.0;
 			ld = Calloc(2 * np, double);	       /* xp = Calloc(np,double) */
-
 			xp = &ld[np];
 			for (k = 0; k < np; k++) {
 				xp[k] = xx = low + k * (high - low) / (np - 1.0);

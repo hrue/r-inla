@@ -78,7 +78,6 @@ typedef struct {
 	int *g_len;					       /* their length */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
 	int **g_idx;					       /* indexing */
-	double cpu_gain;
 	double **g_val;
 	double *val;
 	void **g_mem;
@@ -88,6 +87,8 @@ typedef struct {
 #endif
 	GMRFLib_idxval_preference_tp preference;
 	GMRFLib_dot_product_tp *dot_product_func;
+
+	double cpu_gain;
 } GMRFLib_idxval_tp;
 
 typedef struct {

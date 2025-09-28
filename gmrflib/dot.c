@@ -74,6 +74,21 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 	if (__builtin_expect(n <= 0, 0))
 		return 0.0;
 
+#if 0
+	if (!GMRFLib_is_aligned2(x, y)) {
+		printf("ddot_optimized: aligned x %s y %s\n",
+		       (GMRFLib_is_aligned(x) ? "YES" : "NO"), 
+		       (GMRFLib_is_aligned(y) ? "YES" : "NO"));
+		if (!GMRFLib_is_aligned(y)) {
+			//abort();
+		}
+		if (!GMRFLib_is_aligned(x)) {
+			//abort();
+		}
+		//abort();
+	}
+#endif
+	
 	if (__builtin_expect(n <= 8, 0)) {
 		// Small arrays - manual unroll
 		aligned_double(r) = 0.0;
@@ -226,7 +241,6 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 				const int len_ = ELM_->g_len[g_];	\
 				int * __restrict const ii_ = ELM_->g_idx[g_]; \
 				double * __restrict const vv_ = ELM_->g_val[g_]; \
-									\
 				if (__builtin_expect(len_ > 0, 1)) {	\
 					double * __restrict const aa_ = &(ARR_[0]); \
 					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_idx_optimized(len_, aa_, ii_) : DOT_FUNC(len_, vv_, aa_, ii_)); \

@@ -546,6 +546,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
+	// x is a test vector
 	const int limit_merge = 8L, limit_sequential = 8L;
 #if 0
 	static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
@@ -563,6 +564,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (!h || h->n <= 0) {
 		return GMRFLib_SUCCESS;
 	}
+
 	// sort
 	if (h->n > 1) {
 		if (!GMRFLib_is_sorted_iinc(h->n, h->idx)) {
@@ -617,6 +619,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
 	}
+
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -683,12 +686,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	int seq_len = 1;
 	for (int g = 1; g < ng + 1; g++) {
 		int istart = g_istart[g - 1] + g_len[g - 1];
-		irr_len += g_istart[g] - istart + 1;
+		irr_len += g_istart[g] - istart + 1; 
 		seq_len += g_len[g];
 	}
 
-	int *new_idx = Calloc(irr_len + seq_len + ng * limit_merge, int);
-	double *new_val = Calloc(irr_len + seq_len + ng * limit_merge, double);
+	int *new_idx = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), int);
+	double *new_val = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), double);
 
 	// build the irregular group
 	int k = 0;
@@ -699,7 +702,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			Memcpy(new_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(new_val + k, h->val + istart, len * sizeof(double));
 		}
-		k += len;
+		k += GMRFLib_align_len(len, sizeof(double)); 
 	}
 	g_len[0] = k;
 	g_idx[0] = new_idx;
@@ -711,8 +714,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 	}
 	// copy each sequential group and pad for possible grouping
-	int *seq_idx = new_idx + irr_len;
-	double *seq_val = new_val + irr_len;
+	int *seq_idx = new_idx + GMRFLib_align_len(irr_len, sizeof(int));
+	double *seq_val = new_val + GMRFLib_align_len(irr_len, sizeof(double));
 
 	k = 0;
 	for (i = 1; i < ng; i++) {
@@ -730,12 +733,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 
 		int pad = (i < ng - 1 ? IMIN(limit_merge, h->idx[g_istart[i + 1]] - h->idx[istart + len - 1] - 1) : 0);
-		k += len;
+		k += len; 
 		int offset = seq_idx[k - 1] + 1;
 		for (int j = 0; j < pad; j++) {
 			seq_idx[k + j] = offset + j;
 		}
 		k += pad;
+		k = GMRFLib_align_len(k, sizeof(int));
 	}
 
 	// setup pointers to each sequential group
@@ -1111,7 +1115,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare, accumulate); \
 	}
 
-	RUN_CODE_BLOCK_DYNAMIC(nt, 0, 0);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
