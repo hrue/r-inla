@@ -1677,7 +1677,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		for (int k = 0; k < nrhs; k++) {
 			yy[k] = xx[k] * iAjj;
 		}
-		
+
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			double Aij = -L->values[ip];	       // OOOPS! add minus here for daxpy
 			xx = x + L->rowind[ip] * nrhs;
@@ -1709,7 +1709,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 			xx[k] = yy[k] * iAii;
 		}
 	}
-	
+
 	if (!skip_reordering) {
 		Memcpy(work, x, n * nrhs * sizeof(double));
 		int ione = 1;

@@ -12,12 +12,12 @@
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
-	
+
 #if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
 	// quick alternative as most allocators align by default at 16
 	p = malloc(size);
 	assert(p);
-	if (GMRFLib_is_aligned(p)){
+	if (GMRFLib_is_aligned(p)) {
 		return p;
 	} else {
 		free(p);
@@ -40,11 +40,11 @@ void *malloc_intern(size_t size)
 void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
-	
+
 #if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
 	p = calloc(nmemb, size);
 	assert(p);
-	if (GMRFLib_is_aligned(p)){
+	if (GMRFLib_is_aligned(p)) {
 		return p;
 	} else {
 		free(p);

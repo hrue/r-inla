@@ -34,7 +34,6 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 double GMRFLib_ddot_idx_opt(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_ddot_opt(int n, double *__restrict x, double *__restrict y);
 double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx);
-double GMRFLib_dsum_opt(int n, double *__restrict a);
 
 #define GMRFLib_dot_product_INLINE(ans_, v_, a_) ans_ = GMRFLib_dot_product_opt(v_, a_)
 #define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_dot_product_opt(v_, a_)

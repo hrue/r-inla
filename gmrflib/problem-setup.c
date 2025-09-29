@@ -1015,7 +1015,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 			 */
 			int nc_alloc = GMRFLib_align_len(nc, sizeof(double));
 			double *t_vector = NULL, tt_vector[nc_alloc];
-			
+
 			Free(problem->sub_constr_value);
 			problem->sub_constr_value = t_vector = Calloc(nc_alloc, double);
 

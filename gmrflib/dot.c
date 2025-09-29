@@ -60,7 +60,7 @@ double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp *__restrict ELM_, do
 			const int llen_ = -len_;
 			double *__restrict const aa_ = &(ARR_[ii_[0]]);
 			if (__builtin_expect(ELM_->g_1[g_], 0)) {
-				value_ += GMRFLib_dsum_opt(llen_, aa_);
+				value_ += GMRFLib_dsum(llen_, aa_);
 			} else {
 				value_ += GMRFLib_ddot_opt(llen_, vv_, aa_);
 			}
@@ -103,16 +103,9 @@ double GMRFLib_ddot_opt(int n, double *__restrict x, double *__restrict y)
 	} else if (__builtin_expect(n <= 16, 0)) {
 		// Medium arrays - OpenMP SIMD
 		aligned_double(r) = 0.0;
-		if (GMRFLib_is_aligned2(x, y)) {
-#pragma omp simd reduction(+: r) aligned(x, y: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < n; i++) {
-				r += x[i] * y[i];
-			}
-		} else {
 #pragma omp simd reduction(+: r)
-			for (int i = 0; i < n; i++) {
-				r += x[i] * y[i];
-			}
+		for (int i = 0; i < n; i++) {
+			r += x[i] * y[i];
 		}
 		return r;
 	} else {
@@ -225,7 +218,7 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 				} else if (__builtin_expect(len_ < 0, 0)) { \
 					const int llen_ = -len_;	\
 					double * __restrict const aa_ = &(ARR_[ii_[0]]); \
-					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_opt(llen_, aa_) : GMRFLib_ddot_opt(llen_, vv_, aa_)); \
+					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum(llen_, aa_) : GMRFLib_ddot_opt(llen_, vv_, aa_)); \
 				}					\
 				}					\
 		return value_;						\

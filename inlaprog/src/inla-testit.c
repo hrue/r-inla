@@ -5540,6 +5540,16 @@ int testit(int argc, char **argv)
 
 		P(sum);
 		P(GMRFLib_dsum(n, x));
+
+		int *ix = Calloc(n, int);
+		int isum = 0.0;
+		for (int i = 0; i < n; i++) {
+			ix[i] = (int) (1000 * GMRFLib_uniform());
+			isum += ix[i];
+		}
+
+		P(isum);
+		P(GMRFLib_isum(n, ix));
 	}
 		break;
 
@@ -5552,15 +5562,14 @@ int testit(int argc, char **argv)
 		P(m);
 		aligned_double(*x) = Calloc(n + 1, double);
 		aligned_double(*y) = Calloc(n + 1, double);
-		aligned_double(*yy) = Calloc(n + 1, double);
 
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-			y[i] = yy[i] = GMRFLib_uniform();
-		}
-
-		double tref[] = { 0, 0 };
+		double *tref = Calloc(2, double);
 		for (int i = 0; i < m; i++) {
+
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+				y[j] = GMRFLib_uniform();
+			}
 			aligned_double(a) = GMRFLib_uniform();
 
 			tref[0] -= GMRFLib_timer();
@@ -5568,19 +5577,11 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd aligned(x, yy: GMRFLib_MEM_ALIGN)
-			for (int j = 0; j < n; j++) {
-				yy[j] = a * x[j] + yy[j];
-			}
+			int inc = 1;
+			daxpy_(&n, &a, x, &inc, y, &inc);
 			tref[1] += GMRFLib_timer();
-
-			double err = 0.0;
-			for (int j = 0; j < n; j++) {
-				err = DMAX(err, ABS(y[j] - yy[j]));
-			}
-			assert(err < FLT_EPSILON);
 		}
-		printf("daxpy:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		printf("daxpy simd %f blas %f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 
@@ -5630,9 +5631,9 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
-		double tref[] = { 0, 0, 0};
+		double tref[] = { 0, 0, 0 };
 		for (int i = 0; i < m; i++) {
-			for (int j = 0; j < n+1; j++) {
+			for (int j = 0; j < n + 1; j++) {
 				x[j] = y[j] = GMRFLib_uniform();
 			}
 
@@ -5648,21 +5649,19 @@ int testit(int argc, char **argv)
 			tref[1] -= GMRFLib_timer();
 			sum1 = GMRFLib_ddot_opt(n, x, y);
 			tref[1] += GMRFLib_timer();
-			
+
 			double sum2 = 0.0;
 			tref[2] -= GMRFLib_timer();
 			int one = 1;
 			sum2 = ddot_(&n, x, &one, y, &one);
 			tref[2] += GMRFLib_timer();
 
-			assert(ABS(sum - sum1)/sqrt(n) < FLT_EPSILON);
-			assert(ABS(sum - sum2)/sqrt(n) < FLT_EPSILON);
+			assert(ABS(sum - sum1) / sqrt(n) < FLT_EPSILON);
+			assert(ABS(sum - sum2) / sqrt(n) < FLT_EPSILON);
 		}
 		printf(" %f %f %f\n",
-		       tref[0] / (tref[0] + tref[1] + tref[2]),
-		       tref[1] / (tref[0] + tref[1] + tref[2]),
-		       tref[2] / (tref[0] + tref[1] + tref[2]));
-		       
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+
 	}
 		break;
 

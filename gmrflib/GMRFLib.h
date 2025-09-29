@@ -34,7 +34,6 @@ __BEGIN_DECLS
 #define GMRFLib_VERSION_MINOR    "0"
 #define GMRFLib_VERSION_REVISION "0"
 #define GMRFLib_VERSION          "0.0-0"
-
 #if defined(WINDOWS)
 #define GMRFLib_NEED_DRAND48  1				       /* include implementation of drand48() */
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
@@ -126,7 +125,6 @@ __BEGIN_DECLS
 #include "GMRFLib/moments.h"
 #include "GMRFLib/sn-g.h"
 #include "GMRFLib/my-numa.h"
-
 #if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);

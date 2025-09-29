@@ -675,7 +675,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		unsigned int guess[2] = { 0, 0 };
 		unsigned int m = g->lnnbs[i];
 		int *arr = g->lnbs[i];
-		int (*fun)(int, int *, unsigned int, unsigned int *) =(m > 32 ? GMRFLib_iwhich_sorted_g2 : GMRFLib_iwhich_sorted_g2_dummy);
+		int (*fun)(int, int *, unsigned int, unsigned int *) = (m > 32 ? GMRFLib_iwhich_sorted_g2 : GMRFLib_iwhich_sorted_g2_dummy);
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
@@ -774,7 +774,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	for (int i = 0; i < (*preopt)->preopt_graph->n; i++) {
 		int lnnbs = (*preopt)->preopt_graph->lnnbs[i];
 		if (lnnbs) {
-			int store_len = lnnbs; 
+			int store_len = lnnbs;
 			char *store = Calloc(2 * store_len, char);
 			(*preopt)->preopt_graph_latent_is_nb[i] = store;
 			(*preopt)->preopt_graph_like_is_nb[i] = store + store_len;

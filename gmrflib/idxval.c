@@ -564,7 +564,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (!h || h->n <= 0) {
 		return GMRFLib_SUCCESS;
 	}
-
 	// sort
 	if (h->n > 1) {
 		if (!GMRFLib_is_sorted_iinc(h->n, h->idx)) {
@@ -619,7 +618,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
 	}
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -686,7 +684,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	int seq_len = 1;
 	for (int g = 1; g < ng + 1; g++) {
 		int istart = g_istart[g - 1] + g_len[g - 1];
-		irr_len += g_istart[g] - istart + 1; 
+		irr_len += g_istart[g] - istart + 1;
 		seq_len += g_len[g];
 	}
 
@@ -702,7 +700,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			Memcpy(new_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(new_val + k, h->val + istart, len * sizeof(double));
 		}
-		k += GMRFLib_align_len(len, sizeof(double)); 
+		k += GMRFLib_align_len(len, sizeof(double));
 	}
 	g_len[0] = k;
 	g_idx[0] = new_idx;
@@ -733,7 +731,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 
 		int pad = (i < ng - 1 ? IMIN(limit_merge, h->idx[g_istart[i + 1]] - h->idx[istart + len - 1] - 1) : 0);
-		k += len; 
+		k += len;
 		int offset = seq_idx[k - 1] + 1;
 		for (int j = 0; j < pad; j++) {
 			seq_idx[k + j] = offset + j;
@@ -1376,7 +1374,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

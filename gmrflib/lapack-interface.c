@@ -1303,30 +1303,18 @@ double GMRFLib_dssqr(int n, double *x)
 int GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	if (n <= 24) {
+	if (n <= 32) {
 		aligned_int(roll) = 4;
 		aligned_double(aa) = a;
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
 
-		if (m) {
-			if (GMRFLib_is_aligned(x)) {
-#pragma omp simd aligned(x: GMRFLib_MEM_ALIGN)
-				for (int i = 0; i < m; i += roll) {
-					x[i] *= aa;
-					x[i + 1] *= aa;
-					x[i + 2] *= aa;
-					x[i + 3] *= aa;
-				}
-			} else {
 #pragma omp simd
-				for (int i = 0; i < m; i += roll) {
-					x[i] *= aa;
-					x[i + 1] *= aa;
-					x[i + 2] *= aa;
-					x[i + 3] *= aa;
-				}
-			}
+		for (int i = 0; i < m; i += roll) {
+			x[i] *= aa;
+			x[i + 1] *= aa;
+			x[i + 2] *= aa;
+			x[i + 3] *= aa;
 		}
 		for (int i = m; i < n; i++) {
 			x[i] *= aa;
@@ -1351,24 +1339,11 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	if (m) {
-		if (GMRFLib_is_aligned2(x, y)) {
-#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < m; i += roll) {
-				y[i] = aa * x[i] + bb * y[i];
-				y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
-				y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
-				y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
-			}
-		} else {
-#pragma omp simd
-			for (int i = 0; i < m; i += roll) {
-				y[i] = aa * x[i] + bb * y[i];
-				y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
-				y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
-				y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
-			}
-		}
+	for (int i = 0; i < m; i += roll) {
+		y[i + 0] = aa * x[i + 0] + bb * y[i + 0];
+		y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
+		y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
+		y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
 	}
 	for (int i = m; i < n; i++) {
 		y[i] = aa * x[i] + bb * y[i];
@@ -1393,73 +1368,29 @@ void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
-
-	if (n <= 32) {
-		aligned_double(aa) = a;
-		aligned_double(bb) = b;
-		aligned_int(roll) = 4;
-		div_t d = div(n, roll);
-		int m = d.quot * roll;
-
-		if (m) {
-			if (GMRFLib_is_aligned2(x, y)) {
-#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
-				for (int i = 0; i < m; i += roll) {
-					y[i] = aa * x[i] + bb;
-					y[i + 1] = aa * x[i + 1] + bb;
-					y[i + 2] = aa * x[i + 2] + bb;
-					y[i + 3] = aa * x[i + 3] + bb;
-				}
-			} else {
-#pragma omp simd
-				for (int i = 0; i < m; i += roll) {
-					y[i] = aa * x[i] + bb;
-					y[i + 1] = aa * x[i + 1] + bb;
-					y[i + 2] = aa * x[i + 2] + bb;
-					y[i + 3] = aa * x[i + 3] + bb;
-				}
-			}
-		}
-		for (int i = m; i < n; i++) {
-			y[i] = aa * x[i] + bb;
-		}
-	} else {
-		GMRFLib_dfill(n, b, y);
-		GMRFLib_daxpy(n, a, x, y);
-	}
+	GMRFLib_dfill(n, b, y);
+	GMRFLib_daxpy(n, a, x, y);
 }
 
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
 	// y = a * x + y
 
-	if (n <= 24) {
+	if (n <= 2048) {
 		aligned_int(roll) = 4;
-		aligned_double(aa) = a;
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
+		aligned_double(aa) = a;
 
-		if (m) {
-			if (GMRFLib_is_aligned2(x, y)) {
-#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN)
-				for (int i = 0; i < m; i += roll) {
-					y[i] = aa * x[i] + y[i];
-					y[i + 1] = aa * x[i + 1] + y[i + 1];
-					y[i + 2] = aa * x[i + 2] + y[i + 2];
-					y[i + 3] = aa * x[i + 3] + y[i + 3];
-				}
-			} else {
 #pragma omp simd
-				for (int i = 0; i < m; i += roll) {
-					y[i] = aa * x[i] + y[i];
-					y[i + 1] = aa * x[i + 1] + y[i + 1];
-					y[i + 2] = aa * x[i + 2] + y[i + 2];
-					y[i + 3] = aa * x[i + 3] + y[i + 3];
-				}
-			}
+		for (int i = 0; i < m; i += roll) {
+			y[i + 0] += aa * x[i + 0];
+			y[i + 1] += aa * x[i + 1];
+			y[i + 2] += aa * x[i + 2];
+			y[i + 3] += aa * x[i + 3];
 		}
 		for (int i = m; i < n; i++) {
-			y[i] = aa * x[i] + y[i];
+			y[i] += aa * x[i];
 		}
 	} else {
 		int inc = 1;
@@ -1469,93 +1400,47 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 
 int GMRFLib_isum(int n, int *ix)
 {
-	aligned_int(s) = 0;
+	const int roll = 4L;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+	int s0 = 0, s1 = 0, s2 = 0, s3 = 0;
 
-	if (GMRFLib_is_aligned(ix)) {
-#pragma omp simd reduction(+: s) aligned(ix: GMRFLib_MEM_ALIGN)
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
-	} else {
-#pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
+#pragma omp simd reduction(+: s0, s1, s2, s3)
+	for (int i = 0; i < m; i += roll) {
+		s0 += ix[i + 0];
+		s1 += ix[i + 1];
+		s2 += ix[i + 2];
+		s3 += ix[i + 3];
 	}
-	return s;
+	for (int i = m; i < n; i++) {
+		s0 += ix[i];
+	}
+	return s0 + s1 + s2 + s3;
 }
 
 double GMRFLib_dsum(int n, double *x)
 {
-	return GMRFLib_dsum_opt(n, x);
-}
+	const int roll = 4L;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 
-double GMRFLib_dsum_opt(int n, double *__restrict a)
-{
-	if (__builtin_expect(n <= 0, 0))
-		return 0.0;
-
-	if (n <= 8) {
-		aligned_double(s) = 0.0;
-#pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += a[i];
-		}
-		return s;
-	} else {
-		// Use Kahan summation for better numerical accuracy
-		aligned_double(sum) = 0.0;
-		aligned_double(c) = 0.0;		       // Compensation for lost low-order bits
-
-		if (GMRFLib_is_aligned(a)) {
-#pragma omp simd reduction(+: sum) reduction(+: c) aligned(a: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < n; i++) {
-				aligned_double(y) = a[i] - c;  // Compensated value
-				aligned_double(t) = sum + y;   // New sum
-				c = (t - sum) - y;	       // Update compensation
-				sum = t;
-			}
-		} else {
-#pragma omp simd reduction(+: sum) reduction(+: c)
-			for (int i = 0; i < n; i++) {
-				aligned_double(y) = a[i] - c;  // Compensated value
-				aligned_double(t) = sum + y;   // New sum
-				c = (t - sum) - y;	       // Update compensation
-				sum = t;
-			}
-		}
-		return sum;
+#pragma omp simd reduction(+: s0, s1, s2, s3)
+	for (int i = 0; i < m; i += roll) {
+		s0 += x[i + 0];
+		s1 += x[i + 1];
+		s2 += x[i + 2];
+		s3 += x[i + 3];
 	}
+	for (int i = m; i < n; i++) {
+		s0 += x[i];
+	}
+	return s0 + s1 + s2 + s3;
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 {
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma omp simd reduction(+: s0, s1, s2, s3)
-	for (int i = 0; i < m; i += roll) {
-		int *iidx = idx + i;
-
-		s0 += a[iidx[0]];
-		s1 += a[iidx[1]];
-		s2 += a[iidx[2]];
-		s3 += a[iidx[3]];
-
-		s0 += a[iidx[4]];
-		s1 += a[iidx[5]];
-		s2 += a[iidx[6]];
-		s3 += a[iidx[7]];
-	}
-
-#pragma omp simd reduction(+: s0)
-	for (int i = m; i < n; i++) {
-		s0 += a[idx[i]];
-	}
-
-	return s0 + s1 + s2 + s3;
+	return GMRFLib_dsum_idx_opt(n, a, idx);
 }
 
 double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx)
@@ -1564,23 +1449,22 @@ double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx)
 		return 0.0;
 
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	int i = 0;
+	int i = 0, roll = 8;
 
-	// Unroll by 8 for better pipeline utilization
-	for (; i + 8 <= n; i += 8) {
-		__builtin_prefetch(idx + i + 8, 0, 3);
+	for (; i + roll <= n; i += roll) {
+		__builtin_prefetch(idx + i + roll, 0, 3);
 
-		s0 += a[idx[i]];
+		s0 += a[idx[i + 0]];
 		s1 += a[idx[i + 1]];
 		s2 += a[idx[i + 2]];
 		s3 += a[idx[i + 3]];
+
 		s0 += a[idx[i + 4]];
 		s1 += a[idx[i + 5]];
 		s2 += a[idx[i + 6]];
 		s3 += a[idx[i + 7]];
 	}
 
-	// Handle remaining elements
 	for (; i < n; i++) {
 		s0 += a[idx[i]];
 	}
