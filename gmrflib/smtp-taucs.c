@@ -1665,6 +1665,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 
 	double *y = work;
 	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
+
 	for (int j = jfirst; j < n; j++) {
 		int ip = L->colptr[j];
 		int offset_j = j * nrhs;
