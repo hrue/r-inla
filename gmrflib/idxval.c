@@ -602,7 +602,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	assert(info == ARMPL_STATUS_SUCCESS);
 	h->spvec_in_use = 1;
 	h->preference = IDXVAL_SERIAL_ARMPL;
-	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_armpl;
+	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_armpl;
 	h->cpu_gain = 0.0;
 	return GMRFLib_SUCCESS;
 #endif
@@ -611,10 +611,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (h->n <= GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
 #if defined(INLA_WITH_MKL)
 		h->preference = IDXVAL_SERIAL_MKL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_mkl;
 #else
 		h->preference = IDXVAL_SERIAL_OPT;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_optimized;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_opt;
 #endif
 		h->cpu_gain = 0.0;
 		return GMRFLib_SUCCESS;
@@ -861,11 +861,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
-			GMRFLib_dot_product_serial_mkl(h, x);
+			GMRFLib_dot_product_sparse_mkl(h, x);
 			GMRFLib_dot_product_group_mkl_opt(h, x);
 		} else {
 			treff[0] -= GMRFLib_timer();
-			value[0] = GMRFLib_dot_product_serial_mkl(h, x);
+			value[0] = GMRFLib_dot_product_sparse_mkl(h, x);
 			treff[0] += GMRFLib_timer();
 
 			treff[1] -= GMRFLib_timer();
@@ -919,7 +919,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL_MKL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_mkl;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_mkl;
 		break;
 	case 1:
 		h->preference = IDXVAL_GROUP_MKL;
@@ -963,16 +963,16 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
-			GMRFLib_dot_product_serial_optimized(h, x);
-			GMRFLib_dot_product_group_serial_opt(h, x);
+			GMRFLib_dot_product_sparse_opt(h, x);
+			GMRFLib_dot_product_group_sparse_opt(h, x);
 			GMRFLib_dot_product_group_prefetch(h, x);
 		} else {
 			treff[0] -= GMRFLib_timer();
-			value[0] = GMRFLib_dot_product_serial_optimized(h, x);
+			value[0] = GMRFLib_dot_product_sparse_opt(h, x);
 			treff[0] += GMRFLib_timer();
 
 			treff[1] -= GMRFLib_timer();
-			value[1] = GMRFLib_dot_product_group_serial_opt(h, x);
+			value[1] = GMRFLib_dot_product_group_sparse_opt(h, x);
 			treff[1] += GMRFLib_timer();
 
 			treff[2] -= GMRFLib_timer();
@@ -1028,11 +1028,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL_OPT;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_serial_optimized;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_opt;
 		break;
 	case 1:
 		h->preference = IDXVAL_GROUP;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_serial_opt;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_sparse_opt;
 		break;
 	case 2:
 		h->preference = IDXVAL_GROUP_OPT;

@@ -10,7 +10,7 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/dot.h"
 
-double GMRFLib_dot_product_optimized(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_opt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// Use __builtin_expect for better branch prediction on hot path
 	if (__builtin_expect(ELM_->dot_product_func != NULL, 1)) {
@@ -22,7 +22,7 @@ double GMRFLib_dot_product_optimized(GMRFLib_idxval_tp *__restrict ELM_, double 
 #endif
 		return (ELM_->dot_product_func(ELM_, ARR_));
 	} else {
-		return GMRFLib_dot_product_serial_mkl(ELM_, ARR_);
+		return GMRFLib_dot_product_sparse_mkl(ELM_, ARR_);
 	}
 }
 
@@ -52,43 +52,25 @@ double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp *__restrict ELM_, do
 		if (__builtin_expect(len_ > 0, 1)) {
 			double *__restrict const aa_ = &(ARR_[0]);
 			if (__builtin_expect(ELM_->g_1[g_], 0)) {
-				value_ += GMRFLib_dsum_idx_optimized(len_, aa_, ii_);
+				value_ += GMRFLib_dsum_idx_opt(len_, aa_, ii_);
 			} else {
-				value_ += GMRFLib_ddot_idx_optimized(len_, vv_, aa_, ii_);
+				value_ += GMRFLib_ddot_idx_opt(len_, vv_, aa_, ii_);
 			}
 		} else if (__builtin_expect(len_ < 0, 0)) {
 			const int llen_ = -len_;
 			double *__restrict const aa_ = &(ARR_[ii_[0]]);
 			if (__builtin_expect(ELM_->g_1[g_], 0)) {
-				value_ += GMRFLib_dsum_optimized(llen_, aa_);
+				value_ += GMRFLib_dsum_opt(llen_, aa_);
 			} else {
-				value_ += GMRFLib_ddot_optimized(llen_, vv_, aa_);
+				value_ += GMRFLib_ddot_opt(llen_, vv_, aa_);
 			}
 		}
 	}
 	return value_;
 }
 
-double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
+double GMRFLib_ddot_opt(int n, double *__restrict x, double *__restrict y)
 {
-	if (__builtin_expect(n <= 0, 0))
-		return 0.0;
-
-#if 0
-	if (!GMRFLib_is_aligned2(x, y)) {
-		printf("ddot_optimized: aligned x %s y %s\n",
-		       (GMRFLib_is_aligned(x) ? "YES" : "NO"), 
-		       (GMRFLib_is_aligned(y) ? "YES" : "NO"));
-		if (!GMRFLib_is_aligned(y)) {
-			//abort();
-		}
-		if (!GMRFLib_is_aligned(x)) {
-			//abort();
-		}
-		//abort();
-	}
-#endif
-	
 	if (__builtin_expect(n <= 8, 0)) {
 		// Small arrays - manual unroll
 		aligned_double(r) = 0.0;
@@ -118,7 +100,7 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 			r += x[0] * y[0];
 		}
 		return r;
-	} else if (__builtin_expect(n < 64, 0)) {
+	} else if (__builtin_expect(n <= 16, 0)) {
 		// Medium arrays - OpenMP SIMD
 		aligned_double(r) = 0.0;
 		if (GMRFLib_is_aligned2(x, y)) {
@@ -140,11 +122,8 @@ double GMRFLib_ddot_optimized(int n, double *__restrict x, double *__restrict y)
 	}
 }
 
-double GMRFLib_ddot_idx_optimized(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+double GMRFLib_ddot_idx_opt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	if (__builtin_expect(n <= 0, 0))
-		return 0.0;
-
 	const int roll = 16;				       // Increased unroll factor
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	double s4 = 0.0, s5 = 0.0, s6 = 0.0, s7 = 0.0;
@@ -188,10 +167,9 @@ double GMRFLib_ddot_idx_optimized(int n, double *__restrict v, double *__restric
 // AVX2 optimized version for very large arrays. Need to time this properly!!!
 double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	if (n <= 0)
-		return 0.0;
-	if (n <= GMRFLib_DOT_GROUP_NLIM)
-		return GMRFLib_ddot_idx_optimized(n, v, a, idx);
+	if (n <= GMRFLib_DOT_GROUP_NLIM) {
+		return GMRFLib_ddot_idx_opt(n, v, a, idx);
+	}
 
 	__m256d sum = _mm256_setzero_pd();
 	int i = 0;
@@ -224,7 +202,7 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 #else
 double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	return GMRFLib_ddot_idx_optimized(n, v, a, idx);
+	return GMRFLib_ddot_idx_opt(n, v, a, idx);
 }
 #endif
 
@@ -243,29 +221,30 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 				double * __restrict const vv_ = ELM_->g_val[g_]; \
 				if (__builtin_expect(len_ > 0, 1)) {	\
 					double * __restrict const aa_ = &(ARR_[0]); \
-					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_idx_optimized(len_, aa_, ii_) : DOT_FUNC(len_, vv_, aa_, ii_)); \
+					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_idx_opt(len_, aa_, ii_) : DOT_FUNC(len_, vv_, aa_, ii_)); \
 				} else if (__builtin_expect(len_ < 0, 0)) { \
 					const int llen_ = -len_;	\
 					double * __restrict const aa_ = &(ARR_[ii_[0]]); \
-					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_optimized(llen_, aa_) : GMRFLib_ddot_optimized(llen_, vv_, aa_)); \
+					value_ += (ELM_->g_1[g_] ? GMRFLib_dsum_opt(llen_, aa_) : GMRFLib_ddot_opt(llen_, vv_, aa_)); \
 				}					\
 				}					\
 		return value_;						\
 		}
 
 // Generate optimized versions
-DEFINE_OPTIMIZED_GROUP_FUNC(mkl_opt, GMRFLib_ddot_idx_mkl)
-    DEFINE_OPTIMIZED_GROUP_FUNC(serial_opt, GMRFLib_ddot_idx_optimized)
-double GMRFLib_dot_product_serial_optimized(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+DEFINE_OPTIMIZED_GROUP_FUNC(mkl_opt, GMRFLib_ddot_idx_mkl);
+DEFINE_OPTIMIZED_GROUP_FUNC(serial_opt, GMRFLib_ddot_idx_opt);
+
+double GMRFLib_dot_product_sparse_opt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
 
-	return GMRFLib_ddot_idx_optimized(ELM_->n, vv_, aa_, idx_);
+	return GMRFLib_ddot_idx_opt(ELM_->n, vv_, aa_, idx_);
 }
 
-double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_sparse_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
@@ -276,27 +255,7 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	return GMRFLib_ddot_optimized(n, x, y);
-#if 0
-	if (n <= 8L) {
-		aligned_double(r) = 0.0;
-		if (GMRFLib_is_aligned2(x, y)) {
-#pragma omp simd reduction(+: r) aligned(x, y: GMRFLib_MEM_ALIGN)
-			for (int i = 0; i < n; i++) {
-				r += x[i] * y[i];
-			}
-		} else {
-#pragma omp simd reduction(+: r)
-			for (int i = 0; i < n; i++) {
-				r += x[i] * y[i];
-			}
-		}
-		return r;
-	} else {
-		int one = 1;
-		return ddot_(&n, x, &one, y, &one);
-	}
-#endif
+	return GMRFLib_ddot_opt(n, x, y);
 }
 
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
@@ -335,12 +294,12 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
 #else
-	return GMRFLib_ddot_idx_optimized(n, v, a, idx);
+	return GMRFLib_ddot_idx_opt(n, v, a, idx);
 #endif
 }
 
 #if defined(INLA_WITH_ARMPL)
-double GMRFLib_dot_product_serial_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_sparse_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double res = 0.0;
 	armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec, ARR_, &res);

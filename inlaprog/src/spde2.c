@@ -13,7 +13,7 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-void compute_d_values_optimized(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc, int nc2, int use_ddot_lim)
+void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc, int nc2, int use_ddot_lim)
 {
 	if (nc < use_ddot_lim) {
 		// Manual vectorized loop for small nc
@@ -138,7 +138,7 @@ void compute_diagonal_values(double *__restrict dij, double *__restrict v, doubl
 	}
 }
 
-double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
@@ -155,7 +155,7 @@ double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *
 	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
 
 	double *__restrict vals_i = model->row_V[ii];
-	compute_d_values_optimized(d_i, vals_i, theta_ptr, nc, nc2, use_ddot_lim);
+	compute_d_values_opt(d_i, vals_i, theta_ptr, nc, nc2, use_ddot_lim);
 	apply_single_transform(model->transform, &d_i[2]);
 
 	if (ii == jj) {
@@ -171,7 +171,7 @@ double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *
 	}
 	// Off-diagonal case
 	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
-	compute_d_values_optimized(d_j, vals_j_p->V, theta_ptr, nc, nc2, use_ddot_lim);
+	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc, nc2, use_ddot_lim);
 	apply_single_transform(model->transform, &d_j[2]);
 
 	double *__restrict v = vals_j_p->v;
@@ -186,7 +186,7 @@ double inla_spde2_Qfunction_ij_optimized(int thread_id, int ii, int jj, double *
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	if (jj >= 0) {
-		return inla_spde2_Qfunction_ij_optimized(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
+		return inla_spde2_Qfunction_ij_opt(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
 	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;

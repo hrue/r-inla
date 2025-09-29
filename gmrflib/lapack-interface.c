@@ -1487,10 +1487,10 @@ int GMRFLib_isum(int n, int *ix)
 
 double GMRFLib_dsum(int n, double *x)
 {
-	return GMRFLib_dsum_optimized(n, x);
+	return GMRFLib_dsum_opt(n, x);
 }
 
-double GMRFLib_dsum_optimized(int n, double *__restrict a)
+double GMRFLib_dsum_opt(int n, double *__restrict a)
 {
 	if (__builtin_expect(n <= 0, 0))
 		return 0.0;
@@ -1558,7 +1558,7 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	return s0 + s1 + s2 + s3;
 }
 
-double GMRFLib_dsum_idx_optimized(int n, double *__restrict a, int *__restrict idx)
+double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx)
 {
 	if (__builtin_expect(n <= 0, 0))
 		return 0.0;

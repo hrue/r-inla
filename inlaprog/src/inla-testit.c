@@ -2346,7 +2346,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
+			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2494,7 +2494,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
+			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2576,7 +2576,7 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_ddot_idx_optimized(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_timer();
 
 			tref3 -= GMRFLib_timer();
@@ -2920,11 +2920,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_optimized(h, xx);
+			sum1 = GMRFLib_dot_product_opt(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_optimized(hh, xx);
+			sum2 = GMRFLib_dot_product_opt(hh, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -4298,7 +4298,7 @@ int testit(int argc, char **argv)
 			ssum += sum / n;
 
 			tref[3] -= GMRFLib_timer();
-			sum = GMRFLib_ddot_optimized(n, x + 1, y);
+			sum = GMRFLib_ddot_opt(n, x + 1, y);
 			tref[3] += GMRFLib_timer();
 			ssum -= sum / n;
 		}
@@ -5618,6 +5618,51 @@ int testit(int argc, char **argv)
 			assert(err < FLT_EPSILON);
 		}
 		printf("dscale:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 182:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
+
+		double tref[] = { 0, 0, 0};
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n+1; j++) {
+				x[j] = y[j] = GMRFLib_uniform();
+			}
+
+			double sum = 0.0;
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN) reduction(+: sum)
+			for (int j = 0; j < n; j++) {
+				sum += x[j] * y[j];
+			}
+			tref[0] += GMRFLib_timer();
+
+			double sum1 = 0.0;
+			tref[1] -= GMRFLib_timer();
+			sum1 = GMRFLib_ddot_opt(n, x, y);
+			tref[1] += GMRFLib_timer();
+			
+			double sum2 = 0.0;
+			tref[2] -= GMRFLib_timer();
+			int one = 1;
+			sum2 = ddot_(&n, x, &one, y, &one);
+			tref[2] += GMRFLib_timer();
+
+			assert(ABS(sum - sum1)/sqrt(n) < FLT_EPSILON);
+			assert(ABS(sum - sum2)/sqrt(n) < FLT_EPSILON);
+		}
+		printf(" %f %f %f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]),
+		       tref[1] / (tref[0] + tref[1] + tref[2]),
+		       tref[2] / (tref[0] + tref[1] + tref[2]));
+		       
 	}
 		break;
 
