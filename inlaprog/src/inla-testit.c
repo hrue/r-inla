@@ -2393,7 +2393,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();

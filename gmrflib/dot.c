@@ -233,7 +233,7 @@ double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, 
 
 // Generate optimized versions
 DEFINE_OPTIMIZED_GROUP_FUNC(mkl_opt, GMRFLib_ddot_idx_mkl);
-DEFINE_OPTIMIZED_GROUP_FUNC(serial_opt, GMRFLib_ddot_idx_opt);
+DEFINE_OPTIMIZED_GROUP_FUNC(sparse_opt, GMRFLib_ddot_idx_opt);
 
 double GMRFLib_dot_product_sparse_opt(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
@@ -260,33 +260,11 @@ double GMRFLib_ddot(int n, double *x, double *y)
 
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma omp simd reduction(+: s0, s1, s2, s3)
-	for (int i = 0; i < m; i += roll) {
-		double *vv = v + i;
-		int *iidx = idx + i;
-
-		s0 += vv[0] * a[iidx[0]];
-		s1 += vv[1] * a[iidx[1]];
-		s2 += vv[2] * a[iidx[2]];
-		s3 += vv[3] * a[iidx[3]];
-
-		s0 += vv[4] * a[iidx[4]];
-		s1 += vv[5] * a[iidx[5]];
-		s2 += vv[6] * a[iidx[6]];
-		s3 += vv[7] * a[iidx[7]];
-	}
-
-#pragma omp simd reduction(+: s0)
-	for (int i = m; i < n; i++) {
-		s0 += v[i] * a[idx[i]];
-	}
-
-	return s0 + s1 + s2 + s3;
+#if defined(INLA_WITH_MKL)
+	return cblas_ddoti(n, v, idx, a);
+#else
+	return GMRFLib_ddot_idx_opt(n, v, a, idx);
+#endif
 }
 
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)

@@ -1676,11 +1676,10 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		for (int k = 0; k < nrhs; k++) {
 			yy[k] = xx[k] * iAjj;
 		}
-
+		
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			double Aij = -L->values[ip];	       // OOOPS! add minus here for daxpy
-			int offset_i = L->rowind[ip] * nrhs;
-			xx = x + offset_i;
+			xx = x + L->rowind[ip] * nrhs;
 			GMRFLib_daxpy(nrhs, Aij, yy, xx);
 		}
 	}
@@ -1688,10 +1687,10 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	for (int i = n - 1; i >= 0; i--) {
 		double sum[nrhs];
 		GMRFLib_dfill(nrhs, 0.0, sum);
+
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			int offset_j = L->rowind[jp] * nrhs;
 			double Aij = L->values[jp];
-			double *xx = x + offset_j;
+			double *xx = x + L->rowind[jp] * nrhs;
 			GMRFLib_daxpy(nrhs, Aij, xx, sum);
 		}
 
@@ -1703,12 +1702,13 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double iAii = 1.0 / L->values[jp];
 		double *xx = x + offset_i;
 		yy = y + offset_i;
+
 #pragma omp simd
 		for (int k = 0; k < nrhs; k++) {
 			xx[k] = yy[k] * iAii;
 		}
 	}
-
+	
 	if (!skip_reordering) {
 		Memcpy(work, x, n * nrhs * sizeof(double));
 		int ione = 1;
