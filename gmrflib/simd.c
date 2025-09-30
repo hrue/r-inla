@@ -284,7 +284,7 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 #elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 	vvsqrt(y, x, &n);
 #else
-#praga omp simd
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = sqrt(x[i]);
 	}
