@@ -1303,21 +1303,19 @@ double GMRFLib_dssqr(int n, double *x)
 int GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	if (n <= 32) {
-		aligned_int(roll) = 4;
-		aligned_double(aa) = a;
+	if (n <= 16) {
+		int roll = 4;
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
-
 #pragma omp simd
 		for (int i = 0; i < m; i += roll) {
-			x[i] *= aa;
-			x[i + 1] *= aa;
-			x[i + 2] *= aa;
-			x[i + 3] *= aa;
+			x[i + 0] *= a;
+			x[i + 1] *= a;
+			x[i + 2] *= a;
+			x[i + 3] *= a;
 		}
 		for (int i = m; i < n; i++) {
-			x[i] *= aa;
+			x[i] *= a;
 		}
 		return 0;
 	} else {
@@ -1333,21 +1331,8 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
-	aligned_int(roll) = 4;
-	aligned_double(aa) = a;
-	aligned_double(bb) = b;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-	for (int i = 0; i < m; i += roll) {
-		y[i + 0] = aa * x[i + 0] + bb * y[i + 0];
-		y[i + 1] = aa * x[i + 1] + bb * y[i + 1];
-		y[i + 2] = aa * x[i + 2] + bb * y[i + 2];
-		y[i + 3] = aa * x[i + 3] + bb * y[i + 3];
-	}
-	for (int i = m; i < n; i++) {
-		y[i] = aa * x[i] + bb * y[i];
-	}
+	GMRFLib_dscale(n, b, y);
+	GMRFLib_daxpy(n, a, x, y);
 #endif
 }
 
@@ -1375,22 +1360,19 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
 	// y = a * x + y
-
-	if (n <= 2048) {
-		aligned_int(roll) = 4;
+	if (n <= 16) {
+		int roll = 4, m;
 		div_t d = div(n, roll);
-		int m = d.quot * roll;
-		aligned_double(aa) = a;
-
+		m = d.quot * roll;
 #pragma omp simd
 		for (int i = 0; i < m; i += roll) {
-			y[i + 0] += aa * x[i + 0];
-			y[i + 1] += aa * x[i + 1];
-			y[i + 2] += aa * x[i + 2];
-			y[i + 3] += aa * x[i + 3];
+			y[i + 0] += a * x[i + 0];
+			y[i + 1] += a * x[i + 1];
+			y[i + 2] += a * x[i + 2];
+			y[i + 3] += a * x[i + 3];
 		}
 		for (int i = m; i < n; i++) {
-			y[i] += aa * x[i];
+			y[i] += a * x[i];
 		}
 	} else {
 		int inc = 1;

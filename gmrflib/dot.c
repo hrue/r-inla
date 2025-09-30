@@ -16,8 +16,8 @@ double GMRFLib_dot_product_opt(GMRFLib_idxval_tp *__restrict ELM_, double *__res
 	if (__builtin_expect(ELM_->dot_product_func != NULL, 1)) {
 #if defined(INLA_WITH_DEVEL) && !defined(INLA_WITH_ARMPL)
 		if (__builtin_expect(GMRFLib_dot_product_gain >= 0.0, 0)) {
-			_Pragma("omp atomic")
-			    GMRFLib_dot_product_gain += ELM_->cpu_gain;
+#pragma omp atomic
+			GMRFLib_dot_product_gain += ELM_->cpu_gain;
 		}
 #endif
 		return (ELM_->dot_product_func(ELM_, ARR_));

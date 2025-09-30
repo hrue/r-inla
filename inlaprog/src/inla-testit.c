@@ -3560,18 +3560,17 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double *x = Calloc(4 * n, double);
-		double *y = x + n;
-		double *yy = x + 2 * n;
-#if defined(INLA_WITH_MKL)
-		double *z = x + 3 * n;
-#endif
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-		}
-
+		int nn = GMRFLib_align_len(n, sizeof(double));
+		double *x = Calloc(4 * nn, double);
+		double *y = x + nn;
+		double *yy = x + 2 * nn;
+		double *z = x + 3 * nn;
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				x[ii] = GMRFLib_uniform();
+			}
+
 			tref[0] -= GMRFLib_timer();
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
@@ -3580,15 +3579,8 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_WITH_MKL)
-			vdExp(n, x, z);
+			GMRFLib_exp(n, x, z);
 			GMRFLib_daxpbyz(n, 1.0, x, 1.0, z, yy);
-#else
-#pragma omp simd
-			for (int j = 0; j < n; j++) {
-				y[j] = x[j] + exp(x[j]);
-			}
-#endif
 			tref[1] += GMRFLib_timer();
 
 			double err = 0.0;
@@ -5662,6 +5654,35 @@ int testit(int argc, char **argv)
 		printf(" %f %f %f\n",
 		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
 
+	}
+		break;
+
+	case 183:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 1, double);
+		int *ix = Calloc(n + 1, int);
+
+		double *tref = Calloc(2, double);
+		for (int i = 0; i < m; i++) {
+
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+				ix[j] = (int) (1000*GMRFLib_uniform());
+			}
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_dsum(n, x);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_isum(n, ix);
+			tref[1] += GMRFLib_timer();
+		}
+		printf("dsum %f isum %f\n", tref[0], tref[1]);
 	}
 		break;
 
