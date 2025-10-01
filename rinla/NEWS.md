@@ -1,3 +1,7 @@
+# INLA 25.10.01
+* Fixed an regression for family="lognormal" (appeared on Mac M)
+* Code cleanup, improvement and optimisation
+
 # INLA 25.09.19
 * Code improvement and optimisation
 
