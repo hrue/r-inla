@@ -1448,6 +1448,8 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double ly, lprec, prec, w, lw, lypred;
 
+	printf("Enter lognormal with idx %d compute %d\n", idx, G_norm_const_compute[idx]);
+
 	double *cache = NULL;
 	if (G_norm_const_compute[idx]) {
 		cache = Calloc(3, double);
