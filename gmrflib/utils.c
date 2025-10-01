@@ -14,7 +14,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
 #define IDX_ALLOC_INITIAL 64
@@ -136,27 +135,20 @@ void GMRFLib_delay_random(int msec_low, int msec_high)
 
 char *GMRFLib_vec2char(double *x, int len)
 {
-	// return a alloc'ed string like "0.3616, 0.0349, 0.0838"
+	size_t estimated_size = IMAX(1, len * 32);	       // More conservative estimate
+	char *str = Calloc(estimated_size, char);
 
-	if (len == 0) {
-		char *a = Calloc(1, char);
-		a[0] = '\0';
-		return a;
-	}
-	// 24 is the maximum length of the char-version of the number, but we do not check for this...
-	// we need to fix this later
-	int max_width = 24 * len;
-	char *str = Calloc(max_width + 1, char);
-
-	assert(str);
-	str[0] = '\0';
-
-	// append
+	size_t offset = 0;
 	for (int i = 0; i < len; i++) {
-		sprintf(str + strlen(str), (i < len - 1 ? "%.8g," : "%.8g"), x[i]);
+		int written = snprintf(str + offset, estimated_size - offset,
+				       (i < len - 1 ? "%.8g," : "%.8g"), x[i]);
+		if (written >= (int) (estimated_size - offset)) {
+			estimated_size *= 2;
+			str = Realloc(str, estimated_size, char);
+		}
+		offset += written;
 	}
 
-	// remove spaces
 	size_t j = 0;
 	for (size_t i = 0; i < strlen(str); i++) {
 		if (str[i] != ' ')
@@ -1049,7 +1041,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	}
 
 	double scale = GMRFLib_max_value(x, n, NULL);
-	if (!ISZERO(scale)) {
+	if (ISNONZERO(scale)) {
 		scale = 1.0 / scale;
 		GMRFLib_dscale(n, scale, x);
 	}
@@ -1066,12 +1058,14 @@ int GMRFLib_is_zero(double *x, int n)
 
 	const int nstart = 32L;
 	int m = IMIN(n, nstart);
+	int nonzero = 0;
 
+#pragma omp simd reduction(|:nonzero)
 	for (int i = 0; i < m; i++) {
-		if (!ISZERO(x[i])) {
-			return 0;
-		}
+		nonzero |= ISNONZERO(x[i]);
 	}
+	if (nonzero)
+		return 0;
 
 	if (n > m) {
 		for (int offset = nstart; offset < n; offset += offset) {
@@ -1090,14 +1084,14 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 	/*
 	 * return the MAX(x[]), optional idx
 	 */
-
 	if (n <= 1) {
-		if (n == 0) {
+		if (n <= 0) {
 			if (idx) {
 				idx = NULL;
 			}
 			return NAN;
 		} else {
+			assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1105,6 +1099,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary
+	assert(x);
 	if (idx) {
 		int imax;
 		double max_val;
@@ -1141,12 +1136,13 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	 */
 
 	if (n <= 1) {
-		if (n == 0) {
+		if (n <= 0) {
 			if (idx) {
 				idx = NULL;
 			}
 			return NAN;
 		} else {
+			assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1154,6 +1150,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary
+	assert(x);
 	if (idx) {
 		int imin;
 		double min_val;
@@ -1190,12 +1187,13 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	 */
 
 	if (n <= 1) {
-		if (n == 0) {
+		if (n <= 0) {
 			if (idx) {
 				idx = NULL;
 			}
 			return INT_MAX;
 		} else {
+			assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1203,6 +1201,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary, but we're just 'almost' sure
+	assert(x);
 	if (idx) {
 		int imax;
 		int max_val;
@@ -1239,12 +1238,13 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 	 */
 
 	if (n <= 1) {
-		if (n == 0) {
+		if (n <= 0) {
 			if (idx) {
 				idx = NULL;
 			}
 			return INT_MIN;
 		} else {
+			assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1252,6 +1252,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary, but we're just 'almost' sure
+	assert(x);
 	if (idx) {
 		int imin;
 		int min_val;
@@ -2015,12 +2016,12 @@ void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED
 		return;
 
 	// do not precheck if using insertionSort
-	if (n < GMRFLib_sort2_id_cut_off) {
+	if (__builtin_expect(n < GMRFLib_sort2_id_cut_off, 0)) {
 		my_insertionSort_id(ix, x, n);
+	} else if (__builtin_expect(GMRFLib_is_sorted_iinc(n, ix), 1)) {
+		// already sorted
 	} else {
-		if (!GMRFLib_is_sorted_iinc(n, ix)) {
-			gsl_sort2_id(ix, x, n);
-		}
+		gsl_sort2_id(ix, x, n);
 	}
 
 	return;
@@ -2031,12 +2032,13 @@ void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
 	if (n <= 1)
 		return;
 
-	if (n < GMRFLib_sort2_dd_cut_off) {
+	// do not precheck if using insertionSort
+	if (__builtin_expect(n < GMRFLib_sort2_dd_cut_off, 0)) {
 		my_insertionSort_dd(ix, x, n);
+	} else if (__builtin_expect(GMRFLib_is_sorted_dinc(n, ix), 1)) {
+		// already sorted
 	} else {
-		if (!GMRFLib_is_sorted_dinc(n, ix)) {
-			gsl_sort2_dd(ix, x, n);
-		}
+		gsl_sort2_dd(ix, x, n);
 	}
 }
 
@@ -2381,46 +2383,4 @@ double GMRFLib_erf_inv(double x)
 double GMRFLib_erfc_inv(double x)
 {
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
-}
-
-
-/////////////////////////////////////////////////////////////////////////
-// 
-/////////////////////////////////////////////////////////////////////////
-
-size_t GMRFLib_align(size_t n, size_t size)
-{
-	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bytes boundary
-	int mm = GMRFLib_MEM_ALIGN / size;
-	div_t d = div(n, mm);
-	return n + (d.rem == 0 ? 0 : mm - d.rem);
-}
-
-size_t GMRFLib_align_simple(size_t n, size_t size)
-{
-	// return the length so we are a 16 bytes boundary at the end, ie x[n] is at a 16 byte boundary.
-	// that means steps of 2 for double and 4 for ints
-
-	if (size == 8L) {
-		ldiv_t d = ldiv(n, 2L);
-		return d.quot * 2L + (d.rem == 0L ? 0L : 2L);
-	} else if (size == 4L) {
-		ldiv_t d = ldiv(n, 4L);
-		return d.quot * 4L + (d.rem == 0L ? 0L : 4L);
-	} else if (size == 2L) {
-		ldiv_t d = ldiv(n, 8L);
-		return d.quot * 8L + (d.rem == 0L ? 0L : 8L);
-	} else if (size == 16L) {
-		return n;
-	} else {
-		fprintf(stderr, "\nADD CODE HERE\n");
-		assert(0 == 1);
-	}
-}
-
-int GMRFLib_is_aligned(void *ptr)
-{
-	return (((intptr_t) ptr & 0xF) == 0);
-	// size_t alignment = 16L;
-	// return ((uintptr_t)ptr % alignment) == 0; 
 }

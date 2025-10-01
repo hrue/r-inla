@@ -55,8 +55,6 @@ double GMRFLib_logit(double p);
 double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_signed_pow(double x, double power);
-size_t GMRFLib_align(size_t n, size_t size);
-size_t GMRFLib_align_simple(size_t n, size_t size);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
@@ -149,7 +147,6 @@ int GMRFLib_is_sorted_iinc(int n, int *a);
 int GMRFLib_is_sorted_iinc_plain(int n, int *a);
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
-int GMRFLib_is_aligned(void *ptr);
 
 int GMRFLib_get_cachelinesize(void);
 

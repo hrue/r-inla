@@ -1448,23 +1448,28 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double ly, lprec, prec, w, lw, lypred;
 
-	double *cache = NULL;
+	// this to avoid using 'critical section'
 	if (G_norm_const_compute[idx]) {
-		cache = Calloc(3, double);
-		G_norm_const_v[idx] = (void *) cache;
-		G_norm_const_compute[idx] = 0;
-
-		// log(y)
-		cache[0] = log(ds->data_observations.y[idx]);
-		// w
-		cache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
-		// log(w)
-		cache[2] = log(cache[1]);
+		double *lcache = Calloc(3, double); 
+		lcache[0] = log(ds->data_observations.y[idx]);
+		lcache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
+		lcache[2] = log(lcache[1]);
+		if (G_norm_const_compute[idx]) {
+			G_norm_const_v[idx] = (void *) lcache;
+			G_norm_const_compute[idx] = 0;
+		}
 	}
-	cache = (double *) G_norm_const_v[idx];
-	ly = cache[0];
-	w = cache[1];
-	lw = cache[2];
+	double *cache = (double *) G_norm_const_v[idx];
+	if (cache) {
+		ly = cache[0];
+		w = cache[1];
+		lw = cache[2];
+	} else {
+		// this can happen. then we do this as an emergency solution, and the cache will be ok next round.
+		ly = log(ds->data_observations.y[idx]);
+		w = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
+		lw = log(w);
+	}
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + lw;
 	prec = map_precision_forward(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
@@ -1566,21 +1571,21 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 			logll[i] = c[0] + c[1] * eta[i];
 		}
 
-		if (!ISZERO(c[2])) {
+		if (ISNONZERO(c[2])) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-0.5 * c[2] * SQR(c[3] - eta[i]));
 			}
 		}
 
-		if (!ISZERO(c[4])) {
+		if (ISNONZERO(c[4])) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-c[4] * exp(c[5] + c[6] * eta[i]));
 			}
 		}
 
-		if (!ISZERO(c[7])) {
+		if (ISNONZERO(c[7])) {
 			double sign = DSIGN(c[8]);
 			for (int i = 0; i < m; i++) {
 				logll[i] += (-c[7] * log(expm1(c[8] * eta[i]) / (sign * PUSH_AWAY(eta[i]))));
@@ -2670,7 +2675,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(y));
+					assert(ISNONZERO(y));
 				}
 			} else {
 				double mean = E * lambda;
@@ -3821,7 +3826,7 @@ int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *__
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(iy));
+					assert(ISNONZERO(iy));
 				}
 			} else {
 				if (int_low < 0) {
@@ -3889,7 +3894,7 @@ int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__r
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(!ISZERO(iy));
+					assert(ISNONZERO(iy));
 				}
 			} else {
 				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
@@ -5993,9 +5998,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -7565,7 +7570,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 
 		case SURV_EVENT_RIGHT:
 		{
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);
@@ -7627,7 +7632,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 
 		case SURV_EVENT_INTERVAL:
 		{
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);
@@ -7665,7 +7670,7 @@ family.arg.str = %s)", ds->data_observations.y[idx], lower, upper, truncation, i
 		case SURV_EVENT_ININTERVAL:
 		{
 			assert(lower >= truncation);
-			if (!ISZERO(lower)) {
+			if (ISNONZERO(lower)) {
 				assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg, arg_str);
 				SAFEGUARD(F_lower);

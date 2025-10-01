@@ -109,7 +109,17 @@ static int POSSIBLY_UNUSED(IMAX) (int a, int b) {
 }
 
 #pragma omp declare simd
+static size_t POSSIBLY_UNUSED(sMAX) (size_t a, size_t b) {
+	return ((a) > (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
 static int POSSIBLY_UNUSED(IMIN) (int a, int b) {
+	return ((a) < (b) ? (a) : (b));
+}
+
+#pragma omp declare simd
+static size_t POSSIBLY_UNUSED(sMIN) (size_t a, size_t b) {
 	return ((a) < (b) ? (a) : (b));
 }
 
@@ -124,8 +134,6 @@ static double POSSIBLY_UNUSED(TRUNCATE) (double x, double low, double high) {
 	// #define TRUNCATE(x, low, high) DMIN( DMAX(x, low), high) 
 	return DMIN(DMAX(x, low), high);
 }
-
-#define GMRFLib_MEM_ALIGN (16L)
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
@@ -432,19 +440,19 @@ typedef enum {
 
 #define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
-	calloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
+	calloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(double));	\
 	calloc_m_count_++;						\
 	Calloc_check()
 
 #define iCalloc_get(_n)							\
 	icalloc_work_ + icalloc_offset_;				\
-	icalloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(int));	\
+	icalloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(int));	\
 	icalloc_m_count_++;						\
 	iCalloc_check()
 
 #define Malloc_get(_n)							\
 	malloc_work_ + malloc_offset_;					\
-	malloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
+	malloc_offset_ += GMRFLib_align_len((size_t)(_n), sizeof(double));	\
 	malloc_m_count_++;						\
 	Malloc_check()
 
@@ -465,26 +473,35 @@ typedef enum {
 #define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_);}
 
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+
 #if 0
+
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__); ptr=NULL;}
 #define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
+
 #else
+
 #undef  GMRFLib_TRACE_MEMORY
-#define Calloc(n, type)         (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
-#define Malloc(n, type)         (type *)malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
-#define Realloc(ptr, n, type)   ((ptr) ? \
-				 (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : \
-				 (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type)))
+#define Calloc(n, type)         (type *)calloc_intern(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
+#define Malloc(n, type)         (type *)malloc_intern(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), type))
+#define Realloc(ptr, n, type)   ((ptr) ? (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : (type *)Calloc(n, type))
 #define Free(ptr)               if (ptr) {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
+
 #endif
+
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
+
+#define aligned_double(a_) double a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_int(a_)    int    a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_void(a_)   void   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
+#define aligned_char(a_)   char   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
 
 #define ABS(x) fabs(x)
 #define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
@@ -500,6 +517,7 @@ typedef enum {
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)
+#define ISNONZERO(x) (((__typeof (x)) (x)) != 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
@@ -830,8 +848,7 @@ typedef enum {
 #define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
-#define GMRFLib_INT_GHQ_POINTS_PAD (1)			       /* So the _ALLOC_LEN is aligned well */
-#define GMRFLib_INT_GHQ_ALLOC_LEN (GMRFLib_INT_GHQ_POINTS + GMRFLib_INT_GHQ_POINTS_PAD)
+#define GMRFLib_INT_GHQ_ALLOC_LEN (16)			       /* This must align with MEM_ALIGN */
 
 #define TIMER_INIT(use_, n_)				\
 	static double timer_[2 + (n_)];			\
@@ -865,12 +882,7 @@ typedef enum {
 	}								\
 
 
-/* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
-
-   Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the
-   name of the function currently being defined.  This is broken in G++ before version 2.6.  C9x has
-   a similar variable called __func__, but prefer the GCC one since it demangles C++ function names.
-*/
+/* from /usr/include/assert.h */
 #ifndef __GNUC_PRERQ
 #if defined __GNUC__ && defined __GNUC_MINOR__
 #define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -880,7 +892,7 @@ typedef enum {
 #endif
 #if defined __GNUC__
 #if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#define  __GMRFLib_FuncName   __PRETTY_FUNCTION__
+#define  __GMRFLib_FuncName   __FUNCTION__
 #else
 #if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #define __GMRFLib_FuncName  __func__

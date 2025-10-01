@@ -51,6 +51,8 @@ GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_dssqr(int n, double *x);
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_dsum_idx(int n, double *a, int *idx);
+double GMRFLib_dsum_opt(int n, double *x);
+double GMRFLib_dsum_idx_opt(int n, double *a, int *idx);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
 double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity, GMRFLib_gsl_ldnorm_store_tp * store);
@@ -132,6 +134,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
 void daxpyi_(int *, double *, double *, int *, double *);
+void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
 __END_DECLS
 #endif

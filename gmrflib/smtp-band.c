@@ -587,7 +587,7 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 
 	for (i = 0; i < graph->n; i++) {
 		for (j = i; j < IMIN(i + nband + 1, graph->n); j++) {
-			if (!ISZERO(band[BIDX(j - i, i)])) {
+			if (ISNONZERO(band[BIDX(j - i, i)])) {
 				SETBIT(i, j, m, N);
 			}
 		}

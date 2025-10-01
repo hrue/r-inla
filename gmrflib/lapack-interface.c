@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
@@ -1304,8 +1303,25 @@ double GMRFLib_dssqr(int n, double *x)
 int GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	int one = 1;
-	return (dscal_(&n, &a, x, &one));
+	if (n <= 16) {
+		int roll = 4;
+		div_t d = div(n, roll);
+		int m = d.quot * roll;
+#pragma omp simd
+		for (int i = 0; i < m; i += roll) {
+			x[i + 0] *= a;
+			x[i + 1] *= a;
+			x[i + 2] *= a;
+			x[i + 3] *= a;
+		}
+		for (int i = m; i < n; i++) {
+			x[i] *= a;
+		}
+		return 0;
+	} else {
+		int one = 1;
+		return (dscal_(&n, &a, x, &one));
+	}
 }
 
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
@@ -1315,12 +1331,11 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
-		y[i] = a * x[i] + b * y[i];
-	}
+	GMRFLib_dscale(n, b, y);
+	GMRFLib_daxpy(n, a, x, y);
 #endif
 }
+
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 {
 	// z = a * x + b * y
@@ -1330,97 +1345,109 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 
 void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z)
 {
-	if (0) {
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			z[i] = a * x[i] + b * y[i] + c;
-		}
-	} else {
-		GMRFLib_daxpb(n, b, y, c, z);
-		GMRFLib_daxpy(n, a, x, z);
-	}
+	// z[i] = a * x[i] + b * y[i] + c;
+	GMRFLib_daxpb(n, b, y, c, z);
+	GMRFLib_daxpy(n, a, x, z);
 }
 
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
-
-	if (1) {
-		GMRFLib_dfill(n, b, y);
-		GMRFLib_daxpy(n, a, x, y);
-	} else {
-		const int roll = 4L;
-		div_t d = div(n, roll);
-		int m = d.quot * roll;
-
-#pragma omp simd
-		for (int i = 0; i < m; i += roll) {
-			y[i] = a * x[i] + b;
-			y[i + 1] = a * x[i + 1] + b;
-			y[i + 2] = a * x[i + 2] + b;
-			y[i + 3] = a * x[i + 3] + b;
-		}
-
-#pragma omp simd
-		for (int i = m; i < n; i++) {
-			y[i] = a * x[i] + b;
-		}
-	}
+	GMRFLib_dfill(n, b, y);
+	GMRFLib_daxpy(n, a, x, y);
 }
 
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-	// y += a*x
-	int inc = 1;
-	daxpy_(&n, &a, x, &inc, y, &inc);
+	// y = a * x + y
+	if (n <= 16) {
+		int roll = 4, m;
+		div_t d = div(n, roll);
+		m = d.quot * roll;
+#pragma omp simd
+		for (int i = 0; i < m; i += roll) {
+			y[i + 0] += a * x[i + 0];
+			y[i + 1] += a * x[i + 1];
+			y[i + 2] += a * x[i + 2];
+			y[i + 3] += a * x[i + 3];
+		}
+		for (int i = m; i < n; i++) {
+			y[i] += a * x[i];
+		}
+	} else {
+		int inc = 1;
+		daxpy_(&n, &a, x, &inc, y, &inc);
+	}
 }
 
 int GMRFLib_isum(int n, int *ix)
 {
-	int s = 0;
+	const int roll = 4L;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+	int s0 = 0, s1 = 0, s2 = 0, s3 = 0;
 
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += ix[i];
+#pragma omp simd reduction(+: s0, s1, s2, s3)
+	for (int i = 0; i < m; i += roll) {
+		s0 += ix[i + 0];
+		s1 += ix[i + 1];
+		s2 += ix[i + 2];
+		s3 += ix[i + 3];
 	}
-	return s;
+	for (int i = m; i < n; i++) {
+		s0 += ix[i];
+	}
+	return s0 + s1 + s2 + s3;
 }
 
 double GMRFLib_dsum(int n, double *x)
 {
-	double s = 0.0;
+	const int roll = 4L;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += x[i];
+#pragma omp simd reduction(+: s0, s1, s2, s3)
+	for (int i = 0; i < m; i += roll) {
+		s0 += x[i + 0];
+		s1 += x[i + 1];
+		s2 += x[i + 2];
+		s3 += x[i + 3];
 	}
-	return s;
+	for (int i = m; i < n; i++) {
+		s0 += x[i];
+	}
+	return s0 + s1 + s2 + s3;
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 {
-	const int roll = 8L;
+	return GMRFLib_dsum_idx_opt(n, a, idx);
+}
+
+double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx)
+{
+	if (__builtin_expect(n <= 0, 0))
+		return 0.0;
+
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
+	int i = 0, roll = 8;
 
-#pragma omp simd reduction(+: s0, s1, s2, s3)
-	for (int i = 0; i < m; i += roll) {
-		int *iidx = idx + i;
+	for (; i + roll <= n; i += roll) {
+		__builtin_prefetch(idx + i + roll, 0, 3);
 
-		s0 += a[iidx[0]];
-		s1 += a[iidx[1]];
-		s2 += a[iidx[2]];
-		s3 += a[iidx[3]];
+		s0 += a[idx[i + 0]];
+		s1 += a[idx[i + 1]];
+		s2 += a[idx[i + 2]];
+		s3 += a[idx[i + 3]];
 
-		s0 += a[iidx[4]];
-		s1 += a[iidx[5]];
-		s2 += a[iidx[6]];
-		s3 += a[iidx[7]];
+		s0 += a[idx[i + 4]];
+		s1 += a[idx[i + 5]];
+		s2 += a[idx[i + 6]];
+		s3 += a[idx[i + 7]];
 	}
 
-#pragma omp simd reduction(+: s0)
-	for (int i = m; i < n; i++) {
+	for (; i < n; i++) {
 		s0 += a[idx[i]];
 	}
 
@@ -1470,8 +1497,8 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
 #endif
@@ -1483,8 +1510,8 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
 #endif
@@ -1497,165 +1524,15 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	if (n > 4L) {
 		vdPowx(n, x, a, y);
 	} else {
-		_Pragma("omp simd")
-		    for (int i = 0; i < n; i++) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
 			y[i] = pow(x[i], a);
 		}
 	}
 #else
-	_Pragma("omp simd")
-	    for (int i = 0; i < n; i++) {
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
 		y[i] = pow(x[i], a);
 	}
 #endif
-}
-
-int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB,
-		       double alpha, gsl_matrix *A, gsl_matrix *B, double beta, gsl_matrix *C, int num_threads)
-{
-	size_t M = C->size1;
-	size_t N = C->size2;
-	size_t MA = (TransA == CblasNoTrans) ? A->size1 : A->size2;
-	size_t NA = (TransA == CblasNoTrans) ? A->size2 : A->size1;
-	size_t MB = (TransB == CblasNoTrans) ? B->size1 : B->size2;
-	size_t NB = (TransB == CblasNoTrans) ? B->size2 : B->size1;
-
-	if (M == MA && N == NB && NA == MB) {		       /* [MxN] = [MAxNA][MBxNB] */
-		cblas_dgemm_omp(CblasRowMajor, TransA, TransB, (int) M, (int) N, (int) NA,
-				alpha, A->data, (int) A->tda, B->data, (int) B->tda, beta, C->data, (int) C->tda, num_threads);
-		return GSL_SUCCESS;
-	} else {
-		GSL_ERROR("invalid length", GSL_EBADLEN);
-	}
-}
-
-void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA,
-		     enum CBLAS_TRANSPOSE TransB, int M, int N,
-		     int K, double alpha, double *A, int lda, double *B, int ldb, double beta, double *C, int ldc, int num_threads)
-{
-	int n1, n2;
-	int ldf, ldg;
-	int TransF, TransG;
-	double *F = NULL, *G = NULL;
-
-	if (alpha == 0.0 && beta == 1.0)
-		return;
-
-	if (Order == CblasRowMajor) {
-		n1 = M;
-		n2 = N;
-		F = A;
-		ldf = lda;
-		TransF = (TransA == CblasConjTrans) ? CblasTrans : TransA;
-		G = B;
-		ldg = ldb;
-		TransG = (TransB == CblasConjTrans) ? CblasTrans : TransB;
-	} else {
-		n1 = N;
-		n2 = M;
-		F = B;
-		ldf = ldb;
-		TransF = (TransB == CblasConjTrans) ? CblasTrans : TransB;
-		G = A;
-		ldg = lda;
-		TransG = (TransA == CblasConjTrans) ? CblasTrans : TransA;
-	}
-
-	/*
-	 * form y := beta*y 
-	 */
-	if (beta == 0.0) {
-		for (int i = 0; i < n1; i++) {
-			if (1) {
-				GMRFLib_dfill(n2, 0.0, C + ldc * i);
-			} else {
-				for (int j = 0; j < n2; j++) {
-					C[ldc * i + j] = 0.0;
-				}
-			}
-		}
-	} else if (beta != 1.0) {
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				C[ldc * i + j] *= beta;
-			}
-		}
-	}
-
-	if (alpha == 0.0)
-		return;
-
-	if (TransF == CblasNoTrans && TransG == CblasNoTrans) {
-
-		/*
-		 * form C := alpha*A*B + C 
-		 */
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int k = 0; k < K; k++) {
-				double temp = alpha * F[ldf * i + k];
-				if (temp != 0.0) {
-					for (int j = 0; j < n2; j++) {
-						C[ldc * i + j] += temp * G[ldg * k + j];
-					}
-				}
-			}
-		}
-
-	} else if (TransF == CblasNoTrans && TransG == CblasTrans) {
-
-		/*
-		 * form C := alpha*A*B' + C 
-		 */
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				double temp = 0.0;
-				for (int k = 0; k < K; k++) {
-					temp += F[ldf * i + k] * G[ldg * j + k];
-				}
-				C[ldc * i + j] += alpha * temp;
-			}
-		}
-
-	} else if (TransF == CblasTrans && TransG == CblasNoTrans) {
-
-#pragma omp parallel for num_threads(num_threads) schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int k = 0; k < K; k++) {
-				double temp = alpha * F[ldf * k + i];
-				if (temp != 0.0) {
-					// C[ldc * i + j] += temp * G[ldg * k + j];
-					GMRFLib_daxpy(n2, temp, G + ldg * k, C + ldc * i);
-				}
-			}
-		}
-
-	} else if (TransF == CblasTrans && TransG == CblasTrans) {
-
-		FIXME("OPTIMIZE CODE");
-		abort();
-
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < n2; j++) {
-				double temp = 0.0;
-				for (int k = 0; k < K; k++) {
-					temp += F[ldf * k + i] * G[ldg * j + k];
-				}
-				C[ldc * i + j] += alpha * temp;
-			}
-		}
-
-	} else {
-		assert(0 == 1);
-	}
 }

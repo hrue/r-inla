@@ -13,7 +13,222 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
+void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc, int nc2, int use_ddot_lim)
+{
+	if (nc < use_ddot_lim) {
+		// Manual vectorized loop for small nc
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
+#pragma omp simd reduction(+: d0, d1, d2)
+		for (int k = 0; k < nc; k++) {
+			aligned_double(theta_k) = theta[k];
+			d0 += vals[k] * theta_k;
+			d1 += vals[k + nc] * theta_k;
+			d2 += vals[k + nc2] * theta_k;
+		}
+		d[0] = exp(d0);
+		d[1] = exp(d1);
+		d[2] = d2;
+	} else {
+		// Use BLAS for larger nc
+		int m = nc;
+		int lda = nc;
+		int n = 3;
+		int inc = 1;
+		double alpha = 1.0;
+		double beta = 0.0;
+
+		dgemv_("T", &m, &n, &alpha, vals, &lda, theta, &inc, &beta, d, &inc, F_ONE);
+
+		d[0] = exp(d[0]);
+		d[1] = exp(d[1]);
+	}
+}
+
+void apply_single_transform(int transform, double *d2)
+{
+	switch (transform) {
+	case SPDE2_TRANSFORM_LOG:
+		*d2 = 2.0 * exp(*d2) - 1.0;
+		break;
+
+	case SPDE2_TRANSFORM_LOGIT:
+		*d2 = cos(M_PI / (1.0 + exp(-*d2)));
+		break;
+
+	default:
+		break;
+	}
+}
+
+void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id)
+{
+	theta[0] = 1.0;
+	for (int k = 1; k < nc; k++) {
+		theta[k] = model_theta[k - 1][thread_id][0];
+	}
+}
+
+void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n)
+{
+	int m = nc;
+	int lda = nc;
+	int inc = 1;
+	double alpha = 1.0;
+	double beta = 0.0;
+	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
+}
+
+void apply_exponentials(double *__restrict dij, int nb)
+{
+	for (int i = 0; i <= nb; i++) {
+		int idx = i * 3;
+		dij[idx] = exp(dij[idx]);
+		dij[idx + 1] = exp(dij[idx + 1]);
+	}
+}
+
+void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
+{
+	switch (transform) {
+	case SPDE2_TRANSFORM_LOG:
+#pragma omp simd
+		for (int i = 0; i <= nb; i++) {
+			aligned_int(off) = 2 + i * 3;
+			dij[off] = 2.0 * exp(dij[off]) - 1.0;
+		}
+		break;
+
+	case SPDE2_TRANSFORM_LOGIT:
+#pragma omp simd
+		for (int i = 0; i <= nb; i++) {
+			aligned_int(off) = 2 + i * 3;
+			dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
+{
+	aligned_double(d_i0) = dij[0];
+	aligned_double(d_i1) = dij[1];
+	aligned_double(d_i2) = dij[2];
+
+#pragma omp simd
+	for (int kk = 0; kk <= nb; kk++) {
+		aligned_int(v_off) = kk * 4;
+		aligned_int(d_off) = kk * 3;
+
+		aligned_double(d_j0) = dij[d_off];
+		aligned_double(d_j1) = dij[d_off + 1];
+		aligned_double(d_j2) = dij[d_off + 2];
+
+		aligned_double(v0) = v[v_off];
+		aligned_double(v1) = v[v_off + 1];
+		aligned_double(v2) = v[v_off + 2];
+		aligned_double(v3) = v[v_off + 3];
+
+		aligned_double(inner) = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
+		values[kk] = d_i0 * d_j0 * inner;
+	}
+}
+
+double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+	int use_ddot_lim = 16;
+	int nc2 = 2 * nc;
+	int lim2 = 64;
+	double d_storage[6] __attribute__((aligned(GMRFLib_MEM_ALIGN))) = { 0, 0, 0, 0, 0, 0 };
+	double *__restrict d_i = d_storage;
+	double *__restrict d_j = d_storage + 3;
+
+	double theta[nc <= lim2 ? nc : 1];
+	double *theta_ptr = (nc <= lim2) ? theta : malloc(nc * sizeof(double));
+
+	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
+
+	double *__restrict vals_i = model->row_V[ii];
+	compute_d_values_opt(d_i, vals_i, theta_ptr, nc, nc2, use_ddot_lim);
+	apply_single_transform(model->transform, &d_i[2]);
+
+	if (ii == jj) {
+		// Diagonal case - optimized
+		double *__restrict v = model->row_v[ii];
+		double d_i0_sq = d_i[0] * d_i[0];
+		double d_i1_sq = d_i[1] * d_i[1];
+		double d_i2_d_i1 = d_i[2] * d_i[1];
+		double value = d_i0_sq * (d_i1_sq * v[0] + d_i2_d_i1 * (v[1] + v[2]) + v[3]);
+		if (nc > lim2)
+			free(theta_ptr);
+		return value;
+	}
+	// Off-diagonal case
+	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc, nc2, use_ddot_lim);
+	apply_single_transform(model->transform, &d_j[2]);
+
+	double *__restrict v = vals_j_p->v;
+	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+
+	if (nc > lim2)
+		free(theta_ptr);
+
+	return value;
+}
+
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
+{
+	if (jj >= 0) {
+		return inla_spde2_Qfunction_ij_opt(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+	int nb = model->graph->lnnbs[ii];
+
+	double *__restrict V = model->row_V[ii];
+	double *__restrict v = model->row_v[ii];
+
+	const int lim1 = 128;
+	const int lim2 = 64;
+	int dij_size = (1 + nb) * 3;
+	int max_stack_size = lim1;			       // Conservative limit
+	double stack_arrays[lim2 + lim1];		       // theta + dij on stack
+	double *theta, *dij;
+
+	if (nc <= lim2 && dij_size <= max_stack_size) {
+		// Use stack for small arrays
+		theta = stack_arrays;
+		dij = stack_arrays + nc;
+	} else {
+		// Use heap for large arrays
+		theta = malloc((nc + dij_size) * sizeof(double));
+		dij = theta + nc;
+	}
+
+	build_theta_vector(theta, nc, model->theta, thread_id);
+	perform_matrix_vector_mult(V, theta, dij, nc, dij_size);
+	apply_exponentials(dij, nb);
+	if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+		apply_transform_vectorized(model->transform, dij, nb);
+	}
+	compute_diagonal_values(dij, v, values, nb);
+
+	if (nc > lim2 || dij_size > max_stack_size) {
+		free(theta);
+	}
+
+	return 0.0;
+}
+
+double inla_spde2_Qfunction__ORIG(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	if (jj < 0) {
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
@@ -74,7 +289,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 		// for (int kk = 0; kk < 1 + nb; kk++, vv += 4, d_j += 3) 
 		// values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
-#pragma omp simd
 		for (int kk = 0; kk < 1 + nb; kk++) {
 			values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
 			vv += 4;
@@ -87,7 +301,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	}
 }
 
-forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	// do not use directly. need ``if (jj < 0)'' code
 
@@ -105,7 +319,9 @@ forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	}
 
 	if (nc < use_ddot_lim) {
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_i[k] * theta[k];
@@ -155,7 +371,9 @@ forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	double *vals_j = vals_j_p->V;
 
 	if (nc < use_ddot_lim) {
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		aligned_double(d0) = 0.0;
+		aligned_double(d1) = 0.0;
+		aligned_double(d2) = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_j[k] * theta[k];

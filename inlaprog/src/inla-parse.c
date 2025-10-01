@@ -316,7 +316,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t'long double' is %1zu bytes\n", sizeof(long double));
 		printf("\t\tBUFSIZ is %1zu bytes\n", (size_t) BUFSIZ);
 		printf("\t\tCACHE_LINE_SIZE is %1zu bytes\n", (size_t) GMRFLib_cachelinesize);
-
+		printf("\t\tMEM_ALIGN is %1zu bytes\n", (size_t) GMRFLib_MEM_ALIGN);
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
 #endif
@@ -328,6 +328,27 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #endif
 #if defined(__AVX512BW__)
 		printf("\t\tCompiler macro defined [__AVX512BW__]\n");
+#endif
+#if defined(__AVX512ER__)
+		printf("\t\tCompiler macro defined [__AVX512ER__]\n");
+#endif
+#if defined(__AVX512PF__)
+		printf("\t\tCompiler macro defined [__AVX512PF__]\n");
+#endif
+#if defined(__AVX512VPOPCNTDQ__)
+		printf("\t\tCompiler macro defined [__AVX512VPOPCNTDQ__");
+#endif
+#if defined(__AVX512VBMI__)
+		printf("\t\tCompiler macro defined [__AVX512VBMI__");
+#endif
+#if defined(__AVX512IFMA__)
+		printf("\t\tCompiler macro defined [__AVX512IFMA__");
+#endif
+#if defined(__AVX5124FMAPS__)
+		printf("\t\tCompiler macro defined [__AVX5124FMAPS__");
+#endif
+#if defined(__AVX5124VNNIW__)
+		printf("\t\tCompiler macro defined [__AVX5124VNNIW__");
 #endif
 #if defined(__AVX512CD__)
 		printf("\t\tCompiler macro defined [__AVX512CD__]\n");
@@ -17864,7 +17885,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				k = 0;
 				for (i = 0; i < mb->f_N[mb->nf]; i++) {
 					double a = mb->f_constr[mb->nf]->a_matrix[i * nnc + j];
-					if (!ISZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
+					if (ISNONZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
 						printf("\t\t\tA[%1d] = %f\n", i, a);
 						k++;
 					}

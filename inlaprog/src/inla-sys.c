@@ -1,3 +1,8 @@
+#if defined(__linux__)
+#include <ftw.h>
+#include <unistd.h>
+#endif
+
 int inla_ncpu(void)
 {
 #if defined(_SC_NPROCESSORS_ONLN)			       /* Linux, Solaris, AIX */
@@ -15,6 +20,27 @@ int inla_ncpu(void)
 	return -1;
 #endif
 }
+
+
+#if defined(__linux__)
+int inla_remove_dir_callback(const char *dirname, const struct stat *UNUSED(sb), int typeflag, struct FTW *UNUSED(ftwbuf))
+{
+	if (typeflag == FTW_F || typeflag == FTW_SL) {
+		unlink(dirname);
+	} else if (typeflag == FTW_DP) {
+		rmdir(dirname);
+	}
+	return 0;
+}
+void inla_remove_dir(char *dirname)
+{
+	nftw(dirname, inla_remove_dir_callback, 10, FTW_DEPTH | FTW_PHYS);
+}
+#else
+void inla_remove_dir(char *UNUSED(dirname))
+{
+}
+#endif
 
 int inla_mkdir(const char *dirname)
 {

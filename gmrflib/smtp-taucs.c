@@ -1418,13 +1418,18 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	/*
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
+
 	Qinv_L = Malloc(n, map_id *);
-#pragma omp parallel for schedule(static)
-	for (int i = 0; i < n; i++) {
-		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
-		Qinv_L[i] = Calloc(1, map_id);
-		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
+#define CODE_BLOCK		      \
+	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_INIT();					\
+		GMRFLib_qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp); \
+		Qinv_L[i] = Calloc(1, map_id);				\
+		map_id_init_hint(Qinv_L[i], nnbsQ[i]);			\
 	}
+
+	RUN_CODE_BLOCK(IMIN(2, GMRFLib_OPENMP_NUM_THREADS_LEVEL()), 0, 0);
+#undef CODE_BLOCK
 
 	double *Zj = Calloc(n, double);
 	double *d = L->values;
@@ -1641,7 +1646,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		if (j == 0) {
 			// the first chunk we have to do 'manually'
 			for (int k = 0; k < nrhs; k++) {
-				if (!ISZERO(xx[k])) {
+				if (ISNONZERO(xx[k])) {
 					found = 1;
 					break;
 				}
@@ -1660,6 +1665,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 
 	double *y = work;
 	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
+
 	for (int j = jfirst; j < n; j++) {
 		int ip = L->colptr[j];
 		int offset_j = j * nrhs;
@@ -1674,8 +1680,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			double Aij = -L->values[ip];	       // OOOPS! add minus here for daxpy
-			int offset_i = L->rowind[ip] * nrhs;
-			xx = x + offset_i;
+			xx = x + L->rowind[ip] * nrhs;
 			GMRFLib_daxpy(nrhs, Aij, yy, xx);
 		}
 	}
@@ -1683,10 +1688,10 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 	for (int i = n - 1; i >= 0; i--) {
 		double sum[nrhs];
 		GMRFLib_dfill(nrhs, 0.0, sum);
+
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			int offset_j = L->rowind[jp] * nrhs;
 			double Aij = L->values[jp];
-			double *xx = x + offset_j;
+			double *xx = x + L->rowind[jp] * nrhs;
 			GMRFLib_daxpy(nrhs, Aij, xx, sum);
 		}
 
@@ -1698,6 +1703,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double iAii = 1.0 / L->values[jp];
 		double *xx = x + offset_i;
 		yy = y + offset_i;
+
 #pragma omp simd
 		for (int k = 0; k < nrhs; k++) {
 			xx[k] = yy[k] * iAii;

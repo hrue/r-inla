@@ -2161,6 +2161,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, int *lcache_idx, double **x, do
 int inla_mix_int_simpson_mloggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
+void inla_remove_dir(char *dirname);
 
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
@@ -2382,8 +2383,8 @@ int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			     char **arg_str);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *), char **arg_str);
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *), char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,

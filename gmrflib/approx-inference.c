@@ -6219,7 +6219,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 		if (!wp) {
 			double *wtmp = NULL;
 			GMRFLib_ghq(&xp, &wtmp, np);	       /* just give ptr to storage */
-			int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
+			int nn = GMRFLib_align_len((size_t) nnp1, sizeof(double));
 			xp1 = Malloc(5 * nn, double);
 			xp2 = xp1 + 1 * nn;
 			xp3 = xp1 + 2 * nn;
@@ -6239,7 +6239,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 		}
 	}
 
-	int nn = GMRFLib_align((size_t) np, sizeof(double));
+	int nn = GMRFLib_align_len((size_t) np, sizeof(double));
 	double x_user[5 * nn];
 	double *loglik = x_user + nn;
 	double *wloglik = x_user + 2 * nn;

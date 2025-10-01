@@ -174,8 +174,9 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		 */
 
 		// this storage is never free'd
-		x = Calloc(2 * n, double);
-		w = x + n;
+		int m = GMRFLib_align_len(n, sizeof(double));
+		x = Calloc(2 * m, double);
+		w = x + m;
 		GMRFLib_ghq__intern(x, w, n);
 
 		/*

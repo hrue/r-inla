@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-#include "GMRFLib/sha.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int error_check_validate_constr1 = 0;
 
@@ -971,9 +969,10 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 	}
 
 	n = problem->sub_graph->n;
-	work = Calloc(2 * n, double);
+	int m = GMRFLib_align_len(n, sizeof(double));
+	work = Calloc(2 * m, double);
 	xx = work;
-	yy = work + n;
+	yy = work + m;
 
 	/*
 	 * user has altered the 'sample', put the correct subset into sub_sample and compute (x-\mu)^TQ(x-\mu)
@@ -1014,16 +1013,15 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 			/*
 			 * t_vector = A mu-b tt_vector = i_aqat_m*t_vector 
 			 */
-			double *t_vector = NULL, *tt_vector = NULL;
+			int nc_alloc = GMRFLib_align_len(nc, sizeof(double));
+			double *t_vector = NULL, tt_vector[nc_alloc];
 
 			Free(problem->sub_constr_value);
-			problem->sub_constr_value = t_vector = Calloc(nc, double);
-			tt_vector = Calloc(nc, double);
+			problem->sub_constr_value = t_vector = Calloc(nc_alloc, double);
 
 			GMRFLib_EWRAP0(GMRFLib_eval_constr(t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
 			GMRFLib_EWRAP0(GMRFLib_solveAxb_posdef(tt_vector, problem->l_aqat_m, t_vector, nc, 1));
 			problem->exp_corr = GMRFLib_ddot(nc, t_vector, tt_vector);
-			Free(tt_vector);
 		}
 
 		/*
@@ -1271,19 +1269,20 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 		constr->is_scaled = 1;
 	}
 
-	constr->jfirst = Calloc(2 * nc, int);
-	constr->jlen = constr->jfirst + nc;
+	int len = GMRFLib_align_len(nc, sizeof(int));
+	constr->jfirst = Calloc(2 * len, int);
+	constr->jlen = constr->jfirst + len;
 
 	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix + i;
 		for (int j = 0; j < n; j++) {
-			if (!ISZERO(a[j * nc])) {
+			if (ISNONZERO(a[j * nc])) {
 				constr->jfirst[i] = j;
 				break;
 			}
 		}
 		for (int j = n - 1; j >= 0; j--) {
-			if (!ISZERO(a[j * nc])) {
+			if (ISNONZERO(a[j * nc])) {
 				constr->jlen[i] = j - constr->jfirst[i] + 1;
 				break;
 			}
@@ -1295,7 +1294,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 		double *a = constr->a_matrix;
 		for (int j = 0; j < n; j++) {
 			int k = i + j * nc;
-			if (!ISZERO(a[k])) {
+			if (ISNONZERO(a[k])) {
 				GMRFLib_idxval_add(&(constr->idxval[i]), j, a[k]);
 			}
 		}

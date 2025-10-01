@@ -5893,29 +5893,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		GMRFLib_sort2_dd_cut_off = 128;		       // override value found 
 	}
 
-#if 0
-	// report timings
-	double time_loop[13] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
-		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-			for (j = 0; j < 13; j++) {
-				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
-			}
-		}
-		double time_sum = GMRFLib_dsum(6, time_loop);
-		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(6, time_sum, time_loop);
-			time_loop[6] *= time_sum;
-		}
-		time_sum = GMRFLib_dsum(6, time_loop + 7);
-		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum;
-			GMRFLib_dscale(6, time_sum, time_loop + 7);
-		}
-	}
-#endif
-#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
+#if defined(INLA_WITH_MKL)
 	// report timings
 	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
@@ -5934,6 +5912,28 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (time_sum > 0.0) {
 			time_sum = 1.0 / time_sum;
 			GMRFLib_dscale(2, time_sum, time_loop + 3);
+		}
+	}
+#endif
+#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
+	// report timings
+	double time_loop[7] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
+		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+			for (j = 0; j < 7; j++) {
+				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
+			}
+		}
+		double time_sum = GMRFLib_dsum(3, time_loop);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(3, time_sum, time_loop);
+			time_loop[3] *= time_sum;
+		}
+		time_sum = GMRFLib_dsum(3, time_loop + 4);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(3, time_sum, time_loop + 4);
 		}
 	}
 #endif
@@ -5968,21 +5968,17 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if 0
-			printf("\tOptimizing dot-products.... serial[%.3f] serial.mkl[%.3f] serial.mkl.alt[%.3f]\n", time_loop[0], time_loop[1],
-			       time_loop[2]);
-			printf("\t                            group [%.3f] group.mkl [%.3f] group.mkl.alt [%.3f]\n", time_loop[3], time_loop[4],
-			       time_loop[5]);
-			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[6]);
-			printf("\t                                serial[%4.1f] serial.mkl[%4.1f] serial.mkl.alt[%4.1f]\n",
-			       100 * time_loop[7], 100 * time_loop[8], 100 * time_loop[9]);
-			printf("\t                                group [%4.1f] group.mkl [%4.1f] group.mkl.alt [%4.1f]\n",
-			       100 * time_loop[10], 100 * time_loop[11], 100 * time_loop[12]);
+#if defined(INLA_WITH_MKL)
+			printf("\tOptimizing dot-products.... serial.mkl[%.3f] group.mkl [%.3f]\n", time_loop[0], time_loop[1]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[2]);
+			printf("\t                                serial.mkl[%4.1f] group.mkl[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
 #endif
 #if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
-			printf("\tOptimizing dot-products.... serial[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
-			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[2]);
-			printf("\t                                serial[%4.1f] group[%4.1f]\n", 100 * time_loop[3], 100 * time_loop[4]);
+			printf("\tOptimizing dot-products.... serial.opt[%.3f] group.opt[%.3f] group.prefetch[%.3f]\n", time_loop[0], time_loop[1],
+			       time_loop[2]);
+			printf("\t                            ==> optimal.mix.strategy[%.3f]\n", time_loop[3]);
+			printf("\t                                serial.opt[%4.1f] group.opt[%4.1f] group.prefetch[%4.1f]\n",
+			       100 * time_loop[4], 100 * time_loop[5], 100 * time_loop[6]);
 #endif
 		}
 	}
@@ -6315,7 +6311,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		if (mb->density[i] && !ISZERO(OFFSET3(i))) {
+		if (mb->density[i] && ISNONZERO(OFFSET3(i))) {
 			GMRFLib_density_tp *d = mb->density[i];
 			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
@@ -7003,6 +6999,7 @@ int main(int argc, char **argv)
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 	int model_n_is_set = 0;
+	int disable_output = 0;
 
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_malloc_debug_check();
@@ -7058,8 +7055,14 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:W")) != -1) {
 		switch (opt) {
+		case 'W':
+		{
+			disable_output = 1;
+		}
+			break;
+
 		case 'E':
 		{
 			GMRFLib_force_stiles = 1;
@@ -7188,8 +7191,8 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg);
-			if (ntt[2] > 0 || inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
+			    inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (ntt[0] <= 0) {
 					ntt[0] = GMRFLib_MAX_THREADS();
@@ -7198,9 +7201,8 @@ int main(int argc, char **argv)
 					ntt[1] = 1;
 				}
 				if (ntt[2] <= 0) {
-					ntt[2] = ntt[1];
+					ntt[2] = (ntt[1] == 1 ? IMAX(1, ntt[0] / 2) : IMAX(ntt[0], ntt[1]));
 				}
-
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], ntt[2], GMRFLib_openmp->max_threads);
 				}
@@ -7235,7 +7237,7 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
 			} else {
 				fprintf(stderr, "Fail to read A:B[:C] from [%s]\n", optarg);
-				fprintf(stderr, "Will continue with '4:1:1'\n");
+				fprintf(stderr, "Will continue with '4:1:2'\n");
 				ntt[0] = 4;
 				ntt[1] = 1;
 				ntt[2] = 2;
@@ -7352,14 +7354,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN(), double *);
 	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-		// GMRFLib_dot_product_optim_report[i] = Calloc(13, double);
-		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(7, double);
 	}
-#endif
 
 #if !defined(WINDOWS)
 	/*
@@ -7470,7 +7469,7 @@ int main(int argc, char **argv)
 
 	if (!silent || verbose) {
 		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-		fprintf(stdout, "Build-time....[%s]\n", __TIMESTAMP__);
+		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
 		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
 
 		_BUGS_intern(stdout);
@@ -7649,7 +7648,8 @@ int main(int argc, char **argv)
 			atime_used[2] = clock();
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-			inla_output(mb);
+			if (!disable_output)
+				inla_output(mb);
 
 			GMRFLib_overall_cpu[7] = GMRFLib_timer();
 			time_used[2] = GMRFLib_timer() - time_used[2];
@@ -7772,7 +7772,7 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 
-			if (mb->dir) {
+			if (!disable_output && mb->dir) {
 				// just a copy of what is above
 				char *nfile = NULL;
 				GMRFLib_sprintf(&nfile, "%s/cpu-intern", mb->dir);
@@ -7828,16 +7828,22 @@ int main(int argc, char **argv)
 				fclose(fp);
 				Free(nfile);
 			}
-			if (mb) {
+			if (!disable_output && mb) {
 				inla_output_ok(mb->dir);
+			}
+			if (disable_output && mb) {
+				inla_remove_dir(mb->dir);
 			}
 			inla_tp_free(mb);
 			mb = NULL;
 		}
 	}
 
-	if (mb) {
+	if (!disable_output && mb) {
 		inla_output_ok(mb->dir);
+	}
+	if (disable_output && mb) {
+		inla_remove_dir(mb->dir);
 	}
 
 	return EXIT_SUCCESS;

@@ -2346,11 +2346,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
+			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_group_mkl(h, xx);
+			sum2 = GMRFLib_dot_product_group_mkl_opt(h, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -2393,7 +2393,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2494,7 +2494,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
+			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2576,11 +2576,11 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_timer();
 
 			tref3 -= GMRFLib_timer();
-			sum3 = GMRFLib_ddot_idx_mkl_alt(h->n, h->val, xx, h->idx);
+			sum3 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref3 += GMRFLib_timer();
 
 			tref4 -= GMRFLib_timer();
@@ -2595,7 +2595,7 @@ int testit(int argc, char **argv)
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f mkl %.3f mkl_alt %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		printf("dot_idx %.3f dot.opt %.3f mkl %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
 		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
 		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
@@ -2920,11 +2920,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product(h, xx);
+			sum1 = GMRFLib_dot_product_opt(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product(hh, xx);
+			sum2 = GMRFLib_dot_product_opt(hh, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -3560,18 +3560,17 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double *x = Calloc(4 * n, double);
-		double *y = x + n;
-		double *yy = x + 2 * n;
-#if defined(INLA_WITH_MKL)
-		double *z = x + 3 * n;
-#endif
-		for (int i = 0; i < n; i++) {
-			x[i] = GMRFLib_uniform();
-		}
-
+		int nn = GMRFLib_align_len(n, sizeof(double));
+		double *x = Calloc(4 * nn, double);
+		double *y = x + nn;
+		double *yy = x + 2 * nn;
+		double *z = x + 3 * nn;
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
+			for (int ii = 0; ii < n; ii++) {
+				x[ii] = GMRFLib_uniform();
+			}
+
 			tref[0] -= GMRFLib_timer();
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
@@ -3580,15 +3579,8 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_WITH_MKL)
-			vdExp(n, x, z);
+			GMRFLib_exp(n, x, z);
 			GMRFLib_daxpbyz(n, 1.0, x, 1.0, z, yy);
-#else
-#pragma omp simd
-			for (int j = 0; j < n; j++) {
-				y[j] = x[j] + exp(x[j]);
-			}
-#endif
 			tref[1] += GMRFLib_timer();
 
 			double err = 0.0;
@@ -3875,28 +3867,16 @@ int testit(int argc, char **argv)
 		Calloc_init(2000, 18);
 		for (int i = 0; i <= 17; i++) {
 			double *d = Calloc_get(i + 1);
-			printf("i = %d offset %zu check %f\n", i, calloc_offset_, (double) (sizeof(double) * calloc_offset_) / GMRFLib_MEM_ALIGN);
+			printf("i = %d offset %zu check %d\n", i, calloc_offset_, GMRFLib_is_aligned(d));
 			assert(d);
 		}
-
 		printf("\n");
+
 		iCalloc_init(2000, 18);
 		for (int i = 0; i <= 17; i++) {
 			int *d = iCalloc_get(i + 1);
-			printf("i = %d offset %zu check %f\n", i, icalloc_offset_, (double) (sizeof(int) * icalloc_offset_) / GMRFLib_MEM_ALIGN);
+			printf("i = %d offset %zu check %d\n", i, icalloc_offset_, GMRFLib_is_aligned(d));
 			assert(d);
-		}
-
-		printf("\n");
-		for (size_t i = 0; i <= 17; i++) {
-			size_t N = GMRFLib_align((size_t) i, sizeof(int));
-			printf("INT n %zu N %zu CHECK %f\n", i, N, (double) (N * sizeof(double)) / GMRFLib_MEM_ALIGN);
-		}
-
-		printf("\n");
-		for (size_t i = 0; i <= 17; i++) {
-			size_t N = GMRFLib_align(i, sizeof(double));
-			printf("DOUBLE n %zu N %zu CHECK %f\n", i, N, (double) (N * sizeof(double)) / GMRFLib_MEM_ALIGN);
 		}
 	}
 		break;
@@ -4227,7 +4207,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < n; k++) {
 			int iszero = 1;
 			for (int i = 0; i < n; i++) {
-				if (!ISZERO(x[i])) {
+				if (ISNONZERO(x[i])) {
 					iszero = 0;
 					break;
 				}
@@ -4285,7 +4265,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		double ssum = 0.0;
 		for (int k = 0; k < m; k++) {
-			double sum = 0.0;
+			aligned_double(sum) = 0.0;
 
 			tref[0] -= GMRFLib_timer();
 #pragma omp simd reduction(+: sum)
@@ -4310,7 +4290,7 @@ int testit(int argc, char **argv)
 			ssum += sum / n;
 
 			tref[3] -= GMRFLib_timer();
-			sum = GMRFLib_ddot(n, x + 1, y);
+			sum = GMRFLib_ddot_opt(n, x + 1, y);
 			tref[3] += GMRFLib_timer();
 			ssum -= sum / n;
 		}
@@ -5521,6 +5501,188 @@ int testit(int argc, char **argv)
 		GMRFLib_density_tp *dd = NULL;
 		GMRFLib_density_new_std_mean(&dd, d, d->std_mean + (new_user_mean - d->user_mean));
 		GMRFLib_density_printf(stdout, dd);
+	}
+		break;
+
+	case 177:
+	{
+		printf("[%s]\n", __GMRFLib_FuncName);
+	}
+		break;
+
+	case 178:
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(n, double);
+		printf("%d\n", GMRFLib_is_zero(x, n));
+		x[n - 1] = 1;
+		printf("%d\n", GMRFLib_is_zero(x, n));
+	}
+		break;
+
+	case 179:
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(n, double);
+		double sum = 0.0;
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			sum += x[i];
+		}
+
+		P(sum);
+		P(GMRFLib_dsum(n, x));
+
+		int *ix = Calloc(n, int);
+		int isum = 0.0;
+		for (int i = 0; i < n; i++) {
+			ix[i] = (int) (1000 * GMRFLib_uniform());
+			isum += ix[i];
+		}
+
+		P(isum);
+		P(GMRFLib_isum(n, ix));
+	}
+		break;
+
+
+	case 180:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		aligned_double(*x) = Calloc(n + 1, double);
+		aligned_double(*y) = Calloc(n + 1, double);
+
+		double *tref = Calloc(2, double);
+		for (int i = 0; i < m; i++) {
+
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+				y[j] = GMRFLib_uniform();
+			}
+			aligned_double(a) = GMRFLib_uniform();
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, a, x, y);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			int inc = 1;
+			daxpy_(&n, &a, x, &inc, y, &inc);
+			tref[1] += GMRFLib_timer();
+		}
+		printf("daxpy simd %f blas %f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 181:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		aligned_double(*x) = Calloc(n + 1, double);
+		aligned_double(*y) = Calloc(n + 1, double);
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			aligned_double(a) = GMRFLib_uniform();
+			for (int j = 0; j < n; j++) {
+				x[j] = y[j] = GMRFLib_uniform();
+			}
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_dscale(n, a, x);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd aligned(y: GMRFLib_MEM_ALIGN)
+			for (int j = 0; j < n; j++) {
+				y[j] *= a;
+			}
+			tref[1] += GMRFLib_timer();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - x[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("dscale:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 182:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
+
+		double tref[] = { 0, 0, 0 };
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n + 1; j++) {
+				x[j] = y[j] = GMRFLib_uniform();
+			}
+
+			double sum = 0.0;
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN) reduction(+: sum)
+			for (int j = 0; j < n; j++) {
+				sum += x[j] * y[j];
+			}
+			tref[0] += GMRFLib_timer();
+
+			double sum1 = 0.0;
+			tref[1] -= GMRFLib_timer();
+			sum1 = GMRFLib_ddot_opt(n, x, y);
+			tref[1] += GMRFLib_timer();
+
+			double sum2 = 0.0;
+			tref[2] -= GMRFLib_timer();
+			int one = 1;
+			sum2 = ddot_(&n, x, &one, y, &one);
+			tref[2] += GMRFLib_timer();
+
+			assert(ABS(sum - sum1) / sqrt(n) < FLT_EPSILON);
+			assert(ABS(sum - sum2) / sqrt(n) < FLT_EPSILON);
+		}
+		printf(" %f %f %f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+
+	}
+		break;
+
+	case 183:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 1, double);
+		int *ix = Calloc(n + 1, int);
+
+		double *tref = Calloc(2, double);
+		for (int i = 0; i < m; i++) {
+
+			for (int j = 0; j < n; j++) {
+				x[j] = GMRFLib_uniform();
+				ix[j] = (int) (1000*GMRFLib_uniform());
+			}
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_dsum(n, x);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_isum(n, ix);
+			tref[1] += GMRFLib_timer();
+		}
+		printf("dsum %f isum %f\n", tref[0], tref[1]);
 	}
 		break;
 

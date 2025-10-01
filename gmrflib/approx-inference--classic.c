@@ -480,7 +480,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 	    && ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) {
 		// do nothing
 	} else {
-		if (!ISZERO(ai_par->cutoff)) {
+		if (ISNONZERO(ai_par->cutoff)) {
 			for (i = 0; i < n; i++) {
 				a = x_sd * derivative[i] / ai_store->stdev[i];
 				if (ABS(a) < ai_par->cutoff) {
@@ -752,7 +752,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 			low = -deriv_log_dens_cond - 1.0;
 			high = -deriv_log_dens_cond + 1.0;
 			ld = Calloc(2 * np, double);	       /* xp = Calloc(np,double) */
-
 			xp = &ld[np];
 			for (k = 0; k < np; k++) {
 				xp[k] = xx = low + k * (high - low) / (np - 1.0);
@@ -4527,7 +4526,7 @@ int GMRFLib_pool_cmp(const void *a, const void *b)
 		dist_a += ISQR((int) ia[i]);
 		dist_b += ISQR((int) ib[i]);
 	}
-	if (!ISZERO(dist_a - dist_b)) {
+	if (ISNONZERO(dist_a - dist_b)) {
 		return (dist_a > dist_b ? 1 : -1);
 	} else {
 		larger = 1;
