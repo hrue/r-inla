@@ -1451,17 +1451,19 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 	double *cache = NULL;
 	if (G_norm_const_compute[idx]) {
 		cache = Calloc(3, double);
-		G_norm_const_v[idx] = (void *) cache;
-		G_norm_const_compute[idx] = 0;
-
 		// log(y)
 		cache[0] = log(ds->data_observations.y[idx]);
 		// w
 		cache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
 		// log(w)
 		cache[2] = log(cache[1]);
+
+		G_norm_const_v[idx] = (void *) cache;
+		G_norm_const_compute[idx] = 0;
 	}
 	cache = (double *) G_norm_const_v[idx];
+	assert(cache);
+	
 	ly = cache[0];
 	w = cache[1];
 	lw = cache[2];
