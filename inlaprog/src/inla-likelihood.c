@@ -1465,6 +1465,7 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 		w = cache[1];
 		lw = cache[2];
 	} else {
+		// this can happen. then we do this as an emergency solution, and the cache will be ok next round.
 		ly = log(ds->data_observations.y[idx]);
 		w = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
 		lw = log(w);
