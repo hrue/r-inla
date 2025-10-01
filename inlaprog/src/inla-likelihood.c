@@ -1448,27 +1448,27 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double ly, lprec, prec, w, lw, lypred;
 
-	printf("Enter lognormal with idx %d compute %d\n", idx, G_norm_const_compute[idx]);
-
-	double *cache = NULL;
+	// this to avoid using 'critical section'
 	if (G_norm_const_compute[idx]) {
-		cache = Calloc(3, double);
-		// log(y)
-		cache[0] = log(ds->data_observations.y[idx]);
-		// w
-		cache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
-		// log(w)
-		cache[2] = log(cache[1]);
-
-		G_norm_const_v[idx] = (void *) cache;
-		G_norm_const_compute[idx] = 0;
+		double *lcache = Calloc(3, double); 
+		lcache[0] = log(ds->data_observations.y[idx]);
+		lcache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
+		lcache[2] = log(lcache[1]);
+		if (G_norm_const_compute[idx]) {
+			G_norm_const_v[idx] = (void *) lcache;
+			G_norm_const_compute[idx] = 0;
+		}
 	}
-	cache = (double *) G_norm_const_v[idx];
-	assert(cache);
-	
-	ly = cache[0];
-	w = cache[1];
-	lw = cache[2];
+	double *cache = (double *) G_norm_const_v[idx];
+	if (cache) {
+		ly = cache[0];
+		w = cache[1];
+		lw = cache[2];
+	} else {
+		ly = log(ds->data_observations.y[idx]);
+		w = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
+		lw = log(w);
+	}
 
 	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + lw;
 	prec = map_precision_forward(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
