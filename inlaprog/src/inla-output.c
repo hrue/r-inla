@@ -1154,20 +1154,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 						fwrite((void *) mo->configs_preopt[id]->config[i]->gcpodens_moments, sizeof(double),
 						       (size_t) mo->configs_preopt[id]->Npred * 3, fp);
 					}
-					if (mo->configs_preopt[id]->config[i]->arg_str) {
-						double one = 1.0;
-						fwrite((void *) &one, sizeof(double), 1, fp);
-
-						char **s = mo->configs_preopt[id]->config[i]->arg_str;
-						char *null_str = Strdup("");
-						for (int ii = 0; ii < mo->configs_preopt[id]->Npred; ii++) {
-							char *str = (s[ii] ? s[ii] : null_str);
-							fwrite((void *) str, 1, (size_t) strlen(str) + 1, fp);
-						}
-					} else {
-						double zero = 0.0;
-						fwrite((void *) &zero, sizeof(double), 1, fp);
-					}
 
 					if (mo->configs_preopt[id]->config[i]->ll_info) {
 						double one = 1.0;
@@ -1860,7 +1846,6 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->graph = 0;
 		(*out)->config = 0;
 		(*out)->config_lite = 0;
-		(*out)->likelihood_info = 0;
 		(*out)->internal_opt = 1;
 		(*out)->save_memory = 0;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
@@ -1882,7 +1867,6 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->graph = mb->output->graph;
 		(*out)->config = mb->output->config;
 		(*out)->config_lite = mb->output->config_lite;
-		(*out)->likelihood_info = mb->output->likelihood_info;
 		(*out)->internal_opt = mb->output->internal_opt;
 		(*out)->save_memory = mb->output->save_memory;
 		(*out)->hyperparameters = mb->output->hyperparameters;
@@ -2111,13 +2095,11 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	(*out)->graph = iniparser_getboolean(ini, inla_string_join(secname, "GRAPH"), (*out)->graph);
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
 	(*out)->config_lite = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG.LITE"), (*out)->config_lite);
-	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
 	(*out)->internal_opt = GMRFLib_internal_opt = iniparser_getboolean(ini, inla_string_join(secname, "INTERNAL.OPT"), (*out)->internal_opt);
 	(*out)->save_memory = GMRFLib_save_memory = iniparser_getboolean(ini, inla_string_join(secname, "SAVE.MEMORY"), (*out)->save_memory);
 
-	if ((*out)->likelihood_info) {
-		(*out)->config = 1;
-	}
+	// make it backward compatible. remove later
+	int dummy = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), 0); assert(dummy >= 0);
 
 	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
@@ -2215,7 +2197,6 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			printf("\t\t\thyperparameters=[%1d]\n", (*out)->hyperparameters);
 			printf("\t\t\tconfig=[%1d]\n", (*out)->config);
 			printf("\t\t\tconfig.lite=[%1d]\n", (*out)->config_lite);
-			printf("\t\t\tlikelihood.info=[%1d]\n", (*out)->likelihood_info);
 			printf("\t\t\tinternal.opt=[%1d]\n", (*out)->internal_opt);
 			printf("\t\t\tsave.memory=[%1d]\n", (*out)->save_memory);
 		}

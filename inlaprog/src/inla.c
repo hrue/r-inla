@@ -6037,8 +6037,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		mb->misc_output->config_lite = 0;
 	}
 
-	mb->misc_output->likelihood_info = mb->output->likelihood_info;
-
 	if (mb->lc_derived_correlation_matrix) {
 		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension */
 	} else {

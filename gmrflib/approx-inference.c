@@ -1984,7 +1984,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
-		int lcache_idx = 0;
+		int POSSIBLY_UNUSED(lcache_idx) = 0;
 		GMRFLib_CACHE_SET_IDX(lcache_idx);
 		tref = GMRFLib_timer();
 
@@ -2253,17 +2253,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
-		char **arg_str = NULL;
-		if (misc_output->likelihood_info) {
-			assert(misc_output->configs_preopt);
-			arg_str = Calloc(preopt->Npred, char *);
-			for (int jj = 0; jj < d_idx->n; jj++) {
-				int j = d_idx->idx[jj];
-				double dummy;
-				loglFunc(thread_id, &lcache_idx, &dummy, &(lpred_mean[j]), 1, j, NULL, NULL, loglFunc_arg, &(arg_str[j]));
-			}
-		}
-
 		double *ll_info = NULL;
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			ll_info = Calloc(3 * preopt->Npred, double);
@@ -2289,7 +2278,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig,
 						       ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg,
-						       cpodens_moments, gcpodens_moments, arg_str, ll_info, lpred_mean,
+						       cpodens_moments, gcpodens_moments, ll_info, lpred_mean,
 						       lpred_variance, c_corrected);
 			free_if_not_configs = 0;
 		}
@@ -2804,7 +2793,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			double x_tmp = (double) ((*density)[ii]->user_mean);
 			double logl = 0.0;
 
-			loglFunc(thread_id, lcache_idx, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg, NULL);
+			loglFunc(thread_id, lcache_idx, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
 			logl_sat = inla_compute_saturated_loglik(thread_id, lcache_idx, ii, loglFunc, x_vec, loglFunc_arg);
 
 			dm = -2.0 * d[ii] * logl;
@@ -2823,14 +2812,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			// the
 			// real data doing the comparison there. But this information is not available at this level
 			double sig = 0.0;
-			if (loglFunc(0, lcache_idx, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg, NULL) == GMRFLib_LOGL_COMPUTE_CDF) {
-				loglFunc(0, lcache_idx, &sig, &x_tmp, -1, ii, NULL, NULL, loglFunc_arg, NULL);
+			if (loglFunc(0, lcache_idx, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg) == GMRFLib_LOGL_COMPUTE_CDF) {
+				loglFunc(0, lcache_idx, &sig, &x_tmp, -1, ii, NULL, NULL, loglFunc_arg);
 				sig = (sig <= 0.5 ? -1.0 : 1.0);
 			} else {
 				double xx[2], ld[2] = { 0.0, 0.0 };
 				xx[0] = x_tmp;
 				xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
-				loglFunc(0, lcache_idx, ld, xx, 2, ii, NULL, NULL, loglFunc_arg, NULL);
+				loglFunc(0, lcache_idx, ld, xx, 2, ii, NULL, NULL, loglFunc_arg);
 				sig = (ld[1] > ld[0] ? 1.0 : -1.0);
 			}
 			sign[ii] = sig;
@@ -4780,7 +4769,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			for (int i = 0; i < np; i++) {			\
 				xp[i] = loc_mean + loc_sd * xx[i];	\
 			}						\
-			loglFunc(thread_id, &cache_idx, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg, NULL); \
+			loglFunc(thread_id, &cache_idx, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg); \
 									\
 			double d_tmp = d[node];				\
 			for (int i = 0; i < np; i++) {			\
@@ -4971,7 +4960,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
-		loglFunc(thread_id, &cache_idx, logcor, x_user, np, idx, NULL, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &cache_idx, logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
 		GMRFLib_dscale(np, d, logcor);
 
 		if (debug && np) {
@@ -5070,7 +5059,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double *loglik = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
 
 	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
 
@@ -5139,7 +5128,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, &cache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, &cache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
 
 	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp2, loglik);
 	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, wxp3, loglik);
@@ -6268,7 +6257,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 	for (int iter = 0; iter < max_iter; iter++) {
 		double s = exp(0.5 * fit_log_var), s2 = SQR(s);
 		GMRFLib_daxpb(np, s, xp, fit_mean, x_user);
-		loglFunc(thread_id, &cache_idx, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &cache_idx, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
 
 		GMRFLib_mul(np, loglik, wp, wloglik);
 		wloglik_sym[0] = wloglik[nnp];
@@ -6328,7 +6317,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp *problem, double *mean_corrected,
 				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean,
+				   double *gcpodens_moments, double *ll_info, double *lpred_mean,
 				   double *lpred_variance, double *c_corrected)
 {
 	if (!mo || !(mo->configs_preopt)) {
@@ -6487,7 +6476,6 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 	} else {
 		cfg->theta = NULL;
 	}
-	cfg->arg_str = arg_str;
 	mo->configs_preopt[id]->nconfig++;
 
 	return GMRFLib_SUCCESS;
@@ -6881,7 +6869,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 		return fail;
 	}
 
-	retval = loglFunc(thread_id, &cache_idx, NULL, NULL, 0, idx, x_vec, NULL, loglFunc_arg, NULL);
+	retval = loglFunc(thread_id, &cache_idx, NULL, NULL, 0, idx, x_vec, NULL, loglFunc_arg);
 	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF)) {
 		compute_cpo = 0;
 	}
@@ -6912,11 +6900,11 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	GMRFLib_evaluate_ndensity(dens, xpi, np, cpo_density);
 
 	if (compute_cpo) {
-		loglFunc(thread_id, &cache_idx, prob, xp, -np, idx, x_vec, NULL, loglFunc_arg, NULL);	/* no correction for 'd' here; should we? */
+		loglFunc(thread_id, &cache_idx, prob, xp, -np, idx, x_vec, NULL, loglFunc_arg);	/* no correction for 'd' here; should we? */
 	} else {
 		GMRFLib_dfill(np, 0.0, prob);
 	}
-	loglFunc(thread_id, &cache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, &cache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	GMRFLib_dscale(np, d, loglik);
 
 	GMRFLib_mul(np, prob, dens, xp);
@@ -6988,7 +6976,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		GMRFLib_dfill(np, 1.0, mask);
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
-		loglFunc(thread_id, &lcache_idx, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &lcache_idx, ll, x, np, idx, x_vec, NULL, loglFunc_arg);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
 		double dmin = GMRFLib_min_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
@@ -7033,7 +7021,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			xpi[i] = xpi[0] + i * dxi;
 		}
 		GMRFLib_evaluate_nlogdensity(ldens, xpi, np, po_density);
-		loglFunc(thread_id, &lcache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &lcache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 
 		double *dens = Calloc_get(npm);
 		double *llik = Calloc_get(npm);
@@ -7134,7 +7122,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 		double *ll_sat = Calloc_get(np);
 
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
-		loglFunc(thread_id, &cache_idx, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &cache_idx, ll, x, np, idx, x_vec, NULL, loglFunc_arg);
 		GMRFLib_daxpb(np, 1.0, ll, -sat_ll, ll_sat);
 
 		double dmax = GMRFLib_max_value(ll, np, NULL);
@@ -7179,7 +7167,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 			xpi[i] = xpi[0] + i * dxi;
 		}
 		GMRFLib_evaluate_nlogdensity(ldens, xpi, np, density);
-		loglFunc(thread_id, &cache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, &cache_idx, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 
 		double *dens = Calloc_get(npm);
 		double *llik = Calloc_get(npm);

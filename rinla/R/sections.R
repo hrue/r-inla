@@ -1417,7 +1417,7 @@ inla.parse.Bmatrix.test <- function() {
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
                                    cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy,
-                                   graph, config, likelihood.info, internal.opt,  save.memory) {
+                                   graph, config, internal.opt,  save.memory) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1473,8 +1473,6 @@ inla.parse.Bmatrix.test <- function() {
     } 
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("config.lite", config.lite, file)
-    inla.write.boolean.field("likelihood.info", likelihood.info, file)
-
     inla.write.boolean.field("gcpo.enable", gcpo$enable, file)
     inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
     inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)

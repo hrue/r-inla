@@ -1109,7 +1109,6 @@
         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
         openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
         config = cont.compute$config,
-        likelihood.info = cont.compute$likelihood.info,
         internal.opt = cont.compute$internal.opt, 
         save.memory = cont.compute$save.memory
     )
