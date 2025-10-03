@@ -763,7 +763,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
-			CODE_BLOCK_INIT_X(int);				\
+			CODE_BLOCK_INIT_X(int, 1);			\
 			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
 			cache_idx--;					\
 			int idx = d_idx->idx[i_];			\
@@ -4516,7 +4516,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
 	for(int i = 0; i < d_idx->n; i++) {				\
-		CODE_BLOCK_INIT_X(int);					\
+		CODE_BLOCK_INIT_X(int, 1);				\
 		int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());		\
 		cache_idx--;						\
 		int nnode = d_idx->idx[i];				\
@@ -4602,7 +4602,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 #define CODE_BLOCK							\
 	for(int inode = 0; inode < node_idx2->n; inode++) {		\
-		CODE_BLOCK_INIT_X(local_storage_tp);			\
+		CODE_BLOCK_INIT_X(local_storage_tp, 1);			\
 		int cache_idx = CODE_BLOCK_WORK_TP_PTR()->cache_idx;	\
 		if (cache_idx == 0) {					\
 			GMRFLib_CACHE_SET_IDX(cache_idx);		\
@@ -5011,38 +5011,45 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
-			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
+int GMRFLib_ai_vb_prepare_mean(int thread_id,
+			       int *lcache_idx, int *ccache_idx, int *ccache_idx_numa, int * nnuma, 
+			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc, 
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *UNUSED(workspace))
 {
 	// better memory locality with 'lcache_idx'
 
-	// compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
-	// optional workspace: size >= 2 * GMRFLib_INT_GHQ_ALLOC_LEN 
+	// compute the taylor-expansion of integral of -loglikelihood * density(x), around the mean of x.
+	// optional workspace: size >= 2 * GMRFLib_int_ghq_alloc_len 
 
-	// Normal kernel: deriv: ... * (x-m)/s^2
+	// normal kernel: deriv: ... * (x-m)/s^2
 	// dderiv: ... * ((x-m)^2 - s^2)/s^4
 	// GMRFLib_density_type_tp type;
 
-	if (ISZERO(d)) {
+	if (iszero(d)) {
 		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
 		return GMRFLib_SUCCESS;
 	}
 
 	static double **lwork = NULL;
 	if (!lwork) {
-#pragma omp critical (Name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
+#pragma omp critical (name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
 		if (!lwork) {
 			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
 			lwork = tmp;
 		}
 	}
 
-	SET_CACHE_IDX();
+	if (*lcache_idx == -1) {
+		SET_CACHE_IDX(); 
+		*ccache_idx = cache_idx;
+		*ccache_idx_numa = cache_idx_numa;
+		*nnuma = numa;
+	}
+	int numa = *nnuma;				       /* as 'numa' is defined inside if(){} and we need it below */
 
-	if (!lwork[cache_idx_numa]) {
+	if (!lwork[*ccache_idx_numa]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
-		if (!lwork[cache_idx_numa]) {
+		if (!lwork[*ccache_idx_numa]) {
 			double *worktmp = Malloc(5 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
 
@@ -5052,24 +5059,23 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
 				worktmp[1 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * xtmp[i];
 				worktmp[2 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * (SQR(xtmp[i]) - 1.0);
 			}
-			lwork[cache_idx_numa] = worktmp;
+			lwork[*ccache_idx_numa] = worktmp;
 		}
 	}
 
-	double *xp = lwork[cache_idx_numa];
-	double *wxp = lwork[cache_idx_numa] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *wxp2 = lwork[cache_idx_numa] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *x_user = lwork[cache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *loglik = lwork[cache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *xp = lwork[*ccache_idx_numa];
+	double *wxp = lwork[*ccache_idx_numa] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *wxp2 = lwork[*ccache_idx_numa] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = lwork[*ccache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *loglik = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
+
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, &cache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
+	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
 
 	// this one is no longer used, if so, store 'wtmp' above into 'wp'
 	// double A = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wp);
-
 	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp);
 	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp2);
 
@@ -5396,18 +5402,26 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
-			CODE_BLOCK_INIT_X(int);				\
-			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR());	\
-			cache_idx--;					\
+			CODE_BLOCK_INIT_X(int, 4);			\
+			int lcache_idx = *(CODE_BLOCK_WORK_TP_PTR() + 0) -1; \
+			int cache_idx = *(CODE_BLOCK_WORK_TP_PTR() + 1) -1; \
+			int cache_idx_numa = *(CODE_BLOCK_WORK_TP_PTR() + 2) -1; \
+			int numa = *(CODE_BLOCK_WORK_TP_PTR() + 3) -1;	\
+			int first_time = (lcache_idx == -1);		\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_ai_vb_prepare_mean(thread_id, &cache_idx, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
+			GMRFLib_ai_vb_prepare_mean(thread_id, &lcache_idx, &cache_idx, &cache_idx_numa, &numa, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i]), CODE_BLOCK_WORK_PTR(0)); \
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = vb_coof.coofs[2];			\
 			if (ISNAN(CC[i]) || ISNAN(BB[i])) {		\
 				BB[i] = CC[i] = 0.0;			\
 			}						\
-			*(CODE_BLOCK_WORK_TP_PTR()) = 1 + cache_idx;	\
+			if (first_time) {				\
+				*(CODE_BLOCK_WORK_TP_PTR() + 0) = 1 + lcache_idx; \
+				*(CODE_BLOCK_WORK_TP_PTR() + 1) = 1 + cache_idx; \
+				*(CODE_BLOCK_WORK_TP_PTR() + 2) = 1 + cache_idx_numa; \
+				*(CODE_BLOCK_WORK_TP_PTR() + 3) = 1 + numa; \
+			}						\
 		}
 
 		static char *tag1 = NULL;
