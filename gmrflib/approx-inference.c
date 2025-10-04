@@ -5014,7 +5014,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	// dderiv: ... * ((x-m)^2 - s^2)/s^4
 	// GMRFLib_density_type_tp type;
 
-	if (iszero(d)) {
+	if (ISZERO(d)) {
 		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
 		return GMRFLib_SUCCESS;
 	}
