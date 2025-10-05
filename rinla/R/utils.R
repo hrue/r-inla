@@ -896,7 +896,8 @@
     inla.rw(n, order = 2L, ...)
 }
 
-`inla.rw` <- function(n, order = 1L, sparse = TRUE, scale.model = FALSE, cyclic = FALSE) {
+`inla.rw` <- function(n, order = 1L, sparse = TRUE, scale.model = FALSE, cyclic = FALSE, diag.add = 0.0) {
+    ## if diag.add > 0 && scale.model=T, then diag.add is added *after* scale.
     stopifnot(n >= 1L + 2L * order)
     if (scale.model) {
         if (!cyclic) {
@@ -922,6 +923,9 @@
             U <- t(U) %*% U
             Q <- toeplitz(c(U[k, k:m], rep(0.0, n - m), U[k, m:(k + 1L)]))
         }
+    }
+    if (diag.add > 0) {
+        Q <- Q + diag.add * Diagonal(n)
     }
     return(if (sparse) inla.as.sparse(Q) else Q)
 }
