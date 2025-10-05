@@ -41,14 +41,19 @@
 NULL
 
 inla.pc.vm0.lambda <- function(u, alpha, lambda) {
-    if (missing(lambda)) {
-        stopifnot(!missing(u) && !missing(alpha))
-        k <- 2*pi/u - 1
-        I0 <- besselI(x=k,nu=0, expon.scaled = TRUE)
-        I1 <- besselI(x=k,nu=1, expon.scaled = TRUE)
-        lambda <- -log(1-alpha) / sqrt(k*I1/I0-(log(I0) + k))
+  if (missing(lambda)) {
+    stopifnot(!missing(u) && !missing(alpha))
+    obj <- function(k) {
+      ratio <- besselI(k, 1L) / besselI(k, 0L)
+      (ratio - u)^2
     }
-    return(lambda)
+    fit <- optim(par = 1, fn = obj, method = "L-BFGS-B",
+                 lower = .Machine$double.eps)
+    kappa_u <- fit$par
+    T_val <- sqrt(kappa_u * u - log(besselI(kappa_u, 0L)))
+    lambda <- -log(alpha) / T_val
+  }
+  return(lambda)
 }
 
 #' @rdname pc-vm0
