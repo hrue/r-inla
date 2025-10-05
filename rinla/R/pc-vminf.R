@@ -41,11 +41,11 @@
 NULL
 
 inla.pc.vminf.lambda <- function(u, alpha, lambda) {
-  if (missing(lambda)) {
-    stopifnot(!missing(u) && !missing(alpha))
-    lambda <- -log(1 - alpha) / sqrt(1 - u)
-  }
-  return(lambda)
+    if (missing(lambda)) {
+        stopifnot(!missing(u) && !missing(alpha))
+        lambda <- -log(1 - alpha) / sqrt(1 - u)
+    }
+    return(lambda)
 }
 
 #' @rdname pc-vminf

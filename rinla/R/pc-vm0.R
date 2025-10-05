@@ -41,19 +41,19 @@
 NULL
 
 inla.pc.vm0.lambda <- function(u, alpha, lambda) {
-  if (missing(lambda)) {
-    stopifnot(!missing(u) && !missing(alpha))
-    obj <- function(k) {
-      ratio <- besselI(k, 1L) / besselI(k, 0L)
-      (ratio - u)^2
+    if (missing(lambda)) {
+        stopifnot(!missing(u) && !missing(alpha))
+        obj <- function(k) {
+            ratio <- besselI(k, 1L) / besselI(k, 0L)
+            (ratio - u)^2
+        }
+        fit <- optim(par = 1, fn = obj, method = "L-BFGS-B",
+                     lower = .Machine$double.eps)
+        kappa_u <- fit$par
+        T_val <- sqrt(kappa_u * u - log(besselI(kappa_u, 0L)))
+        lambda <- -log(alpha) / T_val
     }
-    fit <- optim(par = 1, fn = obj, method = "L-BFGS-B",
-                 lower = .Machine$double.eps)
-    kappa_u <- fit$par
-    T_val <- sqrt(kappa_u * u - log(besselI(kappa_u, 0L)))
-    lambda <- -log(alpha) / T_val
-  }
-  return(lambda)
+    return(lambda)
 }
 
 #' @rdname pc-vm0
@@ -72,7 +72,7 @@ inla.pc.dvm0 <- function(k, u, alpha, lambda, log = FALSE) {
     lambda <- inla.pc.vm0.lambda(u, alpha, lambda)
     dens <- numeric(length(k))
     
-                                        # Case 1: k < 1e-4
+    ## Case 1: k < 1e-4
     idx_small <- k < 1e-4
     if (any(idx_small)) {
         k_small <- k[idx_small]
@@ -88,7 +88,7 @@ inla.pc.dvm0 <- function(k, u, alpha, lambda, log = FALSE) {
                            }
     }
     
-                                        # Case 2: k >= 1e-4
+    ## Case 2: k >= 1e-4
     idx_large <- !idx_small
     if (any(idx_large)) {
         kk <- k[idx_large]
@@ -130,8 +130,6 @@ inla.pc.dvm0 <- function(k, u, alpha, lambda, log = FALSE) {
     }
     return(dens)
 }
-
-
 
 #' @rdname pc-vm0
 #' @export
