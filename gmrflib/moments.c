@@ -5,16 +5,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#define POW2(x_) gsl_pow_2(x_)
-#define POW3(x_) gsl_pow_3(x_)
-#define POW4(x_) gsl_pow_4(x_)
-#define POW5(x_) gsl_pow_5(x_)
-#define POW6(x_) gsl_pow_6(x_)
-#define POW7(x_) gsl_pow_7(x_)
-#define POW8(x_) gsl_pow_8(x_)
-#define POW9(x_) gsl_pow_9(x_)
-#define POW10(x_) gsl_pow_2(gsl_pow_5(x_))
-
 // compute E(x^i * y^j), either central or non-central
 
 double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii, double Sij, double Sjj)
