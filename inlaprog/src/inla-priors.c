@@ -1438,6 +1438,30 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
 		}
+	} else if (!strcasecmp(prior->name, "PCPRW2RANGE")) {
+		prior->id = P_PC_RANGE_PRW2;
+		prior->priorfunc = priorfunc_prw2_pcprior_range;
+		if (param) {
+			prior->parameters = Calloc(4, double);
+			if (inla_sread_doubles(prior->parameters, 4, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(4, double);
+			prior->parameters[0] = 1;
+			prior->parameters[1] = 0.5;
+			prior->parameters[2] = 1.0;	       /* use h_size=1 */
+			prior->parameters[3] = 0.0;	       /* compute lambda */
+		}
+		if (ISNAN(prior->parameters[3]) || prior->parameters[3] <= 0) {
+			prior->parameters[3] = priorfunc_prw2_pcprior_range_calibrate(prior->parameters[0],
+										      prior->parameters[1],
+										      prior->parameters[2]);
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[r0=%g alpha=%g h_size=%g lambda=%g]\n", prior_tag, param_tag,
+			       prior->parameters[0], prior->parameters[1], prior->parameters[2], prior->parameters[3]);
+		}
 	} else if (!strcasecmp(prior->name, "REFAR")) {
 		prior->id = P_REF_AR;
 		prior->priorfunc = priorfunc_ref_ar;

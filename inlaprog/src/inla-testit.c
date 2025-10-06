@@ -5685,6 +5685,18 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 184: 
+	{
+		inla_bm_test();
+	}
+	break;
+
+	case 185: 
+	{
+		inla_prw2_test();
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

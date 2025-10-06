@@ -15,6 +15,9 @@ __BEGIN_DECLS
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
+
+//
+
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
@@ -23,6 +26,8 @@ __BEGIN_DECLS
 #include "stochvol.h"
 #include "quantile-regression.h"
 #include "cgeneric.h"
+#include "prw2.h"
+
 #define ONE_mexp(_x) (-expm1(_x))			       /* 1-exp(_x) */
 #define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #define LOG_p(_x) log1p((_x) - 1.0)
@@ -290,6 +295,7 @@ typedef enum {
 	F_INTSLOPE,
 	F_IIDKD,
 	F_C_GENERIC,
+	F_PRW2, 
 	F_SCOPY,
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
@@ -357,6 +363,7 @@ typedef enum {
 	P_LAPLACE,
 	P_RPRIOR,
 	P_PC_EGPTAIL,
+	P_PC_RANGE_PRW2, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,

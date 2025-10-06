@@ -538,6 +538,16 @@ typedef enum {
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
+#define POW2(x_) gsl_pow_2(x_)
+#define POW3(x_) gsl_pow_3(x_)
+#define POW4(x_) gsl_pow_4(x_)
+#define POW5(x_) gsl_pow_5(x_)
+#define POW6(x_) gsl_pow_6(x_)
+#define POW7(x_) gsl_pow_7(x_)
+#define POW8(x_) gsl_pow_8(x_)
+#define POW9(x_) gsl_pow_9(x_)
+#define POW10(x_) gsl_pow_2(gsl_pow_5(x_))
+
 // https://philippegroarke.com/blog/2017/02/19/quicktip-understanding-16-byte-memory-alignment-detection/
 #define SIMD_ALIGNED(ptr_) (((intptr_t)(ptr_) & 0xF) == 0)
 
