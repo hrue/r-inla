@@ -41,7 +41,8 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
+			  double *UNUSED(y_cdf), void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -3912,7 +3913,8 @@ int testit(int argc, char **argv)
 		printf("post mean %.12f prec %.12f\n", post_mean, post_prec);
 
 		GMRFLib_vb_coofs_tp mm;
-		GMRFLib_ai_vb_prepare_mean(0, 0, 0, 0, 0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec), NULL);
+		GMRFLib_ai_vb_prepare_mean(0, 0, 0, 0, 0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec),
+					   NULL);
 
 		double ee = exp(post_mean + 0.5 * s2);
 		printf("d mu      : numeric1 %.16f  true %.16f  err %.16f\n", tmp[0], -(y - ee), -(y - ee) - tmp[0]);
@@ -5670,7 +5672,7 @@ int testit(int argc, char **argv)
 
 			for (int j = 0; j < n; j++) {
 				x[j] = GMRFLib_uniform();
-				ix[j] = (int) (1000*GMRFLib_uniform());
+				ix[j] = (int) (1000 * GMRFLib_uniform());
 			}
 
 			tref[0] -= GMRFLib_timer();
@@ -5685,17 +5687,17 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 184: 
+	case 184:
 	{
 		inla_bm_test();
 	}
-	break;
+		break;
 
-	case 185: 
+	case 185:
 	{
 		inla_prw2_test();
 	}
-	break;
+		break;
 
 	case 999:
 	{

@@ -3783,7 +3783,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 		{
 			double prec_intern = 0.0;
 			double range_intern = 0.0;
-			
+
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				prec_intern = theta[count];
@@ -3803,7 +3803,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			inla_prw2_arg_tp *arg = (inla_prw2_arg_tp *) mb->f_Qfunc_arg_orig[i];
 
 			arg->log_prec_omp[thread_id][0] = prec_intern;
-			arg->log_range_omp[thread_id][0] = range_intern; 
+			arg->log_range_omp[thread_id][0] = range_intern;
 			int n = arg->n;
 
 			GMRFLib_problem_tp *problem = NULL;

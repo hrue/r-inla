@@ -11859,7 +11859,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				}
 
 				// not supported
-				if (mb->f_id[mb->nf] == F_PRW2) assert(mb->f_cyclic[mb->nf] == 0);
+				if (mb->f_id[mb->nf] == F_PRW2)
+					assert(mb->f_cyclic[mb->nf] == 0);
 			}
 		}
 			break;
@@ -17813,7 +17814,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			}
 		}
 	}
-			break;
+		break;
 
 	case F_PRW2:
 	{
@@ -17822,7 +17823,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		assert(!strcasecmp(mb->f_prior[mb->nf][1].name, "PCPRW2RANGE"));
 		double h_size = mb->f_prior[mb->nf][1].parameters[2];
-		if (ISZERO(h_size)) h_size = 1.0;
+		if (ISZERO(h_size))
+			h_size = 1.0;
 
 		arg = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
 		arg_orig = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
@@ -17830,11 +17832,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		arg->log_prec_omp = log_prec;
 		arg->log_range_omp = range_intern;
 		arg->h_size = h_size;
-		
+
 		HYPER_NEW(arg_orig->log_prec_omp, NAN);
 		HYPER_NEW(arg_orig->log_range_omp, NAN);
 		arg_orig->h_size = h_size;
-		
+
 		if (mb->verbose) {
 			printf("\t\tn[%1d]\n", arg->n);
 			printf("\t\th.size[%g]\n", arg->h_size);

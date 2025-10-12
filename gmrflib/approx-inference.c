@@ -2278,8 +2278,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
 			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig,
 						       ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg,
-						       cpodens_moments, gcpodens_moments, ll_info, lpred_mean,
-						       lpred_variance, c_corrected);
+						       cpodens_moments, gcpodens_moments, ll_info, lpred_mean, lpred_variance, c_corrected);
 			free_if_not_configs = 0;
 		}
 
@@ -5001,8 +5000,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 }
 
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
-			       int *lcache_idx, int *ccache_idx, int *ccache_idx_numa, int * nnuma, 
-			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc, 
+			       int *lcache_idx, int *ccache_idx, int *ccache_idx_numa, int *nnuma,
+			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *UNUSED(workspace))
 {
 	// better memory locality with 'lcache_idx'
@@ -5029,7 +5028,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	}
 
 	if (*lcache_idx == -1) {
-		SET_CACHE_IDX(); 
+		SET_CACHE_IDX();
 		*ccache_idx = cache_idx;
 		*ccache_idx_numa = cache_idx_numa;
 		*nnuma = numa;
@@ -6317,8 +6316,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp *problem, double *mean_corrected,
 				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, double *ll_info, double *lpred_mean,
-				   double *lpred_variance, double *c_corrected)
+				   double *gcpodens_moments, double *ll_info, double *lpred_mean, double *lpred_variance, double *c_corrected)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;

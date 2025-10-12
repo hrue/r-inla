@@ -1433,7 +1433,7 @@ int loglikelihood_lognormal(int thread_id, int *UNUSED(lcache_idx), double *__re
 
 	// this to avoid using 'critical section'
 	if (G_norm_const_compute[idx]) {
-		double *lcache = Calloc(3, double); 
+		double *lcache = Calloc(3, double);
 		lcache[0] = log(ds->data_observations.y[idx]);
 		lcache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
 		lcache[2] = log(lcache[1]);
@@ -6604,7 +6604,8 @@ int loglikelihood_gammajwsurv(int thread_id, int *lcache_idx, double *__restrict
 			      double *y_cdf, void *arg)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_gammajw));
 }
 
 int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
@@ -7726,7 +7727,8 @@ int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *__restrict
 			      double *y_cdf, void *arg)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_weibull));
 }
 
 int loglikelihood_gompertz(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
@@ -7812,14 +7814,16 @@ int loglikelihood_gompertzsurv(int thread_id, int *lcache_idx, double *__restric
 			       double *y_cdf, void *arg)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_gompertz));
 }
 
 int loglikelihood_dgompertzsurv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 				double *y_cdf, void *arg)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_dgompertz));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_dgompertz));
 }
 
 int loglikelihood_loglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
@@ -7898,7 +7902,8 @@ int loglikelihood_loglogisticsurv(int thread_id, int *lcache_idx, double *__rest
 				  double *y_cdf, void *arg)
 {
 	return (m ==
-		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic));
+		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg,
+								 loglikelihood_loglogistic));
 }
 
 int loglikelihood_qloglogistic(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,

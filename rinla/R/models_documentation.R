@@ -337,6 +337,53 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'prw2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Proper random walk of order 2}}
+#'               \item{constr = }{\verb{FALSE}}
+#'               \item{nrow.ncol = }{\verb{FALSE}}
+#'               \item{augmented = }{\verb{FALSE}}
+#'               \item{aug.factor = }{\verb{1}}
+#'               \item{aug.constr = }{\verb{NULL}}
+#'               \item{n.div.by = }{\verb{NULL}}
+#'               \item{n.required = }{\verb{FALSE}}
+#'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{pdf = }{\verb{prw2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 2.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{6103}}
+#'             \item{name = }{\verb{log precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{prior = }{\verb{pc.prec}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{initial = }{\verb{4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{6102}}
+#'             \item{name = }{\verb{log range}}
+#'             \item{short.name = }{\verb{range}}
+#'             \item{prior = }{\verb{pc.prw2.range}}
+#'             \item{param = }{\verb{1 0.5 1 0}}
+#'             \item{initial = }{\verb{3}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'seasonal'.}{
 #'          \describe{
 #'           \item{Properties:}{
@@ -19246,6 +19293,9 @@
 #'        }
 #'       \item{Model 'gamma'.}{
 #'          Number of parameters in the prior = 2
+#'        }
+#'       \item{Model 'pc.prw2.range'.}{
+#'          Number of parameters in the prior = 4
 #'        }
 #'       \item{Model 'minuslogsqrtruncnormal'.}{
 #'          Number of parameters in the prior = 2

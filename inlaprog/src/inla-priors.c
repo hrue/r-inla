@@ -1455,8 +1455,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (ISNAN(prior->parameters[3]) || prior->parameters[3] <= 0) {
 			prior->parameters[3] = priorfunc_prw2_pcprior_range_calibrate(prior->parameters[0],
-										      prior->parameters[1],
-										      prior->parameters[2]);
+										      prior->parameters[1], prior->parameters[2]);
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[r0=%g alpha=%g h_size=%g lambda=%g]\n", prior_tag, param_tag,

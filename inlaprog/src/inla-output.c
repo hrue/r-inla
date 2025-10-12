@@ -2099,7 +2099,8 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	(*out)->save_memory = GMRFLib_save_memory = iniparser_getboolean(ini, inla_string_join(secname, "SAVE.MEMORY"), (*out)->save_memory);
 
 	// make it backward compatible. remove later
-	int dummy = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), 0); assert(dummy >= 0);
+	int dummy = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), 0);
+	assert(dummy >= 0);
 
 	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
