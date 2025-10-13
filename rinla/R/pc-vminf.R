@@ -43,10 +43,7 @@ NULL
 inla.pc.vminf.lambda <- function(u, alpha, lambda) {
     if (missing(lambda)) {
         stopifnot(!missing(u) && !missing(alpha))
-        k <- 2*pi/u - 1
-        I0 <- besselI(x=k,nu=0, expon.scaled = TRUE)
-        I1 <- besselI(x=k,nu=1, expon.scaled = TRUE)
-        lambda <- -log(1-alpha) / sqrt(1-I1/I0)
+        lambda <- -log(1 - alpha) / sqrt(1 - u)
     }
     return(lambda)
 }

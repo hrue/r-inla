@@ -254,6 +254,43 @@
                     pdf = "crw2"
                 ),
 
+                prw2 = list(
+                    doc = "Proper random walk of order 2",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 6103,
+                            name = "log precision",
+                            short.name = "prec",
+                            prior = "pc.prec",
+                            param = c(1, 0.01),
+                            initial = 4,
+                            fixed = FALSE,
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ), 
+                        theta2 = list(
+                            hyperid = 6102,
+                            name = "log range",
+                            short.name = "range",
+                            prior = "pc.prw2.range",
+                            param = c(0, 0, 0, 0),
+                            initial = 3,
+                            fixed = FALSE,
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    constr = FALSE,
+                    nrow.ncol = FALSE,
+                    augmented = FALSE,
+                    aug.factor = 1L,
+                    aug.constr = NULL,
+                    n.div.by = NULL,
+                    n.required = FALSE,
+                    set.default.values = FALSE,
+                    pdf = "prw2"
+                ),
+
                 seasonal = list(
                     doc = "Seasonal model for time series",
                     hyper = list(
@@ -15897,6 +15934,11 @@
                     doc = "Gamma prior",
                     nparameters = 2L,
                     pdf = "prior-loggamma"
+                ),
+                pc.prw2.range = list(
+                    doc = "PCprior for the range in PRW2",
+                    nparameters = 4L,
+                    pdf = "pc.prw2.range"
                 ),
                 minuslogsqrtruncnormal = list(
                     doc = "(obsolete)",

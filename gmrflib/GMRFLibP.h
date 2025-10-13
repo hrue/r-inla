@@ -538,6 +538,16 @@ typedef enum {
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
+#define POW2(x_) gsl_pow_2(x_)
+#define POW3(x_) gsl_pow_3(x_)
+#define POW4(x_) gsl_pow_4(x_)
+#define POW5(x_) gsl_pow_5(x_)
+#define POW6(x_) gsl_pow_6(x_)
+#define POW7(x_) gsl_pow_7(x_)
+#define POW8(x_) gsl_pow_8(x_)
+#define POW9(x_) gsl_pow_9(x_)
+#define POW10(x_) gsl_pow_2(gsl_pow_5(x_))
+
 // https://philippegroarke.com/blog/2017/02/19/quicktip-understanding-16-byte-memory-alignment-detection/
 #define SIMD_ALIGNED(ptr_) (((intptr_t)(ptr_) & 0xF) == 0)
 
@@ -673,12 +683,12 @@ typedef enum {
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__) \
 		work__[t_num__] = Malloc(len_work__ * n_work__, double)
 
-#define CODE_BLOCK_INIT_X(work_tp_) \
+#define CODE_BLOCK_INIT_X(work_tp_, len2__) \
 	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__)		\
 		work__[t_num__] = Calloc(len_work__ * n_work__, double); \
 	if (!work_t__[t_num__])						\
-		work_t__[t_num__] = Calloc(1, work_tp_)
+		work_t__[t_num__] = Calloc(len2__, work_tp_)
 
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\

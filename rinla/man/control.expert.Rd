@@ -31,7 +31,8 @@ Gaussian likelihood and identity link (default \code{FALSE})}
 \item{jp}{An object of class \code{inla.jp} defining a joint prior}
 
 \item{dot.product.gain}{Output the gain in
-optimizing dot-products? (Default \code{FALSE})}
+optimizing dot-products? (Default \code{FALSE}).
+This options needs developer version,  otherwise its disabled.}
 
 \item{globalconstr}{Add a global constraint (see \code{?f} and argument
 \code{extraconstr}). Note that a global constraint does NOT

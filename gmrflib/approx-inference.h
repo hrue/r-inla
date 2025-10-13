@@ -894,7 +894,6 @@ typedef struct {
 	double *ll_info;
 	double *lpred_mean;
 	double *lpred_variance;
-	char **arg_str;
 } GMRFLib_store_config_preopt_tp;
 
 typedef struct {
@@ -1133,7 +1132,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo,
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
 				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-				   double *cpodens_moments, double *gcpodens_moments, char **arg_str, double *ll_info,
+				   double *cpodens_moments, double *gcpodens_moments, double *ll_info,
 				   double *lpred_mean, double *lpred_variance, double *c_corrected);
 int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
 			    int idx, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp * ai_par);
@@ -1146,9 +1145,10 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
 			  void *loglFunc_arg, double *x_vec);
-int GMRFLib_ai_vb_prepare_mean(int thread_id, int *lcache_idx,
-			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
-			       void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);
+int GMRFLib_ai_vb_prepare_mean(int thread_id,
+			       int *lcache_idx, int *ccache_idx, int *ccache_idx_numa, int *nnuma,
+			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglfunc,
+			       void *loglfunc_arg, double *x_vec, double mean, double sd, double *workspace);
 int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx,
 				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
 				   void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace);

@@ -9,7 +9,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define HYPER_NEW(name_, initial_)					\
+#define HYPER_NEW_LOCAL(name_, initial_)				\
 	if (1) {							\
 		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
 		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
@@ -141,7 +141,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 */
 	if (Aext_fnm) {
 		double **lprec_omp = NULL;
-		HYPER_NEW(lprec_omp, log(Aext_precision));
+		HYPER_NEW_LOCAL(lprec_omp, log(Aext_precision));
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, lprec_omp);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
 		arg->n_ext = n_ext;

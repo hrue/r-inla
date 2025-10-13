@@ -385,10 +385,6 @@ control.gcpo <-
              #' stored. (Default `FALSE`.)
              config = FALSE,
 
-             #' @param likelihood.info A boolean variable to store likelihood-information or not.
-             #' This option requires `config=TRUE` (Default `FALSE`. EXPERIMENTAL)
-             likelihood.info = FALSE,
-
              #' @param smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
              #' 'pardiso' (default `inla.getOption("smtp")`). `smtp='pardiso'` implies
              #' `openmp.strategy='pardiso'`.

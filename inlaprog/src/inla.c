@@ -3779,6 +3779,113 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 		}
 			break;
 
+		case F_PRW2:
+		{
+			double prec_intern = 0.0;
+			double range_intern = 0.0;
+
+
+			if (_NOT_FIXED(f_fixed[i][0])) {
+				prec_intern = theta[count];
+				count++;
+			} else {
+				prec_intern = mb->f_theta[i][0][thread_id][0];
+			}
+			if (_NOT_FIXED(f_fixed[i][1])) {
+				range_intern = theta[count];
+				count++;
+			} else {
+				range_intern = mb->f_theta[i][1][thread_id][0];
+			}
+
+			_SET_GROUP_RHO(2);
+
+			inla_prw2_arg_tp *arg = (inla_prw2_arg_tp *) mb->f_Qfunc_arg_orig[i];
+
+			arg->log_prec_omp[thread_id][0] = prec_intern;
+			arg->log_range_omp[thread_id][0] = range_intern;
+			int n = arg->n;
+
+			GMRFLib_problem_tp *problem = NULL;
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+
+			if (setup) {
+				GMRFLib_graph_tp *gtmp = NULL;
+				GMRFLib_graph_duplicate(&gtmp, mb->f_graph_orig[i]);
+				GMRFLib_ptr_add(&(setup->graphs), gtmp);
+				if (mb->f_constr_orig[i] && mb->f_constr_orig[i]->nc) {
+					GMRFLib_idx_add(&(setup->nrhss), mb->f_constr_orig[i]->nc);
+				}
+				gtmp = NULL;
+			} else {
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
+				if (mb->f_diag[i]) {
+					int ii;
+					for (ii = 0; ii < n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
+					}
+				}
+
+				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+					stiles_idx.in_group++;
+				}
+
+				while (!ok) {
+					retval =
+					    GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+								       mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i], store,
+								       &stiles_idx, NULL);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GSL_SQRT_DBL_EPSILON;
+
+						for (ii = 0; ii < arg->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+					}
+						break;
+
+					case GMRFLib_SUCCESS:
+					{
+						ok = 1;
+					}
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * (ngroup - grankdef) + normc_g);
+
+				if (_NOT_FIXED(f_fixed[i][0])) {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &prec_intern);
+				}
+				if (_NOT_FIXED(f_fixed[i][1])) {
+					val += PRIOR_EVAL(mb->f_prior[i][1], &range_intern);
+				}
+
+				GMRFLib_free_problem(problem);
+			}
+		}
+			break;
+
 		case F_Z:
 		{
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -6036,8 +6143,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		mb->misc_output->configs_preopt = NULL;
 		mb->misc_output->config_lite = 0;
 	}
-
-	mb->misc_output->likelihood_info = mb->output->likelihood_info;
 
 	if (mb->lc_derived_correlation_matrix) {
 		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension */

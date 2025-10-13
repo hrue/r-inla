@@ -10471,6 +10471,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_id[mb->nf] = F_CRW2;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = Strdup("CRW2 model");
+	} else if (_OneOf("PRW2")) {
+		mb->f_id[mb->nf] = F_PRW2;
+		mb->f_ntheta[mb->nf] = 2;
+		mb->f_modelname[mb->nf] = Strdup("PRW2 model");
 	} else if (_OneOf("AR1")) {
 		mb->f_id[mb->nf] = F_AR1;
 		mb->f_ntheta[mb->nf] = 3;
@@ -10585,6 +10589,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	case F_Z:
 	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);
+	}
+		break;
+
+	case F_PRW2:
+	{
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC", NULL);	// prec
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCPRW2RANGE", NULL);	// range
 	}
 		break;
 
@@ -11761,6 +11772,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
+		case F_PRW2:
 		case F_OU:
 		case F_COPY:
 		case F_SCOPY:
@@ -11833,7 +11845,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				 * the locations must be sorted (for some models only), otherwise, things are messed up!!!!
 				 */
 				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2
-				    || mb->f_id[mb->nf] == F_OU) {
+				    || mb->f_id[mb->nf] == F_OU || mb->f_id[mb->nf] == F_PRW2) {
 					for (i = 0; i < nlocations - 1; i++) {
 						if (mb->f_locations[mb->nf][i] >= mb->f_locations[mb->nf][i + 1]) {
 							inla_error_file_error_sorted(__GMRFLib_FuncName, filename, nlocations, i,
@@ -11845,6 +11857,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				if (mb->verbose) {
 					printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 				}
+
+				// not supported
+				if (mb->f_id[mb->nf] == F_PRW2)
+					assert(mb->f_cyclic[mb->nf] == 0);
 			}
 		}
 			break;
@@ -11940,6 +11956,102 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta[mb->ntheta] = log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+	}
+		break;
+
+	case F_PRW2:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		if (!mb->f_fixed[mb->nf][0] && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][0] = 1;
+			}
+		}
+		_SetInitial(0, tmp);
+		HYPER_INIT(log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		mb->f_theta[mb->nf] = Calloc(2, double **);
+		mb->f_theta[mb->nf][0] = log_prec;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1.0);
+		if (!mb->f_fixed[mb->nf][1] && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed) {
+				mb->f_fixed[mb->nf][1] = 1;
+			}
+		}
+		_SetInitial(1, tmp);
+		HYPER_INIT(range_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_range[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+
+		mb->f_theta[mb->nf][1] = range_intern;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log range for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Range for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = range_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_range;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -17701,6 +17813,73 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				}
 			}
 		}
+	}
+		break;
+
+	case F_PRW2:
+	{
+		inla_prw2_arg_tp *arg = NULL;
+		inla_prw2_arg_tp *arg_orig = NULL;
+
+		assert(!strcasecmp(mb->f_prior[mb->nf][1].name, "PCPRW2RANGE"));
+
+		arg = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
+		arg_orig = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
+
+		double *r0 = &mb->f_prior[mb->nf][1].parameters[0];
+		double *aalpha = &mb->f_prior[mb->nf][1].parameters[1];
+		double *h_size = &mb->f_prior[mb->nf][1].parameters[2];
+		double *lambda = &mb->f_prior[mb->nf][1].parameters[3];
+		char set_default[4] = { 0, 0, 0, 0 };
+
+		// set default values
+		if (*r0 <= 0.0) {
+			*r0 = (mb->f_locations[mb->nf][mb->f_n[mb->nf] - 1] - mb->f_locations[mb->nf][0]) / 4.0;
+			set_default[0] = 1;
+		}
+		if (*aalpha <= 0.0 || *aalpha >= 1.0) {
+			*aalpha = 0.5;
+			set_default[1] = 1;
+		}
+		if (*h_size <= 0.0) {
+			*h_size = (mb->f_locations[mb->nf][mb->f_n[mb->nf] - 1] - mb->f_locations[mb->nf][0]) / (mb->f_n[mb->nf] - 1);
+			set_default[2] = 1;
+		}
+		if (*lambda <= 0.0) {
+			*lambda = 0.0;
+			set_default[3] = 1;
+		}
+
+		if (*lambda <= 0.0) {
+			*lambda = priorfunc_prw2_pcprior_range_calibrate(*r0, *aalpha, *h_size);
+		}
+
+		arg->log_prec_omp = log_prec;
+		arg->log_range_omp = range_intern;
+		arg->h_size = *h_size;
+
+		HYPER_NEW(arg_orig->log_prec_omp, NAN);
+		HYPER_NEW(arg_orig->log_range_omp, NAN);
+		arg_orig->h_size = *h_size;
+
+		if (mb->verbose) {
+			printf("\t\tn[%1d]\n", arg->n);
+			printf("\t\tPrior parameters for prior = [PCPRW2RANGE]\n");
+			printf("\t\t\tr0=[%.6f]%s\n\t\t\talpha=[%.6f]%s\n\t\t\th_size=[%.6f]%s\n\t\t\tlambda=[%.6f]%s\n",
+			       mb->f_prior[mb->nf][1].parameters[0], (set_default[0] ? "(default)" : ""),
+			       mb->f_prior[mb->nf][1].parameters[1], (set_default[1] ? "(default)" : ""),
+			       mb->f_prior[mb->nf][1].parameters[2], (set_default[2] ? "(default)" : ""),
+			       mb->f_prior[mb->nf][1].parameters[3], (set_default[3] ? "(computed)" : ""));
+		}
+
+		mb->f_Qfunc[mb->nf] = inla_Qfunc_prw2;
+		mb->f_Qfunc_orig[mb->nf] = inla_Qfunc_prw2;
+		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
+		mb->f_rankdef[mb->nf] = 0.0;
+		mb->f_graph[mb->nf] = arg->graph;
+		mb->f_graph_orig[mb->nf] = arg_orig->graph;
+		mb->f_n[mb->nf] = mb->f_N[mb->nf] = arg->n;
 	}
 		break;
 
