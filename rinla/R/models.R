@@ -273,7 +273,7 @@
                             name = "log range",
                             short.name = "range",
                             prior = "pc.prw2.range",
-                            param = c(1, 0.5, 1, 0),
+                            param = c(0, 0, 0, 0),
                             initial = 3,
                             fixed = FALSE,
                             to.theta = function(x) log(x),

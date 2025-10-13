@@ -39,7 +39,7 @@ In distance scale, the PC-prior is exponential with rate $\lambda$,
 \end{displaymath}
 The calibration of $\lambda$, is done so that 
 \begin{displaymath}
-    \text{Prob}(r > r_0) = \alpha, \quad r_0 > 0, \; 0 < \alpha < 1
+    \text{Prob}(r < r_0) = \alpha, \quad r_0 > 0, \; 0 < \alpha < 1
 \end{displaymath}
 for given $r_0$ and $\alpha$. This prior is also applied to PRW2 for
 irregular locations derived from the corresponding limiting process in
@@ -55,6 +55,14 @@ This prior is specified as follows, as
 where \texttt{r0}$=r_0$, \texttt{alpha}$=\alpha$, \texttt{h}$=h$ (the
 step-size), \texttt{lambda}$=\lambda$ (the step-size).
 
+The default value used for $r_0$, if initially $r_0 \le 0$, is
+\begin{verbatim}
+    r0 <- diff(range(loc)) / 4
+\end{verbatim}
+The default value used for $\alpha$, if initially $\alpha \le 0$, is
+$\alpha = 0.5$. This means the median for default prior for the range,
+is half of the length for which the PRW2 model is defined.
+
 The 'step-size' $h$ is a typical distance between the locations where
 process is defined and is $h=1$ in the definition above. If the
 locations where the PRW2 process defined is in variable \texttt{loc},
@@ -62,19 +70,18 @@ then this parameter can be set by the user as
 \begin{verbatim}
     h <- diff(range(loc)) / (length(loc) - 1)
 \end{verbatim}
-but does not need to! This is why this parameter is not pre-set or set
-automatically. If $h \le 0$, then $h$ is set by \texttt{INLA}, and 
-currently this mean $h=1$ (but this could change in the future).
+but does not need to! This is the value used for $h$, if initially
+$h \le 0$.
 
 The $\lambda$ parameter is computed from the calibration as defined
-above if  set to $\lambda \le 0$. If $\lambda > 0$, then this
-value of $\lambda$ is used without computing the calibration, and the
-values of $r_0$ and $\alpha$ are  silently ignored.
+above if set to $\lambda \le 0$. If $\lambda > 0$, then this value of
+$\lambda$ is used without computing the calibration, and the values of
+$r_0$ and $\alpha$ are silently ignored.
 
 Note that $r_0$ is in real scale, ie in the scale of \texttt{loc}, and
 $r_0$ is \textbf{not} scaled by $h$.
 
-Default values are \texttt{param = c(1, 0.5, 1, 0)}.
+Default values are \texttt{param = c(0, 0, 0, 0)}.
 
 \subsection*{Example}
 

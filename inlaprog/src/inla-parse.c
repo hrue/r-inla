@@ -17822,24 +17822,55 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_prw2_arg_tp *arg_orig = NULL;
 
 		assert(!strcasecmp(mb->f_prior[mb->nf][1].name, "PCPRW2RANGE"));
-		double h_size = mb->f_prior[mb->nf][1].parameters[2];
-		if (ISZERO(h_size))
-			h_size = 1.0;
 
 		arg = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
 		arg_orig = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
 
+		double *r0 = &mb->f_prior[mb->nf][1].parameters[0];
+		double *aalpha = &mb->f_prior[mb->nf][1].parameters[1];
+		double *h_size = &mb->f_prior[mb->nf][1].parameters[2];
+		double *lambda = &mb->f_prior[mb->nf][1].parameters[3];
+		char set_default[4] = {0, 0, 0, 0};
+			
+		// set default values
+		if (*r0 <= 0.0) {
+			*r0 = (mb->f_locations[mb->nf][mb->f_n[mb->nf]-1] - mb->f_locations[mb->nf][0]) / 4.0;
+			set_default[0] = 1;
+		}
+		if (*aalpha <= 0.0 || *aalpha >= 1.0) {
+			*aalpha = 0.5;
+			set_default[1] = 1;
+		}
+		if (*h_size <= 0.0) {
+			*h_size = (mb->f_locations[mb->nf][mb->f_n[mb->nf]-1] -
+				   mb->f_locations[mb->nf][0]) / (mb->f_n[mb->nf] - 1);
+			set_default[2] = 1;
+		}
+		if (*lambda <= 0.0) {
+			*lambda = 0.0;
+			set_default[3] = 1;
+		}
+
+		if (*lambda <= 0.0) {
+			*lambda = priorfunc_prw2_pcprior_range_calibrate(*r0, *aalpha, *h_size); 
+		}
+
 		arg->log_prec_omp = log_prec;
 		arg->log_range_omp = range_intern;
-		arg->h_size = h_size;
+		arg->h_size = *h_size;
 
 		HYPER_NEW(arg_orig->log_prec_omp, NAN);
 		HYPER_NEW(arg_orig->log_range_omp, NAN);
-		arg_orig->h_size = h_size;
+		arg_orig->h_size = *h_size;
 
 		if (mb->verbose) {
 			printf("\t\tn[%1d]\n", arg->n);
-			printf("\t\th.size[%g]\n", arg->h_size);
+			printf("\t\tPrior parameters for prior = [PCPRW2RANGE]\n");
+			printf("\t\t\tr0=[%.6f]%s\n\t\t\talpha=[%.6f]%s\n\t\t\th_size=[%.6f]%s\n\t\t\tlambda=[%.6f]%s\n",
+			       mb->f_prior[mb->nf][1].parameters[0], (set_default[0] ? "(default)" : ""), 
+			       mb->f_prior[mb->nf][1].parameters[1], (set_default[1] ? "(default)" : ""), 
+			       mb->f_prior[mb->nf][1].parameters[2], (set_default[2] ? "(default)" : ""), 
+			       mb->f_prior[mb->nf][1].parameters[3], (set_default[3] ? "(computed)" : ""));
 		}
 
 		mb->f_Qfunc[mb->nf] = inla_Qfunc_prw2;

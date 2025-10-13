@@ -1058,30 +1058,32 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
     ## density for the user-scale is done automatically.
 
     my.pc.prw2.range <- function(theta, param, log = FALSE) {
-
         d <- function(rho) {
             lrho <- log1p(rho-1)
             return (sqrt(-(3+rho)* expm1(lrho)^3 / (1+rho^2)))
         }
         range2rho <- function(range, h.size = 1) {
-            return (exp(-sqrt(12) * h / range))
+            return (exp(-sqrt(12) * h.size / range))
         }
         F <- function(range, lambda, h.size = 1) {
-            return (exp(-lambda * d(range2rho(range, h))) / (1-exp(-lambda * sqrt(3))))
+            return (exp(-lambda * d(range2rho(range, h.size))) / (1-exp(-lambda * sqrt(3))))
         }
-
-        h.size <- if (param[3] > 0) param[3] else 1
+        if (param[1] <= 0 || param[2] <= 0 || param[3] <= 0) {
+            warning("To plot the pcprw2range prior, the parameters has to be given explicite." )
+            return (rep(NA, length(theta)))
+        }
+        h.size <- param[3]
         if (is.nan(param[4]) || param[4] <= 0) {
             ## find lambda so that Prob(range > range0) = alpha
             fun.opt2 <- function(log.lambda,  range0, alpha, h.size) {
-                ((1-F(range0, exp(log.lambda), h)) - alpha)^2
+                (F(range0, exp(log.lambda), h.size) - alpha)^2
             }
             param[4] <- exp(optim(0, gr = NULL, fun.opt2, method = "BFGS",
                                   range0 = param[1], alpha = param[2], h.size = h.size)$par)
         }
         h <- 1e-4
         r <- exp(theta)
-        dd <- (F(r*exp(h), param[3], h.size) - F(r*exp(-h), param[3], h.size)) / (2*h) / r
+        dd <- (F(r*exp(h), param[4], h.size) - F(r*exp(-h), param[4], h.size)) / (2*h) / r
         dd <- log(dd) + theta
         if (!log) dd <- exp(dd)
         return (dd)
@@ -1394,8 +1396,6 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
     }
 
-    print(myp)
-    
     if (intern) {
         ## use a linear scale. 'x' is in the linear scale
         x <- seq(range[1], range[2], length.out = len)
@@ -1426,6 +1426,8 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         }
         fun <- splinefun(x, theta)
         y <- exp(ld + log(abs(fun(x, deriv = 1))))
+
+        ## xy <- cbind(x, y); save(xy, file = "xy.dat")
     }
     return(list(x = x, y = y))
 }

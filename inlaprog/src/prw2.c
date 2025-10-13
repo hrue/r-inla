@@ -564,12 +564,12 @@ double priorfunc_prw2_pcprior_range_calibrate_helper(double lambda, double r0, d
 {
 	double cdf = 0.0;
 	inla_prw2_pcprior_cdf_range(&r0, 1, lambda, h_size, &cdf);
-	return (1.0 - cdf - alpha);
+	return (cdf - alpha);
 }
 
 double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_size)
 {
-	// find lambda such that Prob(r > r0) = alpha
+	// find lambda such that Prob(r < r0) = alpha
 
 	int deriv = 0;
 	int verbose = 1;				       /* leave this on */
