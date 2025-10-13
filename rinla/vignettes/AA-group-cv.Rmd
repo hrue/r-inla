@@ -39,14 +39,6 @@ opts_chunk$set(size='small'
 gh.x = fastGHQuad::gaussHermiteData(51)$x
 gh.w = fastGHQuad::gaussHermiteData(51)$w
 
-inla.lik.pred_real = function(y,args = NULL,args.string,eta.mean,eta.sd,eta.skewness){
-    if(is.null(args)){args = INLA:::inla.likelihood.parser(args.string)}
-    args$linear.predictor = sqrt(2)*eta.sd*gh.x + eta.mean
-    hfunc = inla.likelihood(type = "d",args)
-    res = unlist(lapply(1:length(y),FUN = function(i){1/sqrt(pi)*sum(gh.w*hfunc(y[i]))}))
-    return(res)
-}
-
 inla.lik.pred = function(y,args = NULL,args.string,eta.mean,eta.sd,eta.skewness){
     res = dnorm(y,mean = eta.mean,sd = sqrt(eta.sd^2 + 1/exp(args$theta)))
     return(res)
@@ -110,7 +102,11 @@ d\tilde{\eta} d\boldsymbol{\theta}, $$where each prediction task is
 associated with a specific
 $\pi(\tilde{Y}|\tilde{\eta},\boldsymbol{\theta})$.
 
-```{R message = FALSE, warning=FALSE, echo = FALSE}
+```{R message = FALSE, warning=FALSE, echo = TRUE, eval=FALSE}
+##
+## this example needs to be fixed so it does not depend on the removed
+## inla.likelihood* feature
+##
 res = inla(formula = formula,
            data = data.frame(y = c(y,rep(NA,n_rat+1)), id = c(id,1:n_rat,n_rat+1)),
            family = "normal",
