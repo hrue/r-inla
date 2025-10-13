@@ -17830,11 +17830,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		double *aalpha = &mb->f_prior[mb->nf][1].parameters[1];
 		double *h_size = &mb->f_prior[mb->nf][1].parameters[2];
 		double *lambda = &mb->f_prior[mb->nf][1].parameters[3];
-		char set_default[4] = {0, 0, 0, 0};
-			
+		char set_default[4] = { 0, 0, 0, 0 };
+
 		// set default values
 		if (*r0 <= 0.0) {
-			*r0 = (mb->f_locations[mb->nf][mb->f_n[mb->nf]-1] - mb->f_locations[mb->nf][0]) / 4.0;
+			*r0 = (mb->f_locations[mb->nf][mb->f_n[mb->nf] - 1] - mb->f_locations[mb->nf][0]) / 4.0;
 			set_default[0] = 1;
 		}
 		if (*aalpha <= 0.0 || *aalpha >= 1.0) {
@@ -17842,8 +17842,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			set_default[1] = 1;
 		}
 		if (*h_size <= 0.0) {
-			*h_size = (mb->f_locations[mb->nf][mb->f_n[mb->nf]-1] -
-				   mb->f_locations[mb->nf][0]) / (mb->f_n[mb->nf] - 1);
+			*h_size = (mb->f_locations[mb->nf][mb->f_n[mb->nf] - 1] - mb->f_locations[mb->nf][0]) / (mb->f_n[mb->nf] - 1);
 			set_default[2] = 1;
 		}
 		if (*lambda <= 0.0) {
@@ -17852,7 +17851,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		if (*lambda <= 0.0) {
-			*lambda = priorfunc_prw2_pcprior_range_calibrate(*r0, *aalpha, *h_size); 
+			*lambda = priorfunc_prw2_pcprior_range_calibrate(*r0, *aalpha, *h_size);
 		}
 
 		arg->log_prec_omp = log_prec;
@@ -17867,9 +17866,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tn[%1d]\n", arg->n);
 			printf("\t\tPrior parameters for prior = [PCPRW2RANGE]\n");
 			printf("\t\t\tr0=[%.6f]%s\n\t\t\talpha=[%.6f]%s\n\t\t\th_size=[%.6f]%s\n\t\t\tlambda=[%.6f]%s\n",
-			       mb->f_prior[mb->nf][1].parameters[0], (set_default[0] ? "(default)" : ""), 
-			       mb->f_prior[mb->nf][1].parameters[1], (set_default[1] ? "(default)" : ""), 
-			       mb->f_prior[mb->nf][1].parameters[2], (set_default[2] ? "(default)" : ""), 
+			       mb->f_prior[mb->nf][1].parameters[0], (set_default[0] ? "(default)" : ""),
+			       mb->f_prior[mb->nf][1].parameters[1], (set_default[1] ? "(default)" : ""),
+			       mb->f_prior[mb->nf][1].parameters[2], (set_default[2] ? "(default)" : ""),
 			       mb->f_prior[mb->nf][1].parameters[3], (set_default[3] ? "(computed)" : ""));
 		}
 
