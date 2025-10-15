@@ -2173,7 +2173,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		       const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
-int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose);
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, GMRFLib_gcpo_param_tp *param, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);

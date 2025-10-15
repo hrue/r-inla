@@ -351,7 +351,7 @@ int inla_output(inla_tp *mb)
 
 		case 1:
 			if (mb->gcpo) {
-				inla_output_detail_gcpo(mb->dir, mb->gcpo, local_verbose);
+				inla_output_detail_gcpo(mb->dir, mb->gcpo, mb->gcpo_param, local_verbose);
 			}
 			break;
 
@@ -490,7 +490,7 @@ int inla_output(inla_tp *mb)
 	return INLA_OK;
 }
 
-int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, int verbose)
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, GMRFLib_gcpo_param_tp *param, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -508,6 +508,12 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, int verbose)
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
+
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "type.dat");
+	FILE *fp = fopen(nndir, "w");
+	fprintf(fp, "%s\n", (param->type_cv == 0 ? "single" : "joint"));
+	fclose(fp);
+
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "gcpo.dat");
 	{
 		int count = 1 + n * 4;

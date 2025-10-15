@@ -1102,6 +1102,7 @@
             cat(paste0("collect gcpo\n"))
         }
 
+        type.cv <- readLines(paste0(results.dir, .Platform$file.sep, "gcpo", .Platform$file.sep, "type.dat"))[1]
         xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "gcpo", .Platform$file.sep, "gcpo.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
@@ -1131,9 +1132,10 @@
         mean <- NULL
         sd <- NULL
         groups <- NULL
+        type.cv <- NULL
     }
 
-    return(list(gcpo = values, kld = kld, mean = mean, sd = sd, groups = groups))
+    return(list(gcpo = values, kld = kld, mean = mean, sd = sd, groups = groups, type.cv = type.cv))
 }
 
 `inla.collect.cpo` <- function(results.dir, debug = FALSE)

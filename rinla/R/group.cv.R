@@ -53,7 +53,7 @@
              #' @param friends An optional list of lists of indices to use a friends
              friends = NULL, 
 
-             #' @param weights An optional positive weight attached to each datapoint. The sume
+             #' @param weights An optional positive weight attached to each datapoint. The sum
              #'  of the weights define the size of the group. If `NULL`, then unit weight is
              #'  used.
              weights = NULL, 
@@ -103,7 +103,22 @@
                    function(ii, cv.arg) cv.arg$groups[[ii]]$idx,
                    cv.arg=cv)
         }
-        return (inla.group.cv(result, groups = get.groups(group.cv), verbose = verbose))
+        return (inla.group.cv(result,
+                              groups = get.groups(group.cv),
+                              num.level.sets = num.level.sets,
+                              strategy = strategy,
+                              size.max = size.max,
+                              selection = selection,
+                              group.selection = group.selection,
+                              friends = friends,
+                              weights = weights,
+                              verbose = verbose,
+                              epsilon = epsilon,
+                              prior.diagonal = prior.diagonal,
+                              keep = keep,
+                              remove = remove,
+                              remove.fixed = remove.fixed, 
+                              type.cv = group.cv$cv$type.cv))
     }
 
     cont.gcpo <- list(enable = TRUE,
@@ -156,8 +171,9 @@
     group.cv <- do.call("inla", args = r$.args)$gcpo
     group.cv$cv <- group.cv$gcpo
     group.cv$gcpo <- NULL
-    r <- NULL
 
+    r <- NULL
     class(group.cv) <- "inla.group.cv"
+
     return (group.cv)
 }
