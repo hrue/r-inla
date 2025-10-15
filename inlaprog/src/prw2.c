@@ -564,7 +564,7 @@ double priorfunc_prw2_pcprior_range_calibrate_helper(double lambda, double r0, d
 {
 	double cdf = 0.0;
 	inla_prw2_pcprior_cdf_range(&r0, 1, lambda, h_size, &cdf);
-	return (log(cdf) - log(alpha));
+	return (log(cdf/(1.0 - cdf)) - log(alpha/(1.0 - alpha)));
 }
 
 double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_size)

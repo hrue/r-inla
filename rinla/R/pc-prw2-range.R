@@ -55,7 +55,8 @@ prw2.calibrate.lambda <- function(param) {
     if (is.nan(param[4]) || param[4] <= 0) {
         ## find lambda so that Prob(range > range0) = alpha
         fun.opt2 <- function(log.lambda,  range0, alpha, hsize) {
-            return ((log(prw2.F(range0, exp(log.lambda), hsize)) - log(alpha))^2)
+            F <- prw2.F(range0, exp(log.lambda), hsize)
+            return ((log(F/(1.0 - F)) - log(alpha / (1.0 - alpha)))^2)
         }
         param[4] <- exp(optim(0, gr = NULL, fun.opt2, method = "BFGS",
                               range0 = param[1], alpha = param[2], hsize = param[3])$par)
