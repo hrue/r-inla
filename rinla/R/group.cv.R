@@ -118,7 +118,7 @@
                               keep = keep,
                               remove = remove,
                               remove.fixed = remove.fixed, 
-                              type.cv = group.cv$cv$type.cv))
+                              type.cv = group.cv$type.cv))
     }
 
     cont.gcpo <- list(enable = TRUE,
