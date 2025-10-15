@@ -1,3 +1,9 @@
+# INLA 25.10.15
+* Fixed a regression with decreasing link-functions
+* Fixed and issue with 'inla.group.cv' and passing the argument
+  'type.cv' through
+* Added functions for the range prior in PRW2
+
 # INLA 25.10.13
 * Added (experimental) latent model PRW2
 * Code cleanup, improvement and optimisation

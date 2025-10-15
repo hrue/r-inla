@@ -539,9 +539,9 @@ void inla_prw2_pcprior_cdf_range(double *range, int n, double lambda, double h_s
 	// use 'cdf' as a work array
 	inla_prw2_pcprior_range2rho(range, n, h_size, cdf);    // rho is now cdf
 	inla_prw2_pcprior_dist(cdf, n, cdf);		       // dist is now cdf
-	double normc = 1.0 / (1.0 - exp(-lambda * M_SQRT3));
+	double v = exp(-lambda * M_SQRT3);
 	for (int i = 0; i < n; i++) {
-		cdf[i] = exp(-lambda * cdf[i]) * normc;
+		cdf[i] = (exp(-lambda * cdf[i]) - v) / (1.0 - v);
 	}
 }
 
@@ -564,7 +564,7 @@ double priorfunc_prw2_pcprior_range_calibrate_helper(double lambda, double r0, d
 {
 	double cdf = 0.0;
 	inla_prw2_pcprior_cdf_range(&r0, 1, lambda, h_size, &cdf);
-	return (cdf - alpha);
+	return (log(cdf/(1.0 - cdf)) - log(alpha/(1.0 - alpha)));
 }
 
 double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_size)

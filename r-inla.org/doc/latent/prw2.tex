@@ -16,25 +16,25 @@ locations $1, 2, \ldots$,
     |\gamma| < 1
 \end{displaymath}
 where $\epsilon_t$ is iid zero mean Gaussian noise. This process is
-made stationary with marginal precision $\kappa$, and the range, the
-'distance' or 'time' to small correlation, is $r$ defined
+made stationary with marginal precision $\kappa$, and range $r$, which is the
+'distance' or 'time' to small correlation, is defined 
 (implicitely) as
 \begin{displaymath}
     \rho = \exp\left( - \frac{\sqrt{12} h}{r} \right)
 \end{displaymath}
 where $h$ is (typical) distance or time, `step-size', between the
-knots, here $h=1$. The correlation function of the process is found to
-be
+locations where the process is defined (here $h=1$). The correlation
+function of the process is found to be
 \begin{displaymath}
     \rho(h) = \left(1  + h \frac{1-\gamma^{2}}{1+\gamma^{2}}\right)\gamma^{h},
     \qquad h=0, 1, 2, \ldots
 \end{displaymath}
 
 Similar to RW1 and RW2, this model allows for irregular locations
-(\texttt{loc}) and is then derived from the corresponding limiting
-process in continous time.
+(\texttt{loc}) and the process is then derived from the corresponding
+limiting process in continous time.
 
-Note that $r$ is in real scale, ie the scale of \texttt{loc}.
+Note that $r$ and $h$ is in real scale, ie the scale of \texttt{loc}.
 
 \subsection*{Hyperparameters}
 
@@ -52,13 +52,13 @@ and the priors are given for $(\theta_1, \theta_2)$.
 This model is given as \texttt{f(loc, model="prw2", ...)}.
 
 Note that \texttt{constr=FALSE} by default for this model, unlike the
-RW2 model.
+similar but intrinsic, RW2 model.
 
 The default is use PC-priors for both parameters, see
 \texttt{inla.doc("pc.prec")} and \texttt{inla.doc("pc.prw2.range")}.
-
 The prior \texttt{pc.prw2.range} is currently fixed and not possible
-to replace, as this prior is intrinsic to the PRW2 model construction.
+to replace, as this prior is viral for the PRW2 model construction and
+motivation itself.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/prw2.tex}

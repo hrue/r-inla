@@ -157,6 +157,7 @@ Collate:
     'pc-gev.R'
     'pc-multvar.R'
     'pc-prec.R'
+    'pc-prw2-range.R'
     'pc-sn.R'
     'pc-t.R'
     'pc-vm0.R'
