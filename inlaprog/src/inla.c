@@ -6473,7 +6473,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			int low_ = IMAX(0, i_max - m);			\
 			int high_ = IMIN(np-1, i_max + m);		\
 			int len = high_ - low_ + 1;			\
-			GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 1); \
+			GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_NONE, 0); \
 			if (lds == NULL) {				\
 				*d_mode = zm_orig;			\
 			} else {					\
