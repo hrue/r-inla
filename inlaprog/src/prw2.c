@@ -354,7 +354,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	double kappa = sqrt(12.0) / range;
 	double tau = 1.0 / (4.0 * POW3(kappa));
 
-	double a = -1.0;				       /* this is still a mystery: why isn't a=1.0 ? */
+	double a = -1.0;
 	double b = 2.0 * kappa;
 	double c = SQR(kappa);
 
