@@ -243,6 +243,7 @@ typedef enum {
 	L_DGOMPERTZSURV,
 	L_VM,
 	L_C_LOGLIKE,
+	L_GAMMASV,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -737,6 +738,10 @@ typedef struct {
 	 */
 	double **gamma_log_prec;
 	double *gamma_scale;				       /* the scalings 's' */
+
+	//gammasv
+	double **gammasv_log_prec;	
+	double *gammasv_scale;				       /* the scalings 's' */
 
 	/*
 	 * MIX ~ Normal(x, 1/prec)
@@ -2303,6 +2308,7 @@ int loglikelihood_expsurv(int thread_id, int *lcache_idx, double *logll, double 
 int loglikelihood_fmri(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_fmrisurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammasv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammacount(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammajw(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

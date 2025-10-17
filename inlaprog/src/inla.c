@@ -2078,7 +2078,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			{
 				if (!ds->data_fixed) {
 					double precision_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
@@ -2099,6 +2098,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
+				}
+			}
+				break;
+
+			case L_GAMMASV:
+			{
+				if (!ds->data_fixed) {
+					double precision_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
+					count++;
 				}
 			}
 				break;
