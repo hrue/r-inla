@@ -13672,6 +13672,38 @@ Number of hyperparmeters is 1.
 }
 }
 }
+\item{Model 'gammasv'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{\verb{The Gamma likelihood with constant rate}}
+\item{status = }{\verb{experimental}}
+\item{survival = }{\verb{FALSE}}
+\item{discrete = }{\verb{FALSE}}
+\item{link = }{\verb{default log}}
+\item{pdf = }{\verb{gammasv}}
+}
+}
+}
+Number of hyperparmeters is 1.
+\describe{
+\item{Hyperparameter 'theta'}{
+\describe{
+\item{hyperid = }{\verb{58003}}
+\item{name = }{\verb{precision parameter}}
+\item{short.name = }{\verb{prec}}
+\item{output.name = }{\verb{Precision-parameter for the Gammasv observations}}
+\item{output.name.intern = }{\verb{Intern precision-parameter for the Gammasv observations}}
+\item{initial = }{\verb{4.60517018598809}}
+\item{fixed = }{\verb{FALSE}}
+\item{prior = }{\verb{loggamma}}
+\item{param = }{\verb{1 0.01}}
+\item{to.theta = }{\verb{function(x) log(x)}}
+\item{from.theta = }{\verb{function(x) exp(x)}}
+}
+}
+}
+}
 \item{Model 'gammasurv'.}{
 \describe{
 \item{Properties:}{
@@ -14524,7 +14556,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The ordered Beta likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default logit loga cauchit probit cloglog ccloglog loglog}}

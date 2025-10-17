@@ -11325,6 +11325,7 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
+                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -12077,7 +12078,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog"),
