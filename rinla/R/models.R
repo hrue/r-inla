@@ -11308,6 +11308,30 @@
                     pdf = "mgamma"
                 ),
 
+                gammasv = list(
+                    doc = "The Gamma likelihood with constant rate",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 58003,
+                            name = "precision parameter",
+                            short.name = "prec",
+                            output.name = "Precision-parameter for the Gammasv observations",
+                            output.name.intern = "Intern precision-parameter for the Gammasv observations",
+                            initial = log(100),
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "gammasv"
+                ),
+
                 gammasurv = list(
                     doc = "The Gamma likelihood (survival)",
                     hyper = list(
@@ -12054,7 +12078,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "ccloglog", "loglog"),

@@ -91,6 +91,7 @@
                                 "simplex",
                                 "gamma",
                                 "mgamma",
+                                "gammasv",
                                 "beta",
                                 "obeta", 
                                 "tweedie",

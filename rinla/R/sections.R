@@ -1524,7 +1524,7 @@ inla.parse.Bmatrix.test <- function() {
         fp.binary <- file(file.groups, "wb")
         len <- length(gcpo$groups)
         for(i in seq_len(len)) {
-            if (is.list(gcpo$groups[[i]]) && all(names(r$gcpo$groups[[1]]) == c("idx", "corr"))) {
+            if (is.list(gcpo$groups[[i]]) && all(names(gcpo$groups[[1]]) == c("idx", "corr"))) {
                 ## this will make the r$gcpo$groups from an internal gcpo-calculation, also work. in
                 ## this case groups[[i]] is a list(idx=..., corr=...) and we use 'idx' only.
                 gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]$idx))

@@ -1,0 +1,79 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The Gamma-distribution with constant rate}
+
+\subsection*{Parametrisation}
+
+The Gamma-distribution has the following density
+\begin{displaymath}
+    \pi(y) = \frac{b^{a}}{\Gamma(a)} y^{a-1} \exp(-by), \qquad a>0,
+    \quad b>0, \quad y >0,
+\end{displaymath}
+where $\text{E}(y) = \mu = a/b$ and $\text{Var}(y) = 1/\tau = a/b^{2}$,
+where $\tau$ is the precision and $\mu$ is the mean.
+
+This version of the Gamma-distribution is to make the rate $b$
+constant, so we use
+\begin{displaymath}
+    \mu = \exp(\eta)
+\end{displaymath}
+where $\eta$ is the linear predictor, and 
+\begin{displaymath}
+    \tau = (s \phi) / \mu
+\end{displaymath}
+where $\phi$ is the precision parameter (or $1/\phi$ is the dispersion
+parameter with this definition) and $s>0$ is a fixed scaling (for the
+regression model), which gives Gamma-density with
+\begin{displaymath}
+    a = s \phi \mu \qquad\mbox{and}\qquad b= s\phi
+\end{displaymath}
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the mean $\mu$ using a
+default log-link
+\begin{displaymath}
+    \mu = \exp(\eta)
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the precision parameter $\phi$, which is
+represented as
+\begin{displaymath}
+    \phi = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="gammasv"}.
+\item Required arguments: $y$ and $s$ (default value 1).
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gammasv.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-gammasv.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

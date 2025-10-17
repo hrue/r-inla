@@ -239,6 +239,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_GAMMASV:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.gammasv_scale = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	case L_GAMMAJW:
 	{
 		idiv = 2;
@@ -5962,9 +5969,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -6562,6 +6569,47 @@ int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *__restrict 
 {
 	return (m ==
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_mgamma));
+}
+
+int loglikelihood_gammasv(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			  double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * GammaSV
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double s = (ds->data_observations.gammasv_scale ? ds->data_observations.gammasv_scale[idx] : 1.0);
+	double phi_param = map_exp_forward(ds->data_observations.gammasv_log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double phi = phi_param * s;
+
+	LINK_INIT;
+	if (m > 0) {
+		double ly = log(y);
+		double b = phi;
+		double lb = log(b);
+		for (int i = 0; i < m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			double a = phi * mu;
+			logll[i] = -gsl_sf_lngamma(a) + a * lb + (a - 1.0) * ly - b * y;
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		double b = phi;
+		for (int i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
+			double a = phi * mu;
+			logll[i] = gsl_cdf_gamma_P(yy, a, b);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
 }
 
 int loglikelihood_gammajw(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,

@@ -354,7 +354,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	double kappa = sqrt(12.0) / range;
 	double tau = 1.0 / (4.0 * POW3(kappa));
 
-	double a = -1.0;				       /* this is still a mystery: why isn't a=1.0 ? */
+	double a = -1.0;
 	double b = 2.0 * kappa;
 	double c = SQR(kappa);
 
@@ -564,7 +564,7 @@ double priorfunc_prw2_pcprior_range_calibrate_helper(double lambda, double r0, d
 {
 	double cdf = 0.0;
 	inla_prw2_pcprior_cdf_range(&r0, 1, lambda, h_size, &cdf);
-	return (log(cdf/(1.0 - cdf)) - log(alpha/(1.0 - alpha)));
+	return (log(cdf / (1.0 - cdf)) - log(alpha / (1.0 - alpha)));
 }
 
 double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_size)
