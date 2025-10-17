@@ -1,3 +1,7 @@
+# INLA 25.10.17
+* Fixed a regression in group cv with given groups
+* Added new likelihood 'gammasv' (experimental)
+
 # INLA 25.10.15
 * Fixed a regression with decreasing link-functions
 * Fixed and issue with 'inla.group.cv' and passing the argument
