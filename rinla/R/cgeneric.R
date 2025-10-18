@@ -101,7 +101,7 @@
 `inla.cgeneric.q` <- function(cmodel = NULL)
 {
     stopifnot(!is.null(cmodel))
-    stopifnot(inherits(cmodel$f$cgeneric, "inla.cgeneric"))
+    stopifnot(inherits(cmodel$f$cgeneric, "inla.cgeneric.f"))
 
     ## need to turn off warnings for the numerics-conversions in 'split()'
     opt <- options()
