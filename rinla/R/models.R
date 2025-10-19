@@ -9425,7 +9425,6 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "identity"), 
-                    status = "experimental", 
                     pdf = "fl"
                 ),
 
@@ -10786,7 +10785,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "logit", "probit"), 
@@ -12683,7 +12681,6 @@
                             from.theta = function(x) 1+exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity", "quantile"), 
@@ -12974,7 +12971,6 @@
                             from.theta = function(x) x
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log"), 
@@ -13062,8 +13058,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"),
-                    pdf = "iidgamma",
-                    status = "experimental"
+                    pdf = "iidgamma"
                 ),
 
                 iidlogitbeta = list(
@@ -13099,8 +13094,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "loga"),
-                    pdf = "iidlogitbeta",
-                    status = "experimental"
+                    pdf = "iidlogitbeta"
                 ),
 
                 loggammafrailty = list(
@@ -13123,8 +13117,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"),
-                    pdf = "loggammafrailty",
-                    status = "experimental"
+                    pdf = "loggammafrailty"
                 ),
 
                 logistic = list(
@@ -15505,7 +15498,6 @@
                             from.theta = function(x) exp(x)
                         )
                     ),
-                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "quantile"),
@@ -16167,7 +16159,6 @@
                 
                 "rprior:" = list(
                     doc = "A R-function defining the prior",
-                    status = "experimental", 
                     nparameters = 0L,
                     pdf = "rprior"
                 )

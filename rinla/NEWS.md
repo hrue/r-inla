@@ -1,3 +1,6 @@
+# INLA 25.10.19
+* Fixed an issue in `inla.cgeneric.q`
+
 # INLA 25.10.17
 * Fixed a regression in group cv with given groups
 * Added new likelihood 'gammasv' (experimental)
