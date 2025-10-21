@@ -125,6 +125,8 @@ __BEGIN_DECLS
 #include "GMRFLib/moments.h"
 #include "GMRFLib/sn-g.h"
 #include "GMRFLib/my-numa.h"
+#include "GMRFLib/fit-sn.h"
+
 #if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);
