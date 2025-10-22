@@ -439,6 +439,17 @@ void fitsn_test_hess(void)
 
 void fitsn_test(void)
 {
+	/*
+	  library(sn)
+	  x <- c(-2, -1, 0, 1, 2.2)
+	  y <- c(-2.0, -0.5, 0, -0.54, -3.3)
+	  param <- list(xi = 0.687, omega = 1.212, alpha = -1.313)
+	  Z <- 0.8858
+	  plot(x, y)
+	  xx <- seq(-4, 4, by = 0.01)
+	  lines(xx, dsn(xx, log = TRUE, xi = param$xi, omega = param$omega, alpha = param$alpha) + Z)
+	*/	  
+
 	double w[] = { 1, 1, 1, 1, 1 };
 	double x[] = { -2, -1, 0, 1, 2.2 };
 	double y[] = { -2.0, -0.5, 0, -0.54, -3.3 };
