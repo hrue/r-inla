@@ -1,1 +1,1 @@
-../INLAtools/inlaINLAtools.h
+../INLAtools/src/inlaINLAtools.h

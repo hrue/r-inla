@@ -1,1 +1,1 @@
-../INLAtools/cgeneric_generic0.c
+../INLAtools/src/cgeneric_generic0.c

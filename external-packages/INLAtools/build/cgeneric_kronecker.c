@@ -1,1 +1,1 @@
-../INLAtools/cgeneric_kronecker.c
+../INLAtools/src/cgeneric_kronecker.c
