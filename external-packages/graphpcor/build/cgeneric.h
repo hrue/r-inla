@@ -1,1 +1,1 @@
-../../../rinla/inst/include/cgeneric.h
+../graphpcor/src/cgeneric.h
