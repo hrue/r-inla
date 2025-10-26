@@ -1,4 +1,4 @@
-CFLAGS = $(FLAGS) $(INC) -O3 -mtune=generic -fopenmp  -fpic -I.
+CFLAGS = $(FLAGS) $(INC) -O3 -mtune=generic -fopenmp  -fpic -I. -DINLA_EXTERNAL_PACKAGE
 LDFLAGS = $(LIB)
 TARGET = libINLAtools.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))

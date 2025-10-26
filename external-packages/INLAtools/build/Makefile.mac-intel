@@ -1,4 +1,4 @@
-CFLAGS = -framework Accelerate $(INC) -O3 -mtune=generic -fopenmp  -fpic -I.
+CFLAGS = -framework Accelerate $(INC) -O3 -mtune=generic -fopenmp  -fpic -I. -DINLA_EXTERNAL_PACKAGE
 LDFLAGS = -framework Accelerate $(LIB)
 TARGET = libINLAtools.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
