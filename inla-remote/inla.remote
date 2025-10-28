@@ -23,8 +23,14 @@ RemoteHost=inla.kaust.edu.sa
 RemoteUser=$USER
 Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
-COMPRESS="zstd -T0 -z"
-UNCOMPRESS="zstd -T0 -d"
+
+if type -P zstd >/dev/null; then
+    COMPRESS="zstd -T0 -z"
+    UNCOMPRESS="zstd -T0 -d"
+else
+    COMPRESS="gzip"
+    UNCOMPRESS="gunzip"
+fi
 
 if [ -r "$INIFILE" ]; then
     source "$INIFILE"
