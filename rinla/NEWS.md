@@ -1,3 +1,6 @@
+# INLA 25.10.28
+* Added new external-package to be built `INLAtools`
+
 # INLA 25.10.19
 * Fixed an issue in `inla.cgeneric.q`
 

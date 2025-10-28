@@ -11421,7 +11421,6 @@ Valid models in this section are:
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default identity}}
-\item{status = }{\verb{experimental}}
 \item{pdf = }{\verb{fl}}
 }
 }
@@ -12276,7 +12275,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Binomial mixture}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default logit probit}}
@@ -15333,7 +15331,6 @@ Number of hyperparmeters is 2.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{The exponential power likelihoood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity quantile}}
@@ -15561,7 +15558,6 @@ Number of hyperparmeters is 10.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Thinned Poisson}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{TRUE}}
 \item{link = }{\verb{default log}}
@@ -15796,7 +15792,6 @@ Number of hyperparmeters is 1.
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity}}
 \item{pdf = }{\verb{iidgamma}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -15843,7 +15838,6 @@ Number of hyperparmeters is 2.
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default logit loga}}
 \item{pdf = }{\verb{iidlogitbeta}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -15890,7 +15884,6 @@ Number of hyperparmeters is 2.
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default identity}}
 \item{pdf = }{\verb{loggammafrailty}}
-\item{status = }{\verb{experimental}}
 }
 }
 }
@@ -18790,7 +18783,6 @@ Number of hyperparmeters is 1.
 \item{Properties:}{
 \describe{
 \item{doc = }{\verb{Exteneded Generalized Pareto likelihood}}
-\item{status = }{\verb{experimental}}
 \item{survival = }{\verb{FALSE}}
 \item{discrete = }{\verb{FALSE}}
 \item{link = }{\verb{default quantile}}
