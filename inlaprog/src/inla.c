@@ -94,6 +94,7 @@
 #define INTSLOPE_MAXTHETA (50L)
 #define BGEV_MAXTHETA (10L)
 #define POISSON0_MAXTHETA (10L)
+#define POISSON1_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
 #define GGAUSSIAN_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
@@ -2036,6 +2037,20 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case L_0POISSONS:
 			{
 				int nbeta = ds->data_observations.poisson0_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
+			case L_1POISSON:
+			case L_1POISSONS:
+			{
+				int nbeta = ds->data_observations.poisson1_nbeta;
 				for (int k = 0; k < nbeta; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];

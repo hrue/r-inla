@@ -5705,14 +5705,14 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 187: 
+	case 187:
 	{
-		for(double x = 0; x < 1000; x += 0.1) {
+		for (double x = 0; x < 1000; x += 0.1) {
 			printf("x %f erf(x) %f erf(-x) %f\n", x, erf(x), erf(-x));
 		}
 	}
-	break;
-	
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

@@ -580,6 +580,21 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_1POISSON:
+	case L_1POISSONS:
+	{
+		assert(ncol_data_all <= 3 + POISSON1_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.poisson1_nbeta = na - 1;
+		ds->data_observations.poisson1_x = Calloc(na, double *);
+		a[0] = ds->data_observations.poisson1_E = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.poisson1_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	case L_0BINOMIAL:
 	case L_0BINOMIALS:
 	{
@@ -3005,7 +3020,7 @@ int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	if (m > 0) {
 		double ylEmn = normc;
 		if (y > 0) {
-			double l1mp = log(1.0 - prob);
+			double l1mp = LOG_1mp(prob);
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
@@ -3062,7 +3077,7 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *__re
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
-				logll[i] = log(1.0 - prob) + lpois;
+				logll[i] = LOG_1mp(prob) + lpois;
 			}
 		} else {
 			double pois = exp(lpois);
@@ -3076,6 +3091,124 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *__re
 		double *yy = (y_cdf ? y_cdf : &y);
 		double mean = E * lambda;
 		double pois = gsl_cdf_poisson_P((unsigned int) *yy, mean);
+		for (int i = 0; i < -m; i++) {
+			double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+			logll[i] = prob + (1.0 - prob) * pois;
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_1poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			   double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.poisson1_E[idx];
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double prob_intern = 0.0;
+	for (int i = 0; i < ds->data_observations.poisson1_nbeta; i++) {
+		prob_intern += ds->data_observations.poisson1_beta[i][thread_id][0] * ds->data_observations.poisson1_x[i][idx];
+	}
+	double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, prob_intern, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		double ylEmn = normc;
+		if (y > 1) {
+			double l1mp = LOG_1mp(prob);
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+				double mean = E * lambda;
+				logll[i] = l1mp + ylEmn + y * log(lambda) - mean - LOG_1mp(exp(-mean));
+			}
+		} else {
+			// y = 1
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+				double mean = E * lambda;
+				double elambda = exp(-mean);
+				logll[i] = log(prob + (1.0 - prob) * mean * elambda / (1.0 - elambda));
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		assert(*yy >= 1.0);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double mean = E * lambda;
+			double elambda = exp(-mean);
+			logll[i] = prob + (1.0 - prob) * gsl_cdf_poisson_P((unsigned int) *yy, mean) / (1.0 - elambda);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_1poissonS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			    double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.poisson1_E[idx];
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double llambda = 0.0;
+	for (int i = 0; i < ds->data_observations.poisson1_nbeta; i++) {
+		llambda += ds->data_observations.poisson1_beta[i][thread_id][0] * ds->data_observations.poisson1_x[i][idx];
+	}
+	double lambda = ds->data_observations.link_simple_invlinkfunc(thread_id, llambda, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		double mean = E * lambda;
+		double lpois = normc + y * llambda - mean - LOG_1mp(exp(-mean));
+		if (y > 1) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+				logll[i] = LOG_1mp(prob) + lpois;
+			}
+		} else {
+			// y = 1
+			double pois = exp(lpois);
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+				logll[i] = log(prob + (1.0 - prob) * pois);
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		assert(*yy >= 1);
+		double mean = E * lambda;
+		double pois = gsl_cdf_poisson_P((unsigned int) *yy, mean) / (1.0 - exp(-mean));
 		for (int i = 0; i < -m; i++) {
 			double prob = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = prob + (1.0 - prob) * pois;
@@ -3378,7 +3511,7 @@ int loglikelihood_0binomial(int thread_id, int *UNUSED(lcache_idx), double *__re
 
 	if (m > 0) {
 		if (y > 0) {
-			double tmp = log(1.0 - prob) + res.val;
+			double tmp = LOG_1mp(prob) + res.val;
 			if (PREDICTOR_LINK_EQ(link_logit)) {
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
@@ -6938,7 +7071,8 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restric
 				mu = PREDICTOR_INVERSE_LINK(x[i], off);
 				a = mu * phi;
 				b = -mu * phi + phi;
-				// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is
+				// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y
+				// is
 				// close to 1 then 'a' is tiny, do similarly
 				if (DMIN(a, b) < INLA_REAL_SMALL) {
 					llbeta = -log(DMIN(a, b));
@@ -7592,7 +7726,7 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restric
 #pragma omp simd
 				for (int i = 0; i < m; i++) {
 					// logll[i] = log(1.0 - F_lower[i]);
-					logll[i] = LOG_p(1.0 - F_lower[i]);
+					logll[i] = LOG_1mp(F_lower[i]);
 				}
 			}
 		}

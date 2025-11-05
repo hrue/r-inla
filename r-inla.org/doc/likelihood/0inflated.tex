@@ -54,6 +54,13 @@ for covariates $x_1, \ldots, $, where $m$ is maximum 10. An intercept
 in this model have to be defined manually by adding a constant
 covariate vector.
 
+\subsection*{New $1$inflated models for Poisson}
+
+There are two similar models for the Poisson based on  the ``conditioned to be
+positive'' Poisson $f(y | y > 0)$. These ones are named
+\texttt{"1poisson"} and \texttt{"1poissonS"} and are 1-inflated.
+
+
 \subsection*{Specification}
 
 \begin{itemize}
@@ -61,29 +68,45 @@ covariate vector.
 \item \texttt{family="0poissonS"}
 \item \texttt{family="0binomial"}
 \item \texttt{family="0binomialS"}
+\item \texttt{family="1poisson"}
+\item \texttt{family="1poissonS"}
 \item Required arguments: As for the Poisson and Binomial (but how
     these arguments are given, will differ). Optional argument
     \texttt{link.simple}.
 \end{itemize}
 
+\clearpage
 \subsubsection*{Hyperparameter spesification and default values}
 \paragraph{0poisson}
 {\small \input{../hyper/likelihood/0poisson.tex}}
+\clearpage
 \paragraph{0poissonS}
 {\small \input{../hyper/likelihood/0poissonS.tex}}
+\clearpage
 \paragraph{0binomial}
 {\small \input{../hyper/likelihood/0binomial.tex}}
+\clearpage
 \paragraph{0poisson}
 {\small \input{../hyper/likelihood/0binomialS.tex}}
+\clearpage
+\paragraph{1poisson}
+{\small \input{../hyper/likelihood/1poisson.tex}}
+\clearpage
+\paragraph{1poissonS}
+{\small \input{../hyper/likelihood/1poissonS.tex}}
 
 
 \clearpage
-\subsection*{Example: Poisson}
+\subsection*{Example: 0Poisson}
 {\small \verbatiminput{example-0inflated-poisson.R}}
 
 \clearpage
 \subsection*{Example: Binomial}
 {\small \verbatiminput{example-0inflated-binomial.R}}
+
+\clearpage
+\subsection*{Example: 1Poisson}
+{\small \verbatiminput{example-1inflated-poisson.R}}
 
 
 \end{document}
