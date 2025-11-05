@@ -6930,27 +6930,39 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restric
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			a = mu * phi;
-			b = -mu * phi + phi;
-			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is
-			// close to 1 then 'a' is tiny, do similarly
-			if (DMIN(a, b) < INLA_REAL_SMALL) {
-				llbeta = -log(DMIN(a, b));
-			} else {
-				llbeta = MATHLIB_FUN(lbeta) (a, b);
-			}
+		double ly = LOG_p(y);
+		double l1my = LOG_1mp(y);
 
-			if (no_censoring) {
-				// in most cases, we'll be here
-				logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
-			} else {
-				// if we have censoring, we have to be more careful
+		if (no_censoring) {
+			for (i = 0; i < m; i++) {
+				mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				a = mu * phi;
+				b = -mu * phi + phi;
+				// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is
+				// close to 1 then 'a' is tiny, do similarly
+				if (DMIN(a, b) < INLA_REAL_SMALL) {
+					llbeta = -log(DMIN(a, b));
+				} else {
+					llbeta = MATHLIB_FUN(lbeta) (a, b);
+				}
+
+				logll[i] = -llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				a = mu * phi;
+				b = -mu * phi + phi;
+				if (DMIN(a, b) < INLA_REAL_SMALL) {
+					llbeta = -log(DMIN(a, b));
+				} else {
+					llbeta = MATHLIB_FUN(lbeta) (a, b);
+				}
+
 				if (y <= censor_value) {
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 1);
 				} else if (y < 1.0 - censor_value) {
-					logll[i] = -llbeta + (a - 1.0) * log(y) + (b - 1.0) * LOG_1mp(y);
+					logll[i] = -llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 				} else {
 					logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 				}
@@ -6958,13 +6970,18 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *__restric
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
-		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			a = mu * phi;
-			b = -mu * phi + phi;
-			if (no_censoring) {
+		if (no_censoring) {
+			for (i = 0; i < -m; i++) {
+				mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				a = mu * phi;
+				b = -mu * phi + phi;
 				logll[i] = MATHLIB_FUN(pbeta) (yy, a, b, 1, 0);
-			} else {
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				mu = PREDICTOR_INVERSE_LINK(x[i], off);
+				a = mu * phi;
+				b = -mu * phi + phi;
 				if (yy <= censor_value) {
 					// use the expected prob instead
 					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 0) / 2.0;
