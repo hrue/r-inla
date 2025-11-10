@@ -2316,7 +2316,7 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
-		int debug = atoi(args[2]);
+		int debug = 0; // atoi(args[2]);
 		double *xx = Calloc(n, double);
 
 		GMRFLib_testit_debug = debug;
@@ -2327,9 +2327,10 @@ int testit(int argc, char **argv)
 
 		GMRFLib_idxval_tp *h = NULL;
 		for (int i = 0, j = 0;; i++) {
-			if (i >= n)
+			if (i >= n) {
 				break;
-			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
+			}
+			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0 / 16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 32));
 			GMRFLib_idxval_add(&h, j, xx[i]);
 		}
 		GMRFLib_idxval_prepare(&h, 1, 1);
@@ -2339,26 +2340,41 @@ int testit(int argc, char **argv)
 		assert(h);
 		P(n);
 		P(h->g_n);
-		P(h->n / h->g_n);
 
-		double sum1 = 0.0, sum2 = 0.0;
-		double tref1 = 0.0, tref2 = 0.0;
+		double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, sum4 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0, tref3 = 0.0, tref4 = 0.0;
 		for (int k = 0; k < ntimes; k++) {
-			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
 			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_group_mkl_opt(h, xx);
+			sum2 = GMRFLib_dot_product_sparse_opt(h, xx);
 			tref2 += GMRFLib_timer();
-			if (ABS(sum1 - sum2) > 1e-8) {
+
+			tref3 -= GMRFLib_timer();
+			sum3 = (h->g_n == 0 ? GMRFLib_dot_product_sparse_mkl(h, xx) : GMRFLib_dot_product_group_mkl_opt(h, xx));
+			tref3 += GMRFLib_timer();
+
+			tref4 -= GMRFLib_timer();
+			sum4 = (h->g_n == 0? GMRFLib_dot_product_sparse_opt(h, xx) : GMRFLib_dot_product_group_prefetch(h, xx));
+			tref4 += GMRFLib_timer();
+
+			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) >  1e-8 || ABS(sum1 - sum4) >  1e-8) {
 				P(sum1);
 				P(sum2);
+				P(sum3);
+				P(sum4);
 				exit(88);
 			}
 		}
-		printf("serial %.3f group %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		printf("mkl %.3f own %.3f mkl.group %.3f own.group %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		       tref1, tref2, tref3, tref4, 
+		       tref1 / (tref1 + tref2 + tref3 + tref4),
+		       tref2 / (tref1 + tref2 + tref3 + tref4), 
+		       tref3 / (tref1 + tref2 + tref3 + tref4), 
+		       tref4 / (tref1 + tref2 + tref3 + tref4));
+		
 		Free(xx);
 		GMRFLib_idxval_free(h);
 	}

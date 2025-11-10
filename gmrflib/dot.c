@@ -117,43 +117,68 @@ double GMRFLib_ddot_opt(int n, double *__restrict x, double *__restrict y)
 
 double GMRFLib_ddot_idx_opt(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	const int roll = 16;				       // Increased unroll factor
+#define ROLL8 8
+#define ROLL16 16
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	double s4 = 0.0, s5 = 0.0, s6 = 0.0, s7 = 0.0;
-
 	int i = 0;
-	for (; i + roll <= n; i += roll) {
-		// Prefetch next cache lines
-		__builtin_prefetch(v + i + roll, 0, 3);
-		__builtin_prefetch(idx + i + roll, 0, 3);
+	if (n < ROLL16) {
+		for (; i + ROLL8 <= n; i += ROLL8) {
+			// Prefetch next cache lines
+			__builtin_prefetch(v + i + ROLL8, 0, 3);
+			__builtin_prefetch(idx + i + ROLL8, 0, 3);
 
-		const double *vv = v + i;
-		const int *iidx = idx + i;
+			const double *vv = v + i;
+			const int *iidx = idx + i;
 
-		s0 += vv[0] * a[iidx[0]];
-		s1 += vv[1] * a[iidx[1]];
-		s2 += vv[2] * a[iidx[2]];
-		s3 += vv[3] * a[iidx[3]];
-		s4 += vv[4] * a[iidx[4]];
-		s5 += vv[5] * a[iidx[5]];
-		s6 += vv[6] * a[iidx[6]];
-		s7 += vv[7] * a[iidx[7]];
+			s0 += vv[0] * a[iidx[0]];
+			s1 += vv[1] * a[iidx[1]];
+			s2 += vv[2] * a[iidx[2]];
+			s3 += vv[3] * a[iidx[3]];
 
-		s0 += vv[8] * a[iidx[8]];
-		s1 += vv[9] * a[iidx[9]];
-		s2 += vv[10] * a[iidx[10]];
-		s3 += vv[11] * a[iidx[11]];
-		s4 += vv[12] * a[iidx[12]];
-		s5 += vv[13] * a[iidx[13]];
-		s6 += vv[14] * a[iidx[14]];
-		s7 += vv[15] * a[iidx[15]];
+			s0 += vv[4] * a[iidx[4]];
+			s1 += vv[5] * a[iidx[5]];
+			s2 += vv[6] * a[iidx[6]];
+			s3 += vv[7] * a[iidx[7]];
+		}
+		for (; i < n; i++) {
+			s0 += v[i] * a[idx[i]];
+		}
+		return s0 + s1 + s2 + s3; 
+	} else {
+		double s4 = 0.0, s5 = 0.0, s6 = 0.0, s7 = 0.0;
+		for (; i + ROLL16 <= n; i += ROLL16) {
+			// Prefetch next cache lines
+			__builtin_prefetch(v + i + ROLL16, 0, 3);
+			__builtin_prefetch(idx + i + ROLL16, 0, 3);
+
+			const double *vv = v + i;
+			const int *iidx = idx + i;
+
+			s0 += vv[0] * a[iidx[0]];
+			s1 += vv[1] * a[iidx[1]];
+			s2 += vv[2] * a[iidx[2]];
+			s3 += vv[3] * a[iidx[3]];
+			s4 += vv[4] * a[iidx[4]];
+			s5 += vv[5] * a[iidx[5]];
+			s6 += vv[6] * a[iidx[6]];
+			s7 += vv[7] * a[iidx[7]];
+
+			s0 += vv[8] * a[iidx[8]];
+			s1 += vv[9] * a[iidx[9]];
+			s2 += vv[10] * a[iidx[10]];
+			s3 += vv[11] * a[iidx[11]];
+			s4 += vv[12] * a[iidx[12]];
+			s5 += vv[13] * a[iidx[13]];
+			s6 += vv[14] * a[iidx[14]];
+			s7 += vv[15] * a[iidx[15]];
+		}
+		for (; i < n; i++) {
+			s0 += v[i] * a[idx[i]];
+		}
+		return s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7;
 	}
-
-	for (; i < n; i++) {
-		s0 += v[i] * a[idx[i]];
-	}
-
-	return s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7;
+#undef ROLL8
+#undef ROLL16
 }
 
 #if defined(__linux__) && defined(__AVX2__)
