@@ -143,7 +143,7 @@ double GMRFLib_ddot_idx_opt(int n, double *__restrict v, double *__restrict a, i
 		for (; i < n; i++) {
 			s0 += v[i] * a[idx[i]];
 		}
-		return s0 + s1 + s2 + s3; 
+		return s0 + s1 + s2 + s3;
 	} else {
 		double s4 = 0.0, s5 = 0.0, s6 = 0.0, s7 = 0.0;
 		for (; i + ROLL16 <= n; i += ROLL16) {

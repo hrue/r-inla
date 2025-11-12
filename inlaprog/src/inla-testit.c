@@ -2316,7 +2316,7 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
-		int debug = 0; // atoi(args[2]);
+		int debug = 0;				       // atoi(args[2]);
 		double *xx = Calloc(n, double);
 
 		GMRFLib_testit_debug = debug;
@@ -2357,10 +2357,10 @@ int testit(int argc, char **argv)
 			tref3 += GMRFLib_timer();
 
 			tref4 -= GMRFLib_timer();
-			sum4 = (h->g_n == 0? GMRFLib_dot_product_sparse_opt(h, xx) : GMRFLib_dot_product_group_prefetch(h, xx));
+			sum4 = (h->g_n == 0 ? GMRFLib_dot_product_sparse_opt(h, xx) : GMRFLib_dot_product_group_prefetch(h, xx));
 			tref4 += GMRFLib_timer();
 
-			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) >  1e-8 || ABS(sum1 - sum4) >  1e-8) {
+			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) > 1e-8 || ABS(sum1 - sum4) > 1e-8) {
 				P(sum1);
 				P(sum2);
 				P(sum3);
@@ -2369,12 +2369,10 @@ int testit(int argc, char **argv)
 			}
 		}
 		printf("mkl %.3f own %.3f mkl.group %.3f own.group %.3f (%.3f, %.3f, %.3f, %.3f)\n",
-		       tref1, tref2, tref3, tref4, 
+		       tref1, tref2, tref3, tref4,
 		       tref1 / (tref1 + tref2 + tref3 + tref4),
-		       tref2 / (tref1 + tref2 + tref3 + tref4), 
-		       tref3 / (tref1 + tref2 + tref3 + tref4), 
-		       tref4 / (tref1 + tref2 + tref3 + tref4));
-		
+		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
+
 		Free(xx);
 		GMRFLib_idxval_free(h);
 	}
