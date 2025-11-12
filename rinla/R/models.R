@@ -16158,7 +16158,31 @@
                     experimental = TRUE, 
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "circular", "tan", "tan.pi", "identity"),
+                    link = c("default", "circular", "tan", "identity"),
+                    pdf = "vm"
+                ),
+
+                nvm = list(
+                    doc = "Normal approx of the von Mises circular distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 109201,
+                            name = "precision",
+                            short.name = "prec",
+                            output.name.intern = "prec_intern for nvm", 
+                            output.name = "precision parameter for nvm", 
+                            initial = 2,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x), 
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "circular", "tan", "identity"),
                     pdf = "vm"
                 ),
 

@@ -155,11 +155,18 @@ int R_load_INLA = 0;
 #define PREDICTOR_SIMPLE_LINK_EQ(_fun) (ds->data_observations.link_simple_invlinkfunc ==  (_fun))
 #define PREDICTOR_INVERSE_LINK(xx_, off_)				\
 	ds->predictor_invlinkfunc(thread_id, off_ + _lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK_PLAIN(xx_)				\
+	ds->predictor_invlinkfunc(thread_id, xx_, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_LINK_NO_SCALE(xx_, off_)			\
 	ds->predictor_invlinkfunc(thread_id, off_ + (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+
 #define PREDICTOR_INVERSE_IDENTITY_LINK(xx_, off_) (off_ + _lp_scale * (xx_))
+#define PREDICTOR_INVERSE_IDENTITY_LINK_PLAIN(xx_) (xx_)
+
 #define PREDICTOR_LINK(xx_, off_)					\
-	((ds->predictor_invlinkfunc(thread_id, (xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) - (off_)) / _lp_scale)
+	((ds->predictor_invlinkfunc(thread_id, xx_, MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) - (off_)) / _lp_scale)
+#define PREDICTOR_LINK_PLAIN(xx_)					\
+	(ds->predictor_invlinkfunc(thread_id, xx_, MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates))
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_, off_)		\
 	log(ABS(_lp_scale * ds->predictor_invlinkfunc(thread_id, off_ + _lp_scale * (xx_), MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
 
@@ -2680,6 +2687,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				break;
 
 			case L_VM:
+			case L_NVM:
 			{
 				if (!ds->data_fixed) {
 					log_precision = theta[count];
@@ -2688,7 +2696,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				}
 			}
 				break;
-
 
 			default:
 				break;

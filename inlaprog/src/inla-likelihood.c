@@ -628,6 +628,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_NVM:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.vm_scale = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -1020,8 +1027,6 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	int numa = GMRFLib_numa_get_node();
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	static double log_prec_limit = -log(INLA_REAL_SMALL);
-
-
 
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;
@@ -8282,18 +8287,48 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 		lc->c = -(1.8378770664093453391 + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
 		lc->lprec = lprec;
 	}
-#define PREDICTOR_INVERSE_LINK_XX(yy_, xx_, off_)			\
-	ds->predictor_invlinkfunc(thread_id, yy_ - (off_ + _lp_scale * (xx_)), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
 	if (m > 0) {
+		double yp = PREDICTOR_LINK_PLAIN(y);
 		for (int i = 0; i < m; i++) {
-			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			logll[i] = lc->c + prec * cos(y - mu);
+			double lp = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+			double z = PREDICTOR_INVERSE_LINK_PLAIN(yp - lp);
+			logll[i] = lc->c + prec * cos(z);
 		}
 	} else {
 		GMRFLib_dfill(-m, 0.0, logll);
 	}
-#undef PREDICTOR_INVERSE_LINK_XX
+	
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		     double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double s = ds->data_observations.vm_scale[idx];
+	double lprec = ds->data_observations.vm_lprec[thread_id][0] + log(s);
+	double prec = map_precision_forward(lprec, NULL, NULL);
+
+	LINK_INIT;
+	if (m > 0) {
+		double yp = PREDICTOR_LINK_PLAIN(y);
+		for (int i = 0; i < m; i++) {
+			double lp = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+			double z = PREDICTOR_INVERSE_LINK_PLAIN(yp - lp);
+			logll[i] = - 0.5 * prec * SQR(z);
+		}
+		double lnormc = LOG_NORMC_GAUSSIAN + 0.5 * lprec - log(2.0 * GMRFLib_cdfnorm(sqrt(1.0/prec) * M_PI) - 1.0);
+		GMRFLib_cdaddto(m, logll, lnormc, logll);
+	} else {
+		GMRFLib_dfill(-m, 0.0, logll);
+	}
 
 	LINK_END;
 	return GMRFLib_SUCCESS;
@@ -8302,7 +8337,7 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
-#define MAXTH 8
+#define MAXTH 16
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
