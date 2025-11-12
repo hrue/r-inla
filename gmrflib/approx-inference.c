@@ -806,6 +806,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					bcoof = 0.0;			\
 				}					\
 			}						\
+			if(0)printf("idx aa bb cc %d %g %g %g\n", idx, acoof, bcoof, ccoof); \
 			aa[idx] = acoof;				\
 			bb[idx] = bcoof;				\
 			cc[idx] = ccoof;				\

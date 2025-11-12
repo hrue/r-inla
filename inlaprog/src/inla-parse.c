@@ -864,6 +864,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "0POISSONS")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0poissonS;
 		ds->data_id = L_0POISSONS;
+	} else if (!strcasecmp(ds->data_likelihood, "1POISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_1poisson;
+		ds->data_id = L_1POISSON;
+	} else if (!strcasecmp(ds->data_likelihood, "1POISSONS")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_1poissonS;
+		ds->data_id = L_1POISSONS;
 	} else if (!strcasecmp(ds->data_likelihood, "0BINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0binomial;
 		ds->data_id = L_0BINOMIAL;
@@ -1171,6 +1177,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "VM")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_vm;
 		ds->data_id = L_VM;
+		discrete_data = 0;
+	} else if (!strcasecmp(ds->data_likelihood, "NVM")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nvm;
+		ds->data_id = L_NVM;
 		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "CLOGLIKE")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cloglike;
@@ -1495,6 +1505,21 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				if (ds->data_observations.poisson0_E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: 0poisson(S) E[%1d] = %g y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.poisson0_E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
+
+	case L_1POISSON:
+	case L_1POISSONS:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.poisson1_E[i] <= 0.0 || ds->data_observations.y[i] < 1.0) {
+					GMRFLib_sprintf(&msg, "%s: 1poisson(S) E[%1d] = %g y[%1d] = %g is void\n", secname, i,
+							ds->data_observations.poisson1_E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -2168,11 +2193,18 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		break;
 
 	case L_VM:
+	case L_NVM:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.vm_scale[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: VM scale[%1d] = %g is void\n", secname, i, ds->data_observations.vm_scale[i]);
+					GMRFLib_sprintf(&msg, "%s: VM/NVM scale[%1d] = %g is void\n", secname, i,
+							ds->data_observations.vm_scale[i]);
+					inla_error_general(msg);
+				}
+				if (ABS(ds->data_observations.y[i]) >= M_PI) {
+					GMRFLib_sprintf(&msg, "%s: VM/NVM y[%1d] = %g is void (|y| must be < Pi) \n", secname, i,
+							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -4912,6 +4944,110 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.poisson0_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
+		break;
+
+	case L_1POISSON:
+	case L_1POISSONS:
+	{
+		for (i = 0; i < POISSON1_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		char *link_simple = iniparser_getstring(ini, inla_string_join(secname, "LINK.SIMPLE"), NULL);
+		ds->data_observations.link_simple_name = link_simple;
+		if (!strcasecmp(link_simple, "IDENTITY")) {
+			ds->data_observations.link_simple_invlinkfunc = link_identity;
+		} else if (!strcasecmp(link_simple, "LOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_log;
+		} else if (!strcasecmp(link_simple, "PROBIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_probit;
+		} else if (!strcasecmp(link_simple, "CLOGLOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_cloglog;
+		} else if (!strcasecmp(link_simple, "LOGIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_logit;
+		} else {
+			GMRFLib_sprintf(&msg, "%s: 1poisson(S) likelihood: no valid link.simple[%s]", secname, link_simple);
+			inla_error_general(msg);
+			exit(1);
+		}
+		if (mb->verbose) {
+			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
+		}
+
+		const char *suff = Strdup((ds->data_id == L_1POISSON ? "" : "S"));
+		ds->data_nfixed = Calloc(POISSON1_MAXTHETA + 1, int);
+		ds->data_nprior = Calloc(POISSON1_MAXTHETA, Prior_tp);
+		ds->data_observations.poisson1_beta = Calloc(POISSON1_MAXTHETA, double **);
+
+		for (i = 0; i < ds->data_observations.poisson1_nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->mode_use_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+				if (mb->mode_fixed)
+					ds->data_nfixed[i] = 1;
+			}
+
+			HYPER_NEW(ds->data_observations.poisson1_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.poisson1_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for 1poisson%1s observations", i + 1, suff);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = Strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = Strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.poisson1_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
 				mb->theta_map[mb->ntheta] = map_identity;
@@ -8596,6 +8732,50 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for von von Mises observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for von Mises observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.vm_lprec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+		break;
+
+	case L_NVM:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->mode_use_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+			if (mb->mode_fixed)
+				ds->data_fixed = 1;
+		}
+		HYPER_NEW(ds->data_observations.vm_lprec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.vm_lprec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for Normal approx of von Mises observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for Normal approx of von Mises observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 

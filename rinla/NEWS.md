@@ -1,3 +1,9 @@
+# INLA 25.11.10
+* Redefinition of circular likelihood 'vm', added 'nvm'
+* Added new likelihoods '1poisson' and '1poissonS'
+* Some changes in dynamic library loading order for binaries
+* Some code optimisation
+
 # INLA 25.10.28
 * Added new external-package to be built `INLAtools`
 

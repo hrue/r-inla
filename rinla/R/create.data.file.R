@@ -96,7 +96,8 @@
                                 "obeta", 
                                 "tweedie",
                                 "fmri",
-                                "vm"))) {
+                                "vm",
+                                "nvm"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -627,7 +628,7 @@
             my.stop(paste0("family:", family, ". NA's in argument 'OFFSET', are not allowed"))
         }
 
-    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS"))) {
+    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS", "1poisson", "1poissonS"))) {
 
         response <- cbind(ind, y.orig)
         na.dat <- is.na(response[, 2L])

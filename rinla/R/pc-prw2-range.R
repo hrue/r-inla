@@ -28,7 +28,6 @@
 #'  
 #' @name pc.prw2.range
 #' @rdname prw2.range
-NULL
 
 prw2.d <- function(rho) {
     lrho <- log1p(rho-1)
@@ -119,14 +118,12 @@ prw2.rF <- function(param) {
     return (list(r = r, F = F))
 }
 
-#' @rdname inla.prw2.prange
 #' @export
 inla.prw2.prange <- function(q, param) {
     param <- prw2.calibrate.lambda(param)
     return(prw2.F(q, param[4], param[3]))
 }
 
-#' @rdname inla.prw2.drange
 #' @export
 inla.prw2.drange <- function(r, param) {
     param <- prw2.calibrate.lambda(param)
@@ -136,7 +133,6 @@ inla.prw2.drange <- function(r, param) {
     return (dd)
 }
 
-#' @rdname inla.prw2.qrange
 #' @export
 inla.prw2.qrange <- function(p, param) {
     d <- prw2.rF(param)
@@ -144,7 +140,6 @@ inla.prw2.qrange <- function(p, param) {
     return (exp(fun(log(p))))
 }
 
-#' @rdname inla.prw2.rrange
 #' @export
 inla.prw2.rrange <- function(n, param) {
     return (inla.prw2.qrange(runif(n), param))

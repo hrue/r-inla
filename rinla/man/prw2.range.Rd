@@ -2,11 +2,15 @@
 % Please edit documentation in R/pc-prw2-range.R
 \name{pc.prw2.range}
 \alias{pc.prw2.range}
+\alias{prw2.d}
 \alias{inla.pc.prw2.drange}
 \alias{inla.pc.prw2.rrange}
 \alias{inla.pc.prw2.qrange}
 \alias{inla.pc.prw2.prange}
 \title{Utility functions for the PC prior for range in PRW2}
+\usage{
+prw2.d(rho)
+}
 \arguments{
 \item{n}{Number of observations}
 

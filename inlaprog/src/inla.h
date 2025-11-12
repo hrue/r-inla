@@ -244,6 +244,9 @@ typedef enum {
 	L_VM,
 	L_C_LOGLIKE,
 	L_GAMMASV,
+	L_1POISSON,
+	L_1POISSONS,
+	L_NVM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -826,6 +829,11 @@ typedef struct {
 	double ***poisson0_beta;
 	double **poisson0_x;
 	double *poisson0_E;
+
+	int poisson1_nbeta;
+	double ***poisson1_beta;
+	double **poisson1_x;
+	double *poisson1_E;
 
 	int binomial0_nbeta;
 	double ***binomial0_beta;
@@ -2280,6 +2288,8 @@ int loglikelihood_0binomial(int thread_id, int *lcache_idx, double *logll, doubl
 int loglikelihood_0binomialS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_1poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_1poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_agaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_agaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_bcgaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2384,6 +2394,7 @@ int loglikelihood_tpoisson(int thread_id, int *lcache_idx, double *logll, double
 			   void *arg);
 int loglikelihood_tstrata(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_vm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_nvm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tweedie(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

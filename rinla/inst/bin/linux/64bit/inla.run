@@ -24,13 +24,12 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
     fi
 done
 
-if [ -n "${INLA_NATIVE_LD_LIBRARY_PATH}" ]; then
-    ## so we can revert back to old behaviour
-    export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
+if [ -n "${INLA_ALTERNATIVE_LD_LIBRARY_PATH}" ]; then
+    ## load system first
+    export LD_LIBRARY_PATH="$DIR/first:$DR:$D:$DIR:$LD_LIBRARY_PATH"
 else
-    ## this is the new default, is that we use the libs used when we
-    ## build. Try to use libR from system by default
-    export LD_LIBRARY_PATH="$DIR/first:$DR:$DIR:$D:$LD_LIBRARY_PATH"
+    ## load local first
+    export LD_LIBRARY_PATH="$DIR/first:$DIR:$DR:$D:$LD_LIBRARY_PATH"
 fi
 
 export PARDISOLICMESSAGE=1
