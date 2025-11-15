@@ -1,5 +1,3 @@
-#include "GMRFLib/GMRFLib.h"
-
 #include <stddef.h>
 
 #pragma GCC diagnostic push
