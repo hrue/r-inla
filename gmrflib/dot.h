@@ -40,8 +40,8 @@ double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx);
 
 #if defined(INLA_WITH_ARMPL)
 #include "armpl_sparse.h"
-double GMRFLib_dot_product_sparse_armpl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 #endif
+double GMRFLib_dot_product_sparse_armpl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 
 __END_DECLS
 #endif

@@ -51,7 +51,7 @@ double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp *__restrict ELM_, do
 
 		if (__builtin_expect(len_ > 0, 1)) {
 			double *__restrict const aa_ = &(ARR_[0]);
-			if (__builtin_expect(ELM_->g_1[g_], 0)) {
+			if (__builtin_expect(ELM_->g_1[g_], 1)) {
 				value_ += GMRFLib_dsum_idx_opt(len_, aa_, ii_);
 			} else {
 				value_ += GMRFLib_ddot_idx_opt(len_, vv_, aa_, ii_);
@@ -59,7 +59,7 @@ double GMRFLib_dot_product_group_prefetch(GMRFLib_idxval_tp *__restrict ELM_, do
 		} else if (__builtin_expect(len_ < 0, 0)) {
 			const int llen_ = -len_;
 			double *__restrict const aa_ = &(ARR_[ii_[0]]);
-			if (__builtin_expect(ELM_->g_1[g_], 0)) {
+			if (__builtin_expect(ELM_->g_1[g_], 1)) {
 				value_ += GMRFLib_dsum(llen_, aa_);
 			} else {
 				value_ += GMRFLib_ddot_opt(llen_, vv_, aa_);
@@ -181,49 +181,6 @@ double GMRFLib_ddot_idx_opt(int n, double *__restrict v, double *__restrict a, i
 #undef ROLL16
 }
 
-#if defined(__linux__) && defined(__AVX2__)
-// AVX2 optimized version for very large arrays. Need to time this properly!!!
-double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	if (n <= GMRFLib_DOT_GROUP_NLIM) {
-		return GMRFLib_ddot_idx_opt(n, v, a, idx);
-	}
-
-	__m256d sum = _mm256_setzero_pd();
-	int i = 0;
-
-	// Process 4 elements at a time with AVX2
-	for (; i + 4 <= n; i += 4) {
-		__m256d vals = _mm256_loadu_pd(&v[i]);
-
-		// Gather indexed values (this is the tricky part with indexed access)
-		__m256d gathered;
-		double temp[4] = { a[idx[i]], a[idx[i + 1]], a[idx[i + 2]], a[idx[i + 3]] };
-		gathered = _mm256_loadu_pd(temp);
-
-		__m256d prod = _mm256_mul_pd(vals, gathered);
-		sum = _mm256_add_pd(sum, prod);
-	}
-
-	// Horizontal sum of the 4 lanes
-	double result[4];
-	_mm256_storeu_pd(result, sum);
-	double total = result[0] + result[1] + result[2] + result[3];
-
-	// Handle remaining elements
-	for (; i < n; i++) {
-		total += v[i] * a[idx[i]];
-	}
-
-	return total;
-}
-#else
-double GMRFLib_ddot_idx_avx2(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	return GMRFLib_ddot_idx_opt(n, v, a, idx);
-}
-#endif
-
 
 // Template-like macro for generating optimized versions
 #define DEFINE_OPTIMIZED_GROUP_FUNC(SUFFIX, DOT_FUNC) \
@@ -294,12 +251,14 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 #endif
 }
 
-#if defined(INLA_WITH_ARMPL)
 double GMRFLib_dot_product_sparse_armpl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
+#if defined(INLA_WITH_ARMPL)
 	double res = 0.0;
 	armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec, ARR_, &res);
 	assert(info == ARMPL_STATUS_SUCCESS);
 	return (res);
-}
+#else
+	return (GMRFLib_dot_product_sparse_mkl(ELM_, ARR_));
 #endif
+}
