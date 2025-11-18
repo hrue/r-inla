@@ -251,11 +251,6 @@
              #' @param jp An object of class `inla.jp` defining a joint prior
              jp = NULL,
 
-             #' @param dot.product.gain Output the gain in
-             #' optimizing dot-products? (Default `FALSE`).
-             #' This options needs developer version,  otherwise its disabled.
-             dot.product.gain = FALSE,
-
              #' @param globalconstr Add a global constraint (see `?f` and argument
              #' `extraconstr`). Note that a global constraint does NOT
              #' correct the normalisation constant.
@@ -268,7 +263,6 @@
    
              #' @param opt.num.threads Reduce the number of threads adaptively if needed at
              #' critical places to optimize wall-clock time
-             #' (EXPERIMENTAL OPTION)
              opt.num.threads = TRUE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)

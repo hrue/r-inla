@@ -1400,9 +1400,55 @@ int GMRFLib_isum(int n, int *ix)
 	return s0 + s1 + s2 + s3;
 }
 
+double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
+{
+	if (__builtin_expect(n <= 8, 0)) {
+		// Small arrays - manual unroll
+		aligned_double(r) = 0.0;
+		switch (n) {
+		case 8:
+			r += x[7] * y[7];
+			__attribute__((fallthrough));
+		case 7:
+			r += x[6] * y[6];
+			__attribute__((fallthrough));
+		case 6:
+			r += x[5] * y[5];
+			__attribute__((fallthrough));
+		case 5:
+			r += x[4] * y[4];
+			__attribute__((fallthrough));
+		case 4:
+			r += x[3] * y[3];
+			__attribute__((fallthrough));
+		case 3:
+			r += x[2] * y[2];
+			__attribute__((fallthrough));
+		case 2:
+			r += x[1] * y[1];
+			__attribute__((fallthrough));
+		case 1:
+			r += x[0] * y[0];
+		}
+		return r;
+	} else if (__builtin_expect(n <= 16, 0)) {
+		// Medium arrays - OpenMP SIMD
+		aligned_double(r) = 0.0;
+#pragma omp simd reduction(+: r)
+		for (int i = 0; i < n; i++) {
+			r += x[i] * y[i];
+		}
+		return r;
+	} else {
+		// Large arrays - use BLAS
+		int one = 1;
+		return ddot_(&n, x, &one, y, &one);
+	}
+}
+
 double GMRFLib_dsum(int n, double *x)
 {
-	const int roll = 4L;
+	const int roll = 8L;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
@@ -1413,6 +1459,11 @@ double GMRFLib_dsum(int n, double *x)
 		s1 += x[i + 1];
 		s2 += x[i + 2];
 		s3 += x[i + 3];
+
+		s0 += x[i + 4];
+		s1 += x[i + 5];
+		s2 += x[i + 6];
+		s3 += x[i + 7];
 	}
 	for (int i = m; i < n; i++) {
 		s0 += x[i];
@@ -1420,12 +1471,7 @@ double GMRFLib_dsum(int n, double *x)
 	return s0 + s1 + s2 + s3;
 }
 
-double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
-{
-	return GMRFLib_dsum_idx_opt(n, a, idx);
-}
-
-double GMRFLib_dsum_idx_opt(int n, double *__restrict a, int *__restrict idx)
+double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
 	if (__builtin_expect(n <= 0, 0))
 		return 0.0;

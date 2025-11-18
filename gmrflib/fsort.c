@@ -13,7 +13,7 @@
 void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *))
 {
 #if 0
-	void *a = (void *) malloc(nmemb * size);
+	void *a =(void *) malloc(nmemb * size);
 	void *aa = (void *) malloc(nmemb * size);
 
 	Memcpy(a, array, nmemb * size);
@@ -25,7 +25,7 @@ void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void 
 	tq = -GMRFLib_timer();
 	quadsort(a, nmemb, size, cmp);
 	tq += GMRFLib_timer();
-		
+
 	tf = -GMRFLib_timer();
 	fluxsort(aa, nmemb, size, cmp);
 	tf += GMRFLib_timer();
@@ -37,7 +37,7 @@ void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void 
 	Free(a);
 	Free(aa);
 #endif
-		
+
 	// quadsort(array, nmemb, size, cmp);
 	fluxsort(array, nmemb, size, cmp);
 }

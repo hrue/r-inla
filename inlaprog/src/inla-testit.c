@@ -2314,6 +2314,9 @@ int testit(int argc, char **argv)
 
 	case 83:
 	{
+		FIXME("THIS TEST NEEDS REWRITE AFTER THE dot.c CLEANUP");
+		exit(1);
+
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		int debug = 0;				       // atoi(args[2]);
@@ -2345,19 +2348,19 @@ int testit(int argc, char **argv)
 		double tref1 = 0.0, tref2 = 0.0, tref3 = 0.0, tref4 = 0.0;
 		for (int k = 0; k < ntimes; k++) {
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
+			sum1 = GMRFLib_sparse_ddot_(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_sparse_opt(h, xx);
+			sum2 = GMRFLib_sparse_ddot_(h, xx);
 			tref2 += GMRFLib_timer();
 
 			tref3 -= GMRFLib_timer();
-			sum3 = (h->g_n == 0 ? GMRFLib_dot_product_sparse_mkl(h, xx) : GMRFLib_dot_product_group_mkl_opt(h, xx));
+			sum3 = (h->g_n == 0 ? GMRFLib_sparse_ddot_(h, xx) : GMRFLib_sparse_ddot_group_(h, xx));
 			tref3 += GMRFLib_timer();
 
 			tref4 -= GMRFLib_timer();
-			sum4 = (h->g_n == 0 ? GMRFLib_dot_product_sparse_opt(h, xx) : GMRFLib_dot_product_group_prefetch(h, xx));
+			sum4 = (h->g_n == 0 ? GMRFLib_sparse_ddot_(h, xx) : GMRFLib_sparse_ddot_group_(h, xx));
 			tref4 += GMRFLib_timer();
 
 			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) > 1e-8 || ABS(sum1 - sum4) > 1e-8) {
@@ -2407,7 +2410,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_sparse_ddot(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2508,7 +2511,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_sparse_mkl(h, xx);
+			sum1 = GMRFLib_sparse_ddot_(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
@@ -2562,6 +2565,9 @@ int testit(int argc, char **argv)
 
 	case 89:
 	{
+		FIXME("THIS TEST NEEDS REWRITE AFTER THE dot.c CLEANUP");
+		exit(1);
+
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		P(n);
@@ -2586,19 +2592,19 @@ int testit(int argc, char **argv)
 
 			sum1 = sum2 = sum3 = sum4 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_sparse_ddot(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_ddot_idx_opt(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_sparse_ddot(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_timer();
 
 			tref3 -= GMRFLib_timer();
-			sum3 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum3 = GMRFLib_sparse_ddot(h->n, h->val, xx, h->idx);
 			tref3 += GMRFLib_timer();
 
 			tref4 -= GMRFLib_timer();
-			sum4 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum4 = GMRFLib_sparse_ddot(h->n, h->val, xx, h->idx);
 			tref4 += GMRFLib_timer();
 
 			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) > 1e-8 || ABS(sum1 - sum4) > 1e-8) {
@@ -2891,6 +2897,9 @@ int testit(int argc, char **argv)
 
 	case 98:
 	{
+		FIXME("THIS TEST NEEDS REWRITE AFTER THE dot.c CLEANUP");
+		exit(1);
+
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -2934,11 +2943,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-			sum1 = GMRFLib_dot_product_opt(h, xx);
+			sum1 = GMRFLib_sparse_ddot_(h, xx);
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			sum2 = GMRFLib_dot_product_opt(hh, xx);
+			sum2 = GMRFLib_sparse_ddot_(hh, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -4305,7 +4314,7 @@ int testit(int argc, char **argv)
 			ssum += sum / n;
 
 			tref[3] -= GMRFLib_timer();
-			sum = GMRFLib_ddot_opt(n, x + 1, y);
+			sum = GMRFLib_ddot(n, x + 1, y);
 			tref[3] += GMRFLib_timer();
 			ssum -= sum / n;
 		}
@@ -5654,7 +5663,7 @@ int testit(int argc, char **argv)
 
 			double sum1 = 0.0;
 			tref[1] -= GMRFLib_timer();
-			sum1 = GMRFLib_ddot_opt(n, x, y);
+			sum1 = GMRFLib_ddot(n, x, y);
 			tref[1] += GMRFLib_timer();
 
 			double sum2 = 0.0;

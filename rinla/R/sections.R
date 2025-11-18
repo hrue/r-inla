@@ -1850,7 +1850,6 @@ inla.parse.Bmatrix.test <- function() {
         args$disable.gaussian.check <- FALSE
     }
     inla.write.boolean.field("disable.gaussian.check", args$disable.gaussian.check, file)
-    inla.write.boolean.field("dot.product.gain", args$dot.product.gain, file)
     inla.write.boolean.field("opt.solve", args$opt.solve, file)
     inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
 

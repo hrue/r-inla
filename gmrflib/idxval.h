@@ -21,9 +21,10 @@ __BEGIN_DECLS
 #if defined(INLA_WITH_ARMPL)
 #include "armpl_sparse.h"
 #endif
+#define GMRFLib_DOT_GROUP_NLIM 16
+
 //
-//
-    typedef struct {
+typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -56,14 +57,8 @@ typedef struct {
 typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
-	IDXVAL_SERIAL_OPT,
-	IDXVAL_SERIAL_MKL,
-	IDXVAL_SERIAL_MKL_ALT,
 	IDXVAL_SERIAL_ARMPL,
-	IDXVAL_GROUP,
-	IDXVAL_GROUP_OPT,
-	IDXVAL_GROUP_MKL,
-	IDXVAL_GROUP_MKL_ALT
+	IDXVAL_GROUP
 } GMRFLib_idxval_preference_tp;
 
 typedef double GMRFLib_dot_product_tp(void *, void *);
@@ -87,8 +82,6 @@ typedef struct {
 #endif
 	GMRFLib_idxval_preference_tp preference;
 	GMRFLib_dot_product_tp *dot_product_func;
-
-	double cpu_gain;
 } GMRFLib_idxval_tp;
 
 typedef struct {
