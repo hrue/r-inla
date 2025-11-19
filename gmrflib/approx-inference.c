@@ -1191,6 +1191,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	} else {
 		tdesign = ai_par->int_design;
 	}
+
+	int disable_early_stop = ((ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+				   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) ? 1 : 0);
+
 	dens_max = tdesign->nexperiments;
 	weights = Calloc(dens_max, double);
 	izs = Calloc(dens_max, double *);
@@ -2090,7 +2094,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		// we can stop early some calculations as they will be pruned later in any case
 		double dif = exp(DMIN(0.0, log_dens_orig - log_dens_mode));
-		if (dif / (1.0 + dif) < 1.0 - DMAX(GMRFLib_weight_prob_one, GMRFLib_weight_prob)) {
+		if (!disable_early_stop && (dif / (1.0 + dif) < 1.0 - DMAX(GMRFLib_weight_prob_one, GMRFLib_weight_prob))) {
 			early_stop[dens_count] = 1;
 		}
 
