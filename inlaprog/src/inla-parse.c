@@ -19836,12 +19836,8 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tdisable.gaussian.check=[%1d]\n", mb->expert_disable_gaussian_check);
 	}
 
-	int dot_product_gain = iniparser_getboolean(ini, inla_string_join(secname, "DOT.PRODUCT.GAIN"), 0);
-	// >=0 will measure, <0 will not (default off)
-	GMRFLib_dot_product_gain = (dot_product_gain ? 0.0 : -1.0);
-	if (mb->verbose) {
-		printf("\t\t\tMeasure dot.product.gain=[%s]\n", (dot_product_gain ? "Yes" : "No"));
-	}
+	// no longer used. remove at a later point
+	iniparser_getboolean(ini, inla_string_join(secname, "DOT.PRODUCT.GAIN"), 0);
 
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 0);

@@ -601,21 +601,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	assert(info == ARMPL_STATUS_SUCCESS);
 	h->spvec_in_use = 1;
 	h->preference = IDXVAL_SERIAL_ARMPL;
-	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_armpl;
-	h->cpu_gain = 0.0;
+	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 	return GMRFLib_SUCCESS;
 #endif
-
-	// do not build grups for 'small n'. this limit is defined in dot.h
-	if (h->n <= GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
-#if defined(INLA_WITH_MKL)
-		h->preference = IDXVAL_SERIAL_MKL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_mkl;
-#else
-		h->preference = IDXVAL_SERIAL_OPT;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_opt;
-#endif
-		h->cpu_gain = 0.0;
+	if (h->n < GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
+		h->preference = IDXVAL_SERIAL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 		return GMRFLib_SUCCESS;
 	}
 	// an upper bound for the number of groups for memory allocation
@@ -852,22 +843,21 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_mem[1] = (void *) new_val;
 	Free(g_istart);
 
-#if defined(INLA_WITH_MKL)
 	int ntimes = 1;
 	double treff[2] = { 0.0, 0.0 };
 	double value[2] = { 0.0, 0.0 };
 
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
-			GMRFLib_dot_product_sparse_mkl(h, x);
-			GMRFLib_dot_product_group_mkl_opt(h, x);
+			GMRFLib_sparse_ddot_(h, x);
+			GMRFLib_sparse_ddot_group_(h, x);
 		} else {
 			treff[0] -= GMRFLib_timer();
-			value[0] = GMRFLib_dot_product_sparse_mkl(h, x);
+			value[0] = GMRFLib_sparse_ddot_(h, x);
 			treff[0] += GMRFLib_timer();
 
 			treff[1] -= GMRFLib_timer();
-			value[1] = GMRFLib_dot_product_group_mkl_opt(h, x);
+			value[1] = GMRFLib_sparse_ddot_group_(h, x);
 			treff[1] += GMRFLib_timer();
 		}
 	}
@@ -911,26 +901,24 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (debug) {
 		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1]);
-		printf("n= %1d chose kmin=%1d [serial.mkl= %.3f group.mkl.opt= %.3f]\n", h->n, kmin, treff[0] * s, treff[1] * s);
+		printf("n= %1d chose kmin=%1d [serial= %.3f group= %.3f]\n", h->n, kmin, treff[0] * s, treff[1] * s);
 	}
 
 	switch (kmin) {
 	case 0:
-		h->preference = IDXVAL_SERIAL_MKL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_mkl;
+		h->preference = IDXVAL_SERIAL;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 		break;
 	case 1:
-		h->preference = IDXVAL_GROUP_MKL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_mkl_opt;
+		h->preference = IDXVAL_GROUP;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_group_;
 		break;
 	default:
 		assert(0 == 1);
 	}
-	h->cpu_gain = treff[1] - treff[kmin];
-	assert(h->cpu_gain >= 0);
 
 	if (!GMRFLib_testit_mode) {
-		if (h->preference == IDXVAL_SERIAL_MKL) {
+		if (h->preference == IDXVAL_SERIAL) {
 			h->g_n = 0;
 			Free(h->g_idx);
 			Free(h->g_val);
@@ -953,120 +941,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		GMRFLib_dot_product_optim_report[idx][2] += tmin;
 		GMRFLib_dot_product_optim_report[idx][3 + kmin]++;	/* count... */
 	}
-#else							       // if defined(INLA_WITH_MKL)
-
-	int ntimes = 1;
-	double treff[3] = { 0.0, 0.0, 0.0 };
-	double value[3] = { 0.0, 0.0, 0.0 };
-
-	for (int time = -1; time < ntimes; time++) {
-		if (time < 0) {
-			GMRFLib_dot_product_sparse_opt(h, x);
-			GMRFLib_dot_product_group_sparse_opt(h, x);
-			GMRFLib_dot_product_group_prefetch(h, x);
-		} else {
-			treff[0] -= GMRFLib_timer();
-			value[0] = GMRFLib_dot_product_sparse_opt(h, x);
-			treff[0] += GMRFLib_timer();
-
-			treff[1] -= GMRFLib_timer();
-			value[1] = GMRFLib_dot_product_group_sparse_opt(h, x);
-			treff[1] += GMRFLib_timer();
-
-			treff[2] -= GMRFLib_timer();
-			value[2] = GMRFLib_dot_product_group_prefetch(h, x);
-			treff[2] += GMRFLib_timer();
-		}
-	}
-
-	for (k = 0; k < 3; k++) {
-		treff[k] /= (double) ntimes;
-	}
-
-	if (debug || GMRFLib_testit_debug) {
-		for (k = 1; k < 3; k++) {
-			if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
-				P(ABS(value[k] - value[0]));
-				P(k);
-				P(value[0]);
-				P(value[1]);
-
-				printf("n %d\n", h->n);
-				for (i = 0; i < h->n; i++) {
-					printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
-				}
-				printf("ng %d\n", h->g_n);
-				if (0) {
-					for (g = 0; g < h->g_n; g++) {
-						printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-						for (i = 0; i < IABS(h->g_len[g]); i++) {
-							printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
-						}
-					}
-				}
-
-				P(ABS(value[k] - value[0]));
-				P(k);
-				P(value[0]);
-				P(value[1]);
-				assert(0 == 1);
-			}
-		}
-	}
-
-	int kmin = -1;
-	double tmin = GMRFLib_min_value(treff, 3, &kmin);
-
-	if (debug) {
-		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1] + treff[2]);
-		printf("n= %1d chose kmin=%1d [serial.opt= %.3f group= %.3f group.prefetch= %.3f]\n", h->n, kmin, treff[0] * s, treff[1] * s,
-		       treff[2] * s);
-	}
-
-	switch (kmin) {
-	case 0:
-		h->preference = IDXVAL_SERIAL_OPT;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_sparse_opt;
-		break;
-	case 1:
-		h->preference = IDXVAL_GROUP;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_sparse_opt;
-		break;
-	case 2:
-		h->preference = IDXVAL_GROUP_OPT;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_dot_product_group_prefetch;
-		break;
-	default:
-		assert(0 == 1);
-	}
-	h->cpu_gain = treff[0] - treff[kmin];
-	assert(h->cpu_gain >= 0);
-
-	if (!GMRFLib_testit_mode) {
-		if (h->preference == IDXVAL_SERIAL_OPT) {
-			h->g_n = 0;
-			Free(h->g_idx);
-			Free(h->g_val);
-			Free(h->g_len);
-			Free(h->g_1);
-			for (k = 0; k < h->g_n_mem; k++) {
-				Free(h->g_mem[k]);
-			}
-			Free(h->g_mem);
-			h->g_n_mem = 0;
-		}
-	}
-
-	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
-		int idx = 0;
-		GMRFLib_CACHE_SET_IDX(idx);
-		for (k = 0; k < 3; k++) {
-			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
-		}
-		GMRFLib_dot_product_optim_report[idx][3] += tmin;
-		GMRFLib_dot_product_optim_report[idx][4 + kmin]++;	/* count... */
-	}
-#endif							       // if defined(INLA_WITH_MKL)
 
 	return GMRFLib_SUCCESS;
 }
@@ -1313,7 +1187,6 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 		assert(GMRFLib_is_sorted_iinc(idx1->n, idx1->idx));
 		assert(GMRFLib_is_sorted_iinc(idx2->n, idx2->idx));
 	}
-
 	// this is fast check MAX(idx1) < MIN(idx2) or opposite
 	if ((idx1->idx[idx1->n - 1] < idx2->idx[0]) || (idx2->idx[idx2->n - 1] < idx1->idx[0])) {
 		return 0;
@@ -1374,7 +1247,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
