@@ -1,3 +1,7 @@
+# INLA 25.11.20
+* Fixed an issue with user-defined integration points
+* Code cleanup
+
 # INLA 25.11.10
 * Redefinition of circular likelihood 'vm', added 'nvm'
 * Added new likelihoods '1poisson' and '1poissonS'
