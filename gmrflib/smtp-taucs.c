@@ -900,7 +900,10 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	GMRFLib_graph_perm_cache_tp *cache = NULL;
 
 	if (!graph->cache[idx]) {
-		graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
+#pragma omp critical (Name_ace87875b962f2c683434d7f52685d57a3e584ab)
+		if (!graph->cache[idx]) {
+			graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
+		}
 	}
 	cache = graph->cache[idx];
 
@@ -927,6 +930,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		Memcpy((*L)->rowind, cache->rowind, nnz * sizeof(int));
 		Memcpy((*L)->colptr, cache->colptr, (n + 1) * sizeof(int));
 		GMRFLib_pack(nnz, arg->Q->a, cache->vperm2, (*L)->values);
+		Free(md);
 		return GMRFLib_SUCCESS;
 	}
 
