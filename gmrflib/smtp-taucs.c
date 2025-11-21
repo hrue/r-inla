@@ -898,12 +898,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	}
 
 	GMRFLib_graph_perm_cache_tp *cache = NULL;
-
 	if (!graph->cache[idx]) {
-#pragma omp critical (Name_ace87875b962f2c683434d7f52685d57a3e584ab)
-		if (!graph->cache[idx]) {
-			graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
-		}
+		graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
 	}
 	cache = graph->cache[idx];
 
