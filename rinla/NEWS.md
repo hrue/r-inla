@@ -1,3 +1,7 @@
+# INLA 25.11.22
+* Fix memory leak when factorisation fails
+* Code cleanup
+
 # INLA 25.11.20
 * Fixed an issue with user-defined integration points
 * Code cleanup
