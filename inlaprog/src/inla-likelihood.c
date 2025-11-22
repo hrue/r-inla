@@ -2609,7 +2609,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			if ((PREDICTOR_SCALE == 1.0)) {
-				const int mkl_lim = 8L;
+				const int mkl_lim = 4L;
 				if (m >= mkl_lim) {
 					double xx[m];
 					double exp_x[m];
@@ -3270,7 +3270,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 	}
 
 	if (m > 0) {
-		const int mkl_lim = 8L;
+		const int mkl_lim = 4L;
 		double logll0 = 0.0;
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
@@ -5345,7 +5345,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 		}
 		res.val = normc;
 
-		const int mkl_lim = 8L;
+		const int mkl_lim = 4L;
 		int fast = (PREDICTOR_SCALE == 1.0);
 
 		// special code for this case
