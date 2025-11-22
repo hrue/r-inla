@@ -898,7 +898,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	}
 
 	GMRFLib_graph_perm_cache_tp *cache = NULL;
-
 	if (!graph->cache[idx]) {
 		graph->cache[idx] = Calloc(1, GMRFLib_graph_perm_cache_tp);
 	}
@@ -927,6 +926,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		Memcpy((*L)->rowind, cache->rowind, nnz * sizeof(int));
 		Memcpy((*L)->colptr, cache->colptr, (n + 1) * sizeof(int));
 		GMRFLib_pack(nnz, arg->Q->a, cache->vperm2, (*L)->values);
+		Free(md);
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1043,6 +1043,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	time_chol += GMRFLib_timer();
 	if (retval) {
+		taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 		return GMRFLib_EPOSDEF;

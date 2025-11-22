@@ -794,11 +794,9 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		for (int knuma = 0; knuma < nnuma; knuma++) {
 			p[knuma] = (inla_llik_data_poisson_tp *) GMRFLib_numa_alloc_onnode(n * sizeof(inla_llik_data_poisson_tp), knuma);
 			for (i = 0; i < n; i++) {
-				for (i = 0; i < n; i++) {
-					p[knuma][i].y = ds->data_observations.y[i];
-					p[knuma][i].E = ds->data_observations.E[i];
-					p[knuma][i].normc = NAN;
-				}
+				p[knuma][i].y = ds->data_observations.y[i];
+				p[knuma][i].E = ds->data_observations.E[i];
+				p[knuma][i].normc = NAN;
 			}
 		}
 		ds->data_observations.data_poisson = p;
