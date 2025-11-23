@@ -34,7 +34,7 @@ zz <- rnorm(n, sd = 0.2)
 E <- runif(n, min = 0.1, max = 100)
 
 beta <- c(1, 1.1, 2.1, 0, -2, 1.2, 2.2, 0)
-eta2 <- 1 + beta[1] + beta[2] * xx + beta[3] * zz + beta[4] * xx * zz
+eta2 <- beta[1] + beta[2] * xx + beta[3] * zz + beta[4] * xx * zz
 eta1 <- beta[5] + beta[6] * x + beta[7] * z + beta[8] * x * z
 prob <- inv.link(eta1)
 lambda <- E*exp(eta2)
