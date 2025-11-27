@@ -314,6 +314,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
+                    missing.values.warning = TRUE, 
                     pdf = "seasonal"
                 ),
 
@@ -651,6 +652,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
+                    missing.values.warning = TRUE, 
                     pdf = "ar1"
                 ),
 
@@ -825,6 +827,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
+                    missing.values.warning = TRUE, 
                     pdf = "ar"
                 ),
 
