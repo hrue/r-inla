@@ -16156,6 +16156,7 @@
                         )
                     ),
                     experimental = TRUE, 
+                    status = "disabled", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "circular", "tan", "identity"),
@@ -16180,10 +16181,35 @@
                         )
                     ),
                     experimental = TRUE, 
+                    status = "disabled", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "circular", "tan", "identity"),
                     pdf = "vm"
+                ),
+
+                lavm = list(
+                    doc = "Link adjusted von Mises circular distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 109301,
+                            name = "precision",
+                            short.name = "prec",
+                            output.name.intern = "prec_intern for lavm", 
+                            output.name = "precision parameter for lavm", 
+                            initial = 2,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x), 
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    experimental = TRUE, 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "circular", "tan", "identity"),
+                    pdf = "lavm"
                 ),
 
                 cloglike = list(

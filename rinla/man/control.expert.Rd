@@ -10,7 +10,6 @@ control.expert(
   cpo.idx = -1,
   disable.gaussian.check = FALSE,
   jp = NULL,
-  dot.product.gain = FALSE,
   globalconstr = list(A = NULL, e = NULL),
   opt.solve = FALSE,
   opt.num.threads = TRUE
@@ -30,10 +29,6 @@ Gaussian likelihood and identity link (default \code{FALSE})}
 
 \item{jp}{An object of class \code{inla.jp} defining a joint prior}
 
-\item{dot.product.gain}{Output the gain in
-optimizing dot-products? (Default \code{FALSE}).
-This options needs developer version,  otherwise its disabled.}
-
 \item{globalconstr}{Add a global constraint (see \code{?f} and argument
 \code{extraconstr}). Note that a global constraint does NOT
 correct the normalisation constant.
@@ -43,8 +38,7 @@ correct the normalisation constant.
 (EXPERIMENTAL OPTION: DO NOT USE)}
 
 \item{opt.num.threads}{Reduce the number of threads adaptively if needed at
-critical places to optimize wall-clock time
-(EXPERIMENTAL OPTION)}
+critical places to optimize wall-clock time}
 
 \item{...}{Named arguments passed on to the main function}
 }

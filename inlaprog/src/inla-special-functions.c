@@ -116,8 +116,8 @@ double inla_lgamma_fast(double x)
 	if (x < 1.0) {
 		val = gsl_sf_lngamma(x);
 	} else {
-		double lx = log(x), l2pi = 1.837877066409345;  // ln 2\pi
-		val = 0.5 * (l2pi - lx) + x * (log(x + 1.0 / (12.0 * x - 0.1 / x)) - 1.0);
+		double lx = log(x); 
+		val = 0.5 * (LOG2PI - lx) + x * (log(x + 1.0 / (12.0 * x - 0.1 / x)) - 1.0);
 	}
 	return (val);
 }

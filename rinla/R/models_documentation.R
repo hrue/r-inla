@@ -19572,6 +19572,7 @@
 #'             \describe{
 #'               \item{doc = }{\verb{von Mises circular distribution}}
 #'               \item{experimental = }{\verb{TRUE}}
+#'               \item{status = }{\verb{disabled}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default circular tan identity}}
@@ -19604,6 +19605,7 @@
 #'             \describe{
 #'               \item{doc = }{\verb{Normal approx of the von Mises circular distribution}}
 #'               \item{experimental = }{\verb{TRUE}}
+#'               \item{status = }{\verb{disabled}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default circular tan identity}}
@@ -19620,6 +19622,38 @@
 #'             \item{short.name = }{\verb{prec}}
 #'             \item{output.name.intern = }{\verb{prec_intern for nvm}}
 #'             \item{output.name = }{\verb{precision parameter for nvm}}
+#'             \item{initial = }{\verb{2}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{loggamma}}
+#'             \item{param = }{\verb{1 0.01}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model 'lavm'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{Link adjusted von Mises circular distribution}}
+#'               \item{experimental = }{\verb{TRUE}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default circular tan identity}}
+#'               \item{pdf = }{\verb{lavm}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{109301}}
+#'             \item{name = }{\verb{precision}}
+#'             \item{short.name = }{\verb{prec}}
+#'             \item{output.name.intern = }{\verb{prec_intern for lavm}}
+#'             \item{output.name = }{\verb{precision parameter for lavm}}
 #'             \item{initial = }{\verb{2}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{loggamma}}

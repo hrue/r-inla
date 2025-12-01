@@ -621,6 +621,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_LAVM:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.vm_scale = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	case L_VM:
 	{
 		idiv = 3;
@@ -1711,7 +1718,7 @@ int loglikelihood_wrapped_cauchy(int thread_id, int *UNUSED(lcache_idx), double 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, rho, rho2, w, ypred;
-	double mlog2pi = -1.8378770664093454836;	       /* -log(2*pi) */
+	double mlog2pi = -LOG2PI;
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -8242,12 +8249,53 @@ int loglikelihood_fmri(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+		     double *UNUSED(y_cdf), void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double s = ds->data_observations.vm_scale[idx];
+	double lprec = ds->data_observations.vm_lprec[thread_id][0] + log(s);
+	double prec = map_precision_forward(lprec, NULL, NULL);
+
+	LINK_INIT;
+
+	if (m > 0) {
+		double yp = PREDICTOR_LINK_PLAIN(y);
+		for (int i = 0; i < m; i++) {
+			double lp = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+			double z = PREDICTOR_INVERSE_LINK_PLAIN(yp - lp);
+			double prec_eta = prec * SQR(1.0 + SQR(lp));
+
+			// original:
+			// double lc = (LOG2PI + log(gsl_sf_bessel_I0_scaled(prec_eta)) + prec_eta) + (prec - prec_eta);
+			// simplified:
+			double lc = LOG2PI + log(gsl_sf_bessel_I0_scaled(prec_eta)) + prec; 
+
+			logll[i] = -lc + prec * cos(z);
+		}
+	} else {
+		GMRFLib_dfill(-m, 0.0, logll);
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
 		     double *UNUSED(y_cdf), void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
 	}
+
+	FIXME("THIS FUNCTION NEEDS A REWRITE");
+	assert(0 == 1);
+	
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double s = ds->data_observations.vm_scale[idx];
@@ -8282,7 +8330,7 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 
 	lcache_t *lc = llcache[cache_idx_numa];
 	if (lc->lprec != lprec) {
-		lc->c = -(1.8378770664093453391 + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
+		lc->c = -(LOG2PI + log(gsl_sf_bessel_I0_scaled(prec)) + prec);
 		lc->lprec = lprec;
 	}
 
@@ -8308,6 +8356,9 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 		return GMRFLib_SUCCESS;
 	}
 
+	FIXME("THIS FUNCTION NEEDS A REWRITE");
+	assert(0 == 1);
+	
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double s = ds->data_observations.vm_scale[idx];
