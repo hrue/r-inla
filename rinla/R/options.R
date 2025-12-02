@@ -105,6 +105,8 @@
 #' \item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
 #'
 #' \item{numa}{logical Enable NUMA features (Linux only)}
+#'
+#' \item{disable.values.warning}{logical Disable warning about missing 'values'}
 #'}
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
@@ -147,7 +149,8 @@ NULL
             fmesher.evolution.warn = TRUE,
             fmesher.evolution.verbosity = "default",
             INLAjoint.features = FALSE,
-            numa = FALSE
+            numa = FALSE,
+            disable.values.warning = FALSE
         )
     )
 }
@@ -181,7 +184,8 @@ NULL
                                  "fmesher.evolution.warn",
                                  "fmesher.evolution.verbosity",
                                  "INLAjoint.features",
-                                 "numa"
+                                 "numa",
+                                 "disable.values.warning"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -276,7 +280,8 @@ NULL
                                           "fmesher.evolution.warn",
                                           "fmesher.evolution.verbosity",
                                           "INLAjoint.features",
-                                          "numa"
+                                          "numa", 
+                                          "disable.values.warning"
                                       ), value) {
         envir <- inla.get.inlaEnv()
         option <- match.arg(option, several.ok = FALSE)

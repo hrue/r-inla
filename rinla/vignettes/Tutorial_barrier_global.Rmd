@@ -59,7 +59,8 @@ shape is a crucial factor in this particular case, as considering a
 planar approximation can bias the results when working on a global
 scale. Therefore, this tutorial is developed using a projection onto a
 sphere. We are using the new implementation of the INLA package.
-
+Please find the compiled vignette 
+[here](https://eliaskrainski.github.io/INLAspacetime/articles/web/barrier_global.html).
 
 **Since the compiled vignette is large is size, we do not include it the
 R-INLA package, but you can download the vignette source and

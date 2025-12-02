@@ -1809,6 +1809,20 @@
                 ## just make sure this is all set
                 if (is.null(gp$random.spec[[r]]$values)) {
                     gp$random.spec[[r]]$values <- location[[r]]
+
+                    warn <- inla.model.properties(gp$random.spec[[r]]$model,
+                                                  "latent")$missing.values.warning
+                    if (!is.null(warn) && warn) {
+                        v <- location[[r]]
+                        if (!all(diff(v) == diff(v)[1]) &&
+                            !inla.getOption('disable.values.warning')) {
+                            warning(paste0("*** Model[",  gp$random.spec[[r]]$model,
+                                           "] has irregular locations but argument 'values' is not set.\n",
+                                           "  *** This is often an error: read more in the vignette 'a-note-about-values'\n",
+                                           "  *** You can disable this warning with 'inla.setOption(disable.values.warning=TRUE)'"), 
+                                    immediate. = TRUE)
+                        }
+                    }
                 }
 
                 ## create a location and covariate file

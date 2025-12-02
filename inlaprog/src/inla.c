@@ -2686,6 +2686,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case L_FL:
 				break;
 
+			case L_LAVM:
 			case L_VM:
 			case L_NVM:
 			{

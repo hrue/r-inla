@@ -96,6 +96,7 @@
                                 "obeta", 
                                 "tweedie",
                                 "fmri",
+                                "lavm",
                                 "vm",
                                 "nvm"))) {
         if (is.null(scale)) {

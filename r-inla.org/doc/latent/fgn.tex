@@ -52,16 +52,15 @@ approximation. Currently, only \texttt{order=3} is implemented.
 \subsection*{Example}
 
 \begin{verbatim}
-library(FGN)
+library(longmemo)
 n = 1000
 H = 0.77
-y = SimulateFGN(n, H)
+y = simFGN0(n, H)
 y = y - mean(y)
 r = inla(y ~ -1 + f(idx, model="fgn"), 
          data = data.frame(y, idx=1:n),
          control.family =list(hyper = list(prec = list(initial = 12, fixed=TRUE))))
-print(c(MLE=FitFGN(y, demean=TRUE)$H,
-        Post.mean=r$summary.hyperpar[2,"mean"],
+print(c(Post.mean=r$summary.hyperpar[2,"mean"],
         Post.mode=r$summary.hyperpar[2,"mode"]))
 \end{verbatim}
 
