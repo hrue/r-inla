@@ -397,6 +397,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{missing.values.warning = }{\verb{TRUE}}
 #'               \item{pdf = }{\verb{seasonal}}
 #'              }
 #'            }
@@ -798,6 +799,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{missing.values.warning = }{\verb{TRUE}}
 #'               \item{pdf = }{\verb{ar1}}
 #'              }
 #'            }
@@ -905,6 +907,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
+#'               \item{missing.values.warning = }{\verb{TRUE}}
 #'               \item{pdf = }{\verb{ar}}
 #'              }
 #'            }
