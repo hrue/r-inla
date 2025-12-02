@@ -7,7 +7,6 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #include "spde3.h"
 

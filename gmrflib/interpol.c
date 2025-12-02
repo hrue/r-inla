@@ -7,7 +7,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {

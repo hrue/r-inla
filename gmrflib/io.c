@@ -10,7 +10,6 @@
 #include <sys/types.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find)
 {

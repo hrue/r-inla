@@ -45,7 +45,6 @@
 #include "rmath.h"
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #if !defined(ISNAN)
 #define ISNAN(x) (isnan(x)!=0)
 #endif

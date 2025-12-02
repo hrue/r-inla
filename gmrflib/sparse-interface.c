@@ -7,7 +7,6 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 static int csr_store_use = 1;
 static map_strvp csr_store;

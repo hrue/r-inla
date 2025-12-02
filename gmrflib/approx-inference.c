@@ -11,7 +11,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
 #define GCPO_RUN_BLOCK() ((((GMRFLib_smtp == GMRFLib_SMTP_TAUCS) && (GMRFLib_taucs_get_block_size() == 1))) ? 0 : 1)

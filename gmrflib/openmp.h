@@ -1,5 +1,6 @@
 #ifndef __GMRFLib_OPENMP_H__
 #define __GMRFLib_OPENMP_H__
+#include <assert.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -12,10 +13,20 @@
 #endif
 
 
+// workaround for the moment (gcc-15.2.1)
+
+#if defined(__cplusplus)
+# define my_tmp__ __cplusplus
+# undef __cplusplus
+# include <omp.h> 
+# define __cplusplus my_tmp__
+#else
+# include <omp.h> 
+#endif
+
 __BEGIN_DECLS
-#include <assert.h>
-#include <omp.h>
-    typedef struct {
+
+typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;

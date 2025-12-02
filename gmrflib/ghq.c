@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
 int GMRFLib_ghq__intern(double *x, double *w, int n)

@@ -1,6 +1,10 @@
 #ifndef __GMRFLib_PREOPT_H__
 #define __GMRFLib_PREOPT_H__
 
+#include <time.h>
+#include <math.h>
+#include <stdlib.h>
+
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus

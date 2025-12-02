@@ -6,7 +6,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #pragma omp declare simd
 static double GMRFLib_prod_diff(double a, double b, double c, double d)

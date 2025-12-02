@@ -5,8 +5,6 @@
 #include <stdio.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "pc-priors.h"
 #include "inla.h"
 

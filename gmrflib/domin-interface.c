@@ -10,7 +10,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 static GMRFLib_opt_arg_tp G;				       /* hold arguments */
 static int opt_setup = 0;

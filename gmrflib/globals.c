@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #undef __GMRFLib_DONT_DEFINE_GLOBALS
 
 /*!

@@ -9,8 +9,6 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "designP.h"					       /* define the designs */
 
 int GMRFLib_design_eb(GMRFLib_design_tp **design, int nhyper)

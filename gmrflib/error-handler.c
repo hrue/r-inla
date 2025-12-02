@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #ifndef GITCOMMIT
 #define GITCOMMIT "devel"

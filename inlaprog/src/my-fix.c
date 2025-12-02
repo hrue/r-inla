@@ -6,7 +6,6 @@
 #include "my-fix.h"
 #include "iniparser.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int my_is_double(char *str)
 {

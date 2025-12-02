@@ -6,8 +6,6 @@
 
 #include "rmath.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "GMRFLib/density.h"
 #include "quantile-regression.h"
 
