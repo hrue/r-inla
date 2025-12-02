@@ -1,3 +1,8 @@
+# INLA 25.12.02
+* Added warning for irregular locations used in models ar/ar1/seasonal
+* New likelihood 'lavm' (disabled other circular ones)
+* Updated documentation
+
 # INLA 25.11.22
 * Fix memory leak when factorisation fails
 * Code cleanup
