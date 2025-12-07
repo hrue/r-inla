@@ -472,27 +472,22 @@ typedef enum {
 #define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
 #define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_);}
 
-#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_)*sizeof(type_) <= PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 
 #if 1
-
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__); ptr=NULL;}
-#define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
-
 #else
-
 #undef  GMRFLib_TRACE_MEMORY
 #define Calloc(n, type)         (type *)calloc_intern(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
 #define Malloc(n, type)         (type *)malloc_intern(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), type))
 #define Realloc(ptr, n, type)   ((ptr) ? (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : (type *)Calloc(n, type))
 #define Free(ptr)               if (ptr) {free((void *)(ptr)); ptr=NULL;}
-#define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
-
 #endif
 
+#define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
 #define likely(x)   __builtin_expect(!!(x), 1)
