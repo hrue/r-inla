@@ -474,7 +474,7 @@ typedef enum {
 
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 
-#if 0
+#if 1
 
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)

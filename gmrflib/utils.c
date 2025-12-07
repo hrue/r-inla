@@ -226,11 +226,8 @@ void GMRFLib_malloc_debug_check(void)
 
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno)
 {
-	void *ptr = NULL;
-	char *msg = NULL;
-
 	assert(nmemb * size < PTRDIFF_MAX);
-	ptr = calloc(nmemb, size);
+	void *ptr = calloc(nmemb, size);
 
 	if (malloc_debug > 0 && nmemb * size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
@@ -240,6 +237,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	if (ptr) {
 		return ptr;
 	}
+	char *msg =  NULL;
 	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
@@ -249,11 +247,8 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno)
 {
-	void *ptr = NULL;
-	char *msg = NULL;
-
 	assert(size < PTRDIFF_MAX);
-	ptr = malloc(size);
+	void *ptr = malloc(size);
 
 	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
 		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
@@ -263,6 +258,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 		return ptr;
 	}
 
+	char *msg = NULL;
 	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
@@ -272,12 +268,8 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 
 void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno)
 {
-	void *ptr = NULL;
-	char *msg = NULL;
-
 	assert(size < PTRDIFF_MAX);
-	ptr = realloc(old_ptr, size);
-
+	void * ptr = realloc(old_ptr, size);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
@@ -290,6 +282,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	if (ptr) {
 		return ptr;
 	}
+	char *msg = NULL;
 	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
