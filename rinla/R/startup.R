@@ -4,7 +4,6 @@
 ## invisible(utils::globalVariables(c("low", "high", "spde", "internal")))
 ## invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
 
-
 inla.print.version <- function() {
     info <- library(help = INLA)$info[[1]]
     if (!is.null(info)) {
@@ -33,22 +32,26 @@ inla.print.version <- function() {
             }
         }
         
-        s <- inla.prune.check()
-        if (s > 0) {
-            hello <- paste0(
-                hello,
-                "\n",
-                paste0(
-                    " - Save ", s,
-                    "Mb of storage running 'inla.prune()'"
+        if (FALSE) {
+            s <- inla.prune.check()
+            if (s > 0) {
+                hello <- paste0(
+                    hello,
+                    "\n",
+                    paste0(
+                        " - Save ", s,
+                        "Mb of storage running 'inla.prune()'"
+                    )
                 )
-            )
+            }
         }
-
+        
         opts <- options()
         options(timeout = 2)
-        vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
-                              n = 4, encoding = "UTF-8"), silent = TRUE)
+        suppressWarnings({
+            vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
+                                  n = 4, encoding = "UTF-8"), silent = TRUE)
+        })
         if (!inherits(vers, "try-error") && length(vers) == 4) {
             rem.space <- function(x) gsub("[ ]+","", x)
             stable <- rem.space(vers[1])
@@ -71,7 +74,6 @@ inla.print.version <- function() {
             }
         }
         options(opts)
-
         packageStartupMessage(hello)
     }
 }
@@ -81,7 +83,7 @@ inla.print.version <- function() {
 }
 
 .onAttach <- function(...) {
-    inla.print.version()
+    if (interactive()) inla.print.version()
 }
 
 .onUnload <- function(libpath) {
