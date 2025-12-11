@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp *graph)
 {

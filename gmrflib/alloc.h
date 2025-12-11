@@ -1,8 +1,18 @@
 #ifndef __GMRFLib_ALLOC_H__
 #define __GMRFLib_ALLOC_H__
 
-#include <stddef.h>
-#include <stdlib.h>
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+
+#ifdef __cplusplus
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
+#else
+#define __BEGIN_DECLS                                          /* empty */
+#define __END_DECLS                                            /* empty */
+#endif
+
+__BEGIN_DECLS
 
 // disable 32u for the moment
 #if 0 && defined(__linux) && defined(__AVX2__)
@@ -20,4 +30,5 @@ void *malloc_intern(size_t size);
 #define GMRFLib_is_aligned2(p_, pp_) (GMRFLib_MEM_ALIGN_TEST_(p_) && GMRFLib_MEM_ALIGN_TEST_(pp_))
 #define GMRFLib_is_aligned3(p_, pp_, ppp_) (GMRFLib_MEM_ALIGN_TEST_(p_) && GMRFLib_MEM_ALIGN_TEST_(pp_) && GMRFLib_MEM_ALIGN_TEST_(ppp_))
 
+__END_DECLS
 #endif

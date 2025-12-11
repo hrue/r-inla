@@ -13,7 +13,6 @@
 
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 // do not change: also inlaprog/src/libpardiso.c uses this code
 #define NOLIB_ECODE (270465)

@@ -1,8 +1,8 @@
-#include <stdint.h>
 #include <assert.h>
 #include <stddef.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "GMRFLib/GMRFLib.h"
 

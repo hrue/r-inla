@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int GMRFLib_version(FILE *fp)
 {

@@ -7,7 +7,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #define HYPER_NEW_LOCAL(name_, initial_)				\
 	if (1) {							\

@@ -7,7 +7,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #if !defined(WINDOWS)
 #include <unistd.h>

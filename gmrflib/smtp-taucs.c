@@ -9,7 +9,6 @@
 #include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "metis.h"
 
 // this is defined in sparse-interface.h

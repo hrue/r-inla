@@ -117,15 +117,13 @@ a subset of the defined \texttt{values}.
 This is a simple simulated example demonstrating the issue about
 \texttt{values}, having missing observations. 
 ```{r, plot=TRUE, out.width = "70%", fig.align = "center"}
-n <- 20
 year <- 2000:2025
-m <- length(year)
+n <- length(year)
 phi <- 0.9
 phi.intern <- inla.models()$latent$ar1$hyper$theta2$to.theta(phi)
-x <- scale(arima.sim(m, model=list(ar=phi)))
+x <- scale(arima.sim(n, model=list(ar=phi)))
 s <- 0.3
 y <- x + rnorm(n, sd=s)
-
 plot(year, y, pch=19)
 ```
 

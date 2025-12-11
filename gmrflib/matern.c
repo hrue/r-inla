@@ -2,7 +2,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 double GMRFLib_matern2d(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {

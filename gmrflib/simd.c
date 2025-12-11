@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 void GMRFLib_exp(int n, double *x, double *y)
 {

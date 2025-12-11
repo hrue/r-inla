@@ -4,5 +4,4 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "bessel.h"

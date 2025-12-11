@@ -9,7 +9,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 static map_strvp graph_store;
 static int graph_store_use = 1;

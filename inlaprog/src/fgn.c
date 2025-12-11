@@ -5,8 +5,6 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "fgn.h"
 
 int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)

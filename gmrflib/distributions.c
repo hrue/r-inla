@@ -4,7 +4,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 double GMRFLib_stdnormal(void)
 {

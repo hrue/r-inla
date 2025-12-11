@@ -7,7 +7,6 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #include "spde2.h"
 
@@ -150,7 +149,7 @@ double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED
 	double *__restrict d_j = d_storage + 3;
 
 	double theta[nc <= lim2 ? nc : 1];
-	double *theta_ptr = (nc <= lim2) ? theta : malloc(nc * sizeof(double));
+	double *theta_ptr = (nc <= lim2 ? theta : Malloc(nc, double));
 
 	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
 
@@ -209,7 +208,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		dij = stack_arrays + nc;
 	} else {
 		// Use heap for large arrays
-		theta = malloc((nc + dij_size) * sizeof(double));
+		theta = Malloc(nc + dij_size, double);
 		dij = theta + nc;
 	}
 

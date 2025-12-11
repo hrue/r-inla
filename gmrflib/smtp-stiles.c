@@ -9,7 +9,6 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 static GMRFLib_stiles_ctl_tp *ctl = NULL;
 static GMRFLib_stiles_store_tp *store = NULL;

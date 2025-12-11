@@ -5,7 +5,6 @@
 #include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp **optpar)
 {

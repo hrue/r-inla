@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #if 0
 int main(int argc, char **argv)

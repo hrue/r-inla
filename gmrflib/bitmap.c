@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar *image, int nx, int ny)
 {

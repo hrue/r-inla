@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\

@@ -14,7 +14,6 @@
 #include "inla.h"
 #include "my.h"
 #include "my-fix.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
 int my_file_exists(const char *filename)

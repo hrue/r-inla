@@ -14,7 +14,6 @@
 #endif
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 static unsigned long int GMRFLib_rng_seed;
 #pragma omp threadprivate(GMRFLib_rng_seed)
