@@ -1,3 +1,8 @@
+# INLA 24.12.11
+* Improve startup message
+* Added vignette about 'Alocal'
+* Code cleanup
+
 # INLA 25.12.02
 * Added warning for irregular locations used in models ar/ar1/seasonal
 * New likelihood 'lavm' (disabled other circular ones)
