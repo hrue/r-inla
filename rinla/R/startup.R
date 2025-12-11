@@ -83,7 +83,11 @@ inla.print.version <- function() {
 }
 
 .onAttach <- function(...) {
-    if (interactive()) inla.print.version()
+    if (interactive()) {
+        inla.print.version()
+    } else {
+        packageStartupMessage(appendLF=FALSE)
+    }
 }
 
 .onUnload <- function(libpath) {
