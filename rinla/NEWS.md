@@ -1,4 +1,4 @@
-# INLA 24.12.11
+# INLA 24.12.12
 * Improve startup message
 * Added vignette about 'Alocal'
 * Code cleanup
