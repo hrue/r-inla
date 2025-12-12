@@ -1,11 +1,13 @@
 `inla.call.builtin` <- function() {
     ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
     ## manually instead.
-    opt.default <- inla.getOption.default()
     if (exists("inla.options", envir = inla.get.inlaEnv())) {
         opt <- get("inla.options", envir = inla.get.inlaEnv())
-    } 
-
+        if (!is.null(opt$inla.call)) {
+            return (opt$inla.call)
+        }
+    }
+    
     if (inla.os("mac")) {
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.run", sep = ""), package = "INLA")
     } else if (inla.os("mac.arm64")) {
@@ -36,6 +38,15 @@
 }
 
 `inla.fmesher.call.builtin` <- function() {
+    ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
+    ## manually instead.
+    if (exists("inla.options", envir = inla.get.inlaEnv())) {
+        opt <- get("inla.options", envir = inla.get.inlaEnv())
+        if (!is.null(opt$fmesher.call)) {
+            return (opt$fmesher.call)
+        }
+    }
+
     if (inla.os("mac")) {
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""),
                            package = "INLA")
