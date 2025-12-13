@@ -84,14 +84,14 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
 {
-	// special case: ->idx == 1:n
-	return (GMRFLib_ddot(ELM_->n, ELM_->val, ARR_));
+	// special case: ->idx == sequential
+	return (GMRFLib_ddot(ELM_->n, ELM_->val, ARR_ + ELM_->idx[0]));
 }
 
 double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
 {
-	// special case: ->idx == 1:n and all(->val == 1.0)
-	return (GMRFLib_dsum(ELM_->n, ARR_));
+	// special case: ->idx == sequential and all(->val == 1.0)
+	return (GMRFLib_dsum(ELM_->n, ARR_ + ELM->idx[0]));
 }
 
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)

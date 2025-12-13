@@ -599,9 +599,9 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	if (h->n <= GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
 		// check special cases: check if ddot or dsum can be used directly
 
-		int is_sequential = (h->idx[0] == 0);
+		int is_sequential = 1;
 		for (int i = 1; i < h->n && is_sequential; i++) {
-			is_sequential = (h->idx[i] == i);
+			is_sequential = (h->idx[i] == h->idx[i-1] + 1);
 		}
 
 		if (is_sequential) {
