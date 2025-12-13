@@ -16,6 +16,8 @@
 #endif
 
 __BEGIN_DECLS
+
+//
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
 #if defined(INLA_WITH_ARMPL)
@@ -61,7 +63,7 @@ typedef enum {
 	IDXVAL_GROUP
 } GMRFLib_idxval_preference_tp;
 
-typedef double GMRFLib_dot_product_tp(void *, void *);
+typedef double GMRFLib_dot_product_tp(void *__restrict, void *__restrict);
 
 typedef struct {
 	int n;

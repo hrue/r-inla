@@ -595,21 +595,48 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->n = k + 1;
 		}
 	}
-#if defined(INLA_WITH_ARMPL)
-	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
-	assert(info == ARMPL_STATUS_SUCCESS);
-	h->spvec_in_use = 1;
-	h->preference = IDXVAL_SERIAL_ARMPL;
-	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
-	return GMRFLib_SUCCESS;
-#endif
+
 	if (h->n <= GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
-		h->preference = IDXVAL_SERIAL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
-		return GMRFLib_SUCCESS;
+		// check special cases: check if ddot or dsum can be used directly
+
+		int is_sequential = (h->idx[0] == 0);
+		for (int i = 1; i < h->n && is_sequential; i++) {
+			is_sequential = (h->idx[i] == i);
+		}
+
+		if (is_sequential) {
+			int all_one = (h->val[0] == 1.0);
+			for (int i = 1; i < h->n && all_one; i++) {
+				all_one = (h->val[i] == 1.0);
+			}
+
+			if (all_one) {
+				// special case, all_one and sequential, call _dsum directly
+				h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum_;
+			} else {
+				// special case, sequential, call _ddot directly
+				h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_ddot_;
+			}
+			h->preference = IDXVAL_SERIAL;
+			return GMRFLib_SUCCESS;
+		} else {
+#if defined(INLA_WITH_ARMPL)
+			armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
+			assert(info == ARMPL_STATUS_SUCCESS);
+			h->spvec_in_use = 1;
+			h->preference = IDXVAL_SERIAL_ARMPL;
+			h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
+			return GMRFLib_SUCCESS;
+#else
+			h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
+			h->preference = IDXVAL_SERIAL;
+			return GMRFLib_SUCCESS;
+#endif
+		}
 	}
+
 	// an upper bound for the number of groups for memory allocation
-	int ng = 1;
+	int ng = 1; 
 	int i = 1;
 	while (i < h->n) {
 		while (i < h->n && h->idx[i] == h->idx[i - 1] + 1)
@@ -658,14 +685,18 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	g_len[ng] = 0;
 
 	if (debug) {
-		for (i = 0; i < h->n; i++) {
-			printf("idx[%1d] =  %1d\n", i, h->idx[i]);
+		if (0) {
+			for (i = 0; i < h->n; i++) {
+				printf("idx[%1d] =  %1d\n", i, h->idx[i]);
+			}
 		}
 		printf("ng = %1d\n", ng);
 		for (int g = 1; g < ng; g++) {
 			printf("group %1d start %1d len %1d\n", g, g_istart[g], g_len[g]);
-			for (i = 0; i < g_len[g]; i++) {
-				printf("\t\t\tidx %1d\n", h->idx[g_istart[g] + i]);
+			if (0) {
+				for (i = 0; i < g_len[g]; i++) {
+					printf("\t\t\tidx %1d\n", h->idx[g_istart[g] + i]);
+				}
 			}
 		}
 	}
@@ -697,8 +728,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	g_val[0] = new_val;
 
 	if (debug) {
-		for (i = 0; i < g_len[0]; i++) {
-			printf("nidx[%1d] %1d  val %g\n", i, new_idx[i], new_val[i]);
+		if (0) {
+			for (i = 0; i < g_len[0]; i++) {
+				printf("nidx[%1d] %1d  val %g\n", i, new_idx[i], new_val[i]);
+			}
 		}
 	}
 	// copy each sequential group and pad for possible grouping
@@ -739,8 +772,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	if (debug) {
-		for (i = 0; i < k; i++) {
-			printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
+		if (0) {
+			for (i = 0; i < k; i++) {
+				printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
+			}
 		}
 	}
 	// set g_1's
@@ -758,8 +793,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		printf("NEW\nng = %1d\n", ng);
 		for (int g = 0; g < ng; g++) {
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
-			for (i = 0; i < IABS(g_len[g]); i++) {
-				printf("\t\t\tidx %1d val %g\n", g_idx[g][i], g_val[g][i]);
+			if (0) {
+				for (i = 0; i < IABS(g_len[g]); i++) {
+					printf("\t\t\tidx %1d val %g\n", g_idx[g][i], g_val[g][i]);
+				}
 			}
 		}
 	}
@@ -846,17 +883,21 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	double treff[2] = { 0.0, 0.0 };
 	double value[2] = { 0.0, 0.0 };
 
+	int simple = (ng == 1 && g_len[0] < 0 ? 1 : 0);	       /* this is the simple one, where its either a sum or dot (no sparse dot) */
+	double (*ddot_group)(GMRFLib_idxval_tp *, double *);
+	ddot_group = (simple ? GMRFLib_sparse_ddot_group_simple_ : GMRFLib_sparse_ddot_group_);
+
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
 			GMRFLib_sparse_ddot_(h, x);
-			GMRFLib_sparse_ddot_group_(h, x);
+			ddot_group(h, x);
 		} else {
 			treff[0] -= GMRFLib_timer();
 			value[0] = GMRFLib_sparse_ddot_(h, x);
 			treff[0] += GMRFLib_timer();
 
 			treff[1] -= GMRFLib_timer();
-			value[1] = GMRFLib_sparse_ddot_group_(h, x);
+			value[1] = ddot_group(h, x); 
 			treff[1] += GMRFLib_timer();
 		}
 	}
@@ -910,7 +951,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		break;
 	case 1:
 		h->preference = IDXVAL_GROUP;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_group_;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) ddot_group;
 		break;
 	default:
 		assert(0 == 1);
@@ -971,6 +1012,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 					printf("[%s:%d] Leak %.2g Mb memory\n", __FILE__, __LINE__, len_x_ran * sizeof(double) / SQR(1024.0));
 				}
 			}
+
 			int len = IMAX(2 * nmax, ISQR(256));
 			double *xx = Calloc(len, double);
 			for (int i = 0; i < len; i++) {
