@@ -603,7 +603,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 	return GMRFLib_SUCCESS;
 #endif
-	if (h->n < GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
+	if (h->n <= GMRFLib_DOT_GROUP_NLIM || !prepare || !GMRFLib_internal_opt) {
 		h->preference = IDXVAL_SERIAL;
 		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 		return GMRFLib_SUCCESS;

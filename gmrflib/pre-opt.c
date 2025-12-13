@@ -925,12 +925,11 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0];
 		// value = GMRFLib_dot_product(elm, lc);
-		GMRFLib_dot_product_INLINE(value, elm, lc);
+		value = GMRFLib_sparse_ddot_(elm, lc);
 	} else {
 		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], (unsigned int) a->like_graph->lnnbs[node]);
 		elm = a->AtA_idxval[node][k];
-		// value = GMRFLib_dot_product(elm, lc);
-		GMRFLib_dot_product_INLINE(value, elm, lc);
+		value = GMRFLib_sparse_ddot_(elm, lc);
 	}
 
 	return value;
@@ -947,8 +946,7 @@ double GMRFLib_preopt_like_Qfunc_k(int thread_id, int node, int k, double *UNUSE
 
 	if (lc) {
 		GMRFLib_idxval_tp *elm = a->AtA_idxval[node][k];
-		// value = GMRFLib_dot_product(elm, lc);
-		GMRFLib_dot_product_INLINE(value, elm, lc);
+		value = GMRFLib_sparse_ddot_(elm, lc);
 	}
 	return value;
 }
@@ -1119,7 +1117,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 		CODE_BLOCK_INIT();					\
 		if (A[i]) {						\
 			GMRFLib_idxval_tp *elm = A[i];			\
-			GMRFLib_dot_product_INLINE(bnew[i], elm, blike); \
+			bnew[i] = GMRFLib_sparse_ddot_(elm, blike);	\
 		}							\
 	}
 
@@ -1221,12 +1219,12 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 #pragma omp for nowait
 				for (int i = 0; i < preopt->npred; i++) {
 					GMRFLib_idxval_tp *elm = preopt->A_idxval[i];
-					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent);
+					pred_offset[i] = GMRFLib_sparse_ddot_(elm, latent);
 				}
 #pragma omp for
 				for (int i = 0; i < preopt->mpred; i++) {
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i];
-					GMRFLib_dot_product_INLINE(pred[i], elm, latent);
+					pred[i] = GMRFLib_sparse_ddot_(elm, latent);
 				}
 			}
 		} else {
@@ -1239,7 +1237,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				CODE_BLOCK_INIT();			\
 				if (preopt->A_idxval[i]) {		\
 					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-					GMRFLib_dot_product_INLINE(pred_offset[i], elm, latent); \
+					pred_offset[i] = GMRFLib_sparse_ddot_(elm, latent); \
 				}					\
 			}
 			RUN_CODE_BLOCK(num_threads, 0, 0);
@@ -1308,7 +1306,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				for (int i = 0; i < mpred; i++) {	\
 					CODE_BLOCK_INIT();		\
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-					GMRFLib_dot_product_INLINE(mean[i], elm, mm); \
+					mean[i] = GMRFLib_sparse_ddot_(elm, mm); \
 				}
 
 				RUN_CODE_BLOCK(num_threads, 0, 0);
@@ -1367,7 +1365,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			for (int i = 0; i < npred; i++) {		\
 				CODE_BLOCK_INIT();			\
 				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-				GMRFLib_dot_product_INLINE_ADDTO(mean_offset[i], elm, mm); \
+				mean_offset[i] += GMRFLib_sparse_ddot_(elm, mm); \
 			}
 
 			RUN_CODE_BLOCK(num_threads, 0, 0);
