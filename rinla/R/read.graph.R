@@ -11,7 +11,7 @@
 #' numbers defining the graph, or a neighbours list with class `nb` (see
 #' `spdep::card` and `spdep::poly2nb` for for details of `nb`
 #' and an example a function returning an `nb` object
-#' @param mode The mode of the file; ascii-file or a (gzip-compressed) binary.
+#' @param mode The mode of the file; 'ascii' for ascii-file or 'binary' for a binary-file (default).
 #' @param object An `inla.graph` -object
 #' @param x An `inla.graph` -object
 #' @param y Not used
@@ -417,13 +417,13 @@ NULL
 
 #' @rdname read.graph
 #' @export
-`inla.write.graph` <- function(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...) {
+`inla.write.graph` <- function(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
+{
     `inla.write.graph.ascii.internal` <- function(graph, filename = "graph.dat") {
-        ## write a graph read from inla.read.graph, or in that format, to
-        ## file.
+        ## write graph to file in ascii format
         fd <- file(filename, "w")
         cat(graph$n, "\n", file = fd)
-        for (i in 1:graph$n) {
+        for (i in seq_len(graph$n)) {
             cat(i, graph$nnbs[i], graph$nbs[[i]], "\n", file = fd)
         }
         close(fd)
@@ -431,29 +431,16 @@ NULL
     }
 
     `inla.write.graph.binary.internal` <- function(graph, filename = "graph.dat") {
-        ## write a graph to file,  1-based binary format.
+        ## write a graph to file in binary format
         fd <- file(filename, "wb")
-        writeBin(as.integer(inla.graph.binary.file.magic()), fd)
-        writeBin(as.integer(graph$n), fd)
-        if (graph$n > 0L) {
-            for (i in 1:graph$n) {
-                writeBin(as.integer(i), fd)
-                writeBin(as.integer(graph$nnbs[i]), fd)
-                if (graph$nnbs[i] > 0L) {
-                    writeBin(as.integer(graph$nbs[[i]]), fd)
-                }
-            }
+        writeBin(as.integer(c(inla.graph.binary.file.magic(), graph$n)), fd)
+        for (i in seq_len(graph$n)) {
+            writeBin(as.integer(c(i, graph$nnbs[[i]], graph$nbs[[i]])), fd)
         }
         close(fd)
         return(filename)
     }
 
-    ##
-    ## code starts here
-    ##
-    if (missing(mode)) {
-        mode <- "ascii"
-    }
     mode <- match.arg(mode)
     g <- inla.read.graph(graph, ...)
 
