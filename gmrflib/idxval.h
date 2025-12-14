@@ -16,7 +16,6 @@
 #endif
 
 __BEGIN_DECLS
-
 //
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -24,9 +23,8 @@ __BEGIN_DECLS
 #include "armpl_sparse.h"
 #endif
 #define GMRFLib_DOT_GROUP_NLIM 16
-
 //
-typedef struct {
+    typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -60,7 +58,7 @@ typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
 	IDXVAL_SERIAL_ARMPL,
-	IDXVAL_GROUP, 
+	IDXVAL_GROUP,
 	IDXVAL_GROUP_ARMPL
 } GMRFLib_idxval_preference_tp;
 

@@ -6112,9 +6112,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8249,8 +8249,8 @@ int loglikelihood_fmri(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
-		     double *UNUSED(y_cdf), void *arg)
+int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+		       double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -8274,7 +8274,7 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restric
 			// original:
 			// double lc = (LOG2PI + log(gsl_sf_bessel_I0_scaled(prec_eta)) + prec_eta) + (prec - prec_eta);
 			// simplified:
-			double lc = LOG2PI + log(gsl_sf_bessel_I0_scaled(prec_eta)) + prec; 
+			double lc = LOG2PI + log(gsl_sf_bessel_I0_scaled(prec_eta)) + prec;
 
 			logll[i] = -lc + prec * cos(z);
 		}
@@ -8295,7 +8295,7 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *__restrict logll, d
 
 	FIXME("THIS FUNCTION NEEDS A REWRITE");
 	assert(0 == 1);
-	
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double s = ds->data_observations.vm_scale[idx];
@@ -8358,7 +8358,7 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 
 	FIXME("THIS FUNCTION NEEDS A REWRITE");
 	assert(0 == 1);
-	
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double s = ds->data_observations.vm_scale[idx];

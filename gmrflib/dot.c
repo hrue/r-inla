@@ -82,13 +82,13 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 #endif
 }
 
-double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
+double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// special case: ->idx == sequential
 	return (GMRFLib_ddot(ELM_->n, ELM_->val, ARR_ + ELM_->idx[0]));
 }
 
-double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_) 
+double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// special case: ->idx == sequential and all(->val == 1.0)
 	return (GMRFLib_dsum(ELM_->n, ARR_ + ELM_->idx[0]));
@@ -126,7 +126,7 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 		__builtin_prefetch(ELM_->g_val[0], 0, 3);
 	}
 #endif
-	
+
 	for (int g_ = 0; g_ < g_n; g_++) {
 #if USE_PREFETCH
 		if (__builtin_expect(g_ + 1 < g_n, 1)) {
@@ -145,7 +145,7 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 			} else {
 #if defined(INLA_WITH_ARMPL)
 				// the way we store it, then this happens either with g_=0 or does not happens at all
-				if ((g_ ==  0) && ELM_->spvec_g) {
+				if ((g_ == 0) && ELM_->spvec_g) {
 					double res = 0.0;
 					armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec_g, ARR_, &res);
 					assert(info == ARMPL_STATUS_SUCCESS);

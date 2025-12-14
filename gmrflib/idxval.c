@@ -601,7 +601,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 		int is_sequential = 1;
 		for (int i = 1; i < h->n && is_sequential; i++) {
-			is_sequential = (h->idx[i] == h->idx[i-1] + 1);
+			is_sequential = (h->idx[i] == h->idx[i - 1] + 1);
 		}
 
 		if (is_sequential) {
@@ -627,13 +627,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #else
 			h->preference = IDXVAL_SERIAL;
 #endif
-			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
+			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL;	// GMRFLib_sparse_ddot_;
 			return GMRFLib_SUCCESS;
 		}
 	}
-
 	// an upper bound for the number of groups for memory allocation
-	int ng = 1; 
+	int ng = 1;
 	int i = 1;
 	while (i < h->n) {
 		while (i < h->n && h->idx[i] == h->idx[i - 1] + 1)
@@ -892,11 +891,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #if defined(INLA_WITH_ARMPL)
 	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
 	assert(info == ARMPL_STATUS_SUCCESS);
-	if (!simple && (g_len[0] > 0 && g_1[0] ==  0)) {
-		info = armpl_spvec_create_d(&(h->spvec_g), 0, h->g_idx[0][h->g_len[0]-1], h->g_len[0], h->g_idx[0], h->g_val[0], 0);
+	if (!simple && (g_len[0] > 0 && g_1[0] == 0)) {
+		info = armpl_spvec_create_d(&(h->spvec_g), 0, h->g_idx[0][h->g_len[0] - 1], h->g_len[0], h->g_idx[0], h->g_val[0], 0);
 		assert(info == ARMPL_STATUS_SUCCESS);
 	}
-#endif	
+#endif
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
 			GMRFLib_sparse_ddot_(h, x);
@@ -907,7 +906,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			treff[0] += GMRFLib_timer();
 
 			treff[1] -= GMRFLib_timer();
-			value[1] = ddot_group(h, x); 
+			value[1] = ddot_group(h, x);
 			treff[1] += GMRFLib_timer();
 		}
 	}
@@ -957,7 +956,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) NULL;	// GMRFLib_sparse_ddot_;
 		break;
 	case 1:
 #if defined(INLA_WITH_ARMPL)
@@ -1310,7 +1309,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
