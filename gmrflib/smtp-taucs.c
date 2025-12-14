@@ -78,7 +78,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
-	const int do_sort_idx = 0;
+	const int do_sort_idx = 1;
 	int n = L->n;
 	if (n == 0) {
 		return NULL;
