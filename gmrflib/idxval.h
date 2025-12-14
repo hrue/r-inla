@@ -60,7 +60,8 @@ typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
 	IDXVAL_SERIAL_ARMPL,
-	IDXVAL_GROUP
+	IDXVAL_GROUP, 
+	IDXVAL_GROUP_ARMPL
 } GMRFLib_idxval_preference_tp;
 
 typedef double GMRFLib_dot_product_tp(void *__restrict, void *__restrict);
@@ -79,8 +80,8 @@ typedef struct {
 	double *val;
 	void **g_mem;
 #if defined(INLA_WITH_ARMPL)
-	int spvec_in_use;
 	armpl_spvec_t spvec;
+	armpl_spvec_t spvec_g;
 #endif
 	GMRFLib_idxval_preference_tp preference;
 	GMRFLib_dot_product_tp *dot_product_func;

@@ -102,13 +102,8 @@ double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restri
 		armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec, ARR_, &res);
 		assert(info == ARMPL_STATUS_SUCCESS);
 		return (res);
-	} else {
-		double *__restrict vv_ = ELM_->val;
-		double *__restrict aa_ = ARR_;
-		int *__restrict idx_ = ELM_->idx;
-		return (GMRFLib_sparse_ddot(ELM_->n, vv_, aa_, idx_));
 	}
-#else
+#endif
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
@@ -117,7 +112,6 @@ double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restri
 	} else {
 		return (GMRFLib_sparse_ddot(ELM_->n, vv_, aa_, idx_));
 	}
-#endif
 }
 
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
@@ -146,10 +140,22 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 
 		if (__builtin_expect(len_ > 0, 1)) {
 			double *__restrict const aa_ = &(ARR_[0]);
-			if (__builtin_expect(ELM_->g_1[g_], 1)) {
+			if (__builtin_expect(ELM_->g_1[g_], 0)) {
 				value += GMRFLib_sparse_dsum(len_, aa_, ii_);
 			} else {
+#if defined(INLA_WITH_ARMPL)
+				// the way we store it, then this happens either with g_=0 or does not happens at all
+				if ((g_ ==  0) && ELM_->spvec_g) {
+					double res = 0.0;
+					armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec_g, ARR_, &res);
+					assert(info == ARMPL_STATUS_SUCCESS);
+					value += res;
+				} else {
+					value += GMRFLib_sparse_ddot(len_, vv_, aa_, ii_);
+				}
+#else
 				value += GMRFLib_sparse_ddot(len_, vv_, aa_, ii_);
+#endif
 			}
 		} else if (__builtin_expect(len_ < 0, 1)) {
 			const int llen_ = -len_;

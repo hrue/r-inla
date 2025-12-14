@@ -623,15 +623,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #if defined(INLA_WITH_ARMPL)
 			armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
 			assert(info == ARMPL_STATUS_SUCCESS);
-			h->spvec_in_use = 1;
 			h->preference = IDXVAL_SERIAL_ARMPL;
-			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
-			return GMRFLib_SUCCESS;
 #else
 			h->preference = IDXVAL_SERIAL;
+#endif
 			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
 			return GMRFLib_SUCCESS;
-#endif
 		}
 	}
 
@@ -878,6 +875,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_mem[0] = (void *) new_idx;
 	h->g_mem[1] = (void *) new_val;
 	h->dot_product_func = NULL;
+#if defined(INLA_WITH_ARMPL)
+	h->spvec = NULL;
+	h->spvec_g = NULL;
+#endif
 	Free(g_istart);
 
 	int ntimes = 1;
@@ -888,6 +889,14 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	double (*ddot_group)(GMRFLib_idxval_tp *, double *);
 	ddot_group = (simple ? GMRFLib_sparse_ddot_group_simple_ : GMRFLib_sparse_ddot_group_);
 
+#if defined(INLA_WITH_ARMPL)
+	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
+	assert(info == ARMPL_STATUS_SUCCESS);
+	if (!simple && (g_len[0] > 0 && g_1[0] ==  0)) {
+		info = armpl_spvec_create_d(&(h->spvec_g), 0, h->g_idx[0][h->g_len[0]-1], h->g_len[0], h->g_idx[0], h->g_val[0], 0);
+		assert(info == ARMPL_STATUS_SUCCESS);
+	}
+#endif	
 	for (int time = -1; time < ntimes; time++) {
 		if (time < 0) {
 			GMRFLib_sparse_ddot_(h, x);
@@ -951,7 +960,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
 		break;
 	case 1:
+#if defined(INLA_WITH_ARMPL)
+		h->preference = IDXVAL_GROUP_ARMPL;
+#else
 		h->preference = IDXVAL_GROUP;
+#endif
 		h->dot_product_func = (GMRFLib_dot_product_tp *) ddot_group;
 		break;
 	default:
@@ -970,6 +983,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 			Free(h->g_mem);
 			h->g_n_mem = 0;
+#if defined(INLA_WITH_ARMPL)
+			if (h->spvec_g) {
+				armpl_status_t info = armpl_spvec_destroy(h->spvec_g);
+				h->spvec_g = NULL;
+			}
+#endif
 		}
 	}
 
@@ -1103,11 +1122,13 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 			Free(hold->g_mem);
 		}
 #if defined(INLA_WITH_ARMPL)
-		if (hold->spvec_in_use) {
-
+		if (hold->spvec) {
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec);
 			assert(info == ARMPL_STATUS_SUCCESS);
-			hold->spvec_in_use = 0;
+		}
+		if (hold->spvec_g) {
+			armpl_status_t info = armpl_spvec_destroy(hold->spvec_g);
+			assert(info == ARMPL_STATUS_SUCCESS);
 		}
 #endif
 		Free(hold);

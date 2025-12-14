@@ -6080,11 +6080,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if (defined(INLA_WITH_MKL) || (!defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)))
 			printf("\tOptimizing dot-products.... plain[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
 			printf("\t                            ->mix[%.3f] (plain[%.1f%%] group[%.1f%%])\n",
 			       time_loop[2], 100 * time_loop[3], 100 * time_loop[4]);
-#endif
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
