@@ -112,7 +112,11 @@ double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restri
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
-	return (GMRFLib_sparse_ddot(ELM_->n, vv_, aa_, idx_));
+	if (ELM_->dot_product_func) {
+		return (ELM_->dot_product_func(ELM_, ARR_));
+	} else {
+		return (GMRFLib_sparse_ddot(ELM_->n, vv_, aa_, idx_));
+	}
 #endif
 }
 

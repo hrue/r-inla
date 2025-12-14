@@ -625,11 +625,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			assert(info == ARMPL_STATUS_SUCCESS);
 			h->spvec_in_use = 1;
 			h->preference = IDXVAL_SERIAL_ARMPL;
-			h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
+			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
 			return GMRFLib_SUCCESS;
 #else
-			h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
 			h->preference = IDXVAL_SERIAL;
+			h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
 			return GMRFLib_SUCCESS;
 #endif
 		}
@@ -877,6 +877,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_mem = Calloc(h->g_n_mem, void *);
 	h->g_mem[0] = (void *) new_idx;
 	h->g_mem[1] = (void *) new_val;
+	h->dot_product_func = NULL;
 	Free(g_istart);
 
 	int ntimes = 1;
@@ -947,7 +948,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL;
-		h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_;
+		h->dot_product_func = (GMRFLib_dot_product_tp *) NULL; // GMRFLib_sparse_ddot_;
 		break;
 	case 1:
 		h->preference = IDXVAL_GROUP;
