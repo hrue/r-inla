@@ -258,8 +258,12 @@
              globalconstr = list(A = NULL, e = NULL),
 
              #' @param opt.solve Store also `L^T` to optimize linear solves (TAUCS only).
-             #' (EXPERIMENTAL OPTION: DO NOT USE)
+             #' Might benefite larger models. (EXPERIMENTAL OPTION)
              opt.solve = FALSE, 
+   
+             #' @param opt.storage Make sure `L` is stored sequencially (TAUCS only).
+             #' Might benefite larger models. (EXPERIMENTAL OPTION)
+             opt.storage = FALSE, 
    
              #' @param opt.num.threads Reduce the number of threads adaptively if needed at
              #' critical places to optimize wall-clock time
