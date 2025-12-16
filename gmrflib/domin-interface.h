@@ -16,11 +16,9 @@
 #endif
 
 __BEGIN_DECLS
-
 //
 //
-
-typedef struct {
+    typedef struct {
 	gsl_matrix *A;
 	gsl_matrix *tAinv;
 	int reset_directions;

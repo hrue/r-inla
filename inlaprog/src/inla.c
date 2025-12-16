@@ -156,6 +156,8 @@ int R_load_INLA = 0;
 	ds->predictor_invlinkfunc(thread_id, off_ + _lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_LINK_PLAIN(xx_)				\
 	ds->predictor_invlinkfunc(thread_id, xx_, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK_PLAIN_DERIV(xx_)				\
+	ds->predictor_invlinkfunc(thread_id, xx_, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_LINK_NO_SCALE(xx_, off_)			\
 	ds->predictor_invlinkfunc(thread_id, off_ + (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
@@ -6080,11 +6082,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-#if (defined(INLA_WITH_MKL) || (!defined(INLA_WITH_MKL) && !defined(INLA_WITH_ARMPL)))
 			printf("\tOptimizing dot-products.... plain[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
 			printf("\t                            ->mix[%.3f] (plain[%.1f%%] group[%.1f%%])\n",
 			       time_loop[2], 100 * time_loop[3], 100 * time_loop[4]);
-#endif
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);

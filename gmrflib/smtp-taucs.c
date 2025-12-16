@@ -78,9 +78,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_ENTER_FUNCTION;
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 
-	// sort indices after conversion turns out to be to much work for the gain...
-	const int do_sort_idx = 0;
-
+	int do_sort_idx = GMRFLib_opt_storage;
 	int n = L->n;
 	if (n == 0) {
 		return NULL;
@@ -1042,7 +1040,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	time_chol += GMRFLib_timer();
 	if (retval) {
-		taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
+		taucs_supernodal_factor_free_numeric(*symb_fact);	/* remove the numerics, preserve the symbolic */
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 		return GMRFLib_EPOSDEF;

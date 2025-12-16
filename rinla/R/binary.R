@@ -49,8 +49,9 @@
         idx <- seq.int(from = 3L, by = np2, length.out = res.ncol2)
         idx2 <- seq.int(1L, by = 2L, length.out = res.ncol2)
         for(i in 1L:np) {
-            res[i, idx2] <- xx[idx + 2L * (i-1L)]
-            res[i, idx2 + 1L] <- xx[idx + 2L * (i-1L) + 1L]
+            idx3 <- idx + 2L * (i-1L)
+            res[i, idx2] <- xx[idx3]
+            res[i, idx2 + 1L] <- xx[idx3 + 1L]
         }
     }
 

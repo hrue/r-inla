@@ -3569,7 +3569,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						int nnode = d_idx->idx[knode];
 						GMRFLib_idxval_tp *vv = A_idx(nnode);
 						double sum = 0.0;
-						GMRFLib_dot_product_INLINE(sum, vv, Sa);
+						sum = GMRFLib_sparse_ddot_(vv, Sa);
 						sum *= isd[node] * isd[nnode];
 						cor[knode] = TRUNCATE(sum, -1.0, 1.0);
 						cor_abs[knode] = ABS(cor[knode]);
@@ -3675,7 +3675,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 											// we do not have the correlation
 											GMRFLib_idxval_tp *vv = A_idx(new_node2);
 											double sum = 0.0;
-											GMRFLib_dot_product_INLINE(sum, vv, Sa);
+											sum = GMRFLib_sparse_ddot_(vv, Sa);
 											sum *= isd[node] * isd[new_node2];
 											double corr = TRUNCATE(sum, -1.0, 1.0);
 											GMRFLib_idxval_add(&(groups[node]), new_node2, corr);
@@ -3751,7 +3751,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					for (int nnode = 0; nnode < Npred; nnode++) { \
 						GMRFLib_idxval_tp *vv = A_idx(nnode); \
 						double sum = 0.0;	\
-						GMRFLib_dot_product_INLINE(sum, vv, Sa); \
+						sum = GMRFLib_sparse_ddot_(vv, Sa); \
 						sum *= isd[node] * isd[nnode]; \
 						cor[nnode] = TRUNCATE(sum, -1.0, 1.0); \
 						cor_abs[nnode] = ABS(cor[nnode]); \
@@ -4098,7 +4098,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
+								sum = GMRFLib_sparse_ddot_(v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4183,7 +4183,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
+								sum = GMRFLib_sparse_ddot_(v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4279,7 +4279,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
+								sum = GMRFLib_sparse_ddot_(v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4369,7 +4369,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 							if (jj != ii) {
 								GMRFLib_idxval_tp *v = A_idx(nnode);
 								double sum = 0.0;
-								GMRFLib_dot_product_INLINE(sum, v, Saa + inode * nn);
+								sum = GMRFLib_sparse_ddot_(v, Saa + inode * nn);
 								double f = sd[node] * sd[nnode];
 								sum /= f;
 								double cov = TRUNCATE(sum, -1.0, 1.0) * f;
@@ -4443,7 +4443,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 					}				\
 					GMRFLib_idxval_tp *v = A_idx(nnode); \
 					double sum = 0.0;		\
-					GMRFLib_dot_product_INLINE(sum, v, Sa); \
+					sum = GMRFLib_sparse_ddot_(v, Sa); \
 					double f = sd[node] * sd[nnode]; \
 					sum /= f;			\
 					double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
@@ -5954,7 +5954,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		int UNUSED(integer_one) = 1;
 
 //#define COV_ETA_LATENT(value_, k_, cov_latent_) (value_) = GMRFLib_dot_product(A[k_], cov_latent_)
-#define COV_ETA_LATENT(value_, k_, cov_latent_) GMRFLib_dot_product_INLINE(value_, A[k_], cov_latent_)
+#define COV_ETA_LATENT(value_, k_, cov_latent_) value_ = GMRFLib_sparse_ddot_(A[k_], cov_latent_)
 
 #define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
 		if (1) {						\

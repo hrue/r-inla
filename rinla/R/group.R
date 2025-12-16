@@ -41,12 +41,12 @@
         ## approach, we do not have a such control.
 
         if (n < 1) {
-              stop("Number of groups must be > 0")
-          }
+            stop("Number of groups must be > 0")
+        }
 
         if (n == 1) {
-              return(rep(median(x), length(x)))
-          }
+            return(rep(median(x), length(x)))
+        }
 
         method <- match.arg(method)
         if (method == "cut") {
@@ -59,22 +59,18 @@
         }
         ## the rest is then the same
         nlev <- nlevels(a)
+        idx <- as.numeric(a)
         xx <- list()
         for (i in 1:nlev) {
-              xx[[i]] <- list()
-          }
-
-        for (i in 1:length(x)) {
-              xx[[as.numeric(a[i])]] <- c(unlist(xx[[as.numeric(a[i])]]), x[i])
-          }
-        values <- numeric(nlev)
+            xx[[i]] <- x[which(idx == i)]
+        }
 
         ff.local <- function(xx) {
             if (length(xx) > 0) {
-                  return(median(xx))
-              } else {
-                  return(NA)
-              }
+                return(median(xx))
+            } else {
+                return(NA)
+            }
         }
         if (!idx.only) {
             values <- unlist(sapply(xx, ff.local))
@@ -85,8 +81,8 @@
     }
 
     if (missing(x)) {
-          return(NULL)
-      }
+        return(NULL)
+    }
 
     if (any(is.na(x))) {
         idx.ok <- !is.na(x)
@@ -100,8 +96,8 @@
 `inla.group.dist` <- function(x, dist.min = NULL, dist.min.rel = NULL) {
     ## form groups based on the distance such that min.distance > dist.min
     if (missing(x)) {
-          return(NULL)
-      }
+        return(NULL)
+    }
 
     if (any(is.na(x))) {
         idx.ok <- !is.na(x)

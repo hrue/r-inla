@@ -1951,7 +1951,7 @@
                     names.rr <- names(rr)
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
-                        }
+                    }
                 }
                 marginals.random[[i]] <- if (is.null(rr)) NA_real_ else rr
 
@@ -1960,9 +1960,9 @@
                 if (!is.null(id.names)) {
                     len.id.names <- length(id.names)
                     summary.random[[i]]$ID[1L:len.id.names] <- id.names
-                    # Check for existing marginals.random[[i]] data:
-                    # Cannot use is.na() directly, since the result must
-                    # always be a single logical value.
+                    ## Check for existing marginals.random[[i]] data:
+                    ## Cannot use is.na() directly, since the result must
+                    ## always be a single logical value.
                     if (length(marginals.random) >= i && !is.null(rr)) {
                         names(marginals.random[[i]][1L:len.id.names]) <- id.names
                     }
@@ -1977,17 +1977,9 @@
                 summary.random[[i]] <- data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
                 marginals.random <- NULL
             }
-
             size.random[[i]] <- inla.collect.size(file)
         }
         names(summary.random) <- names.random
-
-        ## could be that marginals.random is a list of lists of NULL or NA
-        if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random, function(x) is.null(x) || all(is.na(unlist(x)))))) {
-                marginals.random <- NULL
-            }
-        }
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
             names(marginals.random) <- names.random
         }

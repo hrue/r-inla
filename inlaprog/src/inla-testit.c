@@ -2515,7 +2515,7 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_timer();
 
 			tref2 -= GMRFLib_timer();
-			GMRFLib_dot_product_INLINE(sum2, h, xx);
+			sum2 = GMRFLib_sparse_ddot_(h, xx);
 			tref2 += GMRFLib_timer();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);

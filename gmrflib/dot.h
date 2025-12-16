@@ -24,8 +24,10 @@ __BEGIN_DECLS
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
-#define GMRFLib_dot_product_INLINE(ans_, v_, a_) ans_ = GMRFLib_sparse_ddot_(v_, a_)
-#define GMRFLib_dot_product_INLINE_ADDTO(ans_, v_, a_)	ans_ += GMRFLib_sparse_ddot_(v_, a_)
+double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+
+double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 
 __END_DECLS
 #endif

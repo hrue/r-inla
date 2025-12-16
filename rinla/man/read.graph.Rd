@@ -42,7 +42,7 @@ and an example a function returning an \code{nb} object}
 
 \item{filename}{The filename of the graph.}
 
-\item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary.}
+\item{mode}{The mode of the file; 'ascii' for ascii-file or 'binary' for a binary-file (default).}
 
 \item{x}{An \code{inla.graph} -object}
 
