@@ -31,7 +31,7 @@ else
 fi
 
 export INLA_TAG="${1-devel}"
-VERSION=$(ssh -x $IP "source /etc/os-release; echo \$NAME-\$VERSION")
+VERSION=$(ssh -x $IP "source /etc/os-release; echo \$NAME-\$VERSION [\$(uname -m)]")
 D=64bit
 
 ## add so we can define 'devel' to compile the most recent one
@@ -40,11 +40,15 @@ if [ $INLA_TAG != "devel" ]; then
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
     B=builds/build64;
+    if \[ \! -d \$B \]; then B=builds/aarch64; fi;
+    echo \$B;
     make -C \$B download;"
 else
     ssh -x -t $IP "
     . .bash_profile;
     B=builds/build64;
+    if \[ \! -d \$B \]; then B=builds/aarch64; fi;
+    echo \$B;
     cd \$B/r-inla; 
     git reset --hard; 
     git checkout devel; 
@@ -56,6 +60,8 @@ ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
     B=builds/build64;
+    if \[ \! -d \$B \]; then B=builds/aarch64; fi;
+    echo \$B;
     make -j2 -C\$B update;
     test -d \$B/$D && rm -rf \$B/$D;
     rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
@@ -73,16 +79,18 @@ ssh -x -t $IP "
     fi	
 "
 
+B=$(ssh -x $IP 'test -d builds/build64 && echo builds/build64 || echo builds/aarch64')
+
 tarfile="$D.tgz"
-ssh -x $IP 'cd builds/build64/64bit; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
-ssh -x $IP 'cd builds/build64/64bit; mv -f -v lib*malloc* malloc'
-ssh -x $IP 'cd builds/build64/64bit; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
-ssh -x $IP 'cd builds/build64/64bit; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
-ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"
+ssh -x $IP 'cd '$B'/64bit; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
+ssh -x $IP 'cd '$B'/64bit; mv -f -v lib*malloc* malloc'
+ssh -x $IP 'cd '$B'/64bit; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
+ssh -x $IP 'cd '$B'/64bit; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
+ssh -x $IP "cd '$B'; tar cvfz $tarfile 64bit"
 D="www/Linux-builds"
 d="$D/$VERSION/$INLA_TAG"
 mkdir -p "$d"
-rsync $IP:builds/build64/$tarfile "$d"
+rsync $IP:$B/$tarfile "$d"
 
 (
     cd $D
