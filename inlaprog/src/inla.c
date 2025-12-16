@@ -156,6 +156,8 @@ int R_load_INLA = 0;
 	ds->predictor_invlinkfunc(thread_id, off_ + _lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_LINK_PLAIN(xx_)				\
 	ds->predictor_invlinkfunc(thread_id, xx_, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK_PLAIN_DERIV(xx_)				\
+	ds->predictor_invlinkfunc(thread_id, xx_, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 #define PREDICTOR_INVERSE_LINK_NO_SCALE(xx_, off_)			\
 	ds->predictor_invlinkfunc(thread_id, off_ + (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
