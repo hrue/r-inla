@@ -1,4 +1,8 @@
-# INLA 24.12.12
+# INLA 25.12.16
+* Code optimization
+* New version of family 'lavm'
+
+# INLA 25.12.12
 * Improve startup message
 * Added vignette about 'Alocal'
 * Code cleanup
