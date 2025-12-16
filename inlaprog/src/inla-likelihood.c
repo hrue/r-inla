@@ -8265,39 +8265,6 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	LINK_INIT;
 	assert(PREDICTOR_SCALE ==  1.0);		       /* not prepared for this */
 
-	if (0) {
-		// testing code. remove later
-		double yy, dy = 0.01, dsum = 0.0;
-		double xx = 0.54;
-		off = 0.0;
-#define G(x) 2*atan(x)
-#define GINV(x) tan(x/2)
-		P(xx);
-		for(yy = -3.14;  yy <= 3.14;  yy += dy) {
-			P(yy);
-			double yp = PREDICTOR_LINK_PLAIN(yy);
-			P(yp);
-			P(GINV(yy));
-		
-			double lp = xx;
-			P(yp-lp);
-			double z = PREDICTOR_INVERSE_LINK_PLAIN(yp - lp);
-			P(z);
-			P(G(yp-lp));
-		
-			double lc = LOG2PI + log(gsl_sf_bessel_I0_scaled(prec)) + prec;
-			double d = exp(-lc + prec * cos(z)) *
-				(PREDICTOR_INVERSE_LINK_PLAIN_DERIV(yp - lp) /
-				 PREDICTOR_INVERSE_LINK_PLAIN_DERIV(yp));
-			dsum += d * dy;
-			printf("\n"); 
-		}
-#undef G
-#undef GINV	
-		P(dsum);
-		exit(0);
-	}
-	
 	if (m > 0) {
 		double yp = PREDICTOR_LINK_PLAIN(y);
 		double jac_part = 1.0 / PREDICTOR_INVERSE_LINK_PLAIN_DERIV(yp);
