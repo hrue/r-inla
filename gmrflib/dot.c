@@ -23,10 +23,6 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	int i = 0;
 	if (n < ROLL16) {
 		for (; i + ROLL8 <= n; i += ROLL8) {
-			// Prefetch next cache lines
-			__builtin_prefetch(v + i + ROLL8, 0, 3);
-			__builtin_prefetch(idx + i + ROLL8, 0, 3);
-
 			const double *vv = v + i;
 			const int *iidx = idx + i;
 
@@ -47,10 +43,6 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	} else {
 		double s4 = 0.0, s5 = 0.0, s6 = 0.0, s7 = 0.0;
 		for (; i + ROLL16 <= n; i += ROLL16) {
-			// Prefetch next cache lines
-			__builtin_prefetch(v + i + ROLL16, 0, 3);
-			__builtin_prefetch(idx + i + ROLL16, 0, 3);
-
 			const double *vv = v + i;
 			const int *iidx = idx + i;
 

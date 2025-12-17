@@ -5736,6 +5736,106 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 188:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n, double);
+		double *y = Calloc(n, double);
+		int *ix = Calloc(n, int);
+		int *iy = Calloc(n, int);
+		int *idx = Calloc(n, int);
+		bool *bx = Calloc(n, bool);
+
+		double tref[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		for (int j = 0; j < m; j++) {
+			for (int i = 0; i < n; i++) {
+				ix[i] = (int) (1000 * GMRFLib_uniform());
+				iy[i] = (int) (1000 * GMRFLib_uniform());
+				idx[i] = i;
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+				bx[i] = (bool) (GMRFLib_uniform() <  0.5);
+			}
+			
+			double a, e;
+			
+			tref[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x, y);
+			tref[9] += GMRFLib_timer();
+			e = 0.0;
+			for(int k = 0; k < n; k++) e += x[k]*y[k];
+			assert(ABS(e-a) < FLT_EPSILON);
+
+			tref[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, x, y, idx);
+			tref[0] += GMRFLib_timer();
+			e = 0.0;
+			for(int k = 0; k < n; k++) e += x[k]*y[idx[k]];
+			assert(ABS(e-a) < FLT_EPSILON);
+
+			tref[1] -= GMRFLib_timer();
+			a = GMRFLib_dsum(n, x);
+			tref[1] += GMRFLib_timer();
+			e = 0.0;
+			for(int k = 0; k < n; k++) e += x[k];
+			assert(ABS(e-a) < FLT_EPSILON);
+
+			tref[2] -= GMRFLib_timer();
+			a = GMRFLib_isum(n, ix);
+			tref[2] += GMRFLib_timer();
+			e = 0.0;
+			for(int k = 0; k < n; k++) e += ix[k];
+			assert(ABS(e-a) < FLT_EPSILON);
+
+			tref[3] -= GMRFLib_timer();
+			GMRFLib_dscale(n, GMRFLib_uniform(), x);
+			tref[3] += GMRFLib_timer();
+			
+			tref[4] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, GMRFLib_uniform(), x, y);
+			tref[4] += GMRFLib_timer();
+
+			tref[8] -= GMRFLib_timer();
+			a = GMRFLib_sparse_dsum(n, x, idx);
+			tref[8] += GMRFLib_timer();
+			e = 0.0;
+			for(int k = 0; k < n; k++) e += x[idx[k]];
+			assert(ABS(e-a) < FLT_EPSILON);
+
+			tref[5] -= GMRFLib_timer();
+			GMRFLib_dfill(n, GMRFLib_uniform(), x);
+			tref[5] += GMRFLib_timer();
+			assert(x[0] == x[n-1]);
+			
+			tref[6] -= GMRFLib_timer();
+			GMRFLib_ifill(n, (int) (GMRFLib_uniform() * 10000), ix);
+			tref[6] += GMRFLib_timer();
+			assert(ix[0] == ix[n-1]);
+
+			tref[7] -= GMRFLib_timer();
+			GMRFLib_bfill(n, (bool) 1, bx);
+			tref[7] += GMRFLib_timer();
+			assert(bx[0] == bx[n-1]);
+		}
+		printf("ddot        %.8f\n", tref[9]);
+		printf("sparse_ddot %.8f\n", tref[0]);
+
+		printf("dsum        %.8f\n", tref[1]);
+		printf("isum        %.8f\n", tref[2]);
+		printf("sparse_dsum %.8f\n", tref[8]);
+
+		printf("dscale      %.8f\n", tref[3]);
+		printf("daxpy       %.8f\n", tref[4]);
+
+		printf("dfill       %.8f\n", tref[5]);
+		printf("ifill       %.8f\n", tref[6]);
+		printf("bfill       %.8f\n", tref[7]);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

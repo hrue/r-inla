@@ -1300,27 +1300,17 @@ double GMRFLib_dssqr(int n, double *x)
 	return SQR(ret);
 }
 
-int GMRFLib_dscale(int n, double a, double *x)
+void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	if (n <= 16) {
-		int roll = 4;
-		div_t d = div(n, roll);
-		int m = d.quot * roll;
+	if (n <= 32) {
 #pragma omp simd
-		for (int i = 0; i < m; i += roll) {
-			x[i + 0] *= a;
-			x[i + 1] *= a;
-			x[i + 2] *= a;
-			x[i + 3] *= a;
-		}
-		for (int i = m; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			x[i] *= a;
 		}
-		return 0;
 	} else {
 		int one = 1;
-		return (dscal_(&n, &a, x, &one));
+		dscal_(&n, &a, x, &one);
 	}
 }
 
@@ -1360,18 +1350,9 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
 	// y = a * x + y
-	if (n <= 16) {
-		int roll = 4, m;
-		div_t d = div(n, roll);
-		m = d.quot * roll;
+	if (n <= 32) {
 #pragma omp simd
-		for (int i = 0; i < m; i += roll) {
-			y[i + 0] += a * x[i + 0];
-			y[i + 1] += a * x[i + 1];
-			y[i + 2] += a * x[i + 2];
-			y[i + 3] += a * x[i + 3];
-		}
-		for (int i = m; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			y[i] += a * x[i];
 		}
 	} else {
@@ -1380,108 +1361,46 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 	}
 }
 
-int GMRFLib_isum(int n, int *ix)
-{
-	const int roll = 4L;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-	int s0 = 0, s1 = 0, s2 = 0, s3 = 0;
-
-#pragma omp simd reduction(+: s0, s1, s2, s3)
-	for (int i = 0; i < m; i += roll) {
-		s0 += ix[i + 0];
-		s1 += ix[i + 1];
-		s2 += ix[i + 2];
-		s3 += ix[i + 3];
-	}
-	for (int i = m; i < n; i++) {
-		s0 += ix[i];
-	}
-	return s0 + s1 + s2 + s3;
-}
-
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-	if (__builtin_expect(n <= 8, 0)) {
-		// Small arrays - manual unroll
-		aligned_double(r) = 0.0;
-		switch (n) {
-		case 8:
-			r += x[7] * y[7];
-			__attribute__((fallthrough));
-		case 7:
-			r += x[6] * y[6];
-			__attribute__((fallthrough));
-		case 6:
-			r += x[5] * y[5];
-			__attribute__((fallthrough));
-		case 5:
-			r += x[4] * y[4];
-			__attribute__((fallthrough));
-		case 4:
-			r += x[3] * y[3];
-			__attribute__((fallthrough));
-		case 3:
-			r += x[2] * y[2];
-			__attribute__((fallthrough));
-		case 2:
-			r += x[1] * y[1];
-			__attribute__((fallthrough));
-		case 1:
-			r += x[0] * y[0];
-		}
-		return r;
-	} else if (__builtin_expect(n <= 16, 0)) {
-		// Medium arrays - OpenMP SIMD
-		aligned_double(r) = 0.0;
+	if (n <= 16) {
+		double r = 0.0;
 #pragma omp simd reduction(+: r)
-		for (int i = 0; i < n; i++) {
+		for(int i = 0; i < n; i++) {
 			r += x[i] * y[i];
 		}
 		return r;
 	} else {
-		// Large arrays - use BLAS
 		int one = 1;
 		return ddot_(&n, x, &one, y, &one);
 	}
 }
 
+#define SUM_CORE(TYPE_)						\
+	TYPE_ r = 0;						\
+	_Pragma("omp simd reduction(+: r)")			\
+	for (int i = 0; i < n;	i++) {			        \
+		r += x[i];					\
+	}							\
+	return r
+
 double GMRFLib_dsum(int n, double *x)
 {
-	const int roll = 8L;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-
-#pragma omp simd reduction(+: s0, s1, s2, s3)
-	for (int i = 0; i < m; i += roll) {
-		s0 += x[i + 0];
-		s1 += x[i + 1];
-		s2 += x[i + 2];
-		s3 += x[i + 3];
-
-		s0 += x[i + 4];
-		s1 += x[i + 5];
-		s2 += x[i + 6];
-		s3 += x[i + 7];
-	}
-	for (int i = m; i < n; i++) {
-		s0 += x[i];
-	}
-	return s0 + s1 + s2 + s3;
+	SUM_CORE(double);
 }
+int GMRFLib_isum(int n, int *x)
+{
+	SUM_CORE(int);
+}
+#undef SUM_CORE
 
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-	if (__builtin_expect(n <= 0, 0))
-		return 0.0;
-
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	int i = 0, roll = 8;
+	int unroll = 8;
+	int m = n & ~(unroll - 1);
 
-	for (; i + roll <= n; i += roll) {
-		__builtin_prefetch(idx + i + roll, 0, 3);
-
+	for (int i = 0; i < m; i += unroll) {
 		s0 += a[idx[i + 0]];
 		s1 += a[idx[i + 1]];
 		s2 += a[idx[i + 2]];
@@ -1493,26 +1412,24 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		s3 += a[idx[i + 7]];
 	}
 
-	for (; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += a[idx[i]];
 	}
 
 	return s0 + s1 + s2 + s3;
 }
 
-#define FILL_CORE(TYPE_)						\
-	if (n <= 0) return;						\
+#define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\
 		memset((void *) x, 0, (size_t) (n * sizeof(TYPE_)));	\
 	} else {							\
-		const int len0 = (16L / sizeof(TYPE_)) * 16L;		\
-		int nn = IMIN(n, len0);					\
+		int nn = IMIN(LEN_, n);					\
 		_Pragma("omp simd")					\
-			for (int i = 0; i < nn; i++) {			\
-				x[i] = a;				\
-			}						\
-		if (n > len0) {						\
-			int offset = len0;				\
+		for (int i = 0; i < nn; i++) {   			\
+			x[i] = a;					\
+		}							\
+		if (n > LEN_) {						\
+			int offset = LEN_;				\
 			while (offset < n) {				\
 				int len = IMIN(offset, n - offset);	\
 				memcpy((void *) (x + offset), (void *) x, (size_t) (len * sizeof(TYPE_))); \
@@ -1523,17 +1440,17 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 
 void GMRFLib_dfill(int n, double a, double *x)
 {
-	FILL_CORE(double);
+	FILL_CORE(double, 64);
 }
 
 void GMRFLib_ifill(int n, int a, int *x)
 {
-	FILL_CORE(int);
+	FILL_CORE(int, 128);
 }
 
 void GMRFLib_bfill(int n, bool a, bool *x)
 {
-	FILL_CORE(bool);
+	FILL_CORE(bool, 512);
 }
 #undef FILL_CORE
 

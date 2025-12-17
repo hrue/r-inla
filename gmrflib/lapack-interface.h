@@ -72,7 +72,6 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector * a);
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode);
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
-int GMRFLib_dscale(int n, double a, double *x);
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg);
 int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg);
@@ -130,6 +129,7 @@ void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
+void GMRFLib_dscale(int n, double a, double *x);
 void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
