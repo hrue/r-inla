@@ -422,9 +422,21 @@ int GMRFLib_opt_f_intern(int thread_id,
 				inla_write_state_to_file(B.f_best, fncall_timing.num_fncall, G.nhyper, x, G.graph->n, B.f_best_latent);
 				GMRFLib_write_state = 0;
 			}
+
+			static int first = 1;
+			static int use = 0;
+			if (first || use) {
+				first = 0;
+				if (!use) {
+					use = (getenv("INLA_INTERNAL_DUMP_MEMORY") ? 1 : 0);
+				}
+				if (use) {
+					GMRFLib_printMem_core(stdout, __FILE__, __LINE__);
+				}
+			}
 		}
 	}
-
+	
 	if (free_bnew_ptr) {
 		Free(bnew_ptr);
 	}
