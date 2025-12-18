@@ -1415,7 +1415,7 @@ double GMRFLib_dsum(int n, double *x)
 		result += x[i];
 	}
 	return result;
-#elif define(__ARM_NEON)
+#elif defined(__ARM_NEON)
     double64x2_t sum_vec = vdupq_n_f64(0.0);
     int i = 0;
     int vector_size = size & ~3;
