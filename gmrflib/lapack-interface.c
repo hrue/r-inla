@@ -1386,16 +1386,141 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 
 double GMRFLib_dsum(int n, double *x)
 {
+#if defined(__SSE2__)
+	__m128d sum0 = _mm_setzero_pd();
+	__m128d sum1 = _mm_setzero_pd();
+	__m128d sum2 = _mm_setzero_pd();
+	__m128d sum3 = _mm_setzero_pd();
+	int i = 0;
+	int limit = n & ~7;
+	for (; i < limit; i += 8) {
+		__m128d data0 = _mm_load_pd(&x[i]);
+		__m128d data1 = _mm_load_pd(&x[i + 2]);
+		__m128d data2 = _mm_load_pd(&x[i + 4]);
+		__m128d data3 = _mm_load_pd(&x[i + 6]);
+        
+		sum0 = _mm_add_pd(sum0, data0);
+		sum1 = _mm_add_pd(sum1, data1);
+		sum2 = _mm_add_pd(sum2, data2);
+		sum3 = _mm_add_pd(sum3, data3);
+	}
+	sum0 = _mm_add_pd(sum0, sum1);
+	sum2 = _mm_add_pd(sum2, sum3);
+	sum0 = _mm_add_pd(sum0, sum2);
+	__m128d sum_swapped = _mm_shuffle_pd(sum0, sum0, 1);
+	__m128d sum_total = _mm_add_pd(sum0, sum_swapped);
+	double result;
+	_mm_store_sd(&result, sum_total);
+	for (; i < n; i++) {
+		result += x[i];
+	}
+	return result;
+#elif define(__ARM_NEON)
+    double64x2_t sum_vec = vdupq_n_f64(0.0);
+    int i = 0;
+    int vector_size = size & ~3;
+    for (; i < vector_size; i += 4) {
+        double64x2_t vec1 = vld1q_f64(&x[i]);
+        double64x2_t vec2 = vld1q_f64(&x[i + 2]);
+        sum_vec = vaddq_f64(sum_vec, vec1);
+        sum_vec = vaddq_f64(sum_vec, vec2);
+    }
+    double64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
+    double result = vgetq_lane_f64(sum_pair, 0);
+    for (; i < size; i++) {
+        result += x[i];
+    }
+    return result;
+#else
 	SUM_CORE(double);
+#endif
 }
+
 int GMRFLib_isum(int n, int *x)
 {
+#if defined(__SSE2__)
+	__m128i sum0 = _mm_setzero_si128();
+	__m128i sum1 = _mm_setzero_si128();
+	int i = 0;
+	int limit = n & ~7;
+	for (; i < limit; i += 8) {
+		__m128i data0 = _mm_load_si128((__m128i*)&x[i]);
+		__m128i data1 = _mm_load_si128((__m128i*)&x[i + 4]);
+		sum0 = _mm_add_epi32(sum0, data0);
+		sum1 = _mm_add_epi32(sum1, data1);
+	}
+	sum0 = _mm_add_epi32(sum0, sum1);
+	int sum_array[4];
+	_mm_store_si128((__m128i*)sum_array, sum0);
+	int result = sum_array[0] + sum_array[1] + sum_array[2] + sum_array[3];
+	for (; i < n; i++) {
+		result += x[i];
+	}
+	return result;
+#elif defined(__ARM_NEON)
+    int32x4_t sum_vec = vdupq_n_s32(0);
+    int i = 0;
+    int vector_size = size & ~7;
+    for (; i < vector_size; i += 8) {
+        int32x4_t vec1 = vld1q_s32(&array[i]);
+        int32x4_t vec2 = vld1q_s32(&array[i + 4]);
+        sum_vec = vaddq_s32(sum_vec, vec1);
+        sum_vec = vaddq_s32(sum_vec, vec2);
+    }
+    int32x2_t sum_pair = vpadd_s32(vget_low_s32(sum_vec), vget_high_s32(sum_vec));
+    int32x2_t final_sum = vpadd_s32(sum_pair, sum_pair);
+    int32_t result = vget_lane_s32(final_sum, 0);
+    for (; i < size; i++) {
+        result += array[i];
+    }
+    return result;
+#else
 	SUM_CORE(int);
+#endif
 }
 #undef SUM_CORE
 
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
+#if defined(__SSE2__)
+	__m128d sum0 = _mm_setzero_pd();
+	__m128d sum1 = _mm_setzero_pd();
+	int i = 0;
+	int limit = n & ~3;
+	for (; i < limit; i += 4) {
+		__m128d val1 = _mm_load_sd(&a[idx[i]]);
+		__m128d val2 = _mm_load_sd(&a[idx[i+1]]);
+		__m128d val3 = _mm_load_sd(&a[idx[i+2]]);
+		__m128d val4 = _mm_load_sd(&a[idx[i+3]]);
+		__m128d data0 = _mm_unpacklo_pd(val1, val2);
+		__m128d data1 = _mm_unpacklo_pd(val3, val4);
+		sum0 = _mm_add_pd(sum0, data0);
+		sum1 = _mm_add_pd(sum1, data1);
+	}
+	sum0 = _mm_add_pd(sum0, sum1);
+	__m128d sum_swapped = _mm_shuffle_pd(sum0, sum0, 1);
+	__m128d sum_total = _mm_add_pd(sum0, sum_swapped);
+	double result;
+	_mm_store_sd(&result, sum_total);
+	for (; i < n; i++) {
+		result += a[idx[i]];
+	}
+	return result;
+#elif defined(__ARM_NEON)
+	double64x2_t sum_vec = vdupq_n_f64(0.0);
+	int i = 0;
+	int vector_size = size & ~1;
+	for (; i < vector_size; i += 2) {
+		double64x2_t vec = {array[idx[i]], array[idx[i + 1]]};
+		sum_vec = vaddq_f64(sum_vec, vec);
+	}
+	double64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
+	double result = vgetq_lane_f64(sum_pair, 0);
+	if (i < size) {
+		result += array[idx[i]];
+	}
+	return result;
+#else
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	int unroll = 8;
 	int m = n & ~(unroll - 1);
@@ -1411,12 +1536,11 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		s2 += a[idx[i + 6]];
 		s3 += a[idx[i + 7]];
 	}
-
 	for (int i = m; i < n; i++) {
 		s0 += a[idx[i]];
 	}
-
 	return s0 + s1 + s2 + s3;
+#endif
 }
 
 #define FILL_CORE(TYPE_, LEN_)						\
