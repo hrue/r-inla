@@ -713,6 +713,7 @@
         niter <- readBin(fp, integer(), 1)
         nfuncs <- readBin(fp, integer(), niter)
         fs <- readBin(fp, double(), niter)
+        wtimes <- readBin(fp, double(), niter)
         theta <- readBin(fp, double(), niter * nt)
         close(fp)
 
@@ -721,7 +722,8 @@
         rownames(theta) <- paste0("iter", seq_len(niter))
         names(nfuncs) <- paste0("iter", seq_len(niter))
         names(fs) <- paste0("iter", seq_len(niter))
-        opt.trace <- list(f = fs, nfunc = nfuncs, theta = theta)
+        names(wtimes) <- paste0("wtime", seq_len(niter))
+        opt.trace <- list(f = fs, wtime = wtimes, nfunc = nfuncs, theta = theta)
     } else {
         opt.trace <- NULL
     }

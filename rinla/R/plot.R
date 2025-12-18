@@ -751,12 +751,27 @@
             } else {
                 par(mfrow = c(1, 2))
             }
-            my.plot(x$misc$opt.trace$nfunc, x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1,
-                    log = "y", pch = 19, type = "l")
+
+            ## plot either wrt function evaluations or time
+            if (TRUE) {
+                my.plot(x$misc$opt.trace$nfunc, x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1,
+                        log = "y", pch = 19, type = "l")
+            } else {
+                my.plot(x$misc$opt.trace$wtime, x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1,
+                        log = "y", pch = 19, type = "l")
+            }
+
             if (single) {
                 close.and.new.plot(...)
             }
-            matplot(x$misc$opt.trace$nfunc, x$misc$opt.trace$theta, type = "l", lwd = 3)
+            
+            ## same here
+            if (TRUE) {
+                matplot(x$misc$opt.trace$nfunc, x$misc$opt.trace$theta, type = "l", lwd = 3)
+            } else {
+                matplot(x$misc$opt.trace$wtime, x$misc$opt.trace$theta, type = "l", lwd = 3)
+            }
+
             if (ncol(x$misc$opt.trace$theta) > 1) {
                 close.and.new.plot(...)
                 if (FALSE) {
@@ -781,9 +796,13 @@
                                    col = grey(seq(0.5, 0.0, len = m)))
                         }
                     }
+                    diag.trace <- function(x, ...) {
+                        lines(x, lwd = 3, ...)
+                    }
                     pairs(x$misc$opt.trace$theta, pch = 19,
                           upper.panel = panel.trace, 
                           lower.panel = panel.trace, 
+                          diag.panel = diag.trace, 
                           col = grey(seq(0.5, 0.0, len = m)))
                 }
             }

@@ -924,6 +924,7 @@ typedef struct {
 	int *nfunc;
 	double *f;
 	double *theta;
+	double *wtime;
 } GMRFLib_opt_trace_tp;
 
 typedef struct {

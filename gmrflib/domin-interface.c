@@ -1503,6 +1503,7 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 		(*otrace)->nalloc = size_alloc;
 		(*otrace)->f = Calloc((*otrace)->nalloc, double);
 		(*otrace)->nfunc = Calloc((*otrace)->nalloc, int);
+		(*otrace)->wtime = Calloc((*otrace)->nalloc, double);
 		(*otrace)->theta = Calloc(G.nhyper * (*otrace)->nalloc, double);
 	}
 
@@ -1510,11 +1511,23 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 		(*otrace)->nalloc += size_alloc;
 		(*otrace)->f = Realloc((*otrace)->f, (*otrace)->nalloc, double);
 		(*otrace)->nfunc = Realloc((*otrace)->nfunc, (*otrace)->nalloc, int);
+		(*otrace)->wtime = Realloc((*otrace)->wtime, (*otrace)->nalloc, double);
 		(*otrace)->theta = Realloc((*otrace)->theta, (*otrace)->nalloc * (*otrace)->nt, double);
 	}
+
+	static double wtime0= -1; 
+	double wtime = 0.0;
+	if (wtime0 < 0) {
+		wtime0 = GMRFLib_timer();
+		wtime = 0.0;
+	} else {
+		wtime = GMRFLib_timer() - wtime0;
+	}
+
 	Memcpy((*otrace)->f + (*otrace)->niter, &f, sizeof(double));
-	Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
+	Memcpy((*otrace)->wtime + (*otrace)->niter, &wtime, sizeof(double));
 	Memcpy((*otrace)->theta + (*otrace)->niter * (*otrace)->nt, theta, (*otrace)->nt * sizeof(double));
+	Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
 	(*otrace)->niter++;
 }
 

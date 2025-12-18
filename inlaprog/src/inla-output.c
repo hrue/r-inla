@@ -1209,6 +1209,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		fwrite((void *) &(mo->opt_trace->niter), sizeof(int), (size_t) 1, fp);
 		fwrite((void *) mo->opt_trace->nfunc, sizeof(int), (size_t) mo->opt_trace->niter, fp);
 		fwrite((void *) mo->opt_trace->f, sizeof(double), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->wtime, sizeof(double), (size_t) mo->opt_trace->niter, fp);
 		fwrite((void *) mo->opt_trace->theta, sizeof(double), (size_t) mo->opt_trace->niter * mo->opt_trace->nt, fp);
 		fclose(fp);
 	}
