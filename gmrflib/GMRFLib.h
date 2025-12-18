@@ -39,12 +39,12 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
 
-#if (defined(__linux__) || defined(__APPLE__)) && defined(__SSE2__)
+#if defined(__linux__) && defined(__SSE2__)
 #include <immintrin.h>
 #endif
-#if defined(WINDOWS) && defined(__SSE2__)
-#include <intrin.h>
-#endif
+//#if defined(WINDOWS) && defined(__SSE2__)
+//#include <intrin.h>
+//#endif
 
 /* 
  *  include files we need from GSL
