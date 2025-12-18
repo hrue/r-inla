@@ -1386,7 +1386,7 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 
 double GMRFLib_dsum(int n, double *x)
 {
-#if defined(__SSE2__)
+#if !defined(__APPLE__) && defined(__SSE2__)
 	__m128d sum0 = _mm_setzero_pd();
 	__m128d sum1 = _mm_setzero_pd();
 	__m128d sum2 = _mm_setzero_pd();
@@ -1422,7 +1422,7 @@ double GMRFLib_dsum(int n, double *x)
 
 int GMRFLib_isum(int n, int *x)
 {
-#if defined(__SSE2__)
+#if !defined(__APPLE__) && defined(__SSE2__)
 	__m128i sum0 = _mm_setzero_si128();
 	__m128i sum1 = _mm_setzero_si128();
 	int i = 0;
@@ -1449,7 +1449,7 @@ int GMRFLib_isum(int n, int *x)
 
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-#if defined(__SSE2__)
+#if !defined(__APPLE__) && defined(__SSE2__)
 	__m128d sum0 = _mm_setzero_pd();
 	__m128d sum1 = _mm_setzero_pd();
 	int i = 0;
