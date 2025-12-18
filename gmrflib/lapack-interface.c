@@ -1416,16 +1416,16 @@ double GMRFLib_dsum(int n, double *x)
 	}
 	return result;
 #elif defined(__ARM_NEON)
-    double64x2_t sum_vec = vdupq_n_f64(0.0);
+    poly64x2_t sum_vec = vdupq_n_f64(0.0);
     int i = 0;
     int vector_size = size & ~3;
     for (; i < vector_size; i += 4) {
-        double64x2_t vec1 = vld1q_f64(&x[i]);
-        double64x2_t vec2 = vld1q_f64(&x[i + 2]);
+        poly64x2_t vec1 = vld1q_f64(&x[i]);
+        poly64x2_t vec2 = vld1q_f64(&x[i + 2]);
         sum_vec = vaddq_f64(sum_vec, vec1);
         sum_vec = vaddq_f64(sum_vec, vec2);
     }
-    double64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
+    poly64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
     double result = vgetq_lane_f64(sum_pair, 0);
     for (; i < size; i++) {
         result += x[i];
@@ -1507,14 +1507,14 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 	}
 	return result;
 #elif defined(__ARM_NEON)
-	double64x2_t sum_vec = vdupq_n_f64(0.0);
+	poly64x2_t sum_vec = vdupq_n_f64(0.0);
 	int i = 0;
 	int vector_size = size & ~1;
 	for (; i < vector_size; i += 2) {
-		double64x2_t vec = {array[idx[i]], array[idx[i + 1]]};
+		poly64x2_t vec = {array[idx[i]], array[idx[i + 1]]};
 		sum_vec = vaddq_f64(sum_vec, vec);
 	}
-	double64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
+	poly64x2_t sum_pair = vpaddq_f64(sum_vec, sum_vec);
 	double result = vgetq_lane_f64(sum_pair, 0);
 	if (i < size) {
 		result += array[idx[i]];
