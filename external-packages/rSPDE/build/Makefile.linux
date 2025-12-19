@@ -5,6 +5,6 @@ TARGET = librSPDE.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c)) $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 $(TARGET) : $(OBJ)
-	$(CXX) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp -lm
+	$(CXX) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran $(LIBOMP) -lm
 
 clean :; rm -f $(TARGET) $(OBJ)

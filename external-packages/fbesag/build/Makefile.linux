@@ -4,6 +4,6 @@ TARGET = libfbesag.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 $(TARGET) : $(OBJ)
-	  $(CC) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp -lm
+	  $(CC) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran $(LIBOMP) -lm
 
 clean :; rm -f $(TARGET) $(OBJ)
