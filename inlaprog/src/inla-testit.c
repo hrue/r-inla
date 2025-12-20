@@ -5740,15 +5740,34 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
+		int kk = 0;
+		if (nargs >= 3) {
+			kk = (atoi(args[2]) ? 1 : 0);
+		}
 		P(n);
 		P(m);
-		double *x = Calloc(n, double);
-		double *y = Calloc(n, double);
-		int *ix = Calloc(n, int);
-		int *iy = Calloc(n, int);
-		int *idx = Calloc(n, int);
-		bool *bx = Calloc(n, bool);
+		P(kk);
+		double *x = Calloc(n+100, double);
+		double *y = Calloc(n+100, double);
+		int *ix = Calloc(n+100, int);
+		int *iy = Calloc(n+100, int);
+		int *idx = Calloc(n+100, int);
+		bool *bx = Calloc(n+100, bool);
 
+		x = x + kk;
+		y = y + kk;
+		ix = ix + kk;
+		iy = iy + kk;
+		idx = idx + kk;
+		bx = bx + kk;
+		
+		P(SIMD_ALIGNED(x));
+		P(SIMD_ALIGNED(y));
+		P(SIMD_ALIGNED(ix));
+		P(SIMD_ALIGNED(iy));
+		P(SIMD_ALIGNED(idx));
+		P(SIMD_ALIGNED(bx));
+		
 		double tref[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		for (int j = 0; j < m; j++) {
 			for (int i = 0; i < n; i++) {
@@ -5759,7 +5778,7 @@ int testit(int argc, char **argv)
 				y[i] = GMRFLib_uniform();
 				bx[i] = (bool) (GMRFLib_uniform() <  0.5);
 			}
-			
+
 			double a, e;
 			
 			tref[9] -= GMRFLib_timer();
@@ -5820,6 +5839,7 @@ int testit(int argc, char **argv)
 			tref[7] += GMRFLib_timer();
 			assert(bx[0] == bx[n-1]);
 		}
+		printf("aligned %s\n", (SIMD_ALIGNED(x)) ? "YES" : "NO");
 		printf("ddot        %.8f\n", tref[9]);
 		printf("sparse_ddot %.8f\n", tref[0]);
 

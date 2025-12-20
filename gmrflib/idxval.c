@@ -311,21 +311,28 @@ int GMRFLib_ptr_printf(FILE *fp, GMRFLib_ptr_tp *hold, const char *msg)
 int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
+		int show_details = 0;
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+		if (show_details) {
+			for (int i = 0; i < hold->n; i++) {
+				fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+			}
 		}
 		if (hold->g_n) {
 			fprintf(fp, "\tg_n = %1d\n", hold->g_n);
 			for (int g = 0; g < hold->g_n; g++) {
-				fprintf(fp, "\tgroup %d has length %d (one=%s)\n", g, hold->g_len[g],
-					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"));
-				fprintf(fp, "\t\t");
-				for (int k = 0; k < IABS(hold->g_len[g]); k++) {
-					fprintf(fp, " %1d(%g)", hold->g_idx[g][k], hold->g_val[g][k]);
+				fprintf(fp, "\tgroup %d has length %d (one=%s) (aligned=%s:%s)\n", g, hold->g_len[g],
+					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"), 
+					(SIMD_ALIGNED(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), 
+					(SIMD_ALIGNED(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
+				if (show_details) {
+					fprintf(fp, "\t\t");
+					for (int k = 0; k < IABS(hold->g_len[g]); k++) {
+						fprintf(fp, " %1d(%g)", hold->g_idx[g][k], hold->g_val[g][k]);
 
+					}
+					fprintf(fp, "\n");
 				}
-				fprintf(fp, "\n");
 			}
 		}
 	}

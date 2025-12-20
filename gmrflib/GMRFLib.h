@@ -39,10 +39,10 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
 
-#if defined(__linux__) && defined(__SSE2__)
+#if defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 #include <immintrin.h>
 #endif
-//#if defined(WINDOWS) && defined(__SSE2__)
+//#if defined(WINDOWS) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 //#include <intrin.h>
 //#endif
 

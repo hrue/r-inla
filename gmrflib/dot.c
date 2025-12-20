@@ -4,8 +4,12 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+#pragma GCC push_options
+#pragma GCC optimize("O3")
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
+	if (n == 0) return 0.0;
+	
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
@@ -46,6 +50,7 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	return s0;
 #endif
 }
+#pragma GCC pop_options
 
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
