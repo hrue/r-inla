@@ -434,6 +434,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_HWLOC)
 		printf("\t\tCompiled with -DINLA_WITH_HWLOC\n");
 #endif
+#if defined(INLA_WITH_INTRINSICS)
+		printf("\t\tCompiled with -DINLA_WITH_INTRINSICS\n");
+#endif		
 	}
 
 
