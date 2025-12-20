@@ -13,7 +13,7 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
-#elif defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#elif 0 && defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 	__m128d sum0 = _mm_setzero_pd();
 	__m128d sum1 = _mm_setzero_pd();
 	int i = 0;
