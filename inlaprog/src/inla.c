@@ -7572,7 +7572,9 @@ int main(int argc, char **argv)
 
 	if (!silent || verbose) {
 		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+#if !defined(INLA_WITH_DEVEL)
 		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
+#endif
 		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
 
 		_BUGS_intern(stdout);
