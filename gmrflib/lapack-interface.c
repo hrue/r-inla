@@ -6,9 +6,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-// AVX2 code below, can be disabled by commenting this line. in that we case we revert back to SSE2
-#define ENABLE_AVX2
-
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
@@ -1369,7 +1366,7 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 	if (n <= 16) {
 		double r = 0.0;
 #pragma omp simd reduction(+: r)
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			r += x[i] * y[i];
 		}
 		return r;
@@ -1392,14 +1389,16 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 #pragma GCC optimize("O3")
 double GMRFLib_dsum(int n, double *x)
 {
-	if (n == 0) return 0.0;
-#if defined(ENABLE_AVX2) && defined(__linux__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+	if (n == 0)
+		return 0.0;
+#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
 	double result0 = 0.0;
 	if (!SIMD_ALIGNED(x)) {
 		result0 = x[0];
 		x++;
 		n--;
-		if (n == 0) return result0;
+		if (n == 0)
+			return result0;
 	}
 	__m256d sum0 = _mm256_setzero_pd();
 	__m256d sum1 = _mm256_setzero_pd();
@@ -1429,13 +1428,14 @@ double GMRFLib_dsum(int n, double *x)
 		result += x[i];
 	}
 	return result + result0;
-#elif defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 	double result0 = 0.0;
 	if (!SIMD_ALIGNED(x)) {
 		result0 = x[0];
 		x++;
 		n--;
-		if (n == 0) return result0;
+		if (n == 0)
+			return result0;
 	}
 	__m128d sum0 = _mm_setzero_pd();
 	__m128d sum1 = _mm_setzero_pd();
@@ -1448,7 +1448,7 @@ double GMRFLib_dsum(int n, double *x)
 		__m128d data1 = _mm_load_pd(&x[i + 2]);
 		__m128d data2 = _mm_load_pd(&x[i + 4]);
 		__m128d data3 = _mm_load_pd(&x[i + 6]);
-        
+
 		sum0 = _mm_add_pd(sum0, data0);
 		sum1 = _mm_add_pd(sum1, data1);
 		sum2 = _mm_add_pd(sum2, data2);
@@ -1465,6 +1465,40 @@ double GMRFLib_dsum(int n, double *x)
 		result += x[i];
 	}
 	return result + result0;
+#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
+	double result = 0.0;
+	if (!SIMD_ALIGNED(x)) {
+		result = x[0];
+		x++;
+		n--;
+		if (n == 0)
+			return result;
+	}
+	double *end = x + n;
+	int rem = n % 8;
+	double *x_end = end - rem;
+	float64x2_t sum_vec0 = vdupq_n_f64(0.0);
+	float64x2_t sum_vec1 = vdupq_n_f64(0.0);
+	float64x2_t sum_vec2 = vdupq_n_f64(0.0);
+	float64x2_t sum_vec3 = vdupq_n_f64(0.0);
+	for (double *p = x; p < x_end; p += 8) {
+		float64x2_t vec0 = vld1q_f64(p);
+		float64x2_t vec1 = vld1q_f64(p + 2);
+		float64x2_t vec2 = vld1q_f64(p + 4);
+		float64x2_t vec3 = vld1q_f64(p + 6);
+		sum_vec0 = vaddq_f64(sum_vec0, vec0);
+		sum_vec1 = vaddq_f64(sum_vec1, vec1);
+		sum_vec2 = vaddq_f64(sum_vec2, vec2);
+		sum_vec3 = vaddq_f64(sum_vec3, vec3);
+	}
+	sum_vec0 = vaddq_f64(sum_vec0, sum_vec1);
+	sum_vec2 = vaddq_f64(sum_vec2, sum_vec3);
+	sum_vec0 = vaddq_f64(sum_vec0, sum_vec2);
+	result += vgetq_lane_f64(sum_vec0, 0) + vgetq_lane_f64(sum_vec0, 1);
+	for (double *p = x_end; p < end; p++) {
+		result += *p;
+	}
+	return result;
 #else
 	SUM_CORE(double);
 #endif
@@ -1475,15 +1509,17 @@ double GMRFLib_dsum(int n, double *x)
 #pragma GCC optimize("O3")
 int GMRFLib_isum(int n, int *x)
 {
-	if (n == 0) return 0;
-#if defined(ENABLE_AVX2) && defined(__linux__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+	if (n == 0)
+		return 0;
+#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
 	int result0 = 0;
 	int count = 0;
 	while (!SIMD_ALIGNED(x) && n) {
 		result0 += x[0];
 		x++;
 		n--;
-		if (n == 0) return result0;
+		if (n == 0)
+			return result0;
 		assert(++count < 4);
 	}
 	__m256i sum0 = _mm256_setzero_si256();
@@ -1493,10 +1529,10 @@ int GMRFLib_isum(int n, int *x)
 	int i = 0;
 	int m = n & ~31;
 	for (; i < m; i += 32) {
-		__m256i vec0 = _mm256_loadu_si256((__m256i*)&x[i]);
-		__m256i vec1 = _mm256_loadu_si256((__m256i*)&x[i + 8]);
-		__m256i vec2 = _mm256_loadu_si256((__m256i*)&x[i + 16]);
-		__m256i vec3 = _mm256_loadu_si256((__m256i*)&x[i + 24]);
+		__m256i vec0 = _mm256_loadu_si256((__m256i *) & x[i]);
+		__m256i vec1 = _mm256_loadu_si256((__m256i *) & x[i + 8]);
+		__m256i vec2 = _mm256_loadu_si256((__m256i *) & x[i + 16]);
+		__m256i vec3 = _mm256_loadu_si256((__m256i *) & x[i + 24]);
 		sum0 = _mm256_add_epi32(sum0, vec0);
 		sum1 = _mm256_add_epi32(sum1, vec1);
 		sum2 = _mm256_add_epi32(sum2, vec2);
@@ -1515,14 +1551,15 @@ int GMRFLib_isum(int n, int *x)
 		result += x[i];
 	}
 	return result + result0;
-#elif defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 	int result0 = 0.0;
 	int count = 0;
 	while (!SIMD_ALIGNED(x) && n) {
 		result0 += x[0];
 		x++;
 		n--;
-		if (n == 0) return result0;
+		if (n == 0)
+			return result0;
 		assert(++count < 4);
 	}
 	__m128i sum0 = _mm_setzero_si128();
@@ -1530,14 +1567,14 @@ int GMRFLib_isum(int n, int *x)
 	int i = 0;
 	int limit = n & ~7;
 	for (; i < limit; i += 8) {
-		__m128i data0 = _mm_load_si128((__m128i*)&x[i]);
-		__m128i data1 = _mm_load_si128((__m128i*)&x[i + 4]);
+		__m128i data0 = _mm_load_si128((__m128i *) & x[i]);
+		__m128i data1 = _mm_load_si128((__m128i *) & x[i + 4]);
 		sum0 = _mm_add_epi32(sum0, data0);
 		sum1 = _mm_add_epi32(sum1, data1);
 	}
 	sum0 = _mm_add_epi32(sum0, sum1);
 	int sum_array[4];
-	_mm_store_si128((__m128i*)sum_array, sum0);
+	_mm_store_si128((__m128i *) sum_array, sum0);
 	int result = sum_array[0] + sum_array[1] + sum_array[2] + sum_array[3];
 	for (; i < n; i++) {
 		result += x[i];
@@ -1554,8 +1591,9 @@ int GMRFLib_isum(int n, int *x)
 #pragma GCC optimize("O3")
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-	if (n == 0) return 0.0;
-#if defined(ENABLE_AVX2) && defined(__linux__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+	if (n == 0)
+		return 0.0;
+#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
 	__m256d sum0 = _mm256_setzero_pd();
 	__m256d sum1 = _mm256_setzero_pd();
 	__m256d sum2 = _mm256_setzero_pd();
@@ -1563,10 +1601,10 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 	int i = 0;
 	int m = n & ~15;
 	for (; i < m; i += 16) {
-		__m128i idx0 = _mm_loadu_si128((__m128i*)&idx[i]);
-		__m128i idx1 = _mm_loadu_si128((__m128i*)&idx[i + 4]);
-		__m128i idx2 = _mm_loadu_si128((__m128i*)&idx[i + 8]);
-		__m128i idx3 = _mm_loadu_si128((__m128i*)&idx[i + 12]);
+		__m128i idx0 = _mm_loadu_si128((__m128i *) & idx[i]);
+		__m128i idx1 = _mm_loadu_si128((__m128i *) & idx[i + 4]);
+		__m128i idx2 = _mm_loadu_si128((__m128i *) & idx[i + 8]);
+		__m128i idx3 = _mm_loadu_si128((__m128i *) & idx[i + 12]);
 		__m256d vec0 = _mm256_i32gather_pd(a, idx0, 8);
 		__m256d vec1 = _mm256_i32gather_pd(a, idx1, 8);
 		__m256d vec2 = _mm256_i32gather_pd(a, idx2, 8);
@@ -1588,16 +1626,16 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		result += a[idx[i]];
 	}
 	return result;
-#elif defined(__linux__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 	__m128d sum0 = _mm_setzero_pd();
 	__m128d sum1 = _mm_setzero_pd();
 	int i = 0;
 	int limit = n & ~3;
 	for (; i < limit; i += 4) {
 		__m128d val1 = _mm_load_sd(&a[idx[i]]);
-		__m128d val2 = _mm_load_sd(&a[idx[i+1]]);
-		__m128d val3 = _mm_load_sd(&a[idx[i+2]]);
-		__m128d val4 = _mm_load_sd(&a[idx[i+3]]);
+		__m128d val2 = _mm_load_sd(&a[idx[i + 1]]);
+		__m128d val3 = _mm_load_sd(&a[idx[i + 2]]);
+		__m128d val4 = _mm_load_sd(&a[idx[i + 3]]);
 		__m128d data0 = _mm_unpacklo_pd(val1, val2);
 		__m128d data1 = _mm_unpacklo_pd(val3, val4);
 		sum0 = _mm_add_pd(sum0, data0);
@@ -1612,6 +1650,26 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		result += a[idx[i]];
 	}
 	return result;
+#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
+	float64x2_t sum_vec0 = vdupq_n_f64(0.0);
+	float64x2_t sum_vec1 = vdupq_n_f64(0.0);
+	int i = 0;
+	int rem = n % 4;
+	int end = n - rem;
+	for (; i < end; i += 4) {
+		double d0[2] = { a[idx[i]], a[idx[i + 1]] };
+		double d2[2] = { a[idx[i + 2]], a[idx[i + 3]] };
+		float64x2_t vec0 = vld1q_f64(d0);
+		float64x2_t vec1 = vld1q_f64(d2);
+		sum_vec0 = vaddq_f64(sum_vec0, vec0);
+		sum_vec1 = vaddq_f64(sum_vec1, vec1);
+	}
+	sum_vec0 = vaddq_f64(sum_vec0, sum_vec1);
+	double result = vgetq_lane_f64(sum_vec0, 0) + vgetq_lane_f64(sum_vec0, 1);
+	for (; i < n; i++) {
+		result += a[idx[i]];
+	}
+	return result;
 #else
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	int unroll = 8;
@@ -1621,7 +1679,6 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		s1 += a[idx[i + 1]];
 		s2 += a[idx[i + 2]];
 		s3 += a[idx[i + 3]];
-
 		s0 += a[idx[i + 4]];
 		s1 += a[idx[i + 5]];
 		s2 += a[idx[i + 6]];
