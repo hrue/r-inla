@@ -887,7 +887,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #endif
 	Free(g_istart);
 
-	int ntimes = 1;
+	int ntimes = 2;
 	double treff[2] = { 0.0, 0.0 };
 	double value[2] = { 0.0, 0.0 };
 
