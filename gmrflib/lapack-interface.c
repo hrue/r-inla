@@ -1400,93 +1400,12 @@ double GMRFLib_dsum(int n, double *x)
 		}
 	}
 
-#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-	__m256d sum0 = _mm256_setzero_pd();
-	__m256d sum1 = _mm256_setzero_pd();
-	__m256d sum2 = _mm256_setzero_pd();
-	__m256d sum3 = _mm256_setzero_pd();
-	int i = 0;
-	int m = n & ~15;
-	for (; i < m; i += 16) {
-		__m256d vec0 = _mm256_loadu_pd(&x[i]);
-		__m256d vec1 = _mm256_loadu_pd(&x[i + 4]);
-		__m256d vec2 = _mm256_loadu_pd(&x[i + 8]);
-		__m256d vec3 = _mm256_loadu_pd(&x[i + 12]);
-		sum0 = _mm256_add_pd(sum0, vec0);
-		sum1 = _mm256_add_pd(sum1, vec1);
-		sum2 = _mm256_add_pd(sum2, vec2);
-		sum3 = _mm256_add_pd(sum3, vec3);
-	}
-	sum0 = _mm256_add_pd(sum0, sum1);
-	sum2 = _mm256_add_pd(sum2, sum3);
-	sum0 = _mm256_add_pd(sum0, sum2);
-	__m128d sum_low = _mm256_castpd256_pd128(sum0);
-	__m128d sum_high = _mm256_extractf128_pd(sum0, 1);
-	__m128d sum_128 = _mm_add_pd(sum_low, sum_high);
-	sum_128 = _mm_hadd_pd(sum_128, sum_128);
-	double r = _mm_cvtsd_f64(sum_128);
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += x[ii];
-	}
-	return r + r0;
-#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-	__m128d sum0 = _mm_setzero_pd();
-	__m128d sum1 = _mm_setzero_pd();
-	__m128d sum2 = _mm_setzero_pd();
-	__m128d sum3 = _mm_setzero_pd();
-	int i = 0;
-	int limit = n & ~7;
-	for (; i < limit; i += 8) {
-		__m128d data0 = _mm_load_pd(&x[i]);
-		__m128d data1 = _mm_load_pd(&x[i + 2]);
-		__m128d data2 = _mm_load_pd(&x[i + 4]);
-		__m128d data3 = _mm_load_pd(&x[i + 6]);
-
-		sum0 = _mm_add_pd(sum0, data0);
-		sum1 = _mm_add_pd(sum1, data1);
-		sum2 = _mm_add_pd(sum2, data2);
-		sum3 = _mm_add_pd(sum3, data3);
-	}
-	sum0 = _mm_add_pd(sum0, sum1);
-	sum2 = _mm_add_pd(sum2, sum3);
-	sum0 = _mm_add_pd(sum0, sum2);
-	__m128d sum_swapped = _mm_shuffle_pd(sum0, sum0, 1);
-	__m128d sum_total = _mm_add_pd(sum0, sum_swapped);
-	double r;
-	_mm_store_sd(&r, sum_total);
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += x[ii];
-	}
-	return r + r0;
+#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/dsum-avx2.h"
+#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/dsum-sse2.h"
 #elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-	double *end = x + n;
-	int rem = n % 8;
-	double *x_end = end - rem;
-	float64x2_t sum_vec0 = vdupq_n_f64(0.0);
-	float64x2_t sum_vec1 = vdupq_n_f64(0.0);
-	float64x2_t sum_vec2 = vdupq_n_f64(0.0);
-	float64x2_t sum_vec3 = vdupq_n_f64(0.0);
-	for (double *p = x; p < x_end; p += 8) {
-		float64x2_t vec0 = vld1q_f64(p);
-		float64x2_t vec1 = vld1q_f64(p + 2);
-		float64x2_t vec2 = vld1q_f64(p + 4);
-		float64x2_t vec3 = vld1q_f64(p + 6);
-		sum_vec0 = vaddq_f64(sum_vec0, vec0);
-		sum_vec1 = vaddq_f64(sum_vec1, vec1);
-		sum_vec2 = vaddq_f64(sum_vec2, vec2);
-		sum_vec3 = vaddq_f64(sum_vec3, vec3);
-	}
-	sum_vec0 = vaddq_f64(sum_vec0, sum_vec1);
-	sum_vec2 = vaddq_f64(sum_vec2, sum_vec3);
-	sum_vec0 = vaddq_f64(sum_vec0, sum_vec2);
-	double r = vgetq_lane_f64(sum_vec0, 0) + vgetq_lane_f64(sum_vec0, 1);
-#pragma omp simd reduction(+: r)
-	for (double *p = x_end; p < end; p++) {
-		r += *p;
-	}
-	return r + r0;
+#include "intrinsics/aarch64/dsum.h"
 #else
 	SUM_CORE(double);
 #endif
@@ -1512,63 +1431,10 @@ int GMRFLib_isum(int n, int *x)
 		assert(++count < 4);
 	}
 
-#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-	int i = 0;
-	int m = n & ~31;
-	int r = 0;
-	if (m > 0) {
-		__m256i sum0 = _mm256_setzero_si256();
-		__m256i sum1 = _mm256_setzero_si256();
-		__m256i sum2 = _mm256_setzero_si256();
-		__m256i sum3 = _mm256_setzero_si256();
-		for (; i < m; i += 32) {
-			__m256i vec0 = _mm256_loadu_si256((__m256i *) & x[i]);
-			__m256i vec1 = _mm256_loadu_si256((__m256i *) & x[i + 8]);
-			__m256i vec2 = _mm256_loadu_si256((__m256i *) & x[i + 16]);
-			__m256i vec3 = _mm256_loadu_si256((__m256i *) & x[i + 24]);
-			sum0 = _mm256_add_epi32(sum0, vec0);
-			sum1 = _mm256_add_epi32(sum1, vec1);
-			sum2 = _mm256_add_epi32(sum2, vec2);
-			sum3 = _mm256_add_epi32(sum3, vec3);
-		}
-		sum0 = _mm256_add_epi32(sum0, sum1);
-		sum2 = _mm256_add_epi32(sum2, sum3);
-		sum0 = _mm256_add_epi32(sum0, sum2);
-		__m128i sum128 = _mm256_extracti128_si256(sum0, 0);
-		__m128i sum128_high = _mm256_extracti128_si256(sum0, 1);
-		sum128 = _mm_add_epi32(sum128, sum128_high);
-		sum128 = _mm_hadd_epi32(sum128, sum128);
-		sum128 = _mm_hadd_epi32(sum128, sum128);
-		r = _mm_extract_epi32(sum128, 0);
-	}
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += x[ii];
-	}
-	return r + r0;
-#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-	int i = 0;
-	int limit = n & ~7;
-	int r = 0;
-	if (limit > 0) {
-		__m128i sum0 = _mm_setzero_si128();
-		__m128i sum1 = _mm_setzero_si128();
-		for (; i < limit; i += 8) {
-			__m128i data0 = _mm_load_si128((__m128i *) & x[i]);
-			__m128i data1 = _mm_load_si128((__m128i *) & x[i + 4]);
-			sum0 = _mm_add_epi32(sum0, data0);
-			sum1 = _mm_add_epi32(sum1, data1);
-		}
-		sum0 = _mm_add_epi32(sum0, sum1);
-		int sum_array[4];
-		_mm_store_si128((__m128i *) sum_array, sum0);
-		r = sum_array[0] + sum_array[1] + sum_array[2] + sum_array[3];
-	}
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += x[ii];
-	}
-	return r + r0;
+#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/isum-avx2.h"
+#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/isum-sse2.h"
 #else
 	SUM_CORE(int);
 #endif
@@ -1584,94 +1450,11 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		return 0.0;
 	}
 
-#if (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-	int i = 0;
-	int m = n & ~15;
-	double r = 0.0;
-	if (m > 0) {
-		__m256d sum0 = _mm256_setzero_pd();
-		__m256d sum1 = _mm256_setzero_pd();
-		__m256d sum2 = _mm256_setzero_pd();
-		__m256d sum3 = _mm256_setzero_pd();
-		for (; i < m; i += 16) {
-			__m128i idx0 = _mm_loadu_si128((__m128i *) & idx[i]);
-			__m128i idx1 = _mm_loadu_si128((__m128i *) & idx[i + 4]);
-			__m128i idx2 = _mm_loadu_si128((__m128i *) & idx[i + 8]);
-			__m128i idx3 = _mm_loadu_si128((__m128i *) & idx[i + 12]);
-			__m256d vec0 = _mm256_i32gather_pd(a, idx0, 8);
-			__m256d vec1 = _mm256_i32gather_pd(a, idx1, 8);
-			__m256d vec2 = _mm256_i32gather_pd(a, idx2, 8);
-			__m256d vec3 = _mm256_i32gather_pd(a, idx3, 8);
-			sum0 = _mm256_add_pd(sum0, vec0);
-			sum1 = _mm256_add_pd(sum1, vec1);
-			sum2 = _mm256_add_pd(sum2, vec2);
-			sum3 = _mm256_add_pd(sum3, vec3);
-		}
-		sum0 = _mm256_add_pd(sum0, sum1);
-		sum2 = _mm256_add_pd(sum2, sum3);
-		sum0 = _mm256_add_pd(sum0, sum2);
-		__m128d sum_low = _mm256_castpd256_pd128(sum0);
-		__m128d sum_high = _mm256_extractf128_pd(sum0, 1);
-		__m128d sum_128 = _mm_add_pd(sum_low, sum_high);
-		sum_128 = _mm_hadd_pd(sum_128, sum_128);
-		r = _mm_cvtsd_f64(sum_128);
-	}
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += a[idx[ii]];
-	}
-	return r;
-#elif (defined(__linux__) || defined(WINDOWS)) && defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-	int i = 0;
-	int limit = n & ~3;
-	double r = 0.0;
-	if (limit > 0) {
-		__m128d sum0 = _mm_setzero_pd();
-		__m128d sum1 = _mm_setzero_pd();
-		for (; i < limit; i += 4) {
-			__m128d val1 = _mm_load_sd(&a[idx[i]]);
-			__m128d val2 = _mm_load_sd(&a[idx[i + 1]]);
-			__m128d val3 = _mm_load_sd(&a[idx[i + 2]]);
-			__m128d val4 = _mm_load_sd(&a[idx[i + 3]]);
-			__m128d data0 = _mm_unpacklo_pd(val1, val2);
-			__m128d data1 = _mm_unpacklo_pd(val3, val4);
-			sum0 = _mm_add_pd(sum0, data0);
-			sum1 = _mm_add_pd(sum1, data1);
-		}
-		sum0 = _mm_add_pd(sum0, sum1);
-		__m128d sum_swapped = _mm_shuffle_pd(sum0, sum0, 1);
-		__m128d sum_total = _mm_add_pd(sum0, sum_swapped);
-		_mm_store_sd(&r, sum_total);
-	}
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += a[idx[ii]];
-	}
-	return r;
+#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/sparse-dsum-avx2.h"
+#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
 #elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-	int i = 0;
-	int rem = n % 4;
-	int end = n - rem;
-	double r = 0.0;
-	if (end > 0) {
-		float64x2_t sum_vec0 = vdupq_n_f64(0.0);
-		float64x2_t sum_vec1 = vdupq_n_f64(0.0);
-		for (; i < end; i += 4) {
-			double d0[2] = { a[idx[i]], a[idx[i + 1]] };
-			double d2[2] = { a[idx[i + 2]], a[idx[i + 3]] };
-			float64x2_t vec0 = vld1q_f64(d0);
-			float64x2_t vec1 = vld1q_f64(d2);
-			sum_vec0 = vaddq_f64(sum_vec0, vec0);
-			sum_vec1 = vaddq_f64(sum_vec1, vec1);
-		}
-		sum_vec0 = vaddq_f64(sum_vec0, sum_vec1);
-		r = vgetq_lane_f64(sum_vec0, 0) + vgetq_lane_f64(sum_vec0, 1);
-	}
-#pragma omp simd reduction(+: r)
-	for (int ii = i; ii < n; ii++) {
-		r += a[idx[ii]];
-	}
-	return r;
+#include "intrinsics/x86_64/sparse-dsum-sse2.h"
 #else
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	int unroll = 8;
