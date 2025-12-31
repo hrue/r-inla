@@ -8,16 +8,17 @@
 #pragma GCC optimize("O3")
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	if (n == 0) return 0.0;
-	
+	if (n == 0)
+		return 0.0;
+
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
 #elif 0 && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/sparse-ddot.h"
+#       include "intrinsics/x86_64/sparse-ddot.h"
 #else
 	double s0 = 0.0;
-#pragma omp simd reduction(+: s0)
+#       pragma omp simd reduction(+: s0)
 	for (int i = 0; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}

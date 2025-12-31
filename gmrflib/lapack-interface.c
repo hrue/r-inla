@@ -1401,11 +1401,15 @@ double GMRFLib_dsum(int n, double *x)
 	}
 
 #if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/dsum-avx2.h"
+	if (n < 32) {
+#       include "intrinsics/x86_64/dsum-sse2.h"
+	} else {
+#       include "intrinsics/x86_64/dsum-avx2.h"
+	}
 #elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/dsum-sse2.h"
+#       include "intrinsics/x86_64/dsum-sse2.h"
 #elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/aarch64/dsum.h"
+#       include "intrinsics/aarch64/dsum.h"
 #else
 	SUM_CORE(double);
 #endif
@@ -1431,10 +1435,14 @@ int GMRFLib_isum(int n, int *x)
 		assert(++count < 4);
 	}
 
-#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/isum-avx2.h"
+#if defined(__x86_64__) && defined(__AVX2__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+	if (n < 32) {
+#       include "intrinsics/x86_64/isum-sse2.h"
+	} else {
+#       include "intrinsics/x86_64/isum-avx2.h"
+	}
 #elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/isum-sse2.h"
+#       include "intrinsics/x86_64/isum-sse2.h"
 #else
 	SUM_CORE(int);
 #endif
@@ -1450,11 +1458,16 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		return 0.0;
 	}
 
-#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/sparse-dsum-avx2.h"
+#if defined(__x86_64__) && defined(__AVX2__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+	if (n < 32) {
+#       include "intrinsics/x86_64/sparse-dsum-sse2.h"
+	} else {
+#       include "intrinsics/x86_64/sparse-dsum-avx2.h"
+	}
 #elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#       include "intrinsics/x86_64/sparse-dsum-sse2.h"
 #elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/sparse-dsum-sse2.h"
+#       include "intrinsics/aarch64/sparse-dsum.h"
 #else
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	int unroll = 8;
@@ -1469,7 +1482,7 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		s2 += a[idx[i + 6]];
 		s3 += a[idx[i + 7]];
 	}
-#pragma omp simd reduction(+: s0)
+#       pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += a[idx[i]];
 	}
@@ -1544,13 +1557,13 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	if (n > 4L) {
 		vdPowx(n, x, a, y);
 	} else {
-#pragma omp simd
+#       pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] = pow(x[i], a);
 		}
 	}
 #else
-#pragma omp simd
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = pow(x[i], a);
 	}
