@@ -1303,7 +1303,7 @@ double GMRFLib_dssqr(int n, double *x)
 void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	if (n <= 32) {
+	if (n < 32) {
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			x[i] *= a;
@@ -1350,7 +1350,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
 	// y = a * x + y
-	if (n <= 32) {
+	if (n < 32) {
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] += a * x[i];
@@ -1363,7 +1363,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-	if (n <= 16) {
+	if (n < 32) {
 		double r = 0.0;
 #pragma omp simd reduction(+: r)
 		for (int i = 0; i < n; i++) {
@@ -1400,16 +1400,20 @@ double GMRFLib_dsum(int n, double *x)
 		}
 	}
 
-#if defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-	if (n < 32) {
-#       include "intrinsics/x86_64/dsum-sse2.h"
+#if defined(INLA_WITH_INTRINSICS)
+#       if defined(__x86_64__) && defined(__AVX2__)
+	if (n < 16) {
+#              include "intrinsics/x86_64/dsum-sse2.h"
 	} else {
-#       include "intrinsics/x86_64/dsum-avx2.h"
+#              include "intrinsics/x86_64/dsum-avx2.h"
 	}
-#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/x86_64/dsum-sse2.h"
-#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/aarch64/dsum.h"
+#       elif defined(__x86_64__) && defined(__SSE2__)
+#              include "intrinsics/x86_64/dsum-sse2.h"
+#       elif defined(__aarch64__)
+#              include "intrinsics/aarch64/dsum.h"
+#       else
+	SUM_CORE(double);
+#       endif
 #else
 	SUM_CORE(double);
 #endif
@@ -1435,20 +1439,45 @@ int GMRFLib_isum(int n, int *x)
 		assert(++count < 4);
 	}
 
-#if defined(__x86_64__) && defined(__AVX2__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#if defined(INLA_WITH_INTRINSICS)
+#       if defined(__x86_64__) && defined(__AVX2__)
 	if (n < 32) {
-#       include "intrinsics/x86_64/isum-sse2.h"
+#              include "intrinsics/x86_64/isum-sse2.h"
 	} else {
-#       include "intrinsics/x86_64/isum-avx2.h"
+#              include "intrinsics/x86_64/isum-avx2.h"
 	}
-#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/x86_64/isum-sse2.h"
+#       elif defined(__x86_64__) && defined(__SSE2__)
+#              include "intrinsics/x86_64/isum-sse2.h"
+#       else
+	SUM_CORE(int);
+#       endif
 #else
 	SUM_CORE(int);
 #endif
 }
 #pragma GCC pop_options
 #undef SUM_CORE
+
+#define SPARSE_DSUM()					\
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
+	int unroll = 8;					\
+	int m = n & ~(unroll - 1);			\
+	for (int i = 0; i < m; i += unroll) {		\
+		s0 += a[idx[i + 0]];			\
+		s1 += a[idx[i + 1]];			\
+		s2 += a[idx[i + 2]];			\
+		s3 += a[idx[i + 3]];			\
+		s0 += a[idx[i + 4]];			\
+		s1 += a[idx[i + 5]];			\
+		s2 += a[idx[i + 6]];			\
+		s3 += a[idx[i + 7]];			\
+	}						\
+	_Pragma("omp simd reduction(+: s0)")		\
+	for (int i = m; i < n; i++) {			\
+		s0 += a[idx[i]];			\
+	}						\
+	return s0 + s1 + s2 + s3
+
 
 #pragma GCC push_options
 #pragma GCC optimize("O3")
@@ -1458,38 +1487,26 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		return 0.0;
 	}
 
-#if defined(__x86_64__) && defined(__AVX2__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-	if (n < 32) {
-#       include "intrinsics/x86_64/sparse-dsum-sse2.h"
+#if defined(INLA_WITH_INTRINSICS)
+#       if defined(__x86_64__) && defined(__AVX2__)
+	if (n < 16) {
+#              include "intrinsics/x86_64/sparse-dsum-sse2.h"
 	} else {
-#       include "intrinsics/x86_64/sparse-dsum-avx2.h"
+#              include "intrinsics/x86_64/sparse-dsum-avx2.h"
 	}
-#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/x86_64/sparse-dsum-sse2.h"
-#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/aarch64/sparse-dsum.h"
+#       elif defined(__x86_64__) && defined(__SSE2__)
+#              include "intrinsics/x86_64/sparse-dsum-sse2.h"
+#       elif defined(__aarch64__)
+#              include "intrinsics/aarch64/sparse-dsum.h"
+#       else
+	SPARSE_DSUM();
+#       endif
 #else
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	int unroll = 8;
-	int m = n & ~(unroll - 1);
-	for (int i = 0; i < m; i += unroll) {
-		s0 += a[idx[i + 0]];
-		s1 += a[idx[i + 1]];
-		s2 += a[idx[i + 2]];
-		s3 += a[idx[i + 3]];
-		s0 += a[idx[i + 4]];
-		s1 += a[idx[i + 5]];
-		s2 += a[idx[i + 6]];
-		s3 += a[idx[i + 7]];
-	}
-#       pragma omp simd reduction(+: s0)
-	for (int i = m; i < n; i++) {
-		s0 += a[idx[i]];
-	}
-	return s0 + s1 + s2 + s3;
+	SPARSE_DSUM();
 #endif
 }
 #pragma GCC pop_options
+#undef SPARSE_DSUM
 
 #define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\

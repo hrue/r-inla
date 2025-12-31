@@ -4,6 +4,14 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+#define SPARSE_DOT()				\
+	double s0 = 0.0;			\
+	_Pragma("omp simd reduction(+: s0)")	\
+	for (int i = 0; i < n; i++) {		\
+		s0 += v[i] * a[idx[i]];		\
+	}					\
+	return s0
+
 #pragma GCC push_options
 #pragma GCC optimize("O3")
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
@@ -14,18 +22,22 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
-#elif 0 && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/x86_64/sparse-ddot.h"
+#elif defined(INLA_WITH_INTRINSICS)
+#       if defined(__x86_64__) && defined(__AVX512F__)
+#              include "intrinsics/x86_64/sparse-ddot-avx512f.h"
+#       elif defined(__x86_64__) && defined(__AVX2__)
+#              include "intrinsics/x86_64/sparse-ddot-avx2.h"
+#       elif defined(__x86_64__) && defined(__SSE2__)
+#              include "intrinsics/x86_64/sparse-ddot-sse2.h"
+#       else
+	SPARSE_DOT();
+#       endif
 #else
-	double s0 = 0.0;
-#       pragma omp simd reduction(+: s0)
-	for (int i = 0; i < n; i++) {
-		s0 += v[i] * a[idx[i]];
-	}
-	return s0;
+	SPARSE_DOT();
 #endif
 }
 #pragma GCC pop_options
+#undef SPARSE_DOT
 
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
