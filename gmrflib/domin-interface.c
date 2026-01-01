@@ -436,7 +436,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 			}
 		}
 	}
-	
+
 	if (free_bnew_ptr) {
 		Free(bnew_ptr);
 	}
@@ -1515,7 +1515,7 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 		(*otrace)->theta = Realloc((*otrace)->theta, (*otrace)->nalloc * (*otrace)->nt, double);
 	}
 
-	static double wtime0= -1; 
+	static double wtime0 = -1;
 	double wtime = 0.0;
 	if (wtime0 < 0) {
 		wtime0 = GMRFLib_timer();
@@ -1551,9 +1551,9 @@ void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(
 	return;
 }
 #else
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
+#       include <unistd.h>
+#       include <sys/types.h>
+#       include <pwd.h>
 void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, int nx, double *x)
 {
 	// this function is called from within a critical region

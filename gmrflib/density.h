@@ -1,31 +1,31 @@
 #ifndef __GMRFLib_DENSITY_H__
-#define __GMRFLib_DENSITY_H__
+#       define __GMRFLib_DENSITY_H__
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
 /*
  * do not integrate beyond +- GMRFLib_DENSITY_INTEGRATION_LIMIT stdev's, unless requested to do so.
  */
-#define GMRFLib_DENSITY_INTEGRATION_LIMIT (5.0)
+#       define GMRFLib_DENSITY_INTEGRATION_LIMIT (5.0)
 
 /* 
  *  length of work the GSL-integration routine
  */
-#define GMRFLib_DENSITY_LENGTH_WORK (2048)
+#       define GMRFLib_DENSITY_LENGTH_WORK (2048)
 
 /* 
  *  this is a wrapper around the gsl-integration routine, so that if the relative high accurancy FAILS due to roundoff errors,
@@ -33,7 +33,7 @@ __BEGIN_DECLS
  *  routine which can cope with 'nice' singularities, and further, we split the region into subregions as well; sometimes this
  *  is needed, epspecially if the density is peaked and low and high are far away...
  */
-#define GMRFLib_gsl_integration_wrapper_qag(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
+#       define GMRFLib_gsl_integration_wrapper_qag(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
 	if (1) {							\
 		int ssstatus;						\
 		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); /* turn off the error-handler */ \
@@ -44,7 +44,7 @@ __BEGIN_DECLS
 		} while(ssstatus == GSL_ETOL || ssstatus == GSL_ELOSS || ssstatus == GSL_EROUND); \
 		gsl_set_error_handler(ehandler);	  /*  turn it on again */ \
 	}
-#define GMRFLib_gsl_integration_wrapper_qags(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
+#       define GMRFLib_gsl_integration_wrapper_qags(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
 	if (1) {							\
 		int ssstatus;						\
 		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); /* turn off the error-handler */ \
@@ -55,7 +55,7 @@ __BEGIN_DECLS
 		} while(ssstatus == GSL_ETOL || ssstatus == GSL_ELOSS || ssstatus == GSL_EROUND); \
 		gsl_set_error_handler(ehandler);	  /*  turn it on again */ \
 	}
-#define GMRFLib_gsl_integration_wrapper(My_F, My_lower, My_upper, My_epsrel, My_epsabs, My_result, My_error) \
+#       define GMRFLib_gsl_integration_wrapper(My_F, My_lower, My_upper, My_epsrel, My_epsabs, My_result, My_error) \
 	if (1) {							\
 		int My_i, My_ndiv = 3;					\
 		double My_newlower = 0.0, My_newupper = 0.0, My_res = 0.0, My_err = 0.0, My_step = 0.0; \
@@ -108,7 +108,7 @@ typedef struct {
 /* 
    the scaling of the weight for SN-fit, stdev = exp(- log_density[i] * GMRFLib_SN_WEIGHT_SCALING )
 */
-#define GMRFLib_SN_WEIGHT_SCALING (0.5)
+#       define GMRFLib_SN_WEIGHT_SCALING (0.5)
 
 /**
  * \brief The density-object

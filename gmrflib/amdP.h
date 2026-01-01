@@ -42,30 +42,30 @@
  */
 
 #ifndef AMD_H
-#define AMD_H
+#       define AMD_H
 
 /* make it easy for C++ programs to include AMD */
-#ifdef __cplusplus
+#       ifdef __cplusplus
 extern "C" {
-#endif
+#       endif
 
 /* get the definition of size_t: */
-#include <stddef.h>
+#       include <stddef.h>
 
 /* define UF_long */
 //#include "UFconfig.h"
-#ifndef UF_long
-#ifdef _WIN64
-#define UF_long __int64
-#define UF_long_max _I64_MAX
-#define UF_long_idd "I64d"
-#else
-#define UF_long long
-#define UF_long_max LONG_MAX
-#define UF_long_idd "ld"
-#endif
-#define UF_long_id "%" UF_long_idd
-#endif
+#       ifndef UF_long
+#              ifdef _WIN64
+#                     define UF_long __int64
+#                     define UF_long_max _I64_MAX
+#                     define UF_long_idd "I64d"
+#              else
+#                     define UF_long long
+#                     define UF_long_max LONG_MAX
+#                     define UF_long_idd "ld"
+#              endif
+#              define UF_long_id "%" UF_long_idd
+#       endif
 
 //
 	int amd_order					       /* returns AMD_OK, AMD_OK_BUT_JUMBLED, AMD_INVALID, or AMD_OUT_OF_MEMORY */
@@ -304,9 +304,9 @@ extern "C" {
 /* The user can redefine these to change the malloc, free, and printf routines
  * that AMD uses. */
 
-#ifndef EXTERN
-#define EXTERN extern
-#endif
+#       ifndef EXTERN
+#              define EXTERN extern
+#       endif
 
 	EXTERN void *(*amd_malloc)(size_t);		       /* pointer to malloc */
 	EXTERN void (*amd_free)(void *);		       /* pointer to free */
@@ -332,32 +332,32 @@ extern "C" {
 	void amd_info(double Info[]);
 	void amd_l_info(double Info[]);
 
-#define AMD_CONTROL 5					       /* size of Control array */
-#define AMD_INFO 20					       /* size of Info array */
+#       define AMD_CONTROL 5				       /* size of Control array */
+#       define AMD_INFO 20				       /* size of Info array */
 
 /* contents of Control */
-#define AMD_DENSE 0					       /* "dense" if degree > Control [0] * sqrt (n) */
-#define AMD_AGGRESSIVE 1				       /* do aggressive absorption if Control [1] != 0 */
+#       define AMD_DENSE 0				       /* "dense" if degree > Control [0] * sqrt (n) */
+#       define AMD_AGGRESSIVE 1				       /* do aggressive absorption if Control [1] != 0 */
 
 /* default Control settings */
-#define AMD_DEFAULT_DENSE 10.0				       /* default "dense" degree 10*sqrt(n) */
-#define AMD_DEFAULT_AGGRESSIVE 1			       /* do aggressive absorption by default */
+#       define AMD_DEFAULT_DENSE 10.0			       /* default "dense" degree 10*sqrt(n) */
+#       define AMD_DEFAULT_AGGRESSIVE 1			       /* do aggressive absorption by default */
 
 /* contents of Info */
-#define AMD_STATUS 0					       /* return value of amd_order and amd_l_order */
-#define AMD_N 1						       /* A is n-by-n */
-#define AMD_NZ 2					       /* number of nonzeros in A */
-#define AMD_SYMMETRY 3					       /* symmetry of pattern (1 is sym., 0 is unsym.) */
-#define AMD_NZDIAG 4					       /* # of entries on diagonal */
-#define AMD_NZ_A_PLUS_AT 5				       /* nz in A+A' */
-#define AMD_NDENSE 6					       /* number of "dense" rows/columns in A */
-#define AMD_MEMORY 7					       /* amount of memory used by AMD */
-#define AMD_NCMPA 8					       /* number of garbage collections in AMD */
-#define AMD_LNZ 9					       /* approx. nz in L, excluding the diagonal */
-#define AMD_NDIV 10					       /* number of fl. point divides for LU and LDL' */
-#define AMD_NMULTSUBS_LDL 11				       /* number of fl. point (*,-) pairs for LDL' */
-#define AMD_NMULTSUBS_LU 12				       /* number of fl. point (*,-) pairs for LU */
-#define AMD_DMAX 13					       /* max nz. in any column of L, incl. diagonal */
+#       define AMD_STATUS 0				       /* return value of amd_order and amd_l_order */
+#       define AMD_N 1					       /* A is n-by-n */
+#       define AMD_NZ 2					       /* number of nonzeros in A */
+#       define AMD_SYMMETRY 3				       /* symmetry of pattern (1 is sym., 0 is unsym.) */
+#       define AMD_NZDIAG 4				       /* # of entries on diagonal */
+#       define AMD_NZ_A_PLUS_AT 5			       /* nz in A+A' */
+#       define AMD_NDENSE 6				       /* number of "dense" rows/columns in A */
+#       define AMD_MEMORY 7				       /* amount of memory used by AMD */
+#       define AMD_NCMPA 8				       /* number of garbage collections in AMD */
+#       define AMD_LNZ 9				       /* approx. nz in L, excluding the diagonal */
+#       define AMD_NDIV 10				       /* number of fl. point divides for LU and LDL' */
+#       define AMD_NMULTSUBS_LDL 11			       /* number of fl. point (*,-) pairs for LDL' */
+#       define AMD_NMULTSUBS_LU 12			       /* number of fl. point (*,-) pairs for LU */
+#       define AMD_DMAX 13				       /* max nz. in any column of L, incl. diagonal */
 
 /* ------------------------------------------------------------------------- */
 
@@ -365,10 +365,10 @@ extern "C" {
 
 /* ------------------------------------------------------------------------- */
 
-#define AMD_OK 0					       /* success */
-#define AMD_OUT_OF_MEMORY -1				       /* malloc failed, or problem too large */
-#define AMD_INVALID -2					       /* input arguments are not valid */
-#define AMD_OK_BUT_JUMBLED 1				       /* input matrix is OK for amd_order, but * columns were not sorted, and/or duplicate 
+#       define AMD_OK 0					       /* success */
+#       define AMD_OUT_OF_MEMORY -1			       /* malloc failed, or problem too large */
+#       define AMD_INVALID -2				       /* input arguments are not valid */
+#       define AMD_OK_BUT_JUMBLED 1			       /* input matrix is OK for amd_order, but * columns were not sorted, and/or duplicate 
 							        * entries were present.  AMD had * to do extra work before ordering the matrix.
 							        * This is a warning, not an * error.  */
 
@@ -396,14 +396,14 @@ extern "C" {
  * Versions 1.1 and earlier of AMD do not include a #define'd version number.
  */
 
-#define AMD_DATE "Dec 7, 2011"
-#define AMD_VERSION_CODE(main,sub) ((main) * 1000 + (sub))
-#define AMD_MAIN_VERSION 2
-#define AMD_SUB_VERSION 2
-#define AMD_SUBSUB_VERSION 3
-#define AMD_VERSION AMD_VERSION_CODE(AMD_MAIN_VERSION,AMD_SUB_VERSION)
+#       define AMD_DATE "Dec 7, 2011"
+#       define AMD_VERSION_CODE(main,sub) ((main) * 1000 + (sub))
+#       define AMD_MAIN_VERSION 2
+#       define AMD_SUB_VERSION 2
+#       define AMD_SUBSUB_VERSION 3
+#       define AMD_VERSION AMD_VERSION_CODE(AMD_MAIN_VERSION,AMD_SUB_VERSION)
 
-#ifdef __cplusplus
+#       ifdef __cplusplus
 }
-#endif
+#       endif
 #endif

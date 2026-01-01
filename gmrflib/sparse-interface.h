@@ -5,19 +5,19 @@
 */
 
 #ifndef __GMRFLib_SPARSE_INTERFACE_H__
-#define __GMRFLib_SPARSE_INTERFACE_H__
+#       define __GMRFLib_SPARSE_INTERFACE_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -50,7 +50,7 @@ typedef enum {
 	GMRFLib_SMTP_DEFAULT = 5
 } GMRFLib_smtp_tp;
 
-#define GMRFLib_SMTP_NAME(smtp)			     \
+#       define GMRFLib_SMTP_NAME(smtp)			     \
 	((smtp) == GMRFLib_SMTP_BAND ? "band" :    \
 	 ((smtp) == GMRFLib_SMTP_TAUCS ? "taucs" :	  \
 	  ((smtp) == GMRFLib_SMTP_PARDISO ? "pardiso" :		\

@@ -9,8 +9,8 @@
 #include <fcntl.h>
 
 #if defined(WINDOWS)
-#include <windows.h>
-#include <wincrypt.h>
+#       include <windows.h>
+#       include <wincrypt.h>
 #endif
 
 #include "GMRFLib/GMRFLib.h"

@@ -15,7 +15,7 @@
 #include "GMRFLib/hashP.h"
 
 #if defined(INLA_WITH_ARMPL)
-#include "armpl_sparse.h"
+#       include "armpl_sparse.h"
 #endif
 
 #define IDX_ALLOC_INITIAL 8
@@ -322,9 +322,8 @@ int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 			fprintf(fp, "\tg_n = %1d\n", hold->g_n);
 			for (int g = 0; g < hold->g_n; g++) {
 				fprintf(fp, "\tgroup %d has length %d (one=%s) (aligned=%s:%s)\n", g, hold->g_len[g],
-					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"), 
-					(SIMD_ALIGNED(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), 
-					(SIMD_ALIGNED(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
+					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"),
+					(SIMD_ALIGNED(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), (SIMD_ALIGNED(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
 				if (show_details) {
 					fprintf(fp, "\t\t");
 					for (int k = 0; k < IABS(hold->g_len[g]); k++) {
@@ -1316,7 +1315,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

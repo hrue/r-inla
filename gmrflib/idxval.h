@@ -1,28 +1,28 @@
 #ifndef __GMRFLib_IDXVAL_H__
-#define __GMRFLib_IDXVAL_H__
+#       define __GMRFLib_IDXVAL_H__
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //
-#include "GMRFLib/hashP.h"
-#include "GMRFLib/GMRFLibP.h"
-#if defined(INLA_WITH_ARMPL)
-#include "armpl_sparse.h"
-#endif
-#define GMRFLib_DOT_GROUP_NLIM 16
+#       include "GMRFLib/hashP.h"
+#       include "GMRFLib/GMRFLibP.h"
+#       if defined(INLA_WITH_ARMPL)
+#              include "armpl_sparse.h"
+#       endif
+#       define GMRFLib_DOT_GROUP_NLIM 16
 //
     typedef struct {
 	int n;
@@ -77,10 +77,10 @@ typedef struct {
 	double **g_val;
 	double *val;
 	void **g_mem;
-#if defined(INLA_WITH_ARMPL)
+#       if defined(INLA_WITH_ARMPL)
 	armpl_spvec_t spvec;
 	armpl_spvec_t spvec_g;
-#endif
+#       endif
 	GMRFLib_idxval_preference_tp preference;
 	GMRFLib_dot_product_tp *dot_product_func;
 } GMRFLib_idxval_tp;

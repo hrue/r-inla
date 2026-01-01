@@ -5,20 +5,20 @@
 */
 
 #ifndef __GMRFLib_TIMER_H__
-#define __GMRFLib_TIMER_H__
+#       define __GMRFLib_TIMER_H__
 
-#include <time.h>
-#include <stdlib.h>
+#       include <time.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -28,7 +28,7 @@ __BEGIN_DECLS
 // defined in high-prec-timer.cpp
 double GMRFLib_timer_chrono(void);
 //#define GMRFLib_timer() omp_get_wtime()
-#define GMRFLib_timer() GMRFLib_timer_chrono()
+#       define GMRFLib_timer() GMRFLib_timer_chrono()
 
 typedef struct {
 	char *name;					       /* function name */
@@ -41,8 +41,8 @@ typedef struct {
 	double ctime_acc2;				       /* accumulated ctime^2 */
 } GMRFLib_timer_hashval_tp;
 
-#if defined(INLA_WITH_DEVEL)
-#define GMRFLib_ENTER_FUNCTION						\
+#       if defined(INLA_WITH_DEVEL)
+#              define GMRFLib_ENTER_FUNCTION						\
 	GMRFLib_DEBUG_INIT();						\
 	GMRFLib_TRACE_INIT();						\
 	static double trace_cpu_acc_ = 0.0;				\
@@ -52,14 +52,14 @@ typedef struct {
 	trace_cpu_ = GMRFLib_timer();					\
 	GMRFLib_TRACE_i("Enter, total", trace_count_);
 
-#define GMRFLib_LEAVE_FUNCTION						\
+#              define GMRFLib_LEAVE_FUNCTION						\
 	trace_cpu_acc_ += (GMRFLib_timer() - trace_cpu_);		\
 	GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_);
 
-#else
-#define GMRFLib_ENTER_FUNCTION ;
-#define GMRFLib_LEAVE_FUNCTION ;
-#endif
+#       else
+#              define GMRFLib_ENTER_FUNCTION ;
+#              define GMRFLib_LEAVE_FUNCTION ;
+#       endif
 
 
 double GMRFLib_timer_windows(void);

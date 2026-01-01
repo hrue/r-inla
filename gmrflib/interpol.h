@@ -1,14 +1,14 @@
 #ifndef __GMRFLib_INTERPOL_H__
-#define __GMRFLib_INTERPOL_H__
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       define __GMRFLib_INTERPOL_H__
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -29,7 +29,7 @@ typedef enum {
 } GMRFLib_intpol_cache_tp;
 
 
-#define GMRFLib_SN_SKEWMAX (0.988)
+#       define GMRFLib_SN_SKEWMAX (0.988)
 typedef struct {
 	GMRFLib_intpol_transform_tp trans;
 	GMRFLib_intpol_cache_tp cache;

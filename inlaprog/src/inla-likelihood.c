@@ -6112,9 +6112,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8263,7 +8263,7 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *__restric
 	double prec = map_precision_forward(lprec, NULL, NULL);
 
 	LINK_INIT;
-	assert(PREDICTOR_SCALE ==  1.0);		       /* not prepared for this */
+	assert(PREDICTOR_SCALE == 1.0);			       /* not prepared for this */
 
 	if (m > 0) {
 		double yp = PREDICTOR_LINK_PLAIN(y);

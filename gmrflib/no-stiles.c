@@ -5,16 +5,16 @@
 #include <strings.h>
 
 #if !defined(INLA_WITH_STILES)
-#include "no-stiles.h"
+#       include "no-stiles.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#ifdef __cplusplus
+#       ifdef __cplusplus
 extern "C" {
-#endif
+#       endif
 
-#define EMPTY_FUNCTION {						\
+#       define EMPTY_FUNCTION {						\
 		fprintf(stderr, "\n\n\n *** sTiles is not available in this build, abort()\n\n\n"); \
 		abort();						\
 	}
@@ -63,9 +63,9 @@ extern "C" {
 	void sTiles_quit(void) EMPTY_FUNCTION;
 	void sTiles_set_log_level(int) EMPTY_FUNCTION;
 
-#ifdef __cplusplus
+#       ifdef __cplusplus
 }
-#endif
+#       endif
 
-#pragma GCC diagnostic pop
+#       pragma GCC diagnostic pop
 #endif

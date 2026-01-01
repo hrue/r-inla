@@ -1,22 +1,22 @@
 #ifndef __GMRFLib_REMAP_CACHE_H__
-#define __GMRFLib_REMAP_CACHE_H__
+#       define __GMRFLib_REMAP_CACHE_H__
 
-#include <math.h>
-#include <strings.h>
-#include <stdlib.h>
-#include <stdio.h>
+#       include <math.h>
+#       include <strings.h>
+#       include <stdlib.h>
+#       include <stdio.h>
 
-#include "GMRFLib/sha.h"
+#       include "GMRFLib/sha.h"
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //

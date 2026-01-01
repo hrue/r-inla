@@ -1,33 +1,33 @@
 #ifndef __INLA_CGENERIC_H__
-#define __INLA_CGENERIC_H__
+#       define __INLA_CGENERIC_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 __BEGIN_DECLS
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <omp.h>
-#include <stdio.h>
+#       include <assert.h>
+#       include <math.h>
+#       include <stdio.h>
+#       include <omp.h>
+#       include <stdio.h>
 
 /* 
  *
  */
 // same definition as in GMRFLibP.h...
-#if !defined(POSSIBLY_UNUSED)
-#ifdef __GNUC__
-#define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
-#else
-#define POSSIBLY_UNUSED(x) x
-#endif
-#endif
+#       if !defined(POSSIBLY_UNUSED)
+#              ifdef __GNUC__
+#                     define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
+#              else
+#                     define POSSIBLY_UNUSED(x) x
+#              endif
+#       endif
     typedef enum {
 	INLA_CGENERIC_VOID = 0,
 	INLA_CGENERIC_Q,
@@ -47,7 +47,7 @@ typedef enum {
 	INLA_CLOGLIKE_QUIT
 } inla_cloglike_cmd_tp;
 
-#define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
+#       define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
 				       ((cmd_) == INLA_CGENERIC_GRAPH ? "graph" : \
 					((cmd_) == INLA_CGENERIC_MU ? "mu" : \
 					 ((cmd_) == INLA_CGENERIC_INITIAL ? "initial" : \
@@ -55,7 +55,7 @@ typedef enum {
 					   ((cmd_) == INLA_CGENERIC_LOG_PRIOR ? "log_prior" : \
 					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)")))))))
 
-#define INLA_CLOGLIKE_CMD_NAME(cmd_) ((cmd_) == INLA_CLOGLIKE_INITIAL ? "initial" : \
+#       define INLA_CLOGLIKE_CMD_NAME(cmd_) ((cmd_) == INLA_CLOGLIKE_INITIAL ? "initial" : \
 				      ((cmd_) == INLA_CLOGLIKE_LOG_PRIOR ? "log_prior" : \
 				       ((cmd_) == INLA_CLOGLIKE_LOGLIKE ? "log_like" : \
 					((cmd_) == INLA_CLOGLIKE_LOGLIKE ? "CDF" : \
@@ -171,12 +171,12 @@ typedef struct {
 	void *cache;
 } inla_cgeneric_data_tp;
 
-#if defined(_OPENMP)
+#       if defined(_OPENMP)
 // tools useful for creating a cache
-#define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
-#define MAX_THREADS_(data_) IMAX_(1, ((data_)->threads.max))
-#define CGENERIC_CACHE_LEN(data_) (MAX_THREADS_(data_) * (MAX_THREADS_(data_) + 1))
-#define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
+#              define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
+#              define MAX_THREADS_(data_) IMAX_(1, ((data_)->threads.max))
+#              define CGENERIC_CACHE_LEN(data_) (MAX_THREADS_(data_) * (MAX_THREADS_(data_) + 1))
+#              define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
         {								\
 		int level1_ = omp_get_level();				\
 		int tnum1_ = omp_get_thread_num();			\
@@ -190,7 +190,7 @@ typedef struct {
 			assert(0 == 1);					\
 		}							\
 	}
-#endif
+#       endif
 
 typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
 typedef double *inla_cloglike_func_tp(inla_cloglike_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data,

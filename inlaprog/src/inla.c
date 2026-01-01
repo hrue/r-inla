@@ -1,20 +1,20 @@
 #if !defined(GITCOMMIT)
-#define GITCOMMIT devel
+#       define GITCOMMIT devel
 #endif
 
 #if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE 1
+#       define _GNU_SOURCE 1
 #endif
 
 #if defined(__linux__)
-#include <features.h>
+#       include <features.h>
 #endif
 
 #if defined(__sun__)
-#include <stdlib.h>
+#       include <stdlib.h>
 #endif
 #if defined(__linux__)
-#include <getopt.h>
+#       include <getopt.h>
 #endif
 #include <assert.h>
 #include <ctype.h>
@@ -34,30 +34,30 @@
 #include <time.h>
 
 #if !defined(WINDOWS)
-#include <sys/resource.h>
+#       include <sys/resource.h>
 #endif
 
 #if defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#       include <sys/types.h>
+#       include <sys/sysctl.h>
 #endif
 
 #include "rmath.h"
 
 #include "GMRFLib/GMRFLib.h"
 #if !defined(ISNAN)
-#define ISNAN(x) (isnan(x)!=0)
+#       define ISNAN(x) (isnan(x)!=0)
 #endif
 
 #if !defined(INLA_TAG)
-#define INLA_TAG "devel"
+#       define INLA_TAG "devel"
 #endif
 
 #include <unistd.h>
 #include <stdlib.h>
 #if defined(WIN32) || defined(WINDOWS)
-#include <windows.h>
-#include <direct.h>
+#       include <windows.h>
+#       include <direct.h>
 #endif
 
 #include "inla.h"
@@ -6354,7 +6354,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			double sum = 0.0, xx = 0.0;
 			tused[nt] = -GMRFLib_timer();
 			for (int kk = 0; kk < 2; kk++) {
-#pragma omp parallel for num_threads(nt) reduction(+: sum)
+#       pragma omp parallel for num_threads(nt) reduction(+: sum)
 				for (int ii = 0; ii < d_idx->n; ii++) {
 					int idx = d_idx->idx[ii];
 					double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;

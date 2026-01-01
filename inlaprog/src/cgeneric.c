@@ -9,7 +9,7 @@
 #include "cgeneric.h"
 
 #if !defined(Calloc)
-#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#       define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
 
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)

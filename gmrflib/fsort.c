@@ -4,7 +4,7 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #if !defined(__cplusplus)
-#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#       pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 #endif
 
 #include "GMRFLib/fsort.h"
@@ -13,7 +13,7 @@
 void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *))
 {
 #if 0
-	void *a = (void *) malloc(nmemb * size);
+	void *a =(void *) malloc(nmemb * size);
 	void *aa = (void *) malloc(nmemb * size);
 
 	Memcpy(a, array, nmemb * size);

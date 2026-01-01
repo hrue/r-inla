@@ -5812,11 +5812,11 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 	// can define shorter storage, but it should be fine really, I hope... this is properly yet to be verified
 #if 0
-#define STORAGE_TP float
-#define TYPE_CAST (double)
+#       define STORAGE_TP float
+#       define TYPE_CAST (double)
 #else
-#define STORAGE_TP double
-#define STORAGE_TYPE_CAST
+#       define STORAGE_TP double
+#       define STORAGE_TYPE_CAST
 #endif
 
 	int storage_is_double = (sizeof(STORAGE_TP) == sizeof(double));

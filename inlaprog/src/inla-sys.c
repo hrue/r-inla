@@ -1,6 +1,6 @@
 #if defined(__linux__)
-#include <ftw.h>
-#include <unistd.h>
+#       include <ftw.h>
+#       include <unistd.h>
 #endif
 
 int inla_ncpu(void)

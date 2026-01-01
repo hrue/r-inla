@@ -1,23 +1,23 @@
 #ifndef __INLA_FGN_H__
-#define __INLA_FGN_H__
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       define __INLA_FGN_H__
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 __BEGIN_DECLS
 
 /* 
  *
  */
-#include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-#include "inla.h"
-#define FGN_KMAX (4L)					       /* maximum K in the tables */
+#       include "GMRFLib/GMRFLib.h"
+#       include "GMRFLib/GMRFLibP.h"
+#       include "inla.h"
+#       define FGN_KMAX (4L)				       /* maximum K in the tables */
 //
     typedef struct {
 	int N;						       /* total size = (k+1)*n */

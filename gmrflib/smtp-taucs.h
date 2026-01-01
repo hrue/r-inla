@@ -6,26 +6,26 @@
 */
 
 #ifndef __GMRFLib_SMTP_TAUCS_H__
-#define __GMRFLib_SMTP_TAUCS_H__
+#       define __GMRFLib_SMTP_TAUCS_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //
 //
-#if defined(INLA_WITH_PARDISO_WORKAROUND)
+#       if defined(INLA_WITH_PARDISO_WORKAROUND)
 int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o);
-#endif
+#       endif
 
 
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp * cache);

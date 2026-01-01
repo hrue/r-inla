@@ -8,7 +8,7 @@
 #include <time.h>
 
 #if defined(WIN32) || defined(WINDOWS)
-#include <io.h>
+#       include <io.h>
 #endif
 
 #include "GMRFLib/hashP.h"

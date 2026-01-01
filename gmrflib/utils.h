@@ -5,27 +5,27 @@
 */
 
 #ifndef __GMRFLib_UTILS_H__
-#define __GMRFLib_UTILS_H__
+#       define __GMRFLib_UTILS_H__
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#include "GMRFLib/hashP.h"
-#include "GMRFLib/graph.h"
-#include "GMRFLib/GMRFLibP.h"
-#define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
+#       include "GMRFLib/hashP.h"
+#       include "GMRFLib/graph.h"
+#       include "GMRFLib/GMRFLibP.h"
+#       define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
     typedef struct {
 	int nrow;
 	map_ivp *vmat;

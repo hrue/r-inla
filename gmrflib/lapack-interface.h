@@ -1,17 +1,17 @@
 #ifndef __GMRFLib_LAPACK_INTERFACE_H__
-#define __GMRFLib_LAPACK_INTERFACE_H__
+#       define __GMRFLib_LAPACK_INTERFACE_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //
@@ -41,8 +41,8 @@ typedef struct {
 	gsl_vector *xx;
 } GMRFLib_gsl_ldnorm_store_tp;
 
-#define BLAS_LEVEL2 2
-#define BLAS_LEVEL3 3
+#       define BLAS_LEVEL2 2
+#       define BLAS_LEVEL3 3
 
 GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n);
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
