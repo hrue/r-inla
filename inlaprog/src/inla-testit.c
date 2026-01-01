@@ -5861,6 +5861,126 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 189:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x[2] = {NULL, NULL};
+		double *xx[2] = {NULL, NULL};
+		double *y[2] = {NULL, NULL};
+		double *yy[2] = {NULL, NULL};
+		int *ix[2] = {NULL, NULL};
+		int *iy[2] = {NULL, NULL};
+		int *idx[2] = {NULL, NULL};
+		int *idxx[2] = {NULL, NULL};
+		
+		double tref_same[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double tref_diff[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = 0; j < m; j++) {
+			
+			GMRFLib_numa_free(x[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(x[1], (n + 100) * sizeof(double));
+			x[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			x[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(y[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(y[1], (n + 100) * sizeof(double));
+			y[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			y[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(xx[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(xx[1], (n + 100) * sizeof(double));
+			xx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			xx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(yy[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(yy[1], (n + 100) * sizeof(double));
+			yy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			yy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(ix[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(ix[1], (n + 100) * sizeof(int));
+			ix[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			ix[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(iy[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(iy[1], (n + 100) * sizeof(int));
+			iy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			iy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(idx[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(idx[1], (n + 100) * sizeof(int));
+			idx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(idxx[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(idxx[1], (n + 100) * sizeof(int));
+			idxx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idxx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			for (int k = 0; k < 1; k++) {
+				for (int i = 0; i < n; i++) {
+					x[k][i] = GMRFLib_uniform();
+					xx[k][i] = GMRFLib_uniform();
+					y[k][i] = GMRFLib_uniform();
+					yy[k][i] = GMRFLib_uniform();
+					ix[k][i] = (int) (1000 * GMRFLib_uniform());
+					iy[k][i] = (int) (1000 * GMRFLib_uniform());
+					idx[k][i] = i;
+					idxx[k][i] = i;
+				}
+			}
+
+			double a, e, POSSIBLY_UNUSED(aa);
+			int this_node = GMRFLib_numa_get_node();
+			int other_node = GMRFLib_numa_nodes() - 1 - this_node;
+
+			tref_same[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x[this_node], y[this_node]);
+			aa = GMRFLib_ddot(n, x[other_node], y[other_node]);
+			tref_same[9] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += x[this_node][k] * y[this_node][k];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_diff[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, xx[this_node], yy[other_node]);
+			aa = GMRFLib_ddot(n, xx[other_node], yy[this_node]);
+			tref_diff[9] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += xx[this_node][k] * yy[other_node][k];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_same[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, x[this_node], y[this_node], idx[this_node]);
+			aa = GMRFLib_sparse_ddot(n, x[other_node], y[other_node], idx[other_node]);
+			tref_same[0] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += x[this_node][k] * y[this_node][idx[this_node][k]];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_diff[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, xx[this_node], yy[other_node], idxx[other_node]);
+			aa = GMRFLib_sparse_ddot(n, xx[other_node], yy[this_node], idxx[this_node]);
+			tref_diff[0] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += xx[this_node][k] * yy[other_node][idxx[other_node][k]];
+			assert(ABS(e - a) < FLT_EPSILON);
+		}
+		printf("numa nodes       %8d\n", GMRFLib_numa_nodes());
+		printf("ddot same        %.8f\n", tref_same[9]);
+		printf("ddot diff        %.8f\n", tref_diff[9]);
+		printf("sparse_ddot same %.8f\n", tref_same[0]);
+		printf("sparse_ddot diff %.8f\n", tref_diff[0]);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
