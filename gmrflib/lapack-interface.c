@@ -1320,6 +1320,9 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 #if defined(INLA_WITH_MKL)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
+#elif defined(INLA_WITH_ARMPL)
+	int inc = 1;
+	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
 	GMRFLib_dscale(n, b, y);
 	GMRFLib_daxpy(n, a, x, y);
@@ -1329,8 +1332,13 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 {
 	// z = a * x + b * y
+#if defined(INLA_WITH_ARMPL)
+	int inc = 1;
+	dwaxpby_(n, &a, x, &inc, &b, y, &inc, z, &inc);
+#else	
 	Memcpy(z, y, n * sizeof(double));
 	GMRFLib_daxpby(n, a, x, b, z);
+#endif
 }
 
 void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z)

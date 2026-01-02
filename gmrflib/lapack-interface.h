@@ -119,6 +119,7 @@ int dtrmv_(const char *, const char *, const char *, int *, double *, int *, dou
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta,
 		       gsl_matrix * C, int nt);
 int idamax_(int *, double *, int *);
+void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
 void GMRFLib_bfill(int n, bool a, bool *x);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
