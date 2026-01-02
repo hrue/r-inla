@@ -1548,6 +1548,10 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/pack-avx2.h"
+#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/pack-sse2.h"
 #else
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
@@ -1560,6 +1564,10 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 	// y[iy[]] = a[]
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
+#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/unpack-avx2-simple.h"
+#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
+#include "intrinsics/x86_64/unpack-sse2-simple.h"
 #else
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];

@@ -321,79 +321,79 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
 #endif
 #if defined(__AVX__)
-		printf("\t\tCompiler macro defined [__AVX__]\n");
+		printf("\t\tCompiler symbol defined [__AVX__]\n");
 #endif
 #if defined(__AVX2__)
-		printf("\t\tCompiler macro defined [__AVX2__]\n");
+		printf("\t\tCompiler symbol defined [__AVX2__]\n");
 #endif
 #if defined(__AVX512BW__)
-		printf("\t\tCompiler macro defined [__AVX512BW__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512BW__]\n");
 #endif
 #if defined(__AVX512ER__)
-		printf("\t\tCompiler macro defined [__AVX512ER__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512ER__]\n");
 #endif
 #if defined(__AVX512PF__)
-		printf("\t\tCompiler macro defined [__AVX512PF__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512PF__]\n");
 #endif
 #if defined(__AVX512VPOPCNTDQ__)
-		printf("\t\tCompiler macro defined [__AVX512VPOPCNTDQ__");
+		printf("\t\tCompiler symbol defined [__AVX512VPOPCNTDQ__");
 #endif
 #if defined(__AVX512VBMI__)
-		printf("\t\tCompiler macro defined [__AVX512VBMI__");
+		printf("\t\tCompiler symbol defined [__AVX512VBMI__");
 #endif
 #if defined(__AVX512IFMA__)
-		printf("\t\tCompiler macro defined [__AVX512IFMA__");
+		printf("\t\tCompiler symbol defined [__AVX512IFMA__");
 #endif
 #if defined(__AVX5124FMAPS__)
-		printf("\t\tCompiler macro defined [__AVX5124FMAPS__");
+		printf("\t\tCompiler symbol defined [__AVX5124FMAPS__");
 #endif
 #if defined(__AVX5124VNNIW__)
-		printf("\t\tCompiler macro defined [__AVX5124VNNIW__");
+		printf("\t\tCompiler symbol defined [__AVX5124VNNIW__");
 #endif
 #if defined(__AVX512CD__)
-		printf("\t\tCompiler macro defined [__AVX512CD__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512CD__]\n");
 #endif
 #if defined(__AVX512DQ__)
-		printf("\t\tCompiler macro defined [__AVX512DQ__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512DQ__]\n");
 #endif
 #if defined(__AVX512F__)
-		printf("\t\tCompiler macro defined [__AVX512F__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512F__]\n");
 #endif
 #if defined(__AVX512VL__)
-		printf("\t\tCompiler macro defined [__AVX512VL__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512VL__]\n");
 #endif
 #if defined(__AVX512VNNI__)
-		printf("\t\tCompiler macro defined [__AVX512VNNI__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512VNNI__]\n");
 #endif
 #if defined(__AVXVNNI__)
-		printf("\t\tCompiler macro defined [__AVXVNNI__]\n");
+		printf("\t\tCompiler symbol defined [__AVXVNNI__]\n");
 #endif
 #if defined(__MMX_WITH_SSE__)
-		printf("\t\tCompiler macro defined [__MMX_WITH_SSE__]\n");
+		printf("\t\tCompiler symbol defined [__MMX_WITH_SSE__]\n");
 #endif
 #if defined(__SSE__)
-		printf("\t\tCompiler macro defined [__SSE__]\n");
+		printf("\t\tCompiler symbol defined [__SSE__]\n");
 #endif
 #if defined(__SSE2__)
-		printf("\t\tCompiler macro defined [__SSE2__]\n");
+		printf("\t\tCompiler symbol defined [__SSE2__]\n");
 #endif
 #if defined(__SSE2_MATH__)
-		printf("\t\tCompiler macro defined [__SSE2_MATH__]\n");
+		printf("\t\tCompiler symbol defined [__SSE2_MATH__]\n");
 #endif
 #if defined(__SSE3__)
-		printf("\t\tCompiler macro defined [__SSE3__]\n");
+		printf("\t\tCompiler symbol defined [__SSE3__]\n");
 #endif
 #if defined(__SSE4_1__)
-		printf("\t\tCompiler macro defined [__SSE4_1__]\n");
+		printf("\t\tCompiler symbol defined [__SSE4_1__]\n");
 #endif
 #if defined(__SSE4_2__)
-		printf("\t\tCompiler macro defined [__SSE4_2__]\n");
+		printf("\t\tCompiler symbol defined [__SSE4_2__]\n");
 #endif
 #if defined(__SSE_MATH__)
-		printf("\t\tCompiler macro defined [__SSE_MATH__]\n");
+		printf("\t\tCompiler symbol defined [__SSE_MATH__]\n");
 #endif
 #if defined(__SSSE3__)
-		printf("\t\tCompiler macro defined [__SSSE3__]\n");
+		printf("\t\tCompiler symbol defined [__SSSE3__]\n");
 #endif
 #if defined(INLA_WITH_STILES)
 		printf("\t\tCompiled with -DINLA_WITH_STILES\n");
@@ -437,6 +437,20 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_INTRINSICS)
 		printf("\t\tCompiled with -DINLA_WITH_INTRINSICS\n");
 #endif
+#if defined(__x86_64__)
+		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE2    availble? %s\n", __builtin_cpu_supports("sse2") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE3    availble? %s\n", __builtin_cpu_supports("sse3") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE4.1  availble? %s\n", __builtin_cpu_supports("sse4.1") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE4.2  availble? %s\n", __builtin_cpu_supports("sse4.2") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX     availble? %s\n", __builtin_cpu_supports("avx") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX2    availble? %s\n", __builtin_cpu_supports("avx2") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX512F availble? %s\n", __builtin_cpu_supports("avx512f") ? "YES" : "NO");
+#endif
+#if defined(__aarch64__)
+		printf("\t\tCPU feature NEON    availble? %s\n", __builtin_cpu_supports("neon") ? "YES" : "NO");
+#endif
+		printf("\n");
 	}
 
 
