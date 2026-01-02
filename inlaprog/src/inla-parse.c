@@ -447,7 +447,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tCPU feature AVX2    availble? %s\n", __builtin_cpu_supports("avx2") ? "YES" : "NO");
 		printf("\t\tCPU feature AVX512F availble? %s\n", __builtin_cpu_supports("avx512f") ? "YES" : "NO");
 #endif
-#if defined(__aarch64__)
+#if defined(__aarch64__) && defined(__linux__)
 		printf("\t\tCPU feature NEON    availble? %s\n", __builtin_cpu_supports("neon") ? "YES" : "NO");
 #endif
 		printf("\n");
