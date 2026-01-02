@@ -1334,7 +1334,7 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 	// z = a * x + b * y
 #if defined(INLA_WITH_ARMPL)
 	int inc = 1;
-	dwaxpby_(n, &a, x, &inc, &b, y, &inc, z, &inc);
+	dwaxpby_(&n, &a, x, &inc, &b, y, &inc, z, &inc);
 #else	
 	Memcpy(z, y, n * sizeof(double));
 	GMRFLib_daxpby(n, a, x, b, z);
