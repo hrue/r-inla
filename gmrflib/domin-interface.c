@@ -453,6 +453,7 @@ int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr)
 	return val;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {
 	/*
@@ -660,6 +661,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	return GMRFLib_SUCCESS;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count)
 {
 	/*
@@ -1093,6 +1095,7 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
 	}
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_opt_get_f_count(void)
 {
 	if (opt_setup) {
@@ -1106,6 +1109,7 @@ int GMRFLib_opt_get_f_count(void)
 	}
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 {
 	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
@@ -1123,6 +1127,7 @@ double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 	return fx;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 {
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
@@ -1148,6 +1153,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	Free(gradx);
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_vector *df)
 {
 	/*
@@ -1183,6 +1189,7 @@ int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 	return GMRFLib_SUCCESS;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_opt_dir_step(double *x, int idx, double h)
 {
 	if (Opt_dir_params.A) {
@@ -1216,6 +1223,7 @@ int GMRFLib_opt_dir_transform_gradient(double *grad)
 	return GMRFLib_SUCCESS;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_opt_dir_transform_hessian(double *hessian)
 {
 	if (Opt_dir_params.A) {
@@ -1243,6 +1251,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 	return GMRFLib_SUCCESS;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;

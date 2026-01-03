@@ -525,6 +525,7 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
 	if (problem == NULL) {

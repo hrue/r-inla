@@ -203,6 +203,7 @@ double my_gsl_sf_lnbeta(double a, double b)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper4(int n, double a, double *work)
 {
 	const int roll = 4L;
@@ -233,6 +234,7 @@ double my_betabinomial_helper4(int n, double a, double *work)
 	return (s0);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper8(int n, double a, double *work)
 {
 	const int roll = 8L;
@@ -263,6 +265,7 @@ double my_betabinomial_helper8(int n, double a, double *work)
 	return (s0);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper16(int n, double a, double *work)
 {
 	const int roll = 16L;
@@ -294,6 +297,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	return (s0);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 {
 	div_t d = div(n, roll);

@@ -15,7 +15,6 @@
 		_mm_store_si128((__m128i *) sum_array, sum0);
 		r = sum_array[0] + sum_array[1] + sum_array[2] + sum_array[3];
 	}
-#pragma omp simd reduction(+: r)
 	for (int ii = i; ii < n; ii++) {
 		r += x[ii];
 	}

@@ -404,6 +404,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	return value;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*

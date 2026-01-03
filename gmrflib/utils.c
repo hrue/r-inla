@@ -40,6 +40,7 @@ unsigned char *Strdup_sha(unsigned char *sha)
 	return nnew;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 {
 	if (!sha) {
@@ -712,6 +713,7 @@ int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n)
 	return 0;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 {
 	int num = 0;
@@ -929,6 +931,7 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
 	/*
@@ -975,6 +978,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 {
 	if (!vec || vec->size == 0) {
@@ -1004,6 +1008,7 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_adjust_vector(double *x, int n)
 {
 	/*
@@ -1042,6 +1047,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_zero(double *x, int n)
 {
 	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
@@ -1173,6 +1179,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imax_value(int *x, int n, int *idx)
 {
 	/*
@@ -1224,6 +1231,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imin_value(int *x, int n, int *idx)
 {
 	/*
@@ -1943,6 +1951,7 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
 	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
@@ -1975,6 +1984,7 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work)
 {
 	// this does not go that well: see test 160

@@ -6,6 +6,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
@@ -47,6 +48,7 @@ double GMRFLib_gsl_ldnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_ma
 	return GMRFLib_gsl_ldnorm_x(x, mean, Q, S, identity, NULL);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity, GMRFLib_gsl_ldnorm_store_tp *store)
 {
 	// 'identity' says that Q=S=I
@@ -422,6 +424,7 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
 	return b;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 {
 	double rms = 0.0;
@@ -543,6 +546,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 {
 	/*
@@ -980,6 +984,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_mgs(gsl_matrix *A)
 {
 	// this is the modified Gram-Schmith ortogonalisation, and it 
@@ -1137,6 +1142,7 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	return (B ? NULL : BB);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef)
 {
 	// compute the KLD between two mult-var normals, where either or both matrices can be numerical singular. Make sure that the rank is the
@@ -1300,6 +1306,7 @@ double GMRFLib_dssqr(int n, double *x)
 	return SQR(ret);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
@@ -1355,43 +1362,78 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 	GMRFLib_daxpy(n, a, x, y);
 }
 
+// y = a * x + y
+#define DAXPY_CORE(cutoff_)				\
+	if (n < cutoff_) {				\
+		int limit = n & ~3;			\
+		for (int i = 0; i < limit; i += 4) {	\
+			y[i] += a * x[i];		\
+			y[i+1] += a * x[i+1];		\
+			y[i+2] += a * x[i+2];		\
+			y[i+3] += a * x[i+3];		\
+		}					\
+		for (int i = limit; i < n; i++) {	\
+			y[i] += a * x[i];		\
+		}					\
+	} else {					\
+		int inc = 1;				\
+		daxpy_(&n, &a, x, &inc, y, &inc);	\
+	}
+
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-	// y = a * x + y
-	if (n < 32) {
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			y[i] += a * x[i];
-		}
-	} else {
-		int inc = 1;
-		daxpy_(&n, &a, x, &inc, y, &inc);
-	}
+	DAXPY_CORE(64);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
+{
+	DAXPY_CORE(cutoff);
+}
+#undef DAXPY_CORE
+
+#define DDOT_CORE(cutoff_)						\
+	if (n < cutoff_) {						\
+		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
+		int limit = n & ~3;					\
+		for (int i = 0; i < limit; i += 4) {			\
+			sum0 += x[i] * y[i];				\
+			sum1 += x[i+1] * y[i+1];			\
+			sum2 += x[i+2] * y[i+2];			\
+			sum3 += x[i+3] * y[i+3];			\
+		}							\
+		for (int i = limit; i < n; i++) {			\
+			sum0 += x[i] * y[i];				\
+		}							\
+		return sum0 + sum1 + sum2 + sum3;			\
+	} else {							\
+		int one = 1;						\
+		return ddot_(&n, x, &one, y, &one);			\
+	}
+
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-	if (n < 32) {
-		double r = 0.0;
-#pragma omp simd reduction(+: r)
-		for (int i = 0; i < n; i++) {
-			r += x[i] * y[i];
-		}
-		return r;
-	} else {
-		int one = 1;
-		return ddot_(&n, x, &one, y, &one);
-	}
+	DDOT_CORE(64);
 }
+
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
+{
+	DDOT_CORE(cutoff);
+}
+#undef DDOT_CORE
 
 #define SUM_CORE(TYPE_)						\
 	TYPE_ r = 0;						\
-	_Pragma("omp simd reduction(+: r)")			\
-	for (int i = 0; i < n;	i++) r += x[i];			\
+	for (int i = 0; i < n; i++) {				\
+		r += x[i];					\
+	}							\
 	return r + r0
 
-#pragma GCC push_options
-#pragma GCC optimize("O3")
+__attribute__ ((optimize("O3")))
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
 	if (n == 0) {
@@ -1399,6 +1441,7 @@ double GMRFLib_dsum(int n, double *x)
 	}
 
 	double r0 = 0.0;
+#if defined(INLA_WITH_INTRINSICS)
 	if (!SIMD_ALIGNED(x)) {
 		r0 = x[0];
 		x++;
@@ -1407,8 +1450,6 @@ double GMRFLib_dsum(int n, double *x)
 			return r0;
 		}
 	}
-
-#if defined(INLA_WITH_INTRINSICS)
 #       if defined(__x86_64__) && defined(__AVX2__)
 	if (n < 16) {
 #              include "intrinsics/x86_64/dsum-sse2.h"
@@ -1426,10 +1467,9 @@ double GMRFLib_dsum(int n, double *x)
 	SUM_CORE(double);
 #endif
 }
-#pragma GCC pop_options
 
-#pragma GCC push_options
-#pragma GCC optimize("O3")
+__attribute__ ((optimize("O3")))
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
 	if (n == 0) {
@@ -1463,14 +1503,12 @@ int GMRFLib_isum(int n, int *x)
 	SUM_CORE(int);
 #endif
 }
-#pragma GCC pop_options
 #undef SUM_CORE
 
 #define SPARSE_DSUM()					\
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
-	int unroll = 8;					\
-	int m = n & ~(unroll - 1);			\
-	for (int i = 0; i < m; i += unroll) {		\
+	int m = n & ~7;					\
+	for (int i = 0; i < m; i += 8) {		\
 		s0 += a[idx[i + 0]];			\
 		s1 += a[idx[i + 1]];			\
 		s2 += a[idx[i + 2]];			\
@@ -1480,40 +1518,18 @@ int GMRFLib_isum(int n, int *x)
 		s2 += a[idx[i + 6]];			\
 		s3 += a[idx[i + 7]];			\
 	}						\
-	_Pragma("omp simd reduction(+: s0)")		\
 	for (int i = m; i < n; i++) {			\
 		s0 += a[idx[i]];			\
 	}						\
 	return s0 + s1 + s2 + s3
 
 
-#pragma GCC push_options
-#pragma GCC optimize("O3")
+__attribute__ ((optimize("O3")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-	if (n == 0) {
-		return 0.0;
-	}
-
-#if defined(INLA_WITH_INTRINSICS)
-#       if defined(__x86_64__) && defined(__AVX2__)
-	if (n < 16) {
-#              include "intrinsics/x86_64/sparse-dsum-sse2.h"
-	} else {
-#              include "intrinsics/x86_64/sparse-dsum-avx2.h"
-	}
-#       elif defined(__x86_64__) && defined(__SSE2__)
-#              include "intrinsics/x86_64/sparse-dsum-sse2.h"
-#       elif defined(__aarch64__)
-#              include "intrinsics/aarch64/sparse-dsum.h"
-#       else
 	SPARSE_DSUM();
-#       endif
-#else
-	SPARSE_DSUM();
-#endif
 }
-#pragma GCC pop_options
 #undef SPARSE_DSUM
 
 #define FILL_CORE(TYPE_, LEN_)						\
@@ -1535,11 +1551,13 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		}							\
 	}
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double, 64);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int, 128);
@@ -1551,15 +1569,12 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 }
 #undef FILL_CORE
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/pack-avx2.h"
-#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/pack-sse2.h"
 #else
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
@@ -1567,15 +1582,12 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #endif
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
-#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/unpack-avx2-simple.h"
-#elif defined(__x86_64__) && defined(__SSE2__) && defined(INLA_WITH_INTRINSICS)
-#include "intrinsics/x86_64/unpack-sse2-simple.h"
 #else
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];

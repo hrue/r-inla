@@ -332,6 +332,7 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	return value;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
@@ -853,6 +854,7 @@ int inla_iid_wishart_nparam(int dim)
 	return ((dim * (dim + 1)) / 2);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (nnode < 0) {

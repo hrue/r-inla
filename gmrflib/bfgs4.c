@@ -579,6 +579,7 @@ int bfgs4_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gs
 	return s;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int gsl_bfgs4_test1(size_t n)
 {
 	// test-example from the GSL documentation
@@ -647,6 +648,7 @@ int gsl_bfgs4_test1(size_t n)
 	return 0;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order)
 {
 	// input n pairs of (x_i, y_i), fit a robust regression model of given order
@@ -774,6 +776,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;

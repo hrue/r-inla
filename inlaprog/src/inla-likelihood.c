@@ -47,6 +47,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int *lcache_idx, int id
 	return (arr[0]);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(sec))
 {
 	/*
@@ -1020,6 +1021,7 @@ double inla_dnchisq(double x, double df, double ncp)
 	return (ldens);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -1087,6 +1089,7 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_stdgaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			      double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -1223,6 +1226,7 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_sem(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
 		      double *y_cdf, void *arg)
 {
@@ -1348,6 +1352,7 @@ int loglikelihood_agaussian(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_ggaussian(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			    double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -1557,6 +1562,7 @@ int loglikelihood_bcgaussian(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
 		     double *UNUSED(y_cdf), void *arg)
 {
@@ -2587,6 +2593,7 @@ int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			  double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -3229,6 +3236,7 @@ int loglikelihood_1poissonS(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			    double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
@@ -4032,6 +4040,7 @@ int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_zeroinflated_cenpoisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 					   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -4271,6 +4280,7 @@ int loglikelihood_pom(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_zeroinflated_poisson0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 					double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -5298,6 +5308,7 @@ int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lca
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -5542,6 +5553,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_xbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			    double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -5893,6 +5905,7 @@ int inla_mix_int_quadrature_mloggamma(int UNUSED(thread_id), int *UNUSED(lcache_
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_mix_int_simpson_gaussian(int thread_id, int *UNUSED(lcache_idx), double **x, double **w, int *n, void *arg)
 {
 #define DENS(_x) exp(-0.5 * SQR(_x))
@@ -5988,6 +6001,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_mix_int_simpson_loggamma(int thread_id, int *UNUSED(lcache_idx), double **x, double **w, int *n, void *arg)
 {
 // Gamma(a,a) propto x^(a-1) * exp(-a*x). The density is normalized in any case, so we do not need to add the normalizing
@@ -6077,6 +6091,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_mix_int_simpson_mloggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg)
 {
 	inla_mix_int_simpson_loggamma(thread_id, lcache_idx, x, w, n, arg);
@@ -6110,6 +6125,7 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 		(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_gaussian, inla_mix_int_simpson_gaussian));
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
 			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
@@ -6271,6 +6287,7 @@ int loglikelihood_cbinomial(int thread_id, int *UNUSED(lcache_idx), double *__re
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_zeroinflated_binomial0(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 					 double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -7209,6 +7226,7 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restri
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			       double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -7634,6 +7652,7 @@ int loglikelihood_expsurv(int thread_id, int *lcache_idx, double *__restrict log
 		0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(thread_id, lcache_idx, logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp));
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			       double *y_cdf, void *arg, GMRFLib_logl_tp *loglfun)
 {
@@ -8380,6 +8399,7 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *__restrict
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {

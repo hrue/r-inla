@@ -549,6 +549,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 	return GMRFLib_idxval_nsort_x(hold, n, nt, 0, 1);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	// x is a test vector

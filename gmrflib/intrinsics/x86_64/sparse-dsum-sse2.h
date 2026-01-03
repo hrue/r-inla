@@ -19,7 +19,6 @@
 		__m128d sum_total = _mm_add_pd(sum0, sum_swapped);
 		_mm_store_sd(&r, sum_total);
 	}
-#pragma omp simd reduction(+: r)
 	for (int ii = i; ii < n; ii++) {
 		r += a[idx[ii]];
 	}

@@ -19,6 +19,7 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
 {
@@ -61,6 +62,7 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
 {
@@ -118,6 +120,7 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -240,7 +243,7 @@ int testit(int argc, char **argv)
 	{
 		// this force a race-condition
 #       define NN 10
-		int x[NN];
+		int x[NN] = {0};
 #       pragma omp parallel for
 		for (int i = 0; i < NN; i++) {
 			*(x + i) = i;
@@ -5741,6 +5744,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		int kk = 0;
+		const int mm = 10;
 		if (nargs >= 3) {
 			kk = (atoi(args[2]) ? 1 : 0);
 		}
@@ -5749,6 +5753,7 @@ int testit(int argc, char **argv)
 		P(kk);
 		double *x = Calloc(n + 100, double);
 		double *y = Calloc(n + 100, double);
+		double *ys = Calloc(mm * n + 100, double);
 		int *ix = Calloc(n + 100, int);
 		int *iy = Calloc(n + 100, int);
 		int *idx = Calloc(n + 100, int);
@@ -5773,7 +5778,8 @@ int testit(int argc, char **argv)
 			for (int i = 0; i < n; i++) {
 				ix[i] = (int) (1000 * GMRFLib_uniform());
 				iy[i] = (int) (1000 * GMRFLib_uniform());
-				idx[i] = i;
+				idx[i] = (i-1 >= 0 ? idx[i-1] : 0) + (int)(mm * GMRFLib_uniform());
+				ys[idx[i]] = GMRFLib_uniform();
 				x[i] = GMRFLib_uniform();
 				y[i] = GMRFLib_uniform();
 				bx[i] = (bool) (GMRFLib_uniform() < 0.5);
@@ -5790,11 +5796,11 @@ int testit(int argc, char **argv)
 			assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[0] -= GMRFLib_timer();
-			a = GMRFLib_sparse_ddot(n, x, y, idx);
+			a = GMRFLib_sparse_ddot(n, x, ys, idx);
 			tref[0] += GMRFLib_timer();
 			e = 0.0;
 			for (int k = 0; k < n; k++)
-				e += x[k] * y[idx[k]];
+				e += x[k] * ys[idx[k]];
 			assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[1] -= GMRFLib_timer();
@@ -5822,11 +5828,11 @@ int testit(int argc, char **argv)
 			tref[4] += GMRFLib_timer();
 
 			tref[8] -= GMRFLib_timer();
-			a = GMRFLib_sparse_dsum(n, x, idx);
+			a = GMRFLib_sparse_dsum(n, ys, idx);
 			tref[8] += GMRFLib_timer();
 			e = 0.0;
 			for (int k = 0; k < n; k++)
-				e += x[idx[k]];
+				e += ys[idx[k]];
 			assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[5] -= GMRFLib_timer();
@@ -5978,6 +5984,135 @@ int testit(int argc, char **argv)
 		printf("ddot diff        %.8f\n", tref_diff[9]);
 		printf("sparse_ddot same %.8f\n", tref_same[0]);
 		printf("sparse_ddot diff %.8f\n", tref_diff[0]);
+	}
+		break;
+
+	case 190:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double *yy = Calloc(n + 100, double);
+		double *r = Calloc(n + 100, double);
+		double *dmap = Calloc(n + 100, double);
+		int *map = Calloc(n + 100, int);
+
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double tref_simple[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = 0; j < m; j++) {
+			for (int i = 0; i < n; i++) {
+				map[i] = i;
+				dmap[i] = i;
+				x[i] = GMRFLib_uniform();
+				y[i] = x[i];
+				yy[i] = x[i];
+				r[i] = GMRFLib_uniform();
+			}
+
+			my_sort2_dd(r, dmap, n);
+			for (int i = 0; i < n; i++) {
+				map[i] = (int) dmap[i];
+			}
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_pack(n, x, map, y);
+			tref[0] += GMRFLib_timer();
+
+			tref_simple[0] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				yy[i] = x[map[i]];
+			}
+			tref_simple[0] += GMRFLib_timer();
+			assert(y[0] == yy[0]);
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_unpack(n, x, y, map);
+			tref[1] += GMRFLib_timer();
+
+			tref_simple[1] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				yy[map[i]] = x[i];
+			}
+			tref_simple[1] += GMRFLib_timer();
+			assert(yy[0] == y[0]);
+		}
+		printf("pack             %.6f\n", tref[0]);
+		printf("pack (simple)    %.6f\n", tref_simple[0]);
+		printf("unpack           %.6f\n", tref[1]);
+		printf("unpack (simple)  %.6f\n", tref_simple[1]);
+	}
+		break;
+
+	case 191:
+	{
+#define M 12
+		int m = atoi(args[0]);
+		int n = (int) pow(2.0,  M + 1.0);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double tref0[M] = {0};
+		double tref1[M] = {0};
+		int siz[M] = {2};
+		for(int k = 1; k < M; k++) siz[k] = 2*siz[k-1];
+		for (int j = 0; j < m; j++) {
+			for (int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+			}
+			for(int k = 0; k < M; k++) {
+				int nn = siz[k];
+				tref0[k] -= GMRFLib_timer();
+				volatile int POSSIBLY_UNUSED(re) = GMRFLib_ddot_x(nn, x, y, INT_MAX);
+				tref0[k] += GMRFLib_timer();
+				tref1[k] -= GMRFLib_timer();
+				volatile int POSSIBLY_UNUSED(ree) = GMRFLib_ddot_x(nn, x, y, 0);
+				tref1[k] += GMRFLib_timer();
+			}
+		}
+		for(int k = 0; k < M; k++) {
+			printf("ddot: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
+		}
+#undef M
+	}
+		break;
+
+	case 192:
+	{
+#define M 12
+		int m = atoi(args[0]);
+		int n = (int) pow(2.0,  M + 1.0);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double tref0[M] = {0};
+		double tref1[M] = {0};
+		int siz[M] = {2};
+
+		for(int k = 1; k < M; k++) siz[k] = 2*siz[k-1];
+		for (int j = 0; j < m; j++) {
+			double a = GMRFLib_uniform();
+			for (int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+			}
+			for(int k = 0; k < M; k++) {
+				int nn = siz[k];
+				tref0[k] -= GMRFLib_timer();
+				GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
+				tref0[k] += GMRFLib_timer();
+				tref1[k] -= GMRFLib_timer();
+				GMRFLib_daxpy_x(nn, a, x, y, 0);
+				tref1[k] += GMRFLib_timer();
+			}
+		}
+		for(int k = 0; k < M; k++) {
+			printf("daxpy: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
+		}
+#undef M
 	}
 		break;
 

@@ -17,6 +17,7 @@
 		}							\
 	}
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,

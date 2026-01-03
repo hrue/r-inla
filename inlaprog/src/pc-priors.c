@@ -44,6 +44,7 @@ double inla_pc_simplex_d(double *x, double *b, int p, double lambda)
 	Free(theta);
 	return (ldens);
 }
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_pc_simplex_core_d(double *x, int p, double lambda)
 {
 	// evaluate the log-density from the pc prior where d = h(\sum x_i), x_i >=0.

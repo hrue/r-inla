@@ -271,6 +271,7 @@ void fitsn_gradhess(double x, double *param, double *grad, double *hess)
 	hess[IDX(3, 3)] = t1;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 {
 	// param = arg min 1/2 * \sum_i=0^n-1 w_i * (ld(x_i, ...) - y_i)^2

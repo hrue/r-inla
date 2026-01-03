@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+fail=""
+for p in $(find gmrflib -name \*.patch) $(find inlaprog -name \*.patch); do
+    f=$(readlink -f $(dirname "$p")/$(basename -s .patch "$p"))
+    if [ -f "$f" ]; then
+	echo "Apply patch $p to $f"
+	
+	if patch "$@" --input="$p" "$f" < /dev/null; then
+	    echo -e "\tpatch OK"
+	    rm -f "$p"
+	else 
+	    echo -e "\tpatch FAIL"
+	    fail="$fail $p"
+	fi
+    else
+	echo "File does not exist $f"
+	fail="$fail $p"
+    fi
+    echo 
+done
+echo -e "\n\n\nFAIL: $fail"
+

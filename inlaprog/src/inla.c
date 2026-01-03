@@ -856,6 +856,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	return mb;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *constr)
 {
 	/*
@@ -1314,6 +1315,7 @@ int find_tag(inla_tp *mb, const char *name)
 	return -1;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int count_f(inla_tp *mb, inla_component_tp id)
 {
 	int n = 0;
@@ -1415,6 +1417,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp *setup)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
@@ -5780,6 +5783,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	return x;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_INLA_preopt_experimental(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
@@ -6450,6 +6454,7 @@ int inla_computed(GMRFLib_density_tp **d, int n)
 	return INLA_OK;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
 {
@@ -6821,6 +6826,7 @@ int inla_divisible(int n, int by)
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int verbose)
 {
 	// if VERBOSE, write out the scalings.
@@ -6986,6 +6992,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_update_density(double *theta, inla_update_tp *arg)
 {
 	/*
@@ -8033,6 +8040,7 @@ int inla_tp_free(inla_tp *mb)
 }
 
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 {
 	// easier to have this function here, although its more natural to call it as GMRFLib_stiles_get_graphs(mb)

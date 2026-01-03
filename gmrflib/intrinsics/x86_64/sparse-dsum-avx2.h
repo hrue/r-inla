@@ -29,7 +29,6 @@
 		sum_128 = _mm_hadd_pd(sum_128, sum_128);
 		r = _mm_cvtsd_f64(sum_128);
 	}
-#pragma omp simd reduction(+: r)
 	for (int ii = i; ii < n; ii++) {
 		r += a[idx[ii]];
 	}

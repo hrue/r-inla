@@ -118,6 +118,7 @@ static double compute_vol(const hypercube *h)
 	return vol;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube(unsigned dim, const double *center, const double *halfwidth)
 {
 	unsigned i;
@@ -133,6 +134,7 @@ static hypercube make_hypercube(unsigned dim, const double *center, const double
 	return h;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube_range(unsigned dim, const double *xmin, const double *xmax)
 {
 	hypercube h = make_hypercube(dim, xmin, xmax);
@@ -264,6 +266,7 @@ static unsigned ls0(unsigned n)
  *  A Gray-code ordering is used to minimize the number of coordinate updates
  *  in p.
  */
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
 {
 	double sum = 0;
@@ -408,6 +411,7 @@ static void destroy_rule75genzmalik(rule *r_)
 	free(r->p);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*
@@ -511,6 +515,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 /* 1d 15-point Gaussian quadrature rule, based on qk15.c and qk.c in
    GNU GSL (which in turn is based on QUADPACK). */
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*

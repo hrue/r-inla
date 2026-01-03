@@ -51,6 +51,7 @@ double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(value
 	return val * prec;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 {
 	GMRFLib_seasonaldef_tp *sdef = Calloc(1, GMRFLib_seasonaldef_tp);

@@ -4,39 +4,36 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#define SPARSE_DOT()				\
-	double s0 = 0.0;			\
-	_Pragma("omp simd reduction(+: s0)")	\
-	for (int i = 0; i < n; i++) {		\
-		s0 += v[i] * a[idx[i]];		\
-	}					\
-	return s0
+#define SPARSE_DOT()						\
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;		\
+	int unroll = 8;						\
+	int m = n & ~(unroll - 1);				\
+	for (int i = 0; i < m; i += unroll) {			\
+		s0 += v[i + 0] * a[idx[i + 0]];			\
+		s1 += v[i + 1] * a[idx[i + 1]];			\
+		s2 += v[i + 2] * a[idx[i + 2]];			\
+		s3 += v[i + 3] * a[idx[i + 3]];			\
+		s0 += v[i + 4] * a[idx[i + 4]];			\
+		s1 += v[i + 5] * a[idx[i + 5]];			\
+		s2 += v[i + 6] * a[idx[i + 6]];			\
+		s3 += v[i + 7] * a[idx[i + 7]];			\
+	}							\
+	for (int i = m; i < n; i++) {				\
+		s0 += v[i] * a[idx[i]];				\
+	}							\
+	return s0 + s1 + s2 + s3
 
-#pragma GCC push_options
-#pragma GCC optimize("O3")
+__attribute__ ((optimize("O3")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	if (n == 0)
-		return 0.0;
-
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
 	return cblas_ddoti(n, v, idx, a);
-#elif defined(INLA_WITH_INTRINSICS)
-#       if defined(__x86_64__) && defined(__AVX512F__)
-#              include "intrinsics/x86_64/sparse-ddot-avx512f.h"
-#       elif defined(__x86_64__) && defined(__AVX2__)
-#              include "intrinsics/x86_64/sparse-ddot-avx2.h"
-#       elif defined(__x86_64__) && defined(__SSE2__)
-#              include "intrinsics/x86_64/sparse-ddot-sse2.h"
-#       else
-	SPARSE_DOT();
-#       endif
 #else
 	SPARSE_DOT();
 #endif
 }
-#pragma GCC pop_options
 #undef SPARSE_DOT
 
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
@@ -75,22 +72,7 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 {
 	double value = 0.0;
 	const int g_n = ELM_->g_n;
-#define USE_PREFETCH 1
-#if USE_PREFETCH
-	if (__builtin_expect(g_n > 0, 1)) {
-		__builtin_prefetch(ELM_->g_len, 0, 3);
-		__builtin_prefetch(ELM_->g_idx[0], 0, 3);
-		__builtin_prefetch(ELM_->g_val[0], 0, 3);
-	}
-#endif
-
 	for (int g_ = 0; g_ < g_n; g_++) {
-#if USE_PREFETCH
-		if (__builtin_expect(g_ + 1 < g_n, 1)) {
-			__builtin_prefetch(ELM_->g_idx[g_ + 1], 0, 3);
-			__builtin_prefetch(ELM_->g_val[g_ + 1], 0, 3);
-		}
-#endif
 		const int len_ = ELM_->g_len[g_];
 		int *__restrict const ii_ = ELM_->g_idx[g_];
 		double *__restrict const vv_ = ELM_->g_val[g_];

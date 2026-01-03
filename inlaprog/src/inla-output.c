@@ -766,6 +766,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp *dic, double *fami
 	return INLA_OK;
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta, char **theta_tag, char **theta_from,
 		     char **theta_to, double *lc_order, int verbose, inla_tp *mb)
 {
@@ -1423,6 +1424,7 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 }
 
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *locations, int n, int nrep, Output_tp *output, const char *sdir,
 		       int return_marginals,
 		       // Either this

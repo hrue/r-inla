@@ -303,6 +303,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 #endif
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 	// z = x * y

@@ -19976,3 +19976,9 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 
 	return INLA_OK;
 }
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))

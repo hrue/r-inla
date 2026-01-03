@@ -170,6 +170,7 @@ int GMRFLib_2order_approx(int thread_id, int *lcache_idx, double *a, double *b, 
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {

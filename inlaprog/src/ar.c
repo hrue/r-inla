@@ -26,6 +26,7 @@
 /* 
    functions for the AR(p) model; the pacf2phi and phi2pacf are taken from R's arima.c
  */
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_pacf2phi(int p, double *pacf, double *phi)
 {
 	/*
@@ -58,6 +59,7 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_phi2pacf(int p, double *phi, double *pacf)
 {
 	/*

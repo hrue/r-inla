@@ -270,6 +270,7 @@ double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph)
 {
 	int tnum = omp_get_thread_num();
@@ -425,6 +426,7 @@ int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp *store, GMRFLi
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 {
 	int tnum = omp_get_thread_num();
@@ -501,6 +503,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
 {
 	// note that 'x' = 'b' !!!!!!!!!!!!!!!
@@ -666,6 +669,7 @@ int GMRFLib_pardiso_bitmap(void)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
 	if (problem == NULL) {

@@ -43,7 +43,8 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	return (md);
 }
 
-int *GMRFLib_remap_get(int *remap, int n, int nrhs)
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 {
 	if (!remap_store_use) {
 		return NULL;
@@ -69,7 +70,7 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		GMRFLib_remap_tp *r = *((GMRFLib_remap_tp **) p);
 #pragma omp atomic
 		r->count++;
-		return r->remap;
+		return r;
 	}
 
 	int numa_node = -1;
@@ -90,6 +91,10 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	for (int k = 0; k < n * nrhs; k++) {
 		re[k] = re2[re1[k]];
 	}
+	// this is the inverse of 're'
+	for (int k = 0; k < n * nrhs; k++) {
+		re1[re[k]] = k;
+	}
 
 	GMRFLib_remap_tp *r = Calloc(1, GMRFLib_remap_tp);
 	r->sha = sha;
@@ -98,14 +103,13 @@ int *GMRFLib_remap_get(int *remap, int n, int nrhs)
 	r->numa_node = numa_node;
 	r->count = 1;
 	r->remap = re;
+	r->remap_inv = re1;
 
 #pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
 	map_strvp_set(remap_store, (char *) r->sha, (void *) r);
-
-	Free(re1);
 	Free(re2);
 
-	return r->remap;
+	return r;
 }
 
 void GMRFLib_remap_print(FILE *fp)

@@ -2097,6 +2097,7 @@ double priorfunc_loggamma(double *x, double *parameters)
 	return priorfunc_gamma(&val, parameters) + (*x);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_dirichlet(double *x, double *parameters)
 {
 #define _F_logit(_x) (1.0/(1.0+exp(-(_x))))
@@ -2222,6 +2223,7 @@ double priorfunc_normal(double *x, double *parameters)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_mvnorm(double *x, double *parameters)
 {
 	/*
@@ -2272,6 +2274,7 @@ double priorfunc_mvnorm(double *x, double *parameters)
 	return (-n / 2.0 * log(2 * M_PI) + 0.5 * logdet - 0.5 * q);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
 	/*
@@ -2364,6 +2367,7 @@ double priorfunc_wishart5d(double *x, double *parameters)
 	return priorfunc_wishart_generic(5, x, parameters);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 {
 	/*
@@ -2621,6 +2625,7 @@ double priorfunc_wishartk_24d(double *x, double *parameters)
 	return priorfunc_wishartk_generic(24, x, parameters);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 {
 	/*

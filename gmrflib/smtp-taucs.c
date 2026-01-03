@@ -73,6 +73,7 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	}
 }
 
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
 	GMRFLib_ENTER_FUNCTION;
@@ -494,6 +495,7 @@ int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o
 }
 #endif
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
 	/*
@@ -576,6 +578,7 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix *L)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp *gn_ptr)
 {
 	int i, j, k, ic, ne, n, ns, nnz, *perm = NULL, *iperm = NULL, limit, free_subgraph, *iperm_new = NULL, simple;
@@ -1146,11 +1149,17 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 	GMRFLib_graph_tp g;
 	g.n = n * nrhs;
 
-	int *r = GMRFLib_remap_get(remap, n, nrhs);
+	GMRFLib_remap_tp * rr = GMRFLib_remap_get(remap, n, nrhs);
+	int *r = (rr ? rr->remap : NULL);
+	int *rinv = (rr ? rr->remap_inv : NULL);
+	if (r) assert(rinv);
+
 	if (r) {
 		// this is doing the full reordering, also the one in llt2 that 'skip_reordering' handle
 		skip_reordering = 1;
-		GMRFLib_convert_to_mapped(work, rhs, &g, r);
+		// its faster to do 'from' as it corresponds to 'pack', which 'to' corresponds to 'unpack'
+		// GMRFLib_convert_to_mapped(work, rhs, &g, r);
+		GMRFLib_convert_from_mapped(work, rhs, &g, rinv);
 	} else {
 		// this is doing the first reordering, the second one is in llt2
 		skip_reordering = 0;
@@ -1616,6 +1625,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	return 0;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w, int skip_reordering)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1886,6 +1896,7 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
 		 int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
 		 int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))
@@ -1904,6 +1915,7 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), i
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
 		    int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
 		    int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))

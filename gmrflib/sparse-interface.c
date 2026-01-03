@@ -403,6 +403,7 @@ int GMRFLib_csr_print(FILE *fp, GMRFLib_csr_tp *csr)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GMRFLib_csr_tp *csr)
 {
 	int i, j, k, jj, nnb;

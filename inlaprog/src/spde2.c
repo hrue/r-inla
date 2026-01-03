@@ -112,6 +112,7 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	}
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
 {
 	aligned_double(d_i0) = dij[0];

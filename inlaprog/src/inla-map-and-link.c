@@ -299,6 +299,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	return (map_invsn_core(arg, typ, param, NULL));
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code

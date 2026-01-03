@@ -14,6 +14,7 @@
 #       include <pwd.h>
 #endif
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc, void **f_Qfunc_arg,
 			char *f_sumzero, GMRFLib_constr_tp **f_constr, double *f_diag,

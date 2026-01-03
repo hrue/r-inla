@@ -280,6 +280,7 @@ int GMRFLib_normal_fit(double *mean, double *variance, double *fval, double *x, 
 	return retval;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_density, size_t n, size_t m)
 {
 	/*
@@ -473,6 +474,7 @@ int GMRFLib_sn_fit_fdf(const gsl_vector *param, void *data, gsl_vector *f, gsl_m
 	return GSL_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 {
 	/*
@@ -694,6 +696,7 @@ int GMRFLib_evaluate_logdensity(double *logdens, double x, GMRFLib_density_tp *d
 	return GMRFLib_evaluate_nlogdensity(logdens, &x, 1, density);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_density_tp *density)
 {
 	/*
@@ -1070,6 +1073,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **d
 	return GMRFLib_density_combine_x(density, densities, probs, GMRFLib_DENSITY_TYPE_AUTO);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs, GMRFLib_density_type_tp type)
 {
 	/*
@@ -1307,6 +1311,7 @@ int GMRFLib_density_adjust_vector(double *ldens, int n)
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double *x, double *logdens, double std_mean,
 			   double std_stdev, int lookup_tables)
 {

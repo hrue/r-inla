@@ -25,11 +25,12 @@ __BEGIN_DECLS
 	int nrhs;
 	int numa_node;
 	int *remap;					       /* length n * nrhs */
+	int *remap_inv;					       /* length n * nrhs */
 	int count;
 	unsigned char *sha;
 } GMRFLib_remap_tp;
 
-int *GMRFLib_remap_get(int *remap, int n, int nrhs);
+GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs);
 int GMRFLib_remap_init_store(void);
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs);
 void GMRFLib_remap_print(FILE * fp);

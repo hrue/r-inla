@@ -157,6 +157,7 @@ int inla_spde_KT_model_init(inla_spde_theta_tp *theta_model, GMRFLib_matrix_tp *
 	}
 	return INLA_OK;
 }
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp *theta_model, int idx)
 {
 	int i;
@@ -351,6 +352,7 @@ double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp *UNUSED(problem), 
 	return deformations;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, double *covmat)
 {
 	/*

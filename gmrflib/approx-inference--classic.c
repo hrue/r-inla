@@ -15,6 +15,7 @@
 
 
 static int pool_nhyper = -1;
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
 			     GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
@@ -205,6 +206,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRFLib_density_tp **cpo_density,
 			       int lookup_tables,
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
@@ -792,6 +794,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pproblem, double *x, double *mean,
 				       GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp *constr, double *bbb, double *ccc, double **covariances, int idx)
@@ -955,6 +958,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp *pprobl
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp *problem, int idx, double evalue, double **covariances)
 {
 	/*
@@ -1134,6 +1138,7 @@ char *GMRFLib_ai_tag(int *iz, int len)
 	return tag;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_skip_configurations(map_strd *hash_table, int k, int *iz, int *izz, int *len, int *k_max, int len_length, int nhyper)
 {
 	/*
@@ -1180,6 +1185,7 @@ int GMRFLib_ai_skip_configurations(map_strd *hash_table, int k, int *iz, int *iz
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		    GMRFLib_density_tp ***density_transform, GMRFLib_transform_array_func_tp **tfunc,
 		    GMRFLib_density_tp ***density_hyper,
@@ -3855,6 +3861,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 	return GMRFLib_SUCCESS;
 }
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_prepare(int thread_id,
 			  GMRFLib_vb_coofs_tp *coofs, int idx, GMRFLib_density_tp *density, double d, GMRFLib_logl_tp *loglFunc,
 			  void *loglFunc_arg, double *x_vec)
@@ -3965,6 +3972,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 }
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_vb_fit_gaussian(int n, double *x, double *ld, double *mean, double *sd)
 {
 	// do a quick fit of a sequence of (x,ld) to get an approximate mean and sd.
@@ -4179,6 +4187,7 @@ int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_interpolator_distance2(int ndim, double *x, double *xx)
 {
 	/*
@@ -4222,6 +4231,7 @@ double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs,
 	return value;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *UNUSED(arg))
 {
 	/*
@@ -4296,6 +4306,7 @@ double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, 
 	return value;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_interpolator_quadratic(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg)
 {
 	/*
@@ -4417,6 +4428,7 @@ double GMRFLib_interpolator_wdistance(int ndim, int nobs, double *x, double *xob
 	return value / wsum;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp **pool, GMRFLib_ai_param_tp *ai_par, int nhyper)
 {
 	size_t i, j, k;
@@ -4506,6 +4518,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp **pool, GMRFLib_ai_param_tp *ai_par,
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pool_cmp(const void *a, const void *b)
 {
 	/*
@@ -4596,6 +4609,7 @@ int GMRFLib_ai_pool_set(GMRFLib_ai_pool_tp *pool, size_t idx, double logdens)
 	return GMRFLib_ai_pool_intern(pool, NULL, &idx, logdens, GMRFLib_AI_POOL_SET);
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp *pool, int *iz, size_t *idx, double logdens, int action)
 {
 	const int debug = 0;
@@ -4707,6 +4721,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp **UNUSED(tdensity), GMRFLib_den
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,	// need two types
 				   int dens_count,
 				   GMRFLib_density_tp **dens_local,

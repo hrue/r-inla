@@ -117,6 +117,7 @@ int GMRFLib_build_sparse_matrix_BAND(int thread_id,
 #undef BIDX
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *finfo, GMRFLib_graph_tp *graph, int bandwidth)
 {
 	/*
@@ -360,6 +361,7 @@ int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 {
 	/*
