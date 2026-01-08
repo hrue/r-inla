@@ -301,9 +301,7 @@ void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
 		}
 		free(ptr);
-	} else {
-		fprintf(stderr, "%s:%s:%d: Try to free a NULL-ptr\n", file, funcname, lineno);
-	}
+	} 
 }
 
 char *GMRFLib_rindex(const char *p, int ch)
@@ -2371,26 +2369,25 @@ void GMRFLib_sort_d(double *x, int n)
 double GMRFLib_cdfnorm_inv(double p)
 {
 	return (gsl_cdf_ugaussian_Pinv(p));
-
-	if (0) {
-		// https://arxiv.org/abs/0901.0638
-		int sign = (p < 0.5 ? -1 : 1);
-		double u = DMAX(p, 1.0 - p);
-		double v = -log(2.0 * (1.0 - u));
-		double P = 1.2533141359896652729 +
-		    v * (3.0333178251950406994 +
-			 v * (2.3884158540184385711 +
-			      v * (0.73176759583280610539 +
-				   v * (0.085838533424158257377 +
-					v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
-		double Q = 1 + v * (2.9202373175993672857 +
-				    v * (2.9373357991677046357 +
-					 v * (1.2356513216582148689 +
-					      v * (0.2168237095066675527 +
-						   v * (0.014494272424798068406 +
-							(0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
-		return (sign * v * P / Q);
-	}
+#if 0
+	// https://arxiv.org/abs/0901.0638
+	int sign = (p < 0.5 ? -1 : 1);
+	double u = DMAX(p, 1.0 - p);
+	double v = -log(2.0 * (1.0 - u));
+	double P = 1.2533141359896652729 +
+		v * (3.0333178251950406994 +
+		     v * (2.3884158540184385711 +
+			  v * (0.73176759583280610539 +
+			       v * (0.085838533424158257377 +
+				    v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+	double Q = 1 + v * (2.9202373175993672857 +
+			    v * (2.9373357991677046357 +
+				 v * (1.2356513216582148689 +
+				      v * (0.2168237095066675527 +
+					   v * (0.014494272424798068406 +
+						(0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+	return (sign * v * P / Q);
+#endif
 }
 
 double GMRFLib_cdfnorm(double x)

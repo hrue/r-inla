@@ -12,6 +12,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
 	FILE *fp = NULL;
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
 	}
@@ -78,6 +79,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
 	}
@@ -388,10 +390,12 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
+		assert(fp);
 		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
+		assert(fp);
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);

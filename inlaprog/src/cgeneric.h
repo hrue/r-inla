@@ -201,7 +201,7 @@ inla_cgeneric_func_tp inla_cgeneric_iid_model;
 inla_cgeneric_func_tp inla_cgeneric_ar1_model;
 inla_cgeneric_func_tp inla_cgeneric_generic0_model;
 
-static void POSSIBLY_UNUSED(inla_cgeneric_data_print) (FILE * fp, inla_cgeneric_data_tp * data) {
+static void POSSIBLY_UNUSED(inla_cgeneric_data_print)(FILE * fp, inla_cgeneric_data_tp * data) {
 	fp = (fp ? fp : stdout);
 
 	fprintf(fp, "\nContent of cgeneric_data\n");
