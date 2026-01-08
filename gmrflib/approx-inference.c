@@ -575,6 +575,8 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp *ai_store)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector *sqrt_eigen_values, gsl_matrix *eigen_vectors)
 {
@@ -605,7 +607,10 @@ int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector *sqrt_eigen_values, gsl_matrix *eigen_vectors)
 {
@@ -634,7 +639,10 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						  GMRFLib_problem_tp **problem, double *x, double *b, double *c, double *mean,
@@ -1074,7 +1082,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	return GMRFLib_SUCCESS;
 #undef FREE_ALL
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 GMRFLib_density_tp ***density_transform, GMRFLib_transform_array_func_tp **tfunc,
@@ -3253,6 +3264,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 {
@@ -3274,6 +3286,8 @@ int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx)
@@ -3933,7 +3947,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	GMRFLib_LEAVE_FUNCTION;
 	return ggroups;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_id, double *lpred_mean, double *lpred_mode,
 				   double *lpred_variance, GMRFLib_preopt_tp *preopt,
@@ -4925,6 +4942,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	GMRFLib_LEAVE_FUNCTION;
 	return gcpo;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMRFLib_density_tp *density,
 			    int idx, double d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par)
@@ -5009,6 +5027,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       int *lcache_idx, int *ccache_idx, int *ccache_idx_numa, int *nnuma,
@@ -5085,7 +5105,10 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_coofs_tp *coofs, int idx, double d,
 				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd, double *workspace)
@@ -5155,6 +5178,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, int *lcache_idx, GMRFLib_vb_co
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp ***density,	// need two types
 			       int dens_count,
@@ -5177,6 +5201,8 @@ int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp ***density,	// 
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      GMRFLib_density_tp ***density,
@@ -5697,7 +5723,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef SHOW_TIME
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_density_tp ***density,
@@ -6208,7 +6237,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, double *fitted_prec, int idx, double d,
 			       GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
@@ -6327,6 +6359,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp *problem, double *mean_corrected,
@@ -6494,6 +6527,8 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, int nlin, GMRFLib_lc_tp **Alin,
 			       GMRFLib_ai_store_tp *ai_store, double *improved_mean, int lookup_tables)
@@ -6773,6 +6808,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_param_tp *ai_par)
 {
@@ -6835,6 +6871,8 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int idx, GMRFLib_density_tp *cpo_density, double d,
 				   GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec)
@@ -6950,7 +6988,10 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	Calloc_free();
 	return fail;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *po3, int idx, GMRFLib_density_tp *po_density,
 			       double d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec)
@@ -7111,7 +7152,10 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 	return fail;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *density, double d, GMRFLib_logl_tp *loglFunc,
 				 void *loglFunc_arg, double *x_vec)
@@ -7268,6 +7312,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 
 	return res;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 {
@@ -7295,6 +7340,8 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp *ai_store)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, double **izs, int n, int nhyper, double dz)
 {
@@ -7343,6 +7390,7 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx, int nhyper, int hyper_count, double *hyper_z,
 					  double *hyper_ldens, double *theta_mode, gsl_vector *sqrt_eigen_values,
@@ -7685,6 +7733,8 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *UNUSED(xobs), double *UNUSED(yobs), void *arg)
 {
@@ -7710,6 +7760,7 @@ double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *U
 
 	return value;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {

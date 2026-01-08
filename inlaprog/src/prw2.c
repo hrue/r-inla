@@ -260,6 +260,8 @@ double inla_prw2_corfunc(double d, double kappa)
 	return (1.0 + ad) * exp(-ad);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 {
@@ -346,7 +348,10 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 
 	return arg;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 {
@@ -485,6 +490,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 
 	return Qsym;
 }
+#pragma GCC diagnostic pop
 
 double inla_Qfunc_prw2(int thread_id, int i, int j, double *values, void *arg)
 {
@@ -680,6 +686,8 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 }
 
 #if defined(INLA_WITH_DEVEL)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void inla_bm_test()
 {
@@ -743,6 +751,8 @@ void inla_bm_test()
 	inla_bm_free(Qinv);
 	Free(loc);
 }
+#pragma GCC diagnostic pop
+
 void inla_prw2_test(void)
 {
 	priorfunc_prw2_pcprior_range_calibrate(10.0, 0.9, 1.0);

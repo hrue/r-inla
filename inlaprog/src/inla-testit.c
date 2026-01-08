@@ -19,6 +19,8 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -41,6 +43,7 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -62,6 +65,8 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -82,6 +87,7 @@ int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -120,6 +126,8 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int testit(int argc, char **argv)
 {
@@ -6090,10 +6098,13 @@ int testit(int argc, char **argv)
 		double *y = Calloc(n + 100, double);
 		double tref0[M] = {0};
 		double tref1[M] = {0};
-		int siz[M] = {2};
+		int siz[M] = {0};
 
-		for(int k = 1; k < M; k++) siz[k] = 2*siz[k-1];
-		for (int j = 0; j < m; j++) {
+		siz[0] = 2;
+		for(int k = 1; k < M; k++)
+			siz[k] = 2*siz[k-1];
+
+		for (int j = -10; j < m; j++) {
 			double a = GMRFLib_uniform();
 			for (int i = 0; i < n; i++) {
 				x[i] = GMRFLib_uniform();
@@ -6101,12 +6112,12 @@ int testit(int argc, char **argv)
 			}
 			for(int k = 0; k < M; k++) {
 				int nn = siz[k];
-				tref0[k] -= GMRFLib_timer();
+				if (j >= 0) tref0[k] -= GMRFLib_timer();
 				GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
-				tref0[k] += GMRFLib_timer();
-				tref1[k] -= GMRFLib_timer();
+				if (j >= 0) tref0[k] += GMRFLib_timer();
+				if (j >= 0) tref1[k] -= GMRFLib_timer();
 				GMRFLib_daxpy_x(nn, a, x, y, 0);
-				tref1[k] += GMRFLib_timer();
+				if (j >= 0) tref1[k] += GMRFLib_timer();
 			}
 		}
 		for(int k = 0; k < M; k++) {
@@ -6130,4 +6141,5 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
+#pragma GCC diagnostic pop
 #endif

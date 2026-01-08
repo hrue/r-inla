@@ -157,6 +157,9 @@ int inla_spde_KT_model_init(inla_spde_theta_tp *theta_model, GMRFLib_matrix_tp *
 	}
 	return INLA_OK;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp *theta_model, int idx)
 {
@@ -182,6 +185,8 @@ double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp *theta_model, i
 	}
 	return exp(value);
 }
+#pragma GCC diagnostic pop
+
 int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla_spde_theta_tp *theta_model, int idx, int iidx)
 {
 	/*
@@ -352,6 +357,8 @@ double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp *UNUSED(problem), 
 	return deformations;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, double *covmat)
 {
@@ -403,3 +410,4 @@ double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, do
 #undef DO_COMPUTE
 	return NULL;
 }
+#pragma GCC diagnostic pop

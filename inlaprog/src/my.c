@@ -203,6 +203,8 @@ double my_gsl_sf_lnbeta(double a, double b)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper4(int n, double a, double *work)
 {
@@ -233,7 +235,10 @@ double my_betabinomial_helper4(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper8(int n, double a, double *work)
 {
@@ -264,7 +269,10 @@ double my_betabinomial_helper8(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper16(int n, double a, double *work)
 {
@@ -296,7 +304,10 @@ double my_betabinomial_helper16(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 {
@@ -329,6 +340,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
 double my_betabinomial_helper(int n, double a, double *work)
 {

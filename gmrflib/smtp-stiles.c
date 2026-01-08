@@ -525,6 +525,8 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
@@ -581,6 +583,7 @@ int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 {

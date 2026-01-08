@@ -50,7 +50,7 @@ __BEGIN_DECLS
 #              endif
 #       endif
 
-#if defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
+#if 0 && defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
 #define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f", 
 #else
 //#define INLA_CLONE_TARGETS "sse2", 

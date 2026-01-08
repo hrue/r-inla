@@ -270,6 +270,8 @@ double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph)
 {
@@ -348,6 +350,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp *store)
 {
@@ -426,6 +429,8 @@ int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp *store, GMRFLi
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 {
@@ -502,7 +507,10 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
 {
@@ -632,6 +640,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp *store, double *x, double *b, int nrhs)
 {
@@ -669,6 +678,8 @@ int GMRFLib_pardiso_bitmap(void)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
@@ -724,6 +735,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp *store)
 {

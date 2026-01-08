@@ -271,6 +271,8 @@ void fitsn_gradhess(double x, double *param, double *grad, double *hess)
 	hess[IDX(3, 3)] = t1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 {
@@ -381,6 +383,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 	Free(ld);
 	Free(p);
 }
+#pragma GCC diagnostic pop
 
 #if defined(INLA_WITH_DEVEL)
 

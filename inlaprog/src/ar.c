@@ -26,6 +26,8 @@
 /* 
    functions for the AR(p) model; the pacf2phi and phi2pacf are taken from R's arima.c
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_pacf2phi(int p, double *pacf, double *phi)
 {
@@ -58,7 +60,10 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_phi2pacf(int p, double *phi, double *pacf)
 {
@@ -92,6 +97,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 {

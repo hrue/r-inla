@@ -14,6 +14,8 @@
 #       include <pwd.h>
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc, void **f_Qfunc_arg,
@@ -804,6 +806,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp *preopt)
 {

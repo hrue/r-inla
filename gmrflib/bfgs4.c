@@ -579,6 +579,8 @@ int bfgs4_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gs
 	return s;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int gsl_bfgs4_test1(size_t n)
 {
@@ -647,7 +649,10 @@ int gsl_bfgs4_test1(size_t n)
 	gsl_rng_free(r);
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order)
 {
@@ -775,7 +780,10 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
 {
@@ -975,3 +983,5 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 
 	return GSL_SUCCESS;
 }
+#pragma GCC diagnostic pop
+

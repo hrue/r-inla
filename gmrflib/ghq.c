@@ -91,6 +91,8 @@ int GMRFLib_ghq_weights(double **wp, int n)
 	return GMRFLib_ghq(NULL, wp, n);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 {
@@ -111,6 +113,7 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ghq(double **xp, double **wp, int n)
 {
@@ -204,6 +207,8 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 {
@@ -336,6 +341,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 #undef RATIO
 	return snq;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_snq_free(GMRFLib_snq_tp *q)
 {

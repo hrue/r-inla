@@ -73,6 +73,8 @@ void GMRFLib_taucs_cache_free(GMRFLib_taucs_cache_tp *cache)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 //__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cache_tp **cache)
 {
@@ -231,6 +233,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	GMRFLib_LEAVE_FUNCTION;
 	return C;
 }
+#pragma GCC diagnostic pop
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp **UNUSED(cache))
 {
@@ -495,6 +498,8 @@ int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o
 }
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
@@ -510,6 +515,7 @@ size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 	}
 	return (nnz);
 }
+#pragma GCC diagnostic pop
 
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix *L)
 {
@@ -578,6 +584,8 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix *L)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp *gn_ptr)
 {
@@ -830,6 +838,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *invperm, int **vperm)
 {
@@ -1625,6 +1634,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w, int skip_reordering)
 {
@@ -1730,6 +1741,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 
 	return 0;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 {
@@ -1896,6 +1908,8 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
 		 int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
@@ -1914,7 +1928,10 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), i
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
 		    int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
@@ -1934,6 +1951,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+#pragma GCC diagnostic pop
 
 taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 {

@@ -32,6 +32,8 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence)
 {
@@ -343,6 +345,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence)
 {
@@ -647,6 +650,8 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 {
@@ -705,6 +710,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp *M, int sort)
 {

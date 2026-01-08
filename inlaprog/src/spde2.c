@@ -112,6 +112,8 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
 {
@@ -137,6 +139,7 @@ void compute_diagonal_values(double *__restrict dij, double *__restrict v, doubl
 		values[kk] = d_i0 * d_j0 * inner;
 	}
 }
+#pragma GCC diagnostic pop
 
 double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {

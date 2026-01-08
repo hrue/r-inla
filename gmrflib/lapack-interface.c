@@ -6,6 +6,8 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
@@ -25,6 +27,7 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 	}
 	return sqr;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n)
 {
@@ -48,6 +51,8 @@ double GMRFLib_gsl_ldnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_ma
 	return GMRFLib_gsl_ldnorm_x(x, mean, Q, S, identity, NULL);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity, GMRFLib_gsl_ldnorm_store_tp *store)
 {
@@ -160,6 +165,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 
 	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, double epsilon)
 {
@@ -424,6 +430,8 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
 	return b;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 {
@@ -446,6 +454,7 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 	}
 	return sqrt(rms / a->size);
 }
+#pragma GCC diagnostic pop
 
 gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 {
@@ -546,6 +555,8 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 {
@@ -623,6 +634,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
 {
@@ -984,6 +996,8 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_mgs(gsl_matrix *A)
 {
@@ -1030,7 +1044,7 @@ int GMRFLib_gsl_mgs(gsl_matrix *A)
 
 	return (GMRFLib_SUCCESS);
 }
-
+#pragma GCC diagnostic pop
 
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n)
 {
@@ -1142,6 +1156,8 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	return (B ? NULL : BB);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef)
 {
@@ -1297,6 +1313,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	return kld;
 }
+#pragma GCC diagnostic pop
 
 double GMRFLib_dssqr(int n, double *x)
 {
@@ -1306,6 +1323,8 @@ double GMRFLib_dssqr(int n, double *x)
 	return SQR(ret);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
@@ -1320,6 +1339,7 @@ void GMRFLib_dscale(int n, double a, double *x)
 		dscal_(&n, &a, x, &one);
 	}
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 {
@@ -1380,17 +1400,23 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		daxpy_(&n, &a, x, &inc, y, &inc);	\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
 	DAXPY_CORE(64);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 {
 	DAXPY_CORE(cutoff);
 }
+#pragma GCC diagnostic pop
 #undef DAXPY_CORE
 
 #define DDOT_CORE(cutoff_)						\
@@ -1412,17 +1438,23 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 		return ddot_(&n, x, &one, y, &one);			\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-	DDOT_CORE(64);
+	DDOT_CORE(32);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
 {
 	DDOT_CORE(cutoff);
 }
+#pragma GCC diagnostic pop
 #undef DDOT_CORE
 
 #define SUM_CORE(TYPE_)						\
@@ -1524,12 +1556,15 @@ int GMRFLib_isum(int n, int *x)
 	return s0 + s1 + s2 + s3
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__ ((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
 	SPARSE_DSUM();
 }
+#pragma GCC diagnostic pop
 #undef SPARSE_DSUM
 
 #define FILL_CORE(TYPE_, LEN_)						\
@@ -1551,17 +1586,23 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 		}							\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double, 64);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int, 128);
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_bfill(int n, bool a, bool *x)
 {
@@ -1569,6 +1610,8 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 }
 #undef FILL_CORE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
@@ -1581,7 +1624,10 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
@@ -1594,6 +1640,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {

@@ -51,6 +51,8 @@ double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(value
 	return val * prec;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 {
@@ -151,6 +153,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp **graph, GMRFLib_seasonaldef_tp *def)
 {

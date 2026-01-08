@@ -43,6 +43,8 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	return (md);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 {
@@ -111,6 +113,7 @@ GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 
 	return r;
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_remap_print(FILE *fp)
 {

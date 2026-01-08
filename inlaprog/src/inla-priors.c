@@ -2097,6 +2097,8 @@ double priorfunc_loggamma(double *x, double *parameters)
 	return priorfunc_gamma(&val, parameters) + (*x);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_dirichlet(double *x, double *parameters)
 {
@@ -2168,6 +2170,7 @@ double priorfunc_dirichlet(double *x, double *parameters)
 
 	return (ld);
 }
+#pragma GCC diagnostic pop
 
 double priorfunc_gamma(double *x, double *parameters)
 {
@@ -2223,6 +2226,8 @@ double priorfunc_normal(double *x, double *parameters)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_mvnorm(double *x, double *parameters)
 {
@@ -2273,7 +2278,10 @@ double priorfunc_mvnorm(double *x, double *parameters)
 
 	return (-n / 2.0 * log(2 * M_PI) + 0.5 * logdet - 0.5 * q);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
@@ -2333,6 +2341,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 #undef _IDX
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+#pragma GCC diagnostic pop
 
 double priorfunc_wishart1d(double *x, double *parameters)
 {
@@ -2367,6 +2376,8 @@ double priorfunc_wishart5d(double *x, double *parameters)
 	return priorfunc_wishart_generic(5, x, parameters);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 {
@@ -2523,6 +2534,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 
 	return val;
 }
+#pragma GCC diagnostic pop
 
 double priorfunc_wishartk_2d(double *x, double *parameters)
 {
@@ -2625,6 +2637,8 @@ double priorfunc_wishartk_24d(double *x, double *parameters)
 	return priorfunc_wishartk_generic(24, x, parameters);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 {
@@ -2741,3 +2755,5 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 
 	return val;
 }
+#pragma GCC diagnostic pop
+

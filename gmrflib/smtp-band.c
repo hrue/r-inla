@@ -117,6 +117,8 @@ int GMRFLib_build_sparse_matrix_BAND(int thread_id,
 #undef BIDX
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *finfo, GMRFLib_graph_tp *graph, int bandwidth)
 {
@@ -156,6 +158,7 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *fin
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_free_fact_sparse_matrix_BAND(double *bchol)
 {
@@ -361,6 +364,8 @@ int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 {
@@ -547,6 +552,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 #undef Cov
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp *graph, int *UNUSED(remap), int bandwidth)
 {

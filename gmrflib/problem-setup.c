@@ -115,6 +115,8 @@ int validate_constr1(GMRFLib_constr_tp *constr, int n)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib_constr_tp *constr)
 {
@@ -188,7 +190,10 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 {
@@ -264,6 +269,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
 {
@@ -402,6 +408,8 @@ int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp **problem,
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_init_problem_store(int thread_id,
 			       GMRFLib_problem_tp **problem,
@@ -886,6 +894,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_sample(GMRFLib_problem_tp *problem)
 {
@@ -957,6 +966,8 @@ int GMRFLib_evaluate(GMRFLib_problem_tp *problem)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 {
@@ -1037,6 +1048,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_free_problem(GMRFLib_problem_tp *problem)
 {
@@ -1328,6 +1340,8 @@ int GMRFLib_constr_add_sha(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 {
@@ -1366,7 +1380,10 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 {
@@ -1402,6 +1419,7 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_eval_constr0_many(int m, double *value, double *x, GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 {
@@ -1637,6 +1655,8 @@ int GMRFLib_print_problem(FILE *fp, GMRFLib_problem_tp *problem)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {
@@ -1787,6 +1807,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 #undef COPY
 	return np;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {

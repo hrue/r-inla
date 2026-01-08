@@ -856,6 +856,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	return mb;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *constr)
 {
@@ -921,6 +923,7 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *c
 
 	return c;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp *constr)
 {
@@ -1315,6 +1318,8 @@ int find_tag(inla_tp *mb, const char *name)
 	return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int count_f(inla_tp *mb, inla_component_tp id)
 {
@@ -1326,6 +1331,7 @@ int count_f(inla_tp *mb, inla_component_tp id)
 	}
 	return n;
 }
+#pragma GCC diagnostic pop
 
 int inla_setup_ai_par_default(inla_tp *mb)
 {
@@ -1417,6 +1423,8 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp *setup)
 {
@@ -5742,6 +5750,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 	return val;
 }
+#pragma GCC diagnostic pop
 
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
@@ -5783,6 +5792,8 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	return x;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_INLA_preopt_experimental(inla_tp *mb)
 {
@@ -6435,6 +6446,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 	return INLA_OK;
 }
+#pragma GCC diagnostic pop
 
 int inla_computed(GMRFLib_density_tp **d, int n)
 {
@@ -6454,6 +6466,8 @@ int inla_computed(GMRFLib_density_tp **d, int n)
 	return INLA_OK;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
@@ -6810,6 +6824,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 //      GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int inla_divisible(int n, int by)
 {
@@ -6826,6 +6841,8 @@ int inla_divisible(int n, int by)
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int verbose)
 {
@@ -6991,7 +7008,10 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_update_density(double *theta, inla_update_tp *arg)
 {
@@ -7035,6 +7055,7 @@ double inla_update_density(double *theta, inla_update_tp *arg)
 	Free(z);
 	return update_dens;
 }
+#pragma GCC diagnostic pop
 
 double inla_dmatern_cf(double dist, double range, double nu)
 {
@@ -8039,7 +8060,8 @@ int inla_tp_free(inla_tp *mb)
 	return 0;
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 {
@@ -8071,3 +8093,4 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 
 	return setup;
 }
+#pragma GCC diagnostic pop

@@ -303,6 +303,8 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 #endif
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
@@ -316,6 +318,7 @@ void GMRFLib_mul(int n, double *x, double *y, double *z)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_daddto(int n, double *x, double *y)
 {

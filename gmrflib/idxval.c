@@ -549,6 +549,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 	return GMRFLib_idxval_nsort_x(hold, n, nt, 0, 1);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
@@ -1017,6 +1019,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp **hold, int n, int nt)
 {

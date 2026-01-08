@@ -332,6 +332,8 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	return value;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
@@ -427,6 +429,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 		return (a->Q[id]->Qfunc(thread_id, i, j, values, a->Q[id]->Qfunc_arg));
 	}
 }
+#pragma GCC diagnostic pop
 
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
@@ -854,6 +857,8 @@ int inla_iid_wishart_nparam(int dim)
 	return ((dim * (dim + 1)) / 2);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
@@ -939,6 +944,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
+#pragma GCC diagnostic pop
 
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L)
 {

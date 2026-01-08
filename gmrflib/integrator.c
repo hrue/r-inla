@@ -118,6 +118,8 @@ static double compute_vol(const hypercube *h)
 	return vol;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube(unsigned dim, const double *center, const double *halfwidth)
 {
@@ -133,7 +135,10 @@ static hypercube make_hypercube(unsigned dim, const double *center, const double
 	h.vol = compute_vol(&h);
 	return h;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube_range(unsigned dim, const double *xmin, const double *xmax)
 {
@@ -147,6 +152,7 @@ static hypercube make_hypercube_range(unsigned dim, const double *xmin, const do
 	h.vol = compute_vol(&h);
 	return h;
 }
+#pragma GCC diagnostic pop
 
 static void destroy_hypercube(hypercube *h)
 {
@@ -266,6 +272,8 @@ static unsigned ls0(unsigned n)
  *  A Gray-code ordering is used to minimize the number of coordinate updates
  *  in p.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
 {
@@ -300,6 +308,7 @@ static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const
 	}
 	return sum;
 }
+#pragma GCC diagnostic pop
 
 static double evalRR0_0fs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
 {
@@ -411,6 +420,8 @@ static void destroy_rule75genzmalik(rule *r_)
 	free(r->p);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
@@ -468,6 +479,7 @@ static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, co
 
 	return dimDiffMax;
 }
+#pragma GCC diagnostic pop
 
 static rule *make_rule75genzmalik(unsigned dim)
 {
@@ -515,6 +527,8 @@ static rule *make_rule75genzmalik(unsigned dim)
 /* 1d 15-point Gaussian quadrature rule, based on qk15.c and qk.c in
    GNU GSL (which in turn is based on QUADPACK). */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
@@ -620,6 +634,7 @@ static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata,
 
 	return 0;					       /* no choice but to divide 0th dimension */
 }
+#pragma GCC diagnostic pop
 
 static rule *make_rule15gauss(unsigned dim)
 {

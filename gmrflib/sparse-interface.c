@@ -403,6 +403,8 @@ int GMRFLib_csr_print(FILE *fp, GMRFLib_csr_tp *csr)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GMRFLib_csr_tp *csr)
 {
@@ -431,6 +433,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GM
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_global_node_tp *gn)
 {

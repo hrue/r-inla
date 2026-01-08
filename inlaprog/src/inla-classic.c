@@ -1204,6 +1204,3 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	return INLA_OK;
 }
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))

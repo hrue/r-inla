@@ -40,6 +40,8 @@ unsigned char *Strdup_sha(unsigned char *sha)
 	return nnew;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 {
@@ -60,6 +62,7 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 
 	return sha;
 }
+#pragma GCC diagnostic pop
 
 
 /*
@@ -713,6 +716,8 @@ int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n)
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 {
@@ -724,6 +729,7 @@ int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 	}
 	return num;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_printf_gsl_matrix(FILE *fp, gsl_matrix *matrix, const char *format)
 {
@@ -931,6 +937,8 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
@@ -977,7 +985,10 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 {
@@ -991,6 +1002,7 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 {
@@ -1008,6 +1020,8 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_adjust_vector(double *x, int n)
 {
@@ -1028,6 +1042,7 @@ int GMRFLib_adjust_vector(double *x, int n)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_scale_vector(double *x, int n)
 {
@@ -1047,6 +1062,8 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_zero(double *x, int n)
 {
@@ -1077,6 +1094,7 @@ int GMRFLib_is_zero(double *x, int n)
 
 	return 1;
 }
+#pragma GCC diagnostic pop
 
 double GMRFLib_max_value(double *x, int n, int *idx)
 {
@@ -1179,6 +1197,8 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imax_value(int *x, int n, int *idx)
 {
@@ -1230,7 +1250,10 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		return max_val;
 	}
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imin_value(int *x, int n, int *idx)
 {
@@ -1282,6 +1305,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		return min_val;
 	}
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_iamax_value(int *x, int n, int *idx)
 {
@@ -1951,6 +1975,8 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
@@ -1983,7 +2009,10 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 		}
 	}
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work)
 {
@@ -2007,6 +2036,7 @@ void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *w
 		x[i] = *dp;
 	}
 }
+#pragma GCC diagnostic pop
 
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 {
