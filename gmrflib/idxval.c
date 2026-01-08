@@ -711,8 +711,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		seq_len += g_len[g];
 	}
 
-	int *new_idx = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), int);
-	double *new_val = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), double);
+	int align_i = GMRFLib_MEM_ALIGN / sizeof(int);
+	int align_d = GMRFLib_MEM_ALIGN / sizeof(double);
+	int *new_idx = Calloc(irr_len + seq_len + 2 * align_i + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i, int);
+	double *new_val = Calloc(irr_len + seq_len +  2 * align_d + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d, double);
 
 	// build the irregular group
 	int k = 0;
