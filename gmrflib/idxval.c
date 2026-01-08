@@ -553,9 +553,9 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	// x is a test vector
-	const int limit_merge = 8L, limit_sequential = 8L;
+	const int limit_merge = 8L, limit_sequential = 4L;
 #if 0
-	static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
+	static int limit_merge = 0, limit_sequential = 0;
 	if (!limit_merge)
 		limit_merge = atoi(getenv("LIMIT_MERGE"));
 	if (!limit_sequential)
@@ -714,8 +714,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int align_i = GMRFLib_MEM_ALIGN / sizeof(int);
 	int align_d = GMRFLib_MEM_ALIGN / sizeof(double);
-	int *new_idx = Calloc(irr_len + seq_len + 2 * align_i + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i, int);
-	double *new_val = Calloc(irr_len + seq_len +  2 * align_d + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d, double);
+	int len_i = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i;
+	int len_d = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d;
+	int *new_idx = Calloc(len_i, int);
+	double *new_val = Calloc(len_d, double);
 
 	// build the irregular group
 	int k = 0;
@@ -723,10 +725,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		int istart = g_istart[g - 1] + g_len[g - 1];
 		int len = g_istart[g] - istart;
 		if (len) {
+			assert(k + len <= len_i);
+			assert(k + len <= len_d);
 			Memcpy(new_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(new_val + k, h->val + istart, len * sizeof(double));
+			k += len;
 		}
-		k += GMRFLib_align_len(len, sizeof(double));
 	}
 	g_len[0] = k;
 	g_idx[0] = new_idx;
@@ -739,6 +743,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 	}
+
 	// copy each sequential group and pad for possible grouping
 	int *seq_idx = new_idx + GMRFLib_align_len(irr_len, sizeof(int));
 	double *seq_val = new_val + GMRFLib_align_len(irr_len, sizeof(double));
