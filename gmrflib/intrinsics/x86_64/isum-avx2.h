@@ -26,7 +26,6 @@
 		sum128 = _mm_hadd_epi32(sum128, sum128);
 		r = _mm_extract_epi32(sum128, 0);
 	}
-#pragma omp simd reduction(+: r)
 	for (int ii = i; ii < n; ii++) {
 		r += x[ii];
 	}

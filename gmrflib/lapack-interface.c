@@ -1464,8 +1464,10 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 	}							\
 	return r + r0
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__ ((optimize("O3")))
-//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
 	if (n == 0) {
@@ -1499,9 +1501,12 @@ double GMRFLib_dsum(int n, double *x)
 	SUM_CORE(double);
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 __attribute__ ((optimize("O3")))
-//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
 	if (n == 0) {
@@ -1536,6 +1541,7 @@ int GMRFLib_isum(int n, int *x)
 #endif
 }
 #undef SUM_CORE
+#pragma GCC diagnostic pop
 
 #define SPARSE_DSUM()					\
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
@@ -1554,7 +1560,6 @@ int GMRFLib_isum(int n, int *x)
 		s0 += a[idx[i]];			\
 	}						\
 	return s0 + s1 + s2 + s3
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1588,6 +1593,7 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__ ((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dfill(int n, double a, double *x)
 {
@@ -1597,6 +1603,7 @@ void GMRFLib_dfill(int n, double a, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__ ((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ifill(int n, int a, int *x)
 {
@@ -1612,12 +1619,15 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__ ((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+#elif defined(__aarch64__)
+#       include "intrinsics/aarch64/pack.h"
 #else
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
@@ -1628,6 +1638,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__ ((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
@@ -1642,6 +1653,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 }
 #pragma GCC diagnostic pop
 
+__attribute__ ((optimize("O3")))
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {
 	// y = x^a
@@ -1649,7 +1661,6 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	if (n > 4L) {
 		vdPowx(n, x, a, y);
 	} else {
-#       pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] = pow(x[i], a);
 		}

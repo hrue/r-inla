@@ -44,18 +44,20 @@ __BEGIN_DECLS
 #              endif
 #              if defined(__aarch64__)
 #                     include <arm_neon.h>
+#                     if defined(__ARM_FEATURE_SVE)
+#                            include <arm_sve.h>
+#                     endif
 #              endif
 #              if defined(WINDOWS) && defined(__SSE2__)
 #                     include <intrin.h>
 #              endif
 #       endif
-
-#if 0 && defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
-#define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f", 
-#else
+#       if 0 && defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
+#              define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f",
+#       else
 //#define INLA_CLONE_TARGETS "sse2", 
-#define INLA_CLONE_TARGETS ""
-#endif
+#              define INLA_CLONE_TARGETS ""
+#       endif
 
 /* 
  *  include files we need from GSL
