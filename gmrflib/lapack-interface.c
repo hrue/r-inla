@@ -6,7 +6,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
@@ -1362,7 +1362,7 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 #if defined(INLA_WITH_ARMPL)
 	int inc = 1;
 	dwaxpby_(&n, &a, x, &inc, &b, y, &inc, z, &inc);
-#else	
+#else
 	Memcpy(z, y, n * sizeof(double));
 	GMRFLib_daxpby(n, a, x, b, z);
 #endif
@@ -1466,8 +1466,8 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
 	if (n == 0) {
@@ -1505,8 +1505,8 @@ double GMRFLib_dsum(int n, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
 	if (n == 0) {
@@ -1563,8 +1563,8 @@ int GMRFLib_isum(int n, int *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
 	SPARSE_DSUM();
@@ -1593,8 +1593,8 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double, 64);
@@ -1603,8 +1603,8 @@ void GMRFLib_dfill(int n, double a, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int, 128);
@@ -1619,13 +1619,15 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+#elif defined(__x86_64__) && defined(__AVX2__)
+#       include "intrinsics/x86_64/pack-avx2.h"
 #elif defined(__aarch64__)
 #       include "intrinsics/aarch64/pack.h"
 #else
@@ -1638,8 +1640,8 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
@@ -1653,7 +1655,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 }
 #pragma GCC diagnostic pop
 
-__attribute__ ((optimize("O3")))
+__attribute__((optimize("O3")))
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {
 	// y = x^a
