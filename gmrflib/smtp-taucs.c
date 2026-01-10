@@ -1158,10 +1158,11 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 	GMRFLib_graph_tp g;
 	g.n = n * nrhs;
 
-	GMRFLib_remap_tp * rr = GMRFLib_remap_get(remap, n, nrhs);
+	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, n, nrhs);
 	int *r = (rr ? rr->remap : NULL);
 	int *rinv = (rr ? rr->remap_inv : NULL);
-	if (r) assert(rinv);
+	if (r)
+		assert(rinv);
 
 	if (r) {
 		// this is doing the full reordering, also the one in llt2 that 'skip_reordering' handle

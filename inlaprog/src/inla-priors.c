@@ -2756,4 +2756,3 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	return val;
 }
 #pragma GCC diagnostic pop
-

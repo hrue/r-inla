@@ -23,10 +23,10 @@
 	}							\
 	return s0 + s1 + s2 + s3
 
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__ ((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	// sum_i v[i] * a[idx[i]]
@@ -36,7 +36,7 @@ double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, in
 	SPARSE_DOT();
 #endif
 }
-#pragma GCC diagnostic push 
+#pragma GCC diagnostic push
 #undef SPARSE_DOT
 
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)

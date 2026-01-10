@@ -4989,4 +4989,3 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp ***density,
 	return GMRFLib_SUCCESS;
 }
 #pragma GCC diagnostic pop
-

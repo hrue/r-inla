@@ -745,7 +745,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			}
 		}
 	}
-
 	// copy each sequential group and pad for possible grouping
 	int *seq_idx = new_idx + GMRFLib_align_len(irr_len, sizeof(int));
 	double *seq_val = new_val + GMRFLib_align_len(irr_len, sizeof(double));
@@ -1326,7 +1325,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

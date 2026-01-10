@@ -984,4 +984,3 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 	return GSL_SUCCESS;
 }
 #pragma GCC diagnostic pop
-

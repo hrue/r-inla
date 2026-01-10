@@ -19,8 +19,8 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -43,7 +43,7 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	}
 	return GMRFLib_SUCCESS;
 }
-#pragma GCC diagnostic pop
+#       pragma GCC diagnostic pop
 
 int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -65,8 +65,8 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -87,7 +87,7 @@ int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	}
 	return GMRFLib_SUCCESS;
 }
-#pragma GCC diagnostic pop
+#       pragma GCC diagnostic pop
 
 int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -126,8 +126,8 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int testit(int argc, char **argv)
 {
@@ -251,7 +251,7 @@ int testit(int argc, char **argv)
 	{
 		// this force a race-condition
 #       define NN 10
-		int x[NN] = {0};
+		int x[NN] = { 0 };
 #       pragma omp parallel for
 		for (int i = 0; i < NN; i++) {
 			*(x + i) = i;
@@ -5786,7 +5786,7 @@ int testit(int argc, char **argv)
 			for (int i = 0; i < n; i++) {
 				ix[i] = (int) (1000 * GMRFLib_uniform());
 				iy[i] = (int) (1000 * GMRFLib_uniform());
-				idx[i] = (i-1 >= 0 ? idx[i-1] : 0) + (int)(mm * GMRFLib_uniform());
+				idx[i] = (i - 1 >= 0 ? idx[i - 1] : 0) + (int) (mm * GMRFLib_uniform());
 				ys[idx[i]] = GMRFLib_uniform();
 				x[i] = GMRFLib_uniform();
 				y[i] = GMRFLib_uniform();
@@ -5881,19 +5881,19 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
-		double *x[2] = {NULL, NULL};
-		double *xx[2] = {NULL, NULL};
-		double *y[2] = {NULL, NULL};
-		double *yy[2] = {NULL, NULL};
-		int *ix[2] = {NULL, NULL};
-		int *iy[2] = {NULL, NULL};
-		int *idx[2] = {NULL, NULL};
-		int *idxx[2] = {NULL, NULL};
-		
+		double *x[2] = { NULL, NULL };
+		double *xx[2] = { NULL, NULL };
+		double *y[2] = { NULL, NULL };
+		double *yy[2] = { NULL, NULL };
+		int *ix[2] = { NULL, NULL };
+		int *iy[2] = { NULL, NULL };
+		int *idx[2] = { NULL, NULL };
+		int *idxx[2] = { NULL, NULL };
+
 		double tref_same[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		double tref_diff[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int j = 0; j < m; j++) {
-			
+
 			GMRFLib_numa_free(x[0], (n + 100) * sizeof(double));
 			GMRFLib_numa_free(x[1], (n + 100) * sizeof(double));
 			x[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
@@ -6056,22 +6056,23 @@ int testit(int argc, char **argv)
 
 	case 191:
 	{
-#define M 12
+#       define M 12
 		int m = atoi(args[0]);
-		int n = (int) pow(2.0,  M + 1.0);
+		int n = (int) pow(2.0, M + 1.0);
 		P(m);
 		double *x = Calloc(n + 100, double);
 		double *y = Calloc(n + 100, double);
-		double tref0[M] = {0};
-		double tref1[M] = {0};
-		int siz[M] = {2};
-		for(int k = 1; k < M; k++) siz[k] = 2*siz[k-1];
+		double tref0[M] = { 0 };
+		double tref1[M] = { 0 };
+		int siz[M] = { 2 };
+		for (int k = 1; k < M; k++)
+			siz[k] = 2 * siz[k - 1];
 		for (int j = 0; j < m; j++) {
 			for (int i = 0; i < n; i++) {
 				x[i] = GMRFLib_uniform();
 				y[i] = GMRFLib_uniform();
 			}
-			for(int k = 0; k < M; k++) {
+			for (int k = 0; k < M; k++) {
 				int nn = siz[k];
 				tref0[k] -= GMRFLib_timer();
 				volatile int POSSIBLY_UNUSED(re) = GMRFLib_ddot_x(nn, x, y, INT_MAX);
@@ -6081,28 +6082,28 @@ int testit(int argc, char **argv)
 				tref1[k] += GMRFLib_timer();
 			}
 		}
-		for(int k = 0; k < M; k++) {
+		for (int k = 0; k < M; k++) {
 			printf("ddot: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
 		}
-#undef M
+#       undef M
 	}
 		break;
 
 	case 192:
 	{
-#define M 12
+#       define M 12
 		int m = atoi(args[0]);
-		int n = (int) pow(2.0,  M + 1.0);
+		int n = (int) pow(2.0, M + 1.0);
 		P(m);
 		double *x = Calloc(n + 100, double);
 		double *y = Calloc(n + 100, double);
-		double tref0[M] = {0};
-		double tref1[M] = {0};
-		int siz[M] = {0};
+		double tref0[M] = { 0 };
+		double tref1[M] = { 0 };
+		int siz[M] = { 0 };
 
 		siz[0] = 2;
-		for(int k = 1; k < M; k++)
-			siz[k] = 2*siz[k-1];
+		for (int k = 1; k < M; k++)
+			siz[k] = 2 * siz[k - 1];
 
 		for (int j = -10; j < m; j++) {
 			double a = GMRFLib_uniform();
@@ -6110,21 +6111,25 @@ int testit(int argc, char **argv)
 				x[i] = GMRFLib_uniform();
 				y[i] = GMRFLib_uniform();
 			}
-			for(int k = 0; k < M; k++) {
+			for (int k = 0; k < M; k++) {
 				int nn = siz[k];
-				if (j >= 0) tref0[k] -= GMRFLib_timer();
+				if (j >= 0)
+					tref0[k] -= GMRFLib_timer();
 				GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
 				double tt = GMRFLib_timer();
-				if (j >= 0) tref0[k] += tt;
-				if (j >= 0) tref1[k] -= tt;
+				if (j >= 0)
+					tref0[k] += tt;
+				if (j >= 0)
+					tref1[k] -= tt;
 				GMRFLib_daxpy_x(nn, a, x, y, 0);
-				if (j >= 0) tref1[k] += GMRFLib_timer();
+				if (j >= 0)
+					tref1[k] += GMRFLib_timer();
 			}
 		}
-		for(int k = 0; k < M; k++) {
+		for (int k = 0; k < M; k++) {
 			printf("daxpy: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
 		}
-#undef M
+#       undef M
 	}
 		break;
 
@@ -6142,5 +6147,5 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
-#pragma GCC diagnostic pop
+#       pragma GCC diagnostic pop
 #endif

@@ -686,8 +686,8 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 }
 
 #if defined(INLA_WITH_DEVEL)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void inla_bm_test()
 {
@@ -751,7 +751,7 @@ void inla_bm_test()
 	inla_bm_free(Qinv);
 	Free(loc);
 }
-#pragma GCC diagnostic pop
+#       pragma GCC diagnostic pop
 
 void inla_prw2_test(void)
 {

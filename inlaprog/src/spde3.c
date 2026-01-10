@@ -557,4 +557,3 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 	return NULL;
 }
 #pragma GCC diagnostic pop
-

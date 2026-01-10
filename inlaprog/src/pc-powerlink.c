@@ -234,4 +234,3 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	return 0.0;
 }
 #pragma GCC diagnostic pop
-
