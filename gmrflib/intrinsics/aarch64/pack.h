@@ -1,6 +1,6 @@
 // looks like the SVE version is slower then NEON, so I disable it for the moment
 #if 0 && defined(__ARM_FEATURE_SVE) && defined(__ARM_NEON_SVE_BRIDGE)
-	size_t i = 0;
+	int i = 0;
 	const size_t vl = svcntd();
 	svbool_t pg_all = svptrue_b64();
 	while (i + (2 * vl) <= n) {
@@ -20,17 +20,21 @@
 		i += vl;
 	}
 #else
-	size_t i = 0;
-	size_t remaining = n % 2;
-	size_t limit = n - remaining;
-	for (; i < limit; i += 2) {
-		int idx0 = ia[i];
-		int idx1 = ia[i + 1];
-		float64x2_t result = vsetq_lane_f64(a[idx0], vdupq_n_f64(0.0), 0);
-		result = vsetq_lane_f64(a[idx1], result, 1);
-		vst1q_f64(y + i, result);
+	int i = 0;
+	for (; i <= n - 4; i += 4) {
+		int32x4_t idxs = vld1q_s32(ia + i);
+		int i0 = vgetq_lane_s32(idxs, 0);
+		int i1 = vgetq_lane_s32(idxs, 1);
+		int i2 = vgetq_lane_s32(idxs, 2);
+		int i3 = vgetq_lane_s32(idxs, 3);
+		double d0 = a[i0];
+		double d1 = a[i1];
+		double d2 = a[i2];
+		double d3 = a[i3];
+		vst1q_f64(y + i, vcombine_f64(vld1_f64(&d0), vld1_f64(&d1)));
+		vst1q_f64(y + i + 2, vcombine_f64(vld1_f64(&d2), vld1_f64(&d3)));
 	}
-	if (i < n) {
+	for (; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
 #endif

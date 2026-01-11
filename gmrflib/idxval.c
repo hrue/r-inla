@@ -999,7 +999,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->g_n_mem = 0;
 #if defined(INLA_WITH_ARMPL)
 			if (h->spvec_g) {
-				armpl_status_t info = armpl_spvec_destroy(h->spvec_g);
+				armpl_status_t POSSIBLY_UNUSED(info) = armpl_spvec_destroy(h->spvec_g);
 				h->spvec_g = NULL;
 			}
 #endif

@@ -1626,9 +1626,9 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(__x86_64__) && defined(__AVX2__)
+#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
 #       include "intrinsics/x86_64/pack-avx2.h"
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
 #       include "intrinsics/aarch64/pack.h"
 #else
 	for (int i = 0; i < n; i++) {
