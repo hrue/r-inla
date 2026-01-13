@@ -1353,7 +1353,7 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale2(int n, double a, double *x, double *y)
 {
 	// y[i] = a * x[i]
-#if defined(INLA_WITH_SIMDE)
+#if defined(INLA_WITH_SIMDE) && defined(__AVX2__)
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
