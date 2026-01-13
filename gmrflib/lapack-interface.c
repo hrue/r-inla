@@ -1621,6 +1621,8 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	vdPackV(n, a, ia, y);
 #elif defined(INLA_WITH_SIMDE) && defined(__AVX2__)
 #       include "intrinsics/simde/pack-avx2.h"
+#elif defined(INLA_WITH_SIMDE) && defined(__SSE2__)
+#       include "intrinsics/simde/pack-sse2.h"
 #else
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {
