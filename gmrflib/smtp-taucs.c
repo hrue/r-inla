@@ -183,6 +183,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 			(*cache)->perm = perm;
 		}
 	}
+
 #define CODE_BLOCK							\
 	for (int sn = 0; sn < L->n_sn; sn++) {				\
 		CODE_BLOCK_INIT();					\
@@ -1693,11 +1694,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double *yy = y + offset_j;
 		double *xx = x + offset_j;
 
-#pragma omp simd
-		for (int k = 0; k < nrhs; k++) {
-			yy[k] = xx[k] * iAjj;
-		}
-
+		GMRFLib_dscale2(nrhs, iAjj, xx, yy);
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			double Aij = -L->values[ip];	       // OOOPS! add minus here for daxpy
 			xx = x + L->rowind[ip] * nrhs;
@@ -1723,11 +1720,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		double iAii = 1.0 / L->values[jp];
 		double *xx = x + offset_i;
 		yy = y + offset_i;
-
-#pragma omp simd
-		for (int k = 0; k < nrhs; k++) {
-			xx[k] = yy[k] * iAii;
-		}
+		GMRFLib_dscale2(nrhs, iAii, yy, xx);
 	}
 
 	if (!skip_reordering) {

@@ -410,9 +410,6 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_MUPARSER)
 		printf("\t\tCompiled with -DINLA_WITH_MUPARSER\n");
 #endif
-#if defined(INLA_WITH_SIMD)
-		printf("\t\tCompiled with -DINLA_WITH_SIMD\n");
-#endif
 #if defined(INLA_WITH_MKL)
 		printf("\t\tCompiled with -DINLA_WITH_MKL\n");
 #endif
@@ -434,8 +431,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_HWLOC)
 		printf("\t\tCompiled with -DINLA_WITH_HWLOC\n");
 #endif
-#if defined(INLA_WITH_INTRINSICS)
-		printf("\t\tCompiled with -DINLA_WITH_INTRINSICS\n");
+#if defined(INLA_WITH_SIMDE)
+		printf("\t\tCompiled with -DINLA_WITH_SIMDE\n");
 #endif
 #if defined(__x86_64__)
 		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");

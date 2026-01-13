@@ -1341,6 +1341,31 @@ void GMRFLib_dscale(int n, double a, double *x)
 }
 #pragma GCC diagnostic pop
 
+#define DSCALE2_CORE()				\
+	_Pragma("omp simd")			\
+	for (int i = 0; i < n; i++) {		\
+		y[i] = a * x[i];		\
+	}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_dscale2(int n, double a, double *x, double *y)
+{
+	// y[i] = a * x[i]
+#if defined(INLA_WITH_SIMDE)
+	if (n < 32) {
+		DSCALE2_CORE();
+	} else {
+#       include "intrinsics/simde/dscale2-avx2.h"
+	}
+#else
+	DSCALE2_CORE();
+#endif
+}
+#pragma GCC diagnostic pop
+#undef DSCALE2_CORE
+
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 {
 	// y = a * x + b * y
@@ -1459,6 +1484,7 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 
 #define SUM_CORE(TYPE_)						\
 	TYPE_ r = 0;						\
+	_Pragma("omp simd reduction(+: r)")			\
 	for (int i = 0; i < n; i++) {				\
 		r += x[i];					\
 	}							\
@@ -1475,28 +1501,12 @@ double GMRFLib_dsum(int n, double *x)
 	}
 
 	double r0 = 0.0;
-#if defined(INLA_WITH_INTRINSICS)
-	if (!SIMD_ALIGNED(x)) {
-		r0 = x[0];
-		x++;
-		n--;
-		if (n == 0) {
-			return r0;
-		}
-	}
-#       if defined(__x86_64__) && defined(__AVX2__)
-	if (n < 16) {
-#              include "intrinsics/x86_64/dsum-sse2.h"
+#if defined(INLA_WITH_SIMDE)
+	if (n < 32) {
+		SUM_CORE(double);
 	} else {
-#              include "intrinsics/x86_64/dsum-avx2.h"
+#       include "intrinsics/simde/dsum-sse2.h"
 	}
-#       elif defined(__x86_64__) && defined(__SSE2__)
-#              include "intrinsics/x86_64/dsum-sse2.h"
-#       elif defined(__aarch64__)
-#              include "intrinsics/aarch64/dsum.h"
-#       else
-	SUM_CORE(double);
-#       endif
 #else
 	SUM_CORE(double);
 #endif
@@ -1512,30 +1522,13 @@ int GMRFLib_isum(int n, int *x)
 	if (n == 0) {
 		return 0;
 	}
-	int r0 = 0;
-	int count = 0;
-	while (!SIMD_ALIGNED(x) && n) {
-		r0 += x[0];
-		x++;
-		n--;
-		if (n == 0) {
-			return r0;
-		}
-		assert(++count < 4);
-	}
-
-#if defined(INLA_WITH_INTRINSICS)
-#       if defined(__x86_64__) && defined(__AVX2__)
+	int r0 = 0; 
+#if defined(INLA_WITH_SIMDE)
 	if (n < 32) {
-#              include "intrinsics/x86_64/isum-sse2.h"
+		SUM_CORE(int);
 	} else {
-#              include "intrinsics/x86_64/isum-avx2.h"
+#       include "intrinsics/simde/isum-sse2.h"
 	}
-#       elif defined(__x86_64__) && defined(__SSE2__)
-#              include "intrinsics/x86_64/isum-sse2.h"
-#       else
-	SUM_CORE(int);
-#       endif
 #else
 	SUM_CORE(int);
 #endif
@@ -1626,11 +1619,10 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(__x86_64__) && defined(__AVX2__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/x86_64/pack-avx2.h"
-#elif defined(__aarch64__) && defined(INLA_WITH_INTRINSICS)
-#       include "intrinsics/aarch64/pack.h"
+#elif defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/pack-avx2.h"
 #else
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -1648,6 +1640,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
@@ -1660,13 +1653,7 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 {
 	// y = x^a
 #if defined(INLA_WITH_MKL)
-	if (n > 4L) {
-		vdPowx(n, x, a, y);
-	} else {
-		for (int i = 0; i < n; i++) {
-			y[i] = pow(x[i], a);
-		}
-	}
+	vdPowx(n, x, a, y);
 #else
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {

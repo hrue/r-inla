@@ -5802,7 +5802,7 @@ int testit(int argc, char **argv)
 
 			tref_native[9] -= GMRFLib_timer();
 			e = 0.0;
-#pragma omp simd reduction(+: e)
+#       pragma omp simd reduction(+: e)
 			for (int k = 0; k < n; k++)
 				e += x[k] * y[k];
 			tref_native[9] += GMRFLib_timer();
@@ -5814,7 +5814,7 @@ int testit(int argc, char **argv)
 
 			tref_native[0] -= GMRFLib_timer();
 			e = 0.0;
-#pragma omp simd reduction(+: e)
+#       pragma omp simd reduction(+: e)
 			for (int k = 0; k < n; k++)
 				e += x[k] * ys[idx[k]];
 			tref_native[0] += GMRFLib_timer();
@@ -5826,7 +5826,7 @@ int testit(int argc, char **argv)
 
 			tref_native[1] -= GMRFLib_timer();
 			e = 0.0;
-#pragma omp simd reduction(+: e)
+#       pragma omp simd reduction(+: e)
 			for (int k = 0; k < n; k++)
 				e += x[k];
 			tref_native[1] += GMRFLib_timer();
@@ -5838,7 +5838,7 @@ int testit(int argc, char **argv)
 
 			tref_native[2] -= GMRFLib_timer();
 			e = 0.0;
-#pragma omp simd reduction(+: e)
+#       pragma omp simd reduction(+: e)
 			for (int k = 0; k < n; k++)
 				e += ix[k];
 			tref_native[2] += GMRFLib_timer();
@@ -5858,7 +5858,7 @@ int testit(int argc, char **argv)
 
 			tref_native[8] -= GMRFLib_timer();
 			e = 0.0;
-#pragma omp simd reduction(+: e)
+#       pragma omp simd reduction(+: e)
 			for (int k = 0; k < n; k++)
 				e += ys[idx[k]];
 			tref_native[8] += GMRFLib_timer();
@@ -5878,24 +5878,38 @@ int testit(int argc, char **argv)
 			GMRFLib_bfill(n, (bool) 1, bx);
 			tref[7] += GMRFLib_timer();
 			assert(bx[0] == bx[n - 1]);
+
+			tref[10] -= GMRFLib_timer();
+			double f = GMRFLib_uniform();
+			GMRFLib_dscale2(n, f, x, y);
+			tref[10] += GMRFLib_timer();
+
+			tref_native[10] -= GMRFLib_timer();
+#       pragma omp simd
+			for (int k = 0; k < n; k++)
+				y[k] = x[k] * a;
+			tref_native[10] += GMRFLib_timer();
 		}
 		printf("aligned %s\n", (SIMD_ALIGNED(x)) ? "YES" : "NO");
-		printf("ddot          %.8f\n", tref[9]);
-		printf("sparse_ddot   %.8f\n", tref[0]);
+		printf("ddot               %.8f\n", tref[9]);
+		printf("sparse_ddot        %.8f\n", tref[0]);
 
-		printf("dsum          %.8f\n", tref[1]);
-		printf("isum          %.8f\n", tref[2]);
-		printf("sparse_dsum   %.8f\n", tref[8]);
-		printf("dsum n        %.8f\n", tref_native[1]);
-		printf("isum n        %.8f\n", tref_native[2]);
-		printf("sparse_dsum n %.8f\n", tref_native[8]);
+		printf("dsum               %.8f\n", tref[1]);
+		printf("isum               %.8f\n", tref[2]);
+		printf("sparse_dsum        %.8f\n", tref[8]);
+		printf("dsum simple        %.8f\n", tref_native[1]);
+		printf("isum simple        %.8f\n", tref_native[2]);
+		printf("sparse_dsum simple %.8f\n", tref_native[8]);
 
-		printf("dscale        %.8f\n", tref[3]);
-		printf("daxpy         %.8f\n", tref[4]);
+		printf("dscale             %.8f\n", tref[3]);
+		printf("daxpy              %.8f\n", tref[4]);
 
-		printf("dfill         %.8f\n", tref[5]);
-		printf("ifill         %.8f\n", tref[6]);
-		printf("bfill         %.8f\n", tref[7]);
+		printf("dscale2            %.8f\n", tref[10]);
+		printf("dscale2 simple     %.8f\n", tref_native[10]);
+
+		printf("dfill              %.8f\n", tref[5]);
+		printf("ifill              %.8f\n", tref[6]);
+		printf("bfill              %.8f\n", tref[7]);
 	}
 		break;
 

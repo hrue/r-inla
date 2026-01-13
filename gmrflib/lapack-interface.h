@@ -133,6 +133,7 @@ void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
 void GMRFLib_dscale(int n, double a, double *x);
+void GMRFLib_dscale2(int n, double a, double *x, double *y);
 void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);

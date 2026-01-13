@@ -38,21 +38,18 @@ __BEGIN_DECLS
 #              define GMRFLib_NEED_DRAND48  1		       /* include implementation of drand48() */
 #              define GMRFLib_NEED_SRAND48  1		       /* include implementation of srand48() */
 #       endif
-#       if defined(INLA_WITH_INTRINSICS)
-#              if defined(__linux__) && defined(__x86_64__) && defined(__SSE2__)
-#                     include <immintrin.h>
+//
+#       if defined(INLA_WITH_SIMDE)
+#              define SIMDE_ENABLE_NATIVE_ALIASES
+#              if !defined(_OPENMP)
+#                     define SIMDE_ENABLE_OPENMP
 #              endif
-#              if defined(__aarch64__)
-#                     include <arm_neon.h>
-#                     if defined(__ARM_FEATURE_SVE)
-#                            include <arm_sve.h>
-#                     endif
-#              endif
-#              if defined(WINDOWS) && defined(__SSE2__)
-#                     include <intrin.h>
-#              endif
+#              include <simde/simde-common.h>
+#              include <simde/x86/sse2.h>
+#              include <simde/x86/avx2.h>
 #       endif
-#       if 1 && defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
+//
+#       if defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
 #              define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f",
 #       else
 #              define INLA_CLONE_TARGETS ""
