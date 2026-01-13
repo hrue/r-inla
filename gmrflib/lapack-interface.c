@@ -1522,7 +1522,7 @@ int GMRFLib_isum(int n, int *x)
 	if (n == 0) {
 		return 0;
 	}
-	int r0 = 0; 
+	int r0 = 0;
 #if defined(INLA_WITH_SIMDE)
 	if (n < 32) {
 		SUM_CORE(int);
@@ -1622,7 +1622,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-avx2.h"
 #else
-#pragma omp simd
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -1640,7 +1640,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
-#pragma omp simd
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}

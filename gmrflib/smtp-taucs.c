@@ -183,7 +183,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 			(*cache)->perm = perm;
 		}
 	}
-
 #define CODE_BLOCK							\
 	for (int sn = 0; sn < L->n_sn; sn++) {				\
 		CODE_BLOCK_INIT();					\
