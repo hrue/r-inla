@@ -1350,14 +1350,20 @@ void GMRFLib_dscale(int n, double a, double *x)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_dscale2(int n, double a, double *x, double *y)
+void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
-#if defined(INLA_WITH_SIMDE) && defined(__AVX2__)
+#if 0 && defined(INLA_WITH_SIMDE) && defined(__AVX2__)
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
 #       include "intrinsics/simde/dscale2-avx2.h"
+	}
+#elif defined(INLA_WITH_SIMDE)
+	if (likely(n < 32)) {
+		DSCALE2_CORE();
+	} else {
+#       include "intrinsics/simde/dscale2-sse2.h"
 	}
 #else
 	DSCALE2_CORE();
@@ -1621,7 +1627,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	vdPackV(n, a, ia, y);
 #elif defined(INLA_WITH_SIMDE) && defined(__AVX2__)
 #       include "intrinsics/simde/pack-avx2.h"
-#elif defined(INLA_WITH_SIMDE) && defined(__SSE2__)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-sse2.h"
 #else
 #       pragma omp simd
