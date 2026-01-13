@@ -1619,7 +1619,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE) && defined(__AVX2__)
 #       include "intrinsics/simde/pack-avx2.h"
 #else
 #       pragma omp simd
