@@ -275,7 +275,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		printf("\t\tnf %1d\n", nf);
 	}
 
-	GMRFLib_idxval_tp **ivs = GMRFLib_idxval_ncreate_x(num_threads, 1 + nbeta + nf, 1);
+	GMRFLib_idxval_tp **ivs = GMRFLib_idxval_ncreate_x(num_threads, IMAX(1, nbeta + nf), 1);
 #pragma omp parallel for num_threads(num_threads)
 	for (int i = 0; i < npred; i++) {
 		int tnum = omp_get_thread_num();
