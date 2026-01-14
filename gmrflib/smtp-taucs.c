@@ -1141,7 +1141,21 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	assert(graph->n == L->n);
 	assert(work);
 
-	GMRFLib_convert_to_mapped(work, rhs, graph, remap);
+	// as '_from_mapped' is faster than '_to_mapped' then we check if 'remap' is in the cache, and if so, we use the inverse
+	// mapping to allow us to use '_from_mapped'. Note that _remap_get will register 'remap' in the cache if its not there, and
+	// also cache the inverse mapping.
+	
+	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
+	int *r = (rr ? rr->remap : NULL);
+	int *rinv = (rr ? rr->remap_inv : NULL);
+	if (r) {
+		assert(rinv);
+		GMRFLib_convert_from_mapped(work, rhs, graph, rinv);
+	} else {
+		// fall back to default behaviour
+		GMRFLib_convert_to_mapped(work, rhs, graph, remap);
+	}
+
 	if (!LL) {
 		GMRFLib_my_taucs_dccs_solve_llt(L, work, rhs);
 	} else {
