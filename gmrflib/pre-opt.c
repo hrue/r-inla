@@ -16,7 +16,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+//__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc, void **f_Qfunc_arg,
 			char *f_sumzero, GMRFLib_constr_tp **f_constr, double *f_diag,
@@ -275,13 +275,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 		printf("\t\tnf %1d\n", nf);
 	}
 
-	GMRFLib_idxval_tp **ivs = Calloc(num_threads, GMRFLib_idxval_tp *);
-	ivs = GMRFLib_idxval_ncreate_x(num_threads, nbeta + nf, num_threads);
-
+	GMRFLib_idxval_tp **ivs = GMRFLib_idxval_ncreate_x(num_threads, 1 + nbeta + nf, 1);
 #pragma omp parallel for num_threads(num_threads)
 	for (int i = 0; i < npred; i++) {
 		int tnum = omp_get_thread_num();
-
 		GMRFLib_idxval_tp *iv = ivs[tnum];
 		double val = 0.0;
 		int idx = 0;
