@@ -1481,6 +1481,28 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
+{
+#if defined(INLA_WITH_SIMDE) && defined(__AVX2__)
+#include "intrinsics/simde/ddot2-avx2.h"
+#elif defined(INLA_WITH_SIMDE)
+#include "intrinsics/simde/ddot2-sse2.h"
+#else
+	double aa = 0.0, bb = 0.0;
+#pragma omp simd reduction(+: aa, bb)
+	for(int i = 0; i < n; i++) {
+		aa += x[i] * y[i];
+		bb += x[i] * z[i];
+	}
+	*a = aa;
+	*b = bb;
+#endif
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
 {
 	DDOT_CORE(cutoff);

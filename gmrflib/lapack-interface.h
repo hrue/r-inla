@@ -128,6 +128,7 @@ void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
 void GMRFLib_daxpy(int n, double a, double *x, double *y);
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff);
+void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z);
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);

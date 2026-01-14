@@ -5071,6 +5071,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		if (!lwork[*ccache_idx_numa]) {
 			double *worktmp = Malloc(5 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+			GMRFLib_dfill(5 * GMRFLib_INT_GHQ_ALLOC_LEN, 0.0, worktmp);
 
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
@@ -5085,8 +5086,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double *xp = lwork[*ccache_idx_numa];
 	double *wxp = lwork[*ccache_idx_numa] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
 	double *wxp2 = lwork[*ccache_idx_numa] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *x_user = lwork[*ccache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *loglik = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *loglik = lwork[*ccache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *x_user = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
@@ -5095,9 +5096,18 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	// this one is no longer used, if so, store 'wtmp' above into 'wp'
 	// double A = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wp);
-	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp);
-	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wxp2);
 
+	// we use _ALLOC_LEN instead if GMRFLib_INT_GHQ_POINTS, as _ALLOC_LEN is a multiplum of 16 so SIMD is faster. The remaining
+	// extra terms are just zero, so no harm done. Also the dot2 version, merge the two dots and compute simultanously both
+	// dot-products at the same time.
+#if 0
+	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp);
+	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp2);
+#else
+	double B = 0.0, C = 0.0;
+	GMRFLib_ddot2(&B, &C, GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp, wxp2);
+#endif
+	
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * s_inv;
