@@ -6057,7 +6057,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 		}
 
-		double s = 1.0 / (DBL_EPSILON + time_loop[0] + time_loop[1]);
+		double s = 1.0 / DMAX(DBL_EPSILON, DMAX(time_loop[0], time_loop[1]));
 		time_loop[0] *= s;
 		time_loop[1] *= s;
 		time_loop[2] *= s;
@@ -6091,11 +6091,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
-			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
+			       time_used_Qx[0] / DMAX(time_used_Qx[0], time_used_Qx[1]), time_used_Qx[1] / DMAX(time_used_Qx[0], time_used_Qx[1]),
 			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
-			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
-			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
+			       time_used_pred[0] / DMAX(time_used_pred[0], time_used_pred[1]),
+			       time_used_pred[1] / DMAX(time_used_pred[0], time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 			printf("\tOptimizing dot-products.... plain[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
 			printf("\t                            ->mix[%.3f] (plain[%.1f%%] group[%.1f%%])\n",
