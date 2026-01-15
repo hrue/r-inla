@@ -46,7 +46,9 @@ __BEGIN_DECLS
 #              endif
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
+#              if !defined(WINDOWS)
 #              include <simde/x86/avx2.h>
+#              endif 
 #       endif
 //
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
