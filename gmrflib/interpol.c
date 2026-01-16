@@ -105,7 +105,8 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_cspline), (unsigned int) nn);
 		// s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_akima), (unsigned int) nn);
 	}
-	gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
+	int ecode = gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
+	assert(ecode == GSL_SUCCESS);
 	Malloc_free();
 
 	return s;

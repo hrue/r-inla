@@ -6,8 +6,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-int error_check_validate_constr1 = 0;
-
 static int constr_store_use = 1;
 static map_strvp constr_store;
 static int constr_store_must_init = 1;
@@ -120,8 +118,7 @@ int validate_constr1(GMRFLib_constr_tp *constr, int n)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib_constr_tp *constr)
 {
-	if (error_check_validate_constr1)
-		validate_constr1(constr, n);
+	// validate_constr1(constr, n);
 
 	// compute C=A*B, where A is the constr matrix, and we know that C is symmetric.
 	// see below where this is used.

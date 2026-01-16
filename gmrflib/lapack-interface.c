@@ -8,6 +8,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
@@ -53,6 +54,7 @@ double GMRFLib_gsl_ldnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_ma
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity, GMRFLib_gsl_ldnorm_store_tp *store)
 {
@@ -432,6 +434,7 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 {
@@ -528,6 +531,31 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 	return logdet;
 }
 
+int GMRFLib_gsl_force_symmetric(gsl_matrix *A) 
+{
+	for(size_t i = 0; i < A->size1; i++) {
+		for(size_t j = 0; j < i; j++) {
+			double a = gsl_matrix_get(A, i, j);
+			double aa = gsl_matrix_get(A, j, i);
+			double val = (a + aa) / 2.0;
+			gsl_matrix_set(A, i, j, val);
+			gsl_matrix_set(A, j, i, val);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_add_diag(gsl_matrix *A, double value) 
+{
+	if (!ISZERO(value)) {
+		for(size_t i = 0; i < A->size1; i++) {
+			double a = gsl_matrix_get(A, i, i) + value;
+			gsl_matrix_set(A, i, i, a);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 {
 	/*
@@ -540,9 +568,14 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	assert(A->size1 == A->size2);
 	n = A->size1;
 
-	x = gsl_vector_calloc(n);
 	L = GMRFLib_gsl_duplicate_matrix(A);
-	gsl_linalg_cholesky_decomp(L);
+	int ecode = gsl_linalg_cholesky_decomp(L);
+	if (ecode != GSL_SUCCESS) {
+		gsl_matrix_free(L);
+		return !GMRFLib_SUCCESS;
+	}
+	
+	x = gsl_vector_calloc(n);
 	for (i = 0; i < n; i++) {
 		gsl_vector_set_basis(x, i);
 		gsl_linalg_cholesky_svx(L, x);
@@ -557,6 +590,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 {
@@ -866,26 +900,44 @@ int GMRFLib_gsl_spd_solve_x(gsl_matrix *A, gsl_vector *b, gsl_vector *x, GMRFLib
 		S = gsl_vector_alloc(A->size1);
 	}
 
-	gsl_linalg_cholesky_decomp2(L, S);
+	int ecode = gsl_linalg_cholesky_decomp2(L, S);
+	if (ecode != GSL_SUCCESS) {
+		if (!store) {
+			gsl_matrix_free(L);
+			gsl_vector_free(S);
+		}
+		return !GMRFLib_SUCCESS;
+	}
+
 	gsl_linalg_cholesky_solve2(L, S, b, x);
 	if (!store) {
 		gsl_matrix_free(L);
 		gsl_vector_free(S);
 	}
-	return 0;
+	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, double tol)
+int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, double tol, int *try_first)
 {
 	/*
 	 * solve Ax=b, ignoring contributions from eigenvalues < tol*max(eigenval)
 	 *
 	 * solution is returned in x, while A and b is not changed.
 	 *
+	 * try first a regular one, if fail, the try the svd one
 	 */
 
-	const int debug = 0;
 	assert(A && (A->size1 == A->size2));
+	if (try_first && *try_first) {
+		int ecode = GMRFLib_gsl_spd_solve_x(A, b, x, NULL);
+		if (ecode == GMRFLib_SUCCESS) {
+			return GMRFLib_SUCCESS;
+		}
+	}
+	// if try_first did not succeed, then set it to 0
+	if (try_first) *try_first = 0;
+	
+	const int debug = 0;
 	assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
@@ -942,14 +994,25 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
+int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 {
 	/*
 	 * A=inv(A) for symmetric A, ignoring contributions from eigenvalues < tol*max(eigenval)
+	 *
+	 * if FORCE, then do not try spd_inverse first
 	 */
 
-	const int debug = 0;
 	assert(A && (A->size1 == A->size2));
+	if (try_first && *try_first) {
+		int ecode = GMRFLib_gsl_spd_inverse(A);
+		if (ecode == GMRFLib_SUCCESS){
+			return GMRFLib_SUCCESS;
+		}
+	}
+	// if try_first did not succeed, then set it to 0
+	if (try_first) *try_first = 0;
+	
+	const int debug = 0;
 	assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
@@ -998,6 +1061,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_mgs(gsl_matrix *A)
 {
@@ -1158,6 +1222,7 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef)
 {
@@ -1325,6 +1390,7 @@ double GMRFLib_dssqr(int n, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
@@ -1349,17 +1415,18 @@ void GMRFLib_dscale(int n, double a, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
-#if defined(INLA_WITH_SIMDE)
+#if defined(INLA_WITH_SIMDE) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
 #       include "intrinsics/simde/dscale2-avx2.h"
 	}
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
@@ -1417,6 +1484,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 #define DAXPY_CORE(cutoff_)				\
 	if (n < cutoff_) {				\
 		int limit = n & ~3;			\
+		_Pragma("omp simd")			\
 		for (int i = 0; i < limit; i += 4) {	\
 			y[i] += a * x[i];		\
 			y[i+1] += a * x[i+1];		\
@@ -1433,15 +1501,19 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
+//	int inc = 1;
+//	daxpy_(&n, &a, x, &inc, y, &inc);
 	DAXPY_CORE(64);
 }
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 {
@@ -1454,6 +1526,7 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 	if (n < cutoff_) {						\
 		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
 		int limit = n & ~3;					\
+		_Pragma("omp simd reduction(+:sum0,sum1,sum2,sum3)")	\
 		for (int i = 0; i < limit; i += 4) {			\
 			sum0 += x[i] * y[i];				\
 			sum1 += x[i+1] * y[i+1];			\
@@ -1471,21 +1544,25 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
+//	int one = 1;
+//	return ddot_(&n, x, &one, y, &one);
 	DDOT_CORE(32);
 }
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
-#if defined(INLA_WITH_SIMDE)
+#if defined(INLA_WITH_SIMDE)  && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/ddot2-avx2.h"
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/ddot2-sse2.h"
 #else
 	double aa = 0.0, bb = 0.0;
@@ -1502,6 +1579,7 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
 {
@@ -1524,17 +1602,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	if (n == 0) {
-		return 0.0;
-	}
-
 	double r0 = 0.0;
-#if defined(INLA_WITH_SIMDE)
-	if (n < 32) {
-		SUM_CORE(double);
-	} else {
+#if defined(INLA_WITH_SIMDE) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#       include "intrinsics/simde/dsum-avx2.h"
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/dsum-sse2.h"
-	}
 #else
 	SUM_CORE(double);
 #endif
@@ -1547,16 +1619,9 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
-	if (n == 0) {
-		return 0;
-	}
 	int r0 = 0;
 #if defined(INLA_WITH_SIMDE)
-	if (n < 32) {
-		SUM_CORE(int);
-	} else {
 #       include "intrinsics/simde/isum-sse2.h"
-	}
 #else
 	SUM_CORE(int);
 #endif
@@ -1647,9 +1712,9 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)  && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-sse2.h"
 #else
 #       pragma omp simd
@@ -1678,6 +1743,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
 __attribute__((optimize("O3")))
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {
@@ -1691,3 +1757,4 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop

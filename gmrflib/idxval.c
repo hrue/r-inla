@@ -911,7 +911,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		assert(info == ARMPL_STATUS_SUCCESS);
 	}
 #endif
-	for (int time = -1; time < ntimes; time++) {
+	for (int time = -ntimes; time < ntimes; time++) {
 		if (time < 0) {
 			GMRFLib_sparse_ddot_(h, x);
 			ddot_group(h, x);

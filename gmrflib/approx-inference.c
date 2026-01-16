@@ -2000,6 +2000,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	sTiles_tmp_storage_tp *stiles_tmp_store;
 
+
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
@@ -5231,6 +5232,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	FILE *fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
 	int verbose = ai_par->vb_verbose && ai_par->fp_log;
 
+#define HERE_INIT() double _tref = -GMRFLib_timer()
+#define HERE() {							\
+		_tref += GMRFLib_timer();				\
+		printf("Time reference at line %d :  %.6f\n", __LINE__, _tref);	\
+		_tref = -GMRFLib_timer();				\
+	}
+		
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
 		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_timer()-_tref); \
@@ -5344,7 +5352,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	int hessian_update = ai_par->vb_hessian_update;
 	assert(hessian_update > 0);
-
 	M = gsl_matrix_alloc(graph->n, vb_idx->n);
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
@@ -5390,6 +5397,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 	}
 
+	int try_first = 1;
 	double dxs[niter];
 	GMRFLib_dfill(niter, 0.0, dxs);
 
@@ -5419,7 +5427,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (iter == 0) {
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
 		}
-
 		static char *tag0 = NULL;
 		if (!tag0) {
 #pragma omp critical (Name_74f6df2c6fdf60a5d97b7425d4dece6a2a8f85e1)
@@ -5526,7 +5533,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #define CODE_BLOCK	{						\
 				CODE_BLOCK_INIT();			\
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg, &(tmax__)); \
+				/* This can be optimized as we know that the result is symmetric */ \
+				/* but there is no good way to do this, as dgemm is so optimized already */ \
 				gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
+				GMRFLib_gsl_force_symmetric(MM);	\
+				GMRFLib_gsl_add_diag(MM, FLT_EPSILON);	\
 			}
 			RUN_CODE_BLOCK_PLAIN(nt_local3, 0, 0);
 #undef CODE_BLOCK
@@ -5542,11 +5553,16 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
 		}
 
-		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
+		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only.
+		// it is likely better to assume it is not singular, and if it fail, move to ignoring the singular part.
+		// _gsl_spd_inv will try chol first, and if it fails, do the svd one. same with _gsl_safe_spde_solve.
+		// this happens internally. the argument 'try_first' determines this, which is also set at return if 'try_first'
+		// succeeded (1) or failed (0)
+		
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
+				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON, &try_first);
 			}
 			if (debug) {
 				printf("MM\n");
@@ -5559,7 +5575,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
 			// solve MM %*% delta = MB
-			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GSL_ROOT3_DBL_EPSILON);
+			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GSL_ROOT3_DBL_EPSILON, &try_first);
 		}
 
 		int delta_is_NAN = 0;
@@ -5606,16 +5622,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2])
 				   && (dxs[iter - 2] > dxs[iter - 3]));
 		}
-
+		
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
 #pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
-
+		
 		int max_corr_flag = (max_correction >= ai_par->vb_emergency);
-
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
@@ -5671,7 +5686,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (err_dx < 0.01 || iter == niter - 1 || flag_cyclic) {
 			do_break = 1;
 		}
-
+		
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
@@ -6168,7 +6183,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		grad_err = sqrt(grad_err / (double) vb_idx->n);
 
 		if (iter < hessian_update) {
-			GMRFLib_gsl_spd_inv(hessian, GSL_ROOT3_DBL_EPSILON);
+			GMRFLib_gsl_spd_inv(hessian, GSL_ROOT3_DBL_EPSILON, NULL);
 		}
 
 		double one = 1.0, zero = 0.0;

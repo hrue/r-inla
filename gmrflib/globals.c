@@ -147,3 +147,5 @@ int GMRFLib_force_stiles = 0;
 double GMRFLib_overall_cpu[8] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 char *GMRFLib_tmpdir = NULL;
+
+int GMRFLib_turn_off_gsl_error_handler = 1;

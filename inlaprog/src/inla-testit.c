@@ -6153,13 +6153,15 @@ int testit(int argc, char **argv)
 				int nn = siz[k];
 				if (j >= 0)
 					tref0[k] -= GMRFLib_timer();
-				GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
+				for (int kk = 0; kk < 10; k++) 
+					GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
 				double tt = GMRFLib_timer();
 				if (j >= 0)
 					tref0[k] += tt;
 				if (j >= 0)
 					tref1[k] -= tt;
-				GMRFLib_daxpy_x(nn, a, x, y, 0);
+				for (int kk = 0; kk < 10; k++) 
+					GMRFLib_daxpy_x(nn, a, x, y, 0);
 				if (j >= 0)
 					tref1[k] += GMRFLib_timer();
 			}
