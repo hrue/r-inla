@@ -63,6 +63,7 @@ __BEGIN_DECLS
 #                     define INLA_CLONE_TARGETS ""
 #              endif
 #       else
+#              undef INLA_WITH_CLONE_TARGETS
 #              undef INLA_CLONE_TARGETS
 #              define INLA_CLONE_TARGETS ""
 #       endif
