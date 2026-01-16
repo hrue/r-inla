@@ -58,7 +58,7 @@ __BEGIN_DECLS
 #              if defined(__x86_64__) 
 #                     define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f",
 #              elif defined(__aarch64__)
-#                     define INLA_CLONE_TARGETS "rcpc", "rcpc2", "rcpc3",
+#                     define INLA_CLONE_TARGETS "sve", "sve2", "rcpc", "rcpc3",
 #              else
 #                     define INLA_CLONE_TARGETS ""
 #              endif
