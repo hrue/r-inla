@@ -1353,14 +1353,14 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
-#if 0 && defined(INLA_WITH_SIMDE) && defined(__AVX2__)
+#if defined(INLA_WITH_SIMDE)
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
 #       include "intrinsics/simde/dscale2-avx2.h"
 	}
-#elif defined(INLA_WITH_SIMDE)
-	if (likely(n < 32)) {
+#elif 0 && defined(INLA_WITH_SIMDE)
+	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
 #       include "intrinsics/simde/dscale2-sse2.h"
@@ -1483,14 +1483,14 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
-#if defined(INLA_WITH_SIMDE) && defined(__AVX2__)
-#include "intrinsics/simde/ddot2-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#include "intrinsics/simde/ddot2-sse2.h"
+#if defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/ddot2-avx2.h"
+#elif 0 && defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/ddot2-sse2.h"
 #else
 	double aa = 0.0, bb = 0.0;
-#pragma omp simd reduction(+: aa, bb)
-	for(int i = 0; i < n; i++) {
+#       pragma omp simd reduction(+: aa, bb)
+	for (int i = 0; i < n; i++) {
 		aa += x[i] * y[i];
 		bb += x[i] * z[i];
 	}
@@ -1647,9 +1647,9 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE) && defined(__AVX2__)
-#       include "intrinsics/simde/pack-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/pack-avx2.h"
+#elif 0 && defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-sse2.h"
 #else
 #       pragma omp simd

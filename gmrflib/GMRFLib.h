@@ -47,19 +47,28 @@ __BEGIN_DECLS
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              if !defined(WINDOWS)
-#              include <simde/x86/avx2.h>
-#              endif 
+#                     include <simde/x86/avx2.h>
+#              endif
 #       endif
-//
-#       if defined(INLA_WITH_CLONE_TARGETS) && defined(__x86_64__)
-#              define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f",
+
+/* ... */
+
+#       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
+#              undef INLA_CLONE_TARGETS
+#              if defined(__x86_64__) 
+#                     define INLA_CLONE_TARGETS "sse2", "sse4.2", "avx2", "avx512f",
+#              elif defined(__aarch64__)
+#                     define INLA_CLONE_TARGETS "rcpc", "rcpc2", "rcpc3",
+#              else
+#                     define INLA_CLONE_TARGETS ""
+#              endif
 #       else
+#              undef INLA_CLONE_TARGETS
 #              define INLA_CLONE_TARGETS ""
 #       endif
 
-/* 
- *  include files we need from GSL
- */
+/* ... */
+
 #       define GSL_RANGE_CHECK_OFF
 #       define HAVE_INLINE
 #       include <gsl/gsl_inline.h>
