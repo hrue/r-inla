@@ -1095,7 +1095,17 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix 
 
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
-	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	//GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
+	int *r = (rr ? rr->remap : NULL);
+	int *rinv = (rr ? rr->remap_inv : NULL);
+	if (r) {
+		assert(rinv);
+		GMRFLib_convert_from_mapped(rhs, NULL, graph, rinv);
+	} else {
+		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	}
+
 	GMRFLib_my_taucs_dccs_solve_l(L, rhs);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
@@ -1127,8 +1137,18 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
+	//GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
+	int *r = (rr ? rr->remap : NULL);
+	int *rinv = (rr ? rr->remap_inv : NULL);
+	if (r) {
+		assert(rinv);
+		GMRFLib_convert_from_mapped(rhs, NULL, graph, rinv);
+	} else {
+		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	}
+
 	double *b = work;
-	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	Memcpy(b, rhs, graph->n * sizeof(double));
 	GMRFLib_my_taucs_dccs_solve_lt(L, rhs, b);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
@@ -1152,7 +1172,6 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 		assert(rinv);
 		GMRFLib_convert_from_mapped(work, rhs, graph, rinv);
 	} else {
-		// fall back to default behaviour
 		GMRFLib_convert_to_mapped(work, rhs, graph, remap);
 	}
 
