@@ -5320,6 +5320,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	double *tmp = Calloc_get(graph->n);
 	// matrix with Cov(), alloc later as we can 'save one' large alloc
 	gsl_matrix *M = NULL;				       // gsl_matrix_alloc(graph->n, vb_idx->n); 
+	gsl_matrix *Mt = NULL;				       // this one is strictly not needed, just for optimization
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
 	gsl_vector *B = gsl_vector_alloc(graph->n);
 	gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -5352,7 +5353,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	int hessian_update = ai_par->vb_hessian_update;
 	assert(hessian_update > 0);
-	M = gsl_matrix_alloc(graph->n, vb_idx->n);
+	Mt = gsl_matrix_alloc(vb_idx->n, graph->n);
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -5369,13 +5370,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		GMRFLib_Qsolves(b, vb_idx->n, ai_store->problem, &stiles_idx);
 
 		double *cov = b;
-		M = gsl_matrix_alloc(graph->n, vb_idx->n);
 #pragma omp parallel for num_threads(2)
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *cov_ = cov + jj * graph->n;
-			for (int i = 0; i < graph->n; i++) {
-				gsl_matrix_set(M, i, jj, cov_[i]);
-			}
+			double *ptr = gsl_matrix_ptr(Mt, jj, 0);
+			Memcpy(ptr, cov_, graph->n*sizeof(double));
+			/* for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov_[i]); */
 		}
 		Free(b);
 	} else {
@@ -5388,18 +5388,19 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			double *cov = CODE_BLOCK_WORK_PTR(1);		\
 			b[j] = 1.0;					\
 			GMRFLib_Qsolve(cov, b, ai_store->problem, j, NULL); \
-			for (int i = 0; i < graph->n; i++) {		\
-				gsl_matrix_set(M, i, jj, cov[i]);	\
-			}						\
+			double *ptr = gsl_matrix_ptr(Mt, jj, 0);	\
+			Memcpy(ptr, cov, graph->n * sizeof(double));	\
+			/* for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov[i]);	*/ \
 		}
 
 		RUN_CODE_BLOCK(num_threads, 2, graph->n);
 #undef CODE_BLOCK
 	}
 
-	int try_first = 1;
+	int try_first = 1;				       /* assume MM matrix is non-singular first, if it is, switch stratgy  */
 	double dxs[niter];
 	GMRFLib_dfill(niter, 0.0, dxs);
+	M = GMRFLib_gsl_transpose_matrix(Mt);
 
 	for (int iter = 0; iter < niter + 1; iter++) {
 		int update_MM = ((iter + 1 <= hessian_update) || (iter >= 2 && (dxs[iter - 1] > dxs[iter - 2])) || !keep_MM);
@@ -5535,7 +5536,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg, &(tmax__)); \
 				/* This can be optimized as we know that the result is symmetric */ \
 				/* but there is no good way to do this, as dgemm is so optimized already */ \
-				gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);	\
+				gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, Mt, QM, zero, MM); \
 				GMRFLib_gsl_force_symmetric(MM);	\
 				GMRFLib_gsl_add_diag(MM, FLT_EPSILON);	\
 			}
@@ -5547,17 +5548,16 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 		}
 
-		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
+		gsl_blas_dgemv(CblasNoTrans, mone, Mt, B, zero, MB);
 		if (debug) {
 			GMRFLib_printf_gsl_matrix(stdout, M, "%.6f ");
 			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
 		}
 
 		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only.
-		// it is likely better to assume it is not singular, and if it fail, move to ignoring the singular part.
-		// _gsl_spd_inv will try chol first, and if it fails, do the svd one. same with _gsl_safe_spde_solve.
-		// this happens internally. the argument 'try_first' determines this, which is also set at return if 'try_first'
-		// succeeded (1) or failed (0)
+		// it is likely better to assume it is not singular, and if it fail, remove the singular part. with try_first=1,
+		// _gsl_spd_inv will try chol first, and if it fails, do the svd one. same with _gsl_safe_spde_solve. this happens
+		// internally. the outcome is returned in 'try_first', as non-singular=1 or singular=0.
 		
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
@@ -5590,6 +5590,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		int flag_cyclic = 0;
 		if (iter > 0) {
 			double mean_delta = 0.0;
+#pragma omp simd reduction(+: mean_delta)
 			for (int i = 0; i < (int) delta->size; i++) {
 				mean_delta += SQR(gsl_vector_get(delta, i) + gsl_vector_get(delta_prev, i));
 			}
@@ -5597,6 +5598,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			if (mean_delta < FLT_EPSILON) {
 				// take the half and then exit later
 				flag_cyclic = 1;
+#pragma omp simd
 				for (int i = 0; i < (int) delta->size; i++) {
 					gsl_vector_set(delta, i, 0.5 * gsl_vector_get(delta, i));
 				}
@@ -5730,6 +5732,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	GMRFLib_free_tabulate_Qfunc(tabQ);
 	GMRFLib_free_tabulate_Qfunc(prior);
 	gsl_matrix_free(M);
+	gsl_matrix_free(Mt);
 	gsl_matrix_free(MM);
 	gsl_matrix_free(QM);
 	gsl_permutation_free(perm);

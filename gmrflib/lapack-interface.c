@@ -533,6 +533,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 
 int GMRFLib_gsl_force_symmetric(gsl_matrix *A) 
 {
+	// force symmetry A = (A + t(A))/2
 	for(size_t i = 0; i < A->size1; i++) {
 		for(size_t j = 0; j < i; j++) {
 			double a = gsl_matrix_get(A, i, j);
@@ -547,6 +548,7 @@ int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 
 int GMRFLib_gsl_add_diag(gsl_matrix *A, double value) 
 {
+	// diag(A) = diag(A) + value
 	if (!ISZERO(value)) {
 		for(size_t i = 0; i < A->size1; i++) {
 			double a = gsl_matrix_get(A, i, i) + value;
