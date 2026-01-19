@@ -32,7 +32,6 @@
 __BEGIN_DECLS
 
 /* ... */
-
 #       if defined(INLA_WITH_SIMDE)
 #              define SIMDE_ENABLE_NATIVE_ALIASES
 #              if !defined(_OPENMP)
@@ -42,7 +41,7 @@ __BEGIN_DECLS
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              
-#              define INLA_WITH_SIMDE_AVX2_
+#              define INLA_WITH_SIMDE_AVX2_ 
 #              if defined(INLA_WITH_SIMDE_AVX2_)
 #                     include <simde/x86/avx2.h>
 #              endif
