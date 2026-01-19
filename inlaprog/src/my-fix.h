@@ -12,10 +12,7 @@
 #       endif
 
 __BEGIN_DECLS
-// ...
-#       if defined(INLA_WINDOWS32_FIX)
-void _mm_pause(void);
-#       endif
+/* ... */
 
 int my_is_double(char *str);
 int my_is_int(char *str);

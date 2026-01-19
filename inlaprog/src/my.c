@@ -45,7 +45,7 @@ int my_setenv(char *str, int prefix)
 		exit(EXIT_FAILURE);
 	}
 	*p = '\0';
-#if defined(WINDOWS)
+#if defined(_WIN32)
 	if (prefix) {
 		GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
 	} else {

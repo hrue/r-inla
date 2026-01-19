@@ -34,10 +34,6 @@ __BEGIN_DECLS
 #       define GMRFLib_VERSION_MINOR    "0"
 #       define GMRFLib_VERSION_REVISION "0"
 #       define GMRFLib_VERSION          "0.0-0"
-#       if defined(WINDOWS)
-#              define GMRFLib_NEED_DRAND48  1		       /* include implementation of drand48() */
-#              define GMRFLib_NEED_SRAND48  1		       /* include implementation of srand48() */
-#       endif
 //
 #       if defined(INLA_WITH_SIMDE)
 #              define SIMDE_ENABLE_NATIVE_ALIASES
@@ -46,7 +42,7 @@ __BEGIN_DECLS
 #              endif
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
-#              if !defined(WINDOWS)
+#              if !defined(_WIN32)
 #                     include <simde/x86/avx2.h>
 #              endif
 #       endif

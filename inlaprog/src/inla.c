@@ -33,7 +33,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 #       include <sys/resource.h>
 #endif
 
@@ -55,7 +55,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#if defined(WIN32) || defined(WINDOWS)
+#if defined(_WIN32)
 #       include <windows.h>
 #       include <direct.h>
 #endif
@@ -7117,12 +7117,12 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report issues/bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0, 0, 0 }, err;
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	double eff_nt = 0.0;
 #endif
 	clock_t atime_used[4] = { 0, 0, 0, 0 };
@@ -7182,7 +7182,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
@@ -7455,7 +7455,7 @@ int main(int argc, char **argv)
 
 		case 'c':
 		{
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 			enable_core_file = 1;		       /* allow for core files */
 #endif
 		}
@@ -7463,7 +7463,7 @@ int main(int argc, char **argv)
 
 		case 'p':
 		{
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 			long int pid = (long int) getpid();
 			FILE *fp_pid = fopen(".inla.pid", "w");
 			if (fp_pid) {
@@ -7492,7 +7492,7 @@ int main(int argc, char **argv)
 		GMRFLib_dot_product_optim_report[i] = Calloc(7, double);
 	}
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	/*
 	 * disable the creation of core-file, unless explicite asked for by the argument '-c'.
 	 */
@@ -7841,7 +7841,7 @@ int main(int argc, char **argv)
 				printf("\tOutput                   : %7.3f seconds\n", time_used[2]);
 				printf("\t------------------------------------------\n");
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
@@ -7892,7 +7892,7 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
@@ -7948,7 +7948,7 @@ int main(int argc, char **argv)
 							rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(fp);
 				}

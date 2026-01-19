@@ -8,7 +8,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 #       include <unistd.h>
 #       include <sys/types.h>
 #       include <pwd.h>

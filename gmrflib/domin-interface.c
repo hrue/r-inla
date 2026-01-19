@@ -1545,7 +1545,7 @@ GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
 	return opt_trace;
 }
 
-#if defined(WINDOWS)
+#if defined(_WIN32)
 void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta), double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
 {
 	return;

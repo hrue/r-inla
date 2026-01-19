@@ -6,7 +6,7 @@
 int main(int argc, char **argv)
 {
 	double x;
-#       if defined(WINDOWS)
+#       if defined(_WIN32)
 	/*
 	 * We cannot read from STDIN in binary format, so therefore we use the first argument 
 	 */

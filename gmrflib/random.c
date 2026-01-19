@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if defined(WINDOWS)
+#if defined(_WIN32)
 #       include <windows.h>
 #       include <wincrypt.h>
 #endif
@@ -26,7 +26,7 @@ int GMRFLib_rng_set_default_seed(void)
 	size_t len = sizeof(unsigned long int);
 #pragma omp critical (Name_96da5f632ecbd97ae1e5504794f8724fabfdee73)
 	{
-#if defined(WINDOWS)
+#if defined(_WIN32)
 		{
 			// this is the eqv of /dev/random for Windows
 			HCRYPTPROV prov;
@@ -42,7 +42,7 @@ int GMRFLib_rng_set_default_seed(void)
 				seed = seed_default;
 			}
 		}
-#else							       /* !defined(WINDOWS) */
+#else
 		{
 			int fd = open("/dev/urandom", O_RDONLY);
 			if (fd >= 0) {
@@ -56,7 +56,7 @@ int GMRFLib_rng_set_default_seed(void)
 				seed = seed_default;
 			}
 		}
-#endif							       /* defined(WINDOWS) */
+#endif
 	}
 
 	if (debug)

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#if defined(WIN32) || defined(WINDOWS)
+#if defined(_WIN32)
 #       include <io.h>
 #endif
 
