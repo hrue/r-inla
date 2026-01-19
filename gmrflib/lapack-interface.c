@@ -9,11 +9,11 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 {
 	// this is a special case.
-	
+
 	// A: n x m, B: m x n, C: n x n and symmetric. all row-major
 #define SIZE 128
 	int n = (int) A->size1;
@@ -40,10 +40,10 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 	} else {
 		block_n = n;
 	}
-	
+
 	for (int ii = 0; ii < n; ii += block_n) {
 		int ni = (ii + block_n < n) ? block_n : n - ii;
-		for (int jj = ii; jj < n; jj += block_n) { 
+		for (int jj = ii; jj < n; jj += block_n) {
 			int nj = (jj + block_n < n) ? block_n : n - jj;
 			for (int kk = 0; kk < m; kk += block_m) {
 				int nk = (kk + block_m < m) ? block_m : m - kk;
@@ -69,7 +69,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
@@ -115,7 +115,7 @@ double GMRFLib_gsl_ldnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_ma
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity, GMRFLib_gsl_ldnorm_store_tp *store)
 {
 	// 'identity' says that Q=S=I
@@ -495,7 +495,7 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 {
 	double rms = 0.0;
@@ -591,11 +591,11 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 	return logdet;
 }
 
-int GMRFLib_gsl_force_symmetric(gsl_matrix *A) 
+int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 {
 	// force symmetry A = (A + t(A))/2
-	for(size_t i = 0; i < A->size1; i++) {
-		for(size_t j = 0; j < i; j++) {
+	for (size_t i = 0; i < A->size1; i++) {
+		for (size_t j = 0; j < i; j++) {
 			double a = gsl_matrix_get(A, i, j);
 			double aa = gsl_matrix_get(A, j, i);
 			double val = (a + aa) / 2.0;
@@ -606,11 +606,11 @@ int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_add_diag(gsl_matrix *A, double value) 
+int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 {
 	// diag(A) = diag(A) + value
 	if (!ISZERO(value)) {
-		for(size_t i = 0; i < A->size1; i++) {
+		for (size_t i = 0; i < A->size1; i++) {
 			double a = gsl_matrix_get(A, i, i) + value;
 			gsl_matrix_set(A, i, i, a);
 		}
@@ -636,7 +636,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 		gsl_matrix_free(L);
 		return !GMRFLib_SUCCESS;
 	}
-	
+
 	x = gsl_vector_calloc(n);
 	for (i = 0; i < n; i++) {
 		gsl_vector_set_basis(x, i);
@@ -653,7 +653,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 {
 	/*
@@ -997,8 +997,9 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 		}
 	}
 	// if try_first did not succeed, then set it to 0
-	if (try_first) *try_first = 0;
-	
+	if (try_first)
+		*try_first = 0;
+
 	const int debug = 0;
 	assert(tol >= 0.0);
 
@@ -1067,13 +1068,14 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_inverse(A);
-		if (ecode == GMRFLib_SUCCESS){
+		if (ecode == GMRFLib_SUCCESS) {
 			return GMRFLib_SUCCESS;
 		}
 	}
 	// if try_first did not succeed, then set it to 0
-	if (try_first) *try_first = 0;
-	
+	if (try_first)
+		*try_first = 0;
+
 	const int debug = 0;
 	assert(tol >= 0.0);
 
@@ -1124,7 +1126,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_mgs(gsl_matrix *A)
 {
 	// this is the modified Gram-Schmith ortogonalisation, and it 
@@ -1285,7 +1287,7 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef)
 {
 	// compute the KLD between two mult-var normals, where either or both matrices can be numerical singular. Make sure that the rank is the
@@ -1453,7 +1455,7 @@ double GMRFLib_dssqr(int n, double *x)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
@@ -1478,7 +1480,7 @@ void GMRFLib_dscale(int n, double a, double *x)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
@@ -1564,11 +1566,11 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-//	int inc = 1;
-//	daxpy_(&n, &a, x, &inc, y, &inc);
+//      int inc = 1;
+//      daxpy_(&n, &a, x, &inc, y, &inc);
 	DAXPY_CORE(64);
 }
 #pragma GCC diagnostic pop
@@ -1576,7 +1578,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 {
 	DAXPY_CORE(cutoff);
@@ -1607,11 +1609,11 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-//	int one = 1;
-//	return ddot_(&n, x, &one, y, &one);
+//      int one = 1;
+//      return ddot_(&n, x, &one, y, &one);
 	DDOT_CORE(32);
 }
 #pragma GCC diagnostic pop
@@ -1619,7 +1621,7 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
 #if defined(INLA_WITH_SIMDE)  && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
@@ -1642,7 +1644,7 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
 {
 	DDOT_CORE(cutoff);

@@ -1095,7 +1095,7 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix 
 
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
-	//GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	// GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
 	int *r = (rr ? rr->remap : NULL);
 	int *rinv = (rr ? rr->remap_inv : NULL);
@@ -1137,7 +1137,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	double *work = wwork[cache_idx];
 	GMRFLib_dfill(wwork_len[cache_idx], 0.0, work);
 
-	//GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	// GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
 	int *r = (rr ? rr->remap : NULL);
 	int *rinv = (rr ? rr->remap_inv : NULL);
@@ -1164,7 +1164,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	// as '_from_mapped' is faster than '_to_mapped' then we check if 'remap' is in the cache, and if so, we use the inverse
 	// mapping to allow us to use '_from_mapped'. Note that _remap_get will register 'remap' in the cache if its not there, and
 	// also cache the inverse mapping.
-	
+
 	GMRFLib_remap_tp *rr = GMRFLib_remap_get(remap, graph->n, 1);
 	int *r = (rr ? rr->remap : NULL);
 	int *rinv = (rr ? rr->remap_inv : NULL);

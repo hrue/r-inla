@@ -1503,7 +1503,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 				GMRFLib_daxpy(ncol, v, pp, dval);
 			}
 			double *ptr = gsl_matrix_ptr(result, i, 0);
-			Memcpy(ptr, dval, ncol*sizeof(double));
+			Memcpy(ptr, dval, ncol * sizeof(double));
 			// for (int k = 0; k < ncol; k++) gsl_matrix_set(result, i, k, dval[k]);
 		}
 	} else {

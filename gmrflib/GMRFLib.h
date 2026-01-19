@@ -52,13 +52,12 @@ __BEGIN_DECLS
 #       endif
 
 /* ... */
-
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
 #              undef INLA_CLONE_TARGETS
-#              if defined(__x86_64__) 
+#              if defined(__x86_64__)
 #                     define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
 #              elif defined(__aarch64__)
-#                     define INLA_CLONE_TARGETS "sve", "sve2", 
+#                     define INLA_CLONE_TARGETS "sve", "sve2",
 #              else
 #                     define INLA_CLONE_TARGETS ""
 #              endif
@@ -69,7 +68,6 @@ __BEGIN_DECLS
 #       endif
 
 /* ... */
-
 #       define GSL_RANGE_CHECK_OFF
 #       define HAVE_INLINE
 #       include <gsl/gsl_inline.h>

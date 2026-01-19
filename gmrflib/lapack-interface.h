@@ -75,14 +75,14 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg);
 int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
-int GMRFLib_gsl_add_diag(gsl_matrix *A, double value);
+int GMRFLib_gsl_add_diag(gsl_matrix * A, double value);
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg);
 int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol, char **msg);
 int GMRFLib_gsl_ensure_spd_inverse_x(gsl_matrix * A, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp * store);
 int GMRFLib_gsl_ensure_spd_store_free(GMRFLib_gsl_ensure_spd_store_tp * S);
 int GMRFLib_gsl_ensure_spd_x(gsl_matrix * A, double tol, char **mgs, GMRFLib_gsl_ensure_spd_store_tp * store);
-int GMRFLib_gsl_force_symmetric(gsl_matrix *A);
+int GMRFLib_gsl_force_symmetric(gsl_matrix * A);
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp * store);
@@ -134,7 +134,7 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_dscale(int n, double a, double *x);
 void GMRFLib_dscale2(int n, double a, double *x, double *y);
-void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C);
+void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C);
 void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_powx(int n, double *x, double a, double *y);

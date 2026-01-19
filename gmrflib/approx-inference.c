@@ -5108,7 +5108,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double B = 0.0, C = 0.0;
 	GMRFLib_ddot2(&B, &C, GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp, wxp2);
 #endif
-	
+
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * s_inv;
@@ -5238,7 +5238,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		printf("Time reference at line %d :  %.6f\n", __LINE__, _tref);	\
 		_tref = -GMRFLib_timer();				\
 	}
-		
+
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
 		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_timer()-_tref); \
@@ -5374,8 +5374,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *cov_ = cov + jj * graph->n;
 			double *ptr = gsl_matrix_ptr(Mt, jj, 0);
-			Memcpy(ptr, cov_, graph->n*sizeof(double));
-			/* for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov_[i]); */
+			Memcpy(ptr, cov_, graph->n * sizeof(double));
+			/*
+			 * for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov_[i]); 
+			 */
 		}
 		Free(b);
 	} else {
@@ -5397,7 +5399,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 	}
 
-	int try_first = 1;				       /* assume MM matrix is non-singular first, if it is, switch stratgy  */
+	int try_first = 1;				       /* assume MM matrix is non-singular first, if it is, switch stratgy */
 	double dxs[niter];
 	GMRFLib_dfill(niter, 0.0, dxs);
 	M = GMRFLib_gsl_transpose_matrix(Mt);
@@ -5560,7 +5562,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		// it is likely better to assume it is not singular, and if it fail, remove the singular part. with try_first=1,
 		// _gsl_spd_inv will try chol first, and if it fails, do the svd one. same with _gsl_safe_spde_solve. this happens
 		// internally. the outcome is returned in 'try_first', as non-singular=1 or singular=0.
-		
+
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
@@ -5626,14 +5628,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2])
 				   && (dxs[iter - 2] > dxs[iter - 3]));
 		}
-		
+
 		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
 #pragma omp simd
 		for (int i = 0; i < graph->n; i++) {
 			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
 		}
-		
+
 		int max_corr_flag = (max_correction >= ai_par->vb_emergency);
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
@@ -5690,7 +5692,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (err_dx < 0.01 || iter == niter - 1 || flag_cyclic) {
 			do_break = 1;
 		}
-		
+
 		if (verbose) {
 #pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{

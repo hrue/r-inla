@@ -53,7 +53,8 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	if (err == GSL_EMAXITER) {
 		assert(!err);
 	}
-	if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(NULL);
+	if (!GMRFLib_turn_off_gsl_error_handler)
+		gsl_set_error_handler(NULL);
 
 	gsl_vector *xx = gsl_vector_alloc(order);
 	gsl_vector_set(xx, 0, 1.0);

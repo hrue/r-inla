@@ -700,7 +700,8 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	// err = bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_cauchy, X, yy, c, cov);
 
-	if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(NULL);
+	if (!GMRFLib_turn_off_gsl_error_handler)
+		gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
 		int iidx = 0;
 		GMRFLib_min_value(y, nn, &iidx);
