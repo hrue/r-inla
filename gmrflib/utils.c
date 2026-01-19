@@ -13,6 +13,10 @@
 #include <strings.h>
 #include <time.h>
 
+#if defined(WINDOWS)
+#include <windows.h> 
+#endif
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
 
@@ -72,7 +76,8 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
  * taken from
  * https://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
  */
-void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem)
+void GMRFLib_getMemory(int POSSIBLY_UNUSED(*currRealMem), int POSSIBLY_UNUSED(*peakRealMem),
+		       int POSSIBLY_UNUSED(*currVirtMem), int POSSIBLY_UNUSED(*peakVirtMem))
 {
 #if defined(__linux__)
 	// stores each word in status file
@@ -109,7 +114,7 @@ void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int
 #endif
 }
 
-void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno)
+void GMRFLib_printMem_core(FILE POSSIBLY_UNUSED(*fp), const char POSSIBLY_UNUSED(*fnm), int POSSIBLY_UNUSED(lineno))
 {
 #if defined(__linux__)
 	int crm = 0, prm = 0, cvm = 0, pvm = 0;
@@ -2448,11 +2453,11 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 			GetLogicalProcessorInformation(NULL, &len);
 			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)malloc(len);
 			if (!info) {
-				return;
+				goto label_end;
 			}
 			if (!GetLogicalProcessorInformation(info, &len)) {
 				free(info);
-				return;
+				goto label_end;
 			}
 			for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
 				if (info[i].Relationship == RelationCache) {
@@ -2468,6 +2473,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 					}
 				}
 			}
+		label_end:
 #else
 			Memset(&L123, 0, sizeof(GMRFLib_sys_cache_tp));
 #endif
