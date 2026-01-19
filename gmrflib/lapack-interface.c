@@ -1484,18 +1484,12 @@ __attribute__((optimize("O3")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
-#if defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-	if (n < 32) {
-		DSCALE2_CORE();
-	} else {
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#       include "intrinsics/simde/dscale2-avx512f.h"
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/dscale2-avx2.h"
-	}
 #elif defined(INLA_WITH_SIMDE)
-	if (n < 32) {
-		DSCALE2_CORE();
-	} else {
 #       include "intrinsics/simde/dscale2-sse2.h"
-	}
 #else
 	DSCALE2_CORE();
 #endif
@@ -1624,6 +1618,9 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
+// simde_mm512_reduce_add_pd is not yet supported so we disable it for the moment (not properly tested!)
+//#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+//#       include "intrinsics/simde/ddot2-avx512f.h"
 #if defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/ddot2-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
@@ -1667,6 +1664,9 @@ __attribute__((optimize("O3")))
 double GMRFLib_dsum(int n, double *x)
 {
 	double r0 = 0.0;
+// simde_mm512_reduce_add_pd is not yet supported so we disable it for the moment (not properly tested!)
+//#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+//#       include "intrinsics/simde/dsum-avx512f.h"
 #if defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/dsum-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
@@ -1776,6 +1776,8 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#       include "intrinsics/simde/pack-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
