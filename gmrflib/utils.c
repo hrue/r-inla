@@ -17,6 +17,11 @@
 #include <windows.h> 
 #endif
 
+#if defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
 
