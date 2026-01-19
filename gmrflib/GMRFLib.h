@@ -41,8 +41,13 @@ __BEGIN_DECLS
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              
-#              define INLA_WITH_SIMDE_AVX2_ 
-#              if defined(INLA_WITH_SIMDE_AVX2_)
+#              if defined(__AVX2__)
+#                     define INLA_WITH_SIMDE_AVX2_
+#                     include <simde/x86/avx2.h>
+#              elif defined(_WIN32)
+#                     undef INLA_WITH_SIMDE_AVX2_
+#              else
+#                     define INLA_WITH_SIMDE_AVX2_
 #                     include <simde/x86/avx2.h>
 #              endif
 #       endif
