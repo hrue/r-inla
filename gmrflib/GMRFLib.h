@@ -42,9 +42,7 @@ __BEGIN_DECLS
 #              endif
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
-#              if !defined(_WIN32)
-#                     include <simde/x86/avx2.h>
-#              endif
+#              include <simde/x86/avx2.h>
 #       endif
 
 /* ... */
