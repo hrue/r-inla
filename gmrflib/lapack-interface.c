@@ -1774,14 +1774,16 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+// not so good...
+#if 0
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 #       include "intrinsics/simde/pack-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-sse2.h"
+#endif
 #else
-#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -1799,7 +1801,6 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #if defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
-#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}

@@ -6068,6 +6068,8 @@ int testit(int argc, char **argv)
 				map[i] = (int) dmap[i];
 			}
 
+			GMRFLib_pack(n, x, map, y);
+
 			tref[0] -= GMRFLib_timer();
 			GMRFLib_pack(n, x, map, y);
 			tref[0] += GMRFLib_timer();
