@@ -10,8 +10,8 @@
 			sum_a = simde_mm512_add_pd(sum_a, simde_mm512_mul_pd(xvec, yvec));
 			sum_b = simde_mm512_add_pd(sum_b, simde_mm512_mul_pd(xvec, zvec));
 		}
-		aa += simde_mm512_reduce_add_pd(sum_a);
-		bb += simde_mm512_reduce_add_pd(sum_b);
+		aa += _mm512_reduce_add_pd(sum_a);
+		bb += _mm512_reduce_add_pd(sum_b);
 	}
 	for (int i = limit; i < n; i++) {
 		aa += x[i] * y[i];

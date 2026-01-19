@@ -6,7 +6,7 @@
 			simde__m512d data = simde_mm512_loadu_pd(&x[i]);
 			sum0 = simde_mm512_add_pd(sum0, data);
 		}
-		r += simde_mm512_reduce_add_pd(sum0);
+		r += _mm512_reduce_add_pd(sum0);
 	}
 	for (int i = limit; i < n; i++) {
 		r += x[i];
