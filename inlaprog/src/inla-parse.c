@@ -317,6 +317,14 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tBUFSIZ is %1zu bytes\n", (size_t) BUFSIZ);
 		printf("\t\tCACHE_LINE_SIZE is %1zu bytes\n", (size_t) GMRFLib_cachelinesize);
 		printf("\t\tMEM_ALIGN is %1zu bytes\n", (size_t) GMRFLib_MEM_ALIGN);
+
+		GMRFLib_sys_cache_tp L123;
+		GMRFLib_sys_cache(&L123);
+		printf("\t\tL1 Data  Cache: %zu bytes\n", L123.l1_data);
+		printf("\t\tL1 Instr Cache: %zu bytes\n", L123.l1_inst);
+		printf("\t\tL2       Cache: %zu bytes\n", L123.l2);
+		printf("\t\tL3       Cache: %zu bytes\n", L123.l3);
+
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
 #endif

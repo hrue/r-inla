@@ -2413,3 +2413,69 @@ double GMRFLib_erfc_inv(double x)
 {
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
 }
+
+
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123) 
+{
+	if (l123) {
+		Memset(l123, 0, sizeof(GMRFLib_sys_cache_tp));
+	}
+
+	static GMRFLib_sys_cache_tp L123;
+	static int first = 1;
+
+	if (first) {
+#pragma omp critical (Name_baeb0f7ca4f3dbd67a64a855c0a33b451124c7aa)
+		if (first) {
+#if defined(__linux__)
+			long tmp;
+			tmp =  sysconf(_SC_LEVEL1_DCACHE_SIZE);
+			L123.l1_data = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL1_ICACHE_SIZE);
+			L123.l1_inst = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL2_CACHE_SIZE);
+			L123.l2 = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL3_CACHE_SIZE);			
+			L123.l3 = (size_t) (tmp >= 0 ? tmp : 0);
+#elif defined(__APPLE__)
+			size_t len = sizeof(size_t);
+			sysctlbyname("hw.l1dcachesize", &(L123.l1_data), &len, NULL, 0);
+			sysctlbyname("hw.l1icachesize", &(L123.l1_inst), &len, NULL, 0);
+			sysctlbyname("hw.l2cachesize", &(L123.l2), &len, NULL, 0);
+			sysctlbyname("hw.l3cachesize", &(L123.l3), &len, NULL, 0);
+#elif defined(_MSC_VER) || defined(__MINGW32__) || defined (__MSVCRT__)
+			DWORD len = 0;
+			GetLogicalProcessorInformation(NULL, &len);
+			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)malloc(len);
+			if (!info) {
+				return;
+			}
+			if (!GetLogicalProcessorInformation(info, &len)) {
+				free(info);
+				return;
+			}
+			for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
+				if (info[i].Relationship == RelationCache) {
+					CACHE_DESCRIPTOR cache = info[i].Cache;
+					if (cache.Level == 1 && cache.Type == CacheData) {
+						L123.l1_data = (size_t) cache.Size;
+					} else if (cache.Level == 1 && cache.Type == CacheInstruction) {
+						L123.l1_inst = (size_t) cache.Size;
+					} else if (cache.Level == 2) {
+						L123.l2 = (size_t) cache.Size;
+					} else if (cache.Level == 3) {
+						L123.l3 = (size_t) cache.Size;
+					}
+				}
+			}
+#else
+			Memset(&L123, 0, sizeof(GMRFLib_sys_cache_tp));
+#endif
+			first = 0;
+		}
+	}
+
+	if (l123) {
+		Memcpy(l123, &L123, sizeof(GMRFLib_sys_cache_tp));
+	}
+}
