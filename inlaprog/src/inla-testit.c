@@ -6052,7 +6052,7 @@ int testit(int argc, char **argv)
 
 			if (j == 0) {
 				Memset(tref, 0, sizeof(tref));
-				Memset(tref_simple, 0, sizeof(tref));
+				Memset(tref_simple, 0, sizeof(tref_simple));
 			}
 			for (int i = 0; i < n; i++) {
 				map[i] = i;
