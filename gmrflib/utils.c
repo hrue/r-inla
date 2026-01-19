@@ -1373,6 +1373,10 @@ const char *GMRFLib_function_name_strip(const char *name)
 
 int GMRFLib_debug_functions(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+	
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1481,6 +1485,10 @@ int GMRFLib_debug_functions(const char *name)
 
 int GMRFLib_trace_functions(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1588,6 +1596,10 @@ int GMRFLib_trace_functions(const char *name)
 
 int GMRFLib_trace_cache_hitmiss(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
