@@ -1380,17 +1380,20 @@ int GMRFLib_debug_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
-
+	static int clen = 0;
+	
 	if (!ddefs) {
 #pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
+	assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_c3afbb5a350a04cd0a2ad81d85df8cc44ff04279)
@@ -1485,17 +1488,20 @@ int GMRFLib_trace_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
-
+	static int clen = 0;
+	
 	if (!ddefs) {
 #pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
+	assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_e9b04207643dde9dc8734f9ae0e41a3e03910f80)
@@ -1589,18 +1595,21 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
-
+	static int clen = 0;
+	
 	if (!ddefs) {
 #pragma omp critical (Name_72150bb8d161e16549ba70e0a250eb5d4f572df6)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
-
+	assert(idx < clen);
+	
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
 		if (!ddefs[idx]) {
