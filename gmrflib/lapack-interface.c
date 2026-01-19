@@ -10,6 +10,66 @@
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
+{
+	// this is a special case.
+	
+	// A: n x m, B: m x n, C: n x n and symmetric. all row-major
+#define SIZE 128
+	int n = (int) A->size1;
+	int m = (int) A->size2;
+	assert((int) A->tda == m);
+	assert((int) B->tda == n);
+	assert((int) C->tda == n);
+	gsl_matrix_set_zero(C);
+
+	int block_m;
+	if (m >= 2 * SIZE) {
+		block_m = IMIN(m, SIZE);
+	} else if (m > SIZE) {
+		block_m = (m + 1) / 2;
+	} else {
+		block_m = m;
+	}
+
+	int block_n;
+	if (n >= 2 * SIZE) {
+		block_n = IMIN(n, SIZE);
+	} else if (n > SIZE) {
+		block_n = (n + 1) / 2;
+	} else {
+		block_n = n;
+	}
+	
+	for (int ii = 0; ii < n; ii += block_n) {
+		int ni = (ii + block_n < n) ? block_n : n - ii;
+		for (int jj = ii; jj < n; jj += block_n) { 
+			int nj = (jj + block_n < n) ? block_n : n - jj;
+			for (int kk = 0; kk < m; kk += block_m) {
+				int nk = (kk + block_m < m) ? block_m : m - kk;
+				cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ni, nj, nk, 1.0,
+					    &A->data[ii * m + kk], m, &B->data[kk * n + jj], n, 1.0, &C->data[ii * n + jj], n);
+			}
+			// this does not ensure _exact_ symmetry for ii==jj due to numerical sum error, but we can call
+			// GMRFLib_gsl_force_symmetric() to do that
+			if (ii != jj) {
+				for (int p = 0; p < ni; p++) {
+					for (int q = 0; q < nj; q++) {
+						C->data[(jj + q) * n + (ii + p)] = C->data[(ii + p) * n + (jj + q)];
+					}
+				}
+			}
+		}
+	}
+#undef SIZE
+}
+#pragma GCC diagnostic pop
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;

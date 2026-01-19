@@ -5534,9 +5534,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #define CODE_BLOCK	{						\
 				CODE_BLOCK_INIT();			\
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg, &(tmax__)); \
-				/* This can be optimized as we know that the result is symmetric */ \
-				/* but there is no good way to do this, as dgemm is so optimized already */ \
-				gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, Mt, QM, zero, MM); \
+				if (1) {				\
+					GMRFLib_gsl_dgemm_sym(Mt, QM, MM); \
+				} else {				\
+					gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, Mt, QM, zero, MM); \
+				}					\
 				GMRFLib_gsl_force_symmetric(MM);	\
 				GMRFLib_gsl_add_diag(MM, FLT_EPSILON);	\
 			}

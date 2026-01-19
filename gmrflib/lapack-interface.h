@@ -132,11 +132,12 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y);
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff);
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z);
 void GMRFLib_dfill(int n, double a, double *x);
+void GMRFLib_dscale(int n, double a, double *x);
+void GMRFLib_dscale2(int n, double a, double *x, double *y);
+void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C);
 void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
-void GMRFLib_dscale(int n, double a, double *x);
-void GMRFLib_dscale2(int n, double a, double *x, double *y);
 void GMRFLib_unpack(int n, double *a, double *y, int *iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);

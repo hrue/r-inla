@@ -6173,6 +6173,60 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 193:
+	{
+		int m = atoi(args[0]);
+		int n = atoi(args[1]);
+		int N = atoi(args[2]);
+		P(m);
+		P(n);
+		P(N);
+
+		gsl_matrix *A = gsl_matrix_calloc(m, n);
+		gsl_matrix *B = gsl_matrix_calloc(n, m);
+
+		for(int i = 0; i < m; i++) {
+			for(int j = 0; j < n; j++) {
+				gsl_matrix_set(A, i, j, GMRFLib_uniform());
+			}
+		}
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < m; j++) {
+				gsl_matrix_set(B, i, j, GMRFLib_uniform());
+			}
+		}
+		
+		double tref0 = 0;
+		double tref1 = 0;
+		double one = 1;
+		double zero = 0;
+		double dummy = 0.0;
+
+		for (int k = 0; k < N; k++) {
+			int ii = (int) (m * GMRFLib_uniform());
+			int jj = (int) (m * GMRFLib_uniform());
+			int i = IMIN(ii, jj);
+			int j = IMAX(ii, jj);
+
+			gsl_matrix *C = gsl_matrix_calloc(m, m);
+			tref0 -= GMRFLib_timer();
+			gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, A, B, zero, C); 
+			tref0 += GMRFLib_timer();
+			dummy += gsl_matrix_get(C, i, j);
+
+			tref1 -= GMRFLib_timer();
+			GMRFLib_gsl_dgemm_sym(A, B, C); 
+			tref1 += GMRFLib_timer();
+			dummy -= gsl_matrix_get(C, i, j);
+			gsl_matrix_free(C);
+		}
+		P(dummy);
+		printf("GSL %.6g NEW %.6g\n", tref0/tref0,  tref1/tref0);
+		gsl_matrix_free(A);
+		gsl_matrix_free(B);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
