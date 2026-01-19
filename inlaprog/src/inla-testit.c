@@ -6048,7 +6048,12 @@ int testit(int argc, char **argv)
 
 		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		double tref_simple[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		for (int j = 0; j < m; j++) {
+		for (int j = -100; j < m; j++) {
+
+			if (j == 0) {
+				Memset(tref, 0, sizeof(tref));
+				Memset(tref_simple, 0, sizeof(tref));
+			}
 			for (int i = 0; i < n; i++) {
 				map[i] = i;
 				dmap[i] = i;
