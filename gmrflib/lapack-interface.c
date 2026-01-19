@@ -1776,8 +1776,9 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/pack-avx512f.h"
+// missing function in SIMDE, disable (not tested)
+//#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+//#       include "intrinsics/simde/pack-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
