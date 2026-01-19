@@ -569,7 +569,7 @@ typedef enum {
 #       define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[thread_id])) : 1.0)
 
 #       define GMRFLib_NUMA_NODES() GMRFLib_numa_nodes()
-#       define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS2() * GMRFLib_NUMA_NODES())
+#       define GMRFLib_CACHE_LEN_NUMA() (GMRFLib_MAX_THREADS() * GMRFLib_NUMA_NODES() + 2*GMRFLib_MAX_THREADS2())
 #       define GMRFLib_CACHE_SET_IDX_NUMA(__id)				\
 	{								\
 		int numa_node_ = GMRFLib_numa_get_node();		\
