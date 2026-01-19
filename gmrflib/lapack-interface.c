@@ -1484,13 +1484,13 @@ __attribute__((optimize("O3")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
 	// y[i] = a * x[i]
-#if defined(INLA_WITH_SIMDE) 
+#if defined(INLA_WITH_SIMDE_AVX2_) 
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
 #       include "intrinsics/simde/dscale2-avx2.h"
 	}
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 	if (n < 32) {
 		DSCALE2_CORE();
 	} else {
@@ -1624,9 +1624,9 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
-#if defined(INLA_WITH_SIMDE) 
+#if defined(INLA_WITH_SIMDE_AVX2_) 
 #       include "intrinsics/simde/ddot2-avx2.h"
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/ddot2-sse2.h"
 #else
 	double aa = 0.0, bb = 0.0;
@@ -1667,9 +1667,9 @@ __attribute__((optimize("O3")))
 double GMRFLib_dsum(int n, double *x)
 {
 	double r0 = 0.0;
-#if defined(INLA_WITH_SIMDE)
+#if defined(INLA_WITH_SIMDE_AVX2_)
 #       include "intrinsics/simde/dsum-avx2.h"
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/dsum-sse2.h"
 #else
 	SUM_CORE(double);
@@ -1776,9 +1776,9 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	// y[] = a[ia[]]
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE) 
+#elif defined(INLA_WITH_SIMDE_AVX2_) 
 #       include "intrinsics/simde/pack-avx2.h"
-#elif 0 && defined(INLA_WITH_SIMDE)
+#elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/pack-sse2.h"
 #else
 #       pragma omp simd

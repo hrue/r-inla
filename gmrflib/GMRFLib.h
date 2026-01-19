@@ -30,19 +30,22 @@
 #       endif
 
 __BEGIN_DECLS
-#       define GMRFLib_VERSION_MAJOR    "0"
-#       define GMRFLib_VERSION_MINOR    "0"
-#       define GMRFLib_VERSION_REVISION "0"
-#       define GMRFLib_VERSION          "0.0-0"
-//
+
+/* ... */
+
 #       if defined(INLA_WITH_SIMDE)
 #              define SIMDE_ENABLE_NATIVE_ALIASES
 #              if !defined(_OPENMP)
 #                     define SIMDE_ENABLE_OPENMP
 #              endif
+#              
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
-#              include <simde/x86/avx2.h>
+#              
+#              define INLA_WITH_SIMDE_AVX2_
+#              if defined(INLA_WITH_SIMDE_AVX2_)
+#                     include <simde/x86/avx2.h>
+#              endif
 #       endif
 
 /* ... */
