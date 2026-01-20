@@ -5045,11 +5045,6 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	// dderiv: ... * ((x-m)^2 - s^2)/s^4
 	// GMRFLib_density_type_tp type;
 
-	if (ISZERO(d)) {
-		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
-		return GMRFLib_SUCCESS;
-	}
-
 	static double **lwork = NULL;
 	if (!lwork) {
 #pragma omp critical (name_2c41403c52226167bf5d1ce4b29f5aa4d5637d34)
@@ -5090,10 +5085,17 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double *loglik = lwork[*ccache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
 	double *x_user = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
 
+	// we use _ALLOC_LEN instead if GMRFLib_INT_GHQ_POINTS, as _ALLOC_LEN is a multiplum of 16 so SIMD is faster. The remaining
+	// extra terms are just zero, so no harm done. 
+#if 1
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_ALLOC_LEN, sd, xp, mean, x_user);
+#else
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
+#endif
 
-	double s_inv = 1.0 / sd, s2_inv = SQR(s_inv);
+	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
+	
+	double s_inv =  1.0 / sd,  ds_inv = -d * s_inv, ds2_inv = -d * SQR(s_inv);
 
 	// this one is no longer used, if so, store 'wtmp' above into 'wp'
 	// double A = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wp);
@@ -5111,8 +5113,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
-	coofs->coofs[1] = -d * B * s_inv;
-	coofs->coofs[2] = -d * C * s2_inv;
+	coofs->coofs[1] = B * ds_inv;
+	coofs->coofs[2] = C * ds2_inv;
 
 	return GMRFLib_SUCCESS;
 }
@@ -5294,11 +5296,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		sd[i] = (var ? sqrt(*var) : NAN);
 	}
 
-	double *x_mean = Calloc_get(graph->n);
-	double *x_mean_orig = Calloc_get(graph->n);
-	double *dx = Calloc_get(graph->n);
-	double *pmean = Calloc_get(preopt->mnpred);
-	double *pvar = Calloc_get(preopt->mnpred);
+	// might need to run over for vb_prepare_mean
+	int addto = GMRFLib_INT_GHQ_ALLOC_LEN - GMRFLib_INT_GHQ_POINTS;
+	double *x_mean = Calloc_get(graph->n + addto);
+	double *x_mean_orig = Calloc_get(graph->n + addto);
+	double *dx = Calloc_get(graph->n + addto);
+	double *pmean = Calloc_get(preopt->mnpred + addto);
+	double *pvar = Calloc_get(preopt->mnpred + addto);
 
 	int level = omp_get_level();
 	int tnum = omp_get_thread_num();
