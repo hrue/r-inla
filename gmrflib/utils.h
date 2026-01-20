@@ -31,15 +31,13 @@ __BEGIN_DECLS
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;
 
-typedef struct 
-{
+typedef struct {
 	size_t l1_data;
 	size_t l1_inst;
 	size_t l2;
 	size_t l3;
-}
-	GMRFLib_sys_cache_tp;
-	
+} GMRFLib_sys_cache_tp;
+
 
 
 char *Strdup(const char *s);
@@ -159,7 +157,7 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
 
 int GMRFLib_get_cachelinesize(void);
-void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123);
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp * l123);
 
 __END_DECLS
 #endif

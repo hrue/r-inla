@@ -14,12 +14,12 @@
 #include <time.h>
 
 #if defined(_WIN32)
-#include <windows.h> 
+#       include <windows.h>
 #endif
 
 #if defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#       include <sys/types.h>
+#       include <sys/sysctl.h>
 #endif
 
 #include "GMRFLib/GMRFLib.h"
@@ -1376,7 +1376,7 @@ int GMRFLib_debug_functions(const char *name)
 	if (!name) {
 		return 0;
 	}
-	
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1385,7 +1385,7 @@ int GMRFLib_debug_functions(const char *name)
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
 	static int clen = 0;
-	
+
 	if (!ddefs) {
 #pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
 		if (!ddefs) {
@@ -1497,7 +1497,7 @@ int GMRFLib_trace_functions(const char *name)
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
 	static int clen = 0;
-	
+
 	if (!ddefs) {
 #pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
 		if (!ddefs) {
@@ -1608,7 +1608,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
 	static int clen = 0;
-	
+
 	if (!ddefs) {
 #pragma omp critical (Name_72150bb8d161e16549ba70e0a250eb5d4f572df6)
 		if (!ddefs) {
@@ -1621,7 +1621,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
 	assert(idx < clen);
-	
+
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
 		if (!ddefs[idx]) {
@@ -2312,9 +2312,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2334,15 +2334,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2446,7 +2446,7 @@ double GMRFLib_erfc_inv(double x)
 }
 
 
-void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123) 
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 {
 	if (l123) {
 		Memset(l123, 0, sizeof(GMRFLib_sys_cache_tp));
@@ -2460,13 +2460,13 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 		if (first) {
 #if defined(__linux__)
 			long tmp;
-			tmp =  sysconf(_SC_LEVEL1_DCACHE_SIZE);
+			tmp = sysconf(_SC_LEVEL1_DCACHE_SIZE);
 			L123.l1_data = (size_t) (tmp >= 0 ? tmp : 0);
 			tmp = sysconf(_SC_LEVEL1_ICACHE_SIZE);
 			L123.l1_inst = (size_t) (tmp >= 0 ? tmp : 0);
 			tmp = sysconf(_SC_LEVEL2_CACHE_SIZE);
 			L123.l2 = (size_t) (tmp >= 0 ? tmp : 0);
-			tmp = sysconf(_SC_LEVEL3_CACHE_SIZE);			
+			tmp = sysconf(_SC_LEVEL3_CACHE_SIZE);
 			L123.l3 = (size_t) (tmp >= 0 ? tmp : 0);
 #elif defined(__APPLE__)
 			size_t len = sizeof(size_t);
@@ -2477,7 +2477,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 #elif defined(_MSC_VER) || defined(__MINGW32__) || defined (__MSVCRT__)
 			DWORD len = 0;
 			GetLogicalProcessorInformation(NULL, &len);
-			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)malloc(len);
+			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *) malloc(len);
 			if (!info) {
 				goto label_end;
 			}
@@ -2499,7 +2499,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 					}
 				}
 			}
-		label_end:
+		      label_end:
 #else
 			Memset(&L123, 0, sizeof(GMRFLib_sys_cache_tp));
 #endif

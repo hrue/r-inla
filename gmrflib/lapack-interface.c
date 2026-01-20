@@ -1540,19 +1540,19 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 	// y[i] = a * x[i] + b
 	if (n <= 32) {
 		int limit = n & ~3;
-		for (int i = 0; i < limit; i += 4) {	
+		for (int i = 0; i < limit; i += 4) {
 			y[i] = a * x[i] + b;
-			y[i+1] = a * x[i+1] + b;
-			y[i+2] = a * x[i+2] + b;
-			y[i+3] = a * x[i+3] + b;
-		}			
-		for (int i = limit; i < n; i++) {	
+			y[i + 1] = a * x[i + 1] + b;
+			y[i + 2] = a * x[i + 2] + b;
+			y[i + 3] = a * x[i + 3] + b;
+		}
+		for (int i = limit; i < n; i++) {
 			y[i] = a * x[i] + b;
 		}
 //#               pragma omp simd
-//		for(int i = 0; i < n; i++) {
-//			y[i] = a * x[i] + b;
-//		}
+//              for(int i = 0; i < n; i++) {
+//                      y[i] = a * x[i] + b;
+//              }
 	} else {
 		GMRFLib_dfill(n, b, y);
 		GMRFLib_daxpy(n, a, x, y);
@@ -1651,13 +1651,13 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 	double aa = 0.0, bb = 0.0;
 #       pragma omp simd reduction(+: aa, bb)
 	for (int i = 0; i < limit; i += 2) {
-		aa += x[i] * y[i] + x[i+1] * y[i+1];
-		bb += x[i] * z[i] + x[i+1] * z[i+1];
+		aa += x[i] * y[i] + x[i + 1] * y[i + 1];
+		bb += x[i] * z[i] + x[i + 1] * z[i + 1];
 	}
 	if (limit < n) {
-		int n1 = n-1;
-		aa += x[n1] * y[n1]; 
-		bb += x[n1] * z[n1]; 
+		int n1 = n - 1;
+		aa += x[n1] * y[n1];
+		bb += x[n1] * z[n1];
 	}
 	*a = aa;
 	*b = bb;
@@ -1803,14 +1803,14 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #if defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
 // not so good...
-#if 0
-#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/pack-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-#       include "intrinsics/simde/pack-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/pack-sse2.h"
-#endif
+#       if 0
+#       elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#              include "intrinsics/simde/pack-avx512f.h"
+#       elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#              include "intrinsics/simde/pack-avx2.h"
+#       elif defined(INLA_WITH_SIMDE)
+#              include "intrinsics/simde/pack-sse2.h"
+#       endif
 #else
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];

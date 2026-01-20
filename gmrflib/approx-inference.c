@@ -5094,8 +5094,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 #endif
 
 	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
-	
-	double s_inv =  1.0 / sd,  ds_inv = -d * s_inv, ds2_inv = -d * SQR(s_inv);
+
+	double s_inv = 1.0 / sd, ds_inv = -d * s_inv, ds2_inv = -d * SQR(s_inv);
 
 	// this one is no longer used, if so, store 'wtmp' above into 'wp'
 	// double A = GMRFLib_ddot(GMRFLib_INT_GHQ_POINTS, loglik, wp);

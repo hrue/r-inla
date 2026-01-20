@@ -6160,14 +6160,14 @@ int testit(int argc, char **argv)
 				int nn = siz[k];
 				if (j >= 0)
 					tref0[k] -= GMRFLib_timer();
-				for (int kk = 0; kk < 10; k++) 
+				for (int kk = 0; kk < 10; k++)
 					GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
 				double tt = GMRFLib_timer();
 				if (j >= 0)
 					tref0[k] += tt;
 				if (j >= 0)
 					tref1[k] -= tt;
-				for (int kk = 0; kk < 10; k++) 
+				for (int kk = 0; kk < 10; k++)
 					GMRFLib_daxpy_x(nn, a, x, y, 0);
 				if (j >= 0)
 					tref1[k] += GMRFLib_timer();
@@ -6192,17 +6192,17 @@ int testit(int argc, char **argv)
 		gsl_matrix *A = gsl_matrix_calloc(m, n);
 		gsl_matrix *B = gsl_matrix_calloc(n, m);
 
-		for(int i = 0; i < m; i++) {
-			for(int j = 0; j < n; j++) {
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
 				gsl_matrix_set(A, i, j, GMRFLib_uniform());
 			}
 		}
-		for(int i = 0; i < n; i++) {
-			for(int j = 0; j < m; j++) {
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
 				gsl_matrix_set(B, i, j, GMRFLib_uniform());
 			}
 		}
-		
+
 		double tref0 = 0;
 		double tref1 = 0;
 		double one = 1;
@@ -6217,18 +6217,18 @@ int testit(int argc, char **argv)
 
 			gsl_matrix *C = gsl_matrix_calloc(m, m);
 			tref0 -= GMRFLib_timer();
-			gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, A, B, zero, C); 
+			gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, A, B, zero, C);
 			tref0 += GMRFLib_timer();
 			dummy += gsl_matrix_get(C, i, j);
 
 			tref1 -= GMRFLib_timer();
-			GMRFLib_gsl_dgemm_sym(A, B, C); 
+			GMRFLib_gsl_dgemm_sym(A, B, C);
 			tref1 += GMRFLib_timer();
 			dummy -= gsl_matrix_get(C, i, j);
 			gsl_matrix_free(C);
 		}
 		P(dummy);
-		printf("GSL %.6g NEW %.6g\n", tref0/tref0,  tref1/tref0);
+		printf("GSL %.6g NEW %.6g\n", tref0 / tref0, tref1 / tref0);
 		gsl_matrix_free(A);
 		gsl_matrix_free(B);
 	}

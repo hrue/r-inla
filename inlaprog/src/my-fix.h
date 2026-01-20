@@ -12,8 +12,8 @@
 #       endif
 
 __BEGIN_DECLS
-/* ... */
 
+/* ... */
 int my_is_double(char *str);
 int my_is_int(char *str);
 char *my_strlwc(const char *str);

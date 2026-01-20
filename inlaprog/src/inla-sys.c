@@ -73,7 +73,9 @@ unsigned long long getTotalSystemMemory()
 #if defined(_WIN32)
 void inla_signal(int UNUSED(sig))
 {
-	/* ... */
+	/*
+	 * ... 
+	 */
 }
 #else
 void inla_signal(int sig)
