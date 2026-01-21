@@ -34,10 +34,11 @@ __BEGIN_DECLS
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
 #              define SIMDE_ENABLE_NATIVE_ALIASES
+#              define SIMDE_FAST_MATH
 #              if !defined(_OPENMP)
 #                     define SIMDE_ENABLE_OPENMP
 #              endif
-#              
+#
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              

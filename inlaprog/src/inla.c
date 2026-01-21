@@ -16,6 +16,12 @@
 #if defined(__linux__)
 #       include <getopt.h>
 #endif
+#if defined(__sun__)
+#include <stdlib.h>
+#endif
+#if defined(__linux__)
+#include <getopt.h>
+#endif
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -42,8 +48,6 @@
 #       include <sys/sysctl.h>
 #endif
 
-#include "rmath.h"
-
 #include "GMRFLib/GMRFLib.h"
 #if !defined(ISNAN)
 #       define ISNAN(x) (isnan(x)!=0)
@@ -59,6 +63,8 @@
 #       include <windows.h>
 #       include <direct.h>
 #endif
+
+#include "rmath.h"
 
 #include "inla.h"
 #include "my.h"
