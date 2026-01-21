@@ -929,22 +929,28 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			int *iwork = Calloc(2 * len, int);
 			int *csize = iwork;
 			int *offset = iwork + len;
-			// int ntt_orig = ntt;
 
 			GMRFLib_ifill(ntt, 0, csize);
 			int done = 0;
 			while (!done) {
 				for (int i = 0; i < ntt && !done; i++) {
 					int off = IMIN(nrhs - GMRFLib_isum(ntt, csize), min_block_size);
-					if (off == min_block_size || csize[i] > 0) {
-						csize[i] += off;
-					}
+					csize[i] += off;
 					if (GMRFLib_isum(ntt, csize) == nrhs) {
 						done = 1;
 					}
 				}
 			}
 
+			// cleanup if a thread as few nrhs, then move those to the earlier one
+			for (int i = ntt-1; i > 0; i--) {
+				if (csize[i] < min_block_size / 2) {
+					csize[i-1] += csize[i];
+					csize[i] = 0;
+				}
+			}
+
+			// int ntt_orig = ntt;
 			int new_ntt = 0;
 			for (int i = 0; i < ntt; i++) {
 				new_ntt +=  (csize[i] > 0);
