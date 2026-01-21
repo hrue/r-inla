@@ -5269,11 +5269,10 @@ int testit(int argc, char **argv)
 
 	case 170:
 	{
-		printf("n.times n.rhs graph.name [opt.solve]\n");
+		printf("n.times n.rhs graph.name\n");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		char *graph_name = args[2];
-		GMRFLib_opt_solve = (nargs >= 4 ? atoi(args[3]) : 0);
 		GMRFLib_graph_tp *graph = NULL;
 		GMRFLib_graph_read(&graph, graph_name);
 		int N = graph->n;
@@ -5292,8 +5291,10 @@ int testit(int argc, char **argv)
 		double *b = Malloc(N * m, double);
 		double *sol0 = Malloc(N * m, double);
 		double *sol1 = Malloc(N * m, double);
+#if 0
 		double *sol2 = Malloc(N * m, double);
 		double *sol3 = Malloc(N * m, double);
+#endif
 		double *w = Malloc(N * m, double);
 
 		for (int i = 0; i < N * m; i++) {
@@ -5304,6 +5305,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		tref[0] = -GMRFLib_timer();
 		for (int iter = 0; iter < n; iter++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int i = 0; i < m; i++) {
 				int offset = i * graph->n;
 				GMRFLib_solve_llt_sparse_matrix_TAUCS(x + offset,
@@ -5319,8 +5321,7 @@ int testit(int argc, char **argv)
 
 		tref[1] = -GMRFLib_timer();
 		for (int iter = 0; iter < n; iter++) {
-			GMRFLib_solve_llt_sparse_matrix2_TAUCS(x, (&((*problem).sub_sm_fact))->TAUCS_L,
-							       graph, (&((*problem).sub_sm_fact))->remap, m, w);
+			GMRFLib_solve_llt_sparse_matrix(x, m, &((*problem).sub_sm_fact), graph, problem, NULL);
 		}
 		tref[1] += GMRFLib_timer();
 
@@ -5330,6 +5331,7 @@ int testit(int argc, char **argv)
 		GMRFLib_free_problem(problem);
 		problem = NULL;
 
+#if 0
 		smtp = GMRFLib_smtp = GMRFLib_SMTP_STILES;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
 		GMRFLib_ptr_tp *ptr = NULL;
@@ -5375,23 +5377,28 @@ int testit(int argc, char **argv)
 		tref[3] += GMRFLib_timer();
 
 		Memcpy(sol3, x, N * m * sizeof(double));
-
-		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", tref[0] / m);
-		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", tref[1] / m);
-		printf("STILES  pr rhs x 1E6  %.6f sec\n", tref[2] / m);
-		printf("STILES2 pr rhs x 1E6  %.6f sec\n", tref[3] / m);
-
+#endif
+		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", 1e6 * tref[0] / m);
+		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[1] / m);
+#if 0
+		printf("STILES  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[2] / m);
+		printf("STILES2 pr rhs x 1E6  %.6f sec\n", 1e6 * tref[3] / m);
+#endif
 
 		double err[] = { 0.0, 0.0, 0.0, 0.0 };
 		for (int i = 0; i < N * m; i++) {
 			err[1] += SQR(sol0[i] - sol1[i]);
+#if 0
 			err[2] += SQR(sol0[i] - sol2[i]);
 			err[3] += SQR(sol0[i] - sol3[i]);
+#endif
 		}
 		printf("\n");
 		P(sqrt(err[1] / (double) (N * m)));
+#if 0
 		P(sqrt(err[2] / (double) (N * m)));
 		P(sqrt(err[3] / (double) (N * m)));
+#endif
 	}
 		break;
 

@@ -914,59 +914,66 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 							     sm_fact->bandwidth, work + offset);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
-		int block_size = GMRFLib_taucs_get_block_size();
+		int min_block_size = GMRFLib_taucs_get_min_block_size();
+		//int block_size = GMRFLib_taucs_get_block_size();
+		int ntt = (omp_get_level() == 0 ? GMRFLib_openmp->max_threads_outer :
+			   (omp_get_level() == 1 ? GMRFLib_openmp->max_threads_inner : 1));
 		if (nrhs == 1) {
 			// simple entry, part 1
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
-		} else if (nrhs > 1 && nrhs == block_size) {
+		} else if (ntt ==  1) {
 			// simple entry, part 2
 			GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
 		} else {
-			int ntt = -1;
-			if (omp_get_level() == 0) {
-				ntt = GMRFLib_openmp->max_threads_outer;
-			} else {
-				ntt = GMRFLib_openmp->max_threads_inner;
-			}
+			int len = GMRFLib_align_len(ntt, sizeof(int));
+			int *iwork = Calloc(2 * len, int);
+			int *csize = iwork;
+			int *offset = iwork + len;
+			int ntt_orig = ntt;
 
-			// default
-			if (block_size <= 0) {
-				block_size = 32;
-			}
-
-			int target = IMAX(1, block_size);
-			ntt = IMIN(ntt, IMAX(1, nrhs / target));
-			int chunk_size = nrhs / ntt;	       /* integer division */
-			if (chunk_size == 0 || ntt == 1) {
-				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
-			} else {
-				// split work in ntt threads each doing a chunk
-				int len = GMRFLib_align_len(ntt, sizeof(int));
-				int *iwork = Malloc(2 * len, int);
-				int *csize = iwork;
-				int *offset = iwork + len;
-
-				GMRFLib_ifill(ntt, chunk_size, csize);
-				for (int i = 0; i < ntt; i++) {
-					if (GMRFLib_isum(ntt, csize) < nrhs) {
-						csize[i]++;
-					} else {
-						break;
+			GMRFLib_ifill(ntt, 0, csize);
+			int done = 0;
+			while (!done) {
+				for (int i = 0; i < ntt && !done; i++) {
+					int off = IMIN(nrhs - GMRFLib_isum(ntt, csize), min_block_size);
+					if (off == min_block_size || csize[i] > 0) {
+						csize[i] += off;
+					} 
+					if (GMRFLib_isum(ntt, csize) == nrhs) {
+						done = 1;
 					}
 				}
-				assert(GMRFLib_isum(ntt, csize) == nrhs);
-				offset[0] = 0;
-				for (int i = 1; i < ntt; i++) {
-					offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
-				}
+#if 0
+				for(int i = 0; i < ntt; i++) printf("csize[%d] %d\n", i, csize[i]);
+#endif
+			}
+
+			int new_ntt = 0;
+			for (int i = 0; i < ntt; i++) {
+				new_ntt +=  (csize[i] > 0);
+			}
+			ntt = new_ntt;
+
+#if 0
+			printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
+			for(int i = 0; i < ntt_orig; i++) {
+				printf("\tthread %1d nrhs %1d\n", i, csize[i]);
+			}
+#endif
+			
+			assert(GMRFLib_isum(ntt, csize) == nrhs);
+			offset[0] = 0;
+			for (int i = 1; i < ntt; i++) {
+				offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
+			}
 
 #pragma omp parallel for num_threads(ntt) schedule(static)
-				for (int i = 0; i < ntt; i++) {
-					GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset[i], sm_fact->TAUCS_L, graph,
-									       sm_fact->remap, csize[i], work + offset[i]);
-				}
-				Free(iwork);
+			for (int i = 0; i < ntt; i++) {
+				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset[i], sm_fact->TAUCS_L, graph,
+								       sm_fact->remap, csize[i], work + offset[i]);
 			}
+			Free(iwork);
+			
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));

@@ -33,6 +33,7 @@ __BEGIN_DECLS
 
 // this is from smtp-taucs.h
 typedef struct {
+	int min_block_size;
 	int block_size;
 } GMRFLib_taucs_ctl_tp;
 

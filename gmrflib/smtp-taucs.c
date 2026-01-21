@@ -19,11 +19,13 @@
 //      GMRFLib_taucs_ctl_tp;
 
 static GMRFLib_taucs_ctl_tp taucs_ctl = {
-	.block_size = 0
+	.min_block_size = 8, 
+	.block_size = 32
 };
 
-void GMRFLib_taucs_set_ctl(int block_size)
+void GMRFLib_taucs_set_ctl(int min_block_size, int block_size)
 {
+	taucs_ctl.min_block_size = IMAX(0, min_block_size);
 	taucs_ctl.block_size = IMAX(0, block_size);
 }
 
@@ -35,6 +37,11 @@ GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void)
 int GMRFLib_taucs_get_block_size(void)
 {
 	return GMRFLib_taucs_get_ctl_ptr()->block_size;
+}
+
+int GMRFLib_taucs_get_min_block_size(void)
+{
+	return GMRFLib_taucs_get_ctl_ptr()->min_block_size;
 }
 
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *cache)

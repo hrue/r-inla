@@ -88,10 +88,12 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
-taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
-void taucs_crs_free(taucs_crs_matrix * L);
-void GMRFLib_taucs_set_ctl(int block_size);
 GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void);
+int GMRFLib_taucs_get_block_size(void);
+int GMRFLib_taucs_get_min_block_size(void);
+taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
+void GMRFLib_taucs_set_ctl(int min_block_size, int block_size);
+void taucs_crs_free(taucs_crs_matrix * L);
 
 
 __END_DECLS

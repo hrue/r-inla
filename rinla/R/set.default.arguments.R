@@ -471,8 +471,12 @@ control.gcpo <-
 #' @export
 `control.taucs` <-
     function(
-             #' @param block.size Preferred number of rhs's in each parallel solve
-             block.size = 40
+             #' @param block.size Minimum number of rhs's in each parallel solve. Used to split
+             #' rhs into threads (on the inner level)
+             min.block.size = 8, 
+             #' @param block.size Preferred number of rhs's in each parallel solve. Used to
+             #' split many rhs's into threads (on the outer level)
+             block.size = 64
              ) {
         ctrl_object(as.list(environment()), "taucs", check = FALSE)
     }

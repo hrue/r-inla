@@ -19724,22 +19724,21 @@ int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = TAUCS
 	 */
-	char *secname = NULL;
-	int block_size;
-
 	if (mb->verbose) {
 		printf("\tinla_parse_taucs...\n");
 	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 0);
+	int min_block_size = iniparser_getint(ini, inla_string_join(secname, "MIN.BLOCK.SIZE"), 4);
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 32);
 	if (mb->verbose) {
+		printf("\t\tmin.block.size[%1d]\n", min_block_size);
 		printf("\t\tblock.size[%1d]\n", block_size);
 	}
-	GMRFLib_taucs_set_ctl(block_size);
+	GMRFLib_taucs_set_ctl(min_block_size, block_size);
 
 	return INLA_OK;
 }
