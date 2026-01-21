@@ -54,6 +54,8 @@ __BEGIN_DECLS
 #              if defined(__AVX512F__)
 #                     define INLA_WITH_SIMDE_AVX512F_
 #                     include <simde/x86/avx512.h>
+#              elif defined(_WIN32)
+#                     undef INLA_WITH_SIMDE_AVX512F_
 #              else
 #                     undef INLA_WITH_SIMDE_AVX512F_
 #              endif
