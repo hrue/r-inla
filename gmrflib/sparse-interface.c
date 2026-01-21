@@ -929,7 +929,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			int *iwork = Calloc(2 * len, int);
 			int *csize = iwork;
 			int *offset = iwork + len;
-			int ntt_orig = ntt;
+			// int ntt_orig = ntt;
 
 			GMRFLib_ifill(ntt, 0, csize);
 			int done = 0;
@@ -951,12 +951,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			}
 			ntt = new_ntt;
 
-#if 0
-			printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
-			for(int i = 0; i < ntt_orig; i++) {
-				printf("\tthread %1d nrhs %1d\n", i, csize[i]);
-			}
-#endif
+			// printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
+			// for(int i = 0; i < ntt_orig; i++) printf("\tthread %1d nrhs %1d\n", i, csize[i]);
 			
 			assert(GMRFLib_isum(ntt, csize) == nrhs);
 			offset[0] = 0;
