@@ -5,7 +5,7 @@
 \alias{inla.set.control.taucs.default}
 \title{control.taucs}
 \usage{
-control.taucs(min.block.size = 8, block.size = 64)
+control.taucs(min.block.size = 4, block.size = 64)
 
 inla.set.control.taucs.default(...)
 }

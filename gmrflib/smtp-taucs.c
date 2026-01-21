@@ -19,8 +19,8 @@
 //      GMRFLib_taucs_ctl_tp;
 
 static GMRFLib_taucs_ctl_tp taucs_ctl = {
-	.min_block_size = 8, 
-	.block_size = 32
+	.min_block_size = 4, 
+	.block_size = 64
 };
 
 void GMRFLib_taucs_set_ctl(int min_block_size, int block_size)

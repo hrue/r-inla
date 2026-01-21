@@ -19733,7 +19733,7 @@ int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	int min_block_size = iniparser_getint(ini, inla_string_join(secname, "MIN.BLOCK.SIZE"), 4);
-	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 32);
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 64);
 	if (mb->verbose) {
 		printf("\t\tmin.block.size[%1d]\n", min_block_size);
 		printf("\t\tblock.size[%1d]\n", block_size);

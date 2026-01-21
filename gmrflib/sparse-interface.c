@@ -938,14 +938,11 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 					int off = IMIN(nrhs - GMRFLib_isum(ntt, csize), min_block_size);
 					if (off == min_block_size || csize[i] > 0) {
 						csize[i] += off;
-					} 
+					}
 					if (GMRFLib_isum(ntt, csize) == nrhs) {
 						done = 1;
 					}
 				}
-#if 0
-				for(int i = 0; i < ntt; i++) printf("csize[%d] %d\n", i, csize[i]);
-#endif
 			}
 
 			int new_ntt = 0;

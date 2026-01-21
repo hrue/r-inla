@@ -59,7 +59,7 @@ control.inla(
   constr.marginal.diagonal = sqrt(.Machine$double.eps),
   improved.simplified.laplace = FALSE,
   parallel.linesearch = FALSE,
-  compute.initial.values = FALSE,
+  compute.initial.values = TRUE,
   hessian.correct.skewness.only = TRUE
 )
 
