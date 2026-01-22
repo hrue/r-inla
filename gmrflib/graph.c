@@ -555,12 +555,12 @@ int *GMRFLib_bsearch_4(int key, int n, int *array)
 
 int *GMRFLib_bsearch_timing(int key, int n, int *array) 
 {
-	volatile int *p1 = NULL;
+	int *p = NULL;
 #pragma omp critical (Name_6474fc0a96f50de20c97c30a6b3cd2bf6471ec43)
 	{
 		static double tref[4] = {0};
 		static int trefc = 0;
-		volatile int *p2, *p3, *p4;
+		volatile int *p1, *p2, *p3, *p4;
 
 		p1 = GMRFLib_bsearch_1(key, n, array);
 		tref[0] -= GMRFLib_timer();
@@ -594,8 +594,10 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 			       tref[3] * scale,
 			       (1.0 / scale) / 4.0);
 		}
+
+		p = p1;
 	}
-	return p1;
+	return p;
 }
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
