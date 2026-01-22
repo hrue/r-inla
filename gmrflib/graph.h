@@ -226,8 +226,16 @@ int GMRFLib_get_Qrow(int thread_id, int row, int *nelm, int *idx, double *vals, 
 		     void *Qfunc_arg);
 
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
-int *GMRFLib_bsearch(int key, int n, int *array);
-int *GMRFLib_bsearch2(int key, int n, int *array, int *guess);
+
+int *GMRFLib_bsearch_1(int key, int n, int *array);
+int *GMRFLib_bsearch_2(int key, int n, int *array);
+int *GMRFLib_bsearch_3(int key, int n, int *array);
+int *GMRFLib_bsearch_4(int key, int n, int *array);
+int *GMRFLib_bsearch_timing(int key, int n, int *array);
+//#define GMRFLib_bsearch(a_, b_, c_) GMRFLib_bsearch_timing(a_, b_, c_)
+
+// a little surprising (Jan'26), bsearch_3 wins
+#define GMRFLib_bsearch(a_, b_, c_) GMRFLib_bsearch_3(a_, b_, c_)
 
 __END_DECLS
 #endif
