@@ -560,7 +560,7 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 	{
 		static double tref[4] = {0};
 		static int trefc = 0;
-		volatile int *p1, *p2, *p3, *p4;
+		int *p1, *p2, *p3, *p4;
 
 		p1 = GMRFLib_bsearch_1(key, n, array);
 		tref[0] -= GMRFLib_timer();
