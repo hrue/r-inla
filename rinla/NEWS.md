@@ -1,4 +1,4 @@
-# INLA 25.01.23
+# INLA 26.01.23
 * Code optimization and code improvements
 * Computing initial values are now default enabled
 * Adding SIMDe code for critical parts
