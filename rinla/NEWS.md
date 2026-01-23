@@ -1,3 +1,10 @@
+# INLA 25.01.23
+* Code optimization and code improvements
+* Computing initial values are now default enabled
+* Adding SIMDe code for critical parts
+* Linux: added clone_targets builds
+* Added support for aarch64 Linux
+
 # INLA 25.12.16
 * Code optimization
 * New version of family 'lavm'
