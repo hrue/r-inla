@@ -9,7 +9,7 @@
 #include "cgeneric.h"
 
 #if !defined(Calloc)
-#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#       define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
 
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
@@ -27,6 +27,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	inla_cgeneric_data_tp *data = Calloc(1, inla_cgeneric_data_tp);
 	int i, j, k, len;
 
+	assert(data);
 	data->threads.max = GMRFLib_MAX_THREADS();
 	data->threads.outer = GMRFLib_openmp->max_threads_nested[0];
 	data->threads.inner = GMRFLib_openmp->max_threads_nested[1];

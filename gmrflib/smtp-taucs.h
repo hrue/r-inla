@@ -6,26 +6,26 @@
 */
 
 #ifndef __GMRFLib_SMTP_TAUCS_H__
-#define __GMRFLib_SMTP_TAUCS_H__
+#       define __GMRFLib_SMTP_TAUCS_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //
 //
-#if defined(INLA_WITH_PARDISO_WORKAROUND)
+#       if defined(INLA_WITH_PARDISO_WORKAROUND)
 int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o);
-#endif
+#       endif
 
 
 GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp * cache);
@@ -88,10 +88,12 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
-taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
-void taucs_crs_free(taucs_crs_matrix * L);
-void GMRFLib_taucs_set_ctl(int block_size);
 GMRFLib_taucs_ctl_tp *GMRFLib_taucs_get_ctl_ptr(void);
+int GMRFLib_taucs_get_block_size(void);
+int GMRFLib_taucs_get_min_block_size(void);
+taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
+void GMRFLib_taucs_set_ctl(int min_block_size, int block_size);
+void taucs_crs_free(taucs_crs_matrix * L);
 
 
 __END_DECLS

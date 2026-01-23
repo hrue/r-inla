@@ -13,7 +13,13 @@
     } else if (inla.os("mac.arm64")) {
         fnm <- system.file("bin/mac.arm64/inla.run", package = "INLA")
     } else if (inla.os("linux")) {
-        fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.mkl.run", sep = ""), package = "INLA")
+        if (inla.one.of(R.version$arch, "aarch64")) {
+            fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(),
+                                     "bit/inla.run", sep = ""), package = "INLA")
+        } else {
+            fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(),
+                                     "bit/inla.mkl.run", sep = ""), package = "INLA")
+        }
     } else if (inla.os("windows")) {
         fnm <- system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/inla.exe", sep = ""), package = "INLA")
     } else {

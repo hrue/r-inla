@@ -24,7 +24,7 @@ void *taucs_malloc_stub(size_t size)
 		assert(size < PTRDIFF_MAX);
 		void *p = malloc(size);
 		if (!p) {
-			fprintf(stderr, "\n\ntaucs_malloc_stub fail to malloc %ld bytes\n", size);
+			fprintf(stderr, "\n\ntaucs_malloc_stub fail to malloc %zu bytes\n", size);
 			abort();
 		}
 		return p;
@@ -40,7 +40,7 @@ void *taucs_calloc_stub(size_t nmemb, size_t size)
 		assert(nmemb * size < PTRDIFF_MAX);
 		void *p = calloc(nmemb, size);
 		if (!p) {
-			fprintf(stderr, "\n\ntaucs_calloc_stub fail to calloc %ld elements of size %ld bytes\n", nmemb, size);
+			fprintf(stderr, "\n\ntaucs_calloc_stub fail to calloc %zu elements of size %zu bytes\n", nmemb, size);
 			abort();
 		}
 		return p;
@@ -55,7 +55,7 @@ void *taucs_realloc_stub(void *ptr, size_t size)
 	assert(size < PTRDIFF_MAX);
 	void *p = realloc(ptr, size);
 	if (!p) {
-		fprintf(stderr, "\n\ntaucs_realloc_stub fail to realloc %ld bytes\n", size);
+		fprintf(stderr, "\n\ntaucs_realloc_stub fail to realloc %zu bytes\n", size);
 		abort();
 	}
 	return p;

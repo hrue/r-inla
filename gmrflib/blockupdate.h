@@ -1,30 +1,30 @@
 #ifndef __GMRFLib_BLOCKUPDATE_H__
-#define __GMRFLib_BLOCKUPDATE_H__
+#       define __GMRFLib_BLOCKUPDATE_H__
 
-#include <math.h>
-#include <stdlib.h>
+#       include <math.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
 /*!
   \brief Expand around the mode
 */
-#define GMRFLib_MODEOPTION_MODE    0
+#       define GMRFLib_MODEOPTION_MODE    0
 
 /*!
   \brief Expand around the current configuration
 */
-#define GMRFLib_MODEOPTION_CURRENT 1
+#       define GMRFLib_MODEOPTION_CURRENT 1
 
 /*!
   \struct GMRFLib_blockupdate_param_tp blockupdate.h

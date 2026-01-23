@@ -579,6 +579,9 @@ int bfgs4_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gs
 	return s;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int gsl_bfgs4_test1(size_t n)
 {
 	// test-example from the GSL documentation
@@ -646,7 +649,11 @@ int gsl_bfgs4_test1(size_t n)
 	gsl_rng_free(r);
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order)
 {
 	// input n pairs of (x_i, y_i), fit a robust regression model of given order
@@ -693,7 +700,8 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	// err = bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_cauchy, X, yy, c, cov);
 
-	gsl_set_error_handler(NULL);
+	if (!GMRFLib_turn_off_gsl_error_handler)
+		gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
 		int iidx = 0;
 		GMRFLib_min_value(y, nn, &iidx);
@@ -773,7 +781,11 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
@@ -972,3 +984,4 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 
 	return GSL_SUCCESS;
 }
+#pragma GCC diagnostic pop

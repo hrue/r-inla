@@ -404,6 +404,9 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	return value;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
@@ -553,3 +556,4 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 #undef Theta
 	return NULL;
 }
+#pragma GCC diagnostic pop

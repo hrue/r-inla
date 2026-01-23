@@ -12,6 +12,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
 	FILE *fp = NULL;
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
 	}
@@ -32,6 +33,9 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
@@ -75,6 +79,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
 	}
@@ -342,6 +347,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence)
 {
@@ -384,10 +390,12 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
+		assert(fp);
 		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
+		assert(fp);
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
@@ -646,6 +654,9 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 {
 	/*
@@ -703,6 +714,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp *M, int sort)
 {

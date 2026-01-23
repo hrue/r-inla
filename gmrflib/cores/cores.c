@@ -17,30 +17,30 @@
 #include <assert.h>
 
 #if defined(_WIN32)
-#include <sys/utime.h>					       /* utime */
-#include <io.h>						       /* _chmod */
+#       include <sys/utime.h>				       /* utime */
+#       include <io.h>					       /* _chmod */
 #else
-#include <unistd.h>					       /* chown, stat */
-#define PLATFORM_POSIX_VERSION _POSIX_VERSION
-#if PLATFORM_POSIX_VERSION < 200809L || !defined(st_mtime)
-#include <utime.h>					       /* utime */
-#else
-#include <fcntl.h>					       /* AT_FDCWD */
-#include <sys/stat.h>					       /* utimensat */
-#endif
+#       include <unistd.h>				       /* chown, stat */
+#       define PLATFORM_POSIX_VERSION _POSIX_VERSION
+#       if PLATFORM_POSIX_VERSION < 200809L || !defined(st_mtime)
+#              include <utime.h>			       /* utime */
+#       else
+#              include <fcntl.h>			       /* AT_FDCWD */
+#              include <sys/stat.h>			       /* utimensat */
+#       endif
 #endif
 
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined (__MSVCRT__)
-#include <direct.h>					       /* needed for _mkdir in windows */
+#       include <direct.h>				       /* needed for _mkdir in windows */
 #endif
 
 #if defined(__linux__) || (PLATFORM_POSIX_VERSION >= 200112L)  /* opendir, readdir require POSIX.1-2001 */
-#include <dirent.h>					       /* opendir, readdir */
-#include <string.h>					       /* strerror, memcpy */
+#       include <dirent.h>				       /* opendir, readdir */
+#       include <string.h>				       /* strerror, memcpy */
 #endif							       /* #ifdef _WIN32 */
 
 #if defined(_MSC_VER)
-#define chmod _chmod
+#       define chmod _chmod
 #endif
 
 
@@ -52,7 +52,7 @@
 
 #if defined(_WIN32) || defined(WIN32)
 
-#include <windows.h>
+#       include <windows.h>
 
 typedef BOOL(WINAPI * LPFN_GLPI) (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
 
@@ -84,12 +84,12 @@ int UTIL_countCores(int logical)
 		DWORD returnLength = 0;
 		size_t byteOffset = 0;
 
-#if defined(_MSC_VER)
+#       if defined(_MSC_VER)
 
 /* Visual Studio does not like the following cast */
-#pragma warning( disable : 4054 )			       /* conversion from function ptr to data ptr */
-#pragma warning( disable : 4055 )			       /* conversion from data ptr to function ptr */
-#endif
+#              pragma warning( disable : 4054 )		       /* conversion from function ptr to data ptr */
+#              pragma warning( disable : 4055 )		       /* conversion from data ptr to function ptr */
+#       endif
 		glpi = (LPFN_GLPI) (void *) GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetLogicalProcessorInformation");
 
 		if (glpi == NULL) {
@@ -155,7 +155,7 @@ int UTIL_countCores(int logical)
 
 #elif defined(__APPLE__)
 
-#include <sys/sysctl.h>
+#       include <sys/sysctl.h>
 
 /* Use apple-provided syscall
  * see: man 3 sysctl */
@@ -207,7 +207,7 @@ int UTIL_countCores(int logical)
 	 * try to determine if there's hyperthreading 
 	 */  {
 		FILE *const cpuinfo = fopen("/proc/cpuinfo", "r");
-#define BUF_SIZE 80
+#       define BUF_SIZE 80
 		char buff[BUF_SIZE];
 
 		int siblings = 0;
@@ -271,21 +271,21 @@ int UTIL_countCores(int logical)
 
 #elif defined(__FreeBSD__)
 
-#include <sys/param.h>
-#include <sys/sysctl.h>
+#       include <sys/param.h>
+#       include <sys/sysctl.h>
 
 /* Use physical core sysctl when available
  * see: man 4 smp, man 3 sysctl */
 int UTIL_countCores(int logical)
 {
 	static int numCores = 0;			       /* freebsd sysctl is native int sized */
-#if __FreeBSD_version >= 1300008
+#       if __FreeBSD_version >= 1300008
 	static int perCore = 1;
-#endif
+#       endif
 	if (numCores != 0)
 		return numCores;
 
-#if __FreeBSD_version >= 1300008
+#       if __FreeBSD_version >= 1300008
 	{
 		size_t size = sizeof(numCores);
 		int ret = sysctlbyname("kern.smp.cores", &numCores, &size, NULL, 0);
@@ -308,12 +308,12 @@ int UTIL_countCores(int logical)
 		 * sysctl not present, fall through to older sysconf method 
 		 */
 	}
-#else
+#       else
 	/*
 	 * suppress unused parameter warning 
 	 */
 	(void) logical;
-#endif
+#       endif
 
 	numCores = (int) sysconf(_SC_NPROCESSORS_ONLN);
 	if (numCores == -1) {

@@ -77,6 +77,9 @@ int GMRFLib_tabulate_Qfunc(int thread_id,
 	return (GMRFLib_tabulate_Qfunc_core(thread_id, tabulate_Qfunc, graph, Qfunc, Qfunc_arg, log_prec_omp, 0));
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_tabulate_Qfunc_core(int thread_id,
 				GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp *graph,
 				GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
@@ -141,7 +144,11 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp **graph, const char *filename,
 				     int dim, double **log_prec_omp)
 {
@@ -396,7 +403,11 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	GMRFLib_matrix_free(M);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp **graph,
 				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp)
 {
@@ -488,7 +499,11 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp *graph,
 				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim), double **log_prec_omp)
 {
@@ -555,6 +570,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp *tabulate_Qfunc)
 {

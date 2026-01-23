@@ -471,8 +471,12 @@ control.gcpo <-
 #' @export
 `control.taucs` <-
     function(
-             #' @param block.size Preferred number of rhs's in each parallel solve
-             block.size = 40
+             #' @param block.size Minimum number of rhs's in each parallel solve. Used to split
+             #' rhs into threads (on the inner level)
+             min.block.size = 4, 
+             #' @param block.size Preferred number of rhs's in each parallel solve. Used to
+             #' split many rhs's into threads (on the outer level)
+             block.size = 64
              ) {
         ctrl_object(as.list(environment()), "taucs", check = FALSE)
     }
@@ -932,7 +936,7 @@ control.vb <-
 
              #' @param compute.initial.values Compute initial values for the latent field or not.
              #' (experimental-mode only)
-             compute.initial.values = FALSE,
+             compute.initial.values = TRUE,
 
              #' @param hessian.correct.skewness.only If TRUE (default) correct only
              #' skewness in the Hessian, for the hyperparameters. If FALSE,

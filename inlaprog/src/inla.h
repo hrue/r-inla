@@ -1,63 +1,63 @@
 #ifndef __INLA_H__
-#define __INLA_H__
+#       define __INLA_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE
-#endif
+#       if !defined(_GNU_SOURCE)
+#              define _GNU_SOURCE
+#       endif
 //
-#include "iniparser.h"
-#include "dictionary.h"
-#include "strlib.h"
-#include "ar.h"
-#include "fgn.h"
-#include "stochvol.h"
-#include "quantile-regression.h"
-#include "cgeneric.h"
-#include "prw2.h"
-#define ONE_mexp(_x) (-expm1(_x))			       /* 1-exp(_x) */
-#define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
-#define LOG_p(_x) log1p((_x) - 1.0)
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
-#define LOG2PI 1.8378770664093453391
-#define INLA_FAIL  1
-#define INLA_OK    0
+#       include "iniparser.h"
+#       include "dictionary.h"
+#       include "strlib.h"
+#       include "ar.h"
+#       include "fgn.h"
+#       include "stochvol.h"
+#       include "quantile-regression.h"
+#       include "cgeneric.h"
+#       include "prw2.h"
+#       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
+#       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
+#       define LOG_p(_x) log1p((_x) - 1.0)
+#       define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
+#       define LOG2PI 1.8378770664093453391
+#       define INLA_FAIL  1
+#       define INLA_OK    0
 // just to have a big and small number to use
-#define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
-#define INLA_REAL_SMALL FLT_EPSILON
-#define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
-#define INLA_SPECIAL_NUMBER (1048576.0)			       // 2^20
-#define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
+#       define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
+#       define INLA_REAL_SMALL FLT_EPSILON
+#       define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
+#       define INLA_SPECIAL_NUMBER (1048576.0)		       // 2^20
+#       define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
 
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *
  * YES, CHANGE IT MANUALLY!
  */
-#define INLA_WEIBULL_ALPHA_SCALE 0.1
-#define INLA_GOMPERTZ_ALPHA_SCALE 0.1
+#       define INLA_WEIBULL_ALPHA_SCALE 0.1
+#       define INLA_GOMPERTZ_ALPHA_SCALE 0.1
 
 /*
  * The scaling of the critical 'precision' parameter. If this value change, it must also be changed in models.R 
  *
  * YES, CHANGE IT MANUALLY!
  */
-#define INLA_QKUMAR_PREC_SCALE 0.10
-#define INLA_WISHARTK_KMAX (24)
-#define INLA_WISHARTK_KMIN  (2)
-#define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
-#define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
-#define INLA_LP_SCALE_MAX 100
+#       define INLA_QKUMAR_PREC_SCALE 0.10
+#       define INLA_WISHARTK_KMAX (24)
+#       define INLA_WISHARTK_KMIN  (2)
+#       define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
+#       define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
+#       define INLA_LP_SCALE_MAX 100
 
 /* 
  *
@@ -942,7 +942,7 @@ typedef struct {
 /* 
    This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
  */
-#define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior ?		       \
+#       define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior ?		       \
 			      ((p_).priorfunc ?			       \
 			       (p_).priorfunc(arg_, (p_).parameters) :	\
 			       inla_eval((p_).expression, arg_, theta, ntheta)) \
@@ -1004,7 +1004,7 @@ typedef enum {
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
 
-#define MIX_INT_EPS  (1.0E-6)				       /* defines the cut-off for the integration weights */
+#       define MIX_INT_EPS  (1.0E-6)			       /* defines the cut-off for the integration weights */
 
 typedef struct {
 	char *data_likelihood;
@@ -1773,38 +1773,38 @@ typedef struct {
 	double alpha;
 } inla_sn_arg_tp;
 
-#define R_GENERIC_Q "Q"
-#define R_GENERIC_GRAPH "graph"
-#define R_GENERIC_MU "mu"
-#define R_GENERIC_INITIAL "initial"
-#define R_GENERIC_LOG_NORM_CONST "log.norm.const"
-#define R_GENERIC_LOG_PRIOR "log.prior"
-#define R_GENERIC_QUIT "quit"
+#       define R_GENERIC_Q "Q"
+#       define R_GENERIC_GRAPH "graph"
+#       define R_GENERIC_MU "mu"
+#       define R_GENERIC_INITIAL "initial"
+#       define R_GENERIC_LOG_NORM_CONST "log.norm.const"
+#       define R_GENERIC_LOG_PRIOR "log.prior"
+#       define R_GENERIC_QUIT "quit"
 
-#define R_GENERIC_MODEL ".inla.rgeneric.model"
-#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
-#define R_JP_MODEL ".inla.jp.model"
+#       define R_GENERIC_MODEL ".inla.rgeneric.model"
+#       define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
+#       define R_JP_MODEL ".inla.jp.model"
 
-#define INLA_LITTLE_ENDIAN 1
-#define INLA_BIG_ENDIAN    2
+#       define INLA_LITTLE_ENDIAN 1
+#       define INLA_BIG_ENDIAN    2
 
 /* 
    binary write macros. Faster to cache and write in bulk. See example number 63
 
    First variant is not thread safe, second one is
  */
-#define Dinit_core(n_, filename_) size_t _d_store_len = n_; \
+#       define Dinit_core(n_, filename_) size_t _d_store_len = n_; \
 	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
 	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
 
-#define Dinit(filename_)   Dinit_core(8388608L, filename_)
-#define Dinit_s(filename_) Dinit_core(8192L, filename_)
-#define Dwrite()							\
+#       define Dinit(filename_)   Dinit_core(8388608L, filename_)
+#       define Dinit_s(filename_) Dinit_core(8192L, filename_)
+#       define Dwrite()							\
 	if (_d_n >= _d_store_len) {					\
 		fwrite((void*)_d_store, sizeof(double), _d_n, _fp);	\
 		_d_n = 0;						\
 	}
-#define Dclose()							\
+#       define Dclose()							\
 	{								\
 		if (_fp) {						\
 			if (_d_n) {					\
@@ -1816,35 +1816,35 @@ typedef struct {
 		_d_n = 0;						\
 		Free(_d_store);						\
 	}
-#define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
-#define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
-#define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
-#define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
-#define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
+#       define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
+#       define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
+#       define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
+#       define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
+#       define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
 // thread-safe: with these, one have to KNOW... no dynamic writing, just filling in the array
-#define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 0L, double); \
+#       define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 0L, double); \
 	FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
 
-#define D1W_r(idx_, off_, a_)				\
+#       define D1W_r(idx_, off_, a_)				\
 	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 	}
-#define D2W_r(idx_, off_, a_, b_)			\
+#       define D2W_r(idx_, off_, a_, b_)			\
 	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 	}
-#define D3W_r(idx_, off_, a_, b_, c_)			\
+#       define D3W_r(idx_, off_, a_, b_, c_)			\
 	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 	}
-#define D4W_r(idx_, off_, a_, b_, c_, d_)		\
+#       define D4W_r(idx_, off_, a_, b_, c_, d_)		\
 	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
@@ -1852,7 +1852,7 @@ typedef struct {
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
 	}
-#define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
+#       define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
 	{						\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_ + 0] = a_;		\
@@ -1861,7 +1861,7 @@ typedef struct {
 		_d_store[iidx_ + 3]= d_;		\
 		_d_store[iidx_ + 4]= e_;		\
 	}
-#define Dclose_r()							\
+#       define Dclose_r()							\
 	if (_fp) {							\
 		fwrite((void*)_d_store, sizeof(double), _d_store_len * _d_g, _fp); \
 		fclose(_fp);						\
@@ -1871,7 +1871,7 @@ typedef struct {
 	}
 
 // same as defined in sections.R function 'no_var'
-#define SEM_NO_VAR "<NO:VAR>"
+#       define SEM_NO_VAR "<NO:VAR>"
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
@@ -1982,14 +1982,14 @@ void link_log_invccloglog2(double x, double *r1, double *r2);
 void link_log_invcloglog2(double x, double *r1, double *r2);
 
 // define macros for some of the forward calls, but it seems like the compiler figure this out itself
-#define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))
-#define map_exp_forward(a1_, a2_, a3_) exp(a1_)
-#define map_identity_forward(a1_, a2_, a3_) (a1_)
-#define map_inverse_forward(a1_, a2_, a3_) (1.0/(a1_))
-#define map_negexp_forward(a1_, a2_, a3_) exp(-(a1_))
-#define map_precision_forward(a1_, a2_, a3_) exp(a1_)
-#define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
-#define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
+#       define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))
+#       define map_exp_forward(a1_, a2_, a3_) exp(a1_)
+#       define map_identity_forward(a1_, a2_, a3_) (a1_)
+#       define map_inverse_forward(a1_, a2_, a3_) (1.0/(a1_))
+#       define map_negexp_forward(a1_, a2_, a3_) exp(-(a1_))
+#       define map_precision_forward(a1_, a2_, a3_) exp(a1_)
+#       define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
+#       define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
 
 double inla_boxcox(double y, double mean, double lambda);
 double inla_boxcox_core(double y, double lambda);
@@ -2481,7 +2481,7 @@ typedef struct {
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
-#define HYPER_NEW2(name_, initial_, n_)  \
+#       define HYPER_NEW2(name_, initial_, n_)  \
 	if (1) {							\
 		name_ = Calloc(n_, double **);				\
 		for(int j_=0; j_ < n_; j_++){				\
@@ -2493,7 +2493,7 @@ typedef struct {
 		}							\
 	}								\
 
-#define HYPER_NEW(name_, initial_)					\
+#       define HYPER_NEW(name_, initial_)					\
 	if (1) {							\
 		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
 		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
@@ -2502,7 +2502,7 @@ typedef struct {
 		}							\
 	}
 
-#define HYPER_FREE(name_)						\
+#       define HYPER_FREE(name_)						\
 	if (1) {							\
 		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			Free(name_[i_]);				\
@@ -2510,21 +2510,21 @@ typedef struct {
 		Free(name_);						\
 	}
 
-#define HYPER_INIT(name_, initial_)		\
+#       define HYPER_INIT(name_, initial_)		\
 	if (1) {				\
 		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_][0] = initial_;			\
 		}							\
 	}
 
-#define WISHART_DIM(idx) (mb->f_id[idx] == F_IID1D ? 1 :		\
+#       define WISHART_DIM(idx) (mb->f_id[idx] == F_IID1D ? 1 :		\
 			  (mb->f_id[idx] == F_IID2D ? 2 :		\
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
 // needs inla_tp definition
-#include "param-constr.h"
+#       include "param-constr.h"
 
 __END_DECLS
 #endif

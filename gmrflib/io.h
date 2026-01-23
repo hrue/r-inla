@@ -1,43 +1,43 @@
 #ifndef __GMRFLib_IO_H__
-#define __GMRFLib_IO_H__
+#       define __GMRFLib_IO_H__
 
-#include <stdlib.h>
-#include <zlib.h>
+#       include <stdlib.h>
+#       include <zlib.h>
 
 /* 
    to define strtok_r()
 */
-#if defined(__sun)
-#define __EXTENSIONS__
-#undef _STRING_H
-#include <string.h>
-#endif
+#       if defined(__sun)
+#              define __EXTENSIONS__
+#              undef _STRING_H
+#              include <string.h>
+#       endif
 
-#include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
+#       include "GMRFLib/GMRFLib.h"
+#       include "GMRFLib/GMRFLibP.h"
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 
-#define GMRFLib_IO_COMMENT_CHAR "#"
-#define GMRFLib_IO_SEP          " \t"
+#       define GMRFLib_IO_COMMENT_CHAR "#"
+#       define GMRFLib_IO_SEP          " \t"
 
 /* 
    internal error codes
 */
-#define GMRFLib_IO_ERR_OPEN       1
-#define GMRFLib_IO_ERR_NOLINE     2
-#define GMRFLib_IO_ERR_READLINE   3
-#define GMRFLib_IO_ERR_READBYTES  4
-#define GMRFLib_IO_ERR_WRITEBYTES 5
+#       define GMRFLib_IO_ERR_OPEN       1
+#       define GMRFLib_IO_ERR_NOLINE     2
+#       define GMRFLib_IO_ERR_READLINE   3
+#       define GMRFLib_IO_ERR_READBYTES  4
+#       define GMRFLib_IO_ERR_WRITEBYTES 5
 
 __BEGIN_DECLS typedef struct {
 	char *filename;

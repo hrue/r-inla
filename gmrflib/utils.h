@@ -5,31 +5,39 @@
 */
 
 #ifndef __GMRFLib_UTILS_H__
-#define __GMRFLib_UTILS_H__
+#       define __GMRFLib_UTILS_H__
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#include "GMRFLib/hashP.h"
-#include "GMRFLib/graph.h"
-#include "GMRFLib/GMRFLibP.h"
-#define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
+#       include "GMRFLib/hashP.h"
+#       include "GMRFLib/graph.h"
+#       include "GMRFLib/GMRFLibP.h"
+#       define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
     typedef struct {
 	int nrow;
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;
+
+typedef struct {
+	size_t l1_data;
+	size_t l1_inst;
+	size_t l2;
+	size_t l3;
+} GMRFLib_sys_cache_tp;
+
 
 
 char *Strdup(const char *s);
@@ -149,7 +157,7 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
 
 int GMRFLib_get_cachelinesize(void);
-
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp * l123);
 
 __END_DECLS
 #endif

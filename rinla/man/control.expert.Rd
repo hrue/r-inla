@@ -12,6 +12,7 @@ control.expert(
   jp = NULL,
   globalconstr = list(A = NULL, e = NULL),
   opt.solve = FALSE,
+  opt.storage = FALSE,
   opt.num.threads = TRUE
 )
 
@@ -35,7 +36,10 @@ correct the normalisation constant.
 (EXPERIMENTAL OPTION)}
 
 \item{opt.solve}{Store also \code{L^T} to optimize linear solves (TAUCS only).
-(EXPERIMENTAL OPTION: DO NOT USE)}
+Might benefite larger models. (EXPERIMENTAL OPTION)}
+
+\item{opt.storage}{Make sure \code{L} is stored sequencially (TAUCS only).
+Might benefite larger models. (EXPERIMENTAL OPTION)}
 
 \item{opt.num.threads}{Reduce the number of threads adaptively if needed at
 critical places to optimize wall-clock time}

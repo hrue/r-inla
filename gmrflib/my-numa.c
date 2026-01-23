@@ -1,5 +1,5 @@
 #if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE
+#       define _GNU_SOURCE
 #endif
 
 #include <omp.h>
@@ -19,20 +19,20 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 #include "my-numa.h"
 
 #if defined(INLA_WITH_NUMA) && !defined(__linux__)
-#undef INLA_WITH_NUMA
+#       undef INLA_WITH_NUMA
 #endif
 
 #if defined(__linux__)
-#include <sched.h>
+#       include <sched.h>
 #endif
 
 #if defined(INLA_WITH_NUMA)
 
-#include <numa.h>
-#include <numaif.h>
+#       include <numa.h>
+#       include <numaif.h>
 
 // older linux (Rocky8 and older)
-#if defined(GMRFLib_GETCPU_FIX)
+#       if defined(GMRFLib_GETCPU_FIX)
 int getcpu(unsigned int *cpu, unsigned int *node)
 {
 	unsigned int ucpu = sched_getcpu();
@@ -45,11 +45,11 @@ int getcpu(unsigned int *cpu, unsigned int *node)
 	}
 	return 0;
 }
-#endif
+#       endif
 
-#if !defined(INLA_WITH_HWLOC)
-#define INLA_WITH_HWLOC
-#endif
+#       if !defined(INLA_WITH_HWLOC)
+#              define INLA_WITH_HWLOC
+#       endif
 
 void GMRFLib_numa_init(void)
 {
@@ -199,11 +199,11 @@ void GMRFLib_numa_init(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	if (cpu) {
-#if 0 && defined(__linux__)
+#       if 0 && defined(__linux__)
 		*cpu = sched_getcpu();
-#else
+#       else
 		*cpu = 0;
-#endif
+#       endif
 	}
 	if (numa_node) {
 		*numa_node = 0;
@@ -234,7 +234,7 @@ int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), int UNUSED(numa), const c
 
 
 #if defined(INLA_WITH_HWLOC)
-#include <hwloc.h>
+#       include <hwloc.h>
 
 size_t GMRFLib_get_L3_cache(void)
 {

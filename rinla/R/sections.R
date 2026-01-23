@@ -1917,6 +1917,7 @@ inla.parse.Bmatrix.test <- function() {
 `inla.taucs.section` <- function(file, data.dir, contr) {
     cat("\n", inla.secsep("INLA.taucs"), "\n", sep = "", file = file, append = TRUE)
     cat("type = taucs\n", sep = " ", file = file, append = TRUE)
+    cat("min.block.size = ", max(contr$min.block.size, 0), "\n", sep = " ", file = file, append = TRUE)
     cat("block.size = ", max(contr$block.size, 0), "\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file, append = TRUE)
 }

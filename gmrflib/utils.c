@@ -13,6 +13,15 @@
 #include <strings.h>
 #include <time.h>
 
+#if defined(_WIN32)
+#       include <windows.h>
+#endif
+
+#if defined(__APPLE__)
+#       include <sys/types.h>
+#       include <sys/sysctl.h>
+#endif
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
 
@@ -40,6 +49,9 @@ unsigned char *Strdup_sha(unsigned char *sha)
 	return nnew;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 {
 	if (!sha) {
@@ -59,6 +71,7 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 
 	return sha;
 }
+#pragma GCC diagnostic pop
 
 
 /*
@@ -68,7 +81,8 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
  * taken from
  * https://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
  */
-void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem)
+void GMRFLib_getMemory(int POSSIBLY_UNUSED(*currRealMem), int POSSIBLY_UNUSED(*peakRealMem),
+		       int POSSIBLY_UNUSED(*currVirtMem), int POSSIBLY_UNUSED(*peakVirtMem))
 {
 #if defined(__linux__)
 	// stores each word in status file
@@ -105,7 +119,7 @@ void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int
 #endif
 }
 
-void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno)
+void GMRFLib_printMem_core(FILE POSSIBLY_UNUSED(*fp), const char POSSIBLY_UNUSED(*fnm), int POSSIBLY_UNUSED(lineno))
 {
 #if defined(__linux__)
 	int crm = 0, prm = 0, cvm = 0, pvm = 0;
@@ -297,8 +311,6 @@ void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
 		}
 		free(ptr);
-	} else {
-		fprintf(stderr, "%s:%s:%d: Try to free a NULL-ptr\n", file, funcname, lineno);
 	}
 }
 
@@ -712,6 +724,9 @@ int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n)
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 {
 	int num = 0;
@@ -722,6 +737,7 @@ int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 	}
 	return num;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_printf_gsl_matrix(FILE *fp, gsl_matrix *matrix, const char *format)
 {
@@ -929,6 +945,9 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
 	/*
@@ -974,7 +993,11 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 {
 	if (!vec || vec->size == 0) {
@@ -987,6 +1010,7 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 {
@@ -1004,6 +1028,9 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_adjust_vector(double *x, int n)
 {
 	/*
@@ -1023,6 +1050,7 @@ int GMRFLib_adjust_vector(double *x, int n)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_scale_vector(double *x, int n)
 {
@@ -1042,6 +1070,9 @@ int GMRFLib_scale_vector(double *x, int n)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_zero(double *x, int n)
 {
 	// return 1 if x is a zero vector or zero-ptr, 0 otherwise
@@ -1071,6 +1102,7 @@ int GMRFLib_is_zero(double *x, int n)
 
 	return 1;
 }
+#pragma GCC diagnostic pop
 
 double GMRFLib_max_value(double *x, int n, int *idx)
 {
@@ -1173,6 +1205,9 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imax_value(int *x, int n, int *idx)
 {
 	/*
@@ -1223,7 +1258,11 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		return max_val;
 	}
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_imin_value(int *x, int n, int *idx)
 {
 	/*
@@ -1274,6 +1313,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		return min_val;
 	}
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_iamax_value(int *x, int n, int *idx)
 {
@@ -1333,6 +1373,10 @@ const char *GMRFLib_function_name_strip(const char *name)
 
 int GMRFLib_debug_functions(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1340,17 +1384,20 @@ int GMRFLib_debug_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
+	static int clen = 0;
 
 	if (!ddefs) {
 #pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
+	assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_c3afbb5a350a04cd0a2ad81d85df8cc44ff04279)
@@ -1438,6 +1485,10 @@ int GMRFLib_debug_functions(const char *name)
 
 int GMRFLib_trace_functions(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1445,17 +1496,20 @@ int GMRFLib_trace_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
+	static int clen = 0;
 
 	if (!ddefs) {
 #pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
+	assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_e9b04207643dde9dc8734f9ae0e41a3e03910f80)
@@ -1542,6 +1596,10 @@ int GMRFLib_trace_functions(const char *name)
 
 int GMRFLib_trace_cache_hitmiss(const char *name)
 {
+	if (!name) {
+		return 0;
+	}
+
 	static int not_defined = 0;
 	if (not_defined) {
 		return 0;
@@ -1549,17 +1607,20 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
+	static int clen = 0;
 
 	if (!ddefs) {
 #pragma omp critical (Name_72150bb8d161e16549ba70e0a250eb5d4f572df6)
 		if (!ddefs) {
-			first = Calloc(GMRFLib_CACHE_LEN(), int);
-			map_stri **tmp = Calloc(GMRFLib_CACHE_LEN(), map_stri *);
+			clen = GMRFLib_CACHE_LEN();
+			first = Calloc(clen, int);
+			map_stri **tmp = Calloc(clen, map_stri *);
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
 	GMRFLib_CACHE_SET_IDX(idx);
+	assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
@@ -1943,6 +2004,9 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
 	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
@@ -1974,7 +2038,11 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 		}
 	}
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work)
 {
 	// this does not go that well: see test 160
@@ -1997,6 +2065,7 @@ void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *w
 		x[i] = *dp;
 	}
 }
+#pragma GCC diagnostic pop
 
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 {
@@ -2243,9 +2312,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
@@ -2265,15 +2334,15 @@ int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, c
 void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
 	// sort if not sorted
-	if(n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
+	if (n > 0 && !GMRFLib_is_sorted(a, n, size, cmp)) {
 		QSORT_FUN(a, n, size, cmp);
 	}
 }
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2331,26 +2400,24 @@ void GMRFLib_sort_d(double *x, int n)
 double GMRFLib_cdfnorm_inv(double p)
 {
 	return (gsl_cdf_ugaussian_Pinv(p));
-
-	if (0) {
-		// https://arxiv.org/abs/0901.0638
-		int sign = (p < 0.5 ? -1 : 1);
-		double u = DMAX(p, 1.0 - p);
-		double v = -log(2.0 * (1.0 - u));
-		double P = 1.2533141359896652729 +
-		    v * (3.0333178251950406994 +
-			 v * (2.3884158540184385711 +
-			      v * (0.73176759583280610539 +
-				   v * (0.085838533424158257377 +
-					v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
-		double Q = 1 + v * (2.9202373175993672857 +
-				    v * (2.9373357991677046357 +
-					 v * (1.2356513216582148689 +
-					      v * (0.2168237095066675527 +
-						   v * (0.014494272424798068406 +
-							(0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
-		return (sign * v * P / Q);
-	}
+#if 0
+	// https://arxiv.org/abs/0901.0638
+	int sign = (p < 0.5 ? -1 : 1);
+	double u = DMAX(p, 1.0 - p);
+	double v = -log(2.0 * (1.0 - u));
+	double P = 1.2533141359896652729 +
+	    v * (3.0333178251950406994 +
+		 v * (2.3884158540184385711 +
+		      v * (0.73176759583280610539 +
+			   v * (0.085838533424158257377 +
+				v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+	double Q = 1 + v * (2.9202373175993672857 +
+			    v * (2.9373357991677046357 +
+				 v * (1.2356513216582148689 +
+				      v * (0.2168237095066675527 +
+					   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+	return (sign * v * P / Q);
+#endif
 }
 
 double GMRFLib_cdfnorm(double x)
@@ -2376,4 +2443,71 @@ double GMRFLib_erf_inv(double x)
 double GMRFLib_erfc_inv(double x)
 {
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
+}
+
+
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
+{
+	if (l123) {
+		Memset(l123, 0, sizeof(GMRFLib_sys_cache_tp));
+	}
+
+	static GMRFLib_sys_cache_tp L123;
+	static int first = 1;
+
+	if (first) {
+#pragma omp critical (Name_baeb0f7ca4f3dbd67a64a855c0a33b451124c7aa)
+		if (first) {
+#if defined(__linux__)
+			long tmp;
+			tmp = sysconf(_SC_LEVEL1_DCACHE_SIZE);
+			L123.l1_data = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL1_ICACHE_SIZE);
+			L123.l1_inst = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL2_CACHE_SIZE);
+			L123.l2 = (size_t) (tmp >= 0 ? tmp : 0);
+			tmp = sysconf(_SC_LEVEL3_CACHE_SIZE);
+			L123.l3 = (size_t) (tmp >= 0 ? tmp : 0);
+#elif defined(__APPLE__)
+			size_t len = sizeof(size_t);
+			sysctlbyname("hw.l1dcachesize", &(L123.l1_data), &len, NULL, 0);
+			sysctlbyname("hw.l1icachesize", &(L123.l1_inst), &len, NULL, 0);
+			sysctlbyname("hw.l2cachesize", &(L123.l2), &len, NULL, 0);
+			sysctlbyname("hw.l3cachesize", &(L123.l3), &len, NULL, 0);
+#elif defined(_MSC_VER) || defined(__MINGW32__) || defined (__MSVCRT__)
+			DWORD len = 0;
+			GetLogicalProcessorInformation(NULL, &len);
+			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *) malloc(len);
+			if (!info) {
+				goto label_end;
+			}
+			if (!GetLogicalProcessorInformation(info, &len)) {
+				free(info);
+				goto label_end;
+			}
+			for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
+				if (info[i].Relationship == RelationCache) {
+					CACHE_DESCRIPTOR cache = info[i].Cache;
+					if (cache.Level == 1 && cache.Type == CacheData) {
+						L123.l1_data = (size_t) cache.Size;
+					} else if (cache.Level == 1 && cache.Type == CacheInstruction) {
+						L123.l1_inst = (size_t) cache.Size;
+					} else if (cache.Level == 2) {
+						L123.l2 = (size_t) cache.Size;
+					} else if (cache.Level == 3) {
+						L123.l3 = (size_t) cache.Size;
+					}
+				}
+			}
+		      label_end:
+#else
+			Memset(&L123, 0, sizeof(GMRFLib_sys_cache_tp));
+#endif
+			first = 0;
+		}
+	}
+
+	if (l123) {
+		Memcpy(l123, &L123, sizeof(GMRFLib_sys_cache_tp));
+	}
 }

@@ -548,7 +548,7 @@ int dictionary_dump_unused(dictionary *d, FILE *out)
 
 /* Example code */
 #ifdef TESTDIC
-#define NVALS 20000
+#       define NVALS 20000
 int main(int argc, char *argv[])
 {
 	dictionary *d = NULL;

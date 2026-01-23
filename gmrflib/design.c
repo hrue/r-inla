@@ -191,6 +191,9 @@ int GMRFLib_design_grid(GMRFLib_design_tp **design, int nhyper)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_design_ccd(GMRFLib_design_tp **design, int nfactors)
 {
 	/*
@@ -234,7 +237,11 @@ int GMRFLib_design_ccd(GMRFLib_design_tp **design, int nfactors)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int std_scale)
 {
 	/*
@@ -266,6 +273,7 @@ int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int st
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_design_free(GMRFLib_design_tp *design)
 {
@@ -315,6 +323,9 @@ int GMRFLib_design_print(FILE *fp, GMRFLib_design_tp *design)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 {
 	if (!design) {
@@ -372,3 +383,4 @@ int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop

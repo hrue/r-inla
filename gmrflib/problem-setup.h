@@ -1,21 +1,21 @@
 #ifndef __GMRFLib_PROBLEM_SETUP_H__
-#define __GMRFLib_PROBLEM_SETUP_H__
+#       define __GMRFLib_PROBLEM_SETUP_H__
 
-#include <strings.h>
-#include <stdlib.h>
-#include <math.h>
+#       include <strings.h>
+#       include <stdlib.h>
+#       include <math.h>
 
-#include "GMRFLib/hashP.h"
+#       include "GMRFLib/hashP.h"
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -323,12 +323,12 @@ struct GMRFLib_problem_struct {
 /*!
   \brief To flag that the proposal was accepted
 */
-#define GMRFLib_STORE_ACCEPT (1)
+#       define GMRFLib_STORE_ACCEPT (1)
 
 /*!
   \brief To flag that the proposal was rejected
 */
-#define GMRFLib_STORE_REJECT (2)
+#       define GMRFLib_STORE_REJECT (2)
 
 /*!
   \struct GMRFLib_store_tp problem-setup.h

@@ -1,14 +1,14 @@
 #ifndef __INLA_R_INTERFACE_H__
-#define __INLA_R_INTERFACE_H__
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       define __INLA_R_INTERFACE_H__
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -34,41 +34,41 @@ void inla_set_R_home(char *home);
 
 int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6);
 
-#define inla_R_assign(a1, a2, a3) inla_R_do_(INLA_R_ASSIGN, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_assign(a1, a2, a3) inla_R_do_(INLA_R_ASSIGN, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_assign_(const char *variable, int *n, double *x);
 
-#define inla_R_funcall1(a1, a2, a3, a4, a5) inla_R_do_(INLA_R_FUNCALL1, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) NULL)
+#       define inla_R_funcall1(a1, a2, a3, a4, a5) inla_R_do_(INLA_R_FUNCALL1, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) NULL)
 int inla_R_funcall1_(int *n_out, double **x_out, const char *function, int *n, double *x);
 
-#define inla_R_funcall2(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL2, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+#       define inla_R_funcall2(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL2, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
 int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const char *tag, int *n, double *x);
 
-#define inla_R_funcall_jp(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL_JP, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+#       define inla_R_funcall_jp(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL_JP, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
 int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n, double *x, void *sexp);
 
-#define inla_R_get(a1, a2, a3) inla_R_do_(INLA_R_GET, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_get(a1, a2, a3) inla_R_do_(INLA_R_GET, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_get_(int *n_out, double **x_out, const char *variable);
 
-#define inla_R_init() inla_R_do_(INLA_R_INIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_init() inla_R_do_(INLA_R_INIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_init_(void);
 
-#define inla_R_inlaload(a1) inla_R_do_(INLA_R_INLALOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_inlaload(a1) inla_R_do_(INLA_R_INLALOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_inlaload_(const char *filename);
 
-#define inla_R_library(a1) inla_R_do_(INLA_R_LIBRARY, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_library(a1) inla_R_do_(INLA_R_LIBRARY, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_library_(const char *filename);
 
-#define inla_R_load(a1) inla_R_do_(INLA_R_LOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_load(a1) inla_R_do_(INLA_R_LOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_load_(const char *filename);
 
-#define inla_R_rgeneric(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_RGENERIC, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+#       define inla_R_rgeneric(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_RGENERIC, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
 int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *model, int *n, double *theta);
 
-#define inla_R_source(a1) inla_R_do_(INLA_R_SOURCE, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_source(a1) inla_R_do_(INLA_R_SOURCE, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_source_(const char *filename);
 int inla_R_source_quiet_(const char *filename);
 
-#define inla_R_exit() inla_R_do_(INLA_R_EXIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+#       define inla_R_exit() inla_R_do_(INLA_R_EXIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
 int inla_R_exit_(void);
 
 void *inla_R_vector_of_strings(int n, char **s);

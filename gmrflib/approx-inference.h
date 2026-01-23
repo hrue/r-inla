@@ -1,19 +1,19 @@
 #ifndef __GMRFLib_APPROX_INFERENCE_H__
-#define __GMRFLib_APPROX_INFERENCE_H__
+#       define __GMRFLib_APPROX_INFERENCE_H__
 
-#include <math.h>
-#include <stdlib.h>
-#include "GMRFLib/GMRFLibP.h"
+#       include <math.h>
+#       include <stdlib.h>
+#       include "GMRFLib/GMRFLibP.h"
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -92,7 +92,7 @@ typedef enum {
 	GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL
 } GMRFLib_ai_vb_hessian_strategy_tp;
 
-#define VB_HESSIAN_STRATEGY_NAME(v_) ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_FULL ? "full" : \
+#       define VB_HESSIAN_STRATEGY_NAME(v_) ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_FULL ? "full" : \
 				      ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL ? "partial" : \
 				       ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL ? "diagonal" : "invalid")))
 
@@ -212,7 +212,7 @@ typedef enum {
 	GMRFLib_AI_INTERPOLATOR_GAUSSIAN
 } GMRFLib_ai_interpolator_tp;
 
-#define INTERPOLATOR_NAME(interp) ((interp) == GMRFLib_AI_INTERPOLATOR_GAUSSIAN ? "Gaussian" : \
+#       define INTERPOLATOR_NAME(interp) ((interp) == GMRFLib_AI_INTERPOLATOR_GAUSSIAN ? "Gaussian" : \
 				   ((interp) == GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE ? "Weigted distance" : \
 				    ((interp) == GMRFLib_AI_INTERPOLATOR_NEAREST ? "Nearest" : \
 				     ((interp) == GMRFLib_AI_INTERPOLATOR_LINEAR ? "Linear" : \
@@ -235,7 +235,7 @@ typedef enum {
 	GMRFLib_AI_OPTIMISER_DEFAULT
 } GMRFLib_ai_optimiser_tp;
 
-#define GMRFLib_AI_OPTIMISER_NAME(opt) \
+#       define GMRFLib_AI_OPTIMISER_NAME(opt) \
 	((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" : \
 	 ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!"))
 
@@ -614,7 +614,7 @@ typedef struct {
 	int nidx;					       /* number of those */
 } GMRFLib_ai_store_tp;
 
-#define GMRFLib_AI_STORE_NEFF_NOT_COMPUTED (-1.23456789)
+#       define GMRFLib_AI_STORE_NEFF_NOT_COMPUTED (-1.23456789)
 
 /**
  * \brief Store the integrated likelihood for the model
@@ -774,7 +774,7 @@ typedef enum {
 	GMRFLib_GCPO_BUILD_STRATEGY_PRIOR = 1
 } GMRFLib_gcpo_build_strategy_tp;
 
-#define GMRFLib_GCPO_BUILD_STRATEGY_NAME(arg_) ((arg_) == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR ? "Posterior" : \
+#       define GMRFLib_GCPO_BUILD_STRATEGY_NAME(arg_) ((arg_) == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR ? "Posterior" : \
 						 ((arg_) == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR ? "Prior" : \
 						  "UNKNOWN"))
 
@@ -924,6 +924,7 @@ typedef struct {
 	int *nfunc;
 	double *f;
 	double *theta;
+	double *wtime;
 } GMRFLib_opt_trace_tp;
 
 typedef struct {
@@ -1034,10 +1035,10 @@ typedef struct {
 	double coofs[3];
 } GMRFLib_vb_coofs_tp;
 
-#define GMRFLib_AI_POOL_GET 1
-#define GMRFLib_AI_POOL_SET 2
+#       define GMRFLib_AI_POOL_GET 1
+#       define GMRFLib_AI_POOL_SET 2
 
-#include "GMRFLib/pre-opt.h"
+#       include "GMRFLib/pre-opt.h"
 
 int GMRFLib_ai_pool_free(GMRFLib_ai_pool_tp * pool);
 int GMRFLib_ai_pool_get(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx);

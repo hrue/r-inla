@@ -14,6 +14,9 @@
 
 // we can use this code to make a generic function for any power-link
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *intercept_out)
 {
 	// if 'intercept' is !NULL, just return the contents. its a backdoor avoid duplicating code
@@ -230,3 +233,4 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #undef diMAP
 	return 0.0;
 }
+#pragma GCC diagnostic pop

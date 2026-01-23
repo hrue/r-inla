@@ -1,17 +1,17 @@
 #ifndef __GMRFLib_RW_H__
-#define __GMRFLib_RW_H__
+#       define __GMRFLib_RW_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
@@ -60,17 +60,17 @@ __BEGIN_DECLS
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], ..., z[n-1].
 */
-#define GMRFLib_CRW_LAYOUT_SIMPLE 0
+#       define GMRFLib_CRW_LAYOUT_SIMPLE 0
 
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], z'[0], z[1], z'[1]....
 */
-#define GMRFLib_CRW_LAYOUT_PAIRS  1
+#       define GMRFLib_CRW_LAYOUT_PAIRS  1
 
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], ..., z[n-1], z'[0], ..., z'[n-1]
 */
-#define GMRFLib_CRW_LAYOUT_BLOCK  2
+#       define GMRFLib_CRW_LAYOUT_BLOCK  2
 
 /*!
   \struct GMRFLib_crwdef_tp rw.h

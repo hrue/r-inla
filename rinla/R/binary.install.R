@@ -80,9 +80,18 @@
     ff <- readLines(fp)
     close(fp)
     ff <- ff[grep(version, ff)]
-    nf <- length(ff)
 
     if (is.null(os)) {
+
+        ## filter on this one
+        aa <- "aarch64"
+        if (inla.one.of(R.version$arch, aa)) {
+            ff <- ff[grep(aa, ff)]
+        } else {
+            ff <- ff[-grep(aa, ff)]
+        }
+        nf <- length(ff)
+
         cat("  Available alternatives:\n")
         for (i in seq_len(nf)) {
             cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")

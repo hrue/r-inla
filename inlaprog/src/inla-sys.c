@@ -1,6 +1,6 @@
 #if defined(__linux__)
-#include <ftw.h>
-#include <unistd.h>
+#       include <ftw.h>
+#       include <unistd.h>
 #endif
 
 int inla_ncpu(void)
@@ -12,7 +12,7 @@ int inla_ncpu(void)
 	size_t size = sizeof(count);
 	sysctlbyname("hw.ncpu", &count, &size, NULL, 0);
 	return count;
-#elif (defined(WIN32) || defined(WINDOWS))		       /* Windows */
+#elif defined(_WIN32)
 	SYSTEM_INFO SystemInfo;
 	GetSystemInfo(&SystemInfo);
 	return SystemInfo.dwNumberOfProcessors;
@@ -44,7 +44,7 @@ void inla_remove_dir(char *UNUSED(dirname))
 
 int inla_mkdir(const char *dirname)
 {
-#if defined(WINDOWS)
+#if defined(_WIN32)
 	return mkdir(dirname);
 #else
 	return mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -53,7 +53,7 @@ int inla_mkdir(const char *dirname)
 
 // this is from https://stackoverflow.com/questions/2513505/how-to-get-available-memory-c-g
 // return RAM in Mb
-#if defined(WIN32) || defined(WINDOWS)
+#if defined(_WIN32)
 unsigned long long getTotalSystemMemory()
 {
 	MEMORYSTATUSEX status;
@@ -70,9 +70,12 @@ unsigned long long getTotalSystemMemory()
 }
 #endif
 
-#if defined(WINDOWS)
+#if defined(_WIN32)
 void inla_signal(int UNUSED(sig))
 {
+	/*
+	 * ... 
+	 */
 }
 #else
 void inla_signal(int sig)

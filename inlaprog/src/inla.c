@@ -1,15 +1,21 @@
 #if !defined(GITCOMMIT)
-#define GITCOMMIT devel
+#       define GITCOMMIT devel
 #endif
 
 #if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE 1
+#       define _GNU_SOURCE 1
 #endif
 
 #if defined(__linux__)
-#include <features.h>
+#       include <features.h>
 #endif
 
+#if defined(__sun__)
+#       include <stdlib.h>
+#endif
+#if defined(__linux__)
+#       include <getopt.h>
+#endif
 #if defined(__sun__)
 #include <stdlib.h>
 #endif
@@ -33,32 +39,32 @@
 #include <sys/types.h>
 #include <time.h>
 
-#if !defined(WINDOWS)
-#include <sys/resource.h>
+#if !defined(_WIN32)
+#       include <sys/resource.h>
 #endif
 
 #if defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#       include <sys/types.h>
+#       include <sys/sysctl.h>
 #endif
-
-#include "rmath.h"
 
 #include "GMRFLib/GMRFLib.h"
 #if !defined(ISNAN)
-#define ISNAN(x) (isnan(x)!=0)
+#       define ISNAN(x) (isnan(x)!=0)
 #endif
 
 #if !defined(INLA_TAG)
-#define INLA_TAG "devel"
+#       define INLA_TAG "devel"
 #endif
 
 #include <unistd.h>
 #include <stdlib.h>
-#if defined(WIN32) || defined(WINDOWS)
-#include <windows.h>
-#include <direct.h>
+#if defined(_WIN32)
+#       include <windows.h>
+#       include <direct.h>
 #endif
+
+#include "rmath.h"
 
 #include "inla.h"
 #include "my.h"
@@ -856,6 +862,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	return mb;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *constr)
 {
 	/*
@@ -920,6 +929,7 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *c
 
 	return c;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp *constr)
 {
@@ -1314,6 +1324,9 @@ int find_tag(inla_tp *mb, const char *name)
 	return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int count_f(inla_tp *mb, inla_component_tp id)
 {
 	int n = 0;
@@ -1324,6 +1337,7 @@ int count_f(inla_tp *mb, inla_component_tp id)
 	}
 	return n;
 }
+#pragma GCC diagnostic pop
 
 int inla_setup_ai_par_default(inla_tp *mb)
 {
@@ -1415,6 +1429,9 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp *setup)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
@@ -5739,6 +5756,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 	return val;
 }
+#pragma GCC diagnostic pop
 
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
@@ -5780,6 +5798,9 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	return x;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_INLA_preopt_experimental(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
@@ -6042,7 +6063,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 		}
 
-		double s = 1.0 / (DBL_EPSILON + time_loop[0] + time_loop[1]);
+		double s = 1.0 / DMAX(DBL_EPSILON, DMAX(time_loop[0], time_loop[1]));
 		time_loop[0] *= s;
 		time_loop[1] *= s;
 		time_loop[2] *= s;
@@ -6076,11 +6097,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
-			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
+			       time_used_Qx[0] / DMAX(time_used_Qx[0], time_used_Qx[1]), time_used_Qx[1] / DMAX(time_used_Qx[0], time_used_Qx[1]),
 			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
-			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
-			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
+			       time_used_pred[0] / DMAX(time_used_pred[0], time_used_pred[1]),
+			       time_used_pred[1] / DMAX(time_used_pred[0], time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 			printf("\tOptimizing dot-products.... plain[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
 			printf("\t                            ->mix[%.3f] (plain[%.1f%%] group[%.1f%%])\n",
@@ -6354,7 +6375,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			double sum = 0.0, xx = 0.0;
 			tused[nt] = -GMRFLib_timer();
 			for (int kk = 0; kk < 2; kk++) {
-#pragma omp parallel for num_threads(nt) reduction(+: sum)
+#       pragma omp parallel for num_threads(nt) reduction(+: sum)
 				for (int ii = 0; ii < d_idx->n; ii++) {
 					int idx = d_idx->idx[ii];
 					double acoof = 0.0, bcoof = 0.0, ccoof = 0.0;
@@ -6431,6 +6452,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 	return INLA_OK;
 }
+#pragma GCC diagnostic pop
 
 int inla_computed(GMRFLib_density_tp **d, int n)
 {
@@ -6450,6 +6472,9 @@ int inla_computed(GMRFLib_density_tp **d, int n)
 	return INLA_OK;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
 			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
 {
@@ -6805,6 +6830,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 //      GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int inla_divisible(int n, int by)
 {
@@ -6821,6 +6847,9 @@ int inla_divisible(int n, int by)
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int verbose)
 {
 	// if VERBOSE, write out the scalings.
@@ -6985,7 +7014,11 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_update_density(double *theta, inla_update_tp *arg)
 {
 	/*
@@ -7028,6 +7061,7 @@ double inla_update_density(double *theta, inla_update_tp *arg)
 	Free(z);
 	return update_dens;
 }
+#pragma GCC diagnostic pop
 
 double inla_dmatern_cf(double dist, double range, double nu)
 {
@@ -7089,12 +7123,12 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report issues/bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0, 0, 0 }, err;
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	double eff_nt = 0.0;
 #endif
 	clock_t atime_used[4] = { 0, 0, 0, 0 };
@@ -7128,6 +7162,7 @@ int main(int argc, char **argv)
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
 	GMRFLib_opt_num_threads = 0;
+	GMRFLib_turn_off_gsl_error_handler = 1;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
@@ -7153,7 +7188,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
@@ -7426,7 +7461,7 @@ int main(int argc, char **argv)
 
 		case 'c':
 		{
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 			enable_core_file = 1;		       /* allow for core files */
 #endif
 		}
@@ -7434,7 +7469,7 @@ int main(int argc, char **argv)
 
 		case 'p':
 		{
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 			long int pid = (long int) getpid();
 			FILE *fp_pid = fopen(".inla.pid", "w");
 			if (fp_pid) {
@@ -7463,7 +7498,7 @@ int main(int argc, char **argv)
 		GMRFLib_dot_product_optim_report[i] = Calloc(7, double);
 	}
 
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 	/*
 	 * disable the creation of core-file, unless explicite asked for by the argument '-c'.
 	 */
@@ -7572,7 +7607,9 @@ int main(int argc, char **argv)
 
 	if (!silent || verbose) {
 		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+#if !defined(INLA_WITH_DEVEL)
 		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
+#endif
 		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
 
 		_BUGS_intern(stdout);
@@ -7810,7 +7847,7 @@ int main(int argc, char **argv)
 				printf("\tOutput                   : %7.3f seconds\n", time_used[2]);
 				printf("\t------------------------------------------\n");
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
@@ -7861,7 +7898,7 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(stdout);
 				}
@@ -7917,7 +7954,7 @@ int main(int argc, char **argv)
 							rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-#if !defined(WINDOWS)
+#if !defined(_WIN32)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT(fp);
 				}
@@ -8030,7 +8067,9 @@ int inla_tp_free(inla_tp *mb)
 	return 0;
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 {
 	// easier to have this function here, although its more natural to call it as GMRFLib_stiles_get_graphs(mb)
@@ -8061,3 +8100,4 @@ GMRFLib_stiles_setup_tp *inla_stiles_get_setup(void *mbv)
 
 	return setup;
 }
+#pragma GCC diagnostic pop

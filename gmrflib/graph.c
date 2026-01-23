@@ -487,58 +487,118 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 	/*
 	 * just print all the bits in C to FP 
 	 */
-
 	int j, nn = 8 * sizeof(GMRFLib_uchar);
-
 	fprintf(fp, "int=[%u] : ", c);
-
 	for (j = 0; j < nn; j++) {
 		fprintf(fp, "%1d", (int) GMRFLib_getbit((GMRFLib_uchar) c, (unsigned int) (nn - j - 1)));
 	}
 	fprintf(fp, "\n");
-
 	return GMRFLib_SUCCESS;
 }
 
-#if 1
-int *GMRFLib_bsearch(int key, int n, int *array)
+int *GMRFLib_bsearch_1(int key, int n, int *arrary)
 {
-	// based on 'monobound_binary_search'-code from https://github.com/scandum/binary_search
+	if (n == 0)
+		return NULL;
+	int *base = arrary;
+	unsigned int length = (unsigned int) n, half;
+	while (length > 1) {
+		half = length / 2;
+		base += (base[half - 1] < key) * half;
+		length -= half;
+	}
+	return (*base == key) ? base : NULL;
+}
+
+int *GMRFLib_bsearch_2(int key, int n, int *array)
+{
 	if (n == 0)
 		return NULL;
 	unsigned int bot = 0, mid, top = (unsigned int) n;
 	while (top > 1) {
 		mid = top / 2;
-		if (key >= array[bot + mid]) {
-			bot += mid;
-		}
+		bot += mid * (key >= array[bot + mid]);
 		top -= mid;
 	}
-	if (key == array[bot]) {
-		return array + bot;
-	}
-	return NULL;
+	int *ret = array + bot;
+	return (key == *ret) ? ret : NULL;
 }
-#else
-int *GMRFLib_bsearch(int key, int n, int *array)
+
+int *GMRFLib_bsearch_3(int key, int n, int *array)
 {
-	// old code
 	unsigned int mid = (unsigned int) n, top = mid;
 	while (mid) {
 		mid = top / 2;
 		int *piv = array + mid;
-		int val = key - *piv;
-		if (val == 0) {
+		if (key == *piv) {
 			return piv;
 		}
-		if (val > 0) {
+		if (key > *piv) {
 			array = piv;
 		}
 		top -= mid;
 	}
 	return NULL;
 }
-#endif
+
+int *GMRFLib_bsearch_4(int key, int n, int *array)
+{
+	unsigned int bot = 0, top = n, nn = n;
+	while (top > 1) {
+		unsigned int mid = top / 2;
+		if (key >= array[bot + mid]) bot += mid;
+		top -= mid;
+	}
+	if (bot < nn && key == array[bot]) return (int*)&array[bot];
+	return NULL;
+}
+
+int *GMRFLib_bsearch_timing(int key, int n, int *array) 
+{
+	int *p = NULL;
+#pragma omp critical (Name_6474fc0a96f50de20c97c30a6b3cd2bf6471ec43)
+	{
+		static double tref[4] = {0};
+		static int trefc = 0;
+		int *p1, *p2, *p3, *p4;
+
+		p1 = GMRFLib_bsearch_1(key, n, array);
+		tref[0] -= GMRFLib_timer();
+		p1 = GMRFLib_bsearch_1(key, n, array);
+		tref[0] += GMRFLib_timer();
+
+		p2 = GMRFLib_bsearch_2(key, n, array);
+		tref[1] -= GMRFLib_timer();
+		p2 = GMRFLib_bsearch_2(key, n, array);
+		tref[1] += GMRFLib_timer();
+
+		p3 = GMRFLib_bsearch_3(key, n, array);
+		tref[2] -= GMRFLib_timer();
+		p3 = GMRFLib_bsearch_3(key, n, array);
+		tref[2] += GMRFLib_timer();
+
+		p4 = GMRFLib_bsearch_4(key, n, array);
+		tref[3] -= GMRFLib_timer();
+		p4 = GMRFLib_bsearch_4(key, n, array);
+		tref[3] += GMRFLib_timer();
+
+		assert(p1 == p2 && p1 == p3 && p1 == p4);
+		trefc++;
+
+		if (trefc % 10000 == 0) {
+			double scale = 1.0 / GMRFLib_dsum(4, tref);
+			printf("bsearch %g %g %g %g (%g)\n",
+			       tref[0] * scale,
+			       tref[1] * scale,
+			       tref[2] * scale,
+			       tref[3] * scale,
+			       (1.0 / scale) / 4.0);
+		}
+
+		p = p1;
+	}
+	return p;
+}
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
@@ -1196,7 +1256,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
-	GMRFLib_ENTER_FUNCTION;
 	/*
 	 * convert from the real-world to the mapped world. source might be NULL. 
 	 */
@@ -1228,13 +1287,11 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		// for (int i = 0; i < graph->n; i++) destination[remap[i]] = work[i];
 		GMRFLib_unpack(graph->n, work, destination, remap);
 	}
-	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
-	GMRFLib_ENTER_FUNCTION;
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
@@ -1267,7 +1324,6 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		// for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
 		GMRFLib_pack(graph->n, work, remap, destination);
 	}
-	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1502,9 +1558,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 				double *pp = x->data + id[kk];
 				GMRFLib_daxpy(ncol, v, pp, dval);
 			}
-			for (int k = 0; k < ncol; k++) {
-				gsl_matrix_set(result, i, k, dval[k]);
-			}
+			double *ptr = gsl_matrix_ptr(result, i, 0);
+			Memcpy(ptr, dval, ncol * sizeof(double));
+			// for (int k = 0; k < ncol; k++) gsl_matrix_set(result, i, k, dval[k]);
 		}
 	} else {
 		double *p1 = NULL, *p2 = NULL, *p3 = NULL, *p4 = NULL;

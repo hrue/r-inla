@@ -50,8 +50,8 @@ char *my_strlwc(const char *s)
 	return str;
 }
 
-#if defined(WINDOWS)
 // provide just this functiononality. this is required for windows compilation, I think (without posix libs)
+#if defined(_WIN32)
 double drand48(void)
 {
 	return GMRFLib_uniform();

@@ -1,41 +1,41 @@
 #ifndef __GMRFLib_OPTIMIZE_H__
-#define __GMRFLib_OPTIMIZE_H__
+#       define __GMRFLib_OPTIMIZE_H__
 
-#include <math.h>
-#include <strings.h>
-#include <stdlib.h>
+#       include <math.h>
+#       include <strings.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
 /*!
   \brief Use a conjugate gradiant method for optimisation
 */
-#define GMRFLib_OPTTYPE_CG     0
+#       define GMRFLib_OPTTYPE_CG     0
 
 /*!
   \brief Use a Newton-Raphson method for optimisation
 */
-#define GMRFLib_OPTTYPE_NR     1
+#       define GMRFLib_OPTTYPE_NR     1
 
 /*!
   \brief Use a  two-step  conjugate gradiant method for optimisation
 */
-#define GMRFLib_OPTTYPE_SAFECG 2
+#       define GMRFLib_OPTTYPE_SAFECG 2
 
 /*!
   \brief Use a two-step Newton-Raphson method for optimisation
 */
-#define GMRFLib_OPTTYPE_SAFENR 3
+#       define GMRFLib_OPTTYPE_SAFENR 3
 
 /*!
 
@@ -128,7 +128,7 @@ typedef int GMRFLib_logl_tp(int thread_id, int *cache_idx, double *logll, double
 */
 //#define GMRFLib_LOGL_COMPUTE_DERIVATIES (135792467)
 //#define GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF (135792468)
-#define GMRFLib_LOGL_COMPUTE_CDF (135792469)
+#       define GMRFLib_LOGL_COMPUTE_CDF (135792469)
 
 /*!
   \struct GMRFLib_optimize_param_tp optimize.h

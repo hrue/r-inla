@@ -45,7 +45,7 @@ int my_setenv(char *str, int prefix)
 		exit(EXIT_FAILURE);
 	}
 	*p = '\0';
-#if defined(WINDOWS)
+#if defined(_WIN32)
 	if (prefix) {
 		GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
 	} else {
@@ -203,6 +203,9 @@ double my_gsl_sf_lnbeta(double a, double b)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper4(int n, double a, double *work)
 {
 	const int roll = 4L;
@@ -232,7 +235,11 @@ double my_betabinomial_helper4(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper8(int n, double a, double *work)
 {
 	const int roll = 8L;
@@ -262,7 +269,11 @@ double my_betabinomial_helper8(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper16(int n, double a, double *work)
 {
 	const int roll = 16L;
@@ -293,7 +304,11 @@ double my_betabinomial_helper16(int n, double a, double *work)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 {
 	div_t d = div(n, roll);
@@ -325,6 +340,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 
 	return (s0);
 }
+#pragma GCC diagnostic pop
 
 double my_betabinomial_helper(int n, double a, double *work)
 {

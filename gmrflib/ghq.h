@@ -1,19 +1,19 @@
 #ifndef __GMRFLib_GHQ_H__
-#define __GMRFLib_GHQ_H__
+#       define __GMRFLib_GHQ_H__
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS typedef struct {
 	int n;
@@ -27,8 +27,8 @@ __BEGIN_DECLS typedef struct {
 /*
  */
 
-#define GMRFLib_skew_to_skew3(skew_) (DSIGN(skew_) * pow(ABS(skew_), 1.0/3.0))
-#define GMRFLib_skew3_to_skew(skew3_) POW3(skew3_)
+#       define GMRFLib_skew_to_skew3(skew_) (DSIGN(skew_) * pow(ABS(skew_), 1.0/3.0))
+#       define GMRFLib_skew3_to_skew(skew3_) POW3(skew3_)
 
 GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3);
 int GMRFLib_ghq(double **xp, double **wp, int n);

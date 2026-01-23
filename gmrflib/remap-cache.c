@@ -43,70 +43,77 @@ unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 	return (md);
 }
 
-int *GMRFLib_remap_get(int *remap, int n, int nrhs)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 {
 	if (!remap_store_use) {
 		return NULL;
 	}
-
-	unsigned char *sha = GMRFLib_remap_sha(remap, n, nrhs);
-	void **p = map_strvp_ptr(remap_store, (char *) sha);
-
-	if (remap_store_debug) {
-
-		unsigned char *sh = GMRFLib_prettify_sha(Strdup_sha(sha));
-		if (p) {
-			printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sh);
-		} else {
-			printf("[%1d]{%s} remap_store: add remap into store\n", omp_get_thread_num(), sh);
-		}
-		Free(sh);
-	}
-
-	if (p) {
-		// all good, we have it from before
-		Free(sha);
-		GMRFLib_remap_tp *r = *((GMRFLib_remap_tp **) p);
-#pragma omp atomic
-		r->count++;
-		return r->remap;
-	}
-
-	int numa_node = -1;
-	GMRFLib_numa_get(NULL, &numa_node);
-	int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
-	int *re1 = Calloc(n * nrhs, int);
-	int *re2 = Calloc(n * nrhs, int);
-
-	// two step mapping
-	for (int j = 0; j < nrhs; j++) {
-		int offset = j * n;
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			re1[offset + i] = remap[i] + offset;
-			re2[offset + i] = i * nrhs + j;
-		}
-	}
-	for (int k = 0; k < n * nrhs; k++) {
-		re[k] = re2[re1[k]];
-	}
-
-	GMRFLib_remap_tp *r = Calloc(1, GMRFLib_remap_tp);
-	r->sha = sha;
-	r->n = n;
-	r->nrhs = nrhs;
-	r->numa_node = numa_node;
-	r->count = 1;
-	r->remap = re;
+	GMRFLib_remap_tp *r = NULL;
 
 #pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
-	map_strvp_set(remap_store, (char *) r->sha, (void *) r);
+	{
+		unsigned char *sha = GMRFLib_remap_sha(remap, n, nrhs);
+		void **p = map_strvp_ptr(remap_store, (char *) sha);
 
-	Free(re1);
-	Free(re2);
+		if (remap_store_debug) {
 
-	return r->remap;
+			unsigned char *sh = GMRFLib_prettify_sha(Strdup_sha(sha));
+			if (p) {
+				printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sh);
+			} else {
+				printf("[%1d]{%s} remap_store: add remap into store\n", omp_get_thread_num(), sh);
+			}
+			Free(sh);
+		}
+
+		if (p) {
+			// all good, we have it from before
+			Free(sha);
+			r = *((GMRFLib_remap_tp **) p);
+			r->count++;
+		} else {
+			int numa_node = -1;
+			GMRFLib_numa_get(NULL, &numa_node);
+			int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
+			int *re1 = Calloc(n * nrhs, int);
+			int *re2 = Calloc(n * nrhs, int);
+
+			// two step mapping
+			for (int j = 0; j < nrhs; j++) {
+				int offset = j * n;
+#pragma omp simd
+				for (int i = 0; i < n; i++) {
+					re1[offset + i] = remap[i] + offset;
+					re2[offset + i] = i * nrhs + j;
+				}
+			}
+			for (int k = 0; k < n * nrhs; k++) {
+				re[k] = re2[re1[k]];
+			}
+			// this is the inverse of 're'
+			for (int k = 0; k < n * nrhs; k++) {
+				re1[re[k]] = k;
+			}
+
+			r = Calloc(1, GMRFLib_remap_tp);
+			r->sha = sha;
+			r->n = n;
+			r->nrhs = nrhs;
+			r->numa_node = numa_node;
+			r->count = 1;
+			r->remap = re;
+			r->remap_inv = re1;
+
+			map_strvp_set(remap_store, (char *) r->sha, (void *) r);
+			Free(re2);
+		}
+	}
+	return r;
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_remap_print(FILE *fp)
 {

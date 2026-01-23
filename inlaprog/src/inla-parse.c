@@ -317,83 +317,91 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tBUFSIZ is %1zu bytes\n", (size_t) BUFSIZ);
 		printf("\t\tCACHE_LINE_SIZE is %1zu bytes\n", (size_t) GMRFLib_cachelinesize);
 		printf("\t\tMEM_ALIGN is %1zu bytes\n", (size_t) GMRFLib_MEM_ALIGN);
+
+		GMRFLib_sys_cache_tp L123;
+		GMRFLib_sys_cache(&L123);
+		printf("\t\tL1 Data  Cache: %zu bytes\n", L123.l1_data);
+		printf("\t\tL1 Instr Cache: %zu bytes\n", L123.l1_inst);
+		printf("\t\tL2       Cache: %zu bytes\n", L123.l2);
+		printf("\t\tL3       Cache: %zu bytes\n", L123.l3);
+
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
 #endif
 #if defined(__AVX__)
-		printf("\t\tCompiler macro defined [__AVX__]\n");
+		printf("\t\tCompiler symbol defined [__AVX__]\n");
 #endif
 #if defined(__AVX2__)
-		printf("\t\tCompiler macro defined [__AVX2__]\n");
+		printf("\t\tCompiler symbol defined [__AVX2__]\n");
 #endif
 #if defined(__AVX512BW__)
-		printf("\t\tCompiler macro defined [__AVX512BW__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512BW__]\n");
 #endif
 #if defined(__AVX512ER__)
-		printf("\t\tCompiler macro defined [__AVX512ER__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512ER__]\n");
 #endif
 #if defined(__AVX512PF__)
-		printf("\t\tCompiler macro defined [__AVX512PF__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512PF__]\n");
 #endif
 #if defined(__AVX512VPOPCNTDQ__)
-		printf("\t\tCompiler macro defined [__AVX512VPOPCNTDQ__");
+		printf("\t\tCompiler symbol defined [__AVX512VPOPCNTDQ__");
 #endif
 #if defined(__AVX512VBMI__)
-		printf("\t\tCompiler macro defined [__AVX512VBMI__");
+		printf("\t\tCompiler symbol defined [__AVX512VBMI__");
 #endif
 #if defined(__AVX512IFMA__)
-		printf("\t\tCompiler macro defined [__AVX512IFMA__");
+		printf("\t\tCompiler symbol defined [__AVX512IFMA__");
 #endif
 #if defined(__AVX5124FMAPS__)
-		printf("\t\tCompiler macro defined [__AVX5124FMAPS__");
+		printf("\t\tCompiler symbol defined [__AVX5124FMAPS__");
 #endif
 #if defined(__AVX5124VNNIW__)
-		printf("\t\tCompiler macro defined [__AVX5124VNNIW__");
+		printf("\t\tCompiler symbol defined [__AVX5124VNNIW__");
 #endif
 #if defined(__AVX512CD__)
-		printf("\t\tCompiler macro defined [__AVX512CD__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512CD__]\n");
 #endif
 #if defined(__AVX512DQ__)
-		printf("\t\tCompiler macro defined [__AVX512DQ__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512DQ__]\n");
 #endif
 #if defined(__AVX512F__)
-		printf("\t\tCompiler macro defined [__AVX512F__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512F__]\n");
 #endif
 #if defined(__AVX512VL__)
-		printf("\t\tCompiler macro defined [__AVX512VL__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512VL__]\n");
 #endif
 #if defined(__AVX512VNNI__)
-		printf("\t\tCompiler macro defined [__AVX512VNNI__]\n");
+		printf("\t\tCompiler symbol defined [__AVX512VNNI__]\n");
 #endif
 #if defined(__AVXVNNI__)
-		printf("\t\tCompiler macro defined [__AVXVNNI__]\n");
+		printf("\t\tCompiler symbol defined [__AVXVNNI__]\n");
 #endif
 #if defined(__MMX_WITH_SSE__)
-		printf("\t\tCompiler macro defined [__MMX_WITH_SSE__]\n");
+		printf("\t\tCompiler symbol defined [__MMX_WITH_SSE__]\n");
 #endif
 #if defined(__SSE__)
-		printf("\t\tCompiler macro defined [__SSE__]\n");
+		printf("\t\tCompiler symbol defined [__SSE__]\n");
 #endif
 #if defined(__SSE2__)
-		printf("\t\tCompiler macro defined [__SSE2__]\n");
+		printf("\t\tCompiler symbol defined [__SSE2__]\n");
 #endif
 #if defined(__SSE2_MATH__)
-		printf("\t\tCompiler macro defined [__SSE2_MATH__]\n");
+		printf("\t\tCompiler symbol defined [__SSE2_MATH__]\n");
 #endif
 #if defined(__SSE3__)
-		printf("\t\tCompiler macro defined [__SSE3__]\n");
+		printf("\t\tCompiler symbol defined [__SSE3__]\n");
 #endif
 #if defined(__SSE4_1__)
-		printf("\t\tCompiler macro defined [__SSE4_1__]\n");
+		printf("\t\tCompiler symbol defined [__SSE4_1__]\n");
 #endif
 #if defined(__SSE4_2__)
-		printf("\t\tCompiler macro defined [__SSE4_2__]\n");
+		printf("\t\tCompiler symbol defined [__SSE4_2__]\n");
 #endif
 #if defined(__SSE_MATH__)
-		printf("\t\tCompiler macro defined [__SSE_MATH__]\n");
+		printf("\t\tCompiler symbol defined [__SSE_MATH__]\n");
 #endif
 #if defined(__SSSE3__)
-		printf("\t\tCompiler macro defined [__SSSE3__]\n");
+		printf("\t\tCompiler symbol defined [__SSSE3__]\n");
 #endif
 #if defined(INLA_WITH_STILES)
 		printf("\t\tCompiled with -DINLA_WITH_STILES\n");
@@ -409,9 +417,6 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #endif
 #if defined(INLA_WITH_MUPARSER)
 		printf("\t\tCompiled with -DINLA_WITH_MUPARSER\n");
-#endif
-#if defined(INLA_WITH_SIMD)
-		printf("\t\tCompiled with -DINLA_WITH_SIMD\n");
 #endif
 #if defined(INLA_WITH_MKL)
 		printf("\t\tCompiled with -DINLA_WITH_MKL\n");
@@ -433,6 +438,20 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #endif
 #if defined(INLA_WITH_HWLOC)
 		printf("\t\tCompiled with -DINLA_WITH_HWLOC\n");
+#endif
+#if defined(INLA_WITH_SIMDE)
+		printf("\t\tCompiled with -DINLA_WITH_SIMDE\n");
+#endif
+#if defined(__x86_64__)
+		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE2    availble? %s\n", __builtin_cpu_supports("sse2") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE3    availble? %s\n", __builtin_cpu_supports("sse3") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE4.1  availble? %s\n", __builtin_cpu_supports("sse4.1") ? "YES" : "NO");
+		printf("\t\tCPU feature SSE4.2  availble? %s\n", __builtin_cpu_supports("sse4.2") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX     availble? %s\n", __builtin_cpu_supports("avx") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX2    availble? %s\n", __builtin_cpu_supports("avx2") ? "YES" : "NO");
+		printf("\t\tCPU feature AVX512F availble? %s\n", __builtin_cpu_supports("avx512f") ? "YES" : "NO");
+		printf("\n");
 #endif
 	}
 
@@ -19705,22 +19724,21 @@ int inla_parse_taucs(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = TAUCS
 	 */
-	char *secname = NULL;
-	int block_size;
-
 	if (mb->verbose) {
 		printf("\tinla_parse_taucs...\n");
 	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 0);
+	int min_block_size = iniparser_getint(ini, inla_string_join(secname, "MIN.BLOCK.SIZE"), 4);
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 64);
 	if (mb->verbose) {
+		printf("\t\tmin.block.size[%1d]\n", min_block_size);
 		printf("\t\tblock.size[%1d]\n", block_size);
 	}
-	GMRFLib_taucs_set_ctl(block_size);
+	GMRFLib_taucs_set_ctl(min_block_size, block_size);
 
 	return INLA_OK;
 }
@@ -19891,7 +19909,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
-	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 0);
+	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
 
 	if (mb->verbose) {
 		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));

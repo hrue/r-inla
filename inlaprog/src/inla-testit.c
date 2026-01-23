@@ -19,6 +19,9 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
 {
@@ -40,6 +43,7 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	}
 	return GMRFLib_SUCCESS;
 }
+#       pragma GCC diagnostic pop
 
 int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -61,6 +65,9 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
 {
@@ -80,6 +87,7 @@ int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	}
 	return GMRFLib_SUCCESS;
 }
+#       pragma GCC diagnostic pop
 
 int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -118,6 +126,9 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -239,15 +250,15 @@ int testit(int argc, char **argv)
 	case 5:
 	{
 		// this force a race-condition
-#define NN 10
-		int x[NN];
-#pragma omp parallel for
+#       define NN 10
+		int x[NN] = { 0 };
+#       pragma omp parallel for
 		for (int i = 0; i < NN; i++) {
 			*(x + i) = i;
 		}
 		P((double) x[0]);
 		P((double) x[NN - 1]);
-#undef NN
+#       undef NN
 	}
 		break;
 
@@ -290,9 +301,9 @@ int testit(int argc, char **argv)
 
 	case 8:
 	{
-#pragma omp critical (Name_5f0e63e7e6c4127b4e2e50c9002880440da56212)
+#       pragma omp critical (Name_5f0e63e7e6c4127b4e2e50c9002880440da56212)
 		{
-#define _MODEL "rgeneric.model"
+#       define _MODEL "rgeneric.model"
 			printf("test rgeneric\n");
 			inla_R_library("INLA");
 			inla_R_load("rgeneric.RData");
@@ -305,7 +316,7 @@ int testit(int argc, char **argv)
 			int n_out;
 			double *x_out = NULL;
 
-#define _PPP(cmd)							\
+#       define _PPP(cmd)							\
 			printf("\ncmd [%s] n_out [%1d]\n", cmd, n_out);	\
 			for(i=0; i<n_out; i++) {			\
 				printf("x[ %1d ] = %g\n", i, x_out[i]);	\
@@ -331,8 +342,8 @@ int testit(int argc, char **argv)
 			_PPP("quit");
 		}
 
-#undef _MODEL
-#undef _PPP
+#       undef _MODEL
+#       undef _PPP
 	}
 		break;
 
@@ -367,7 +378,7 @@ int testit(int argc, char **argv)
 		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 1;			       /* p */
 		sum = 0;
-#pragma omp parallel for private(i, x, xx) reduction(+: sum)
+#       pragma omp parallel for private(i, x, xx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			double x2[1];
@@ -379,7 +390,7 @@ int testit(int argc, char **argv)
 		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 2;			       /* p */
 		sum = 0;
-#pragma omp parallel for private(i, x, xx) reduction(+: sum)
+#       pragma omp parallel for private(i, x, xx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
@@ -394,7 +405,7 @@ int testit(int argc, char **argv)
 		parameters[0] = 3.123;			       /* lambda */
 		parameters[1] = 3;			       /* p */
 		sum = 0;
-#pragma omp parallel for private(i, x, xx, xxx) reduction(+: sum)
+#       pragma omp parallel for private(i, x, xx, xxx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
@@ -422,7 +433,7 @@ int testit(int argc, char **argv)
 
 		double *xx = NULL;
 		int nxx;
-#pragma omp parallel for
+#       pragma omp parallel for
 		for (int i = 0; i < 10; i++) {
 			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", &nx, x);
 		}
@@ -465,7 +476,7 @@ int testit(int argc, char **argv)
 		int ntimes = 10, itim;
 
 		for (itim = 0; itim < ntimes; itim++) {
-#pragma omp parallel for private(i, jj, j, thread_id)
+#       pragma omp parallel for private(i, jj, j, thread_id)
 			for (i = 0; i < n; i++) {
 				thread_id = omp_get_thread_num();
 				Q->A[i + i * n] = inla_spde3_Qfunction(thread_id, i, i, NULL, (void *) smodel);
@@ -660,11 +671,11 @@ int testit(int argc, char **argv)
 	case 23:
 	{
 		// test ghq
-#define FUN0(x) (1)
-#define FUN1(x) (x)
-#define FUN2(x) SQR(x)
-#define FUN3(x) (SQR(x)*(x))
-#define FUN4(x) SQR(SQR(x))
+#       define FUN0(x) (1)
+#       define FUN1(x) (x)
+#       define FUN2(x) SQR(x)
+#       define FUN3(x) (SQR(x)*(x))
+#       define FUN4(x) SQR(SQR(x))
 
 		double *xp = NULL, *wp = NULL, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
 		int np = GMRFLib_INT_GHQ_POINTS, i;
@@ -725,8 +736,8 @@ int testit(int argc, char **argv)
 		printf("estimate %.12f\n", integral0);
 
 		exit(0);
-#undef FUN2
-#undef FUN4
+#       undef FUN2
+#       undef FUN4
 	}
 		break;
 
@@ -747,7 +758,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < 10; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_timer();
-#pragma GCC ivdep
+#       pragma GCC ivdep
 			for (int i = 0; i < n; i++) {
 				sum1 += xx[i] * yy[i];
 			}
@@ -1276,7 +1287,7 @@ int testit(int argc, char **argv)
 
 	case 49:
 	{
-#define SPECIAL(x) ((x > 0 ?						\
+#       define SPECIAL(x) ((x > 0 ?						\
 		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
@@ -1285,7 +1296,7 @@ int testit(int argc, char **argv)
 			       x, log(gsl_sf_psi_1(x) - 1 / x), SPECIAL(x), log(gsl_sf_psi_1(x) - 1 / x) - SPECIAL(x));
 		}
 	}
-#undef SPECIAL
+#       undef SPECIAL
 		break;
 
 	case 50:
@@ -1331,7 +1342,7 @@ int testit(int argc, char **argv)
 		double y, dy = 0.001, sum = 0.0;
 		int iy;
 
-#pragma omp parallel for private(iy, y, ldens) reduction(+:sum)
+#       pragma omp parallel for private(iy, y, ldens) reduction(+:sum)
 		for (iy = 0; iy < 100000; iy++) {
 			y = SQR(dy) + iy * dy;
 			dtweedie(1, y, &mu, phi, p, &ldens);
@@ -1692,7 +1703,7 @@ int testit(int argc, char **argv)
 
 		printf("\n\n");
 		FIXME("run with 4 threads");
-#pragma omp parallel for num_threads(4)
+#       pragma omp parallel for num_threads(4)
 		for (int i = 0; i < n; i++) {
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
@@ -1702,7 +1713,7 @@ int testit(int argc, char **argv)
 
 		printf("\n\n");
 		FIXME("run with 1 threads");
-#pragma omp parallel for num_threads(1)
+#       pragma omp parallel for num_threads(1)
 		for (int i = 0; i < n; i++) {
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
@@ -2546,13 +2557,13 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			tref1 -= GMRFLib_timer();
 			double s = GMRFLib_uniform();
-#pragma omp simd reduction(+: s)
+#       pragma omp simd reduction(+: s)
 			for (int i = 0; i < n; i++) {
 				s += xx[i];
 			}
 			tref1 += GMRFLib_timer();
 			tref2 -= GMRFLib_timer();
-#pragma GCC ivdep
+#       pragma GCC ivdep
 			for (int i = 0; i < n; i++) {
 				s += xx[i];
 			}
@@ -2753,7 +2764,7 @@ int testit(int argc, char **argv)
 
 		double tref;
 		tref = -GMRFLib_timer();
-#pragma omp parallel for num_threads(nt)
+#       pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nt; i++) {
 			char *fnm = NULL;
 			GMRFLib_sprintf(&fnm, "REMOVE_ME_%1d.dat", i);
@@ -3072,9 +3083,9 @@ int testit(int argc, char **argv)
 	case 106:
 	{
 		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
-#pragma omp parallel for
+#       pragma omp parallel for
 		for (int i = -1; i <= 2057; i++) {
-#pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
+#       pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
 			printf("%d %.20g\n", i, my_lbell(i));
 		}
 	}
@@ -3312,7 +3323,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] = a * x[j] + b;
 			}
@@ -3352,10 +3363,10 @@ int testit(int argc, char **argv)
 			printf("X:  %g %g\n", x[i], y[i]);
 		}
 		printf("X:\n");
-#pragma omp parallel for
+#       pragma omp parallel for
 		for (int i = 0; i < 100; i++) {
 			int t = omp_get_thread_num();
-#pragma omp parallel for
+#       pragma omp parallel for
 			for (int ii = 0; ii < 100; ii++) {
 				int tt = omp_get_thread_num();
 				double xx = -5 + ii * 0.1;
@@ -3501,7 +3512,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] += x[j];
 			}
@@ -3541,12 +3552,12 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_timer();
 			if (inc == 1) {
-#pragma omp simd
+#       pragma omp simd
 				for (int j = 0; j < n; j++) {
 					y[j] = x[j] - y[j];
 				}
 			} else {
-#pragma omp simd
+#       pragma omp simd
 				for (int j = 0; j < n; j++) {
 					y[j] = x[j * inc] - y[j];
 				}
@@ -3595,7 +3606,7 @@ int testit(int argc, char **argv)
 			}
 
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = x[j] + exp(x[j]);
 			}
@@ -3635,21 +3646,21 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = x[j] * x[j];
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 			vdSqr(n, x, yy);
-#else
-#pragma omp simd
+#       else
+#              pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] = x[j] * x[j];
 			}
-#endif
+#       endif
 			tref[1] += GMRFLib_timer();
 
 			double err = 0.0;
@@ -3681,21 +3692,21 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = log1p(x[j]);
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 			vdLog1p(n, x, yy);
-#else
-#pragma omp simd
+#       else
+#              pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] = log1p(x[i]);
 			}
-#endif
+#       endif
 			tref[1] += GMRFLib_timer();
 
 			double err = 0.0;
@@ -3730,7 +3741,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = a * x[j] + b;
 			}
@@ -3772,7 +3783,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = a * x[j] + b * xx[j];
 			}
@@ -3811,7 +3822,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < m; i++) {
 			double a = GMRFLib_uniform();
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] = a;
 			}
@@ -3838,7 +3849,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < m; i++) {
 			int ia = (int) (INT_MAX * GMRFLib_uniform());
 			treff[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				iy[j] = ia;
 			}
@@ -3865,7 +3876,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < m; i++) {
 			bool ba = (GMRFLib_uniform() > 0.5 ? true : false);
 			trefff[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				by[j] = ba;
 			}
@@ -4163,14 +4174,14 @@ int testit(int argc, char **argv)
 				y1[j] = y2[j] = GMRFLib_uniform();
 			}
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y2[j] = map_probability(y1[j], MAP_FORWARD, NULL);
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y2[j] = map_probability_forward(y1[j], MAP_FORWARD, NULL);
 			}
@@ -4292,7 +4303,7 @@ int testit(int argc, char **argv)
 			aligned_double(sum) = 0.0;
 
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd reduction(+: sum)
+#       pragma omp simd reduction(+: sum)
 			for (int i = 0; i < n; i++) {
 				sum += x[i] * y[i];
 			}
@@ -4301,7 +4312,7 @@ int testit(int argc, char **argv)
 
 			sum = 0.0;
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd reduction(+: sum)
+#       pragma omp simd reduction(+: sum)
 			for (int i = 0; i < n; i++) {
 				sum = fma(x[i], y[i], sum);
 			}
@@ -4345,7 +4356,7 @@ int testit(int argc, char **argv)
 		}
 
 		double sum = 0.0;
-#pragma omp parallel for reduction(+: sum)
+#       pragma omp parallel for reduction(+: sum)
 		for (int i = 0; i < 100; i++) {
 			printf("call fun(0) in thread.num %d\n", omp_get_thread_num());
 			sum += fun(0.0);
@@ -4370,7 +4381,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			double power = 1.0 + 2.0 * GMRFLib_uniform();
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = pow(x[i], power);
 			}
@@ -4399,14 +4410,14 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0 };
 		for (int k = 0; k < m; k++) {
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = lgamma(x[i]);
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = log(x[i]);
 			}
@@ -4554,9 +4565,9 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
-#if !defined(INLA_WITH_MKL)
+#       if !defined(INLA_WITH_MKL)
 		mkl = 0;
-#endif
+#       endif
 
 		P(n);
 		P(m);
@@ -4575,11 +4586,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdExp(n, x, y);
 			}
-#endif
+#       endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
@@ -4601,11 +4612,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdLn(n, x, y);
 			}
-#endif
+#       endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
@@ -4627,11 +4638,11 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		if (mkl) {
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 			for (int j = 0; j < m; j++) {
 				vdLog1p(n, x, y);
 			}
-#endif
+#       endif
 		} else {
 			for (int j = 0; j < m; j++) {
 				for (int i = 0; i < n; i++) {
@@ -4669,7 +4680,7 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		for (int j = 0; j < m; j++) {
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = exp(x[i]);
 			}
@@ -4684,7 +4695,7 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		for (int j = 0; j < m; j++) {
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = log(x[i]);
 			}
@@ -4699,7 +4710,7 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_timer();
 		tref[1] = -GMRFLib_timer();
 		for (int j = 0; j < m; j++) {
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				y[i] = log1p(x[i]);
 			}
@@ -4886,7 +4897,7 @@ int testit(int argc, char **argv)
 		}
 		for (int k = 0; k < m; k++) {
 			tref1 -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int i = 0; i < n; i++) {
 				xx2[i] = xx[i] * xx[i];
 			}
@@ -4985,7 +4996,7 @@ int testit(int argc, char **argv)
 
 	case 157:
 	{
-#if defined(INLA_WITH_NUMA) && defined(__linux__)
+#       if defined(INLA_WITH_NUMA) && defined(__linux__)
 		Pint(numa_available());
 		Pint(numa_max_possible_node());
 		Pint(numa_num_possible_nodes());
@@ -4994,16 +5005,16 @@ int testit(int argc, char **argv)
 		Pint(numa_num_configured_cpus());
 		Pint(numa_num_task_cpus());
 		Pint(numa_num_task_nodes());
-#pragma omp parallel for
+#              pragma omp parallel for
 		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			int c = -1, n = -1;
 			GMRFLib_numa_get(&c, &n);
-#pragma omp critical (Name_bbc039e6c082e74f76e14604b3457c14112f1e69)
+#              pragma omp critical (Name_bbc039e6c082e74f76e14604b3457c14112f1e69)
 			printf("thread %1d belongs to cpu %d at numa %d\n", omp_get_thread_num(), c, n);
 		}
-#else
+#       else
 		printf("\n\tNUMA support is not included in this build.\n");
-#endif
+#       endif
 	}
 		break;
 
@@ -5144,7 +5155,7 @@ int testit(int argc, char **argv)
 			if (1) {
 				x[0] = x[m - 1] = 1;
 			} else {
-#pragma omp simd
+#       pragma omp simd
 				for (int j = 0; j < m; j++) {
 					x[j] = j;
 				}
@@ -5157,7 +5168,7 @@ int testit(int argc, char **argv)
 			if (1) {
 				xx[0] = xx[m - 1] = 1;
 			} else {
-#pragma omp simd
+#       pragma omp simd
 				for (int j = 0; j < m; j++) {
 					xx[j] = j;
 				}
@@ -5258,11 +5269,10 @@ int testit(int argc, char **argv)
 
 	case 170:
 	{
-		printf("n.times n.rhs graph.name [opt.solve]\n");
+		printf("n.times n.rhs graph.name\n");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		char *graph_name = args[2];
-		GMRFLib_opt_solve = (nargs >= 4 ? atoi(args[3]) : 0);
 		GMRFLib_graph_tp *graph = NULL;
 		GMRFLib_graph_read(&graph, graph_name);
 		int N = graph->n;
@@ -5281,8 +5291,10 @@ int testit(int argc, char **argv)
 		double *b = Malloc(N * m, double);
 		double *sol0 = Malloc(N * m, double);
 		double *sol1 = Malloc(N * m, double);
+#if 0
 		double *sol2 = Malloc(N * m, double);
 		double *sol3 = Malloc(N * m, double);
+#endif
 		double *w = Malloc(N * m, double);
 
 		for (int i = 0; i < N * m; i++) {
@@ -5293,6 +5305,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		tref[0] = -GMRFLib_timer();
 		for (int iter = 0; iter < n; iter++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int i = 0; i < m; i++) {
 				int offset = i * graph->n;
 				GMRFLib_solve_llt_sparse_matrix_TAUCS(x + offset,
@@ -5308,8 +5321,7 @@ int testit(int argc, char **argv)
 
 		tref[1] = -GMRFLib_timer();
 		for (int iter = 0; iter < n; iter++) {
-			GMRFLib_solve_llt_sparse_matrix2_TAUCS(x, (&((*problem).sub_sm_fact))->TAUCS_L,
-							       graph, (&((*problem).sub_sm_fact))->remap, m, w);
+			GMRFLib_solve_llt_sparse_matrix(x, m, &((*problem).sub_sm_fact), graph, problem, NULL);
 		}
 		tref[1] += GMRFLib_timer();
 
@@ -5319,6 +5331,7 @@ int testit(int argc, char **argv)
 		GMRFLib_free_problem(problem);
 		problem = NULL;
 
+#if 0
 		smtp = GMRFLib_smtp = GMRFLib_SMTP_STILES;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
 		GMRFLib_ptr_tp *ptr = NULL;
@@ -5328,7 +5341,7 @@ int testit(int argc, char **argv)
 		GMRFLib_stiles_setup_tp setup = { ptr, iptr };
 		GMRFLib_stiles_setup(&setup);
 
-#pragma omp parallel for num_threads(1)
+#       pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < 1; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
@@ -5340,7 +5353,7 @@ int testit(int argc, char **argv)
 		GMRFLib_stiles_print(stdout);
 
 		tref[2] = -GMRFLib_timer();
-#pragma omp parallel for num_threads(1)
+#       pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < n; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
@@ -5355,7 +5368,7 @@ int testit(int argc, char **argv)
 		Memcpy(x, b, N * m * sizeof(double));
 
 		tref[3] = -GMRFLib_timer();
-#pragma omp parallel for num_threads(1)
+#       pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < n; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, m);
@@ -5364,29 +5377,34 @@ int testit(int argc, char **argv)
 		tref[3] += GMRFLib_timer();
 
 		Memcpy(sol3, x, N * m * sizeof(double));
-
-		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", tref[0] / m);
-		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", tref[1] / m);
-		printf("STILES  pr rhs x 1E6  %.6f sec\n", tref[2] / m);
-		printf("STILES2 pr rhs x 1E6  %.6f sec\n", tref[3] / m);
-
+#endif
+		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", 1e6 * tref[0] / m);
+		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[1] / m);
+#if 0
+		printf("STILES  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[2] / m);
+		printf("STILES2 pr rhs x 1E6  %.6f sec\n", 1e6 * tref[3] / m);
+#endif
 
 		double err[] = { 0.0, 0.0, 0.0, 0.0 };
 		for (int i = 0; i < N * m; i++) {
 			err[1] += SQR(sol0[i] - sol1[i]);
+#if 0
 			err[2] += SQR(sol0[i] - sol2[i]);
 			err[3] += SQR(sol0[i] - sol3[i]);
+#endif
 		}
 		printf("\n");
 		P(sqrt(err[1] / (double) (N * m)));
+#if 0
 		P(sqrt(err[2] / (double) (N * m)));
 		P(sqrt(err[3] / (double) (N * m)));
+#endif
 	}
 		break;
 
 	case 171:
 	{
-#define CODE_BLOCK							\
+#       define CODE_BLOCK							\
 		for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {	\
 			CODE_BLOCK_INIT();				\
 			double *a = CODE_BLOCK_WORK_PTR(0);		\
@@ -5399,7 +5417,7 @@ int testit(int argc, char **argv)
 		}
 
 		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
-#undef CODE_BLOCK
+#       undef CODE_BLOCK
 	}
 		break;
 
@@ -5412,12 +5430,12 @@ int testit(int argc, char **argv)
 		P(GMRFLib_MAX_THREADS());
 		GMRFLib_openmp_implement_strategy_special(n, m);
 		double s = 0.0;
-#pragma omp parallel for num_threads(n) schedule(static) reduction(+: s)
+#       pragma omp parallel for num_threads(n) schedule(static) reduction(+: s)
 		for (int i = 0; i < n; i++) {
 			int tnum1 = omp_get_thread_num();
 			int cpu1 = 0;
 			GMRFLib_numa_get(&cpu1, NULL);
-#pragma omp parallel for num_threads(m) schedule(static)
+#       pragma omp parallel for num_threads(m) schedule(static)
 			for (int j = 0; j < m; j++) {
 				s += i * j + i;
 
@@ -5445,7 +5463,7 @@ int testit(int argc, char **argv)
 	case 173:
 	{
 		FIXME("omp");
-#pragma omp parallel for num_threads(4)
+#       pragma omp parallel for num_threads(4)
 		for (int i = 0; i < 4; i++) {
 			P(GMRFLib_OPENMP_IN_INNER());
 			P(GMRFLib_OPENMP_IN_OUTER());
@@ -5475,7 +5493,7 @@ int testit(int argc, char **argv)
 
 		tref = -GMRFLib_timer();
 		sum = 0.0;
-#pragma omp parallel for num_threads(1) reduction(+: sum)
+#       pragma omp parallel for num_threads(1) reduction(+: sum)
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < i; j++) {
 				sum += sin(i + j) * cos(i - j);
@@ -5622,7 +5640,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd aligned(y: GMRFLib_MEM_ALIGN)
+#       pragma omp simd aligned(y: GMRFLib_MEM_ALIGN)
 			for (int j = 0; j < n; j++) {
 				y[j] *= a;
 			}
@@ -5655,7 +5673,7 @@ int testit(int argc, char **argv)
 
 			double sum = 0.0;
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN) reduction(+: sum)
+#       pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN) reduction(+: sum)
 			for (int j = 0; j < n; j++) {
 				sum += x[j] * y[j];
 			}
@@ -5736,6 +5754,493 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 188:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		int kk = 0;
+		const int mm = 10;
+		if (nargs >= 3) {
+			kk = (atoi(args[2]) ? 1 : 0);
+		}
+		P(n);
+		P(m);
+		P(kk);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double *ys = Calloc(mm * n + 100, double);
+		int *ix = Calloc(n + 100, int);
+		int *iy = Calloc(n + 100, int);
+		int *idx = Calloc(n + 100, int);
+		bool *bx = Calloc(n + 100, bool);
+
+		x = x + kk;
+		y = y + kk;
+		ix = ix + kk;
+		iy = iy + kk;
+		idx = idx + kk;
+		bx = bx + kk;
+
+		P(SIMD_ALIGNED(x));
+		P(SIMD_ALIGNED(y));
+		P(SIMD_ALIGNED(ix));
+		P(SIMD_ALIGNED(iy));
+		P(SIMD_ALIGNED(idx));
+		P(SIMD_ALIGNED(bx));
+
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double tref_native[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = 0; j < m; j++) {
+			for (int i = 0; i < n; i++) {
+				ix[i] = (int) (1000 * GMRFLib_uniform());
+				iy[i] = (int) (1000 * GMRFLib_uniform());
+				idx[i] = (i - 1 >= 0 ? idx[i - 1] : 0) + (int) (mm * GMRFLib_uniform());
+				ys[idx[i]] = GMRFLib_uniform();
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+				bx[i] = (bool) (GMRFLib_uniform() < 0.5);
+			}
+
+			double a, e;
+
+			tref[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x, y);
+			tref[9] += GMRFLib_timer();
+
+			tref_native[9] -= GMRFLib_timer();
+			e = 0.0;
+#       pragma omp simd reduction(+: e)
+			for (int k = 0; k < n; k++)
+				e += x[k] * y[k];
+			tref_native[9] += GMRFLib_timer();
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, x, ys, idx);
+			tref[0] += GMRFLib_timer();
+
+			tref_native[0] -= GMRFLib_timer();
+			e = 0.0;
+#       pragma omp simd reduction(+: e)
+			for (int k = 0; k < n; k++)
+				e += x[k] * ys[idx[k]];
+			tref_native[0] += GMRFLib_timer();
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref[1] -= GMRFLib_timer();
+			a = GMRFLib_dsum(n, x);
+			tref[1] += GMRFLib_timer();
+
+			tref_native[1] -= GMRFLib_timer();
+			e = 0.0;
+#       pragma omp simd reduction(+: e)
+			for (int k = 0; k < n; k++)
+				e += x[k];
+			tref_native[1] += GMRFLib_timer();
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref[2] -= GMRFLib_timer();
+			a = GMRFLib_isum(n, ix);
+			tref[2] += GMRFLib_timer();
+
+			tref_native[2] -= GMRFLib_timer();
+			e = 0.0;
+#       pragma omp simd reduction(+: e)
+			for (int k = 0; k < n; k++)
+				e += ix[k];
+			tref_native[2] += GMRFLib_timer();
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref[3] -= GMRFLib_timer();
+			GMRFLib_dscale(n, GMRFLib_uniform(), x);
+			tref[3] += GMRFLib_timer();
+
+			tref[4] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, GMRFLib_uniform(), x, y);
+			tref[4] += GMRFLib_timer();
+
+			tref[8] -= GMRFLib_timer();
+			a = GMRFLib_sparse_dsum(n, ys, idx);
+			tref[8] += GMRFLib_timer();
+
+			tref_native[8] -= GMRFLib_timer();
+			e = 0.0;
+#       pragma omp simd reduction(+: e)
+			for (int k = 0; k < n; k++)
+				e += ys[idx[k]];
+			tref_native[8] += GMRFLib_timer();
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref[5] -= GMRFLib_timer();
+			GMRFLib_dfill(n, GMRFLib_uniform(), x);
+			tref[5] += GMRFLib_timer();
+			assert(x[0] == x[n - 1]);
+
+			tref[6] -= GMRFLib_timer();
+			GMRFLib_ifill(n, (int) (GMRFLib_uniform() * 10000), ix);
+			tref[6] += GMRFLib_timer();
+			assert(ix[0] == ix[n - 1]);
+
+			tref[7] -= GMRFLib_timer();
+			GMRFLib_bfill(n, (bool) 1, bx);
+			tref[7] += GMRFLib_timer();
+			assert(bx[0] == bx[n - 1]);
+
+			tref[10] -= GMRFLib_timer();
+			double f = GMRFLib_uniform();
+			GMRFLib_dscale2(n, f, x, y);
+			tref[10] += GMRFLib_timer();
+
+			tref_native[10] -= GMRFLib_timer();
+#       pragma omp simd
+			for (int k = 0; k < n; k++)
+				y[k] = x[k] * a;
+			tref_native[10] += GMRFLib_timer();
+		}
+		printf("aligned %s\n", (SIMD_ALIGNED(x)) ? "YES" : "NO");
+		printf("ddot               %.8f\n", tref[9]);
+		printf("sparse_ddot        %.8f\n", tref[0]);
+
+		printf("dsum               %.8f\n", tref[1]);
+		printf("isum               %.8f\n", tref[2]);
+		printf("sparse_dsum        %.8f\n", tref[8]);
+		printf("dsum simple        %.8f\n", tref_native[1]);
+		printf("isum simple        %.8f\n", tref_native[2]);
+		printf("sparse_dsum simple %.8f\n", tref_native[8]);
+
+		printf("dscale             %.8f\n", tref[3]);
+		printf("daxpy              %.8f\n", tref[4]);
+
+		printf("dscale2            %.8f\n", tref[10]);
+		printf("dscale2 simple     %.8f\n", tref_native[10]);
+
+		printf("dfill              %.8f\n", tref[5]);
+		printf("ifill              %.8f\n", tref[6]);
+		printf("bfill              %.8f\n", tref[7]);
+	}
+		break;
+
+	case 189:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x[2] = { NULL, NULL };
+		double *xx[2] = { NULL, NULL };
+		double *y[2] = { NULL, NULL };
+		double *yy[2] = { NULL, NULL };
+		int *ix[2] = { NULL, NULL };
+		int *iy[2] = { NULL, NULL };
+		int *idx[2] = { NULL, NULL };
+		int *idxx[2] = { NULL, NULL };
+
+		double tref_same[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double tref_diff[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = 0; j < m; j++) {
+
+			GMRFLib_numa_free(x[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(x[1], (n + 100) * sizeof(double));
+			x[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			x[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(y[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(y[1], (n + 100) * sizeof(double));
+			y[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			y[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(xx[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(xx[1], (n + 100) * sizeof(double));
+			xx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			xx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(yy[0], (n + 100) * sizeof(double));
+			GMRFLib_numa_free(yy[1], (n + 100) * sizeof(double));
+			yy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			yy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+
+			GMRFLib_numa_free(ix[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(ix[1], (n + 100) * sizeof(int));
+			ix[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			ix[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(iy[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(iy[1], (n + 100) * sizeof(int));
+			iy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			iy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(idx[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(idx[1], (n + 100) * sizeof(int));
+			idx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			GMRFLib_numa_free(idxx[0], (n + 100) * sizeof(int));
+			GMRFLib_numa_free(idxx[1], (n + 100) * sizeof(int));
+			idxx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idxx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+
+			for (int k = 0; k < 1; k++) {
+				for (int i = 0; i < n; i++) {
+					x[k][i] = GMRFLib_uniform();
+					xx[k][i] = GMRFLib_uniform();
+					y[k][i] = GMRFLib_uniform();
+					yy[k][i] = GMRFLib_uniform();
+					ix[k][i] = (int) (1000 * GMRFLib_uniform());
+					iy[k][i] = (int) (1000 * GMRFLib_uniform());
+					idx[k][i] = i;
+					idxx[k][i] = i;
+				}
+			}
+
+			double a, e, POSSIBLY_UNUSED(aa);
+			int this_node = GMRFLib_numa_get_node();
+			int other_node = GMRFLib_numa_nodes() - 1 - this_node;
+
+			tref_same[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x[this_node], y[this_node]);
+			aa = GMRFLib_ddot(n, x[other_node], y[other_node]);
+			tref_same[9] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += x[this_node][k] * y[this_node][k];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_diff[9] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, xx[this_node], yy[other_node]);
+			aa = GMRFLib_ddot(n, xx[other_node], yy[this_node]);
+			tref_diff[9] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += xx[this_node][k] * yy[other_node][k];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_same[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, x[this_node], y[this_node], idx[this_node]);
+			aa = GMRFLib_sparse_ddot(n, x[other_node], y[other_node], idx[other_node]);
+			tref_same[0] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += x[this_node][k] * y[this_node][idx[this_node][k]];
+			assert(ABS(e - a) < FLT_EPSILON);
+
+			tref_diff[0] -= GMRFLib_timer();
+			a = GMRFLib_sparse_ddot(n, xx[this_node], yy[other_node], idxx[other_node]);
+			aa = GMRFLib_sparse_ddot(n, xx[other_node], yy[this_node], idxx[this_node]);
+			tref_diff[0] += GMRFLib_timer();
+			e = 0.0;
+			for (int k = 0; k < n; k++)
+				e += xx[this_node][k] * yy[other_node][idxx[other_node][k]];
+			assert(ABS(e - a) < FLT_EPSILON);
+		}
+		printf("numa nodes       %8d\n", GMRFLib_numa_nodes());
+		printf("ddot same        %.8f\n", tref_same[9]);
+		printf("ddot diff        %.8f\n", tref_diff[9]);
+		printf("sparse_ddot same %.8f\n", tref_same[0]);
+		printf("sparse_ddot diff %.8f\n", tref_diff[0]);
+	}
+		break;
+
+	case 190:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double *yy = Calloc(n + 100, double);
+		double *r = Calloc(n + 100, double);
+		double *dmap = Calloc(n + 100, double);
+		int *map = Calloc(n + 100, int);
+
+		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double tref_simple[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		for (int j = -100; j < m; j++) {
+
+			if (j == 0) {
+				Memset(tref, 0, sizeof(tref));
+				Memset(tref_simple, 0, sizeof(tref_simple));
+			}
+			for (int i = 0; i < n; i++) {
+				map[i] = i;
+				dmap[i] = i;
+				x[i] = GMRFLib_uniform();
+				y[i] = x[i];
+				yy[i] = x[i];
+				r[i] = GMRFLib_uniform();
+			}
+
+			my_sort2_dd(r, dmap, n);
+			for (int i = 0; i < n; i++) {
+				map[i] = (int) dmap[i];
+			}
+
+			GMRFLib_pack(n, x, map, y);
+
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_pack(n, x, map, y);
+			tref[0] += GMRFLib_timer();
+
+			tref_simple[0] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				yy[i] = x[map[i]];
+			}
+			tref_simple[0] += GMRFLib_timer();
+			assert(y[0] == yy[0]);
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_unpack(n, x, y, map);
+			tref[1] += GMRFLib_timer();
+
+			tref_simple[1] -= GMRFLib_timer();
+			for (int i = 0; i < n; i++) {
+				yy[map[i]] = x[i];
+			}
+			tref_simple[1] += GMRFLib_timer();
+			assert(yy[0] == y[0]);
+		}
+		printf("pack             %.6f\n", tref[0]);
+		printf("pack (simple)    %.6f\n", tref_simple[0]);
+		printf("unpack           %.6f\n", tref[1]);
+		printf("unpack (simple)  %.6f\n", tref_simple[1]);
+	}
+		break;
+
+	case 191:
+	{
+#       define M 12
+		int m = atoi(args[0]);
+		int n = (int) pow(2.0, M + 1.0);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double tref0[M] = { 0 };
+		double tref1[M] = { 0 };
+		int siz[M] = { 2 };
+		for (int k = 1; k < M; k++)
+			siz[k] = 2 * siz[k - 1];
+		for (int j = 0; j < m; j++) {
+			for (int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+			}
+			for (int k = 0; k < M; k++) {
+				int nn = siz[k];
+				tref0[k] -= GMRFLib_timer();
+				volatile int POSSIBLY_UNUSED(re) = GMRFLib_ddot_x(nn, x, y, INT_MAX);
+				tref0[k] += GMRFLib_timer();
+				tref1[k] -= GMRFLib_timer();
+				volatile int POSSIBLY_UNUSED(ree) = GMRFLib_ddot_x(nn, x, y, 0);
+				tref1[k] += GMRFLib_timer();
+			}
+		}
+		for (int k = 0; k < M; k++) {
+			printf("ddot: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
+		}
+#       undef M
+	}
+		break;
+
+	case 192:
+	{
+#       define M 12
+		int m = atoi(args[0]);
+		int n = (int) pow(2.0, M + 1.0);
+		P(m);
+		double *x = Calloc(n + 100, double);
+		double *y = Calloc(n + 100, double);
+		double tref0[M] = { 0 };
+		double tref1[M] = { 0 };
+		int siz[M] = { 0 };
+
+		siz[0] = 2;
+		for (int k = 1; k < M; k++)
+			siz[k] = 2 * siz[k - 1];
+
+		for (int j = -10; j < m; j++) {
+			double a = GMRFLib_uniform();
+			for (int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+				y[i] = GMRFLib_uniform();
+			}
+			for (int k = 0; k < M; k++) {
+				int nn = siz[k];
+				if (j >= 0)
+					tref0[k] -= GMRFLib_timer();
+				for (int kk = 0; kk < 10; k++)
+					GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
+				double tt = GMRFLib_timer();
+				if (j >= 0)
+					tref0[k] += tt;
+				if (j >= 0)
+					tref1[k] -= tt;
+				for (int kk = 0; kk < 10; k++)
+					GMRFLib_daxpy_x(nn, a, x, y, 0);
+				if (j >= 0)
+					tref1[k] += GMRFLib_timer();
+			}
+		}
+		for (int k = 0; k < M; k++) {
+			printf("daxpy: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
+		}
+#       undef M
+	}
+		break;
+
+	case 193:
+	{
+		int m = atoi(args[0]);
+		int n = atoi(args[1]);
+		int N = atoi(args[2]);
+		P(m);
+		P(n);
+		P(N);
+
+		gsl_matrix *A = gsl_matrix_calloc(m, n);
+		gsl_matrix *B = gsl_matrix_calloc(n, m);
+
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				gsl_matrix_set(A, i, j, GMRFLib_uniform());
+			}
+		}
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				gsl_matrix_set(B, i, j, GMRFLib_uniform());
+			}
+		}
+
+		double tref0 = 0;
+		double tref1 = 0;
+		double one = 1;
+		double zero = 0;
+		double dummy = 0.0;
+
+		for (int k = 0; k < N; k++) {
+			int ii = (int) (m * GMRFLib_uniform());
+			int jj = (int) (m * GMRFLib_uniform());
+			int i = IMIN(ii, jj);
+			int j = IMAX(ii, jj);
+
+			gsl_matrix *C = gsl_matrix_calloc(m, m);
+			tref0 -= GMRFLib_timer();
+			gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, A, B, zero, C);
+			tref0 += GMRFLib_timer();
+			dummy += gsl_matrix_get(C, i, j);
+
+			tref1 -= GMRFLib_timer();
+			GMRFLib_gsl_dgemm_sym(A, B, C);
+			tref1 += GMRFLib_timer();
+			dummy -= gsl_matrix_get(C, i, j);
+			gsl_matrix_free(C);
+		}
+		P(dummy);
+		printf("GSL %.6g NEW %.6g\n", tref0 / tref0, tref1 / tref0);
+		gsl_matrix_free(A);
+		gsl_matrix_free(B);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -5750,4 +6255,5 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
+#       pragma GCC diagnostic pop
 #endif

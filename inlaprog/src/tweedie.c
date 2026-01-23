@@ -273,11 +273,11 @@ double ptweedie(double y, double mu, double phi, double p)
 	// 
 
 #if (1)
-#define LOG_n_max 4096
+#       define LOG_n_max 4096
 	static double *logn_cache = NULL;
 	static double *lognfac_cache = NULL;
 	if (!logn_cache) {
-#pragma omp critical (Name_5aac6c506965cfff83cc864e1be817dda2d01925)
+#       pragma omp critical (Name_5aac6c506965cfff83cc864e1be817dda2d01925)
 		if (!logn_cache) {
 			double *tmp = Calloc(2 * LOG_n_max, double);
 			double *tmp2 = tmp + LOG_n_max;
@@ -289,11 +289,11 @@ double ptweedie(double y, double mu, double phi, double p)
 			logn_cache = tmp;
 		}
 	}
-#define LOGN(n_) ((n_) < LOG_n_max ? logn_cache[n_] : log(n_))
-#define LOGNFACTORIAL(n_) ((n_) < LOG_n_max ? lognfac_cache[n_] : my_gsl_sf_lngamma((n_) + 1.0))
+#       define LOGN(n_) ((n_) < LOG_n_max ? logn_cache[n_] : log(n_))
+#       define LOGNFACTORIAL(n_) ((n_) < LOG_n_max ? lognfac_cache[n_] : my_gsl_sf_lngamma((n_) + 1.0))
 #else
-#define LOGN(n_) log(n_)
-#define LOGNFACTORIAL(n_) my_gsl_sf_lngamma((n_) + 1.0)
+#       define LOGN(n_) log(n_)
+#       define LOGNFACTORIAL(n_) my_gsl_sf_lngamma((n_) + 1.0)
 #endif
 
 #define LOG_PDF_POISSON(y_) ((y_)*log_lambda - lambda - LOGNFACTORIAL((int) (y_)))

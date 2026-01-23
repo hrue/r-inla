@@ -24,11 +24,11 @@ extern char *GMRFLib_tmpdir;
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
+#       define __BEGIN_DECLS extern "C" {
+#       define __END_DECLS }
 #else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
+#       define __BEGIN_DECLS				       /* empty */
+#       define __END_DECLS				       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -48,7 +48,7 @@ static char *R_home = NULL;
 double R_rgeneric_cputime = 0.0;
 
 #if !defined(_OPENMP)
-#error "OpenMP must be enabled."
+#       error "OpenMP must be enabled."
 #endif
 
 void inla_set_R_home(char *home)
@@ -65,7 +65,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 	}
 
 	int ret = 0;
-#pragma omp critical (Name_95227b3fc78ae25be9b977b6385cae68f179f781)
+#       pragma omp critical (Name_95227b3fc78ae25be9b977b6385cae68f179f781)
 	{
 		R_rgeneric_cputime -= GMRFLib_timer();
 
@@ -170,7 +170,7 @@ int inla_R_exit_(void)
 int inla_R_init_(void)
 {
 	if (R_init) {
-#pragma omp critical (Name_aac7e80b592e4a6319788827c44116e831460cd6)
+#       pragma omp critical (Name_aac7e80b592e4a6319788827c44116e831460cd6)
 		if (R_init) {
 			R_debug = (getenv((const char *) "INLA_DEBUG_R") ? 1 : 0);
 

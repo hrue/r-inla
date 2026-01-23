@@ -1,25 +1,25 @@
 #ifndef __GMRFLib_GLOBALS_H__
-#define __GMRFLib_GLOBALS_H__
+#       define __GMRFLib_GLOBALS_H__
 
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#if !defined(GMRFLib_FALSE)
-#define GMRFLib_FALSE (0)
-#endif
-#if !defined(GMRFLib_TRUE)
-#define GMRFLib_TRUE  (1)
-#endif
+#       if !defined(GMRFLib_FALSE)
+#              define GMRFLib_FALSE (0)
+#       endif
+#       if !defined(GMRFLib_TRUE)
+#              define GMRFLib_TRUE  (1)
+#       endif
 typedef double GMRFLib_uniform_tp(void);
 typedef int GMRFLib_uniform_init_tp(unsigned long int seed);
 typedef void *GMRFLib_uniform_getstate_tp(size_t *siz);
@@ -30,7 +30,7 @@ typedef double *GMRFLib_ai_INLA_userfunc1_tp(int thread_id, double *theta, int n
 typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 typedef double *GMRFLib_ai_INLA_userfunc3_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 
-#ifndef __GMRFLib_DONT_DEFINE_GLOBALS
+#       ifndef __GMRFLib_DONT_DEFINE_GLOBALS
 
 extern char GMRFLib_path[];
 
@@ -38,7 +38,7 @@ extern GMRFLib_smtp_tp GMRFLib_smtp;
 extern GMRFLib_reorder_tp GMRFLib_reorder;
 
 extern gsl_rng *GMRFLib_rng_ptr;
-#pragma omp threadprivate(GMRFLib_rng_ptr)
+#              pragma omp threadprivate(GMRFLib_rng_ptr)
 
 extern GMRFLib_uniform_tp *GMRFLib_uniform;
 extern GMRFLib_uniform_init_tp *GMRFLib_uniform_init;
@@ -105,10 +105,13 @@ extern int GMRFLib_model_n;
 
 extern int GMRFLib_force_stiles;
 
+extern int GMRFLib_turn_off_gsl_error_handler;
+
 extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];
 
-#endif
+
+#       endif
 __END_DECLS
 #endif

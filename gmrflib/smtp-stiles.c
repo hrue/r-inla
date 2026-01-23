@@ -525,6 +525,9 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
 	if (problem == NULL) {
@@ -580,12 +583,13 @@ int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 #if 0
 	if (!tref) {
-#pragma omp critical (Name_32d219aff2336da13ace9454f552486ecea90e5c)
+#       pragma omp critical (Name_32d219aff2336da13ace9454f552486ecea90e5c)
 		if (!tref) {
 			tref = Calloc(GMRFLib_MAX_THREADS(), double);
 		}
@@ -604,7 +608,7 @@ void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 	tt += GMRFLib_timer();
 	tref[tnum] += tt;
 	if (tnum == 0) {
-#pragma omp critical
+#       pragma omp critical
 		{
 			printf("BIND ");
 			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {

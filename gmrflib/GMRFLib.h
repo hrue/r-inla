@@ -1,5 +1,5 @@
 #if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE 1
+#       define _GNU_SOURCE 1
 #endif
 
 #include <errno.h>
@@ -13,120 +13,157 @@
 #include <stdbool.h>
 
 #if defined(__linux__)
-#include <features.h>
+#       include <features.h>
 #endif
 
 #ifndef __GMRFLib_H__
-#define __GMRFLib_H__
+#       define __GMRFLib_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#define GMRFLib_VERSION_MAJOR    "0"
-#define GMRFLib_VERSION_MINOR    "0"
-#define GMRFLib_VERSION_REVISION "0"
-#define GMRFLib_VERSION          "0.0-0"
-#if defined(WINDOWS)
-#define GMRFLib_NEED_DRAND48  1				       /* include implementation of drand48() */
-#define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
-#endif
 
-/* 
- *  include files we need from GSL
- */
-#define GSL_RANGE_CHECK_OFF
-#define HAVE_INLINE
-#include <gsl/gsl_inline.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_blas_types.h>
-#include <gsl/gsl_cdf.h>
-#include <gsl/gsl_eigen.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_integration.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_machine.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_poly.h>
-#include <gsl/gsl_pow_int.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_roots.h>
-#include <gsl/gsl_sf.h>
-#include <gsl/gsl_sf_psi.h>
-#include <gsl/gsl_sort.h>
-#include <gsl/gsl_sort_vector.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_types.h>
-#include <gsl/gsl_vector.h>
+/* ... */
+#       if defined(INLA_WITH_SIMDE)
+#              define SIMDE_ENABLE_NATIVE_ALIASES
+#              define SIMDE_FAST_MATH
+#              if !defined(_OPENMP)
+#                     define SIMDE_ENABLE_OPENMP
+#              endif
+#
+#              include <simde/simde-common.h>
+#              include <simde/x86/sse2.h>
+#              
+#              if defined(__AVX2__)
+#                     define INLA_WITH_SIMDE_AVX2_
+#                     include <simde/x86/avx2.h>
+#              elif defined(_WIN32)
+#                     undef INLA_WITH_SIMDE_AVX2_
+#              else
+#                     define INLA_WITH_SIMDE_AVX2_
+#                     include <simde/x86/avx2.h>
+#              endif
+#              
+#              if defined(__AVX512F__)
+#                     define INLA_WITH_SIMDE_AVX512F_
+#                     include <simde/x86/avx512.h>
+#              elif defined(_WIN32)
+#                     undef INLA_WITH_SIMDE_AVX512F_
+#              else
+#                     undef INLA_WITH_SIMDE_AVX512F_
+#              endif
+#       endif
+
+/* ... */
+#       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
+#              undef INLA_CLONE_TARGETS
+#              if defined(__x86_64__)
+#                     define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
+#              elif defined(__aarch64__)
+#                     define INLA_CLONE_TARGETS "sve", "sve2",
+#              else
+#                     define INLA_CLONE_TARGETS ""
+#              endif
+#       else
+#              undef INLA_WITH_CLONE_TARGETS
+#              undef INLA_CLONE_TARGETS
+#              define INLA_CLONE_TARGETS ""
+#       endif
+
+/* ... */
+#       define GSL_RANGE_CHECK_OFF
+#       define HAVE_INLINE
+#       include <gsl/gsl_inline.h>
+#       include <gsl/gsl_math.h>
+#       include <gsl/gsl_blas.h>
+#       include <gsl/gsl_blas_types.h>
+#       include <gsl/gsl_cdf.h>
+#       include <gsl/gsl_eigen.h>
+#       include <gsl/gsl_errno.h>
+#       include <gsl/gsl_integration.h>
+#       include <gsl/gsl_interp.h>
+#       include <gsl/gsl_linalg.h>
+#       include <gsl/gsl_machine.h>
+#       include <gsl/gsl_matrix.h>
+#       include <gsl/gsl_multifit.h>
+#       include <gsl/gsl_multifit_nlin.h>
+#       include <gsl/gsl_multimin.h>
+#       include <gsl/gsl_poly.h>
+#       include <gsl/gsl_pow_int.h>
+#       include <gsl/gsl_randist.h>
+#       include <gsl/gsl_rng.h>
+#       include <gsl/gsl_roots.h>
+#       include <gsl/gsl_sf.h>
+#       include <gsl/gsl_sf_psi.h>
+#       include <gsl/gsl_sort.h>
+#       include <gsl/gsl_sort_vector.h>
+#       include <gsl/gsl_spline.h>
+#       include <gsl/gsl_statistics.h>
+#       include <gsl/gsl_sys.h>
+#       include <gsl/gsl_types.h>
+#       include <gsl/gsl_vector.h>
 
 /* 
  * include all the include-files in GMRFLib
  */
-#include "GMRFLib/GMRFLibP.h"
-#include "GMRFLib/alloc.h"
-#include "GMRFLib/init.h"
-#include "GMRFLib/fsort.h"
-#include "GMRFLib/error-handler.h"
-#include "GMRFLib/utils.h"
-#include "GMRFLib/simd.h"
-#include "GMRFLib/idxval.h"
-#include "GMRFLib/lapack-interface.h"
-#include "GMRFLib/dot.h"
-#include "GMRFLib/timer.h"
-#include "GMRFLib/io.h"
-#include "GMRFLib/taucsP.h"
-#include "GMRFLib/random.h"
-#include "GMRFLib/graph.h"
-#include "GMRFLib/seasonal.h"
-#include "GMRFLib/rw.h"
-#include "GMRFLib/tabulate-Qfunc.h"
-#include "GMRFLib/smtp-pardiso.h"
-#include "GMRFLib/remap-cache.h"
-#include "GMRFLib/sparse-interface.h"
-#include "GMRFLib/problem-setup.h"
-#include "GMRFLib/openmp.h"
-#include "GMRFLib/fmesher-io.h"
-#include "GMRFLib/interpol.h"
-#include "GMRFLib/density.h"
-#include "GMRFLib/globals.h"
-#include "GMRFLib/hash.h"
-#include "GMRFLib/optimize.h"
-#include "GMRFLib/blockupdate.h"
-#include "GMRFLib/distributions.h"
-#include "GMRFLib/smtp-band.h"
-#include "GMRFLib/smtp-taucs.h"
-#include "GMRFLib/smtp-stiles.h"
-#include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
-#include "GMRFLib/ghq.h"
-#include "GMRFLib/design.h"
-#include "GMRFLib/approx-inference.h"
-#include "GMRFLib/pre-opt.h"
-#include "GMRFLib/graph-edit.h"
-#include "GMRFLib/domin-interface.h"
-#include "GMRFLib/integrator.h"
-#include "GMRFLib/version.h"
-#include "GMRFLib/hgmrfm.h"
-#include "GMRFLib/matern.h"
-#include "GMRFLib/moments.h"
-#include "GMRFLib/sn-g.h"
-#include "GMRFLib/my-numa.h"
-#include "GMRFLib/fit-sn.h"
-#if defined(INLA_WITH_MKL)
+#       include "GMRFLib/GMRFLibP.h"
+#       include "GMRFLib/alloc.h"
+#       include "GMRFLib/init.h"
+#       include "GMRFLib/fsort.h"
+#       include "GMRFLib/error-handler.h"
+#       include "GMRFLib/utils.h"
+#       include "GMRFLib/simd.h"
+#       include "GMRFLib/idxval.h"
+#       include "GMRFLib/lapack-interface.h"
+#       include "GMRFLib/dot.h"
+#       include "GMRFLib/timer.h"
+#       include "GMRFLib/io.h"
+#       include "GMRFLib/taucsP.h"
+#       include "GMRFLib/random.h"
+#       include "GMRFLib/graph.h"
+#       include "GMRFLib/seasonal.h"
+#       include "GMRFLib/rw.h"
+#       include "GMRFLib/tabulate-Qfunc.h"
+#       include "GMRFLib/smtp-pardiso.h"
+#       include "GMRFLib/remap-cache.h"
+#       include "GMRFLib/sparse-interface.h"
+#       include "GMRFLib/problem-setup.h"
+#       include "GMRFLib/openmp.h"
+#       include "GMRFLib/fmesher-io.h"
+#       include "GMRFLib/interpol.h"
+#       include "GMRFLib/density.h"
+#       include "GMRFLib/globals.h"
+#       include "GMRFLib/hash.h"
+#       include "GMRFLib/optimize.h"
+#       include "GMRFLib/blockupdate.h"
+#       include "GMRFLib/distributions.h"
+#       include "GMRFLib/smtp-band.h"
+#       include "GMRFLib/smtp-taucs.h"
+#       include "GMRFLib/smtp-stiles.h"
+#       include "GMRFLib/bitmap.h"			       /* needs both graph and problem and sparse */
+#       include "GMRFLib/ghq.h"
+#       include "GMRFLib/design.h"
+#       include "GMRFLib/approx-inference.h"
+#       include "GMRFLib/pre-opt.h"
+#       include "GMRFLib/graph-edit.h"
+#       include "GMRFLib/domin-interface.h"
+#       include "GMRFLib/integrator.h"
+#       include "GMRFLib/version.h"
+#       include "GMRFLib/hgmrfm.h"
+#       include "GMRFLib/matern.h"
+#       include "GMRFLib/moments.h"
+#       include "GMRFLib/sn-g.h"
+#       include "GMRFLib/my-numa.h"
+#       include "GMRFLib/fit-sn.h"
+#       if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);
 void vdExpI(int, const double *, int, double *, int);
@@ -146,16 +183,16 @@ void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *al
 		const char *matdescra, const double *val, const int *indx,
 		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
 double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
-#endif
+#       endif
 
-#if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#       if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 void vvsqrt(double *, const double *, const int *);
 void vvexp(double *, const double *, const int *);
 void vvexpm1(double *, const double *, const int *);
 void vvlog(double *, const double *, const int *);
 void vvlog1p(double *, const double *, const int *);
 void vvpow(double *, const double *, const double *, const int *);
-#endif
+#       endif
 
 __END_DECLS
 #endif

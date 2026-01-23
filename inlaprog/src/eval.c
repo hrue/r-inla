@@ -8,7 +8,7 @@
 #include <strings.h>
 
 #if defined(INLA_WITH_MUPARSER)
-#include <muParser/muParserDLL.h>
+#       include <muParser/muParserDLL.h>
 #endif
 
 #include "GMRFLib/GMRFLib.h"
@@ -195,7 +195,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
-#pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
+#       pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
 	{
 		int i;
 		muParserHandle_t hParser;

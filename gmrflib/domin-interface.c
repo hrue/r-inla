@@ -422,6 +422,18 @@ int GMRFLib_opt_f_intern(int thread_id,
 				inla_write_state_to_file(B.f_best, fncall_timing.num_fncall, G.nhyper, x, G.graph->n, B.f_best_latent);
 				GMRFLib_write_state = 0;
 			}
+
+			static int first = 1;
+			static int use = 0;
+			if (first || use) {
+				first = 0;
+				if (!use) {
+					use = (getenv("INLA_INTERNAL_DUMP_MEMORY") ? 1 : 0);
+				}
+				if (use) {
+					GMRFLib_printMem_core(stdout, __FILE__, __LINE__);
+				}
+			}
 		}
 	}
 
@@ -1491,6 +1503,7 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 		(*otrace)->nalloc = size_alloc;
 		(*otrace)->f = Calloc((*otrace)->nalloc, double);
 		(*otrace)->nfunc = Calloc((*otrace)->nalloc, int);
+		(*otrace)->wtime = Calloc((*otrace)->nalloc, double);
 		(*otrace)->theta = Calloc(G.nhyper * (*otrace)->nalloc, double);
 	}
 
@@ -1498,11 +1511,23 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 		(*otrace)->nalloc += size_alloc;
 		(*otrace)->f = Realloc((*otrace)->f, (*otrace)->nalloc, double);
 		(*otrace)->nfunc = Realloc((*otrace)->nfunc, (*otrace)->nalloc, int);
+		(*otrace)->wtime = Realloc((*otrace)->wtime, (*otrace)->nalloc, double);
 		(*otrace)->theta = Realloc((*otrace)->theta, (*otrace)->nalloc * (*otrace)->nt, double);
 	}
+
+	static double wtime0 = -1;
+	double wtime = 0.0;
+	if (wtime0 < 0) {
+		wtime0 = GMRFLib_timer();
+		wtime = 0.0;
+	} else {
+		wtime = GMRFLib_timer() - wtime0;
+	}
+
 	Memcpy((*otrace)->f + (*otrace)->niter, &f, sizeof(double));
-	Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
+	Memcpy((*otrace)->wtime + (*otrace)->niter, &wtime, sizeof(double));
 	Memcpy((*otrace)->theta + (*otrace)->niter * (*otrace)->nt, theta, (*otrace)->nt * sizeof(double));
+	Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
 	(*otrace)->niter++;
 }
 
@@ -1520,15 +1545,15 @@ GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
 	return opt_trace;
 }
 
-#if defined(WINDOWS)
+#if defined(_WIN32)
 void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta), double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
 {
 	return;
 }
 #else
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
+#       include <unistd.h>
+#       include <sys/types.h>
+#       include <pwd.h>
 void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, int nx, double *x)
 {
 	// this function is called from within a critical region

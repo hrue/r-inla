@@ -15,7 +15,7 @@
 #include "GMRFLib/hashP.h"
 
 #if defined(INLA_WITH_ARMPL)
-#include "armpl_sparse.h"
+#       include "armpl_sparse.h"
 #endif
 
 #define IDX_ALLOC_INITIAL 8
@@ -311,21 +311,27 @@ int GMRFLib_ptr_printf(FILE *fp, GMRFLib_ptr_tp *hold, const char *msg)
 int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
+		int show_details = 0;
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+		if (show_details) {
+			for (int i = 0; i < hold->n; i++) {
+				fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+			}
 		}
 		if (hold->g_n) {
 			fprintf(fp, "\tg_n = %1d\n", hold->g_n);
 			for (int g = 0; g < hold->g_n; g++) {
-				fprintf(fp, "\tgroup %d has length %d (one=%s)\n", g, hold->g_len[g],
-					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"));
-				fprintf(fp, "\t\t");
-				for (int k = 0; k < IABS(hold->g_len[g]); k++) {
-					fprintf(fp, " %1d(%g)", hold->g_idx[g][k], hold->g_val[g][k]);
+				fprintf(fp, "\tgroup %d has length %d (one=%s) (aligned=%s:%s)\n", g, hold->g_len[g],
+					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"),
+					(SIMD_ALIGNED(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), (SIMD_ALIGNED(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
+				if (show_details) {
+					fprintf(fp, "\t\t");
+					for (int k = 0; k < IABS(hold->g_len[g]); k++) {
+						fprintf(fp, " %1d(%g)", hold->g_idx[g][k], hold->g_val[g][k]);
 
+					}
+					fprintf(fp, "\n");
 				}
-				fprintf(fp, "\n");
 			}
 		}
 	}
@@ -543,12 +549,15 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 	return GMRFLib_idxval_nsort_x(hold, n, nt, 0, 1);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	// x is a test vector
-	const int limit_merge = 8L, limit_sequential = 8L;
+	const int limit_merge = 8L, limit_sequential = 4L;
 #if 0
-	static int limit_merge = 0, limit_h_len = 0, limit_sequential = 0;
+	static int limit_merge = 0, limit_sequential = 0;
 	if (!limit_merge)
 		limit_merge = atoi(getenv("LIMIT_MERGE"));
 	if (!limit_sequential)
@@ -705,8 +714,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		seq_len += g_len[g];
 	}
 
-	int *new_idx = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), int);
-	double *new_val = Calloc(irr_len + seq_len + ng * limit_merge + (ng + 1) * GMRFLib_MEM_ALIGN / sizeof(double), double);
+	int align_i = GMRFLib_MEM_ALIGN / sizeof(int);
+	int align_d = GMRFLib_MEM_ALIGN / sizeof(double);
+	int len_i = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i;
+	int len_d = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d;
+	int *new_idx = Calloc(len_i, int);
+	double *new_val = Calloc(len_d, double);
 
 	// build the irregular group
 	int k = 0;
@@ -714,10 +727,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		int istart = g_istart[g - 1] + g_len[g - 1];
 		int len = g_istart[g] - istart;
 		if (len) {
+			assert(k + len <= len_i);
+			assert(k + len <= len_d);
 			Memcpy(new_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(new_val + k, h->val + istart, len * sizeof(double));
+			k += len;
 		}
-		k += GMRFLib_align_len(len, sizeof(double));
 	}
 	g_len[0] = k;
 	g_idx[0] = new_idx;
@@ -880,7 +895,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #endif
 	Free(g_istart);
 
-	int ntimes = 1;
+	int ntimes = 2;
 	double treff[2] = { 0.0, 0.0 };
 	double value[2] = { 0.0, 0.0 };
 
@@ -896,7 +911,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		assert(info == ARMPL_STATUS_SUCCESS);
 	}
 #endif
-	for (int time = -1; time < ntimes; time++) {
+	for (int time = -ntimes; time < ntimes; time++) {
 		if (time < 0) {
 			GMRFLib_sparse_ddot_(h, x);
 			ddot_group(h, x);
@@ -984,7 +999,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			h->g_n_mem = 0;
 #if defined(INLA_WITH_ARMPL)
 			if (h->spvec_g) {
-				armpl_status_t info = armpl_spvec_destroy(h->spvec_g);
+				armpl_status_t POSSIBLY_UNUSED(info) = armpl_spvec_destroy(h->spvec_g);
 				h->spvec_g = NULL;
 			}
 #endif
@@ -1003,6 +1018,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp **hold, int n, int nt)
 {
@@ -1309,7 +1325,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

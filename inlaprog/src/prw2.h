@@ -1,19 +1,19 @@
 #ifndef __INLA_PRW2_H__
-#define __INLA_PRW2_H__
+#       define __INLA_PRW2_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "GMRFLib/GMRFLib.h"
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include "GMRFLib/GMRFLib.h"
 
 __BEGIN_DECLS
 
@@ -21,13 +21,13 @@ __BEGIN_DECLS
  * same storage as lapack routines
  */
 // general band
-#define BM_IDX(m_, i_, j_) (((i_) - (j_) + (m_)->ubw) + (j_) * (m_)->ldim)
-#define BM_PTR(m_, i_, j_) ((m_)->band + BM_IDX(m_, i_, j_))
-#define BM_VAL(m_, i_, j_) (*BM_PTR(m_, i_, j_))
+#       define BM_IDX(m_, i_, j_) (((i_) - (j_) + (m_)->ubw) + (j_) * (m_)->ldim)
+#       define BM_PTR(m_, i_, j_) ((m_)->band + BM_IDX(m_, i_, j_))
+#       define BM_VAL(m_, i_, j_) (*BM_PTR(m_, i_, j_))
 // symmetric ones, lower storage, can call with (i,j) and (j,i)
-#define sBM_IDX(m_, i_, j_) BM_IDX(m_, IMAX(i_, j_), IMIN(i_, j_))
-#define sBM_PTR(m_, i_, j_) ((m_)->band + sBM_IDX(m_, i_, j_))
-#define sBM_VAL(m_, i_, j_) (*sBM_PTR(m_, i_, j_))
+#       define sBM_IDX(m_, i_, j_) BM_IDX(m_, IMAX(i_, j_), IMIN(i_, j_))
+#       define sBM_PTR(m_, i_, j_) ((m_)->band + sBM_IDX(m_, i_, j_))
+#       define sBM_VAL(m_, i_, j_) (*sBM_PTR(m_, i_, j_))
 
 /*
  *

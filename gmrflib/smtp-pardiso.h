@@ -9,25 +9,25 @@
 #include <stdio.h>
 
 #ifndef __GMRFLib_SMTP_PARDISO_H__
-#define __GMRFLib_SMTP_PARDISO_H__
+#       define __GMRFLib_SMTP_PARDISO_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
 /* 
    
  */
-#define GMRFLib_PSTORE_TNUM_REF (0)			       /* the reference thread number to store store-spesific things */
-#define GMRFLib_PARDISO_PLEN (64)
+#       define GMRFLib_PSTORE_TNUM_REF (0)		       /* the reference thread number to store store-spesific things */
+#       define GMRFLib_PARDISO_PLEN (64)
     typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER = 1,
 	GMRFLib_PARDISO_FLAG_SYMFACT,
@@ -78,19 +78,19 @@ typedef struct {
 
 typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
 
-#ifdef _WIN32
-#include <io.h>
-#define NULL_FNM "NUL"
-#define CROSS_DUP(fd) _dup(fd)
-#define CROSS_DUP2(fd, newfd) _dup2(fd, newfd)
-#else
-#include <unistd.h>
-#define NULL_FNM "/dev/null"
-#define CROSS_DUP(fd) dup(fd)
-#define CROSS_DUP2(fd, newfd) dup2(fd, newfd)
-#endif
+#       ifdef _WIN32
+#              include <io.h>
+#              define NULL_FNM "NUL"
+#              define CROSS_DUP(fd) _dup(fd)
+#              define CROSS_DUP2(fd, newfd) _dup2(fd, newfd)
+#       else
+#              include <unistd.h>
+#              define NULL_FNM "/dev/null"
+#              define CROSS_DUP(fd) dup(fd)
+#              define CROSS_DUP2(fd, newfd) dup2(fd, newfd)
+#       endif
 
-#define STDOUT_TO_DEV_NULL_START(_silent)				\
+#       define STDOUT_TO_DEV_NULL_START(_silent)				\
 	int XX_silent = _silent;					\
 	int XX_stdoutBackupFd = 0;					\
 	int XX_stderrBackupFd = 0;					\
@@ -107,7 +107,7 @@ typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
 		CROSS_DUP2(fileno(XX_nullErr), STDERR_FILENO);		\
 	}
 
-#define STDOUT_TO_DEV_NULL_END						\
+#       define STDOUT_TO_DEV_NULL_END						\
 	if (XX_silent) {						\
 		fflush(stdout);						\
 		fflush(stderr);						\

@@ -5,36 +5,36 @@
 #include <time.h>
 
 #ifndef __GMRFLib_SMTP_STILES_H__
-#define __GMRFLib_SMTP_STILES_H__
+#       define __GMRFLib_SMTP_STILES_H__
 
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 //
-#include "no-stiles.h"
+#       include "no-stiles.h"
 //
     typedef struct {
 	int verbose;
 	int tile_size;
 } GMRFLib_stiles_ctl_tp;
 
-#if 0
+#       if 0
 // this one is defined in problem-setup.h as we need it first time there
 typedef struct {
 	int in_group;
 	int within_group;
 	int nrhs;
 } GMRFLib_stiles_idx_tp;
-#endif
+#       endif
 
 typedef struct {
 	int ng;

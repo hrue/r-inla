@@ -17,6 +17,9 @@
 		}							\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,
@@ -673,6 +676,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp *a)
 {

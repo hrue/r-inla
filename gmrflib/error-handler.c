@@ -7,7 +7,7 @@
 #include "GMRFLib/GMRFLib.h"
 
 #ifndef GITCOMMIT
-#define GITCOMMIT "devel"
+#       define GITCOMMIT "devel"
 #endif
 
 static GMRFLib_error_handler_tp *handler = NULL;

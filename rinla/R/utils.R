@@ -203,7 +203,13 @@
     cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep = "")
 
     if (binaries) {
-        inla.setOption("inla.call", path.expand(paste(bin.path, "/", "inla.mkl.run", sep = "" )))
+        if (inla.one.of(R.version$arch, "aarch64")) {
+            inla.setOption("inla.call",
+                           path.expand(paste(bin.path, "/", "inla.run", sep = "")))
+        } else {
+            inla.setOption("inla.call",
+                           path.expand(paste(bin.path, "/", "inla.mkl.run", sep = "")))
+        }
         inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher.run", sep = "")))
         cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep = "")
     }
