@@ -11,4 +11,4 @@
 	for (int i = limit; i < n; i++) {
 		r += x[i];
 	}
-	return r + r0;
+	return r;

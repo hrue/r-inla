@@ -1690,8 +1690,10 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	double r0 = 0.0;
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#if defined(INLA_WITH_OPENBLAS)
+	double cblas_dsum(int, double *, int);
+	return cblas_dsum(n, x, 1);
+#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 #       include "intrinsics/simde/dsum-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/dsum-avx2.h"
@@ -1709,7 +1711,6 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
-	int r0 = 0;
 #if defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/isum-sse2.h"
 #else

@@ -5789,7 +5789,11 @@ int testit(int argc, char **argv)
 		P(SIMD_ALIGNED(bx));
 
 		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+#if defined(INLA_WITH_OPENBLAS)
+		double tref_blas[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+#endif
 		double tref_native[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 		for (int j = 0; j < m; j++) {
 			for (int i = 0; i < n; i++) {
 				ix[i] = (int) (1000 * GMRFLib_uniform());
@@ -5838,6 +5842,13 @@ int testit(int argc, char **argv)
 				e += x[k];
 			tref_native[1] += GMRFLib_timer();
 			assert(ABS(e - a) < FLT_EPSILON);
+
+#if defined(INLA_WITH_OPENBLAS)
+			double cblas_dsum (int , double *, int incx);
+			tref_blas[1] -= GMRFLib_timer();
+			a = cblas_dsum(n, x, 1);
+			tref_blas[1] += GMRFLib_timer();
+#endif
 
 			tref[2] -= GMRFLib_timer();
 			a = GMRFLib_isum(n, ix);
@@ -5902,6 +5913,9 @@ int testit(int argc, char **argv)
 		printf("sparse_ddot        %.8f\n", tref[0]);
 
 		printf("dsum               %.8f\n", tref[1]);
+#if defined(INLA_WITH_OPENBLAS)
+		printf("dsum (openblas)    %.8f\n", tref_blas[1]);
+#endif		
 		printf("isum               %.8f\n", tref[2]);
 		printf("sparse_dsum        %.8f\n", tref[8]);
 		printf("dsum simple        %.8f\n", tref_native[1]);
