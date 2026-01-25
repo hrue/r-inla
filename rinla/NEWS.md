@@ -1,3 +1,7 @@
+# INLA 26.01.26
+* Fixed in issue with feature 'lp.scale'
+* Minor modifications
+
 # INLA 26.01.23
 * Code optimization and code improvements
 * Computing initial values are now default enabled
