@@ -5730,7 +5730,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			if (mb->data_sections[0].lp_scale_in_use[k]) {
 				if (_NOT_FIXED(data_sections[0].lp_scale_nfixed[k])) {
 					beta = theta[count];
-					val = PRIOR_EVAL(mb->data_sections[0].lp_scale_nprior[k], &beta);
+					val += PRIOR_EVAL(mb->data_sections[0].lp_scale_nprior[k], &beta);
 					count++;
 				}
 			}
