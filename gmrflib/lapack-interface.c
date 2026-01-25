@@ -1682,7 +1682,7 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 	for (int i = 0; i < n; i++) {				\
 		r += x[i];					\
 	}							\
-	return r + r0
+	return r
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
