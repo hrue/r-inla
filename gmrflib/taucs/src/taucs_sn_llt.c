@@ -1,4 +1,4 @@
-#include <alloca.h>
+//#include <alloca.h>
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>

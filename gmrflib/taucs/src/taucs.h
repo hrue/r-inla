@@ -79,7 +79,7 @@ static double UNUSED(taucs_minusone_real_const) = -1.0;
 #              error "taucs_blas_[no]underscore_test: linking with the BLAS failed both attempts"
 #       endif
 
-#       ifdef OSTYPE_win32
+#       ifdef _WIN32
 #       endif
 
 #       define TAUCS_SUCCESS                       0
@@ -273,7 +273,7 @@ extern int genmmd_(int *, int *, int *, int *, int *, int *, int *, int *, int *
 #              include <ieeefp.h>
 #              define isinf(x) (!finite((x)) && !isnan((x)))
 
-#       elif defined(OSTYPE_win32)
+#       elif defined(_WIN32)
 
 #              include <float.h>
 //#define isnan(x)  (_isnan(x))
@@ -285,24 +285,6 @@ extern int genmmd_(int *, int *, int *, int *, int *, int *, int *, int *, int *
 #       include <math.h>
 #       include <float.h>
 
-
-/* If these are mactors (e.g., gcc -std=c99), do not declare   */
-
-/* otherwise, declare them, since they are not always declared */
-
-/* in math.h (e.g., gcc -std=c89 -pedantic); these are for     */
-
-/* gcc 3.3.1                                                   */
-
-#       ifndef isnan
-extern int isnan(double);
-#       endif
-#       ifndef finite
-extern int finite(double);
-#       endif
-#       ifndef isinf
-extern int isinf(double);
-#       endif
 
 extern int taucs_potrf(char *, int *, double *, int *, int *, fortran_charlen_t);
 extern int taucs_trsm(char *, char *, char *, char *,
