@@ -1,26 +1,18 @@
-
-/*************************************************************/
-
-/*                                                           */
-
-/*************************************************************/
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <alloca.h>
 #include <math.h>
 #include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 #define NDEBUG
 #include <assert.h>
 
-#define TAUCS_CORE_CILK
 #include "taucs.h"
 
 #define FALSE 0
 #define TRUE  1
-
-#define BLAS_FLOPS_CUTOFF  -1.0
-#define SOLVE_DENSE_CUTOFF 5
 
 typedef struct {
 	int sn_size;
@@ -288,7 +280,6 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 	return C;
 }
 
-/* just get the diagonal of a supernodal factor, for Penny */
 
 double *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
 	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
@@ -303,11 +294,8 @@ double *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < (L->sn_size)[sn]; jp++) {
 			j = (L->sn_struct)[sn][jp];
-
 			ip = jp;			       /* we just want the diagonal */
-
 			v = (L->sn_blocks)[sn][jp * (L->sn_blocks_ld)[sn] + ip];
-
 			diag[j] = v;
 		}
 	}
@@ -489,8 +477,6 @@ multifrontal_supernodal_front_factor(int sn,
 	return 0;
 }
 
-
-
 static void multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix *parent_mtr, supernodal_frontal_matrix *my_mtr, int *bitmap)
 {
 	// cleaner code but nothing new
@@ -671,11 +657,6 @@ void recursive_postorder(int j, int first_child[], int next_child[], int postord
 		ipostorder[j] = *next;
 	(*next)++;
 }
-
-#define GILBERT_NG_PEYTON_ANALYSIS_SUP
-
-/* in a few tests the supernodal version seemed slower */
-#undef GILBERT_NG_PEYTON_ANALYSIS_SUP
 
 static int ordered_uf_makeset(int *uf, int i)
 {
@@ -884,291 +865,6 @@ recursive_symbolic_elimination(int j,
 	return 0;
 }
 
-/* count zeros and nonzeros in a supernode to compute the */
-
-/* utility of merging fundamental supernodes.             */
-
-typedef struct {
-	double zeros;
-	double nonzeros;
-} znz;
-
-static znz
-recursive_amalgamate_supernodes(int sn,
-				int *n_sn,
-				int sn_size[],
-				int sn_up_size[],
-				int *sn_rowind[],
-				int sn_first_child[],
-				int sn_next_child[], int rowind[], int column_to_sn_map[], int map[], int do_order, int ipostorder[]
-    )
-{
-	int i, ip, c_sn, gc_sn;
-
-	/*
-	 * int i,ip,c,c_sn,gc_sn;
-	 */
-	int nnz;
-	int nchildren /* , ichild */ ;			       /* number of children, child index */
-	znz *c_znz = NULL;
-	znz sn_znz, merged_znz;
-
-	/*
-	 * int zero_count = 0;
-	 */
-	int new_sn_size, new_sn_up_size;
-
-	sn_znz.zeros = 0.0;
-	sn_znz.nonzeros = (double) (((sn_up_size[sn] - sn_size[sn]) * sn_size[sn])
-				    + (sn_size[sn] * (sn_size[sn] + 1)) / 2);
-
-	if (sn_first_child[sn] == -1) {			       /* leaf */
-		return sn_znz;
-	}
-
-	nchildren = 0;
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn])
-		nchildren++;
-
-	/*
-	 * c_znz = (znz*) alloca(nchildren * sizeof(znz));
-	 */
-	c_znz = (znz *) taucs_malloc(nchildren * sizeof(znz));
-	assert(c_znz);
-
-	/*
-	 * printf("supernode %d out of %d\n",sn,*n_sn);
-	 */
-
-	/*
-	 * merge the supernode with its children! 
-	 */
-
-	i = 0;
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-		c_znz[i] = recursive_amalgamate_supernodes(c_sn, n_sn, sn_size, sn_up_size, sn_rowind, sn_first_child, sn_next_child, rowind,	/* temporary 
-																		 */
-							   column_to_sn_map, map, do_order, ipostorder);
-		assert(c_znz[i].zeros + c_znz[i].nonzeros == (double) (((sn_up_size[c_sn] - sn_size[c_sn]) * sn_size[c_sn])
-								       + (sn_size[c_sn] * (sn_size[c_sn] + 1)) / 2));
-		i++;
-	}
-
-	merged_znz.nonzeros = sn_znz.nonzeros;
-	merged_znz.zeros = sn_znz.zeros;
-
-	for (i = 0; i < nchildren; i++) {
-		merged_znz.nonzeros += (c_znz[i]).nonzeros;
-		merged_znz.zeros += (c_znz[i]).zeros;
-	}
-
-	taucs_free(c_znz);
-
-	/*
-	 * printf("supernode %d out of %d (continuing)\n",sn,*n_sn);
-	 */
-
-	/*
-	 * should we merge the supernode with its children? 
-	 */
-
-	nnz = 0;
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-		for (ip = 0; ip < sn_size[c_sn]; ip++) {
-			i = sn_rowind[c_sn][ip];
-			assert(map[i] != sn);
-			map[i] = sn;
-			rowind[nnz] = i;
-			nnz++;
-		}
-	}
-
-	for (ip = 0; ip < sn_size[sn]; ip++) {
-		i = sn_rowind[sn][ip];
-		assert(map[i] != sn);
-		map[i] = sn;
-		rowind[nnz] = i;
-		nnz++;
-	}
-
-	new_sn_size = nnz;
-
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-		for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++) {
-			i = sn_rowind[c_sn][ip];
-			if (map[i] != sn) {		       /* new row index */
-				map[i] = sn;
-				rowind[nnz] = i;
-				nnz++;
-			}
-		}
-	}
-
-	for (ip = sn_size[sn]; ip < sn_up_size[sn]; ip++) {
-		i = sn_rowind[sn][ip];
-		if (map[i] != sn) {			       /* new row index */
-			map[i] = sn;
-			rowind[nnz] = i;
-			nnz++;
-		}
-	}
-
-	new_sn_up_size = nnz;
-
-	if (do_order) {
-		compare_indirect_map = ipostorder;
-		qsort(rowind, nnz, sizeof(int), compare_indirect_ints);
-	}
-
-	/*
-	 * determine whether we should merge the supernode and its children 
-	 */
-
-	{
-		int n;
-		double *zcount = NULL;
-
-		n = 0;
-		for (ip = 0; ip < nnz; ip++) {
-			i = rowind[ip];
-			if (i >= n)
-				n = i + 1;
-		}
-
-		/*
-		 * zcount = (double*) alloca(n * sizeof(double));
-		 */
-		zcount = (double *) taucs_malloc(n * sizeof(double));
-		assert(zcount);
-
-		for (ip = 0; ip < new_sn_size; ip++) {
-			i = rowind[ip];
-			assert(i < n);
-			zcount[i] = (double) (ip + 1);
-		}
-		for (ip = new_sn_size; ip < new_sn_up_size; ip++) {
-			i = rowind[ip];
-			assert(i < n);
-			zcount[i] = (double) new_sn_size;
-		}
-
-		/*
-		 * for (ip=0; ip<new_sn_up_size; ip++) printf("row %d zcount = %.0f\n",rowind[ip],zcount[rowind[ip]]); 
-		 */
-
-		for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-			for (ip = 0; ip < sn_size[c_sn]; ip++) {
-				i = sn_rowind[c_sn][ip];
-				assert(i < n);
-				zcount[i] -= (double) (ip + 1);
-			}
-			for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++) {
-				i = sn_rowind[c_sn][ip];
-				assert(i < n);
-				zcount[i] -= (double) sn_size[c_sn];
-			}
-		}
-
-		for (ip = 0; ip < sn_size[sn]; ip++) {
-			i = sn_rowind[sn][ip];
-			assert(i < n);
-			zcount[i] -= (double) (ip + 1);
-		}
-		for (ip = sn_size[sn]; ip < sn_up_size[sn]; ip++) {
-			i = sn_rowind[sn][ip];
-			assert(i < n);
-			zcount[i] -= (double) sn_size[sn];
-		}
-
-		/*
-		 * for (ip=0; ip<new_sn_up_size; ip++) printf("ROW %d zcount = %.0f\n",rowind[ip],zcount[rowind[ip]]);
-		 * printf("zeros before merging %.0f\n",merged_znz.zeros); 
-		 */
-
-		for (ip = 0; ip < new_sn_up_size; ip++) {
-			i = rowind[ip];
-			assert(i < n);
-			assert(zcount[i] >= 0.0);
-			merged_znz.zeros += zcount[i];
-		}
-
-		/*
-		 * printf("zeros after merging %.0f\n",merged_znz.zeros);
-		 */
-
-		/*
-		 * voodoo constants (need some kind of a utility function 
-		 */
-		if ((new_sn_size < 16)
-		    || ((sn_size[sn] < 50) && (merged_znz.zeros < 0.5 * merged_znz.nonzeros))
-		    || ((sn_size[sn] < 250) && (merged_znz.zeros < 0.25 * merged_znz.nonzeros))
-		    || ((sn_size[sn] < 500) && (merged_znz.zeros < 0.10 * merged_znz.nonzeros))
-		    || (merged_znz.zeros < 0.05 * merged_znz.nonzeros)
-		    ) {
-			/*
-			 * taucs_printf("merging sn %d, zeros (%f) vs nonzeros (%f)\n", sn,merged_znz.zeros,merged_znz.nonzeros); 
-			 */
-		} else {
-			/*
-			 * taucs_printf("sn %d, too many zeros (%f) vs nonzeros (%f)\n", sn,merged_znz.zeros,merged_znz.nonzeros);
-			 * printf("returning without merging\n"); 
-			 */
-			taucs_free(zcount);
-			return sn_znz;
-		}
-
-		taucs_free(zcount);
-	}
-
-	/*
-	 * now merge the children lists 
-	 */
-
-	sn_size[sn] = new_sn_size;
-	sn_up_size[sn] = new_sn_up_size;
-	sn_rowind[sn] = (int *) taucs_realloc(sn_rowind[sn], new_sn_up_size * sizeof(int));
-	for (ip = 0; ip < new_sn_up_size; ip++)
-		sn_rowind[sn][ip] = rowind[ip];
-
-	/*
-	 * printf("supernode %d out of %d (merging)\n",sn,*n_sn);
-	 */
-
-	nchildren = 0;
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-		for (ip = 0; ip < sn_size[c_sn]; ip++) {
-			i = (sn_rowind[c_sn])[ip];
-			assert(column_to_sn_map[i] == c_sn);
-			column_to_sn_map[i] = sn;
-		}
-
-		for (gc_sn = sn_first_child[c_sn]; gc_sn != -1; gc_sn = sn_next_child[gc_sn]) {
-			rowind[nchildren] = gc_sn;
-			nchildren++;
-		}
-	}
-
-	/*
-	 * free the children's rowind vectors 
-	 */
-	for (c_sn = sn_first_child[sn]; c_sn != -1; c_sn = sn_next_child[c_sn]) {
-		taucs_free(sn_rowind[c_sn]);
-		sn_rowind[c_sn] = NULL;
-		sn_size[c_sn] = 0;
-		sn_up_size[c_sn] = 0;
-	}
-
-	sn_first_child[sn] = -1;
-	for (i = 0; i < nchildren; i++) {
-		sn_next_child[rowind[i]] = sn_first_child[sn];
-		sn_first_child[sn] = rowind[i];
-	}
-
-	/*
-	 * printf("supernode %d out of %d (done)\n",sn,*n_sn); printf("returning, merging\n"); 
-	 */
-	return merged_znz;
-}
 #endif							       /* #ifdef TAUCS_CORE_GENERAL */
 
 #ifndef TAUCS_CORE_GENERAL
@@ -1210,11 +906,7 @@ static void extend_add_wrapper(supernodal_frontal_matrix *child_matrix,
 
 static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(int sn,	/* this supernode */
 									       int is_root,	/* is v the root? */
-#if 1
 									       int **bitmaps,
-#else
-									       int *bitmap,
-#endif
 									       taucs_ccs_matrix *A, supernodal_factor_matrix *snL, int *fail)
 {
 	supernodal_frontal_matrix *my_matrix = NULL;
@@ -1348,40 +1040,19 @@ void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	supernodal_factor_matrix * L;
 
 	int fail;
-	double wtime, ctime;
-
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
-
 	L = multifrontal_supernodal_create();
 	if (!L)
 		return NULL;
 
-#ifdef TAUCS_CORE_COMPLEX
-	fail = taucs_ccs_symbolic_elimination(A, L, TRUE /* sort, to avoid complex conjuation */ ,
-					      max_depth);
-#else
 	fail = taucs_ccs_symbolic_elimination(A, L, FALSE /* don't sort row indices */ ,
 					      max_depth);
-#endif
 	if (fail == -1) {
 		taucs_supernodal_factor_free(L);
 		return NULL;
 	}
 
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSymbolic Analysis            = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
-
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
-
 	fail = FALSE;
 	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSupernodal Multifrontal LL^T = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
-
 	if (fail) {
 		taucs_supernodal_factor_free(L);
 		return NULL;
@@ -1403,31 +1074,17 @@ void *taucs_dtl(ccs_factor_llt_symbolic) (taucs_ccs_matrix * A) {
 void *taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (taucs_ccs_matrix * A, int max_depth) {
 	supernodal_factor_matrix * L;
 	int fail;
-	double wtime, ctime;
-
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
 
 	L = multifrontal_supernodal_create();
 	if (!L)
 		return NULL;
 
-#ifdef TAUCS_CORE_COMPLEX
-	fail = taucs_ccs_symbolic_elimination(A, L, TRUE /* sort, to avoid complex conjuation */ ,
-					      max_depth);
-#else
 	fail = taucs_ccs_symbolic_elimination(A, L, FALSE /* don't sort row indices */ ,
 					      max_depth);
-#endif
-
 	if (fail == -1) {
 		taucs_supernodal_factor_free(L);
 		return NULL;
 	}
-
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSymbolic Analysis            = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 	return L;
 }
 
@@ -1435,21 +1092,9 @@ int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
 	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	// int *map;
 	int fail;
-	double wtime, ctime;
 
-	// map = (int *) taucs_malloc((A->n + 1) * sizeof(int));
-
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
-
-	/*
-	 * XXX: sivan, we don't need map 
-	 */
 	fail = FALSE;
 	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSupernodal Multifrontal LL^T = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 
 	// taucs_free(map);
 
@@ -1483,43 +1128,13 @@ recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dens
 	int row_count = 0;
 	int PK, M, N, LDA, LDB, LDC;
 
-	/*
-	 * for(i=0;i<sn_size_father;i++) { bitmap[L->sn_struct[J][i]]=i+1; }
-	 * 
-	 * for(i=sn_size_father;i<sn_up_size_father;i++) bitmap[L->sn_struct[J][i]] = i - sn_size_father + 1; 
-	 */
-
 	for (i = sn_size_child; i < sn_up_size_child; i++)
-		/*
-		 * is this row index included in the columns of sn J? 
-		 */
 		if (bitmap[L->sn_struct[K][i]]
 		    && L->sn_struct[K][i] <= L->sn_struct[J][sn_size_father - 1]) {
 			if (!exist_upd)
 				first_row = i;
 			row_count++;
 			exist_upd = 1;
-			/*
-			 * taucs_printf("update from K = %d to J = %d \n",K,J);
-			 */
-			/*
-			 * loop over columns of sn K 
-			 */
-
-			/*
-			 * for(j=0;j<sn_size_child;j++) for(ir=i;ir<sn_up_size_child;ir++) if( L->sn_struct[K][ir] <=
-			 * L->sn_struct[J][sn_size_father-1]){ L->sn_blocks[J][
-			 * (bitmap[L->sn_struct[K][i]]-1)*(L->sn_blocks_ld[J])+(bitmap[L->sn_struct[K][ir]]-1)] -=
-			 * L->up_blocks[K][j*(L->up_blocks_ld[K])+ir-sn_size_child]*
-			 * L->up_blocks[K][j*L->up_blocks_ld[K]+i-sn_size_child]; taucs_printf("sn_block: L[%d,%d] =
-			 * %lf\n",(bitmap[L->sn_struct[K][ir]]-1),(bitmap[L->sn_struct[K][i]]-1),L->sn_blocks[J][
-			 * (bitmap[L->sn_struct[K][i]]-1)*(L->sn_blocks_ld[J])+(bitmap[L->sn_struct[K][ir]]-1)]);} else{
-			 * L->up_blocks[J][ (bitmap[L->sn_struct[K][i]]-1)*(L->up_blocks_ld[J])+(bitmap[L->sn_struct[K][ir]]-1)] -= 
-			 * L->up_blocks[K][j*L->up_blocks_ld[K]+ir-sn_size_child]*
-			 * L->up_blocks[K][j*L->up_blocks_ld[K]+i-sn_size_child]; taucs_printf("up_block: L[%d,%d] =
-			 * %lf\n",(bitmap[L->sn_struct[K][ir]]-1),(bitmap[L->sn_struct[K][i]]-1),L->up_blocks[J][
-			 * (bitmap[L->sn_struct[K][i]]-1)*(L->up_blocks_ld[J])+(bitmap[L->sn_struct[K][ir]]-1)]); }
-			 */
 		}
 
 	if (exist_upd) {
@@ -1529,18 +1144,6 @@ recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dens
 		N = row_count;
 		PK = L->sn_size[K];
 
-		/*
-		 * The GEMM code computes on the upper triangle of the trapezoidal matrix, which is junk. 
-		 */
-		/*
-		 * taucs_gemm ("No Conjugate", "Conjugate", &M,&N,&PK, &taucs_one_const,
-		 * &(L->up_blocks[K][first_row-sn_size_child]),&LDA, &(L->up_blocks[K][first_row-sn_size_child]),&LDB,
-		 * &taucs_zero_const, dense_update_matrix,&LDC); 
-		 */
-
-		/*
-		 * This is the HERK+GEMM fix by Elad 
-		 */
 		taucs_herk("L",
 			   "N",
 			   &N, &PK,
@@ -1558,66 +1161,28 @@ recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dens
 				   &(L->up_blocks[K][first_row - sn_size_child]), &LDB,
 				   &taucs_zero_const, dense_update_matrix + N, &LDC, F_ONE, F_ONE);
 		}
-		/*
-		 * end of GEMM/HERK+GEMM fix 
-		 */
-
-		/*
-		 * for(j=0;j<row_count;j++) for(ir=0;ir<sn_up_size_father;ir++) taucs_printf("dense[%d,%d] =
-		 * %lf\n",ir,j,dense_update_matrix[j*LDC+ir]); 
-		 */
 
 		for (j = 0; j < row_count; j++)
 			for (ir = j; ir < row_count; ir++) {
-
-#if 0
-				L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
-						(bitmap[L->sn_struct[K][first_row + ir]] - 1)] -= dense_update_matrix[j * LDC + ir];
-#endif
 
 				L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
 						(bitmap[L->sn_struct[K][first_row + ir]] - 1)] =
 				    taucs_sub(L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * sn_size_father +
 							      (bitmap[L->sn_struct[K][first_row + ir]] - 1)], dense_update_matrix[j * LDC + ir]);
-
-				/*
-				 * taucs_printf("sn_block: L[%d,%d] =
-				 * %lf\n",(bitmap[L->sn_struct[K][first_row+ir]]-1),(bitmap[L->sn_struct[K][first_row+j]]-1),L->sn_blocks[J][(bitmap[L->sn_struct[K][first_row+j]]-1)*sn_size_father+(bitmap[L->sn_struct[K][first_row+ir]]-1)]);
-				 */
-
 			}
 
 		for (j = 0; j < row_count; j++)
 			for (ir = row_count; ir < M; ir++) {
-#if 0
-				L->up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
-						(bitmap[L->sn_struct[K][ir + first_row]] - 1)] -= dense_update_matrix[j * LDC + ir];
-#endif
-
 				L->up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
 						(bitmap[L->sn_struct[K][ir + first_row]] - 1)] =
 				    taucs_sub(L->up_blocks[J][(bitmap[L->sn_struct[K][first_row + j]] - 1) * (L->up_blocks_ld)[J] +
 							      (bitmap[L->sn_struct[K][ir + first_row]] - 1)], dense_update_matrix[j * LDC + ir]);
 
-				/*
-				 * taucs_printf("up_block: L[%d,%d] =
-				 * %lf\n",(bitmap[L->sn_struct[K][ir+first_row]]-1),(bitmap[L->sn_struct[K][first_row+j]]-1),L->up_blocks[J][(bitmap[L->sn_struct[K][first_row+j]]-1)*(L->up_blocks_ld)[J]+(bitmap[L->sn_struct[K][ir+first_row]]-1)]);
-				 */
-
 			}
-		/*
-		 * for(i=0;i<sn_up_size_father;i++) bitmap[L->sn_struct[J][i]]=0; 
-		 */
-
 		for (child = first_child[K]; child != -1; child = next_child[child]) {
 			recursive_leftlooking_supernodal_update(J, child, bitmap, dense_update_matrix, A, L);
 		}
 	}
-
-	/*
-	 * else for(i=0;i<sn_up_size_father;i++) bitmap[L->sn_struct[J][i]]=0; 
-	 */
-
 }
 
 static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
@@ -1649,14 +1214,6 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 				    taucs_add((L->up_blocks)[sn][(L->up_blocks_ld)[sn] * jp + bitmap[ind[ip]] - sn_size], re[ip]);
 		}
 	}
-
-	/*
-	 * we use the BLAS through the Fortran interface 
-	 */
-
-	/*
-	 * solving of lower triangular system for L 
-	 */
 	if (sn_size) {
 		taucs_potrf("L", &sn_size, (L->sn_blocks)[sn], &((L->sn_blocks_ld)[sn]), &INFO, F_ONE);
 	}
@@ -1667,9 +1224,6 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 		return -1;
 	}
 
-	/*
-	 * getting completion for found columns of L 
-	 */
 	if (up_size && sn_size)
 		taucs_trsm("R",
 			   "L",
@@ -1690,11 +1244,6 @@ static int recursive_leftlooking_supernodal_factor_llt(int sn, /* this supernode
 	int *first_child = L->first_child;
 	int *next_child = L->next_child;
 	double *dense_update_matrix = NULL;
-
-//      if (!is_root)
-//              sn_size = L->sn_size[sn];
-//      else
-//              sn_size = -1;
 
 	if (!is_root) {
 		(L->sn_blocks)[sn] = (L->up_blocks)[sn] = NULL;
@@ -1779,11 +1328,7 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	supernodal_factor_matrix * L;
 	int *map;
 	int *map2;
-	double wtime, ctime;
 	int fail;
-
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
 
 	L = multifrontal_supernodal_create();
 	if (!L)
@@ -1791,10 +1336,6 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 
 	fail = taucs_ccs_symbolic_elimination(A, L, TRUE /* sort row indices */ ,
 					      max_depth);
-
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSymbolic Analysis            = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 
 	map = (int *) taucs_malloc((A->n + 1) * sizeof(int));
 	map2 = (int *) taucs_calloc((A->n + 1), sizeof(int));
@@ -1806,9 +1347,6 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 		return NULL;
 	}
 
-	wtime = taucs_wtime();
-	ctime = taucs_ctime();
-
 	if (recursive_leftlooking_supernodal_factor_llt((L->n_sn), TRUE, map2, map, A, L)
 	    == -1) {
 		taucs_supernodal_factor_free(L);
@@ -1816,10 +1354,6 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 		taucs_free(map2);
 		return NULL;
 	}
-
-	wtime = taucs_wtime() - wtime;
-	ctime = taucs_ctime() - ctime;
-	taucs_printf("\t\tSupernodal Left-Looking LL^T = % 10.3f seconds (%.3f cpu)\n", wtime, ctime);
 
 	taucs_free(map);
 	taucs_free(map2);
@@ -1847,7 +1381,6 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 
 	double *xdense;
 	double *bdense;
-	double flops;
 	int i;						       /* ip,j,jp omer */
 
 	for (child = first_child[sn]; child != -1; child = next_child[child]) {
@@ -1862,41 +1395,35 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 		sn_size = sn_sizes[sn];
 		up_size = sn_up_sizes[sn] - sn_sizes[sn];
 
-		flops = ((double) sn_size) * ((double) sn_size)
-		    + 2.0 * ((double) sn_size) * ((double) up_size);
+		xdense = t;
+		bdense = t + sn_size;
 
-		if (flops > BLAS_FLOPS_CUTOFF) {
-			xdense = t;
-			bdense = t + sn_size;
+		for (i = 0; i < sn_size; i++)
+			xdense[i] = b[sn_struct[sn][i]];
+		for (i = 0; i < up_size; i++)
+			bdense[i] = taucs_zero;
 
-			for (i = 0; i < sn_size; i++)
-				xdense[i] = b[sn_struct[sn][i]];
-			for (i = 0; i < up_size; i++)
-				bdense[i] = taucs_zero;
+		taucs_trsm("L",
+			   "L",
+			   "N",
+			   "N",
+			   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), xdense, &sn_size, F_ONE, F_ONE, F_ONE, F_ONE);
 
-			taucs_trsm("L",
-				   "L",
-				   "N",
-				   "N",
-				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), xdense, &sn_size, F_ONE, F_ONE, F_ONE,
-				   F_ONE);
-
-			if (up_size > 0 && sn_size > 0) {
-				taucs_gemm("N", "N",
-					   &up_size, &ione, &sn_size,
-					   &taucs_one_const,
-					   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &sn_size, &taucs_zero_const, bdense, &up_size, F_ONE, F_ONE);
-			}
-
-			for (i = 0; i < sn_size; i++)
-				x[sn_struct[sn][i]] = xdense[i];
-			for (i = 0; i < up_size; i++)
-				/*
-				 * b[ sn_struct[ sn ][ sn_size + i ] ] -= bdense[i];
-				 */
-				b[sn_struct[sn][sn_size + i]] = taucs_sub(b[sn_struct[sn][sn_size + i]], bdense[i]);
-
+		if (up_size > 0 && sn_size > 0) {
+			taucs_gemm("N", "N",
+				   &up_size, &ione, &sn_size,
+				   &taucs_one_const,
+				   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &sn_size, &taucs_zero_const, bdense, &up_size, F_ONE, F_ONE);
 		}
+
+		for (i = 0; i < sn_size; i++)
+			x[sn_struct[sn][i]] = xdense[i];
+		for (i = 0; i < up_size; i++)
+			/*
+			 * b[ sn_struct[ sn ][ sn_size + i ] ] -= bdense[i];
+			 */
+			b[sn_struct[sn][sn_size + i]] = taucs_sub(b[sn_struct[sn][sn_size + i]], bdense[i]);
+
 	}
 }
 
@@ -1914,7 +1441,6 @@ static void recursive_supernodal_solve_lt(int sn,	       /* this supernode */
 
 	double *xdense;
 	double *bdense;
-	double flops;
 	int i;						       /* ip,j,jp omer */
 
 	if (!is_root) {
@@ -1922,35 +1448,28 @@ static void recursive_supernodal_solve_lt(int sn,	       /* this supernode */
 		sn_size = sn_sizes[sn];
 		up_size = sn_up_sizes[sn] - sn_sizes[sn];
 
-		flops = ((double) sn_size) * ((double) sn_size)
-		    + 2.0 * ((double) sn_size) * ((double) up_size);
+		bdense = t;
+		xdense = t + sn_size;
 
-		if (flops > BLAS_FLOPS_CUTOFF) {
+		for (i = 0; i < sn_size; i++)
+			bdense[i] = b[sn_struct[sn][i]];
+		for (i = 0; i < up_size; i++)
+			xdense[i] = x[sn_struct[sn][sn_size + i]];
 
-			bdense = t;
-			xdense = t + sn_size;
+		if (up_size > 0 && sn_size > 0)
+			taucs_gemm("C", "N",
+				   &sn_size, &ione, &up_size,
+				   &taucs_minusone_const,
+				   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &up_size, &taucs_one_const, bdense, &sn_size, F_ONE, F_ONE);
 
-			for (i = 0; i < sn_size; i++)
-				bdense[i] = b[sn_struct[sn][i]];
-			for (i = 0; i < up_size; i++)
-				xdense[i] = x[sn_struct[sn][sn_size + i]];
+		taucs_trsm("L",
+			   "L",
+			   "C",
+			   "N",
+			   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), bdense, &sn_size, F_ONE, F_ONE, F_ONE, F_ONE);
 
-			if (up_size > 0 && sn_size > 0)
-				taucs_gemm("C", "N",
-					   &sn_size, &ione, &up_size,
-					   &taucs_minusone_const,
-					   up_blocks[sn], &(up_blocks_ld[sn]), xdense, &up_size, &taucs_one_const, bdense, &sn_size, F_ONE, F_ONE);
-
-			taucs_trsm("L",
-				   "L",
-				   "C",
-				   "N",
-				   &sn_size, &ione, &taucs_one_const, sn_blocks[sn], &(sn_blocks_ld[sn]), bdense, &sn_size, F_ONE, F_ONE, F_ONE,
-				   F_ONE);
-
-			for (i = 0; i < sn_size; i++)
-				x[sn_struct[sn][i]] = bdense[i];
-		}
+		for (i = 0; i < sn_size; i++)
+			x[sn_struct[sn][i]] = bdense[i];
 	}
 
 	for (child = first_child[sn]; child != -1; child = next_child[child]) {
@@ -2078,7 +1597,6 @@ void taucs_supernodal_factor_free(void *L)
 		taucs_dsupernodal_factor_free(L);
 		return;
 	}
-	assert(0);
 }
 
 void taucs_supernodal_factor_free_numeric(void *L)
@@ -2086,14 +1604,12 @@ void taucs_supernodal_factor_free_numeric(void *L)
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE) {
 		taucs_dsupernodal_factor_free_numeric(L);
 	}
-	assert(0);
 }
 
 taucs_ccs_matrix *taucs_supernodal_factor_to_ccs(void *L)
 {
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE)
 		return taucs_dsupernodal_factor_to_ccs(L);
-	assert(0);
 	return NULL;
 }
 
@@ -2101,7 +1617,6 @@ void *taucs_supernodal_factor_get_diag(void *L)
 {
 	if (((supernodal_factor_matrix *) L)->flags & TAUCS_DOUBLE)
 		return taucs_dsupernodal_factor_get_diag(L);
-	assert(0);
 	return NULL;
 }
 
@@ -2239,11 +1754,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 		level = (int *) taucs_malloc(n * sizeof(int));
 		prev_p = (int *) taucs_malloc(n * sizeof(int));
 
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-		prev_nbr = (int *) taucs_malloc(n * sizeof(int));
-		first_descendant = (int *) taucs_malloc(n * sizeof(int));
-#endif
-
 		/*
 		 * we allocate scratch vectors to avoid conditionals 
 		 */
@@ -2266,9 +1776,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 
 		if (!first_child || !next_child || !postorder || !ipostorder || !wt || !level || !prev_p || (!l_colcount && !l_cc)
 		    || (!l_rowcount && !l_rc)
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-		    || !prev_nbr || !first_descendant
-#endif
 		    ) {
 			taucs_free(uf);
 
@@ -2282,11 +1789,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 			taucs_free(wt);
 			taucs_free(level);
 			taucs_free(prev_p);
-
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-			taucs_free(prev_nbr);
-			taucs_free(first_descendant);
-#endif
 			return -1;
 		}
 
@@ -2332,14 +1834,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 			else
 				wt[u] = 0;		       /* nonleaves */
 		}
-
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-		for (u = 0; u < n; u++)
-			prev_nbr[u] = -1;
-
-		tree_first_descendant(n, TRUE, first_child, next_child, ipostorder, first_descendant);
-#endif
-
 		taucs_free(first_child);
 		taucs_free(next_child);
 
@@ -2352,11 +1846,7 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 				u = ipostorder[ju];
 				if (ju == jp)
 					continue;	       /* we only want proper neighbors */
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-				if (first_descendant[jp] > prev_nbr[u]) {
-#else
 				if (1) {
-#endif
 					wt[jp]++;
 					pprime = prev_p[ju];
 					if (pprime == -1)
@@ -2368,9 +1858,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 					}
 					prev_p[ju] = jp;
 				}
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-				prev_nbr[u] = p;
-#endif
 			}
 			if (parent[jp] != n) {
 				if (!(ipostorder[parent[jp]] > ipostorder[jp])) {
@@ -2411,15 +1898,8 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 		taucs_free(wt);
 		taucs_free(level);
 		taucs_free(prev_p);
-
-#ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
-		taucs_free(prev_nbr);
-		taucs_free(first_descendant);
-#endif
 	}
-
 	taucs_free(uf);
-
 	return 0;
 }
 
@@ -2652,56 +2132,10 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 		return -1;
 	}
 
-	if (0) {
-		double wtime;
-		int *cc1, *cc2, *rc1, *rc2;
-		int *p1;
-		int nnz1, nnz2;
-
-		cc1 = (int *) taucs_calloc((A->n), sizeof(int));
-		cc2 = (int *) taucs_calloc((A->n), sizeof(int));
-		rc1 = (int *) taucs_calloc((A->n), sizeof(int));
-		rc2 = (int *) taucs_calloc((A->n), sizeof(int));
-		p1 = (int *) taucs_calloc((A->n), sizeof(int));
-
-		wtime = taucs_wtime();
-		taucs_ccs_etree_liu(A, parent, cc1, rc1, &nnz1);
-		wtime = taucs_wtime() - wtime;
-		printf("\t\t\tLiu Analysis = %.3f seconds\n", wtime);
-
-		wtime = taucs_wtime();
-		taucs_ccs_etree(A, p1, cc2, rc2, &nnz2);
-		wtime = taucs_wtime() - wtime;
-		printf("\t\t\tGNP Analysis = %.3f seconds\n", wtime);
-
-		for (j = 0; j < (A->n); j++)
-			assert(parent[j] == p1[j]);
-		for (j = 0; j < (A->n); j++) {
-			if (cc1[j] != cc2[j])
-				printf("j=%d cc1=%d cc2=%d\n", j, cc1[j], cc2[j]);
-			assert(cc1[j] == cc2[j]);
-		}
-
-		for (j = 0; j < (A->n); j++) {
-			if (rc1[j] != rc2[j])
-				printf("j=%d rc1=%d rc2=%d\n", j, rc1[j], rc2[j]);
-			assert(rc1[j] == rc2[j]);
-		}
-
-		if (nnz1 != nnz2)
-			printf("nnz1=%d nnz2=%d\n", nnz1, nnz2);
-
-		taucs_free(cc1);
-		taucs_free(cc2);
-		taucs_free(rc1);
-		taucs_free(rc2);
-	}
-
 	for (j = 0; j <= (A->n); j++)
 		first_child[j] = -1;
 	for (j = (A->n) - 1; j >= 0; j--) {
 		int p = parent[j];
-
 		next_child[j] = first_child[p];
 		first_child[p] = j;
 	}
@@ -2817,88 +2251,8 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 		return -1;
 	}
 
-	{
-		double nnz = 0.0;
-		double flops = 0.0;
-		int sn, i, colnnz;
-		int bytes;
-		double max_front_size = 0.0;
-
-		bytes = 1 * sizeof(char)		       /* uplo */
-		    +2 * sizeof(int)			       /* n, n_sn */
-		    +3 * (L->n_sn) * sizeof(int)	       /* etree */
-		    +4 * (L->n_sn) * sizeof(int)	       /* block sizes, lda */
-		    +1 * (L->n_sn) * sizeof(int *)	       /* row/col indices */
-		    +3 * (L->n_sn) * sizeof(double *)	       /* actual blocks */
-		    ;
-
-		for (sn = 0; sn < (L->n_sn); sn++) {
-			bytes += (L->sn_up_size)[sn] * sizeof(int);
-			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(double);
-			max_front_size = DMAX(max_front_size, (double) (L->sn_up_size)[sn]);
-
-			for (i = 0, colnnz = (L->sn_up_size)[sn]; i < (L->sn_size)[sn]; i++, colnnz--) {
-				/*
-				 * There was a bug here. I did not count muliply-adds in the update part of the computation as 2
-				 * flops but one. 
-				 */
-				/*
-				 * flops += ((double)(colnnz) - 1.0) * ((double)(colnnz) + 2.0) / 2.0;
-				 */
-				flops += 1.0 + ((double) (colnnz)) * ((double) (colnnz));
-				nnz += (double) (colnnz);
-			}
-		}
-		taucs_printf("\t\tSymbolic Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n", nnz, flops, (float) bytes);
-		taucs_printf("\t\t         Maximum front size = %.2e bytes (%.2e bytes packed)\n",
-			     ((double) sizeof(double)) * max_front_size * max_front_size,
-			     ((double) sizeof(double)) * max_front_size * (max_front_size + 1.0) / 2.0);
-	}
-
 	for (j = 0; j < (A->n); j++)
 		map[j] = -1;
-	if (0)
-		(void) recursive_amalgamate_supernodes((L->n_sn) - 1,
-						       &(L->n_sn),
-						       L->sn_size, L->sn_up_size, L->sn_struct,
-						       L->first_child, L->next_child, rowind, column_to_sn_map, map, do_order, ipostorder);
-
-	{
-		double nnz = 0.0;
-		double flops = 0.0;
-		int sn, i, colnnz;
-		int bytes;
-
-		bytes = 1 * sizeof(char)		       /* uplo */
-		    +2 * sizeof(int)			       /* n, n_sn */
-		    +3 * (L->n_sn) * sizeof(int)	       /* etree */
-		    +4 * (L->n_sn) * sizeof(int)	       /* block sizes, lda */
-		    +1 * (L->n_sn) * sizeof(int *)	       /* row/col indices */
-		    +3 * (L->n_sn) * sizeof(double *)	       /* actual blocks */
-		    ;
-
-		for (sn = 0; sn < (L->n_sn); sn++) {
-			bytes += (L->sn_up_size)[sn] * sizeof(int);
-			bytes += ((L->sn_size)[sn] * (L->sn_up_size)[sn]) * sizeof(double);
-
-			for (i = 0, colnnz = (L->sn_up_size)[sn]; i < (L->sn_size)[sn]; i++, colnnz--) {
-				/*
-				 * There was a bug here. I did not count muliply-adds in the update part of the computation as 2
-				 * flops but one. 
-				 */
-				/*
-				 * flops += ((double)(colnnz) - 1.0) * ((double)(colnnz) + 2.0) / 2.0;
-				 */
-				flops += 1.0 + ((double) (colnnz)) * ((double) (colnnz));
-				nnz += (double) (colnnz);
-			}
-		}
-		taucs_printf("\t\tRelaxed  Analysis of LL^T: %.2e nonzeros, %.2e flops, %.2e bytes in L\n", nnz, flops, (float) bytes);
-	}
-
-	/*
-	 * { int i; printf("c2sn: "); for (i=0; i<A->n; i++) printf("%d ",column_to_sn_map[i]); printf("\n"); } 
-	 */
 
 	taucs_free(parent);
 	taucs_free(rowind);
@@ -2923,9 +2277,3 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 	return 0;
 }
 #endif
-
-/*************************************************************/
-
-/* end of file                                               */
-
-/*************************************************************/

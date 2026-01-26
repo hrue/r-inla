@@ -9,16 +9,16 @@
 
 #ifdef TAUCS_CORE_GENERAL
 
-#include <limits.h>
-#if __has_include(<malloc.h>)
-#include <malloc.h>
-#endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <math.h>
-#include "taucs.h"
+#       include <limits.h>
+#       if __has_include(<malloc.h>)
+#              include <malloc.h>
+#       endif
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <string.h>
+#       include <assert.h>
+#       include <math.h>
+#       include "taucs.h"
 
 /*********************************************************/
 
@@ -26,7 +26,7 @@
 
 /*********************************************************/
 
-#include "../external/colamd.h"
+#       include "../external/colamd.h"
 
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
 		 int ncmpa, int *w);
@@ -35,12 +35,12 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int
 
 static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
-#ifndef TAUCS_CONFIG_COLAMD
+#       ifndef TAUCS_CONFIG_COLAMD
 	taucs_printf("taucs_ccs_colamd: COLAMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
-#else
+#       else
 	double knobs[COLAMD_KNOBS];
 	int Alen = 0;
 	int *A = NULL;
@@ -93,7 +93,7 @@ static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 
 	for (i = 0; i < m->n; i++)
 		(*invperm)[(*perm)[i]] = i;
-#endif
+#       endif
 }
 
 /*********************************************************/
@@ -104,12 +104,12 @@ static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 
 static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
-#ifndef TAUCS_CONFIG_AMD
+#       ifndef TAUCS_CONFIG_AMD
 	taucs_printf("taucs_ccs_amd: AMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
-#else
+#       else
 	int n = 0, iwlen = 0, pfree = 0, ncmpa = 0, iovflo = 0;
 	int *iw = NULL;
 	int *pe = NULL;
@@ -284,7 +284,7 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 
 	*perm = last;
 	*invperm = len;
-#endif
+#       endif
 }
 
 /*********************************************************/
@@ -295,12 +295,12 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 
 static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
-#ifndef TAUCS_CONFIG_GENMMD
+#       ifndef TAUCS_CONFIG_GENMMD
 	taucs_printf("taucs_ccs_genmmd: GENMMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
-#else
+#       else
 	int n, maxint, delta, nofsub;
 	int *xadj;
 	int *adjncy;
@@ -476,7 +476,7 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 
 	*perm = prm;
 	*invperm = invp;
-#endif
+#       endif
 }
 
 /*********************************************************/
@@ -697,19 +697,19 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 void METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 void METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
 
-#if !defined(USE_METIS4)
+#       if !defined(USE_METIS4)
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
-#endif
+#       endif
 
 static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 4
-#ifndef TAUCS_CONFIG_METIS
+#       ifndef TAUCS_CONFIG_METIS
 	taucs_printf("taucs_ccs_metis: METIS routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
-#else
+#       else
 	int n, nnz, i, j, ip;
 	int *xadj;
 	int *adj;
@@ -804,15 +804,15 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 	options_flag[6] = 0;				       /* THIS IS SLOW if non-zero. global nodes */
 	options_flag[7] = 3;				       /* number of separators */
 
-#if defined(NO_PARDISO_LIB)
+#              if defined(NO_PARDISO_LIB)
 	METIS_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
-#else
+#              else
 	METIS51PARDISO_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
-#endif
+#              endif
 
 	taucs_free(xadj);
 	taucs_free(adj);
-#endif
+#       endif
 }
 
 /*********************************************************/
@@ -867,11 +867,11 @@ void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which
 	    !strcmp(which, "amdc") || !strcmp(which, "amdbarc"))
 		taucs_ccs_amd(m, perm, invperm, which);
 	else if (!strcmp(which, "metis")) {
-#if defined(USE_METIS4)
+#       if defined(USE_METIS4)
 		taucs_ccs_metis(m, perm, invperm, which);
-#else
+#       else
 		taucs_ccs_metis5(m, perm, invperm, which);
-#endif
+#       endif
 	} else if (!strcmp(which, "genmmd"))
 		taucs_ccs_genmmd(m, perm, invperm, which);
 	else if (!strcmp(which, "colamd"))

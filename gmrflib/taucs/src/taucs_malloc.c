@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #if __has_include(<malloc.h>)
-#include <malloc.h>
+#       include <malloc.h>
 #endif
 #include "taucs.h"
 
