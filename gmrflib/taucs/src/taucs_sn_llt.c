@@ -1,4 +1,3 @@
-//#include <alloca.h>
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>
@@ -57,25 +56,6 @@ typedef struct {
 
 #ifdef TAUCS_CORE_GENERAL
 
-/*************************************************************/
-
-/* for qsort                                                 */
-
-/*************************************************************/
-
-/* this is never used */
-
-/*
-static int compare_ints(void* vx, void* vy)
-{
-  int* ix = (int*)vx;
-  int* iy = (int*)vy;
-  if (*ix < *iy) return -1;
-  if (*ix > *iy) return  1;
-  return 0;
-}
-*/
-
 static int *compare_indirect_map;
 static int compare_indirect_ints(const void *vx, const void *vy)
 {
@@ -91,11 +71,6 @@ static int compare_indirect_ints(const void *vx, const void *vy)
 
 #endif							       /* TAUCS_CORE_GENERAL */
 
-/*************************************************************/
-
-/* create and free the factor object                         */
-
-/*************************************************************/
 
 #ifndef TAUCS_CORE_GENERAL
 
@@ -280,7 +255,6 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 	return C;
 }
 
-
 double *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
 	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	int j, ip, jp, sn;				       /* i,next omer */
@@ -302,12 +276,6 @@ double *taucs_dtl(supernodal_factor_get_diag) (void *vL) {
 
 	return diag;
 }
-
-/*************************************************************/
-
-/* create and free frontal matrices                          */
-
-/*************************************************************/
 
 static supernodal_frontal_matrix *supernodal_frontal_create(int *UNUSED(firstcol_in_supernode), int sn_size, int n, int *rowind)
 {
@@ -363,10 +331,6 @@ static supernodal_frontal_matrix *supernodal_frontal_create(int *UNUSED(firstcol
 
 static void supernodal_frontal_free(supernodal_frontal_matrix *to_del)
 {
-	/*
-	 * SFM_F1 and SFM_F2 are moved to the factor, but this function may be called before they are moved. 
-	 */
-
 	if (to_del) {
 		taucs_free(to_del->SFM_F1);
 		taucs_free(to_del->SFM_F2);
@@ -374,12 +338,6 @@ static void supernodal_frontal_free(supernodal_frontal_matrix *to_del)
 		taucs_free(to_del);
 	}
 }
-
-/*************************************************************/
-
-/* factor a frontal matrix                                   */
-
-/*************************************************************/
 
 static int
 multifrontal_supernodal_front_factor(int sn,
@@ -391,17 +349,10 @@ multifrontal_supernodal_front_factor(int sn,
 	double *re;
 	int INFO;
 
-	/*
-	 * creating transform for real indices 
-	 */
 	for (i = 0; i < mtr->sn_size; i++)
 		bitmap[mtr->sn_vertices[i]] = i;
 	for (i = 0; i < mtr->up_size; i++)
 		bitmap[mtr->up_vertices[i]] = mtr->sn_size + i;
-
-	/*
-	 * adding sn_size column of A to first sn_size column of frontal matrix 
-	 */
 
 	for (j = 0; j < (mtr->sn_size); j++) {
 		ind = &(A->rowind[A->colptr[*(firstcol_in_supernode + j)]]);
@@ -417,32 +368,11 @@ multifrontal_supernodal_front_factor(int sn,
 		}
 	}
 
-	/*
-	 * we use the BLAS through the Fortran interface 
-	 */
-
-	/*
-	 * solving of lower triangular system for L 
-	 */
 	if (mtr->sn_size) {
-		/*
-		 * taucs_potrf ("L", &(mtr->sn_size), mtr->SFM_F1,&(mtr->sn_size), &INFO); 
-		 */
 		taucs_potrf("L", &(mtr->sn_size), mtr->SFM_F1, &(mtr->sn_size), &INFO, F_ONE);
 	}
 
-	if (INFO) {
-		taucs_printf("sivan %d %d\n", sn, sn_size);
-		taucs_printf("\t\tLL^T Factorization: Matrix is not positive definite.\n");
-		taucs_printf("\t\t                    nonpositive pivot in column %d\n", mtr->sn_vertices[INFO - 1]);
-		return -1;
-	}
-
-	/*
-	 * getting completion for found columns of L 
-	 */
 	if (mtr->up_size && mtr->sn_size) {
-
 		taucs_trsm("R",
 			   "L",
 			   "C",
@@ -456,13 +386,7 @@ multifrontal_supernodal_front_factor(int sn,
 
 	(snL->up_blocks)[sn] = mtr->SFM_F2;
 	(snL->up_blocks_ld)[sn] = mtr->up_size;
-	/*
-	 * printf("*** sn=%d up_ld=%d (%d)\n",sn,mtr->up_size,(snL->up_vertex_ptr)[sn+1] - (snL->up_vertex_ptr)[sn]);
-	 */
 
-	/*
-	 * computation of updated part of frontal matrix 
-	 */
 	if (mtr->up_size && mtr->sn_size) {
 		taucs_herk("L",
 			   "N",
@@ -479,14 +403,8 @@ multifrontal_supernodal_front_factor(int sn,
 
 static void multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix *parent_mtr, supernodal_frontal_matrix *my_mtr, int *bitmap)
 {
-	// cleaner code but nothing new
-
 	int j, i, parent_i;
 	double v;
-
-	/*
-	 * extend add operation for update matrix 
-	 */
 
 	int sn_size = parent_mtr->sn_size;
 	int up_size = parent_mtr->up_size;
@@ -641,16 +559,9 @@ static
 void recursive_postorder(int j, int first_child[], int next_child[], int postorder[], int ipostorder[], int *next)
 {
 	int c;
-
 	for (c = first_child[j]; c != -1; c = next_child[c]) {
-		/*
-		 * printf("*** %d is child of %d\n",c,j);
-		 */
 		recursive_postorder(c, first_child, next_child, postorder, ipostorder, next);
 	}
-	/*
-	 * printf(">>> j=%d next=%d\n",j,*next);
-	 */
 	if (postorder)
 		postorder[*next] = j;
 	if (ipostorder)
@@ -709,8 +620,6 @@ void tree_first_descendant(int j, int isroot, int first_child[], int next_child[
 
 int taucs_ccs_etree(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz);
 
-int taucs_ccs_etree_liu(taucs_ccs_matrix * A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz);
-
 static int
 recursive_symbolic_elimination(int j,
 			       taucs_ccs_matrix *A,
@@ -744,13 +653,6 @@ recursive_symbolic_elimination(int j,
 	else if (next_child[first_child[j]] != -1)
 		in_previous_sn = 0;			       /* more than 1 child */
 	else {
-		/*
-		 * check that the structure is nested 
-		 */
-		/*
-		 * map contains child markers 
-		 */
-
 		c = first_child[j];
 		for (ip = (A->colptr)[j]; ip < (A->colptr)[j + 1]; ip++) {
 			i = (A->rowind)[ip];
@@ -762,34 +664,18 @@ recursive_symbolic_elimination(int j,
 		c = first_child[j];
 		c_sn = column_to_sn_map[c];
 		column_to_sn_map[j] = c_sn;
-
-		/*
-		 * swap row indices so j is at the end of the 
-		 */
-		/*
-		 * supernode, not in the update indices 
-		 */
 		for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++)
 			if (sn_rowind[c_sn][ip] == j)
 				break;
 		assert(ip < sn_up_size[c_sn]);
 		sn_rowind[c_sn][ip] = sn_rowind[c_sn][sn_size[c_sn]];
 		sn_rowind[c_sn][sn_size[c_sn]] = j;
-
-		/*
-		 * mark the nonzeros in the map 
-		 */
 		for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++)
 			map[sn_rowind[c_sn][ip]] = j;
 
 		sn_size[c_sn]++;
-
 		return 0;
 	}
-
-	/*
-	 * we are in a new supernode 
-	 */
 
 	if (j < A->n) {
 		nnz = 1;
@@ -818,9 +704,6 @@ recursive_symbolic_elimination(int j,
 		}
 	}
 
-	/*
-	 * printf("children of sn %d: ",*n_sn);
-	 */
 	for (c = first_child[j]; c != -1; c = next_child[c]) {
 		c_sn = column_to_sn_map[c];
 		/*
@@ -833,9 +716,6 @@ recursive_symbolic_elimination(int j,
 			sn_first_child[*n_sn] = c_sn;
 		}
 	}
-	/*
-	 * printf("\n");
-	 */
 
 	if (j < A->n) {
 		column_to_sn_map[j] = *n_sn;
@@ -868,12 +748,6 @@ recursive_symbolic_elimination(int j,
 #endif							       /* #ifdef TAUCS_CORE_GENERAL */
 
 #ifndef TAUCS_CORE_GENERAL
-
-/*************************************************************/
-
-/* factor routines                                           */
-
-/*************************************************************/
 
 static void extend_add_wrapper(supernodal_frontal_matrix *child_matrix,
 			       supernodal_frontal_matrix **my_matrix_ptr,
@@ -910,11 +784,6 @@ static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(i
 									       taucs_ccs_matrix *A, supernodal_factor_matrix *snL, int *fail)
 {
 	supernodal_frontal_matrix *my_matrix = NULL;
-
-	/*
-	 * supernodal_frontal_matrix* child_matrix=NULL;
-	 */
-
 	supernodal_frontal_matrix *ret_matrix = NULL;
 
 	int child;
@@ -922,13 +791,6 @@ static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(i
 	int sn_size;
 	int *first_child = snL->first_child;
 	int *next_child = snL->next_child;
-
-	/*
-	 * Sivan fixed a bug 25/2/2003: v was set even at the root, 
-	 */
-	/*
-	 * but this element of sn_struct was not allocated.  
-	 */
 
 	if (!is_root) {
 		sn_size = snL->sn_size[sn];
@@ -939,34 +801,17 @@ static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(i
 	}
 
 	for (child = first_child[sn]; child != -1; child = next_child[child]) {
-		/*
-		 * original non-cilk code: 
-		 */
-		/*
-		 * child_matrix = recursive_multifrontal_supernodal_factor_llt(child, FALSE, bitmap, A,snL,fail); 
-		 */
-
 		ret_matrix = recursive_multifrontal_supernodal_factor_llt(child, FALSE, bitmaps, A, snL, fail);
 		if (!is_root)
 			extend_add_wrapper(ret_matrix, &my_matrix, is_root, v, sn_size, snL->sn_up_size[sn], snL->sn_struct[sn], bitmaps[0], fail);
 		else
-			/*
-			 * Gil fixed a bug 21/12/2005: snL->sn_up_size[sn] was read, this element was not allocated (and it is not used in the
-			 * subroutine).
-			 */
 			extend_add_wrapper(ret_matrix, &my_matrix, is_root, NULL, 0, 0, 0, bitmaps[0], fail);
 
 		if (*fail) {
-			// if (my_matrix)
-			// this produce a mem-error, so I comment this one out. hrue/jan/25/2009
-			// supernodal_frontal_free(my_matrix);
 			return NULL;
 		}
 	}
 
-	/*
-	 * in case we have no children, we allocate now 
-	 */
 	if (!is_root && !my_matrix) {
 		my_matrix = supernodal_frontal_create(v, sn_size, snL->sn_up_size[sn], snL->sn_struct[sn]);
 		if (!my_matrix) {
@@ -979,9 +824,6 @@ static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(i
 		int rc;
 		rc = multifrontal_supernodal_front_factor(sn, v, sn_size, A, my_matrix, bitmaps[0], snL);
 		if (rc) {
-			/*
-			 * nonpositive pivot 
-			 */
 			*fail = TRUE;
 			supernodal_frontal_free(my_matrix);
 			return NULL;
@@ -1008,9 +850,6 @@ static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* thi
 		taucs_supernodal_factor_free(snL);
 		assert(0);
 		return;
-		/*
-		 * return NULL;
-		 */
 	}
 
 	for (i = 0; i < 1; i++) {
@@ -1022,13 +861,9 @@ static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* thi
 			taucs_supernodal_factor_free(snL);
 			assert(0);
 			return;
-			/*
-			 * return NULL;
-			 */
 		}
 	}
 
-	recursive_multifrontal_supernodal_factor_llt(n_sn, TRUE, maps, A, snL, fail);
 
 	for (i = 0; i < 1; i++)
 		taucs_free(maps[i]);
@@ -1061,11 +896,6 @@ void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	return (void *) L;
 }
 
-/*************************************************************/
-
-/* symbolic-numeric routines                                 */
-
-/*************************************************************/
 
 void *taucs_dtl(ccs_factor_llt_symbolic) (taucs_ccs_matrix * A) {
 	return taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (A, 0);
@@ -1090,27 +920,16 @@ void *taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (taucs_ccs_matrix * A, int max
 
 int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
 	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
-	// int *map;
 	int fail;
-
 	fail = FALSE;
 	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
-
-	// taucs_free(map);
-
 	if (fail) {
 		taucs_supernodal_factor_free_numeric(L);
 		return -1;
 	}
-
 	return 0;
 }
 
-/*************************************************************/
-
-/* left-looking factor routines                              */
-
-/*************************************************************/
 
 static void
 recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dense_update_matrix, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
@@ -1195,9 +1014,6 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 	int sn_size = (L->sn_size)[sn];
 	int up_size = (L->sn_up_size)[sn] - (L->sn_size)[sn];
 
-	/*
-	 * creating transform for real indices 
-	 */
 	for (ip = 0; ip < (L->sn_up_size)[sn]; ip++)
 		bitmap[(L->sn_struct)[sn][ip]] = ip;
 
@@ -1361,11 +1177,6 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	return (void *) L;
 }
 
-/*************************************************************/
-
-/* supernodal solve routines                                 */
-
-/*************************************************************/
 
 static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 					 int is_root,	       /* is v the root? */
@@ -1516,12 +1327,6 @@ int taucs_dtl(supernodal_solve_llt) (void *vL, void *vx, void *vb) {
 	return 0;
 }
 #endif							       /* #ifndef TAUCS_CORE_GENERAL */
-
-/*************************************************************/
-
-/* generic interfaces to user-callable routines              */
-
-/*************************************************************/
 
 #ifdef TAUCS_CORE_GENERAL
 
@@ -1900,168 +1705,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 		taucs_free(prev_p);
 	}
 	taucs_free(uf);
-	return 0;
-}
-
-int taucs_ccs_etree_liu(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_rowcount, int *l_nnz)
-{
-	int n = A->n;
-	int i, j, k, ip, kp;				       /* jp omer */
-	int nnz, jnnz;
-
-	int *uf;
-	int *rowptr;
-	int *colind;
-
-	int *rowcount;
-	int *marker;
-	int *realroot;
-
-	int *l_cc;
-	int *l_rc;
-
-	/*
-	 * we need the row structures for the lower triangle 
-	 */
-
-	nnz = (A->colptr)[n];
-
-	uf = (int *) taucs_malloc(n * sizeof(int));
-	rowcount = (int *) taucs_malloc((n + 1) * sizeof(int));
-	rowptr = (int *) taucs_malloc((n + 1) * sizeof(int));
-	colind = (int *) taucs_malloc(nnz * sizeof(int));
-
-	for (i = 0; i <= n; i++)
-		rowcount[i] = 0;
-
-	for (j = 0; j < n; j++) {
-
-		jnnz = (A->colptr)[j + 1] - (A->colptr)[j];
-
-		for (ip = 0; ip < jnnz; ip++) {
-			i = (A->rowind)[(A->colptr)[j] + ip];
-			if (j < i)
-				rowcount[i]++;
-		}
-	}
-
-	ip = 0;
-	for (i = 0; i <= n; i++) {
-		int next_ip = ip + rowcount[i];
-
-		rowcount[i] = ip;
-		rowptr[i] = ip;
-		ip = next_ip;
-	}
-
-	for (j = 0; j < n; j++) {
-		jnnz = (A->colptr)[j + 1] - (A->colptr)[j];
-
-		for (ip = 0; ip < jnnz; ip++) {
-			i = (A->rowind)[(A->colptr)[j] + ip];
-			if (i == j)
-				continue;
-			assert(rowcount[i] < rowptr[i + 1]);
-			colind[rowcount[i]] = j;
-			rowcount[i]++;
-		}
-	}
-
-	/*
-	 * now compute the etree 
-	 */
-
-	{
-		int u, t, vroot;
-
-		realroot = rowcount;			       /* reuse space */
-
-		for (i = 0; i < n; i++) {
-			uf_makeset(uf, i);
-			realroot[i] = i;
-			parent[i] = n;
-			vroot = i;
-			for (kp = rowptr[i]; kp < rowptr[i + 1]; kp++) {
-				k = colind[kp];
-				u = uf_find(uf, k);
-				t = realroot[u];
-				if (parent[t] == n && t != i) {
-					parent[t] = i;
-					vroot = uf_union(uf, vroot, u);
-					realroot[vroot] = i;
-				}
-			}
-		}
-	}
-
-	/*
-	 * compute column counts 
-	 */
-
-	if (l_colcount || l_rowcount || l_nnz) {
-		int *l_nz;
-		int tmp;
-
-		/*
-		 * we allocate scratch vectors to avoid conditionals 
-		 */
-		/*
-		 * in the inner loop.  
-		 */
-
-		if (l_colcount)
-			l_cc = l_colcount;
-		else
-			l_cc = (int *) taucs_malloc(n * sizeof(int));
-		if (l_rowcount)
-			l_rc = l_rowcount;
-		else
-			l_rc = (int *) taucs_malloc(n * sizeof(int));
-		if (l_nnz)
-			l_nz = l_nnz;
-		else
-			l_nz = &tmp;
-
-		marker = rowcount;			       /* we reuse the space */
-
-		for (j = 0; j < n; j++)
-			l_cc[j] = 1;
-		*l_nz = n;
-
-		for (i = 0; i < n; i++)
-			marker[i] = n;			       /* clear the array */
-
-		for (i = 0; i < n; i++) {
-			l_rc[i] = 1;
-			marker[i] = i;
-			for (kp = rowptr[i]; kp < rowptr[i + 1]; kp++) {
-				k = colind[kp];
-				j = k;
-				while (marker[j] != i) {
-					l_cc[j]++;
-					l_rc[i]++;
-					(*l_nz)++;
-					marker[j] = i;
-					j = parent[j];
-				}
-			}
-		}
-
-		/*
-		 * free scrtach vectors 
-		 */
-
-		if (!l_colcount)
-			taucs_free(l_cc);
-		if (!l_rowcount)
-			taucs_free(l_rc);
-	}
-
-	taucs_free(colind);
-	taucs_free(rowptr);
-	taucs_free(rowcount);
-	taucs_free(uf);
-
 	return 0;
 }
 

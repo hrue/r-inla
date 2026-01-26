@@ -1,12 +1,3 @@
-
-/*********************************************************/
-
-/* TAUCS                                                 */
-
-/* Author: Sivan Toledo                                  */
-
-/*********************************************************/
-
 #ifdef TAUCS_CORE_GENERAL
 
 #       include <limits.h>
@@ -95,12 +86,6 @@ static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 		(*invperm)[(*perm)[i]] = i;
 #       endif
 }
-
-/*********************************************************/
-
-/* Interface to AMD                                      */
-
-/*********************************************************/
 
 static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
@@ -287,11 +272,6 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 #       endif
 }
 
-/*********************************************************/
-
-/* Interface to MMD                                      */
-
-/*********************************************************/
 
 static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
@@ -478,12 +458,6 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 	*invperm = invp;
 #       endif
 }
-
-/*********************************************************/
-
-/* No-fill ordering for trees                            */
-
-/*********************************************************/
 
 static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 {
@@ -686,14 +660,6 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 	taucs_printf("taucs_ccs_treeorder: done\n");
 }
 
-/*********************************************************/
-
-/* Interface to METIS                                    */
-
-/*********************************************************/
-
-
-/* from metis.h */
 void METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 void METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
 
@@ -815,12 +781,6 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 #       endif
 }
 
-/*********************************************************/
-
-/* RANDOM PERMUTATION                                    */
-
-/*********************************************************/
-
 static void taucs_ccs_randomperm(int n, int **perm, int **invperm)
 {
 	int i;
@@ -854,12 +814,6 @@ static void taucs_ccs_randomperm(int n, int **perm, int **invperm)
 		(*invperm)[(*perm)[i]] = i;
 	return;
 }
-
-/*********************************************************/
-
-/* MAIN ORDERING ROUTINE                                 */
-
-/*********************************************************/
 
 void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
@@ -902,16 +856,4 @@ void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which
 	}
 }
 
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
 #endif							       /* TAUCS_CORE_GENERAL */
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
