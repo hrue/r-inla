@@ -33,20 +33,25 @@ fi
 export INLA_TAG="${1-devel}"
 VERSION=$(ssh -x $IP "if [ -f /etc/os-release ]; then source /etc/os-release; echo \$NAME-\$VERSION \$(uname -m); else echo Mac-\$(sw_vers --productVersion)--\$(uname -m); fi");
 D=64bit
+case "$VERSION" in
+    Mac*x86*) OS=mac;;
+    Mac*arm64) OS=mac.arm64; D="";;
+    *) OS=linux;;
+esac
 
 ## add so we can define 'devel' to compile the most recent one
 if [ $INLA_TAG != "devel" ]; then
     ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
-    B=builds/build64;
+    B=\$(echo builds/*);
     if \[ \! -d \$B \]; then B=builds/aarch64; fi;
     echo \$B;
     make -C \$B download;"
 else
     ssh -x -t $IP "
     . .bash_profile;
-    B=builds/build64;
+    B=\$(echo builds/*);
     if \[ \! -d \$B \]; then B=builds/aarch64; fi;
     echo \$B;
     cd \$B/r-inla; 
@@ -59,13 +64,12 @@ fi
 ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
-    B=builds/build64;
+    B=\$(echo builds/*);
     if \[ \! -d \$B \]; then B=builds/aarch64; fi;
     echo \$B;
     make -j2 -C\$B update;
     test -d \$B/$D && rm -rf \$B/$D;
-    rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
-    export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:/usr/lib64/R/lib:\$PWD/local/lib:\$LD_LIBRARY_PATH;
+    rsync -auv \$B/r-inla/rinla/inst/bin/$OS/$D \$B;
     cp -v \$B/local/bin/fmesher \$B/$D;
     rsync -auv \$B/external-packages/external \$B/$D;
     if [ -f /etc/os-release ]; then
@@ -84,7 +88,7 @@ ssh -x -t $IP "
     fi	
 "
 
-B=$(ssh -x $IP 'test -d builds/build64 && echo builds/build64 || echo builds/aarch64')
+B=$(ssh -x $IP 'echo builds/*')
 
 tarfile="$D.tgz"
 ssh -x $IP 'cd '$B'/64bit; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
@@ -92,7 +96,7 @@ ssh -x $IP 'cd '$B'/64bit; mv -f -v lib*malloc* malloc'
 ssh -x $IP 'cd '$B'/64bit; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
 ssh -x $IP 'cd '$B'/64bit; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
 ssh -x $IP "cd '$B'; tar cvfz $tarfile 64bit"
-D="www/Linux-builds"
+D=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
 d="$D/$VERSION/$INLA_TAG"
 mkdir -p "$d"
 rsync $IP:$B/$tarfile "$d"
