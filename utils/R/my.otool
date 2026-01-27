@@ -107,6 +107,11 @@ replace () {
 		    echo $(myreadlink "$d/$f")
 		fi
 	    done
+	    for d in /opt/arm/armpl_*/lib; do
+		if [ -f "$d/$f" ]; then
+		    echo $(myreadlink "$d/$f")
+		fi
+	    done
 	done
     fi
 
