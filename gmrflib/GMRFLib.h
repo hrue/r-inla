@@ -72,6 +72,12 @@ __BEGIN_DECLS
 #              else
 #                     define INLA_CLONE_TARGETS ""
 #              endif
+#       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__aarch64__)
+#              undef INLA_CLONE_TARGETS
+#              define INLA_CLONE_TARGETS "sve", "sve2", "cpu=apple-m1", "cpu=apple-m2",  "cpu=apple-m3", 
+#       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__x86_64__)
+#              undef INLA_CLONE_TARGETS
+#              define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
 #       else
 #              undef INLA_WITH_CLONE_TARGETS
 #              undef INLA_CLONE_TARGETS
