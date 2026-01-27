@@ -98,7 +98,15 @@ replace () {
     
     if $(otool -L "$@" | grep -q @rpath/); then
 	for f in $(otool -L "$@" | grep @rpath/ | awk -F/ '{print $2}' | awk '{print $1}'); do
-	    echo $(myreadlink $HOME/builds/arm64/local/lib/$f)
+	    d="$(echo /opt/homebrew/Cellar/gcc/*/lib/gcc/current|head -n1)"
+	    if [ -f "$d/$f" ]; then
+		echo $(myreadlink "$d/$f")
+	    fi
+	    for d in /opt/local/lib /opt/local/lib/gcc15; do 
+		if [ -f "$d/$f" ]; then
+		    echo $(myreadlink "$d/$f")
+		fi
+	    done
 	done
     fi
 
@@ -109,7 +117,7 @@ replace () {
 	fi
     done
 
-    for f in {/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
+    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
 	if [ -f "$f" ]; then 
 	    echo $(myreadlink $f)
 	fi
