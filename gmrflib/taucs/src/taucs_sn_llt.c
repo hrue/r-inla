@@ -864,7 +864,7 @@ static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* thi
 		}
 	}
 
-
+	recursive_multifrontal_supernodal_factor_llt(n_sn, TRUE, maps, A, snL, fail);
 	for (i = 0; i < 1; i++)
 		taucs_free(maps[i]);
 	taucs_free(maps);
