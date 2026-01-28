@@ -44,5 +44,5 @@
 }
 
 `inla.fmesher.call.builtin` <- function() {
-    stop("This function is no longer in use.")
+    stop("This feature is disabled and 'fmesher' is moved to a separate package.")
 }

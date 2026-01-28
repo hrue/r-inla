@@ -112,9 +112,6 @@
 }
 
 `inla.my.update` <- function(dir, binaries = FALSE, ignore.regexp = NULL) {
-    ## Set binaries=TRUE to set the inla.call and fmesher.call options
-    ## To override the default binaries path, set binaries="/the/path/bin"
-
     a <- inla.models()
     rm(a)
         
@@ -210,8 +207,6 @@
             inla.setOption("inla.call",
                            path.expand(paste(bin.path, "/", "inla.mkl.run", sep = "")))
         }
-        inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher.run", sep = "")))
-        cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep = "")
     }
 
     ## hash the models again

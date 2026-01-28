@@ -208,9 +208,8 @@
     show("Done!")
 
     if (external.path) {
-        cat("* Examples of usage:\n")
+        cat("* Example of usage:\n")
         cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.mkl.run"), "\")\n")
-        cat("* \tinla.setOption(fmesher.call = \"", paste0(from.dir, "/fmesher.run"), "\")\n")
     }
 
     return(invisible(TRUE))
