@@ -89,10 +89,10 @@ ssh -x -t $IP "
 B=$(ssh -x $IP 'echo builds/*')
 
 tarfile="$BIT.tgz"
-ssh -x $IP 'cd '$B'/$BIT; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
-ssh -x $IP 'cd '$B'/$BIT; mv -f -v lib*malloc* malloc'
-ssh -x $IP 'cd '$B'/$BIT; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
-ssh -x $IP 'cd '$B'/$BIT; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
+ssh -x $IP 'cd '$B/$BIT'; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
+ssh -x $IP 'cd '$B/$BIT'; mv -f -v lib*malloc* malloc'
+ssh -x $IP 'cd '$B/$BIT'; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
+ssh -x $IP 'cd '$B/$BIT'; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
 ssh -x $IP "cd '$B'; tar cvfz $tarfile $BIT"
 DD=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
 d="$DD/$VERSION/$INLA_TAG"
