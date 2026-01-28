@@ -47,7 +47,6 @@ LIBPNGPATH=$pathA:$pathB
 if [ -n "${INLA_MALLOC_LIB}" ]; then
     if [ -f "${INLA_MALLOC_LIB}" ]; then
 	export DYLD_INSERT_LIBRARIES="${INLA_MALLOC_LIB}:$DYLD_INSERT_LIBRARIES"
-	export DYLD_FORCE_FLAT_NAMESPACE=1
     else   
 	for nm in ${INLA_MALLOC_LIB}; do
 	    for f in $DIR/malloc/lib*.dylib*; do
@@ -58,7 +57,6 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 			else
 			    export DYLD_INSERT_LIBRARIES="$f"
 			fi
-			export DYLD_FORCE_FLAT_NAMESPACE=1
 			;;
 		esac
 	    done
@@ -73,12 +71,11 @@ if [ -n "${INLA_MALLOC_LIB}" ]; then
 fi
 
 export PARDISOLICMESSAGE=1
-export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$DIR:$LIBPNGPATH:/usr/lib:/opt/local/lib:/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     export OMP_DISPLAY_ENV=true
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
-    echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
     
     ##export DYLD_PRINT_OPTS="1"
