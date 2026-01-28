@@ -31,13 +31,14 @@ else
 fi
 
 export INLA_TAG="${1-devel}"
-VERSION=$(ssh -x $IP "if [ -f /etc/os-release ]; then source /etc/os-release; echo \$NAME-\$VERSION \$(uname -m); else echo Mac-\$(sw_vers --productVersion)--\$(uname -m); fi");
+VERSION=$(ssh -x $IP "if [ -f /etc/os-release ]; then source /etc/os-release; echo \$NAME-\$VERSION \$(uname -m); else echo Mac-\$(sw_vers --productVersion)--\$(uname -m); fi")
 BIT=64bit
 case "$VERSION" in
     Mac*x86*) OS=mac;;
     Mac*arm64) OS=mac.arm64;;
     *) OS=linux;;
 esac
+echo $VERSION $OS
 
 ## add so we can define 'devel' to compile the most recent one
 if [ $INLA_TAG != "devel" ]; then
@@ -78,6 +79,10 @@ ssh -x -t $IP "
     if test -f \$B/local/bin/inla.mkl; then 
         cp -v \$B/local/bin/inla.mkl \$B/$BIT;
         \$ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$BIT; done;
+    fi	
+    if test -f \$B/local/bin/inla; then 
+        cp -v \$B/local/bin/inla \$B/$BIT;
+        \$ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$BIT; done;
     fi	
 "
 
