@@ -1,3 +1,17 @@
+#ifndef __GMRFLib_H__
+#       define __GMRFLib_H__
+
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
+
+
 #if !defined(_GNU_SOURCE)
 #       define _GNU_SOURCE 1
 #endif
@@ -15,21 +29,6 @@
 #if defined(__linux__)
 #       include <features.h>
 #endif
-
-#ifndef __GMRFLib_H__
-#       define __GMRFLib_H__
-
-#       undef __BEGIN_DECLS
-#       undef __END_DECLS
-#       ifdef __cplusplus
-#              define __BEGIN_DECLS extern "C" {
-#              define __END_DECLS }
-#       else
-#              define __BEGIN_DECLS			       /* empty */
-#              define __END_DECLS			       /* empty */
-#       endif
-
-__BEGIN_DECLS
 
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
@@ -117,9 +116,6 @@ __BEGIN_DECLS
 #       include <gsl/gsl_types.h>
 #       include <gsl/gsl_vector.h>
 
-/* 
- * include all the include-files in GMRFLib
- */
 #       include "GMRFLib/GMRFLibP.h"
 #       include "GMRFLib/alloc.h"
 #       include "GMRFLib/init.h"
@@ -169,7 +165,11 @@ __BEGIN_DECLS
 #       include "GMRFLib/sn-g.h"
 #       include "GMRFLib/my-numa.h"
 #       include "GMRFLib/fit-sn.h"
+
+__BEGIN_DECLS
+
 #       if defined(INLA_WITH_MKL)
+
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);
 void vdExpI(int, const double *, int, double *, int);

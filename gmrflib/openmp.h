@@ -13,18 +13,23 @@
 #       endif
 
 
-// workaround for the moment (gcc-15.2.1)
 
+// workaround for the moment (gcc-15.2.1)
+#if 1
 #       if defined(__cplusplus)
-#              define my_tmp__ __cplusplus
+#              define TMP_ __cplusplus
 #              undef __cplusplus
 #              include <omp.h>
-#              define __cplusplus my_tmp__
+#              define __cplusplus TMP_
+#              undef TMP_
 #       else
 #              include <omp.h>
 #       endif
+#endif
 
-__BEGIN_DECLS typedef struct {
+__BEGIN_DECLS 
+
+typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;
