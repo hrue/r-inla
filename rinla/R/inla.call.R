@@ -11,7 +11,7 @@
     if (inla.os("mac")) {
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.run", sep = ""), package = "INLA")
     } else if (inla.os("mac.arm64")) {
-        fnm <- system.file("bin/mac.arm64/inla.run", package = "INLA")
+        fnm <- system.file(paste("bin/mac.arm64/", inla.os.32or64bit(), "bit/inla.run", sep = ""), package = "INLA")
     } else if (inla.os("linux")) {
         if (inla.one.of(R.version$arch, "aarch64")) {
             fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(),
@@ -44,31 +44,5 @@
 }
 
 `inla.fmesher.call.builtin` <- function() {
-    ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
-    ## manually instead.
-    if (exists("inla.options", envir = inla.get.inlaEnv())) {
-        opt <- get("inla.options", envir = inla.get.inlaEnv())
-        if (!is.null(opt$fmesher.call)) {
-            return (opt$fmesher.call)
-        }
-    }
-
-    if (inla.os("mac")) {
-        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""),
-                           package = "INLA")
-    } else if (inla.os("mac.arm64")) {
-        fnm <- system.file("bin/mac.arm64/fmesher.run", package = "INLA")
-    } else if (inla.os("linux")) {
-        fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""), package = "INLA")
-    } else if (inla.os("windows")) {
-        fnm <- system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/fmesher.exe", sep = ""), package = "INLA")
-    } else {
-        stop("Unknown OS")
-    }
-
-    if (file.exists(fnm)) {
-        return(fnm)
-    } else {
-        stop(paste("INLA installation error; no such file", fnm))
-    }
+    stop("This function is no longer in use.")
 }

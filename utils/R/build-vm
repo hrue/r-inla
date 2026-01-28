@@ -63,46 +63,47 @@ fi
 
 ssh -x -t $IP "
     . .bash_profile;
+    set -x ;
     export INLA_TAG=$INLA_TAG;
     B=\$(echo builds/*);
-    if \[ \! -d \$B \]; then B=builds/aarch64; fi;
     echo \$B;
     make -j2 -C\$B update;
-    test -d \$B/$D && rm -rf \$B/$D;
-    rsync -auv \$B/r-inla/rinla/inst/bin/$OS/$D \$B;
-    cp -v \$B/local/bin/fmesher \$B/$D;
+    test -d \$B/64bit && rm -rf \$B/64bit;
+    mkdir \$B/64bit;
+    rsync -auv \$B/r-inla/rinla/inst/bin/$OS/$D/. \$B/64bit/.;
+    cp -v \$B/local/bin/fmesher \$B/64bit/.;
     rsync -auv \$B/external-packages/external \$B/$D;
     if [ -f /etc/os-release ]; then
         ldd=bin/my.ldd
     else	   
         ldd=bin/my.otool
-    fi	
-    \$ldd \$B/local/bin/fmesher | while read f; do cp -v \$f \$B/$D; done
+   fi	
+    \$ldd \$B/local/bin/fmesher | while read f; do cp -v \$f \$B/64bit; done
     if test -f \$B/local/bin/inla; then 
-        cp -v \$B/local/bin/inla \$B/$D;
-        \$ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$D; done;
+        cp -v \$B/local/bin/inla \$B/64bit;
+        \$ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/64bit; done;
     fi	
     if test -f \$B/local/bin/inla.mkl; then 
-        cp -v \$B/local/bin/inla.mkl \$B/$D;
-        \$ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$D; done;
+        cp -v \$B/local/bin/inla.mkl \$B/64bit;
+        \$ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/64bit; done;
     fi	
 "
 
 B=$(ssh -x $IP 'echo builds/*')
 
-tarfile="$D.tgz"
+tarfile="64bit.tgz"
 ssh -x $IP 'cd '$B'/64bit; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
 ssh -x $IP 'cd '$B'/64bit; mv -f -v lib*malloc* malloc'
 ssh -x $IP 'cd '$B'/64bit; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
 ssh -x $IP 'cd '$B'/64bit; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
 ssh -x $IP "cd '$B'; tar cvfz $tarfile 64bit"
-D=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
-d="$D/$VERSION/$INLA_TAG"
+DD=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
+d="$DD/$VERSION/$INLA_TAG"
 mkdir -p "$d"
 rsync $IP:$B/$tarfile "$d"
 
 (
-    cd $D
+    cd $DD
     f="FILES"
     test -f "$f" && rm "$f"
     find . -type f -print | grep -v md5sum.txt | sort > $f
