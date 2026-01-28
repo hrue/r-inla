@@ -5761,10 +5761,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
 	/*
-	 * solve arg min logl(x[i]) - prec * 0.5*(x[i]-mean)^2. But we have no option of what PREC is, so I set it to 10.0
+	 * solve arg min logl(x[i]) - prec * 0.5*(x[i]-mean)^2. 
 	 */
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec, prec_max = 1.0E6, prec_min = 10.0, w, x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
+	double prec, prec_max = 1.0E6, prec_min = 4.0, w, x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
 	int niter = 0, niter_min = 25, niter_max = 100, stencil = 3;
 	const int debug = 0;
 
