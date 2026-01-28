@@ -136,7 +136,5 @@ replace () {
 	     
     if $(uname -a |grep -q ARM64); then 
 	dummy=1
-    else
-	
     fi
 } | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq
