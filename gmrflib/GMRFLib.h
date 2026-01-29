@@ -12,23 +12,23 @@
 #       endif
 
 
-#if !defined(_GNU_SOURCE)
-#       define _GNU_SOURCE 1
-#endif
+#       if !defined(_GNU_SOURCE)
+#              define _GNU_SOURCE 1
+#       endif
 
-#include <errno.h>
-#include <assert.h>
-#include <stddef.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdbool.h>
+#       include <errno.h>
+#       include <assert.h>
+#       include <stddef.h>
+#       include <math.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <stdint.h>
+#       include <inttypes.h>
+#       include <stdbool.h>
 
-#if defined(__linux__)
-#       include <features.h>
-#endif
+#       if defined(__linux__)
+#              include <features.h>
+#       endif
 
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
@@ -37,7 +37,7 @@
 #              if !defined(_OPENMP)
 #                     define SIMDE_ENABLE_OPENMP
 #              endif
-#
+#              
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              
@@ -73,7 +73,7 @@
 #              endif
 #       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__aarch64__)
 #              undef INLA_CLONE_TARGETS
-#              define INLA_CLONE_TARGETS "sve", "sve2", "cpu=apple-m1", "cpu=apple-m2",  "cpu=apple-m3", 
+#              define INLA_CLONE_TARGETS "sve", "sve2", "cpu=apple-m1", "cpu=apple-m2",  "cpu=apple-m3",
 #       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__x86_64__)
 #              undef INLA_CLONE_TARGETS
 #              define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
@@ -167,9 +167,7 @@
 #       include "GMRFLib/fit-sn.h"
 
 __BEGIN_DECLS
-
 #       if defined(INLA_WITH_MKL)
-
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);
 void vdExpI(int, const double *, int, double *, int);

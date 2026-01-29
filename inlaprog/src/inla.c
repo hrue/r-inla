@@ -17,10 +17,10 @@
 #       include <getopt.h>
 #endif
 #if defined(__sun__)
-#include <stdlib.h>
+#       include <stdlib.h>
 #endif
 #if defined(__linux__)
-#include <getopt.h>
+#       include <getopt.h>
 #endif
 #include <assert.h>
 #include <ctype.h>

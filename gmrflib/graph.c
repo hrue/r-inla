@@ -546,19 +546,21 @@ int *GMRFLib_bsearch_4(int key, int n, int *array)
 	unsigned int bot = 0, top = n, nn = n;
 	while (top > 1) {
 		unsigned int mid = top / 2;
-		if (key >= array[bot + mid]) bot += mid;
+		if (key >= array[bot + mid])
+			bot += mid;
 		top -= mid;
 	}
-	if (bot < nn && key == array[bot]) return (int*)&array[bot];
+	if (bot < nn && key == array[bot])
+		return (int *) &array[bot];
 	return NULL;
 }
 
-int *GMRFLib_bsearch_timing(int key, int n, int *array) 
+int *GMRFLib_bsearch_timing(int key, int n, int *array)
 {
 	int *p = NULL;
 #pragma omp critical (Name_6474fc0a96f50de20c97c30a6b3cd2bf6471ec43)
 	{
-		static double tref[4] = {0};
+		static double tref[4] = { 0 };
 		static int trefc = 0;
 		int *p1, *p2, *p3, *p4;
 
@@ -588,11 +590,7 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 		if (trefc % 10000 == 0) {
 			double scale = 1.0 / GMRFLib_dsum(4, tref);
 			printf("bsearch %g %g %g %g (%g)\n",
-			       tref[0] * scale,
-			       tref[1] * scale,
-			       tref[2] * scale,
-			       tref[3] * scale,
-			       (1.0 / scale) / 4.0);
+			       tref[0] * scale, tref[1] * scale, tref[2] * scale, tref[3] * scale, (1.0 / scale) / 4.0);
 		}
 
 		p = p1;
