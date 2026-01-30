@@ -2635,46 +2635,6 @@ int testit(int argc, char **argv)
 		break;
 
 	case 91:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		P(n);
-		P(m);
-		double start = 0, finish = 0;
-		double start2 = 0, finish2 = 0;
-		int *idx = Calloc(n, int);
-		int key = 1;
-		for (int i = 0; i < n; i++) {
-			key += i;
-			// printf("%d %d \n", i, key);
-			idx[i] = key;
-		}
-		for (int k = 0; k < m; k++) {
-			double sum = 0.0;
-			start += GMRFLib_timer();
-			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted(i, idx, (unsigned int) n);
-				if (p >= 0)
-					sum += idx[p];
-			}
-			finish += GMRFLib_timer();
-
-			double sum2 = 0.0;
-			start2 += GMRFLib_timer();
-			unsigned int guess[2] = { 0, 0 };
-			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted_g2(i, idx, (unsigned int) n, guess);
-				if (p >= 0)
-					sum2 += idx[p];
-			}
-			finish2 += GMRFLib_timer();
-			assert(sum == sum2);
-
-			if (k == m - 1)
-				printf("n.lookups= %1d  Time for iwhich= %.4g iwhich_g2= %.4g ratio /g2= %.4f\n",
-				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
-		}
-	}
 		break;
 
 	case 92:
