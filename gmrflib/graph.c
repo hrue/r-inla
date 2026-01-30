@@ -498,16 +498,21 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 
 int *GMRFLib_bsearch_1(int key, int n, int *array)
 {
-	if (n == 0)
-		return NULL;
-	int *base = array;
-	unsigned int length = (unsigned int) n, half;
-	while (length > 1) {
-		half = length / 2;
-		base += (base[half - 1] < key) * half;
-		length -= half;
+	unsigned int mid = (unsigned int) n, top = mid, *piv, *ia = (unsigned int *) array;
+	while (mid > 0) {
+		mid = top / 2;
+		piv = ia + mid;
+		if (key >= *piv) {
+			if (key == *piv) {
+				return (int *) piv;
+			}
+			ia += mid;
+			top -= mid;
+		} else {
+			top = mid;
+		}
 	}
-	return (*base == key) ? base : NULL;
+	return NULL;
 }
 
 int *GMRFLib_bsearch_2(int key, int n, int *array)
@@ -529,11 +534,9 @@ int *GMRFLib_bsearch_3(int key, int n, int *array)
 	unsigned int mid = (unsigned int) n, top = mid;
 	while (mid) {
 		mid = top / 2;
-		int *piv = array + mid;
-		if (key == *piv) {
-			return piv;
-		}
-		if (key > *piv) {
+		unsigned int *piv = array + mid;
+		if (key >= *piv) {
+			if (key == *piv) return (int *) piv;
 			array = piv;
 		}
 		top -= mid;
@@ -555,14 +558,32 @@ int *GMRFLib_bsearch_4(int key, int n, int *array)
 	return NULL;
 }
 
+int *GMRFLib_bsearch_5(int key, int n, int *array)
+{
+	int left = 0;
+	int right = n - 1;
+	while (left <= right) {
+		int mid = left + (right - left) / 2;
+		assert(mid < n);
+		if (array[mid] == key) {
+			return array + mid;  
+		} else if (array[mid] < key) {
+			left = mid + 1; 
+		} else {
+			right = mid - 1;
+		}
+	}
+	return NULL; 
+}
+
 int *GMRFLib_bsearch_timing(int key, int n, int *array)
 {
 	int *p = NULL;
 #pragma omp critical (Name_6474fc0a96f50de20c97c30a6b3cd2bf6471ec43)
 	{
-		static double tref[4] = { 0 };
+		static double tref[5] = { 0 };
 		static int trefc = 0;
-		int *p1, *p2, *p3, *p4;
+		int *p1, *p2, *p3, *p4, *p5;
 
 		p1 = GMRFLib_bsearch_1(key, n, array);
 		tref[0] -= GMRFLib_timer();
@@ -584,13 +605,17 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 		p4 = GMRFLib_bsearch_4(key, n, array);
 		tref[3] += GMRFLib_timer();
 
-		assert(p1 == p2 && p1 == p3 && p1 == p4);
-		trefc++;
+		p5 = GMRFLib_bsearch_5(key, n, array);
+		tref[4] -= GMRFLib_timer();
+		p5 = GMRFLib_bsearch_5(key, n, array);
+		tref[4] += GMRFLib_timer();
 
-		if (trefc % 10000 == 0) {
-			double scale = 1.0 / GMRFLib_dsum(4, tref);
-			printf("bsearch %g %g %g %g (%g)\n",
-			       tref[0] * scale, tref[1] * scale, tref[2] * scale, tref[3] * scale, (1.0 / scale) / 4.0);
+		assert(p1 == p2 && p1 == p3 && p1 == p4 && p1 == p5);
+		if (++trefc % 100000 == 0) {
+			double tmin = GMRFLib_min_value(tref, 5, NULL);
+			for(int i = 0; i < 5; i++) tref[i] /= tmin;
+			printf("bsearch %g %g %g %g %g\n",
+			       tref[0], tref[1], tref[2], tref[3], tref[4]);
 		}
 
 		p = p1;
