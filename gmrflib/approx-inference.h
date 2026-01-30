@@ -812,6 +812,7 @@ typedef struct {
 typedef struct {
 	int n;
 	double *value;
+	double *pit_value;
 	double *kld;
 	double *mean;
 	double *sd;
@@ -829,6 +830,7 @@ typedef struct {
 	GMRFLib_idxval_tp *idxs;			       /* list of nodes in the matrix, sorted */
 	gsl_matrix *cov_mat;				       /* the covariance matrix */
 	double value;
+	double pit_value;
 	double lpred_mean;
 	double lpred_sd;
 	double kld;

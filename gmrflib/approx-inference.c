@@ -1218,6 +1218,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*gcpo) = Calloc(1, GMRFLib_gcpo_tp);
 		(*gcpo)->n = preopt->Npred;
 		(*gcpo)->value = Calloc(preopt->Npred, double);
+		(*gcpo)->pit_value = Calloc(preopt->Npred, double);
 		(*gcpo)->kld = Calloc(preopt->Npred, double);
 		(*gcpo)->mean = Calloc(preopt->Npred, double);
 		(*gcpo)->sd = Calloc(preopt->Npred, double);
@@ -2195,8 +2196,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			if (!(GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1)) {
 				gcpo_theta[dens_count] =
-				    GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
-						 loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
+					GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
+						     loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
 			}
 		}
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1) {
@@ -2575,13 +2576,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				// P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
 			}
 
-			double evalue = 0.0, evalue_one = 0.0;
+			double evalue = 0.0, evalue_one = 0.0, pit_evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
 				evalue += gcpo_theta[jj][j]->value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
+				pit_evalue += gcpo_theta[jj][j]->pit_value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
 				evalue_one += probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
 			}
 			(*gcpo)->value[j] = evalue / evalue_one;
+			(*gcpo)->pit_value[j] = pit_evalue / evalue_one;
 
 			evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
@@ -4554,6 +4557,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_idx_add(&node_idx2, node);
 		} else {
 			gcpo[node]->value = NAN;
+			gcpo[node]->pit_value = NAN;
 		}
 	}
 
@@ -4784,8 +4788,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_ghq(&xx, &weights, np);			\
 			double *xp = CODE_BLOCK_WORK_PTR(2);		\
 			double *loglik = CODE_BLOCK_WORK_PTR(3);	\
+			double *pit = CODE_BLOCK_WORK_PTR(4);		\
 									\
-			double val = 0.0;				\
 			double loc_prec, loc_mean, loc_sd;		\
 			double ll_prec = cc_idx_node;			\
 			double ll_mean = bb_idx_node / cc_idx_node;	\
@@ -4799,15 +4803,20 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				xp[i] = loc_mean + loc_sd * xx[i];	\
 			}						\
 			loglFunc(thread_id, &cache_idx, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg); \
+			loglFunc(thread_id, &cache_idx, pit, xp, -np, node, lpred_mean, NULL, loglFunc_arg); \
 									\
 			double d_tmp = d[node];				\
+			double val = 0.0;				\
+			double pit_val = 0.0;				\
 			for (int i = 0; i < np; i++) {			\
-				val += exp(d_tmp * loglik[i]		\
-					   - 0.5 * lp_prec * SQR(xp[i] - lp_mean) \
-					   + 0.5 * SQR(xx[i]))		\
-					* weights[i];			\
+				double w = - 0.5 * lp_prec * SQR(xp[i] - lp_mean)  + 0.5 * SQR(xx[i]) + log(weights[i]); \
+				val += exp(d_tmp * loglik[i] + w);	\
+				/* the pit is not properly defined with d_tmp different from 0, 1 */ \
+				pit_val += d_tmp * pit[i] * exp(w);	\
 			}						\
-			gcpo[node]->value = val * sqrt(lp_prec/loc_prec); \
+			double w = sqrt(lp_prec / loc_prec);		\
+			gcpo[node]->value = val * w;			\
+			gcpo[node]->pit_value = pit_val * w;		\
 			if (corr_hyper) {				\
 				gcpo[node]->marg_theta_correction = - log(gcpo[node]->value); \
 			}						\
@@ -4915,8 +4924,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				gcpo[node]->marg_theta_correction = - gcpo[node]->value; \
 			}						\
 			gcpo[node]->value = exp(gcpo[node]->value);	\
+			gcpo[node]->pit_value = NAN;			\
 		} else {						\
 			gcpo[node]->value = NAN;			\
+			gcpo[node]->pit_value = NAN;			\
 		}							\
 									\
 		if (gcpodens_moments) {					\
@@ -4932,7 +4943,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		}							\
 	}
 
-	RUN_CODE_BLOCK_X(GMRFLib_MAX_THREADS(), 4, IMAX(np, max_ng), local_storage_tp);
+	RUN_CODE_BLOCK_X(GMRFLib_MAX_THREADS(), 5, IMAX(np, max_ng), local_storage_tp);
 #undef CODE_BLOCK_WORK_TP_FREE
 #undef CODE_BLOCK
 

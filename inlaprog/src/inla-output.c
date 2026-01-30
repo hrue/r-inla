@@ -530,6 +530,9 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, GMRFLib_gcpo
 			D1W(gcpo->value[i]);
 		}
 		for (i = 0; i < n; i++) {
+			D1W(gcpo->pit_value[i]);
+		}
+		for (i = 0; i < n; i++) {
 			D1W(gcpo->kld[i]);
 		}
 		for (i = 0; i < n; i++) {

@@ -498,15 +498,16 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 
 int *GMRFLib_bsearch_1(int key, int n, int *array)
 {
-	unsigned int mid = (unsigned int) n, top = mid, *piv, *ia = (unsigned int *) array;
+	unsigned int mid = (unsigned int) n, top = mid;
+	int *piv;
 	while (mid > 0) {
 		mid = top / 2;
-		piv = ia + mid;
+		piv = array + mid;
 		if (key >= *piv) {
 			if (key == *piv) {
-				return (int *) piv;
+				return piv;
 			}
-			ia += mid;
+			array += mid;
 			top -= mid;
 		} else {
 			top = mid;
@@ -534,9 +535,9 @@ int *GMRFLib_bsearch_3(int key, int n, int *array)
 	unsigned int mid = (unsigned int) n, top = mid;
 	while (mid) {
 		mid = top / 2;
-		unsigned int *piv = array + mid;
+		int *piv = array + mid;
 		if (key >= *piv) {
-			if (key == *piv) return (int *) piv;
+			if (key == *piv) return piv;
 			array = piv;
 		}
 		top -= mid;
