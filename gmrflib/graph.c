@@ -496,11 +496,11 @@ int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
-int *GMRFLib_bsearch_1(int key, int n, int *arrary)
+int *GMRFLib_bsearch_1(int key, int n, int *array)
 {
 	if (n == 0)
 		return NULL;
-	int *base = arrary;
+	int *base = array;
 	unsigned int length = (unsigned int) n, half;
 	while (length > 1) {
 		half = length / 2;
