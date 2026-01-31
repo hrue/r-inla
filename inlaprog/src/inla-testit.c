@@ -6215,6 +6215,23 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 194:
+	{
+		int N = atoi(args[0]);
+		P(N);
+		int *ix = Malloc(N, int);
+		for(int i = 0; i < N; i++) ix[i] = i;
+
+		printf("\nThis test runs forever...interupt when you're done\n\n");
+		while(1){
+			int k = (int) (N * GMRFLib_uniform());
+			int *ptr = GMRFLib_bsearch_timing(k, N, ix);
+			assert(*ptr == k);
+		}
+		Free(ix);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
