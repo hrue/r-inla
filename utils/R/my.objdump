@@ -7,7 +7,6 @@ case $1 in
 esac
 DIR=${DIR%/.}
 DIR=${DIR%inla.exe}
-DIR=${DIR%fmesher.exe}
 ## echo $DIR
 
 

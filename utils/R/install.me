@@ -92,7 +92,7 @@ mkdir $TDIR
     echo " *** Make Mac binary"
     cd $TDIR
     tar xfz ../$tgzINLA
-    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit  INLA/{,inst/}bin/mac.arm64; do
+    for d in INLA/{,inst/}bin/{linux,windows,mac.arm64}/{32,64}bit; do
 	echo "    -> $d"
 	test -d $d && rm -rf $d;
     done
@@ -118,7 +118,7 @@ mkdir $TDIR
     echo " *** Make Linux binary"
     cd $TDIR
     tar xfz ../$gzINLA
-    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do
+    for d in INLA/{,inst/}bin/{mac,mac.arm64,windows}/{32,64}bit; do
 	echo "    -> $d"
 	test -d $d && rm -rf $d;
     done
@@ -131,7 +131,7 @@ mkdir $TDIR
     echo " *** Make Windows binary"
     cd $TDIR
     unzip -q ../$zipINLA
-    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do
+    for d in INLA/{,inst/}bin/{linux,mac,mac.arm64}/{32,64}bit; do
 	echo "    -> $d"
 	test -d $d && rm -rf $d;
     done

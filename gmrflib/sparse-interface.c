@@ -915,13 +915,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
 		int min_block_size = GMRFLib_taucs_get_min_block_size();
-		//int block_size = GMRFLib_taucs_get_block_size();
+		// int block_size = GMRFLib_taucs_get_block_size();
 		int ntt = (omp_get_level() == 0 ? GMRFLib_openmp->max_threads_outer :
 			   (omp_get_level() == 1 ? GMRFLib_openmp->max_threads_inner : 1));
 		if (nrhs == 1) {
 			// simple entry, part 1
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_LL, graph, sm_fact->remap, work);
-		} else if (ntt ==  1) {
+		} else if (ntt == 1) {
 			// simple entry, part 2
 			GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, nrhs, work);
 		} else {
@@ -943,9 +943,9 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			}
 
 			// cleanup if a thread as few nrhs, then move those to the earlier one
-			for (int i = ntt-1; i > 0; i--) {
+			for (int i = ntt - 1; i > 0; i--) {
 				if (csize[i] < min_block_size / 2) {
-					csize[i-1] += csize[i];
+					csize[i - 1] += csize[i];
 					csize[i] = 0;
 				}
 			}
@@ -953,13 +953,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			// int ntt_orig = ntt;
 			int new_ntt = 0;
 			for (int i = 0; i < ntt; i++) {
-				new_ntt +=  (csize[i] > 0);
+				new_ntt += (csize[i] > 0);
 			}
 			ntt = new_ntt;
 
 			// printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
 			// for(int i = 0; i < ntt_orig; i++) printf("\tthread %1d nrhs %1d\n", i, csize[i]);
-			
+
 			assert(GMRFLib_isum(ntt, csize) == nrhs);
 			offset[0] = 0;
 			for (int i = 1; i < ntt; i++) {
@@ -972,7 +972,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 								       sm_fact->remap, csize[i], work + offset[i]);
 			}
 			Free(iwork);
-			
+
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));

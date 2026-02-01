@@ -6,7 +6,7 @@ fix-perm () {
     local d
     local f
     for d in "$@"; do
-	for f in {fmesher,inla,inla.mkl}{,.run,.exe}; do
+	for f in {inla,inla.mkl}{,.run,.exe}; do
 	    test -f "$d/$f" && chmod 755 "$d/$f"
 	done
 	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib "$d"/*.dll; do
@@ -17,16 +17,16 @@ fix-perm () {
 
 for m in 64; do
     DIR=$d/mac/${m}bit
-    for p in inla fmesher; do 
+    for p in inla; do 
 	for f in $(ssh -x -p $INLA_MAC_PORT $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-path=/usr/local/bin/rsync -auvL $INLA_MAC:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-path=/opt/local/bin/rsync -auvL $INLA_MAC:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-path=/usr/local/bin/rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_PORT" --rsync-path=/opt/local/bin/rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
     for f in $DIR/lib*malloc.*; do 
@@ -36,16 +36,16 @@ done
 
 for m in Something; do
     DIR=$d/mac.arm64
-    for p in inla fmesher; do 
+    for p in inla; do 
 	for f in $(ssh -x -p $INLA_MAC_ARM64_PORT $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" --rsync-path=/usr/local/bin/rsync -auvL $INLA_MAC_ARM64:$f $DIR/. && break
+		rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" --rsync-path=/opt/local/bin/rsync -auvL $INLA_MAC_ARM64:$f $DIR/. && break
 		sleep 2
 	    done
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL --rsync-path=/usr/local/bin/rsync $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_MAC_ARM64_PORT" -auvL --rsync-path=/opt/local/bin/rsync $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
     for f in $DIR/lib*malloc.*; do 
 	test -f "$f" && mv -f -v "$f"  $DIR/malloc
@@ -54,7 +54,7 @@ done
 
 for m in 64; do
     DIR=$d/linux/${m}bit
-    for p in inla.mkl fmesher; do 
+    for p in inla.mkl; do 
 	for f in $(ssh -x -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
@@ -82,7 +82,7 @@ done
 
 for m in 64; do
     DIR=$d/windows/${m}bit
-    for p in inla fmesher; do 
+    for p in inla; do 
 	for f in $(ssh -x -p $INLA_WINDOWS_PORT $INLA_WINDOWS bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
 	    for i in {1..10}; do

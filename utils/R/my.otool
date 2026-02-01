@@ -41,11 +41,7 @@ Afun () {
     } | sort | uniq | \
 	grep -v /usr/lib/system | \
 	grep -v /usr/lib/libSystem | \
-	##grep -v libX11. | \
-	grep -v /usr/lib/libicucore.A.dylib | \
-	grep -v /usr/lib/libbz2.1.0.dylib | \
-	grep -v /usr/lib/libiconv.2.dylib | \
-	grep -v /usr/lib/libz.1.dylib
+	grep -v /libgcc_s.
 }
 
 Xfun () {
@@ -98,7 +94,20 @@ replace () {
     
     if $(otool -L "$@" | grep -q @rpath/); then
 	for f in $(otool -L "$@" | grep @rpath/ | awk -F/ '{print $2}' | awk '{print $1}'); do
-	    echo $(myreadlink $HOME/builds/arm64/local/lib/$f)
+	    d="$(echo /opt/homebrew/Cellar/gcc/*/lib/gcc/current|head -n1)"
+	    if [ -f "$d/$f" ]; then
+		echo $(myreadlink "$d/$f")
+	    fi
+	    for d in /opt/local/lib /opt/local/lib/gcc15; do 
+		if [ -f "$d/$f" ]; then
+		    echo $(myreadlink "$d/$f")
+		fi
+	    done
+	    for d in /opt/arm/armpl_*/lib; do
+		if [ -f "$d/$f" ]; then
+		    echo $(myreadlink "$d/$f")
+		fi
+	    done
 	done
     fi
 
@@ -109,29 +118,40 @@ replace () {
 	fi
     done
 
-    for f in {/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
+    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
 	if [ -f "$f" ]; then 
 	    echo $(myreadlink $f)
 	fi
     done
 	     
-    for f in $HOME/builds/build64/local/lib/libiomp5.dylib; do
+    for f in $HOME/builds/build64/local/lib/lib{Rmath,iomp5}.dylib; do
 	if [ -f "$f" ]; then 
 	    echo $(myreadlink $f)
 	fi
     done
 	     
+    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libiconv.*dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libbz2.*dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libz.*dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+    for f in {/opt/local/lib,/opt/homebrew/lib}/libgcc/libgcc_s.*dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+
     if $(uname -a |grep -q ARM64); then 
 	dummy=1
-    else
-	MKL=/opt/intel/oneapi/mkl/latest/lib
-	if false; then
-	    echo $(myreadlink $MKL/libmkl_intel_lp64.2.dylib)
-	    echo $(myreadlink $MKL/libmkl_sequential.2.dylib)
-	    echo $(myreadlink $MKL/libmkl_core.2.dylib)
-	    for f in $(echo $MKL/libmkl_avx*.2.dylib) $(echo $MKL/libmkl_vml_avx*.2.dylib) $(echo $MKL/libmkl_mc*.dylib); do
-		echo $(myreadlink $f)
-	    done
-	fi
     fi
 } | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq

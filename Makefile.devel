@@ -58,9 +58,4 @@ inla:
 	make -C inlaprog PREFIX=$(PREFIX)
 	make -C inlaprog PREFIX=$(PREFIX) install
 
-fmesher:
-	make -C fmesher clean
-	make -C fmesher PREFIX=$(PREFIX)
-	make -C fmesher PREFIX=$(PREFIX) install
-
 .PHONY: gmrflib inla fmesher all

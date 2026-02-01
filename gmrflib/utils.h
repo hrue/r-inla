@@ -85,8 +85,6 @@ int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, unsigned int len);
-int GMRFLib_iwhich_sorted_g2_dummy(int key, int *__restrict ix, unsigned int len, unsigned int *UNUSED(dummy));
-int GMRFLib_iwhich_sorted_g2(int val, int *ix, unsigned int len, unsigned int *guess);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno);

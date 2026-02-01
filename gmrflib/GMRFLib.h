@@ -1,21 +1,3 @@
-#if !defined(_GNU_SOURCE)
-#       define _GNU_SOURCE 1
-#endif
-
-#include <errno.h>
-#include <assert.h>
-#include <stddef.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdbool.h>
-
-#if defined(__linux__)
-#       include <features.h>
-#endif
-
 #ifndef __GMRFLib_H__
 #       define __GMRFLib_H__
 
@@ -29,7 +11,24 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-__BEGIN_DECLS
+
+#       if !defined(_GNU_SOURCE)
+#              define _GNU_SOURCE 1
+#       endif
+
+#       include <errno.h>
+#       include <assert.h>
+#       include <stddef.h>
+#       include <math.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <stdint.h>
+#       include <inttypes.h>
+#       include <stdbool.h>
+
+#       if defined(__linux__)
+#              include <features.h>
+#       endif
 
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
@@ -38,7 +37,7 @@ __BEGIN_DECLS
 #              if !defined(_OPENMP)
 #                     define SIMDE_ENABLE_OPENMP
 #              endif
-#
+#              
 #              include <simde/simde-common.h>
 #              include <simde/x86/sse2.h>
 #              
@@ -72,6 +71,12 @@ __BEGIN_DECLS
 #              else
 #                     define INLA_CLONE_TARGETS ""
 #              endif
+#       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__aarch64__)
+#              undef INLA_CLONE_TARGETS
+#              define INLA_CLONE_TARGETS "sve", "sve2", "cpu=apple-m1", "cpu=apple-m2",  "cpu=apple-m3",
+#       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__x86_64__)
+#              undef INLA_CLONE_TARGETS
+#              define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
 #       else
 #              undef INLA_WITH_CLONE_TARGETS
 #              undef INLA_CLONE_TARGETS
@@ -111,9 +116,6 @@ __BEGIN_DECLS
 #       include <gsl/gsl_types.h>
 #       include <gsl/gsl_vector.h>
 
-/* 
- * include all the include-files in GMRFLib
- */
 #       include "GMRFLib/GMRFLibP.h"
 #       include "GMRFLib/alloc.h"
 #       include "GMRFLib/init.h"
@@ -163,6 +165,8 @@ __BEGIN_DECLS
 #       include "GMRFLib/sn-g.h"
 #       include "GMRFLib/my-numa.h"
 #       include "GMRFLib/fit-sn.h"
+
+__BEGIN_DECLS
 #       if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdExp(int, const double *, double *);

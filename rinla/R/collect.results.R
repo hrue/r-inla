@@ -1111,10 +1111,14 @@
 
         values <- xx[1:n]
         values[is.nan(values)] <- NA
-        kld <- xx[n + 1:n]
-        mean <- xx[2 * n + 1:n]
-        sd <- xx[3 * n + 1:n]
-        offset <- 4 * n
+
+        pit.values <- xx[n + 1:n]
+        pit.values[is.nan(pit.values)] <- NA
+
+        kld <- xx[2 * n + 1:n]
+        mean <- xx[3 * n + 1:n]
+        sd <- xx[4 * n + 1:n]
+        offset <- 5 * n
         groups <- rep(list(list()), n)
         for(i in 1:n) {
             nn <- xx[offset + 1]
@@ -1130,6 +1134,7 @@
         }
     } else {
         values <- NULL
+        pit.values <- NULL
         kld <- NULL
         mean <- NULL
         sd <- NULL
@@ -1137,7 +1142,7 @@
         type.cv <- NULL
     }
 
-    return(list(gcpo = values, kld = kld, mean = mean, sd = sd, groups = groups, type.cv = type.cv))
+    return(list(gcpo = values, pit = pit.values, kld = kld, mean = mean, sd = sd, groups = groups, type.cv = type.cv))
 }
 
 `inla.collect.cpo` <- function(results.dir, debug = FALSE)

@@ -19,7 +19,7 @@
 //      GMRFLib_taucs_ctl_tp;
 
 static GMRFLib_taucs_ctl_tp taucs_ctl = {
-	.min_block_size = 4, 
+	.min_block_size = 4,
 	.block_size = 64
 };
 

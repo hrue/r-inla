@@ -2635,46 +2635,6 @@ int testit(int argc, char **argv)
 		break;
 
 	case 91:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		P(n);
-		P(m);
-		double start = 0, finish = 0;
-		double start2 = 0, finish2 = 0;
-		int *idx = Calloc(n, int);
-		int key = 1;
-		for (int i = 0; i < n; i++) {
-			key += i;
-			// printf("%d %d \n", i, key);
-			idx[i] = key;
-		}
-		for (int k = 0; k < m; k++) {
-			double sum = 0.0;
-			start += GMRFLib_timer();
-			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted(i, idx, (unsigned int) n);
-				if (p >= 0)
-					sum += idx[p];
-			}
-			finish += GMRFLib_timer();
-
-			double sum2 = 0.0;
-			start2 += GMRFLib_timer();
-			unsigned int guess[2] = { 0, 0 };
-			for (int i = 0; i < key + 1; i++) {
-				int p = GMRFLib_iwhich_sorted_g2(i, idx, (unsigned int) n, guess);
-				if (p >= 0)
-					sum2 += idx[p];
-			}
-			finish2 += GMRFLib_timer();
-			assert(sum == sum2);
-
-			if (k == m - 1)
-				printf("n.lookups= %1d  Time for iwhich= %.4g iwhich_g2= %.4g ratio /g2= %.4f\n",
-				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
-		}
-	}
 		break;
 
 	case 92:
@@ -5291,10 +5251,10 @@ int testit(int argc, char **argv)
 		double *b = Malloc(N * m, double);
 		double *sol0 = Malloc(N * m, double);
 		double *sol1 = Malloc(N * m, double);
-#if 0
+#       if 0
 		double *sol2 = Malloc(N * m, double);
 		double *sol3 = Malloc(N * m, double);
-#endif
+#       endif
 		double *w = Malloc(N * m, double);
 
 		for (int i = 0; i < N * m; i++) {
@@ -5305,7 +5265,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		tref[0] = -GMRFLib_timer();
 		for (int iter = 0; iter < n; iter++) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+#       pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int i = 0; i < m; i++) {
 				int offset = i * graph->n;
 				GMRFLib_solve_llt_sparse_matrix_TAUCS(x + offset,
@@ -5331,7 +5291,7 @@ int testit(int argc, char **argv)
 		GMRFLib_free_problem(problem);
 		problem = NULL;
 
-#if 0
+#       if 0
 		smtp = GMRFLib_smtp = GMRFLib_SMTP_STILES;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &smtp);
 		GMRFLib_ptr_tp *ptr = NULL;
@@ -5341,7 +5301,7 @@ int testit(int argc, char **argv)
 		GMRFLib_stiles_setup_tp setup = { ptr, iptr };
 		GMRFLib_stiles_setup(&setup);
 
-#       pragma omp parallel for num_threads(1)
+#              pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < 1; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
@@ -5353,7 +5313,7 @@ int testit(int argc, char **argv)
 		GMRFLib_stiles_print(stdout);
 
 		tref[2] = -GMRFLib_timer();
-#       pragma omp parallel for num_threads(1)
+#              pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < n; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
@@ -5368,7 +5328,7 @@ int testit(int argc, char **argv)
 		Memcpy(x, b, N * m * sizeof(double));
 
 		tref[3] = -GMRFLib_timer();
-#       pragma omp parallel for num_threads(1)
+#              pragma omp parallel for num_threads(1)
 		for (int iter = 0; iter < n; iter++) {
 			GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 			GMRFLib_stiles_set_idx(&stiles_idx, m);
@@ -5377,28 +5337,28 @@ int testit(int argc, char **argv)
 		tref[3] += GMRFLib_timer();
 
 		Memcpy(sol3, x, N * m * sizeof(double));
-#endif
+#       endif
 		printf("TAUCS   pr rhs x 1E6  %.6f sec\n", 1e6 * tref[0] / m);
 		printf("TAUCS2  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[1] / m);
-#if 0
+#       if 0
 		printf("STILES  pr rhs x 1E6  %.6f sec\n", 1e6 * tref[2] / m);
 		printf("STILES2 pr rhs x 1E6  %.6f sec\n", 1e6 * tref[3] / m);
-#endif
+#       endif
 
 		double err[] = { 0.0, 0.0, 0.0, 0.0 };
 		for (int i = 0; i < N * m; i++) {
 			err[1] += SQR(sol0[i] - sol1[i]);
-#if 0
+#       if 0
 			err[2] += SQR(sol0[i] - sol2[i]);
 			err[3] += SQR(sol0[i] - sol3[i]);
-#endif
+#       endif
 		}
 		printf("\n");
 		P(sqrt(err[1] / (double) (N * m)));
-#if 0
+#       if 0
 		P(sqrt(err[2] / (double) (N * m)));
 		P(sqrt(err[3] / (double) (N * m)));
-#endif
+#       endif
 	}
 		break;
 
@@ -5789,9 +5749,9 @@ int testit(int argc, char **argv)
 		P(SIMD_ALIGNED(bx));
 
 		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-#if defined(INLA_WITH_OPENBLAS)
+#       if defined(INLA_WITH_OPENBLAS)
 		double tref_blas[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-#endif
+#       endif
 		double tref_native[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 		for (int j = 0; j < m; j++) {
@@ -5843,12 +5803,12 @@ int testit(int argc, char **argv)
 			tref_native[1] += GMRFLib_timer();
 			assert(ABS(e - a) < FLT_EPSILON);
 
-#if defined(INLA_WITH_OPENBLAS)
-			double cblas_dsum (int , double *, int incx);
+#       if defined(INLA_WITH_OPENBLAS)
+			double cblas_dsum(int, double *, int incx);
 			tref_blas[1] -= GMRFLib_timer();
 			a = cblas_dsum(n, x, 1);
 			tref_blas[1] += GMRFLib_timer();
-#endif
+#       endif
 
 			tref[2] -= GMRFLib_timer();
 			a = GMRFLib_isum(n, ix);
@@ -5913,9 +5873,9 @@ int testit(int argc, char **argv)
 		printf("sparse_ddot        %.8f\n", tref[0]);
 
 		printf("dsum               %.8f\n", tref[1]);
-#if defined(INLA_WITH_OPENBLAS)
+#       if defined(INLA_WITH_OPENBLAS)
 		printf("dsum (openblas)    %.8f\n", tref_blas[1]);
-#endif		
+#       endif
 		printf("isum               %.8f\n", tref[2]);
 		printf("sparse_dsum        %.8f\n", tref[8]);
 		printf("dsum simple        %.8f\n", tref_native[1]);
@@ -6252,6 +6212,23 @@ int testit(int argc, char **argv)
 		printf("GSL %.6g NEW %.6g\n", tref0 / tref0, tref1 / tref0);
 		gsl_matrix_free(A);
 		gsl_matrix_free(B);
+	}
+		break;
+
+	case 194:
+	{
+		int N = atoi(args[0]);
+		P(N);
+		int *ix = Malloc(N, int);
+		for(int i = 0; i < N; i++) ix[i] = i;
+
+		printf("\nThis test runs forever...interupt when you're done\n\n");
+		while(1){
+			int k = (int) (N * GMRFLib_uniform());
+			int *ptr = GMRFLib_bsearch_timing(k, N, ix);
+			assert(*ptr == k);
+		}
+		Free(ix);
 	}
 		break;
 

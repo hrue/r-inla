@@ -14,7 +14,7 @@
 #include "taucs.h"
 
 #ifndef TAUCS_CORE
-#error "You must define TAUCS_CORE to compile this file"
+#       error "You must define TAUCS_CORE to compile this file"
 #endif
 
 /*********************************************************/
@@ -90,9 +90,3 @@ void taucs_dtl(ccs_free) (taucs_ccs_matrix * matrix) {
 }
 
 #endif							       /* TAUCS_CORE_GENERAL */
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
