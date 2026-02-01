@@ -342,7 +342,7 @@ static void supernodal_frontal_free(supernodal_frontal_matrix *to_del)
 static int
 multifrontal_supernodal_front_factor(int sn,
 				     int *firstcol_in_supernode,
-				     int sn_size, taucs_ccs_matrix *A, supernodal_frontal_matrix *mtr, int *bitmap, supernodal_factor_matrix *snL)
+				     int UNUSED(sn_size), taucs_ccs_matrix *A, supernodal_frontal_matrix *mtr, int *bitmap, supernodal_factor_matrix *snL)
 {
 	int i, j;
 	int *ind;
