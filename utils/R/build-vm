@@ -5,53 +5,44 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
-umask 0022
-tt=$(mktemp)
-if [ $# -eq 2 ]; then
-    IP=$2
-else
-    grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_hosts
-    IP=0.0.0.0
-    for ip in $(~/bin/my-vm-addr); do
-	if ping -q -i1 -W1 -c1 $ip; then
-	    IP=$ip
-	    echo Host $IP is alive
-	    break
-	else
-	    echo Host $ip is not alive
-	fi
-    done
-
-    if [ -n "$IP" ]; then
-	yes yes | ssh -x hrue@$IP echo Testing connection
-    else 
-	echo "No VM, exit"
-	exit 1
-    fi
+if [ $# -ne 3 ]; then
+    echo "$0: VERSION HOST TDIR"
+    exit 1
 fi
 
+umask 0022
+tt=$(mktemp)
+IP=$2
+TDIR=$3
+
 export INLA_TAG="${1-devel}"
-VERSION=$(ssh -x $IP "if [ -f /etc/os-release ]; then source /etc/os-release; echo \$NAME-\$VERSION \$(uname -m); else echo Mac-\$(sw_vers --productVersion)--\$(uname -m); fi")
+
+if [ "$TDIR" = "windows64" ]; then
+    OS="windows"
+    VERSION="windows64"
+else    
+    VERSION=$(ssh -x $IP "if [ -f /etc/os-release ]; then source /etc/os-release; echo \$NAME-\$VERSION \$(uname -m); else echo Mac-\$(sw_vers --productVersion)--\$(uname -m); fi")
+    case "$VERSION" in
+	Mac*x86*) OS=mac;;
+	Mac*arm64) OS=mac.arm64;;
+	*) OS=linux;;
+    esac
+fi
 BIT=64bit
-case "$VERSION" in
-    Mac*x86*) OS=mac;;
-    Mac*arm64) OS=mac.arm64;;
-    *) OS=linux;;
-esac
-echo $VERSION $OS
+echo "Version=[$VERSION] OS=[$OS]"
 
 ## add so we can define 'devel' to compile the most recent one
 if [ $INLA_TAG != "devel" ]; then
     ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
-    B=\$(echo builds/*);
+    B=builds/$TDIR
     echo \$B;
     make -C \$B download;"
 else
     ssh -x -t $IP "
     . .bash_profile;
-    B=\$(echo builds/*);
+    B=builds/$TDIR
     echo \$B;
     cd \$B/r-inla; 
     git reset --hard; 
@@ -59,42 +50,64 @@ else
     git pull --all"
 fi
     
+if [ "$OS" = "windows" ]; then
+    ssh -x -t $IP "
+    	. .bash_profile;
+	set -x ;
+	export INLA_TAG=$INLA_TAG;
+	B=builds/$TDIR
+    	echo \$B;
+    	make -j2 -C\$B update;
+    	test -d \$B/$BIT && rm -rf \$B/$BIT;
+    	mkdir \$B/$BIT;
+    	cp -v \$B/local/bin/inla.exe \$B/$BIT/.;
+    	cp -v \$B/local/bin/*.dll* \$B/$BIT/.;
+    	rsync -auv \$B/external-packages/external \$B/$BIT;
+    "
+else    
+    ssh -x -t $IP "
+    	. .bash_profile;
+	set -x ;
+	export INLA_TAG=$INLA_TAG;
+	B=builds/$TDIR
+    	echo \$B;
+    	make -j2 -C\$B update;
+    	test -d \$B/$BIT && rm -rf \$B/$BIT;
+    	mkdir \$B/$BIT;
+    	rsync -auv \$B/r-inla/rinla/inst/bin/$OS/$BIT/. \$B/$BIT/.;
+    	rsync -auv \$B/external-packages/external \$B/$BIT;
+    	if [ -f /etc/os-release ]; then
+              ldd=bin/my.ldd
+    	else	   
+              ldd=bin/my.otool
+    	fi	
+        if test -f \$B/local/bin/inla.mkl; then 
+            cp -v \$B/local/bin/inla.mkl \$B/$BIT;
+            \$ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$BIT; done;
+        fi	
+        if test -f \$B/local/bin/inla; then 
+            cp -v \$B/local/bin/inla \$B/$BIT;
+            \$ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$BIT; done;
+        fi	
+    "
+fi
 
-ssh -x -t $IP "
-    . .bash_profile;
-    set -x ;
-    export INLA_TAG=$INLA_TAG;
-    B=\$(echo builds/*);
-    echo \$B;
-    make -j2 -C\$B update;
-    test -d \$B/$BIT && rm -rf \$B/$BIT;
-    mkdir \$B/$BIT;
-    rsync -auv \$B/r-inla/rinla/inst/bin/$OS/$BIT/. \$B/$BIT/.;
-    rsync -auv \$B/external-packages/external \$B/$BIT;
-    if [ -f /etc/os-release ]; then
-        ldd=bin/my.ldd
-    else	   
-        ldd=bin/my.otool
-    fi	
-    if test -f \$B/local/bin/inla.mkl; then 
-        cp -v \$B/local/bin/inla.mkl \$B/$BIT;
-        \$ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$BIT; done;
-    fi	
-    if test -f \$B/local/bin/inla; then 
-        cp -v \$B/local/bin/inla \$B/$BIT;
-        \$ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$BIT; done;
-    fi	
-"
+B=builds/$TDIR
 
-B=$(ssh -x $IP 'echo builds/*')
 
-tarfile="$BIT.tgz"
-ssh -x $IP 'cd '$B/$BIT'; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
-ssh -x $IP 'cd '$B/$BIT'; mv -f -v lib*malloc* malloc'
-ssh -x $IP 'cd '$B/$BIT'; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
-ssh -x $IP 'cd '$B/$BIT'; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
-ssh -x $IP "cd '$B'; tar cvfz $tarfile $BIT"
-DD=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
+if [ "$OS" = "windows" ]; then
+    tarfile="$BIT.zip"
+    DD="www/Windows-builds"
+    ssh -x $IP "cd '$B'; zip -r $tarfile $BIT"
+else
+    tarfile="$BIT.tgz"
+    ssh -x $IP 'cd '$B/$BIT'; mv -f -v libRblas* first; mv -f -v libblas* first; mv -f -v liblapack* first; mv -f -v libopenblas* first'
+    ssh -x $IP 'cd '$B/$BIT'; mv -f -v lib*malloc* malloc'
+    ssh -x $IP 'cd '$B/$BIT'; mv -f -v libstdc* first; mv -f -v libgcc* first; mv -f -v libpardiso* first'
+    ssh -x $IP 'cd '$B/$BIT'; rm -f -v libc.so*; rm -f -v libpthread.so*; rm -f -v librt.so*; rm -f -v libm.so*; rm -rf -v libdl.so*; rm -rf -v libflexiblas.so*'
+    ssh -x $IP "cd '$B'; tar cvfz $tarfile $BIT"
+    DD=$(ssh -x $IP 'if [ -f /etc/os-release ]; then echo "www/Linux-builds"; else echo "www/Mac-builds"; fi')
+fi
 d="$DD/$VERSION/$INLA_TAG"
 mkdir -p "$d"
 rsync $IP:$B/$tarfile "$d"
