@@ -1,5 +1,4 @@
 #ifdef TAUCS_CORE_GENERAL
-
 #       include <limits.h>
 #       if __has_include(<malloc.h>)
 #              include <malloc.h>
@@ -10,24 +9,14 @@
 #       include <assert.h>
 #       include <math.h>
 #       include "taucs.h"
-
-/*********************************************************/
-
-/* Interface to AMD                                      */
-
-/*********************************************************/
-
 #       include "../external/colamd.h"
-
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
 		 int ncmpa, int *w);
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
 		    int ncmpa, int *w);
-
 static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 #       ifndef TAUCS_CONFIG_COLAMD
-	taucs_printf("taucs_ccs_colamd: COLAMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
@@ -39,58 +28,40 @@ static void taucs_ccs_colamd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 	int *ip = NULL;
 	int k, nnz;
 	int i;
-
 	if (m->flags & TAUCS_SYMMETRIC || m->flags & TAUCS_HERMITIAN) {
-		taucs_printf("taucs_ccs_colamd: not applicable for symmetric or hermitian matrices\n");
 		return;
 	}
-
-	taucs_printf("taucs_ccs_colamd: starting\n");
-
 	*perm = NULL;
 	*invperm = NULL;
-
 	nnz = (m->colptr)[m->n];
-
 	p = (int *) taucs_malloc((m->n + 1) * sizeof(int));
 	ip = (int *) taucs_malloc((m->n + 1) * sizeof(int));
 	assert(p && ip);
-
 	Alen = colamd_recommended(nnz, m->m, m->n);
 	if (Alen >= 0)
 		A = taucs_malloc(Alen * sizeof(int));
 	assert(A);
 	assert(A);
 	colamd_set_defaults(knobs);
-
 	for (i = 0; i <= m->n; i++)
 		p[i] = (m->colptr)[i];
 	for (k = 0; k < nnz; k++)
 		A[k] = (m->rowind)[k];
-
-	taucs_printf("oocsp_ccs_colamd: calling colamd matrix is %dx%d, nnz=%d\n", m->m, m->n, nnz);
 	if (!colamd(m->m, m->n, Alen, A, p, knobs)) {
-		taucs_printf("oocsp_ccs_colamd: colamd failed\n");
 		taucs_free(A);
 		taucs_free(p);
 		return;
 	}
-	taucs_printf("oocsp_ccs_colamd: colamd returned\n");
-
 	taucs_free(A);
-
 	*perm = p;
 	*invperm = ip;
-
 	for (i = 0; i < m->n; i++)
 		(*invperm)[(*perm)[i]] = i;
 #       endif
 }
-
 static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
 #       ifndef TAUCS_CONFIG_AMD
-	taucs_printf("taucs_ccs_amd: AMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
@@ -106,33 +77,21 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 	int *elen = NULL;
 	int *w = NULL;
 	int *len = NULL;
-
 	int nnz = 0, i = 0, j = 0, ip = 0;
-
-	taucs_printf("taucs_ccs_amd: starting (%s)\n", which);
-
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf("taucs_ccs_amd: AMD ordering only works on symmetric matrices.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-	/*
-	 * this routine may actually work on UPPER as well 
-	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf("taucs_ccs_amd: the lower part of the matrix must be represented.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-
 	*perm = NULL;
 	*invperm = NULL;
-
 	n = m->n;
 	nnz = (m->colptr)[n];
-
 	pe = (int *) taucs_malloc((n + 1) * sizeof(int));
 	degree = (int *) taucs_malloc(n * sizeof(int));
 	nv = (int *) taucs_malloc(n * sizeof(int));
@@ -142,18 +101,9 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 	elen = (int *) taucs_malloc(n * sizeof(int));
 	w = (int *) taucs_malloc(n * sizeof(int));
 	len = (int *) taucs_malloc(n * sizeof(int));
-
-	/*
-	 * AMD docs recommend iwlen >= 1.2 nnz, but this leads to compressions 
-	 */
 	iwlen = n + (int) (10.0 * (nnz - n));
-
-	taucs_printf("taucs_ccs_amd: allocating %d ints for iw\n", iwlen);
-
 	iw = (int *) taucs_malloc(iwlen * sizeof(int));
-
 	if (!pe || !degree || !nv || !next || !last || !head || !elen || !w || !len || !iw) {
-		taucs_printf("taucs_ccs_amd: out of memory\n");
 		taucs_free(pe);
 		taucs_free(degree);
 		taucs_free(nv);
@@ -166,24 +116,15 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 		taucs_free(iw);
 		return;
 	}
-
-	/*
-	 * assert(iw && pe && degree && nv && next && last && head && elen && w && len); 
-	 */
-
 	int offset;
-
 	if (!strcmp(which, "amdc") || !strcmp(which, "amdbarc")) {
 		offset = 0;				       /* C */
 	} else {
 		offset = 1;				       /* Fortran */
 	}
-
 	iovflo = INT_MAX;				       /* for 32-bit only! */
-
 	for (i = 0; i < n; i++)
 		len[i] = 0;
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			i = (m->rowind)[ip];
@@ -193,24 +134,18 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 			}
 		}
 	}
-
 	pe[0] = offset;
 	for (i = 1; i < n; i++)
 		pe[i] = pe[i - 1] + len[i - 1];
-
 	pfree = pe[n - 1] + len[n - 1];
-
 	if (offset == 0) {
 		pe[n] = pfree;
 	}
-
 	/*
 	 * use degree as a temporary 
 	 */
 	for (i = 0; i < n; i++)
 		degree[i] = pe[i] - offset;
-
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			i = (m->rowind)[ip];
@@ -222,9 +157,6 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 			}
 		}
 	}
-
-	taucs_printf("taucs_ccs_amd: calling amd matrix is %dx%d, nnz=%d\n", n, n, nnz);
-
 	if (!strcmp(which, "mmd"))
 		amdexa_(&n, pe, iw, len, &iwlen, &pfree, nv, next, last, head, elen, degree, &ncmpa, w, &iovflo);
 	else if (!strcmp(which, "md"))
@@ -238,45 +170,27 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 	else if (!strcmp(which, "amdbarc"))
 		GMRFLib_amdbarc(n, pe, iw, len, iwlen, pfree, nv, next, last, head, elen, degree, ncmpa, w);
 	else {
-		taucs_printf("taucs_ccs_amd: WARNING - invalid ordering requested (%s)\n", which);
 		return;
 	}
-
-	taucs_printf("taucs_ccs_amd: amd returned. optimal iwlen=%d (in this run was %d), %d compressions\n", pfree, iwlen, ncmpa);
-	/*
-	 * { FILE* f; f=fopen("p.ijv","w"); for (i=0; i<n; i++) fprintf(f,"%d\n",last[i]); fclose(f); } 
-	 */
-
 	taucs_free(pe);
 	taucs_free(degree);
 	taucs_free(nv);
 	taucs_free(next);
-	/*
-	 * free(last ); 
-	 */
 	taucs_free(head);
 	taucs_free(elen);
 	taucs_free(w);
-	/*
-	 * free(len ); 
-	 */
 	taucs_free(iw);
-
 	for (i = 0; i < n; i++)
 		last[i]--;
 	for (i = 0; i < n; i++)
 		len[last[i]] = i;
-
 	*perm = last;
 	*invperm = len;
 #       endif
 }
-
-
 static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 #       ifndef TAUCS_CONFIG_GENMMD
-	taucs_printf("taucs_ccs_genmmd: GENMMD routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
@@ -290,59 +204,30 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 	int *qsize;
 	int *llist;
 	int *marker;
-
 	int *len;
 	int *next;
-
 	int nnz, i, j, ip;
-
-	/*
-	 * taucs_printf("taucs_ccs_genmmd: starting (%s)\n",which);
-	 */
-
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf("taucs_ccs_genmmd: GENMMD ordering only works on symmetric matrices.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-	/*
-	 * this routine may actually work on UPPER as well 
-	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf("taucs_ccs_genmmd: the lower part of the matrix must be represented.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-
 	*perm = NULL;
 	*invperm = NULL;
-
 	n = m->n;
 	nnz = (m->colptr)[n];
-
-	/*
-	 * I copied the value of delta and the size of 
-	 */
-	/*
-	 * from SuperLU. Sivan 
-	 */
-
 	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= min-degree +
 							        * DELTA. */
 	delta = 1;					       /* DELTA is a parameter to allow the choice of nodes whose degree <= min-degree +
 							        * DELTA. */
-	/*
-	 * maxint = 2147483648;
-	 *//*
-	 * 2**31-1, for 32-bit only! 
-	 */
 	maxint = 32000;
-
 	assert(sizeof(int) == 4);
 	maxint = 2147483647;				       /* 2**31-1, for 32-bit only! */
-
 	xadj = (int *) taucs_malloc((n + 1) * sizeof(int));
 	adjncy = (int *) taucs_malloc((2 * nnz - n) * sizeof(int));
 	invp = (int *) taucs_malloc((n + 1) * sizeof(int));
@@ -351,7 +236,6 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 	qsize = (int *) taucs_malloc((n + 1) * sizeof(int));
 	llist = (int *) taucs_malloc(n * sizeof(int));
 	marker = (int *) taucs_malloc(n * sizeof(int));
-
 	if (!xadj || !adjncy || !invp || !prm || !dhead || !qsize || !llist || !marker) {
 		taucs_free(xadj);
 		taucs_free(adjncy);
@@ -363,13 +247,10 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 		taucs_free(marker);
 		return;
 	}
-
 	len = dhead;					       /* we reuse space */
 	next = qsize;					       /* we reuse space */
-
 	for (i = 0; i < n; i++)
 		len[i] = 0;
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -386,22 +267,11 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 			}
 		}
 	}
-
 	xadj[0] = 1;
 	for (i = 1; i <= n; i++)
 		xadj[i] = xadj[i - 1] + len[i - 1];
-
-	/*
-	 * for (i=0; i<=n; i++) printf("xadj[%d]=%d\n",i,xadj[i]);
-	 */
-
-	/*
-	 * use degree as a temporary 
-	 */
-
 	for (i = 0; i < n; i++)
 		next[i] = xadj[i] - 1;
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -422,43 +292,21 @@ static void taucs_ccs_genmmd(taucs_ccs_matrix *m, int **perm, int **invperm, cha
 			}
 		}
 	}
-
-	/*
-	 * for (j=0; j<n; j++) { qsort(adjncy + (xadj[j] - 1), xadj[j+1] - xadj[j], sizeof(int), compare_ints); printf("+++ %d:
-	 * ",j+1); for (ip=xadj[j]-1; ip<xadj[j+1]-1;ip++) printf("%d ",adjncy[ip]); printf("\n"); } 
-	 */
-
-	/*
-	 * taucs_printf("taucs_ccs_genmmd: calling genmmd, matrix is %dx%d, nnz=%d\n", n,n,nnz); 
-	 */
-
 	genmmd_(&n, xadj, adjncy, invp, prm, &delta, dhead, qsize, llist, marker, &maxint, &nofsub);
-
-	/*
-	 * taucs_printf("taucs_ccs_genmmd: genmmd returned.\n");
-	 */
-
-	/*
-	 * { FILE* f; f=fopen("p.ijv","w"); for (i=0; i<n; i++) fprintf(f,"%d %d\n",prm[i],invp[i]); fclose(f); } 
-	 */
-
 	taucs_free(marker);
 	taucs_free(llist);
 	taucs_free(qsize);
 	taucs_free(dhead);
 	taucs_free(xadj);
 	taucs_free(adjncy);
-
 	for (i = 0; i < n; i++)
 		prm[i]--;
 	for (i = 0; i < n; i++)
 		invp[prm[i]] = i;
-
 	*perm = prm;
 	*invperm = invp;
 #       endif
 }
-
 static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 {
 	int n, nnz, i, j, ip, k, p, nleaves;
@@ -468,9 +316,7 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 	int *ptr;
 	int *degree;
 	int *leaves;
-
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf("taucs_ccs_treeorder: tree ordering only works on symmetric matrices.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -479,33 +325,19 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 	 * this routine may actually work on UPPER as well 
 	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf("taucs_ccs_treeorder: the lower part of the matrix must be represented.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-
 	n = m->n;
 	nnz = (m->colptr)[n];
-
-	taucs_printf("taucs_ccs_treeorder: starting, matrix is %dx%d, # edges=%d\n", n, n, nnz - n);
-
 	*perm = (int *) taucs_malloc(n * sizeof(int));
 	*invperm = (int *) taucs_malloc(n * sizeof(int));
-
-	/*
-	 * we can reuse buffers: don't need invperm until the end 
-	 */
-	/*
-	 * also, we can reuse perm for leaves but it's messy.  
-	 */
 	len = (int *) taucs_malloc(n * sizeof(int));
 	degree = (int *) taucs_malloc(n * sizeof(int));
 	leaves = (int *) taucs_malloc(n * sizeof(int));
-
 	adjptr = (int *) taucs_malloc(n * sizeof(int));
 	adj = (int *) taucs_malloc(2 * (nnz - n) * sizeof(int));
-
 	if (!(*perm) || !(*invperm) || !adjptr || !adj || !len || !degree || !leaves) {
 		taucs_free(adj);
 		taucs_free(adjptr);
@@ -516,10 +348,8 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 		taucs_free(*invperm);
 		*perm = *invperm = NULL;
 	}
-
 	for (i = 0; i < n; i++)
 		len[i] = 0;
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -532,7 +362,6 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 			}
 		}
 	}
-
 	nleaves = 0;
 	for (i = 0; i < n; i++) {
 		degree[i] = len[i];
@@ -541,15 +370,12 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 			nleaves++;
 		}
 	}
-
 	adjptr[0] = 0;
 	for (i = 1; i < n; i++)
 		adjptr[i] = adjptr[i - 1] + len[i - 1];
-
 	ptr = *perm;
 	for (i = 0; i < n; i++)
 		ptr[i] = adjptr[i];
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -564,18 +390,9 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 			}
 		}
 	}
-
-	/*
-	 * taucs_printf("taucs_ccs_treeorder: %d initial leaves: ",nleaves); for (i=0; i<nleaves; i++) taucs_printf("%d
-	 * ",leaves[i]); taucs_printf("\n"); 
-	 */
-
 	for (i = 0; i < n; i++) {
 		nleaves--;
 		if (nleaves <= 0) {
-			/*
-			 * not a tree 
-			 */
 			taucs_free(adj);
 			taucs_free(adjptr);
 			taucs_free(len);
@@ -586,14 +403,8 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 			*perm = *invperm = NULL;
 		}
 		j = leaves[nleaves];
-
-		/*
-		 * taucs_printf("taucs_ccs_treeorder: next leaf is %d, degree=%d\n",j,len[j]);
-		 */
-
 		(*perm)[i] = j;
 		(*invperm)[j] = i;
-
 		if (len[j] > 0) {
 			if (len[j] != 1) {
 				/*
@@ -609,19 +420,10 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 				*perm = *invperm = NULL;
 			}
 			p = adj[adjptr[j]];
-
-			/*
-			 * taucs_printf("taucs_ccs_treeorder: parent of %d is %d\n",j,p);
-			 */
-
 			for (k = 0; k < len[p]; k++)
 				if (adj[adjptr[p] + k] == j)
 					break;
-
 			if (k >= len[p]) {		       /* otherwise j does not show up in p's adjacency list */
-				/*
-				 * not a tree 
-				 */
 				taucs_free(adj);
 				taucs_free(adjptr);
 				taucs_free(len);
@@ -631,47 +433,30 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 				taucs_free(*invperm);
 				*perm = *invperm = NULL;
 			}
-
-			/*
-			 * now delete j from p's adjacency list and compress 
-			 */
 			len[p]--;
 			for (; k < len[p]; k++)
 				adj[adjptr[p] + k] = adj[adjptr[p] + k + 1];
-
 			if (len[p] == 1) {		       /* degree was higher and now is 1 */
 				leaves[nleaves] = p;
 				nleaves++;
 			}
 		}
 	}
-
 	taucs_free(adj);
 	taucs_free(adjptr);
 	taucs_free(len);
 	taucs_free(leaves);
 	taucs_free(degree);
-
-	/*
-	 * taucs_printf("taucs_ccs_treeorder: ordering: "); for (i=0; i<n; i++) taucs_printf("%d ",(*perm)[i]);
-	 * taucs_printf("\n"); 
-	 */
-
-	taucs_printf("taucs_ccs_treeorder: done\n");
 }
-
 void METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 void METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
-
 #       if !defined(USE_METIS4)
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 #       endif
-
 static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 4
 #       ifndef TAUCS_CONFIG_METIS
-	taucs_printf("taucs_ccs_metis: METIS routines not linked.\n");
 	*perm = NULL;
 	*invperm = NULL;
 	return;
@@ -683,36 +468,22 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 	int options_flag[8];
 	int *len;
 	int *ptr;
-
-	/*
-	 * taucs_printf("taucs_ccs_metis: starting (%s)\n",which); 
-	 */
-
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-	/*
-	 * this routine may actually work on UPPER as well 
-	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf("taucs_ccs_metis: the lower part of the matrix must be represented.\n");
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-
 	n = m->n;
 	nnz = (m->colptr)[n];
-
 	*perm = (int *) taucs_malloc(n * sizeof(int));
 	*invperm = (int *) taucs_malloc(n * sizeof(int));
-
 	xadj = (int *) taucs_malloc((n + 1) * sizeof(int));
 	adj = (int *) taucs_malloc(2 * nnz * sizeof(int));
-
 	if (!(*perm) || !(*invperm) || !xadj || !adj) {
 		taucs_free(*perm);
 		taucs_free(*invperm);
@@ -721,11 +492,9 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 		*perm = *invperm = NULL;
 		return;
 	}
-
 	ptr = len = *perm;
 	for (i = 0; i < n; i++)
 		len[i] = 0;
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -738,14 +507,11 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 			}
 		}
 	}
-
 	xadj[0] = 0;
 	for (i = 1; i <= n; i++)
 		xadj[i] = xadj[i - 1] + len[i - 1];
-
 	for (i = 0; i < n; i++)
 		ptr[i] = xadj[i];
-
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			/*
@@ -760,61 +526,49 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 			}
 		}
 	}
-
 	options_flag[0] = 1;				       /* use these options */
 	options_flag[1] = 3;				       /* default */
 	options_flag[2] = 1;				       /* default */
 	options_flag[3] = 1;				       /* two-side refinement */
 	options_flag[4] = 0;				       /* no debug */
 	options_flag[5] = 1;				       /* default */
-	options_flag[6] = 0;				       /* THIS IS SLOW if non-zero. global nodes */
+	options_flag[6] = 0;				       /* this is slow if non-zero. global nodes */
 	options_flag[7] = 3;				       /* number of separators */
-
 #              if defined(NO_PARDISO_LIB)
 	METIS_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
 #              else
 	METIS51PARDISO_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
 #              endif
-
 	taucs_free(xadj);
 	taucs_free(adj);
 #       endif
 }
-
 static void taucs_ccs_randomperm(int n, int **perm, int **invperm)
 {
 	int i;
-
 	*perm = (int *) taucs_malloc(n * sizeof(int));
 	*invperm = (int *) taucs_malloc(n * sizeof(int));
 	if (!(*perm) || !(*invperm)) {
 		taucs_free(*perm);
 		taucs_free(*invperm);
 		*perm = *invperm = NULL;
-		taucs_printf("taucs_ccs_randomperm: out of memory for permutation\n");
 		return;
 	}
-
 	for (i = 0; i < n; i++)
 		(*perm)[i] = i;
-
 	for (i = 0; i < n; i++) {
 		int i1, i2;
 		int t;
-
 		i1 = rand() % (n - i);
 		i2 = n - i - 1;
-
 		t = (*perm)[i1];
 		(*perm)[i1] = (*perm)[i2];
 		(*perm)[i2] = t;
 	}
-
 	for (i = 0; i < n; i++)
 		(*invperm)[(*perm)[i]] = i;
 	return;
 }
-
 void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which)
 {
 	if (!strcmp(which, "mmd") || !strcmp(which, "amd") || !strcmp(which, "md") || !strcmp(which, "amdbar") ||
@@ -844,16 +598,13 @@ void taucs_ccs_order(taucs_ccs_matrix *m, int **perm, int **invperm, char *which
 			taucs_free(*perm);
 			taucs_free(*invperm);
 			*perm = *invperm = NULL;
-			taucs_printf("taucs_ccs_order: out of memory for identity permutation\n");
 			return;
 		}
 		for (i = 0; i < m->n; i++)
 			(*perm)[i] = (*invperm)[i] = i;
 		return;
 	} else {
-		taucs_printf("taucs_ccs_order: invalid ordering requested (%s)\n", which);
 		*perm = *invperm = NULL;
 	}
 }
-
 #endif							       /* TAUCS_CORE_GENERAL */

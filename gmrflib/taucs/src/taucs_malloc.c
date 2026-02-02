@@ -7,17 +7,10 @@
 #       include <malloc.h>
 #endif
 #include "taucs.h"
-
 #undef malloc
 #undef calloc
 #undef realloc
 #undef free
-
-int taucs_printf(const char *UNUSED(fmt), ...)
-{
-	return 0;
-}
-
 void *taucs_malloc_stub(size_t size)
 {
 	if (size) {
@@ -31,9 +24,7 @@ void *taucs_malloc_stub(size_t size)
 	} else {
 		return NULL;
 	}
-	// return (size ? calloc(1, size) : NULL);
 }
-
 void *taucs_calloc_stub(size_t nmemb, size_t size)
 {
 	if (nmemb) {
@@ -49,7 +40,6 @@ void *taucs_calloc_stub(size_t nmemb, size_t size)
 	}
 	// return (nmemb ? calloc(nmemb, size) : NULL);
 }
-
 void *taucs_realloc_stub(void *ptr, size_t size)
 {
 	assert(size < PTRDIFF_MAX);
@@ -61,7 +51,6 @@ void *taucs_realloc_stub(void *ptr, size_t size)
 	return p;
 	// return realloc(ptr, size);
 }
-
 void taucs_free_stub(void *ptr)
 {
 	if (ptr) {

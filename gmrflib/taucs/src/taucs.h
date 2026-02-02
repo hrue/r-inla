@@ -21,10 +21,8 @@
 
 __BEGIN_DECLS
 #       ifdef __GNUC__
-//#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #              define UNUSED(x) x __attribute__((__unused__))
 #       else
-//#define UNUSED(x) UNUSED_ ## x
 #              define UNUSED(x) x
 #       endif
 #       define TAUCS_CONFIG_DREAL
@@ -68,9 +66,7 @@ static double UNUSED(taucs_one_real_const) = 1.0;
 static double UNUSED(taucs_minusone_real_const) = -1.0;
 
 #       define TAUCS_DOUBLE_IN_BUILD
-
 #       define TAUCS_BLAS_UNDERSCORE 1
-
 #       if defined(TAUCS_BLAS_UNDERSCORE)
 #              define taucs_blas_name(x) (x##_)
 #       elif defined(TAUCS_BLAS_NOUNDERSCORE)
@@ -88,7 +84,6 @@ static double UNUSED(taucs_minusone_real_const) = -1.0;
 #       define TAUCS_ERROR_BADARGS                -3
 #       define TAUCS_ERROR_INDEFINITE             -4
 #       define TAUCS_ERROR_MAXDEPTH               -5
-
 
 #       define TAUCS_DOUBLE    2048
 
@@ -140,15 +135,6 @@ typedef struct {
 
 #       include "taucs_private.h"
 
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
-/* now define the data type for the file that we compile now */
-
 #       define taucs_isnan(x) (isnan(x) != 0)
 #       define taucs_isinf(x) (isinf(x))
 
@@ -184,24 +170,12 @@ typedef struct {
 
 double taucs_get_nan(void);
 
-/* 
-   routines for testing memory allocation.
-   Mostly useful for testing programs
-   that hunt for memory leaks.
-*/
-
 double taucs_allocation_amount(void);
 int taucs_allocation_count(void);
 int taucs_allocation_attempts(void);
 void taucs_allocation_assert_clean(void);
 void taucs_allocation_mark_clean(void);
 void taucs_allocation_induce_failure(int i);
-
-/* 
-   these are meant to allow allocation 
-   and more importantly, deallocation,
-   within the testing programs.
-*/
 
 #       include <stdlib.h>
 
@@ -229,12 +203,6 @@ void taucs_free_stub(void *ptr);
 
 #       endif
 
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
 #       ifndef max
 #              define max(x,y) ( ((x) > (y)) ? (x) : (y) )
 #       endif
@@ -243,29 +211,13 @@ void taucs_free_stub(void *ptr);
 #              define min(x,y) ( ((x) < (y)) ? (x) : (y) )
 #       endif
 
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
-
-/* externs */
 extern int dreadhb_(char *, int *, int *, int *, int *, int *, double *);
-
 extern int amdexa_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern int amdtru_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern int amdbar_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-
 extern int amdbarnew_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
 extern int amdnew_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-
 extern int genmmd_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-
-/*********************************************************/
-
-/*                                                       */
-
-/*********************************************************/
 
 #       if (defined(OSTYPE_irix) || defined(OSTYPE_solaris))
 
@@ -285,7 +237,6 @@ extern int genmmd_(int *, int *, int *, int *, int *, int *, int *, int *, int *
 #       include <math.h>
 #       include <float.h>
 
-
 extern int taucs_potrf(char *, int *, double *, int *, int *, fortran_charlen_t);
 extern int taucs_trsm(char *, char *, char *, char *,
 		      int *, int *, double *, double *, int *, double *, int *,
@@ -294,9 +245,7 @@ extern int taucs_gemm(char *, char *, int *, int *, int *,
 		      double *, double *, int *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
 extern int taucs_herk(char *, char *, int *, int *, double *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
 
-
 double taucs_blas_name(dnrm2) (int *, double *, int *);
-
 
 __END_DECLS
 #endif
