@@ -8,10 +8,12 @@
 \title{Set and get global options for INLA}
 \usage{
 inla.getOption(
-  option = c("inla.call", "inla.arg", "num.threads", "smtp", "safe", "keep", "verbose",
-    "save.memory", "internal.opt", "working.directory", "silent", "debug",
-    "show.warning.graph.file", "scale.model.default", "short.summary", "inla.timeout",
-    "inla.mode", "malloc.lib", "INLAjoint.features", "numa", "disable.values.warning")
+  option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads",
+    "smtp", "safe", "keep", "verbose", "save.memory", "internal.opt",
+    "working.directory", "silent", "debug", "show.warning.graph.file",
+    "scale.model.default", "short.summary", "inla.timeout", "inla.mode", "malloc.lib",
+    "fmesher.evolution", "fmesher.evolution.warn", "fmesher.evolution.verbosity",
+    "INLAjoint.features", "numa", "disable.values.warning")
 )
 
 inla.setOption(...)
@@ -24,6 +26,10 @@ current values, otherwise, \code{option} must be one of
 \item{inla.call}{The path to the inla-program.}
 
 \item{inla.arg}{Additional arguments to \code{inla.call}}
+
+\item{fmesher.call}{The path to the fmesher-program}
+
+\item{fmesher.arg}{Additional arguments to \code{fmesher.call}}
 
 \item{num.threads}{Character string with the number of threads to use as
 \code{A:B}, see \code{?inla}}
@@ -79,6 +85,29 @@ is loaded using \code{LD_PRELOAD} and similar functionality. Loosely, \code{jema
 Windows and not all options might be available for every arch.
 If \code{malloc.lib} is a complete path to an external library, that file will be used
 instead of one of the supported ones.}
+
+\item{fmesher.evolution}{Control use of fmesher methods during the transition
+to a separate fmesher package. Levels of
+\code{fmesher.evolution}:
+
+\code{1L} uses the intermediate \verb{fm_*} methods in \code{fmesher} that were already
+available via \code{inlabru} from 2.8.0.
+
+\code{2L} (current default) uses the full range of \code{fmesher} package methods.
+
+Further levels may be added as the package development progresses.}
+
+\item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
+shows deprecation messages for many CRS and mesh
+related methods, pointing to their \verb{fm_*} replacements. Default
+since July 2025 is \code{TRUE}.}
+
+\item{fmesher.evolution.verbosity}{logical or character; at what minimum
+severity to show warnings about deprecated
+use of legacy INLA methods with fmesher package replacements.
+When set to "default" (default), "soft", "warn", or "stop", indicates the
+minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
 
 \item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
 
