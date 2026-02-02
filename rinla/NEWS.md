@@ -2,7 +2,6 @@
 * Code cleanup 
 * Revise installation scripts
 * Add PIT to gcpo calculations and output
-* Remove fmesher internals not used
 
 # INLA 26.01.26
 * Fixed in issue with feature 'lp.scale'

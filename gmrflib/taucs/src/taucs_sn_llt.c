@@ -162,11 +162,6 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 		return NULL;
 
 	nnz = 0;
-	/*
-	 * for (sn=0; sn<L->n_sn; sn++) { for (jp=0; jp<(L->sn_size)[sn]; jp++) { j = (L->sn_struct)[sn][jp]; len[j] =
-	 * (L->sn_up_size)[sn] - jp; nnz += len[j]; } } 
-	 */
-
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < (L->sn_size)[sn]; jp++) {
 			j = (L->sn_struct)[sn][jp];
@@ -213,24 +208,12 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 
 			next = (C->colptr)[j];
 
-			/*
-			 * memcpy((C->rowind) + next, ((L->sn_struct)[sn]) + jp, ((L->sn_up_size)[sn] - jp) * sizeof(int));
-			 * memcpy(C->values + next, ((L->sn_blocks)[sn]) + (jp*(L->sn_blocks_ld)[sn] + jp),
-			 * ((L->sn_size)[sn] - jp) * sizeof(double)); next += ((L->sn_size)[sn] - jp);
-			 * memcpy(C->values + next, ((L->up_blocks)[sn]) + jp*(L->up_blocks_ld)[sn], ((L->sn_up_size)[sn] - 
-			 * (L->sn_size)[sn]) * sizeof(double)); 
-			 */
-
 			for (ip = jp; ip < (L->sn_size)[sn]; ip++) {
 				i = (L->sn_struct)[sn][ip];
 				v = (L->sn_blocks)[sn][jp * (L->sn_blocks_ld)[sn] + ip];
 
 				if (!taucs_re(v) && !taucs_im(v))
 					continue;
-				/*
-				 * if (v == 0.0) continue;
-				 */
-
 				(C->rowind)[next] = i;
 				C->values[next] = v;
 				next++;
@@ -241,10 +224,6 @@ taucs_ccs_matrix *taucs_dtl(supernodal_factor_to_ccs) (void *vL) {
 
 				if (!taucs_re(v) && !taucs_im(v))
 					continue;
-				/*
-				 * if (v == 0.0) continue;
-				 */
-
 				(C->rowind)[next] = i;
 				C->values[next] = v;
 				next++;
@@ -297,12 +276,7 @@ static supernodal_frontal_matrix *supernodal_frontal_create(int *UNUSED(firstcol
 	tmp->sn_vertices = rowind;
 	tmp->up_vertices = rowind + sn_size;
 
-	/*
-	 * on some platforms, malloc(0) fails, so we avoid such calls 
-	 */
-
 	tmp->SFM_F1 = tmp->SFM_F2 = tmp->SFM_U = NULL;
-
 	if (tmp->sn_size) {
 		tmp->SFM_F1 = (double *) taucs_calloc((tmp->sn_size) * (tmp->sn_size), sizeof(double));
 	}
@@ -371,8 +345,12 @@ multifrontal_supernodal_front_factor(int sn,
 	if (mtr->sn_size) {
 		taucs_potrf("L", &(mtr->sn_size), mtr->SFM_F1, &(mtr->sn_size), &INFO, F_ONE);
 	}
+	if (INFO) {
+		return -1;
+	}
 
 	if (mtr->up_size && mtr->sn_size) {
+
 		taucs_trsm("R",
 			   "L",
 			   "C",
@@ -531,8 +509,6 @@ static void multifrontal_supernodal_front_extend_add(supernodal_frontal_matrix *
 
 #ifdef TAUCS_CORE_GENERAL
 
-/* UNION FIND ROUTINES */
-
 static int uf_makeset(int *uf, int i)
 {
 	uf[i] = i;
@@ -559,6 +535,7 @@ static
 void recursive_postorder(int j, int first_child[], int next_child[], int postorder[], int ipostorder[], int *next)
 {
 	int c;
+
 	for (c = first_child[j]; c != -1; c = next_child[c]) {
 		recursive_postorder(c, first_child, next_child, postorder, ipostorder, next);
 	}
@@ -638,9 +615,9 @@ recursive_symbolic_elimination(int j,
 	int nnz = 0;					       /* just to suppress the warning */
 
 	for (c = first_child[j]; c != -1; c = next_child[c]) {
-		if (recursive_symbolic_elimination(c, A, first_child, next_child, n_sn, sn_size, sn_up_size, sn_rowind, sn_first_child, sn_next_child, rowind,	/* temporary 
-																				 */
-						   column_to_sn_map, map, do_order, ipostorder)
+		if (recursive_symbolic_elimination
+		    (c, A, first_child, next_child, n_sn, sn_size, sn_up_size, sn_rowind, sn_first_child, sn_next_child, rowind, column_to_sn_map,
+		     map, do_order, ipostorder)
 		    == -1)
 			return -1;
 	}
@@ -664,6 +641,7 @@ recursive_symbolic_elimination(int j,
 		c = first_child[j];
 		c_sn = column_to_sn_map[c];
 		column_to_sn_map[j] = c_sn;
+
 		for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++)
 			if (sn_rowind[c_sn][ip] == j)
 				break;
@@ -672,11 +650,9 @@ recursive_symbolic_elimination(int j,
 		sn_rowind[c_sn][sn_size[c_sn]] = j;
 		for (ip = sn_size[c_sn]; ip < sn_up_size[c_sn]; ip++)
 			map[sn_rowind[c_sn][ip]] = j;
-
 		sn_size[c_sn]++;
 		return 0;
 	}
-
 	if (j < A->n) {
 		nnz = 1;
 		rowind[0] = j;
@@ -706,9 +682,6 @@ recursive_symbolic_elimination(int j,
 
 	for (c = first_child[j]; c != -1; c = next_child[c]) {
 		c_sn = column_to_sn_map[c];
-		/*
-		 * printf("%d ",c_sn);
-		 */
 		if (c == first_child[j])
 			sn_first_child[*n_sn] = c_sn;
 		else {
@@ -727,14 +700,6 @@ recursive_symbolic_elimination(int j,
 		for (ip = 0; ip < nnz; ip++)
 			sn_rowind[*n_sn][ip] = rowind[ip];
 		if (do_order) {
-			/*
-			 * Sivan and Vladimir: we think that we can sort in 
-			 */
-			/*
-			 * column order, not only in etree postorder.  
-			 */
-			// radix_sort(sn_rowind [*n_sn],nnz);
-			// qsort(sn_rowind [*n_sn],nnz,sizeof(int),compare_ints); 
 			compare_indirect_map = ipostorder;
 			qsort(sn_rowind[*n_sn], nnz, sizeof(int), compare_indirect_ints);
 		}
@@ -772,9 +737,6 @@ static void extend_add_wrapper(supernodal_frontal_matrix *child_matrix,
 		multifrontal_supernodal_front_extend_add(*my_matrix_ptr, child_matrix, bitmap);
 	}
 
-	/*
-	 * moved outside "if !is_root"; Sivan 27 Feb 2002 
-	 */
 	supernodal_frontal_free(child_matrix);
 }
 
@@ -791,7 +753,6 @@ static supernodal_frontal_matrix *recursive_multifrontal_supernodal_factor_llt(i
 	int sn_size;
 	int *first_child = snL->first_child;
 	int *next_child = snL->next_child;
-
 	if (!is_root) {
 		sn_size = snL->sn_size[sn];
 		v = &(snL->sn_struct[sn][0]);
@@ -865,6 +826,7 @@ static void recursive_multifrontal_supernodal_factor_llt_caller(int n_sn,	/* thi
 	}
 
 	recursive_multifrontal_supernodal_factor_llt(n_sn, TRUE, maps, A, snL, fail);
+
 	for (i = 0; i < 1; i++)
 		taucs_free(maps[i]);
 	taucs_free(maps);
@@ -896,7 +858,6 @@ void *taucs_dtl(ccs_factor_llt_mf_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	return (void *) L;
 }
 
-
 void *taucs_dtl(ccs_factor_llt_symbolic) (taucs_ccs_matrix * A) {
 	return taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (A, 0);
 }
@@ -921,15 +882,17 @@ void *taucs_dtl(ccs_factor_llt_symbolic_maxdepth) (taucs_ccs_matrix * A, int max
 int taucs_dtl(ccs_factor_llt_numeric) (taucs_ccs_matrix * A, void *vL) {
 	supernodal_factor_matrix * L = (supernodal_factor_matrix *) vL;
 	int fail;
+
 	fail = FALSE;
 	recursive_multifrontal_supernodal_factor_llt_caller((L->n_sn), TRUE, A, L, &fail);
+
 	if (fail) {
 		taucs_supernodal_factor_free_numeric(L);
 		return -1;
 	}
+
 	return 0;
 }
-
 
 static void
 recursive_leftlooking_supernodal_update(int J, int K, int bitmap[], double *dense_update_matrix, taucs_ccs_matrix *A, supernodal_factor_matrix *L)
@@ -1013,7 +976,6 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 
 	int sn_size = (L->sn_size)[sn];
 	int up_size = (L->sn_up_size)[sn] - (L->sn_size)[sn];
-
 	for (ip = 0; ip < (L->sn_up_size)[sn]; ip++)
 		bitmap[(L->sn_struct)[sn][ip]] = ip;
 
@@ -1033,10 +995,7 @@ static int leftlooking_supernodal_front_factor(int sn, int *bitmap, taucs_ccs_ma
 	if (sn_size) {
 		taucs_potrf("L", &sn_size, (L->sn_blocks)[sn], &((L->sn_blocks_ld)[sn]), &INFO, F_ONE);
 	}
-
 	if (INFO) {
-		taucs_printf("\t\tLL^T Factorization: Matrix is not positive definite.\n");
-		taucs_printf("\t\t                    nonpositive pivot in column %d\n", (L->sn_struct)[INFO - 1]);
 		return -1;
 	}
 
@@ -1092,10 +1051,6 @@ static int recursive_leftlooking_supernodal_factor_llt(int sn, /* this supernode
 				if (!dense_update_matrix)
 					return -1;	       /* caller will free L */
 			}
-
-			/*
-			 * prepare the bitmap. Moved out of the recusive update procedure 20/1/2003. Sivan and Elad 
-			 */
 
 			{
 				int i;
@@ -1177,7 +1132,6 @@ void *taucs_dtl(ccs_factor_llt_ll_maxdepth) (taucs_ccs_matrix * A, int max_depth
 	return (void *) L;
 }
 
-
 static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 					 int is_root,	       /* is v the root? */
 					 int *first_child, int *next_child,
@@ -1230,9 +1184,6 @@ static void recursive_supernodal_solve_l(int sn,	       /* this supernode */
 		for (i = 0; i < sn_size; i++)
 			x[sn_struct[sn][i]] = xdense[i];
 		for (i = 0; i < up_size; i++)
-			/*
-			 * b[ sn_struct[ sn ][ sn_size + i ] ] -= bdense[i];
-			 */
 			b[sn_struct[sn][sn_size + i]] = taucs_sub(b[sn_struct[sn][sn_size + i]], bdense[i]);
 
 	}
@@ -1429,14 +1380,8 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 {
 	int *prev_p;
 
-	/*
-	 * int* prev_nbr;omer
-	 */
 	int *level;
 
-	/*
-	 * int* first_descendant;omer
-	 */
 	int *l_cc;
 	int *l_rc;
 	int *wt;
@@ -1455,10 +1400,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 	int *colind;
 	int *rowcount;
 	int *realroot;
-
-	/*
-	 * we need the row structures for the lower triangle 
-	 */
 
 	nnz = (A->colptr)[n];
 
@@ -1507,10 +1448,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 		}
 	}
 
-	/*
-	 * now compute the etree 
-	 */
-
 	{
 		int u, t, vroot;
 
@@ -1538,14 +1475,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 	taucs_free(rowptr);
 	taucs_free(rowcount);
 
-	/*
-	 * now only uf remains allocated 
-	 */
-
-	/*
-	 * compute column counts 
-	 */
-
 	if (l_colcount || l_rowcount || l_nnz) {
 		int *l_nz;
 		int tmp;
@@ -1558,13 +1487,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 		wt = (int *) taucs_malloc(n * sizeof(int));
 		level = (int *) taucs_malloc(n * sizeof(int));
 		prev_p = (int *) taucs_malloc(n * sizeof(int));
-
-		/*
-		 * we allocate scratch vectors to avoid conditionals 
-		 */
-		/*
-		 * in the inner loop.  
-		 */
 
 		if (l_colcount)
 			l_cc = l_colcount;
@@ -1597,14 +1519,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 			return -1;
 		}
 
-		/*
-		 * for (j=0; j<n; j++) printf("parent[%d] = %d\n",j,parent[j]);
-		 */
-
-		/*
-		 * compute the postorder 
-		 */
-
 		for (j = 0; j <= n; j++)
 			first_child[j] = -1;
 		for (j = n - 1; j >= 0; j--) {
@@ -1617,13 +1531,6 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 
 			recursive_postorder(n, first_child, next_child, postorder, ipostorder, &next);
 		}
-
-		/*
-		 * sort by postorder of etree 
-		 */
-		/*
-		 * compute level, fst_desc 
-		 */
 
 		tree_level(n, TRUE, first_child, next_child, level, -1);
 
@@ -1685,19 +1592,10 @@ int taucs_ccs_etree(taucs_ccs_matrix *A, int *parent, int *l_colcount, int *l_ro
 			}
 		}
 
-		/*
-		 * free scrtach vectors 
-		 */
-
 		if (!l_colcount)
 			taucs_free(l_cc);
 		if (!l_rowcount)
 			taucs_free(l_rc);
-
-		/*
-		 * free other data structures 
-		 */
-
 		taucs_free(postorder);
 		taucs_free(ipostorder);
 		taucs_free(wt);
@@ -1723,9 +1621,6 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 	int depth;
 
 	L->n = A->n;
-	/*
-	 * use calloc so we can deallocate unallocated entries 
-	 */
 	L->sn_struct = (int **) taucs_calloc((A->n), sizeof(int *));
 	L->sn_size = (int *) taucs_calloc((A->n + 1), sizeof(int));
 	L->sn_up_size = (int *) taucs_calloc((A->n + 1), sizeof(int));
@@ -1783,13 +1678,6 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 		first_child[p] = j;
 	}
 
-	/*
-	 * let's compute the depth of the etree, to bail out if it is too deep 
-	 */
-	/*
-	 * the whole thing will work better if we compute supernodal etrees 
-	 */
-
 	{
 		int next_depth_count;
 		int this_depth_count;
@@ -1844,22 +1732,10 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 		return -1;
 	}
 
-	/*
-	 * taucs_free(parent); ipostorder = (int*)taucs_calloc((A->n+1), sizeof(int)); 
-	 */
-
 	ipostorder = parent;
 	{
 		int next = 0;
-
-		/*
-		 * int* postorder = (int*)taucs_calloc((A->n+1), sizeof(int));
-		 */
 		recursive_postorder(A->n, first_child, next_child, NULL, ipostorder, &next);
-		/*
-		 * printf("ipostorder "); for (j=0; j <= (A->n); j++) printf("%d ",ipostorder[j]); printf("\n"); printf(" postorder 
-		 * "); for (j=0; j <= (A->n); j++) printf("%d ",postorder[j]); printf("\n"); 
-		 */
 	}
 
 	L->n_sn = 0;
@@ -1905,7 +1781,7 @@ int taucs_ccs_symbolic_elimination(taucs_ccs_matrix *A, void *vL, int do_order, 
 	taucs_free(first_child);
 
 	L->sn_blocks_ld = (int *) taucs_calloc((L->n_sn), sizeof(int));
-	L->sn_blocks = (double **) taucs_calloc((L->n_sn), sizeof(double *));	/* so we can free before allocation */
+	L->sn_blocks = (double **) taucs_calloc((L->n_sn), sizeof(double *));
 
 	L->up_blocks_ld = (int *) taucs_calloc((L->n_sn), sizeof(int));
 	L->up_blocks = (double **) taucs_calloc((L->n_sn), sizeof(double *));

@@ -102,8 +102,6 @@ testthat_testing_package <- function()
 fmesher_deprecate_allow <- function(evo = NULL,
                                     env = rlang::caller_env(),
                                     user_env = rlang::caller_env(2)) {
-    return (TRUE)
-
     if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
         return(FALSE)
     }
@@ -120,8 +118,6 @@ fmesher_deprecate <- function(level = NULL,
                               always = FALSE,
                               env = rlang::caller_env(),
                               user_env = rlang::caller_env(2)) {
-    return (TRUE)
-
     if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
         return(FALSE)
     }

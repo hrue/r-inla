@@ -14,6 +14,10 @@
 #' 
 #' \item{inla.arg}{Additional arguments to `inla.call`}
 #' 
+#' \item{fmesher.call}{The path to the fmesher-program}
+#' 
+#' \item{fmesher.arg}{Additional arguments to `fmesher.call`}
+#' 
 #' \item{num.threads}{Character string with the number of threads to use as
 #' `A:B`, see `?inla`}
 #' 
@@ -69,6 +73,29 @@
 #' If `malloc.lib` is a complete path to an external library, that file will be used
 #' instead of one of the supported ones.}
 #'
+#' \item{fmesher.evolution}{Control use of fmesher methods during the transition
+#' to a separate fmesher package. Levels of
+#' `fmesher.evolution`:
+#' 
+#' `1L` uses the intermediate `fm_*` methods in `fmesher` that were already
+#' available via `inlabru` from 2.8.0.
+#' 
+#' `2L` (current default) uses the full range of `fmesher` package methods.
+#' 
+#' Further levels may be added as the package development progresses.}
+#' 
+#' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+#' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
+#' shows deprecation messages for many CRS and mesh
+#' related methods, pointing to their `fm_*` replacements. Default
+#' since July 2025 is `TRUE`.}
+#' 
+#' \item{fmesher.evolution.verbosity}{logical or character; at what minimum
+#' severity to show warnings about deprecated
+#' use of legacy INLA methods with fmesher package replacements.
+#' When set to "default" (default), "soft", "warn", or "stop", indicates the
+#' minimum warning level used when `fmesher.evolution.warn` is `TRUE`.}
+#' 
 #' \item{INLAjoint.features}{logical Do not use. By purpose left undocumented}
 #'
 #' \item{numa}{logical Enable NUMA features (Linux only)}
@@ -94,6 +121,7 @@ NULL
     return(
         list(
             inla.arg = NULL,
+            fmesher.arg = "",
             num.threads = paste0(max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE))), ":1"),
             smtp = "default",
             safe = TRUE, 
@@ -110,6 +138,9 @@ NULL
             inla.timeout = 0, 
             inla.mode = "compact",
             malloc.lib = "mi", 
+            fmesher.evolution = 2L,
+            fmesher.evolution.warn = TRUE,
+            fmesher.evolution.verbosity = "default",
             INLAjoint.features = FALSE,
             numa = FALSE,
             disable.values.warning = FALSE
@@ -123,6 +154,8 @@ NULL
                              option = c(
                                  "inla.call",
                                  "inla.arg",
+                                 "fmesher.call",
+                                 "fmesher.arg",
                                  "num.threads",
                                  "smtp",
                                  "safe", 
@@ -139,12 +172,17 @@ NULL
                                  "inla.timeout", 
                                  "inla.mode",
                                  "malloc.lib",
+                                 "fmesher.evolution",
+                                 "fmesher.evolution.warn",
+                                 "fmesher.evolution.verbosity",
                                  "INLAjoint.features",
                                  "numa",
                                  "disable.values.warning"
                              )) {
+    ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
     default.opt$inla.call <- inla.call.builtin()
+    default.opt$fmesher.call <- inla.fmesher.call.builtin()
 
     ## with no argument, return a named list of current values
     if (missing(option)) {
@@ -169,6 +207,12 @@ NULL
         inla.call <- gsub("\\\\", "/", system.file("bin/remote/inla.remote", package = "INLA"))
     } else {
         inla.call <- opt$inla.call
+    }
+
+    if (is.null(opt$fmesher.call)) {
+        fmesher.call <- inla.fmesher.call.builtin()
+    } else {
+        fmesher.call <- opt$fmesher.call
     }
 
     res <- c()
@@ -205,6 +249,8 @@ NULL
                                       option = c(
                                           "inla.call",
                                           "inla.arg",
+                                          "fmesher.call",
+                                          "fmesher.arg",
                                           "num.threads",
                                           "smtp",
                                           "safe", 
@@ -221,6 +267,9 @@ NULL
                                           "inla.timeout", 
                                           "inla.mode",
                                           "malloc.lib",
+                                          "fmesher.evolution",
+                                          "fmesher.evolution.warn",
+                                          "fmesher.evolution.verbosity",
                                           "INLAjoint.features",
                                           "numa", 
                                           "disable.values.warning"
