@@ -387,8 +387,6 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 
 void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
-	// this for metis version 5
-
 	int n, nnz;
 	int *xadj = NULL;
 	int *adj = NULL;
@@ -397,16 +395,11 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	int ret;
 
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf(Strdup("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
 	}
-	/*
-	 * this routine may actually work on UPPER as well 
-	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf(Strdup("taucs_ccs_metis: the lower part of the matrix must be represented.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -436,9 +429,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 
 	for (int j = 0; j < n; j++) {
 		for (int ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
-			/*
-			 * i = (m->rowind)[ip] - (m->indshift);
-			 */
 			int i = (m->rowind)[ip];
 			if (i != j) {
 				len[i]++;
@@ -456,9 +446,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 
 	for (int j = 0; j < n; j++) {
 		for (int ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
-			/*
-			 * i = (m->rowind)[ip] - (m->indshift);
-			 */
 			int i = (m->rowind)[ip];
 			if (i != j) {
 				adj[ptr[i]] = j;
