@@ -34,8 +34,8 @@ for m in 64; do
     done
 done
 
-for m in Something; do
-    DIR=$d/mac.arm64
+for m in 64; do
+    DIR=$d/mac.arm64/${m}bit
     for p in inla; do 
 	for f in $(ssh -x -p $INLA_MAC_ARM64_PORT $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
