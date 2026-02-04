@@ -1021,6 +1021,48 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
+// not yet tested
+int export_sparse_matrix(const double *values, const int *colptr, const int *rowind,
+                         int nrows, int ncols, int nnz, const char *filename)
+{
+	if (values == NULL || colptr == NULL || rowind == NULL || filename == NULL) {
+		fprintf(stderr, "Error: NULL pointer provided\n");
+		return -1;
+	}
+
+	FILE *fp = fopen(filename, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "Error: Could not open file %s\n", filename);
+		return -1;
+	}
+
+	fprintf(fp, "%d %d %d\n", nrows, ncols, nnz);
+
+	// Write colptr array (ncols + 1 elements)
+	fprintf(fp, "colptr:\n");
+	for (int i = 0; i <= ncols; i++) {
+		fprintf(fp, " %1d", colptr[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Write rowind array (nnz elements)
+	fprintf(fp, "rowind:\n");
+	for (int i = 0; i < nnz; i++) {
+		fprintf(fp, " %1d", rowind[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Write values array (nnz elements)
+	fprintf(fp, "values:\n");
+	for (int i = 0; i < nnz; i++) {
+		fprintf(fp, " %.15g", values[i]);
+	}
+	fprintf(fp, "\n");
+
+	fclose(fp);
+	return 0;
+}
+
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
 					  GMRFLib_fact_info_tp *finfo)
 {
@@ -1029,6 +1071,17 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	}
 	assert(*L);
 
+	// not tested yet
+#if 0
+	char * filename = NULL;
+	static int count = 0;
+	GMRFLib_sprintf(&filename, "Q-%1d.txt", count++);
+	FILE *fp = fopen(filename, "w");
+	export_sparse_matrix((*L)->values, (*L)->colptr, (*L)->rowind, (*L)->n, (*L)->n, (*L)->colptr[(*L)->n], filename);
+	printf("SAVE %s\n", filename);
+	Free(filename);
+#endif	
+		
 	/*
 	 * compute some info about the factorization 
 	 */

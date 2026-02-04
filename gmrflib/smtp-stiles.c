@@ -17,6 +17,7 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
 	GMRFLib_STOP_IF_NOT_SERIAL();
+	sTiles_expert_user();
 
 	GMRFLib_ptr_tp *graphs = setup->graphs;
 	GMRFLib_idx_tp *nrhss = setup->nrhss;
