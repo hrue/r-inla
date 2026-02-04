@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### this is a mess and needs to be redone...
+
 myreadlink () {
     (
         TARGET_FILE=$1
@@ -41,7 +43,8 @@ Afun () {
     } | sort | uniq | \
 	grep -v /usr/lib/system | \
 	grep -v /usr/lib/libSystem | \
-	grep -v /libgcc_s.
+	grep -v /libgcc_s. | \
+	grep -v -F /libstdc++
 }
 
 Xfun () {
@@ -150,12 +153,27 @@ replace () {
 	    echo $(myreadlink $f)
 	fi
     done
-    for f in $(find /opt/arm/ -name libomp.dylib); do 
+    for f in /opt/local/lib/libomp/libomp.dylib; do
 	if [ -f "$f" ]; then 
 	    echo $(myreadlink $f)
 	fi
     done
+    for f in /opt/local/lib/libgcc/libstdc++.dylib; do
+	if [ -f "$f" ]; then 
+	    echo $(myreadlink $f)
+	fi
+    done
+    
     if $(uname -a |grep -q ARM64); then 
 	dummy=1
     fi
-} | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq
+    
+
+} | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq | \
+    { if uname -a | grep -q arm64; then  
+	  awk '{sub("/libgcc/", "/gcc15/"); print}' 
+      else
+	  awk '{sub("/libgcc/", "/gcc14/"); print}' 
+      fi 
+    } | \
+    { grep -v libomp.dylib; echo /opt/local/lib/libomp/libomp.dylib; }
