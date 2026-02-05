@@ -1,4 +1,4 @@
-# INLA 26.02.05
+# INLA 26.02.06
 * Code cleanup 
 * Revise installation scripts
 * Add PIT to gcpo calculations and output
