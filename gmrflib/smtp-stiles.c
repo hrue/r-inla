@@ -87,7 +87,8 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 
 	//sTiles_set_ordering_mode(145689);      
 	//sTiles_set_correction_mode(2);
-	sTiles_set_tile_type_mode(1);
+	sTiles_set_tile_type_mode(3);
+	//sTiles_set_use_omp(1);
 	
 	sTiles_create(&(store->obj), ng2, calls_g, cores_g, zeros, inv);
 	store->ng = ng;
