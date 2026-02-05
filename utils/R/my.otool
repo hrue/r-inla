@@ -1,179 +1,47 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-### this is a mess and needs to be redone...
+dir=$( { uname -a | grep -q x86_64; } && echo build64 || echo arm64 )
+lib1=$HOME/builds/$dir/local/lib
+lib2=/opt/local/lib
+lib3=$(echo /opt/arm/armpl_*flang*/lib | head -n1)
+LIBS="$lib1 $lib3 $lib3"
 
-myreadlink () {
-    (
-        TARGET_FILE=$1
-        cd `dirname $TARGET_FILE`
-        TARGET_FILE=`basename $TARGET_FILE`
-        while [ -L "$TARGET_FILE" ]
-        do
-            TARGET_FILE=`readlink $TARGET_FILE`
-            cd `dirname $TARGET_FILE`
-            TARGET_FILE=`basename $TARGET_FILE`
-        done
-        PHYS_DIR=`pwd -P`
-        RESULT=$PHYS_DIR/$TARGET_FILE
-        echo $RESULT
-    )
-}
-
-D=$(dirname "$1")
-D=${D/%bin/lib}
-
-Afun () {
-    {
-	for f in "$@"; do
-	    for fz in $(otool -l "$f" | grep .dylib | awk '{print $2}'); do
-		for ff in "$fz" "$D/$fz"; do
-		    if [ -f "$ff" ]; then
-			for fff in $(otool -l "$ff" | grep .dylib | awk '{print $2}'); do
-			    if [ -f "$fff" ]; then
-				echo "$fff"
-			    fi
-			    if [ -f "$D/$fff" ]; then
-				echo "$D/$fff"
-			    fi
-			done
-		    fi
-		done
-	    done
-	done
-    } | sort | uniq | \
-	grep -v /usr/lib/system | \
-	grep -v /usr/lib/libSystem | \
-	grep -v /libgcc_s. | \
-	grep -v -F /libstdc++
-}
-
-Xfun () {
-    for lib in "$@"; do
-	case "$lib" in
-	    /opt/*) 
-		test -f "$lib" && otool -l $lib | grep .dylib | grep /opt
-		;;
-	    /System/Library/Frameworks/Accelerate.framework/*)
-		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
-		;;
-	    *)
-		echo $lib | grep -v ^/usr/lib ## | grep -v ^/Library/Frameworks/R.framework
-		;;
-	esac
-    done
-}
-
-A=$(Afun "$@")
-A=$(Xfun $A)
-A=$(Xfun $A)
-A=$(Xfun $A)
-A=$(Xfun $A)
-
-replace () {
-    cat | while read f; do
-	ff=$(basename $f)
-	if $(uname -a |grep -q ARM64); then 
-	    d="$HOME/builds/arm64/local/lib"
-	else
-	    d="$HOME/builds/build64/local/lib"
-	fi
-	fff=$d/$ff
-	if [ -f $fff ]; then
-	    echo $(myreadlink $fff)
-	else
-	    d="/Library/Frameworks/R.framework/Versions/Current/Resources/lib"
-	    fff=$d/$ff
-	    if [ -f $fff ]; then
-		echo $(myreadlink $fff)
-	    else
-		echo $(myreadlink $f)
-	    fi
-	fi
-    done
-}	     
-
-{
-    echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
-    
-    if $(otool -L "$@" | grep -q @rpath/); then
-	for f in $(otool -L "$@" | grep @rpath/ | awk -F/ '{print $2}' | awk '{print $1}'); do
-	    d="$(echo /opt/homebrew/Cellar/gcc/*/lib/gcc/current|head -n1)"
+findLIBS () {
+    for f in "$@"; do
+	found=0
+	for d in $LIBS; do
 	    if [ -f "$d/$f" ]; then
-		echo $(myreadlink "$d/$f")
+		echo "$d/$f"
+		found=1
 	    fi
-	    for d in /opt/local/lib /opt/local/lib/gcc15; do 
-		if [ -f "$d/$f" ]; then
-		    echo $(myreadlink "$d/$f")
-		fi
-	    done
-	    for d in /opt/arm/armpl_*/lib; do
-		if [ -f "$d/$f" ]; then
-		    echo $(myreadlink "$d/$f")
-		fi
-	    done
 	done
-    fi
-
-    for lib in Rblas Rblas.vecLib Rlapack; do
-	name="/Library/Frameworks/R.framework/Versions/Current/Resources/lib/lib$lib.dylib"
-	if [ -f $name ]; then
-	    echo $name
-	fi
-    done
-
-    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib}/lib{mi,tc,je}malloc.dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-	     
-    for f in $HOME/builds/build64/local/lib/lib{Rmath,iomp5}.dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-	     
-    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libiconv.*dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libbz2.*dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-    for f in {/opt/local/lib,/opt/homebrew/lib,/usr/local/lib,/usr/lib}/libz.*dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-    for f in {/opt/local/lib,/opt/homebrew/lib}/libgcc/libgcc_s.*dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-    for f in /opt/local/lib/libomp/libomp.dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
-	fi
-    done
-    for f in /opt/local/lib/libgcc/libstdc++.dylib; do
-	if [ -f "$f" ]; then 
-	    echo $(myreadlink $f)
+	if [ $found -ne 1 ]; then
+	    echo "Not found [$f] in [$LIBS]" 1>&2
+	    exit 1
 	fi
     done
     
-    if $(uname -a |grep -q ARM64); then 
-	dummy=1
-    fi
-    
+}
 
-} | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq | \
-    { if uname -a | grep -q arm64; then  
-	  awk '{sub("/libgcc/", "/gcc15/"); print}' 
-      else
-	  awk '{sub("/libgcc/", "/gcc14/"); print}' 
-      fi 
-    } | \
-    { grep -v libomp.dylib; echo /opt/local/lib/libomp/libomp.dylib; }
+process () {
+    {
+	for d in "$@"; do
+	    if [ -f "$d" ]; then
+		for dd in $(otool -L "$d" | awk '/^\t/ {print $1}'); do
+		    case "$dd" in 
+			/System/*) ;;
+			/usr/lib/*) ;;
+			/opt/*) echo $dd;;
+			/Library/*) echo $dd;;
+			/usr/local/*) findLIBS $(basename "$dd");;
+			@rpath/*.dylib*) findLIBS ${dd#@rpath/};;
+			[a-zA-Z]*.dylib*) findLIBS "$dd";;
+			*) echo "This should not happen d=[$d] dd=[$dd]" 1>&2; exit 1;;
+		    esac
+		done
+	    fi
+	done
+    } | sort | uniq
+}
+
+process $(process $(process $(process "$@")))
