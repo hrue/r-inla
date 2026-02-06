@@ -458,8 +458,22 @@ control.gcpo <-
              #' @param verbose Show detailed output (default FALSE)
              verbose = FALSE,
 
-             #' @param tile.size The size of the tile (default 0 will chose automatically)
-             tile.size = 0
+             #' @param tile.size The size of the tile (0 will chose sTiles-default)
+             #' ADD DETAILS LATER
+             tile.size = 0, 
+             
+             #' @param tile.type Which tile-type to use (-1 will chose sTiles-default)
+             #' ADD DETAILS LATER
+             tile.type = -1,
+             
+             #' @param reordering The set of reorderings to use (0 will chose sTiles-default)
+             #' ADD DETAILS LATER
+             reordering = 0,
+             
+             #' @param correction.mode Correction mode for symbolic factorisation (-1
+             #' will chose sTiles-default)
+             #' ADD DETAILS LATER
+             correction.mode = -1
              ) {
         ctrl_object(as.list(environment()), "stiles", check = FALSE)
     }

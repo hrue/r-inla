@@ -5,14 +5,31 @@
 \alias{inla.set.control.stiles.default}
 \title{control.stiles}
 \usage{
-control.stiles(verbose = FALSE, tile.size = 0)
+control.stiles(
+  verbose = FALSE,
+  tile.size = 0,
+  tile.type = -1,
+  reordering = 0,
+  correction.mode = -1
+)
 
 inla.set.control.stiles.default(...)
 }
 \arguments{
 \item{verbose}{Show detailed output (default FALSE)}
 
-\item{tile.size}{The size of the tile (default 0 will chose automatically)}
+\item{tile.size}{The size of the tile (0 will chose sTiles-default)
+ADD DETAILS LATER}
+
+\item{tile.type}{Which tile-type to use (-1 will chose sTiles-default)
+ADD DETAILS LATER}
+
+\item{reordering}{The set of reorderings to use (0 will chose sTiles-default)
+ADD DETAILS LATER}
+
+\item{correction.mode}{Correction mode for symbolic factorisation (-1
+will chose sTiles-default)
+ADD DETAILS LATER}
 
 \item{...}{Named arguments passed on to the main function}
 }

@@ -1910,7 +1910,10 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", inla.secsep("INLA.stiles"), "\n", sep = "", file = file, append = TRUE)
     cat("type = stiles\n", sep = " ", file = file, append = TRUE)
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("tile.size = ", max(contr$tile.size, 0), "\n", sep = " ", file = file, append = TRUE)
+    cat("tile.size = ", as.integer(max(contr$tile.size, 0)), "\n", sep = " ", file = file, append = TRUE)
+    cat("tile.type = ", as.integer(contr$tile.type), "\n", sep = " ", file = file, append = TRUE)
+    cat("reordering = ", as.integer(contr$reordering), "\n", sep = " ", file = file, append = TRUE)
+    cat("correction.mode = ", as.integer(contr$correction.mode), "\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 

@@ -19,12 +19,15 @@
 #       endif
 
 __BEGIN_DECLS
-//
+//...
 #       include "no-stiles.h"
-//
+// ...
     typedef struct {
 	int verbose;
 	int tile_size;
+	int tile_type;
+	int reordering;
+	int correction_mode;
 } GMRFLib_stiles_ctl_tp;
 
 #       if 0
@@ -64,6 +67,7 @@ typedef struct {
 	GMRFLib_idx_tp *nrhss;
 } GMRFLib_stiles_setup_tp;
 
+GMRFLib_stiles_ctl_tp * GMRFLib_stiles_get_ctl(void);
 GMRFLib_stiles_setup_tp *GMRFLib_stiles_get_setup(void *mb);
 double GMRFLib_stiles_Qinv_get(int i, int j, GMRFLib_stiles_idx_tp * stiles_idx);
 double GMRFLib_stiles_logdet(GMRFLib_stiles_idx_tp * stiles_idx);
@@ -73,7 +77,8 @@ int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp * stiles_idx, int thread_id, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp * stiles_idx);
 int GMRFLib_stiles_get_tile_size(void);
-int GMRFLib_stiles_set_ctl(int verbose, int tile_size);
+int GMRFLib_stiles_get_verbose();
+int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reordering, int correction_mode);
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
 int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
 int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
@@ -81,7 +86,6 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp * setup);
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
-int GMRFLib_stiles_get_verbose();
 void *GMRFLib_stiles_get_store_ptr(void);
 void GMRFLib_stiles_Qinv(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp * stiles_idx);
