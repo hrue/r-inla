@@ -19684,18 +19684,16 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = STILES
 	 */
-	char *secname = NULL;
-	int verbose, tile_size;
-
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
 	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
+	
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	int verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
 	if (mb->verbose) {
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
@@ -19706,16 +19704,20 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", debug);
 	}
 
-	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
-	if (mb->verbose) {
-		printf("\t\ttile.size[%1d]\n", tile_size);
-	}
-	GMRFLib_stiles_set_ctl(verbose, tile_size);
+	int tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
+	int tile_type = iniparser_getint(ini, inla_string_join(secname, "TILE.TYPE"), -1);
+	int reordering = iniparser_getint(ini, inla_string_join(secname, "REORDERING"), 0);
+	int correction_mode = iniparser_getint(ini, inla_string_join(secname, "CORRECTION.MODE"), -1);
 
 	if (mb->verbose) {
-		printf("\t\tdefault tile.size[%1d]\n", GMRFLib_stiles_get_tile_size());
+		printf("\t\tdefault tile.size... [%1d]\n", GMRFLib_stiles_get_tile_size());
+		printf("\t\tuser tile.size...... [%1d]\n", tile_size);
+		printf("\t\ttile.type........... [%1d]\n", tile_type);
+		printf("\t\treordering.......... [%1d]\n", reordering);
+		printf("\t\tcorrection.mode..... [%1d]\n", correction_mode);
 	}
 
+	GMRFLib_stiles_set_ctl(verbose, tile_size, tile_type, reordering, correction_mode);
 	return INLA_OK;
 }
 

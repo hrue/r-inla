@@ -1,3 +1,4 @@
+#include <time.h>
 #include <assert.h>
 #include <math.h>
 #include <omp.h>
@@ -17,7 +18,6 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
 	GMRFLib_STOP_IF_NOT_SERIAL();
-	sTiles_expert_user();
 
 	GMRFLib_ptr_tp *graphs = setup->graphs;
 	GMRFLib_idx_tp *nrhss = setup->nrhss;
@@ -26,9 +26,10 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	}
 
 	GMRFLib_ENTER_FUNCTION;
+
 	double tref = GMRFLib_timer();
 	if (!ctl) {
-		GMRFLib_stiles_set_ctl(0, 0);
+		GMRFLib_stiles_set_ctl(0, 0, -1, 0, -1);
 	}
 
 	int nt_outer = GMRFLib_openmp->max_threads_nested[0];
@@ -281,9 +282,11 @@ void GMRFLib_stiles_print(FILE *fp)
 #pragma omp critical (Name_4c8dac87b14702b8de3511c972d6b27af33cc04c)
 	{
 		fprintf(fp, "\n\ncontent of 'store' (computed in %.3fs):\n", store->wtime);
-		fprintf(fp, "\tngroup[%1d] verbose[%1d] tile.size[%1d] ng[%1d] ng2[%1d]\n", store->n_in_group, ctl->verbose,
-			GMRFLib_stiles_get_tile_size(), store->ng, store->ng2);
+		fprintf(fp, "\tngroup[%1d] verbose[%1d] ng[%1d] ng2[%1d]\n", store->n_in_group, ctl->verbose,
+			store->ng, store->ng2);
 		fprintf(fp, "\tnt_outer[%1d] nt_inner[%1d] nt_special[%1d]\n", store->nt_outer, store->nt_inner, store->nt_special);
+		fprintf(fp, "\ttile_size[%1d] tile_type[%1d] reordering[%1d] correction_mode[%1d]\n",
+			ctl->tile_size, ctl->tile_type, ctl->reordering, ctl->correction_mode);
 
 		for (int i = 0; i < store->n_in_group; i++) {
 			fprintf(fp, "\tgroup[%1d]: n[%1d] nnz[%1d] n_within_group[%1d] n_cores_group[%1d]\n",
@@ -340,10 +343,11 @@ int *GMRFLib_stiles_get_iperm(GMRFLib_stiles_idx_tp *stiles_idx)
 	return store->iperm[stiles_idx->in_group];
 }
 
-int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
+int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reordering, int correction_mode)
 {
 	GMRFLib_STOP_IF_NOT_SERIAL();
 	Free(ctl);
+	sTiles_expert_user();
 
 	ctl = Calloc(1, GMRFLib_stiles_ctl_tp);
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
@@ -358,6 +362,21 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
 		sTiles_set_tile_size(ctl->tile_size);
 	}
 
+	ctl->tile_type = IMAX(tile_type, -1);
+	if (ctl->tile_type >= 0) {
+		sTiles_set_tile_type_mode(ctl->tile_type);
+	}
+
+	ctl->reordering = IMAX(0, reordering);
+	if (ctl->reordering > 0) {
+		sTiles_set_ordering_mode(ctl->reordering);      
+	}
+
+	ctl->correction_mode = IMAX(-1, correction_mode);
+	if (ctl->correction_mode >= 0) {
+		sTiles_set_correction_mode(ctl->correction_mode);
+	}
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -652,6 +671,11 @@ void GMRFLib_stiles_unbind_all(void)
 int GMRFLib_stiles_get_verbose()
 {
 	return (ctl ? ctl->verbose : 0);
+}
+
+GMRFLib_stiles_ctl_tp * GMRFLib_stiles_get_ctl(void) 
+{
+	return ctl;
 }
 
 int GMRFLib_stiles_get_tile_size(void)

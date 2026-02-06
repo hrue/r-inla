@@ -6079,7 +6079,13 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			printf("\tsTiles tile-size........... [%1d]\n", GMRFLib_stiles_get_tile_size());
+			GMRFLib_stiles_ctl_tp *ctl = GMRFLib_stiles_get_ctl();
+			if (ctl) {
+				printf("\t\ttile_size.......... [%1d]\n", ctl->tile_size);
+				printf("\t\ttile_type.......... [%1d]\n", ctl->tile_type);
+				printf("\t\treordering......... [%1d]\n", ctl->reordering);
+				printf("\t\tcorrection_mode.... [%1d]\n", ctl->correction_mode);
+			}
 		}
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
