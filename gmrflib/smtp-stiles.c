@@ -18,20 +18,34 @@ static GMRFLib_ptr_tp *free_ptrs = NULL;
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 {
 	GMRFLib_STOP_IF_NOT_SERIAL();
+	GMRFLib_ENTER_FUNCTION;
 
-	GMRFLib_ptr_tp *graphs = setup->graphs;
-	GMRFLib_idx_tp *nrhss = setup->nrhss;
 	if (store) {
 		GMRFLib_stiles_quit();
 	}
-
-	GMRFLib_ENTER_FUNCTION;
 
 	double tref = GMRFLib_timer();
 	if (!ctl) {
 		GMRFLib_stiles_set_ctl(0, 0, -1, 0, -1);
 	}
 
+	// set values in CTL
+	sTiles_expert_user();
+	if (ctl->tile_size > 0) {
+		sTiles_set_tile_size(ctl->tile_size);
+	}
+	if (ctl->tile_type >= 0) {
+		sTiles_set_tile_type_mode(ctl->tile_type);
+	}
+	if (ctl->reordering > 0) {
+		sTiles_set_ordering_mode(ctl->reordering);      
+	}
+	if (ctl->correction_mode >= 0) {
+		sTiles_set_correction_mode(ctl->correction_mode);
+	}
+
+	GMRFLib_ptr_tp *graphs = setup->graphs;
+	GMRFLib_idx_tp *nrhss = setup->nrhss;
 	int nt_outer = GMRFLib_openmp->max_threads_nested[0];
 	int nt_inner = GMRFLib_openmp->max_threads_nested[1];
 	int nt_special = GMRFLib_ADAPTIVE_NUM_THREADS();
@@ -171,8 +185,9 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 
 void GMRFLib_stiles_quit(void)
 {
-	if (!store)
+	if (!store) {
 		return;
+	}
 
 	GMRFLib_STOP_IF_NOT_SERIAL();
 
@@ -358,24 +373,10 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reorde
 		ctl->tile_size = sTiles_get_auto_tile_size(0);
 	}
 #endif
-	if (ctl->tile_size > 0) {
-		sTiles_set_tile_size(ctl->tile_size);
-	}
-
+	// we assign in _stiles_setup
 	ctl->tile_type = IMAX(tile_type, -1);
-	if (ctl->tile_type >= 0) {
-		sTiles_set_tile_type_mode(ctl->tile_type);
-	}
-
 	ctl->reordering = IMAX(0, reordering);
-	if (ctl->reordering > 0) {
-		sTiles_set_ordering_mode(ctl->reordering);      
-	}
-
 	ctl->correction_mode = IMAX(-1, correction_mode);
-	if (ctl->correction_mode >= 0) {
-		sTiles_set_correction_mode(ctl->correction_mode);
-	}
 	
 	return GMRFLib_SUCCESS;
 }
@@ -609,46 +610,24 @@ int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp *problem)
 
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 {
-#if 0
-	if (!tref) {
-#       pragma omp critical (Name_32d219aff2336da13ace9454f552486ecea90e5c)
-		if (!tref) {
-			tref = Calloc(GMRFLib_MAX_THREADS(), double);
-		}
-	}
-	double tt = -GMRFLib_timer();
-	assert(store);
-#endif
-
+	GMRFLib_ENTER_FUNCTION;
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 	if (*p == false) {
 		sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
 		*p = true;
 	}
-#if 0
-	int tnum = omp_get_thread_num();
-	tt += GMRFLib_timer();
-	tref[tnum] += tt;
-	if (tnum == 0) {
-#       pragma omp critical
-		{
-			printf("BIND ");
-			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
-				printf(" %.3f", tref[i]);
-			}
-			printf("\n");
-		}
-	}
-#endif
+	GMRFLib_LEAVE_FUNCTION;
 }
 
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp *stiles_idx)
 {
+	GMRFLib_ENTER_FUNCTION;
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 	if (*p == true) {
 		sTiles_unbind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
 		*p = false;
 	}
+	GMRFLib_LEAVE_FUNCTION;
 }
 
 void GMRFLib_stiles_unbind_group(int in_group)
