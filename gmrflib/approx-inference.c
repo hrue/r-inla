@@ -3555,7 +3555,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				double **lwork = work[tnum];
 				double *Saa = Swork[tnum];
 
-				GMRFLib_dfill(n * nrhs, 0.0, Saa);
+				GMRFLib_dfill(n * sel->n, 0.0, Saa);
 				for (int j = 0; j < 3; j++) {
 					GMRFLib_dfill(dn, 0.0, lwork[j]);
 				}
@@ -3567,9 +3567,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-				GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
+				GMRFLib_stiles_set_idx_copy(&stiles_idx, sel->n);
 
-				GMRFLib_Qsolves(Saa, nrhs, build_ai_store->problem, &stiles_idx);
+				GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
 
 				for (int ii = 0; ii < sel->n; ii++) {
 					int node = sel->idx[ii];
