@@ -112,7 +112,6 @@ NULL
     return(
         list(
             inla.arg = NULL,
-            fmesher.arg = "",
             num.threads = paste0(max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE))), ":1"),
             smtp = "default",
             safe = TRUE, 

@@ -1111,7 +1111,6 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
   if (verbose) {
     ret <- (c(ret, list(
       call = x$meta$call,
-      fmesher.args = x$meta$fmesher.args,
       prefix = x$meta$prefix,
       time = x$meta$time,
       is.refined = x$meta$is.refined
@@ -1187,7 +1186,6 @@ print.summary.inla.mesh <- function(x, ...) {
     cat("\nCall:\n")
     print(x$call)
 
-    cat("\nfmesher:\t", x$fmesher.args, "\n", sep = "")
     cat("prefix:\t\t", x$prefix, "\n", sep = "")
 
     cat("\nTimings:\n")
