@@ -361,7 +361,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
-
+	
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
