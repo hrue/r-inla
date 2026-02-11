@@ -7,8 +7,8 @@
 #' @param ... Option and value, like `option=value` or `option,
 #' value`; see the Examples
 #' @param option The option to get. If `option = NULL` then
-#' `inla.getOption` then `inla.getOption` will return a named list of
-#' current values, otherwise, `option` must be one of
+#' `inla.getOption` will return a named list of
+#' current values, otherwise, `option` must be one (or a vector of several) of
 #' \describe{
 #' \item{inla.call}{The path to the inla-program.}
 #' 
@@ -146,14 +146,21 @@ NULL
     )
 }
 
+`inla.validOptions` <- function() {
+    c("inla.call", names(inla.getOption.default()))
+} 
+
 # Non-exported function, used internally in place of `match.arg` to match
 # one or more INLA options, with a custom warning message for unknown or
 # ambiguous options.
 # This allows for partial matching of options while providing informative
 # feedback to the user, with logic similar to match.arg.
-inla.matchOption <- function(option, valid.options, several.ok = FALSE) {
+`inla.matchOption` <- function(option, valid.options = NULL, several.ok = FALSE) {
     if ((length(option) > 1L) && !several.ok) {
         stop("Only one option can be selected.")
+    }
+    if (is.null(valid.options)) {
+        valid.options <- inla.validOptions()
     }
     match.opt <- pmatch(option,
                         valid.options,
@@ -175,41 +182,14 @@ inla.matchOption <- function(option, valid.options, several.ok = FALSE) {
 
 #' @rdname options
 #' @export
-`inla.getOption` <- function(
-                             option = c(
-                                 "inla.call",
-                                 "inla.arg",
-                                 "num.threads",
-                                 "smtp",
-                                 "safe", 
-                                 "keep",
-                                 "verbose",
-                                 "save.memory",
-                                 "internal.opt",
-                                 "working.directory",
-                                 "silent",
-                                 "debug",
-                                 "show.warning.graph.file",
-                                 "scale.model.default",
-                                 "short.summary",
-                                 "inla.timeout", 
-                                 "inla.mode",
-                                 "malloc.lib",
-                                 "fmesher.evolution",
-                                 "fmesher.evolution.warn",
-                                 "fmesher.evolution.verbosity",
-                                 "INLAjoint.features",
-                                 "numa",
-                                 "disable.values.warning"
-                             ),
-                             list.out = NULL) {
+`inla.getOption` <- function(option = NULL, list.out = NULL) {
     ## we get 'inla.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
     default.opt$inla.call <- inla.call.builtin()
     valid.opt <- names(default.opt)
 
     ## with no argument, return a named list of current values
-    if (missing(option)) {
+    if (missing(option) || is.null(option)) {
         option <- valid.opt
     }
     if (is.null(list.out)) {
@@ -263,35 +243,11 @@ inla.matchOption <- function(option, valid.options, several.ok = FALSE) {
     ## and
     ## inla.setOption(keep=TRUE, num.threads=10)
 
+    valid.opt <- inla.validOptions()
+
     `inla.setOption.core` <- function(
 option, value) {
         envir <- inla.get.inlaEnv()
-        valid.opt <- c(
-            "inla.call",
-            "inla.arg",
-            "num.threads",
-            "smtp",
-            "safe", 
-            "keep",
-            "verbose",
-            "save.memory",
-            "internal.opt",
-            "working.directory",
-            "silent",
-            "debug",
-            "show.warning.graph.file",
-            "scale.model.default",
-            "short.summary",
-            "inla.timeout", 
-            "inla.mode",
-            "malloc.lib",
-            "fmesher.evolution",
-            "fmesher.evolution.warn",
-            "fmesher.evolution.verbosity",
-            "INLAjoint.features",
-            "numa", 
-            "disable.values.warning"
-        )
         option <- inla.matchOption(option, valid.opt, several.ok = FALSE)
         if (length(option) == 0L) {
             return(invisible())
