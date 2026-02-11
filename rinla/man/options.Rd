@@ -7,22 +7,14 @@
 \alias{inla.getOption}
 \title{Set and get global options for INLA}
 \usage{
-inla.getOption(
-  option = c("inla.call", "inla.arg", "num.threads", "smtp", "safe", "keep", "verbose",
-    "save.memory", "internal.opt", "working.directory", "silent", "debug",
-    "show.warning.graph.file", "scale.model.default", "short.summary", "inla.timeout",
-    "inla.mode", "malloc.lib", "fmesher.evolution", "fmesher.evolution.warn",
-    "fmesher.evolution.verbosity", "INLAjoint.features", "numa",
-    "disable.values.warning"),
-  list.out = NULL
-)
+inla.getOption(option = NULL, list.out = NULL)
 
 inla.setOption(...)
 }
 \arguments{
 \item{option}{The option to get. If \code{option = NULL} then
-\code{inla.getOption} then \code{inla.getOption} will return a named list of
-current values, otherwise, \code{option} must be one of
+\code{inla.getOption} will return a named list of
+current values, otherwise, \code{option} must be one (or a vector of several) of
 \describe{
 \item{inla.call}{The path to the inla-program.}
 
