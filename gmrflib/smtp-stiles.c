@@ -84,7 +84,8 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	store->nrhss = nrhs[0];
 	store->rhss = nrhs + 1;
 
-	sTiles_create(&(store->obj), ng2, calls_g, cores_g, zeros, inv, nrhs);
+	//sTiles_create(&(store->obj), ng2, calls_g, cores_g, zeros, inv, nrhs);
+	sTiles_create(&(store->obj), ng2, calls_g, cores_g, zeros, inv); 
 	store->ng = ng;
 	store->ng2 = ng2;
 	store->n_in_group = ng2;
@@ -347,8 +348,9 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size)
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
 	ctl->tile_size = IMAX(0, tile_size);
 #if defined(INLA_WITH_STILES)
+	int sTiles_get_auto_tile_size(int);
 	if (ctl->tile_size == 0) {
-		ctl->tile_size = get_auto_tile_size();
+		ctl->tile_size = sTiles_get_auto_tile_size(0);
 	}
 #endif
 	if (ctl->tile_size > 0) {
@@ -654,11 +656,11 @@ int GMRFLib_stiles_get_verbose()
 int GMRFLib_stiles_get_tile_size(void)
 {
 #if defined(INLA_WITH_STILES)
-	int get_auto_tile_size(void);
+	int sTiles_get_auto_tile_size(int);
 	if (!ctl) {
-		return get_auto_tile_size();
+		return sTiles_get_auto_tile_size(0);
 	} else {
-		return (ctl->tile_size > 0 ? ctl->tile_size : get_auto_tile_size());
+		return (ctl->tile_size > 0 ? ctl->tile_size : sTiles_get_auto_tile_size(0));
 	}
 #else
 	return (ctl ? ctl->tile_size : 0);

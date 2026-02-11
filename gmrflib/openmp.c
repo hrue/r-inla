@@ -502,7 +502,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
-	if (GMRFLib_openmp->blas_num_threads_force) {
+	if (GMRFLib_openmp->blas_num_threads_force > 0) {
 		GMRFLib_set_blas_num_threads(GMRFLib_openmp->blas_num_threads_force);
 	} else {
 		GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
