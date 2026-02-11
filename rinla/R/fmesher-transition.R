@@ -99,15 +99,6 @@ testthat_testing_package <- function()
     Sys.getenv("TESTTHAT_PKG")
 }
 
-fmesher_deprecate_allow <- function(evo = NULL,
-                                    env = rlang::caller_env(),
-                                    user_env = rlang::caller_env(2)) {
-    if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
-        return(FALSE)
-    }
-    return(TRUE)
-}
-
 fmesher_deprecate <- function(level = NULL,
                               evo = NULL,
                               when,
@@ -118,10 +109,6 @@ fmesher_deprecate <- function(level = NULL,
                               always = FALSE,
                               env = rlang::caller_env(),
                               user_env = rlang::caller_env(2)) {
-    if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
-        return(FALSE)
-    }
-    
     w <- isTRUE(inla.getOption("fmesher.evolution.warn")) ||
         (testthat_is_testing() && !testthat_is_snapshot())
     verb <- inla.getOption("fmesher.evolution.verbosity")

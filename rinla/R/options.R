@@ -14,10 +14,6 @@
 #' 
 #' \item{inla.arg}{Additional arguments to `inla.call`}
 #' 
-#' \item{fmesher.call}{The path to the fmesher-program}
-#' 
-#' \item{fmesher.arg}{Additional arguments to `fmesher.call`}
-#' 
 #' \item{num.threads}{Character string with the number of threads to use as
 #' `A:B`, see `?inla`}
 #' 
@@ -74,15 +70,10 @@
 #' instead of one of the supported ones.}
 #'
 #' \item{fmesher.evolution}{Control use of fmesher methods during the transition
-#' to a separate fmesher package. Levels of
-#' `fmesher.evolution`:
-#' 
-#' `1L` uses the intermediate `fm_*` methods in `fmesher` that were already
-#' available via `inlabru` from 2.8.0.
-#' 
-#' `2L` (current default) uses the full range of `fmesher` package methods.
-#' 
-#' Further levels may be added as the package development progresses.}
+#' to a separate fmesher package. Only supported value is `2L`, for using the
+#' full range of `fmesher` package methods. A higher value may be used in the future
+#' to force use of newer methods, but this is not currently implemented.
+#' Default is `2L`.}
 #' 
 #' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 #' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
@@ -121,7 +112,6 @@ NULL
     return(
         list(
             inla.arg = NULL,
-            fmesher.arg = "",
             num.threads = paste0(max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE))), ":1"),
             smtp = "default",
             safe = TRUE, 
@@ -154,8 +144,6 @@ NULL
                              option = c(
                                  "inla.call",
                                  "inla.arg",
-                                 "fmesher.call",
-                                 "fmesher.arg",
                                  "num.threads",
                                  "smtp",
                                  "safe", 
@@ -179,10 +167,9 @@ NULL
                                  "numa",
                                  "disable.values.warning"
                              )) {
-    ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
+    ## we get 'inla.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
     default.opt$inla.call <- inla.call.builtin()
-    default.opt$fmesher.call <- inla.fmesher.call.builtin()
 
     ## with no argument, return a named list of current values
     if (missing(option)) {
@@ -207,12 +194,6 @@ NULL
         inla.call <- gsub("\\\\", "/", system.file("bin/remote/inla.remote", package = "INLA"))
     } else {
         inla.call <- opt$inla.call
-    }
-
-    if (is.null(opt$fmesher.call)) {
-        fmesher.call <- inla.fmesher.call.builtin()
-    } else {
-        fmesher.call <- opt$fmesher.call
     }
 
     res <- c()
@@ -249,8 +230,6 @@ NULL
                                       option = c(
                                           "inla.call",
                                           "inla.arg",
-                                          "fmesher.call",
-                                          "fmesher.arg",
                                           "num.threads",
                                           "smtp",
                                           "safe", 

@@ -374,6 +374,7 @@ int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reorde
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
 	ctl->tile_size = IMAX(0, tile_size);
 #if defined(INLA_WITH_STILES)
+	int sTiles_get_auto_tile_size(int);
 	if (ctl->tile_size == 0) {
 		ctl->tile_size = sTiles_get_auto_tile_size(0);
 	}
@@ -689,7 +690,7 @@ GMRFLib_stiles_ctl_tp * GMRFLib_stiles_get_ctl(void)
 int GMRFLib_stiles_get_tile_size(void)
 {
 #if defined(INLA_WITH_STILES)
-	int get_auto_tile_size(void);
+	int sTiles_get_auto_tile_size(int);
 	if (!ctl) {
 		return sTiles_get_auto_tile_size(0);
 	} else {
