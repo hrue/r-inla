@@ -13,7 +13,8 @@ inla.getOption(
     "show.warning.graph.file", "scale.model.default", "short.summary", "inla.timeout",
     "inla.mode", "malloc.lib", "fmesher.evolution", "fmesher.evolution.warn",
     "fmesher.evolution.verbosity", "INLAjoint.features", "numa",
-    "disable.values.warning")
+    "disable.values.warning"),
+  list.out = NULL
 )
 
 inla.setOption(...)
@@ -106,6 +107,15 @@ minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
 
 \item{disable.values.warning}{logical Disable warning about missing 'values'}
 }}
+
+\item{list.out}{logical; If \code{TRUE}, then \code{inla.getOption} will return a named
+list of values, even if only one option is requested.  Default is \code{NULL},
+which means that a named list will be returned if more than one option is
+requested, and a single value will be returned if only one option is
+requested. Using \code{list.out = FALSE} will return a plain vector of values,
+without names, even if more than one option is requested; the data type may
+depend on which options are requested, and may be unpredictable, so use only
+if you know what you're doing.}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}
 }
