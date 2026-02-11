@@ -133,6 +133,16 @@ typedef struct {
 
 #       define GMRFLib_STOP_IF_NOT_SERIAL() assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD())
 
+#define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
+	if (GMRFLib_OPENMP_IN_SERIAL()) {				\
+		_Pragma("omp parallel for num_threads(1)")		\
+			for(int k_ = 0; k_ < 1; k_++) {			\
+				GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR;	\
+			}						\
+	} else {							\
+		GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR;			\
+	}
+	
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);

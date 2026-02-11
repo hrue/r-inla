@@ -977,14 +977,21 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 	} else if (sm_fact->smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_stiles_idx_tp s_idx = { 0, 0, 0 };
+		GMRFLib_stiles_idx_tp s_idx = { 0, 0, nrhs };
 		if (stiles_idx) {
 			s_idx.in_group = stiles_idx->in_group;
+			if (stiles_idx->within_group < 0) {
+				s_idx.within_group = -1;
+			}
 		} else {
 			s_idx.in_group = problem->stiles_idx->in_group;
+			if (problem->stiles_idx->within_group < 0) {
+				s_idx.within_group = -1;
+			}
 		}
 
 		GMRFLib_stiles_set_idx(&s_idx, nrhs);
+		GMRFLib_stiles_print_idx(&s_idx, stdout);
 		GMRFLib_stiles_solve_LLT(&s_idx, rhs);
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);

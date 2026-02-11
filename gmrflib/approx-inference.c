@@ -1863,7 +1863,16 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
-		GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+#pragma omp parallel for num_threads(1)
+			for(int k_ = 0; k_ < 1; k_++) {
+				GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+			}
+		} else {
+			GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+		}
+
 		log_dens_mode *= -1.0;
 		SET_MODE;
 	}
@@ -1963,7 +1972,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		assert(omp_get_thread_num() == 0);
 		GMRFLib_openmp_place_tp place = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
-		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl, d_idx);
+#define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param, fl, d_idx)
+		GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN();
+#undef GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 	overall_time_correct += GMRFLib_timer();
@@ -3462,6 +3473,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 1 };
 				GMRFLib_stiles_set_idx(&stiles_idx, 1);
 				if (build_ai_store->problem->stiles_idx) {
+					P(build_ai_store->problem->stiles_idx->in_group);
+					P(build_ai_store->problem->stiles_idx->within_group);
 					assert(build_ai_store->problem->stiles_idx->in_group == stiles_idx.in_group);
 					assert(build_ai_store->problem->stiles_idx->within_group == stiles_idx.within_group);
 					Memcpy(build_ai_store->problem->stiles_idx, &stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
@@ -3503,10 +3516,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(selection);
 
-		assert(GMRFLib_OPENMP_IN_SERIAL());
-		// int serial = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())? 1 : 0);
+		assert(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 		int nt_outer = GMRFLib_openmp->max_threads_outer;
 		int nt_inner = GMRFLib_openmp->max_threads_inner;
+
+		P(nt_outer);
+		P(nt_inner);
 
 		// new code: solve chunks of rhs at the same time.
 		// we keep the old code available for the time beeing (available as 'if (0)')
@@ -3524,7 +3539,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double ***work = Calloc(nt_outer, double **);
 			int work_n = 3;
 			for (int i = 0; i < nt_outer; i++) {
-				work[i] = Calloc(work_n, double *);
+				work[i] = Malloc(work_n, double *);
 				for (int j = 0; j < work_n; j++) {
 					work[i][j] = Calloc(dn, double);
 				}
@@ -3566,9 +3581,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 				}
 
-				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-				GMRFLib_stiles_set_idx_copy(&stiles_idx, sel->n);
-
+				GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, sel->n };
+				GMRFLib_stiles_set_idx(&stiles_idx, sel->n);
 				GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
 
 				for (int ii = 0; ii < sel->n; ii++) {
@@ -3751,7 +3765,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									\
 				GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0 }; \
 				if (GMRFLib_smtp == GMRFLib_SMTP_STILES) { \
-					GMRFLib_stiles_set_idx_copy(&stiles_idx, 1); \
+					GMRFLib_stiles_set_idx(&stiles_idx, 1); \
 				}					\
 									\
 				GMRFLib_idxval_tp *v = A_idx(node);	\
@@ -4251,8 +4265,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 #pragma omp parallel for num_threads(nt_outer)
 				for (int kk = 0; kk < split->n; kk++) {
 
-					GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
-					GMRFLib_stiles_set_idx_copy(&stiles_idx, nrhs);
+					GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
+					GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
 
 					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
 					double *Saa = Swork[0];
@@ -4340,8 +4354,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 				GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
 				GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
-				assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group);
-				assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group);
+				FIXME("set .in_group = 0, .within_group=0");
+				stiles_idx.in_group = 0;
+				stiles_idx.within_group = 0;
+
+				//assert(ai_store_id->problem->stiles_idx->in_group == stiles_idx.in_group);
+				//assert(ai_store_id->problem->stiles_idx->within_group == stiles_idx.within_group);
 
 				for (int kk = 0; kk < split->n; kk++) {
 					GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
@@ -4430,6 +4448,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_stiles_idx_tp stiles_idx = {0, 0, 0}; \
 			if (use_stiles) {				\
 				GMRFLib_stiles_set_idx(&stiles_idx, 1); \
+				stiles_idx.in_group = 0;		\
+				stiles_idx.within_group = 0;		\
+				FIXME("set .in_group = 0, .within_group = 0"); \
 			}						\
 			if (gcpo_param->verbose || detailed_output) {	\
 				if (skip[node]) {			\

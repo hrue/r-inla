@@ -56,6 +56,7 @@ typedef struct {
 	int *rhss;
 	bool **Qinv_done;
 	bool **bind_done;
+	bool **chol_done;
 	GMRFLib_ptr_tp *graphs;
 	void *obj;
 	double wtime;
@@ -80,8 +81,6 @@ int GMRFLib_stiles_get_tile_size(void);
 int GMRFLib_stiles_get_verbose();
 int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reordering, int correction_mode);
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
-int GMRFLib_stiles_set_idx_copy(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
-int GMRFLib_stiles_set_idx_special(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp * setup);
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
