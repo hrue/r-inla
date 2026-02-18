@@ -3319,7 +3319,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
-	int N = IMAX(preopt->n, Npred);
 	int n = preopt->latent_graph->n;
 	int dn = d_idx->n;
 	GMRFLib_idxval_tp **groups = NULL;
@@ -3845,7 +3844,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int nn = preopt->n;
-	int N = IMAX(nn, Npred);
 	int max_ng = -1;
 	int corr_hyper = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
@@ -3922,7 +3920,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	int serial = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL())? 1 : 0);
 	int use_stiles = (GMRFLib_smtp == GMRFLib_SMTP_STILES ? 1 : 0);
-	int nt_outer = GMRFLib_openmp->max_threads_nested[0];
 	int nt_inner = GMRFLib_openmp->max_threads_nested[1];
 	int nt_max = GMRFLib_MAX_THREADS();
 	int nrhs = IMAX(1, (use_stiles ? GMRFLib_stiles_get_block_size() : GMRFLib_taucs_get_block_size()));

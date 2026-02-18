@@ -36,7 +36,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	int ng = graphs->n;
 	int ng2 = 2 * ng;
 	int ngt = ng2 + 1;
-	
+
 	assert(nt_outer > 0);
 	assert(nt_inner > 0);
 	assert(ng > 0);
@@ -53,13 +53,13 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		GMRFLib_ptr_add(&(store->graphs), g);
 		store->n[i] = g->n;
 		store->nnz[i] = g->nnz;
-
-		if (i == 0) {
-			GMRFLib_graph_duplicate(&g, (GMRFLib_graph_tp *) (graphs->ptr[i]));
-			GMRFLib_ptr_add(&(store->graphs), g);
-			store->n[ng2] = g->n;
-			store->nnz[ng2] = g->nnz;
-		}
+	}
+	for (int i = 0; i < 1; i++) {
+		GMRFLib_graph_tp *g = NULL;
+		GMRFLib_graph_duplicate(&g, (GMRFLib_graph_tp *) (graphs->ptr[i]));
+		GMRFLib_ptr_add(&(store->graphs), g);
+		store->n[ng2] = g->n;
+		store->nnz[ng2] = g->nnz;
 	}
 
 	int *calls_g = Malloc(ngt, int);
@@ -98,6 +98,9 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	int *rescale = Calloc(ngt, int);
 	rescale[ng2] = 1;
 	sTiles_set_rescale_cores(rescale, ngt); 
+
+	//FIXME("FIX LATER");
+	//sTiles_set_tile_type_mode(0);
 
 	sTiles_create(&(store->obj), ngt, calls_g, cores_g, zeros, inv);
 	store->ng = ng;
@@ -525,6 +528,7 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 
 	GMRFLib_graph_tp *graph = (GMRFLib_graph_tp *) (store->graphs->ptr[lidx.in_group]);
 	int n = graph->n;
+
 	int N = graph->n + graph->nnz / 2;
 	double *x = Malloc(N, double);
 
