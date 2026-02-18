@@ -1910,11 +1910,20 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", inla.secsep("INLA.stiles"), "\n", sep = "", file = file, append = TRUE)
     cat("type = stiles\n", sep = " ", file = file, append = TRUE)
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("tile.size = ", as.integer(max(contr$tile.size, 0)), "\n", sep = " ", file = file, append = TRUE)
-    cat("tile.type = ", as.integer(contr$tile.type), "\n", sep = " ", file = file, append = TRUE)
-    cat("reordering = ", as.integer(contr$reordering), "\n", sep = " ", file = file, append = TRUE)
-    cat("correction.mode = ", as.integer(contr$correction.mode), "\n", sep = " ", file = file, append = TRUE)
-    cat("\n", sep = " ", file = file, append = TRUE)
+    cat("block.size = ", max(1, contr$block.size), "\n", sep = " ", file = file, append = TRUE)
+    min.len <- 32
+    m <- length(contr$param)
+    if (m < min.len) {
+        contr$param <- c(contr$param, rep(-1, min.len - m))
+        m <- min.len
+    }
+    file.param <- inla.tempfile(tmpdir = data.dir)
+    fd <- file(file.param, "wb")
+    writeBin(as.integer(m), fd)
+    writeBin(as.integer(contr$param), fd)
+    close(fd)
+    file.param <- gsub(data.dir, "$inladatadir", file.param, fixed = TRUE)
+    cat("param =", file.param, "\n", file = file, append = TRUE)
 }
 
 `inla.taucs.section` <- function(file, data.dir, contr) {

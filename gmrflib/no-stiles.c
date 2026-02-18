@@ -22,11 +22,11 @@ extern "C" {
 	void sTiles_set_tile_size(int) {
 		// empty
 	}
-	// ... int sTiles_return_tile_size(void) {
-		return 40;
-	}
+	// ... int sTiles_return_tile_size(void) { return 40;
 
-	const char *sTiles_get_version(void) EMPTY_FUNCTION;
+	const char *sTiles_get_version(void) {
+		return (const char *) NULL;
+	}
 	double sTiles_GetGroupMemoryUsage(int) EMPTY_FUNCTION;
 	double sTiles_GetGroupsMemoryUsage(void) EMPTY_FUNCTION;
 	double sTiles_debug_matrix(int, int, void **) EMPTY_FUNCTION;
@@ -43,8 +43,7 @@ extern "C" {
 	int sTiles_chol(int, int, void **) EMPTY_FUNCTION;
 	int sTiles_clear_selinv(int, int, void **) EMPTY_FUNCTION;
 	int sTiles_create(void **, int, const int *, const int *, const int *, const bool *) EMPTY_FUNCTION;
-	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *,
-				 const int *) EMPTY_FUNCTION;
+	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *, const int *) EMPTY_FUNCTION;
 	int sTiles_get_auto_tile_size(int) EMPTY_FUNCTION;
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION;
 	int sTiles_init(void **) EMPTY_FUNCTION;
@@ -64,18 +63,27 @@ extern "C" {
 	void sTiles_quit(void) EMPTY_FUNCTION;
 	void sTiles_set_log_level(int) EMPTY_FUNCTION;
 
-	void sTiles_set_ordering_mode(int UNUSED(reordering)) {
+	void sTiles_set_ordering_mode(int UNUSED(reordering))
+	{
 	}
-	void sTiles_set_correction_mode(int UNUSED(correction_mode)) {
+	void sTiles_set_correction_mode(int UNUSED(correction_mode))
+	{
 	}
-	void sTiles_set_tile_type_mode(int UNUSED(tile_type)) {
+	void sTiles_set_tile_type_mode(int UNUSED(tile_type))
+	{
 	}
-	void sTiles_set_tile_ordering_mode(int UNUSED(reordering)) {
+	void sTiles_set_tile_ordering_mode(int UNUSED(reordering))
+	{
 	}
-	void sTiles_set_tile_ordering_size(int UNUSED(tile_size)) {
+	void sTiles_set_tile_ordering_size(int UNUSED(tile_size))
+	{
 	}
-	void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim)) {
+	void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim))
+	{
 	}
+	void sTiles_turn_off_rescale(int, void *) EMPTY_FUNCTION;
+	void sTiles_turn_on_rescale(int, void *) EMPTY_FUNCTION;
+
 #       ifdef __cplusplus
 }
 #       endif
