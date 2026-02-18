@@ -19698,26 +19698,33 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
-	// this assure backward compatibility
-	int debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	if (debug != 0) {
-		printf("\t\tverbose[%1d]\n", debug);
-	}
-
-	int tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
-	int tile_type = iniparser_getint(ini, inla_string_join(secname, "TILE.TYPE"), -1);
-	int reordering = iniparser_getint(ini, inla_string_join(secname, "REORDERING"), 0);
-	int correction_mode = iniparser_getint(ini, inla_string_join(secname, "CORRECTION.MODE"), -1);
-
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 32);
 	if (mb->verbose) {
-		printf("\t\tdefault tile.size... [%1d]\n", GMRFLib_stiles_get_tile_size());
-		printf("\t\tuser tile.size...... [%1d]\n", tile_size);
-		printf("\t\ttile.type........... [%1d]\n", tile_type);
-		printf("\t\treordering.......... [%1d]\n", reordering);
-		printf("\t\tcorrection.mode..... [%1d]\n", correction_mode);
+		printf("\t\tblock.size[%1d]\n", block_size);
 	}
 
-	GMRFLib_stiles_set_ctl(verbose, tile_size, tile_type, reordering, correction_mode);
+	int len = 0, *param = NULL, ret = 0;
+	char *filename = iniparser_getstring(ini, inla_string_join(secname, "PARAM"), NULL);
+	if (filename) {
+		GMRFLib_io_tp *io = NULL;
+		ret = GMRFLib_io_open(&io, filename, "rb");
+		assert(ret == GMRFLib_SUCCESS);
+		GMRFLib_io_read(io, &len, sizeof(int));
+		assert(len > 0);
+		param = Malloc(len, int);
+		GMRFLib_ifill(len, -1, param);
+		if (len > 0) {
+			ret = GMRFLib_io_read(io, param, len * sizeof(int));
+			assert(ret == GMRFLib_SUCCESS);
+		} 
+		GMRFLib_io_close(io);
+	} else {
+		len = 32;
+		param = Malloc(len, int);
+		GMRFLib_ifill(len, -1, param);
+	}
+	GMRFLib_stiles_set_ctl(verbose, block_size, len, param);
+	GMRFLib_stiles_print_ctl_param(stdout, "\t\t");
 	return INLA_OK;
 }
 

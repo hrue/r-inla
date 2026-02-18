@@ -458,22 +458,15 @@ control.gcpo <-
              #' @param verbose Show detailed output (default FALSE)
              verbose = FALSE,
 
-             #' @param tile.size The size of the tile (0 will chose sTiles-default)
-             #' ADD DETAILS LATER
-             tile.size = 0, 
-             
-             #' @param tile.type Which tile-type to use (-1 will chose sTiles-default)
-             #' ADD DETAILS LATER
-             tile.type = -1,
-             
-             #' @param reordering The set of reorderings to use (0 will chose sTiles-default)
-             #' ADD DETAILS LATER
-             reordering = 0,
-             
-             #' @param correction.mode Correction mode for symbolic factorisation (-1
-             #' will chose sTiles-default)
-             #' ADD DETAILS LATER
-             correction.mode = -1
+             #' @param block.size Preferred number of rhs's in each parallel solve. Used to
+             #' split many rhs's into threads (on the outer level)
+             block.size = 64, 
+
+             #' @param block.
+             #' @param param An integer vector of parameters (variable length).
+             #' Default values are given by '-1'.
+             #' See sTiles documentation for explaination of these parameters
+             param = rep(-1, 20) 
              ) {
         ctrl_object(as.list(environment()), "stiles", check = FALSE)
     }
@@ -488,6 +481,7 @@ control.gcpo <-
              #' @param block.size Minimum number of rhs's in each parallel solve. Used to split
              #' rhs into threads (on the inner level)
              min.block.size = 4, 
+
              #' @param block.size Preferred number of rhs's in each parallel solve. Used to
              #' split many rhs's into threads (on the outer level)
              block.size = 64

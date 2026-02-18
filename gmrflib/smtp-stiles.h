@@ -24,10 +24,9 @@ __BEGIN_DECLS
 // ...
     typedef struct {
 	int verbose;
-	int tile_size;
-	int tile_type;
-	int reordering;
-	int correction_mode;
+	int block_size;
+	int param_len;
+	int *param;
 } GMRFLib_stiles_ctl_tp;
 
 #       if 0
@@ -42,12 +41,15 @@ typedef struct {
 typedef struct {
 	int ng;
 	int ng2;
+	int ngt;
 	int n_in_group;
 	int *n_within_group;
 	int *n_cores_group;
 	int nt_outer;
 	int nt_inner;
 	int nt_special;
+	int nt_max_threads;
+	int rescale_on;
 	int **perm;
 	int **iperm;
 	int *n;
@@ -70,16 +72,18 @@ typedef struct {
 
 GMRFLib_stiles_ctl_tp * GMRFLib_stiles_get_ctl(void);
 GMRFLib_stiles_setup_tp *GMRFLib_stiles_get_setup(void *mb);
-double GMRFLib_stiles_Qinv_get(int i, int j, GMRFLib_stiles_idx_tp * stiles_idx);
 double GMRFLib_stiles_logdet(GMRFLib_stiles_idx_tp * stiles_idx);
 int *GMRFLib_stiles_get_iperm(GMRFLib_stiles_idx_tp * stiles_idx);
 int *GMRFLib_stiles_get_perm(GMRFLib_stiles_idx_tp * stiles_idx);
 int GMRFLib_stiles_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp * stiles_idx, int thread_id, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp * stiles_idx);
+int GMRFLib_stiles_get_block_size(void);
 int GMRFLib_stiles_get_tile_size(void);
 int GMRFLib_stiles_get_verbose();
-int GMRFLib_stiles_set_ctl(int verbose, int tile_size, int tile_type, int reordering, int correction_mode);
+int GMRFLib_stiles_is_rescale(void);
+int GMRFLib_stiles_rescale_group(void);
+int GMRFLib_stiles_set_ctl(int verbose, int block_size, int len, int *param);
 int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp * stiles_idx, int nrhs);
 int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp * setup);
 int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp * stiles_idx, double *rhs);
@@ -90,11 +94,16 @@ void GMRFLib_stiles_Qinv(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp * setup);
 void GMRFLib_stiles_print(FILE * fp);
+void GMRFLib_stiles_print_ctl_param(FILE *fp, char *suf);
 void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp * stiles_idx, FILE * fp);
 void GMRFLib_stiles_quit(void);
+void GMRFLib_stiles_rescale_end(void);
+void GMRFLib_stiles_rescale_start(void);
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
+
+
 
 // this function is not defined in 'stiles.h'
 int get_auto_tile_size(void);

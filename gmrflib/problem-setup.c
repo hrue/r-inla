@@ -653,6 +653,17 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph, *problem);
 	if (ret != GMRFLib_SUCCESS) {
+#if 0
+#pragma omp critical (Name_f00e7fa853c3143c7e085df069302f8c195844d1) 
+		{
+			FILE *fp = fopen("Q-trouble.txt", "w");
+			GMRFLib_printf_Qfunc(thread_id, fp, (*problem)->sub_graph,  (*problem)->tab->Qfunc,
+					     (char *) ((*problem)->tab->Qfunc_arg));
+			fclose(fp);
+			FIXME("WRITE failed Q to file and exit");
+		}
+		exit(0);
+#endif
 		return ret;
 	}
 

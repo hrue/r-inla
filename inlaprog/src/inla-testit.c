@@ -6232,6 +6232,32 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 195:
+	{
+		int N = atoi(args[0]);
+		P(N);
+		double tref = -GMRFLib_timer();
+		int k = 0;
+		for(int i = 0; i < N; i++) {
+			volatile int tnum = i + omp_get_thread_num();
+			k += tnum;
+		}
+		tref += GMRFLib_timer();
+		
+		double treff = -GMRFLib_timer();
+		double dk = 0;
+		for(int i = 0; i < N; i++) {
+			dk += sin(i);
+		}
+		treff += GMRFLib_timer();
+		printf("Time get_thread_num %g\n", tref / N);
+		printf("Time sum sine       %g\n", treff / N);
+		printf("Ratio               %g\n", tref/treff);
+		P(k/N);
+		P(dk/N);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
