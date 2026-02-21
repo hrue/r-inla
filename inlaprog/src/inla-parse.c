@@ -322,8 +322,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_sys_cache(&L123);
 		printf("\t\tL1 Data  Cache: %zu bytes\n", L123.l1_data);
 		printf("\t\tL1 Instr Cache: %zu bytes\n", L123.l1_inst);
-		printf("\t\tL2       Cache: %zu bytes\n", L123.l2);
-		printf("\t\tL3       Cache: %zu bytes\n", L123.l3);
+		printf("\t\tL2       Cache: %zu Mbytes\n", L123.l2/ISQR(1024));
+		printf("\t\tL3       Cache: %zu Mbytes\n", L123.l3/ISQR(1024));
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
