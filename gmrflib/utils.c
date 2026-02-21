@@ -2457,3 +2457,26 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 		Memcpy(l123, &L123, sizeof(GMRFLib_sys_cache_tp));
 	}
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_zero_small(int n, double eps, double *x)
+{
+	// i=0..n-1; if (ABS(x[i]) < eps) x[i]=0
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#       include "intrinsics/simde/zero-small-avx512f.h"
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#       include "intrinsics/simde/zero-small-avx2.h"
+#elif defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/zero-small-sse2.h"
+#else
+	for(int i = 0; i < n; i++) {
+		if (ABS(x[i]) < eps) {
+			x[i] = 0.0;
+		}
+	}
+#endif
+}
+#pragma GCC diagnostic pop
