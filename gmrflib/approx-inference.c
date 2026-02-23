@@ -5186,46 +5186,28 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				if (delta_is_NAN) {
-					fprintf(stderr,
-						"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
-						thread_id, omp_get_thread_num(), delta_is_NAN - 1);
-				}
-				if (diverge) {
-					fprintf(stderr,
-						"\n\n\t***[%1d] thread_num[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
-						thread_id, omp_get_thread_num());
-				}
-				if (max_corr_flag) {
-					fprintf(stderr,
-						"\n\n\t***[%1d] thread_num[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
-						thread_id, omp_get_thread_num(), max_correction, ai_par->vb_emergency);
-					fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
-						ai_par->vb_emergency);
-					fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
-				}
-				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-
-				if (fp != stderr) {
+				FILE *fps[] = {stderr, stdout};
+				for(int k = 0; k < sizeof(fps)/sizeof(FILE *); k++) {
+					FILE *fp = fps[k];
 					if (delta_is_NAN) {
-						fprintf(stderr,
+						fprintf(fp,
 							"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
 							thread_id, omp_get_thread_num(), delta_is_NAN - 1);
 					}
 					if (diverge) {
-						fprintf(stderr,
+						fprintf(fp,
 							"\n\n\t***[%1d] thread_num[%1d] warning *** iterative process seems to diverge, 'vb.correction' is aborted\n",
 							thread_id, omp_get_thread_num());
 					}
 					if (max_corr_flag) {
-						fprintf(stderr,
+						fprintf(fp,
 							"\n\n\t***[%1d] thread_num[%1d] warning *** max_correction = %.2f >= %.2f, 'vb.correction' is aborted\n",
 							thread_id, omp_get_thread_num(), max_correction, ai_par->vb_emergency);
-						fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
+						fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
 							ai_par->vb_emergency);
-						fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+						fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 					}
-					fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 				}
 			}
 			emergency = 1;
