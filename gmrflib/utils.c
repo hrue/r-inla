@@ -2464,7 +2464,7 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_zero_small(int n, double eps, double *x)
 {
-	// i=0..n-1; if (ABS(x[i]) < eps) x[i]=0
+	// if (ABS(x[i]) < eps) x[i]=0.0
 #if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 #       include "intrinsics/simde/zero-small-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
@@ -2472,6 +2472,7 @@ void GMRFLib_zero_small(int n, double eps, double *x)
 #elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/zero-small-sse2.h"
 #else
+#pragma omp simd
 	for(int i = 0; i < n; i++) {
 		if (ABS(x[i]) < eps) {
 			x[i] = 0.0;
