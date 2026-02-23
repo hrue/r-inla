@@ -2149,7 +2149,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 						ttheta = Calloc(nhyper, double);
 						Memset(zz, 0, nhyper * sizeof(double));
 
-						if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[thread_id]) {
 								ais[thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -2189,7 +2189,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 						ttheta = Calloc(nhyper, double);
 						Memset(zz, 0, nhyper * sizeof(double));
 
-						if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[thread_id]) {
 								ais[thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -2387,7 +2387,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				dens_count = k;
 				hyper_count = k;
 
-				if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (!ais[thread_id]) {
 						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
@@ -2599,7 +2599,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				 */
 				if (err == GMRFLib_SUCCESS) {
 					tref = GMRFLib_timer();
-					if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+					if (GMRFLib_OPENMP_IN_PARALLEL()) {
 						if (!ais[thread_id]) {
 							ais[thread_id] =
 							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);

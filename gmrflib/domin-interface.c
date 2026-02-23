@@ -234,7 +234,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	int tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	err = Calloc(nx, int);
@@ -467,7 +467,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 
@@ -496,7 +496,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			double *xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL()) {
 				if (thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -569,7 +569,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL()) {
 				if (thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -808,7 +808,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			continue;
 		}
 
-		if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+		if (GMRFLib_OPENMP_IN_PARALLEL()) {
 			if (thread_id == 0) {
 				ais = G.ai_store;
 				i2thread[i] = -1;
@@ -937,7 +937,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					continue;
 				}
 
-				if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (thread_id == 0) {
 						ais = G.ai_store;
 					} else {
