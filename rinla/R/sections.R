@@ -1910,7 +1910,8 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", inla.secsep("INLA.stiles"), "\n", sep = "", file = file, append = TRUE)
     cat("type = stiles\n", sep = " ", file = file, append = TRUE)
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("block.size = ", max(1, contr$block.size), "\n", sep = " ", file = file, append = TRUE)
+    if (contr$block.size == 0) contr$block.size <- -1
+    cat("block.size = ", max(-1, as.integer(contr$block.size)), "\n", sep = " ", file = file, append = TRUE)
     min.len <- 32
     m <- length(contr$param)
     if (m < min.len) {

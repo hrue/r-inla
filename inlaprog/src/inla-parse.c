@@ -19698,7 +19698,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
-	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 32);
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 40);
 	if (mb->verbose) {
 		printf("\t\tblock.size[%1d]\n", block_size);
 	}

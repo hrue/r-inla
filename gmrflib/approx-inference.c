@@ -2016,9 +2016,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
-
-		printf("run experiment %1d with num_thread %1d\n", k, omp_get_thread_num());
-
 		int thread_id = omp_get_thread_num();
 		int POSSIBLY_UNUSED(lcache_idx) = 0;
 		GMRFLib_CACHE_SET_IDX(lcache_idx);
@@ -3530,7 +3527,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		} else {
 			nrhs = IMIN(GMRFLib_taucs_get_block_size(), 1 + selection->n / nt_outer);
 		}
-		P(nrhs);
 		GMRFLib_openmp_implement_strategy_special(nt_outer, nt_inner);
 
 		double ***work = Calloc(nt_outer, double **);
@@ -3554,9 +3550,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_rescale_start();
 		}
 
-		double tref[3] = {0, 0, 0};
-		tref[0] -= GMRFLib_timer();
-		FIXME("start gcpo_build()");
 #pragma omp parallel for num_threads(nt_outer)
 		for (int kk = 0; kk < split->n; kk++) {
 			GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
@@ -3736,9 +3729,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 			}
 		}
-		tref[0] += GMRFLib_timer();
-		P(tref[0]);
-		FIXME("end gcpo_build()");
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_stiles_rescale_end();
 		}
@@ -3945,7 +3935,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	} else {
 		nrhs = IMIN(GMRFLib_taucs_get_block_size(), 1 + node_idx->n / nt_outer);
 	}
-	P(nrhs);
 
 	int Swork_len = nt_inner;
 	double **Swork = NULL;
@@ -4920,23 +4909,49 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	assert(hessian_update > 0);
 	Mt = gsl_matrix_alloc(vb_idx->n, graph->n);
 
-	P(GMRFLib_openmp->max_threads_inner);
-	P(GMRFLib_openmp->max_threads_outer);
-
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_set_idx(&stiles_idx, GMRFLib_stiles_get_block_size());
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
-		double *b = Calloc(vb_idx->n * graph->n, double);	/* need Calloc */
+		double *b = Calloc(vb_idx->n * graph->n, double);	// need Calloc
 		for (int jj = 0; jj < vb_idx->n; jj++) {
 			double *b_ = b + jj * graph->n;
 			int j = vb_idx->idx[jj];
 			b_[j] = 1.0;
 		}
-		FIXME("DO SOMETHING ABOUT THIS ONE");
-		GMRFLib_Qsolves(b, vb_idx->n, ai_store->problem, &stiles_idx);
+
+		if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
+			GMRFLib_Qsolves(b, vb_idx->n, ai_store->problem, NULL);
+		} else {
+			// stiles
+			if (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() && vb_idx->n < 4 * GMRFLib_openmp->max_threads_inner) {
+				assert(omp_get_thread_num() == 0);
+				int nt = GMRFLib_openmp->max_threads_inner;
+				int nh = vb_idx->n;
+				int nhpt = nh / nt;
+				if (nt * nhpt < nh) nhpt++;
+				assert(nt * nhpt >= nh);
+				GMRFLib_stiles_rescale_start();
+#pragma omp parallel for num_threads(nt)
+				for(int k = 0; k < nt; k++) {
+					int offset = k * nhpt;
+					int len = IMIN(nhpt, nh - offset);
+					if (len <= 0) continue;
+					int group = GMRFLib_stiles_rescale_group(); 
+					GMRFLib_stiles_idx_tp sidx = { group, -1, 0};
+					GMRFLib_stiles_set_idx(&sidx, len);
+					GMRFLib_Qsolves(b + offset * graph->n, len, ai_store->problem, &sidx);
+				}
+				GMRFLib_stiles_rescale_end();
+			} else {
+				int nh = vb_idx->n;
+				GMRFLib_stiles_idx_tp sidx = { 0, -1, 0};
+				GMRFLib_stiles_set_idx(&sidx, nh);
+				GMRFLib_Qsolves(b, nh, ai_store->problem, &sidx);
+			}
+		}
 
 		double *cov = b;
 #pragma omp parallel for num_threads(2)
@@ -4944,9 +4959,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			double *cov_ = cov + jj * graph->n;
 			double *ptr = gsl_matrix_ptr(Mt, jj, 0);
 			Memcpy(ptr, cov_, graph->n * sizeof(double));
-			/*
-			 * for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov_[i]); 
-			 */
+			// for (int i = 0; i < graph->n; i++) gsl_matrix_set(M, i, jj, cov_[i]); 
 		}
 		Free(b);
 	} else {

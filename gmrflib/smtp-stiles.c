@@ -191,7 +191,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	Free(inv);
 	store->wtime = GMRFLib_timer() - tref;
 
-	if (ctl->verbose) {
+	if (ctl && ctl->verbose) {
 		GMRFLib_stiles_print(stdout);
 	}
 
@@ -780,7 +780,7 @@ int GMRFLib_stiles_get_tile_size(void)
 int GMRFLib_stiles_get_block_size(void)
 {
 	return (ctl && ctl->block_size > 0 ? ctl->block_size :
-		(GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 64));
+		(GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 40));
 }
 
 void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *UNUSED(suf)) 
