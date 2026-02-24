@@ -97,7 +97,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 
 	int *rescale = Calloc(ngt, int);
 	rescale[ng2] = 1;
-	sTiles_set_rescale_cores(rescale, ngt); 
+	sTiles_set_rescale_cores(rescale, ngt);
 
 	sTiles_create(&(store->obj), ngt, calls_g, cores_g, zeros, inv);
 	store->ng = ng;
@@ -199,7 +199,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	return GMRFLib_SUCCESS;
 }
 
-void GMRFLib_stiles_rescale_start(void) 
+void GMRFLib_stiles_rescale_start(void)
 {
 	if (store) {
 		sTiles_turn_on_rescale(0, &(store->obj));
@@ -207,7 +207,7 @@ void GMRFLib_stiles_rescale_start(void)
 	}
 }
 
-void GMRFLib_stiles_rescale_end(void) 
+void GMRFLib_stiles_rescale_end(void)
 {
 	if (store) {
 		sTiles_turn_off_rescale(0, &(store->obj));
@@ -215,12 +215,12 @@ void GMRFLib_stiles_rescale_end(void)
 	}
 }
 
-int GMRFLib_stiles_is_rescale(void) 
+int GMRFLib_stiles_is_rescale(void)
 {
 	return (store && store->rescale_on ? 1 : 0);
 }
 
-int GMRFLib_stiles_rescale_group(void) 
+int GMRFLib_stiles_rescale_group(void)
 {
 	if (store) {
 		assert(GMRFLib_stiles_is_rescale());
@@ -233,7 +233,7 @@ int GMRFLib_stiles_rescale_group(void)
 void GMRFLib_stiles_quit(void)
 {
 	// not sure if all is free'ed here...
-	
+
 	if (!store) {
 		return;
 	}
@@ -295,7 +295,7 @@ void GMRFLib_stiles_quit(void)
 	Free(store);
 }
 
-void GMRFLib_stiles_print_idx_(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp, const char * filenm, int line)
+void GMRFLib_stiles_print_idx_(GMRFLib_stiles_idx_tp *stiles_idx, FILE *fp, const char *filenm, int line)
 {
 	fprintf(fp, "%s:%1d stiles_idx: in_group=%1d within_group=%1d nrhs=%1d\n",
 		filenm, line, stiles_idx->in_group, stiles_idx->within_group, stiles_idx->nrhs);
@@ -306,7 +306,7 @@ int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 	if (!store) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		if (GMRFLib_OPENMP_IN_SERIAL()) {
 			if (stiles_idx->in_group < store->ng) {
@@ -343,7 +343,8 @@ void GMRFLib_stiles_print(FILE *fp)
 		// GMRFLib_stiles_print_ctl_param(fp, "\t\t");
 		for (int i = 0; i < store->n_in_group; i++) {
 			fprintf(fp, "\tgroup[%1d]: n[%1d] nnz[%1d] n_within_group[%1d] n_cores_group[%1d] rescaled_group[%s]\n",
-				i, store->n[i], store->nnz[i], store->n_within_group[i], store->n_cores_group[i], (i == RESCALE_GROUP() ? "yes" : "no"));
+				i, store->n[i], store->nnz[i], store->n_within_group[i], store->n_cores_group[i],
+				(i == RESCALE_GROUP()? "yes" : "no"));
 
 			fprintf(fp, "\t\tnrhs = [ ");
 			for (int j = 0; j < store->nrhss; j++) {
@@ -424,10 +425,10 @@ int GMRFLib_stiles_set_ctl(int verbose, int block_size, int len, int *param)
 	}
 
 	sTiles_expert_user();
-	for(int i = 0; i < ctl->param_len; i++) {
+	for (int i = 0; i < ctl->param_len; i++) {
 		sTiles_set_control_param(i, ctl->param[i]);
 	}
-	for(int i = 0; i < ctl->param_len; i++) {
+	for (int i = 0; i < ctl->param_len; i++) {
 		ctl->param[i] = sTiles_get_control_param(i);
 	}
 
@@ -469,7 +470,7 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 		fflush(stderr);
 		store->chol_done[lidx.in_group][lidx.within_group] = false;
 	} else {
-		//printf("set chol_done TRUE %1d %1d\n", lidx.in_group, lidx.within_group);
+		// printf("set chol_done TRUE %1d %1d\n", lidx.in_group, lidx.within_group);
 		store->chol_done[lidx.in_group][lidx.within_group] = true;
 	}
 
@@ -554,8 +555,8 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 	store->Qinv_done[lidx.in_group][lidx.within_group] = false;
 	store->chol_done[lidx.in_group][lidx.within_group] = false;
 
-	//printf("set chol_done FALSE %1d %1d\n", lidx.in_group, lidx.within_group);
-	
+	// printf("set chol_done FALSE %1d %1d\n", lidx.in_group, lidx.within_group);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -575,19 +576,19 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	lidx.within_group = (stiles_idx->within_group < 0 ? omp_get_thread_num() : stiles_idx->within_group);
 	GMRFLib_stiles_idx_tp llidx = lidx;
 	if (GMRFLib_stiles_is_rescale() && (lidx.in_group == RESCALE_GROUP())) {
-		//printf("is_rescale is TRUE,  set lldix to (0, 0)\n");
-		llidx.in_group =  0;
+		// printf("is_rescale is TRUE, set lldix to (0, 0)\n");
+		llidx.in_group = 0;
 		llidx.within_group = 0;
 	}
 
 	CHOL_DONE_CHECK(LLT);
-	
+
 #if 0
 	double tref = 0;
 	double trefc = 0;
 	tref += -GMRFLib_timer();
 #endif
-	
+
 	GMRFLib_stiles_bind(&lidx);
 	if (GMRFLib_stiles_is_rescale()) {
 		sTiles_solve_LLT_rescale(llidx.in_group, llidx.within_group, &(store->obj), rhs, llidx.nrhs, lidx.in_group, lidx.within_group);
@@ -612,12 +613,12 @@ int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 
 	GMRFLib_stiles_idx_tp llidx = lidx;
 	if (GMRFLib_stiles_is_rescale() && (lidx.in_group == RESCALE_GROUP())) {
-		llidx.in_group =  0;
-		llidx.within_group =  0;
+		llidx.in_group = 0;
+		llidx.within_group = 0;
 	}
-	
+
 	CHOL_DONE_CHECK(L);
-	
+
 	GMRFLib_stiles_bind(&lidx);
 	sTiles_solve_L(llidx.in_group, llidx.within_group, &(store->obj), rhs, llidx.nrhs);
 	GMRFLib_stiles_unbind(&lidx);
@@ -631,10 +632,10 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	lidx.within_group = (stiles_idx->within_group < 0 ? omp_get_thread_num() : stiles_idx->within_group);
 	GMRFLib_stiles_idx_tp llidx = lidx;
 	if (GMRFLib_stiles_is_rescale() && (lidx.in_group == RESCALE_GROUP())) {
-		llidx.in_group =  0;
-		llidx.within_group =  0;
+		llidx.in_group = 0;
+		llidx.within_group = 0;
 	}
-	
+
 	CHOL_DONE_CHECK(LT);
 
 	GMRFLib_stiles_bind(&lidx);
@@ -715,7 +716,7 @@ void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 	if (!store)
 		return;
-	
+
 	GMRFLib_ENTER_FUNCTION;
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 	if (*p == false) {
@@ -767,7 +768,7 @@ int GMRFLib_stiles_get_verbose()
 	return (ctl ? ctl->verbose : 0);
 }
 
-GMRFLib_stiles_ctl_tp * GMRFLib_stiles_get_ctl(void) 
+GMRFLib_stiles_ctl_tp *GMRFLib_stiles_get_ctl(void)
 {
 	return ctl;
 }
@@ -779,12 +780,10 @@ int GMRFLib_stiles_get_tile_size(void)
 
 int GMRFLib_stiles_get_block_size(void)
 {
-	return (ctl && ctl->block_size > 0 ? ctl->block_size :
-		(GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 40));
+	return (ctl && ctl->block_size > 0 ? ctl->block_size : (GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 40));
 }
 
-void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *UNUSED(suf)) 
+void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *UNUSED(suf))
 {
 	sTiles_print_params();
 }
-

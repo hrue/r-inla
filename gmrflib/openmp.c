@@ -46,7 +46,7 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner)
 	GMRFLib_openmp->max_threads_inner = IMAX(1, inner);
 	omp_set_nested((inner > 1));
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
-	
+
 	return GMRFLib_SUCCESS;
 }
 

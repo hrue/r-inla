@@ -22,9 +22,7 @@ extern "C" {
 	void sTiles_set_tile_size(int) {
 		// empty
 	}
-	// ... int sTiles_return_tile_size(void) { return 40;
-
-	const char *sTiles_get_version(void) {
+	// ... int sTiles_return_tile_size(void) { return 40; const char *sTiles_get_version(void) {
 		return (const char *) NULL;
 	}
 	double sTiles_GetGroupMemoryUsage(int) EMPTY_FUNCTION;
@@ -43,14 +41,15 @@ extern "C" {
 	int sTiles_chol(int, int, void **) EMPTY_FUNCTION;
 	int sTiles_clear_selinv(int, int, void **) EMPTY_FUNCTION;
 	int sTiles_create(void **, int, const int *, const int *, const int *, const bool *) EMPTY_FUNCTION;
-	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *, const int *) EMPTY_FUNCTION;
+	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *,
+				 const int *) EMPTY_FUNCTION;
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION;
 	int sTiles_init(void **) EMPTY_FUNCTION;
 	int sTiles_init_group(int, void **) EMPTY_FUNCTION;
 	int sTiles_selinv(int, int, void **) EMPTY_FUNCTION;
 	int sTiles_solve_L(int, int, void **, double *, int) EMPTY_FUNCTION;
 	int sTiles_solve_LLT(int, int, void **, double *, int) EMPTY_FUNCTION;
-	int sTiles_solve_LLT_rescale(int, int, void**, double*, int, int, int) EMPTY_FUNCTION;
+	int sTiles_solve_LLT_rescale(int, int, void **, double *, int, int, int) EMPTY_FUNCTION;
 	int sTiles_solve_LT(int, int, void **, double *, int) EMPTY_FUNCTION;
 	int sTiles_unbind(int, int, void **) EMPTY_FUNCTION;
 	void sTiles_freeGroup(int) EMPTY_FUNCTION;
@@ -63,42 +62,32 @@ extern "C" {
 	void sTiles_set_log_level(int) EMPTY_FUNCTION;
 	void sTiles_set_rescale_cores(const int *, int) EMPTY_FUNCTION;
 
-	int sTiles_get_control_param(int) 
-	{
+	int sTiles_get_control_param(int) {
 		return -1;
 	}
-	void sTiles_set_control_param(int, int) 
-	{
+	void sTiles_set_control_param(int, int) {
 	}
-	void sTiles_set_ordering_mode(int UNUSED(reordering))
-	{
+	void sTiles_set_ordering_mode(int UNUSED(reordering)) {
 	}
-	void sTiles_set_correction_mode(int UNUSED(correction_mode))
-	{
+	void sTiles_set_correction_mode(int UNUSED(correction_mode)) {
 	}
-	void sTiles_set_tile_type_mode(int UNUSED(tile_type))
-	{
+	void sTiles_set_tile_type_mode(int UNUSED(tile_type)) {
 	}
-	void sTiles_set_tile_ordering_mode(int UNUSED(reordering))
-	{
+	void sTiles_set_tile_ordering_mode(int UNUSED(reordering)) {
 	}
-	void sTiles_set_tile_ordering_size(int UNUSED(tile_size))
-	{
+	void sTiles_set_tile_ordering_size(int UNUSED(tile_size)) {
 	}
-	void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim))
-	{
+	void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim)) {
 	}
-	void sTiles_expert_user(void)  
-	{
+	void sTiles_expert_user(void) {
 	}
 	void sTiles_turn_off_rescale(int, void *) EMPTY_FUNCTION;
 	void sTiles_turn_on_rescale(int, void *) EMPTY_FUNCTION;
 
-	int sTiles_get_auto_tile_size(int) 
-	{
+	int sTiles_get_auto_tile_size(int) {
 		return 32;
 	}
-	
+
 #       ifdef __cplusplus
 }
 #       endif

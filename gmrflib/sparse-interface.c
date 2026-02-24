@@ -639,7 +639,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 			problem->stiles_idx->within_group = omp_get_thread_num();
 		}
 		assert(problem->stiles_idx->within_group == omp_get_thread_num());
-		
+
 		ret = GMRFLib_stiles_build(problem->stiles_idx, thread_id, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
 			GMRFLib_LEAVE_FUNCTION;

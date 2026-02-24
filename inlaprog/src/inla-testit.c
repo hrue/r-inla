@@ -6220,10 +6220,11 @@ int testit(int argc, char **argv)
 		int N = atoi(args[0]);
 		P(N);
 		int *ix = Malloc(N, int);
-		for(int i = 0; i < N; i++) ix[i] = i;
+		for (int i = 0; i < N; i++)
+			ix[i] = i;
 
 		printf("\nThis test runs forever...interupt when you're done\n\n");
-		while(1){
+		while (1) {
 			int k = (int) (N * GMRFLib_uniform());
 			int *ptr = GMRFLib_bsearch_timing(k, N, ix);
 			assert(*ptr == k);
@@ -6238,23 +6239,23 @@ int testit(int argc, char **argv)
 		P(N);
 		double tref = -GMRFLib_timer();
 		int k = 0;
-		for(int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++) {
 			volatile int tnum = i + omp_get_thread_num();
 			k += tnum;
 		}
 		tref += GMRFLib_timer();
-		
+
 		double treff = -GMRFLib_timer();
 		double dk = 0;
-		for(int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++) {
 			dk += sin(i);
 		}
 		treff += GMRFLib_timer();
 		printf("Time get_thread_num %g\n", tref / N);
 		printf("Time sum sine       %g\n", treff / N);
-		printf("Ratio               %g\n", tref/treff);
-		P(k/N);
-		P(dk/N);
+		printf("Ratio               %g\n", tref / treff);
+		P(k / N);
+		P(dk / N);
 	}
 		break;
 
@@ -6262,89 +6263,90 @@ int testit(int argc, char **argv)
 	{
 		omp_set_nested(1);
 		printf("\nSerial loop\n");
-		for(int i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; i++) {
 			if (i == 0)
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 		}
-		
+
 		printf("\nParallel loop\n");
-#pragma omp parallel for num_threads(2)
-		for(int i = 0; i < 2; i++) {
-			if (i == 0) 
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
-				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
-				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-		}
-	
-		printf("\nParallel loop turned off\n");
-#pragma omp parallel for num_threads(2) if(0)
-		for(int i = 0; i < 2; i++) {
-			if (i == 0) 
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
-				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
-				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-		}
-	
-		printf("\nDouble parallel loop\n");
-#pragma omp parallel for num_threads(2)
-		for(int i = 0; i < 2; i++) {
+#       pragma omp parallel for num_threads(2)
+		for (int i = 0; i < 2; i++) {
 			if (i == 0)
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-#pragma omp parallel for num_threads(2)
-			for(int ii = 0; ii < 2; ii++) {
+		}
+
+		printf("\nParallel loop turned off\n");
+#       pragma omp parallel for num_threads(2) if(0)
+		for (int i = 0; i < 2; i++) {
+			if (i == 0)
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
+				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
+				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+		}
+
+		printf("\nDouble parallel loop\n");
+#       pragma omp parallel for num_threads(2)
+		for (int i = 0; i < 2; i++) {
+			if (i == 0)
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
+				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
+				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+#       pragma omp parallel for num_threads(2)
+			for (int ii = 0; ii < 2; ii++) {
 				if (i == 0 && ii == 0)
-					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 					       i, ii, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 					       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			}
 		}
 
 		printf("\nDouble parallel loop, outer loop turned off\n");
-#pragma omp parallel for num_threads(2) if(0)
-		for(int i = 0; i < 2; i++) {
+#       pragma omp parallel for num_threads(2) if(0)
+		for (int i = 0; i < 2; i++) {
 			if (i == 0)
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-#pragma omp parallel for num_threads(2)
-			for(int ii = 0; ii < 2; ii++) {
-				if (i == 0 && ii == 0) printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
-							      i, ii, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
-							      GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+#       pragma omp parallel for num_threads(2)
+			for (int ii = 0; ii < 2; ii++) {
+				if (i == 0 && ii == 0)
+					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
+					       i, ii, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
+					       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			}
 		}
 
 		printf("\nDouble parallel loop, inner loop turned off\n");
-#pragma omp parallel for num_threads(2)
-		for(int i = 0; i < 2; i++) {
+#       pragma omp parallel for num_threads(2)
+		for (int i = 0; i < 2; i++) {
 			if (i == 0)
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-#pragma omp parallel for num_threads(2) if (0)
-			for(int ii = 0; ii < 2; ii++) {
+#       pragma omp parallel for num_threads(2) if (0)
+			for (int ii = 0; ii < 2; ii++) {
 				if (i == 0 && ii == 0)
-					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 					       i, ii, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 					       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			}
 		}
 
 		printf("\nDouble parallel loop, outer and inner loop turned off\n");
-#pragma omp parallel for num_threads(2) if(0)
-		for(int i = 0; i < 2; i++) {
+#       pragma omp parallel for num_threads(2) if(0)
+		for (int i = 0; i < 2; i++) {
 			if (i == 0)
-				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+				printf("i[%1d]       in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 				       i, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 				       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
-#pragma omp parallel for num_threads(2) if (0)
-			for(int ii = 0; ii < 2; ii++) {
+#       pragma omp parallel for num_threads(2) if (0)
+			for (int ii = 0; ii < 2; ii++) {
 				if (i == 0 && ii == 0)
-					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n", 
+					printf("i[%1d] ii[%1d] in_outer[%1d] in_inner[%1d] in_serial[%1d] in_parallel_one_thread[%1d]\n",
 					       i, ii, GMRFLib_OPENMP_IN_OUTER(), GMRFLib_OPENMP_IN_INNER(), GMRFLib_OPENMP_IN_SERIAL(),
 					       GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			}
@@ -6358,14 +6360,14 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
-		double tref[2] = {0, 0};
+		double tref[2] = { 0, 0 };
 
 		double *x = Malloc(n, double);
 		double *y = Malloc(n, double);
 
-		for(int i = 0; i < m; i++) {
+		for (int i = 0; i < m; i++) {
 			double eps = 0.01;
-			for(int k = 0; k < n; k++) {
+			for (int k = 0; k < n; k++) {
 				x[k] = y[k] = 2.0 * (GMRFLib_uniform() - 0.5);
 			}
 
@@ -6374,14 +6376,14 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd
+#       pragma omp simd
 			for (int k = 0; k < n; k++) {
 				double val = y[k];
 				y[k] = (ABS(val) < eps) ? 0.0 : val;
 			}
 			tref[1] += GMRFLib_timer();
 
-			for(int k = 0; k < n; k++)
+			for (int k = 0; k < n; k++)
 				if (x[k] != y[k]) {
 					P(x[k]);
 					P(y[k]);
@@ -6391,7 +6393,7 @@ int testit(int argc, char **argv)
 		}
 		printf("Time intrinsic  %.6g\n", tref[0]);
 		printf("Time simd loop  %.6g\n", tref[1]);
-		printf("Fraction %.3g %.3g\n", tref[0] / (tref[0] + tref[1]),  tref[1] / (tref[0] + tref[1]));
+		printf("Fraction %.3g %.3g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
 		break;
 

@@ -2208,7 +2208,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 			if (!(GMRFLib_smtp == GMRFLib_SMTP_STILES && design->nexperiments == 1)) {
 				gcpo_theta[dens_count] =
-					GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
+				    GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups, d,
 						 loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments, d_idx);
 			}
 		}
@@ -3389,8 +3389,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (!visited[j]) {
 						err++;
 						printf
-							("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
-							 omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
+						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3421,8 +3421,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (!visited[j]) {
 						err++;
 						printf
-							("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
-							 omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
+						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
+						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3518,8 +3518,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 		int nt_outer, nt_inner;
 		int nrhs = 1;
-		nt_outer = GMRFLib_MAX_THREADS(); 
-		nt_inner = 1; 
+		nt_outer = GMRFLib_MAX_THREADS();
+		nt_inner = 1;
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_sys_cache_tp L123;
 			GMRFLib_sys_cache(&L123);
@@ -3537,7 +3537,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				work[i][j] = Calloc(dn, double);
 			}
 		}
-		assert(sizeof(size_t) <= sizeof(double));	/* for work[2] */
+		assert(sizeof(size_t) <= sizeof(double));      /* for work[2] */
 
 		double **Swork = NULL;
 		Swork = Calloc(nt_outer, double *);
@@ -3590,7 +3590,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				double *cor_abs = lwork[1];
 				double eps = 1.0E-3 * min_sd / isd[node];
 				size_t *largest = (size_t *) lwork[2];
-				
+
 				GMRFLib_zero_small(n, eps, Sa);
 				GMRFLib_dfill(dn, 0.0, cor);
 				GMRFLib_dfill(dn, 0.0, cor_abs);
@@ -3644,16 +3644,14 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									sumw += W(i_new);
 									i_prev = i_new;
 									cor_abs_prev = cor_abs_new;
-									GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new,
-											 cor_abs_new);
+									GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new);
 									GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
 								}
 							} else {
 								cor_abs[i_new_l] = cor_abs_prev;
 								cor[i_new_l] = DSIGN(cor[i_new_l]) * cor_abs_prev;
 								GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
-								GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new,
-										 cor_abs_prev);
+								GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev);
 								/*
 								 * use the maximum weight when they are equal 
 								 */
@@ -3924,11 +3922,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int nt_max = GMRFLib_MAX_THREADS();
 
 	if (serial) {
-		nt_outer = 1; 
-		nt_inner = nt_max; 
+		nt_outer = 1;
+		nt_inner = nt_max;
 		GMRFLib_openmp_implement_strategy_special(nt_inner, nt_outer);
-	} 
-	
+	}
+
 	int nrhs = 1;
 	if (use_stiles) {
 		nrhs = IMIN(GMRFLib_stiles_get_block_size(), 1 + node_idx->n / nt_outer);
@@ -3950,8 +3948,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	if (serial && use_stiles) {
 		GMRFLib_stiles_rescale_start();
 		use_group = GMRFLib_stiles_rescale_group();
-	} 
-		
+	}
+
 #pragma omp parallel for num_threads(nt_inner) if(!use_stiles || (use_stiles && serial))
 	for (int kk = 0; kk < split->n; kk++) {
 		int tnum = omp_get_thread_num();
@@ -3965,25 +3963,21 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_unpack(v->n, v->val, Saa + inode * nn, v->idx);
 		}
 
-		GMRFLib_stiles_idx_tp stiles_idx = {use_group, (serial ? tnum : tnum_parent), lnode_idx->n};
+		GMRFLib_stiles_idx_tp stiles_idx = { use_group, (serial ? tnum : tnum_parent), lnode_idx->n };
 		GMRFLib_Qsolves(Saa, lnode_idx->n, ai_store_id->problem, &stiles_idx);
 
 		for (int inode = 0; inode < lnode_idx->n; inode++) {
 			int node = lnode_idx->idx[inode];
 			if (gcpo_param->verbose || detailed_output) {
 				if (skip[node]) {
-					printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName,
-					       omp_get_thread_num(), node);
+					printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
 				} else {
-					printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(),
-					       node);
+					printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node);
 				}
 			}
 			gcpo[node]->node_min = gcpo[node]->idxs->idx[0];
 			gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)];
-			gcpo[node]->idx_node =
-				GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx),
-						      (unsigned int) gcpo[node]->idxs->n);
+			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), (unsigned int) gcpo[node]->idxs->n);
 
 			if (gcpo[node]->idxs->n > 0) {
 				if (gcpo[node]->idx_node < 0) {
@@ -4931,23 +4925,25 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				int nt = GMRFLib_openmp->max_threads_inner;
 				int nh = vb_idx->n;
 				int nhpt = nh / nt;
-				if (nt * nhpt < nh) nhpt++;
+				if (nt * nhpt < nh)
+					nhpt++;
 				assert(nt * nhpt >= nh);
 				GMRFLib_stiles_rescale_start();
 #pragma omp parallel for num_threads(nt)
-				for(int k = 0; k < nt; k++) {
+				for (int k = 0; k < nt; k++) {
 					int offset = k * nhpt;
 					int len = IMIN(nhpt, nh - offset);
-					if (len <= 0) continue;
-					int group = GMRFLib_stiles_rescale_group(); 
-					GMRFLib_stiles_idx_tp sidx = { group, -1, 0};
+					if (len <= 0)
+						continue;
+					int group = GMRFLib_stiles_rescale_group();
+					GMRFLib_stiles_idx_tp sidx = { group, -1, 0 };
 					GMRFLib_stiles_set_idx(&sidx, len);
 					GMRFLib_Qsolves(b + offset * graph->n, len, ai_store->problem, &sidx);
 				}
 				GMRFLib_stiles_rescale_end();
 			} else {
 				int nh = vb_idx->n;
-				GMRFLib_stiles_idx_tp sidx = { 0, -1, 0};
+				GMRFLib_stiles_idx_tp sidx = { 0, -1, 0 };
 				GMRFLib_stiles_set_idx(&sidx, nh);
 				GMRFLib_Qsolves(b, nh, ai_store->problem, &sidx);
 			}
@@ -5222,8 +5218,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				FILE *fps[] = {stderr, stdout};
-				for(int k = 0; k < (int) (sizeof(fps)/sizeof(FILE *)); k++) {
+				FILE *fps[] = { stderr, stdout };
+				for (int k = 0; k < (int) (sizeof(fps) / sizeof(FILE *)); k++) {
 					FILE *fpp = fps[k];
 					if (delta_is_NAN) {
 						fprintf(fpp,

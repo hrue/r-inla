@@ -1022,8 +1022,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 }
 
 // not yet tested
-int export_sparse_matrix(const double *values, const int *colptr, const int *rowind,
-                         int nrows, int ncols, int nnz, const char *filename)
+int export_sparse_matrix(const double *values, const int *colptr, const int *rowind, int nrows, int ncols, int nnz, const char *filename)
 {
 	if (values == NULL || colptr == NULL || rowind == NULL || filename == NULL) {
 		fprintf(stderr, "Error: NULL pointer provided\n");
@@ -1073,15 +1072,15 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 
 	// not tested yet
 #if 0
-	char * filename = NULL;
+	char *filename = NULL;
 	static int count = 0;
 	GMRFLib_sprintf(&filename, "Q-%1d.txt", count++);
 	FILE *fp = fopen(filename, "w");
 	export_sparse_matrix((*L)->values, (*L)->colptr, (*L)->rowind, (*L)->n, (*L)->n, (*L)->colptr[(*L)->n], filename);
 	printf("SAVE %s\n", filename);
 	Free(filename);
-#endif	
-		
+#endif
+
 	/*
 	 * compute some info about the factorization 
 	 */
@@ -1235,9 +1234,9 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 {
 #if 0
 	static double tref = 0;
-#pragma omp threadprivate(tref)
+#       pragma omp threadprivate(tref)
 	static double trefc = 0;
-#pragma omp threadprivate(trefc)
+#       pragma omp threadprivate(trefc)
 	if (nrhs > 1) {
 		tref += -GMRFLib_timer();
 	}
