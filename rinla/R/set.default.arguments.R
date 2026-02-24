@@ -458,9 +458,11 @@ control.gcpo <-
              #' @param verbose Show detailed output (default FALSE)
              verbose = FALSE,
 
-             #' @param block.size Preferred number of rhs's in each parallel solve. Used to
-             #' split many rhs's into threads (on the outer level)
-             block.size = 64, 
+             #' @param block.size (integer) Preferred number of rhs's in each parallel solve. Used to
+             #' split many rhs's into threads. Default value (-1) is to use the 'tile.size'
+             #' from sTiles, which is a reasonable tradeoff between speed and memory use.
+             #' A higher value will increase memory usage.
+             block.size = -1, 
 
              #' @param block.
              #' @param param An integer vector of parameters (variable length).
