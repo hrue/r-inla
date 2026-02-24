@@ -1233,6 +1233,17 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
+#if 0
+	static double tref = 0;
+#pragma omp threadprivate(tref)
+	static double trefc = 0;
+#pragma omp threadprivate(trefc)
+	if (nrhs > 1) {
+		tref += -GMRFLib_timer();
+	}
+#endif
+
+
 	int n = graph->n;
 	int skip_reordering = 0;
 	GMRFLib_graph_tp g;
@@ -1269,6 +1280,15 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
 		}
 	}
+
+#if 0
+	if (nrhs > 1) {
+		tref += GMRFLib_timer();
+		trefc += nrhs;
+		printf("[%1d] solve %1d rhs using %.6f * E-6 each\n", omp_get_thread_num(), (int) trefc, 1.0E6 * tref / trefc);
+	}
+#endif
+
 
 	return GMRFLib_SUCCESS;
 }

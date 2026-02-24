@@ -502,7 +502,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 			}
 			assert(k >= 0);
 
-			GMRFLib_stiles_idx_tp stiles_idx = { k, -1, 0 };
+			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
 			Memcpy((void *) sm_fact->remap, (void *) GMRFLib_stiles_get_perm(&stiles_idx), graph->n * sizeof(int));
 		}
@@ -635,6 +635,11 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 
 	case GMRFLib_SMTP_STILES:
 	{
+		if (problem->stiles_idx->within_group < 0) {
+			problem->stiles_idx->within_group = omp_get_thread_num();
+		}
+		assert(problem->stiles_idx->within_group == omp_get_thread_num());
+		
 		ret = GMRFLib_stiles_build(problem->stiles_idx, thread_id, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
 			GMRFLib_LEAVE_FUNCTION;
@@ -692,6 +697,9 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 
 	case GMRFLib_SMTP_STILES:
 	{
+		if (problem->stiles_idx->within_group < 0) {
+			problem->stiles_idx->within_group = omp_get_thread_num();
+		}
 		ret = GMRFLib_stiles_chol(problem->stiles_idx);
 		if (ret != GMRFLib_SUCCESS) {
 			GMRFLib_LEAVE_FUNCTION;
@@ -788,7 +796,10 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 
 	case GMRFLib_SMTP_STILES:
 	{
-		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 0 };
+		if (problem->stiles_idx->within_group < 0) {
+			problem->stiles_idx->within_group = omp_get_thread_num();
+		}
+		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, nrhs };
 		int err = GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
 		if (err == GMRFLib_SUCCESS) {
 			GMRFLib_stiles_solve_L(&stiles_idx, rhs);
@@ -847,7 +858,10 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 
 	case GMRFLib_SMTP_STILES:
 	{
-		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 0 };
+		if (problem->stiles_idx->within_group < 0) {
+			problem->stiles_idx->within_group = omp_get_thread_num();
+		}
+		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, nrhs };
 		int err = GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
 		if (err == GMRFLib_SUCCESS) {
 			GMRFLib_stiles_solve_LT(&stiles_idx, rhs);
@@ -891,19 +905,24 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 		}
 	}
 
-	int cache_idx = 0;
-	GMRFLib_CACHE_SET_IDX(cache_idx);
-
 	int nw = graph->n * nrhs;
-	if (nw > wwork_len[cache_idx]) {
-		int numa_node = GMRFLib_numa_get_node();
-		if (wwork[cache_idx] && wwork_len[cache_idx] > 0) {
-			GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
+	double *work = NULL;
+
+	if (sm_fact->smtp == GMRFLib_SMTP_TAUCS || sm_fact->smtp == GMRFLib_SMTP_BAND) {
+		int cache_idx = 0;
+		GMRFLib_CACHE_SET_IDX(cache_idx);
+		if (nw > wwork_len[cache_idx]) {
+			int numa_node = GMRFLib_numa_get_node();
+			if (wwork[cache_idx] && wwork_len[cache_idx] > 0) {
+				GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
+			}
+			wwork_len[cache_idx] = nw;
+			wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
 		}
-		wwork_len[cache_idx] = nw;
-		wwork[cache_idx] = (double *) GMRFLib_numa_alloc_onnode(wwork_len[cache_idx] * sizeof(double), numa_node);
+		work = wwork[cache_idx];
+	} else {
+		work = NULL;
 	}
-	double *work = wwork[cache_idx];
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
@@ -983,8 +1002,8 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			s_idx.within_group = stiles_idx->within_group;
 		} else {
 			s_idx.in_group = problem->stiles_idx->in_group;
+			s_idx.within_group = problem->stiles_idx->within_group;
 		}
-
 		GMRFLib_stiles_set_idx(&s_idx, nrhs);
 		GMRFLib_stiles_solve_LLT(&s_idx, rhs);
 	} else {
@@ -1023,6 +1042,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 
 	case GMRFLib_SMTP_STILES:
 	{
+		assert(0 == 1 && "this case should not be relevant for stiles");
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 1 };
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_solve_LLT(&stiles_idx, rhs);
@@ -1069,7 +1089,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_f
 
 	case GMRFLib_SMTP_STILES:
 	{
-		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 0 };
+		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, 1 };
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_solve_LT(&stiles_idx, rhs);
 	}
@@ -1128,7 +1148,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 			GMRFLib_pack(graph->n, y, perm, rhs);
 			Free(y);
 		}
-		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 0 };
+		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, 1 };
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_solve_L(&stiles_idx, rhs);
 	}
