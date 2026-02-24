@@ -537,7 +537,8 @@ int *GMRFLib_bsearch_3(int key, int n, int *array)
 		mid = top / 2;
 		int *piv = array + mid;
 		if (key >= *piv) {
-			if (key == *piv) return piv;
+			if (key == *piv)
+				return piv;
 			array = piv;
 		}
 		top -= mid;
@@ -567,14 +568,14 @@ int *GMRFLib_bsearch_5(int key, int n, int *array)
 		int mid = left + (right - left) / 2;
 		assert(mid < n);
 		if (array[mid] == key) {
-			return array + mid;  
+			return array + mid;
 		} else if (array[mid] < key) {
-			left = mid + 1; 
+			left = mid + 1;
 		} else {
 			right = mid - 1;
 		}
 	}
-	return NULL; 
+	return NULL;
 }
 
 int *GMRFLib_bsearch_timing(int key, int n, int *array)
@@ -614,9 +615,9 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 		assert(p1 == p2 && p1 == p3 && p1 == p4 && p1 == p5);
 		if (++trefc % 100000 == 0) {
 			double tmin = GMRFLib_min_value(tref, 5, NULL);
-			for(int i = 0; i < 5; i++) tref[i] /= tmin;
-			printf("bsearch %g %g %g %g %g\n",
-			       tref[0], tref[1], tref[2], tref[3], tref[4]);
+			for (int i = 0; i < 5; i++)
+				tref[i] /= tmin;
+			printf("bsearch %g %g %g %g %g\n", tref[0], tref[1], tref[2], tref[3], tref[4]);
 		}
 
 		p = p1;

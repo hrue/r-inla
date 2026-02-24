@@ -130,7 +130,7 @@ typedef struct {
 #       define GMRFLib_OPENMP_NUM_THREADS_LEVEL() (GMRFLib_OPENMP_IN_OUTER() ? GMRFLib_openmp->max_threads_outer : \
 					    GMRFLib_openmp->max_threads_inner)
 
-#define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
+#       define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
 	if (GMRFLib_OPENMP_IN_SERIAL()) {				\
 		_Pragma("omp parallel for num_threads(1)")		\
 			for(int k_ = 0; k_ < 1; k_++) {			\
@@ -139,7 +139,7 @@ typedef struct {
 	} else {							\
 		GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR;			\
 	}
-	
+
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);

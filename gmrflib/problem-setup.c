@@ -361,15 +361,15 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 
 #if 0
 	static double tref = 0.0;
-#pragma omp threadprivate(tref)
+#       pragma omp threadprivate(tref)
 	static int trefc = 0;
-#pragma omp threadprivate(trefc)
+#       pragma omp threadprivate(trefc)
 	tref -= GMRFLib_timer();
 #endif
-	
+
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
-	
+
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;
@@ -395,13 +395,12 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 #undef CODE_BLOCK
 		}
 	}
-
 #if 0
 	tref += GMRFLib_timer();
 	trefc += nrhs;
-	printf("[%1d] Qsolves: use %.5fs on %1d nrhs, which %.5f x 1E-6 s/rhs\n", omp_get_thread_num(), tref, trefc, tref/trefc * 1.0E6);
+	printf("[%1d] Qsolves: use %.5fs on %1d nrhs, which %.5f x 1E-6 s/rhs\n", omp_get_thread_num(), tref, trefc, tref / trefc * 1.0E6);
 #endif
-	
+
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
@@ -670,11 +669,10 @@ int GMRFLib_init_problem_store(int thread_id,
 	ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph, *problem);
 	if (ret != GMRFLib_SUCCESS) {
 #if 0
-#pragma omp critical (Name_f00e7fa853c3143c7e085df069302f8c195844d1) 
+#       pragma omp critical (Name_f00e7fa853c3143c7e085df069302f8c195844d1)
 		{
 			FILE *fp = fopen("Q-trouble.txt", "w");
-			GMRFLib_printf_Qfunc(thread_id, fp, (*problem)->sub_graph,  (*problem)->tab->Qfunc,
-					     (char *) ((*problem)->tab->Qfunc_arg));
+			GMRFLib_printf_Qfunc(thread_id, fp, (*problem)->sub_graph, (*problem)->tab->Qfunc, (char *) ((*problem)->tab->Qfunc_arg));
 			fclose(fp);
 			FIXME("WRITE failed Q to file and exit");
 		}
@@ -1711,7 +1709,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
 	DUPLICATE(stiles_idx, 1, GMRFLib_stiles_idx_tp, skeleton);
-	if (np->stiles_idx) np->stiles_idx->within_group = -1;
+	if (np->stiles_idx)
+		np->stiles_idx->within_group = -1;
 
 	DUPLICATE(sample, n, double, skeleton);
 	DUPLICATE(mean, n, double, skeleton);

@@ -322,8 +322,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_sys_cache(&L123);
 		printf("\t\tL1 Data  Cache: %zu bytes\n", L123.l1_data);
 		printf("\t\tL1 Instr Cache: %zu bytes\n", L123.l1_inst);
-		printf("\t\tL2       Cache: %zu Mbytes\n", L123.l2/ISQR(1024));
-		printf("\t\tL3       Cache: %zu Mbytes\n", L123.l3/ISQR(1024));
+		printf("\t\tL2       Cache: %zu Mbytes\n", L123.l2 / ISQR(1024));
+		printf("\t\tL3       Cache: %zu Mbytes\n", L123.l3 / ISQR(1024));
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
@@ -19687,7 +19687,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
 	}
-	
+
 	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
@@ -19716,7 +19716,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		if (len > 0) {
 			ret = GMRFLib_io_read(io, param, len * sizeof(int));
 			assert(ret == GMRFLib_SUCCESS);
-		} 
+		}
 		GMRFLib_io_close(io);
 	} else {
 		len = 32;
