@@ -120,7 +120,7 @@ typedef struct {
 
 #       define GMRFLib_ADAPTIVE_NUM_THREADS() (GMRFLib_openmp->adaptive ? GMRFLib_openmp->adaptive : GMRFLib_openmp->max_threads_nested[1])
 
-// 'omp_get_level()==0'  is eqv to 'omp_in_parallel()==0'
+// 'omp_get_level()==0'  is equivalent to 'omp_in_parallel()==0'
 #       define GMRFLib_OPENMP_IN_INNER()                (omp_get_level() == 2)
 #       define GMRFLib_OPENMP_IN_OUTER()                (omp_get_level() == 1)
 #       define GMRFLib_OPENMP_IN_PARALLEL()             (!GMRFLib_OPENMP_IN_SERIAL())

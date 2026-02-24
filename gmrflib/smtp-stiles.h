@@ -95,7 +95,7 @@ void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_free_setup(GMRFLib_stiles_setup_tp * setup);
 void GMRFLib_stiles_print(FILE * fp);
 void GMRFLib_stiles_print_ctl_param(FILE *fp, char *suf);
-void GMRFLib_stiles_print_idx(GMRFLib_stiles_idx_tp * stiles_idx, FILE * fp);
+void GMRFLib_stiles_print_idx_(GMRFLib_stiles_idx_tp * stiles_idx, FILE * fp, const char *filenam, int lineno);
 void GMRFLib_stiles_quit(void);
 void GMRFLib_stiles_rescale_end(void);
 void GMRFLib_stiles_rescale_start(void);
@@ -103,6 +103,7 @@ void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
 
+#define GMRFLib_stiles_print_idx(a1_, a2_) GMRFLib_stiles_print_idx_(a1_, a2_ , __FILE__, __LINE__)
 
 
 // this function is not defined in 'stiles.h'

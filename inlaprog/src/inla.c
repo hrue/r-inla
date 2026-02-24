@@ -1437,7 +1437,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
 	const int debug = 0;
 
-	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 	GMRFLib_stiles_set_idx(&stiles_idx, 1);
 
 	int theta_free = 0;
