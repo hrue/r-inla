@@ -110,10 +110,25 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	int is_eq = (igroup == jgroup);
 
 	switch (a->type) {
+	case G_AR1:
+	{
+		rho = map_rho_forward(a->group_rho_intern[thread_id][0], MAP_FORWARD, NULL);
+		if (unlikely(is_eq)) {
+			if (unlikely(!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1))) {
+				fac = 1.0 / (1.0 - SQR(rho));
+			} else {
+				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
+			}
+		} else {
+			fac = -rho / (1.0 - SQR(rho));
+		}
+	}
+		break;
+
 	case G_EXCHANGEABLE:
 	{
 		rho = map_group_rho(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		if (is_eq) {
+		if (unlikely(is_eq)) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else {
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
@@ -124,25 +139,10 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	case G_EXCHANGEABLE_POS:
 	{
 		rho = map_probability_forward(a->group_rho_intern[thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
-		if (is_eq) {
+		if (unlikely(is_eq)) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else {
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
-		}
-	}
-		break;
-
-	case G_AR1:
-	{
-		rho = map_rho_forward(a->group_rho_intern[thread_id][0], MAP_FORWARD, NULL);
-		if (is_eq) {
-			if (!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1)) {
-				fac = 1.0 / (1.0 - SQR(rho));
-			} else {
-				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
-			}
-		} else {
-			fac = -rho / (1.0 - SQR(rho));
 		}
 	}
 		break;
@@ -157,7 +157,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	case G_RW2:
 	{
 		prec = map_precision_forward(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
-		if (a->crwdef) {
+		if (likely(a->crwdef)) {
 			fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
 		} else {
 			fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
@@ -174,7 +174,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 	case G_IID:
 	{
-		if (is_eq) {
+		if (likely(is_eq)) {
 			fac = map_precision_forward(a->group_prec_intern[thread_id][0], MAP_FORWARD, NULL);
 		} else {
 			fac = 0.0;
