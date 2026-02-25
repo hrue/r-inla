@@ -1141,7 +1141,6 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	case GMRFLib_SMTP_STILES:
 	{
 		if (remapped) {
-			FIXME1("UNSURE ABOUT THIS THING");
 			int *perm = GMRFLib_stiles_get_perm(problem->stiles_idx);
 			double *y = Malloc(graph->n, double);
 			Memcpy(y, rhs, graph->n * sizeof(double));
