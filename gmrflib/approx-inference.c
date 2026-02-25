@@ -5218,9 +5218,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				FILE *fps[] = { stderr, stdout };
+				FILE *fps[] = { stderr, (fp != stderr ? fp : NULL)};
 				for (int k = 0; k < (int) (sizeof(fps) / sizeof(FILE *)); k++) {
 					FILE *fpp = fps[k];
+					if (!fpp) continue;
 					if (delta_is_NAN) {
 						fprintf(fpp,
 							"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
