@@ -3388,9 +3388,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int j = 0; j < gcpo_param->remove->n; j++) {
 					if (!visited[j]) {
 						err++;
-						printf
-						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
-						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+						printf("\n[%1d] %s:%1d: *** error *** ->remove[%1d]=[%s] is not found, abort!\n\n",
+						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3420,9 +3419,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int j = 0; j < gcpo_param->keep->n; j++) {
 					if (!visited[j]) {
 						err++;
-						printf
-						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
-						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
+						printf("\n[%1d] %s:%1d: *** error *** keep[%1d]=[%s] is not found, abort!\n\n",
+						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -5246,11 +5244,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_corr_flag || delta_is_NAN || diverge) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				FILE *fps[] = { stderr, (fp != stderr ? fp : NULL) };
+				FILE *fps[] = { stderr, (fp != stderr ? fp : NULL)};
 				for (int k = 0; k < (int) (sizeof(fps) / sizeof(FILE *)); k++) {
 					FILE *fpp = fps[k];
-					if (!fpp)
-						continue;
+					if (!fpp) continue;
 					if (delta_is_NAN) {
 						fprintf(fpp,
 							"\n\n\t***[%1d] thread_num[%1d] warning *** delta[%1d] is NAN, 'vb.correction' is aborted\n",
