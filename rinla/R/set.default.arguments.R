@@ -464,7 +464,6 @@ control.gcpo <-
              #' A higher value will increase memory usage.
              block.size = -1, 
 
-             #' @param block.
              #' @param param An integer vector of parameters (variable length).
              #' Default values are given by '-1'.
              #' See sTiles documentation for explaination of these parameters
