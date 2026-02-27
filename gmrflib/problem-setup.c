@@ -373,27 +373,9 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int inc = 1;
-		double alpha = -1.0, beta = 1.0;
-
-		if (1) {
-			// runs better for many rhs's
-			double t_vector[nc * nrhs];
-			GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
-			dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
-		} else {
-			// this is the old code
-#define CODE_BLOCK							\
-			for (int i = 0; i < nrhs; i++) {		\
-				CODE_BLOCK_INIT();			\
-				int offset = i * n;			\
-				double t_vector[nc];			\
-				GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph); \
-				dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE); \
-			}
-
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS() / 2L, 0, 0);
-#undef CODE_BLOCK
-		}
+		double alpha = -1.0, beta = 1.0, t_vector[nc * nrhs];
+		GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
+		dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
 	}
 #if 0
 	tref += GMRFLib_timer();

@@ -110,6 +110,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	store->nt_inner = nt_inner;
 	store->nt_special = nt_special;
 	store->rescale_on = 0;
+	store->rescale_no_unbind = 0;
 	store->nt_max_threads = nt_max_threads;
 	store->Qinv_done = Malloc(ngt, bool *);
 	store->bind_done = Malloc(ngt, bool *);
@@ -199,11 +200,12 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	return GMRFLib_SUCCESS;
 }
 
-void GMRFLib_stiles_rescale_start(void)
+void GMRFLib_stiles_rescale_start(int no_unbind)
 {
 	if (store) {
 		sTiles_turn_on_rescale(0, &(store->obj));
 		store->rescale_on = 1;
+		store->rescale_no_unbind = (no_unbind ? 1 : 0);
 	}
 }
 
@@ -211,7 +213,9 @@ void GMRFLib_stiles_rescale_end(void)
 {
 	if (store) {
 		sTiles_turn_off_rescale(0, &(store->obj));
+		GMRFLib_stiles_unbind_group(GMRFLib_stiles_rescale_group());
 		store->rescale_on = 0;
+		store->rescale_no_unbind = 0;
 	}
 }
 
@@ -595,7 +599,12 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	} else {
 		sTiles_solve_LLT(llidx.in_group, llidx.within_group, &(store->obj), rhs, llidx.nrhs);
 	}
-	GMRFLib_stiles_unbind(&lidx);
+
+	if (GMRFLib_stiles_is_rescale() && store->rescale_no_unbind) {
+		// do nothing, deal with this manually
+	} else {
+		GMRFLib_stiles_unbind(&lidx);
+	}
 
 #if 0
 	tref += GMRFLib_timer();
@@ -621,7 +630,12 @@ int GMRFLib_stiles_solve_L(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 
 	GMRFLib_stiles_bind(&lidx);
 	sTiles_solve_L(llidx.in_group, llidx.within_group, &(store->obj), rhs, llidx.nrhs);
-	GMRFLib_stiles_unbind(&lidx);
+
+	if (GMRFLib_stiles_is_rescale() && store->rescale_no_unbind) {
+		// do nothing, deal with this manually
+	} else {
+		GMRFLib_stiles_unbind(&lidx);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -640,7 +654,12 @@ int GMRFLib_stiles_solve_LT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 
 	GMRFLib_stiles_bind(&lidx);
 	sTiles_solve_LT(llidx.in_group, llidx.within_group, &(store->obj), rhs, llidx.nrhs);
-	GMRFLib_stiles_unbind(&lidx);
+
+	if (GMRFLib_stiles_is_rescale() && store->rescale_no_unbind) {
+		// do nothing, deal with this manually
+	} else {
+		GMRFLib_stiles_unbind(&lidx);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -746,7 +765,7 @@ void GMRFLib_stiles_unbind_group(int in_group)
 		return;
 
 	// need to do this one in parallel
-#pragma omp parallel for num_threads(store->n_within_group[in_group])
+#pragma omp parallel for num_threads(store->n_within_group[in_group]) schedule(static)
 	for (int j = 0; j < store->n_within_group[in_group]; j++) {
 		GMRFLib_stiles_idx_tp stiles_idx = { in_group, j, 0 };
 		GMRFLib_stiles_unbind(&stiles_idx);

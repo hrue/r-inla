@@ -3389,8 +3389,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (!visited[j]) {
 						err++;
 						printf
-						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
-						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+							("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
+							 omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3421,8 +3421,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					if (!visited[j]) {
 						err++;
 						printf
-						    ("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
-						     omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
+							("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
+							 omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
 					}
 				}
 				assert(err == 0);
@@ -3547,12 +3547,22 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_ptr_tp *split = GMRFLib_idx_split(selection, nrhs);
 
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			GMRFLib_stiles_rescale_start();
+			// ...and deal with unbind manually
+			GMRFLib_stiles_rescale_start(1);
 		}
 
-#pragma omp parallel for num_threads(nt_outer)
+		double tref = -GMRFLib_timer();
+		FIXME("gcpo_build loop begin");
+
+#pragma omp parallel for num_threads(nt_outer) schedule(static)
 		for (int kk = 0; kk < split->n; kk++) {
 			GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
+
+			GMRFLib_stiles_idx_tp stiles_idx = { GMRFLib_stiles_rescale_group(), -1, sel->n };
+			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+				GMRFLib_stiles_set_idx(&stiles_idx, sel->n);
+				GMRFLib_stiles_bind(&stiles_idx);
+			}
 
 			// special case
 			if (gcpo_param->num_level_sets == -1) {
@@ -3578,11 +3588,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 			}
 
-			GMRFLib_stiles_idx_tp stiles_idx = { GMRFLib_stiles_rescale_group(), -1, sel->n };
-			GMRFLib_stiles_set_idx(&stiles_idx, sel->n);
 			GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
 
-#pragma omp parallel for num_threads(nt_inner) schedule(static)
+#pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1) schedule(static)
 			for (int ii = 0; ii < sel->n; ii++) {
 				int node = sel->idx[ii];
 				double *Sa = Saa + ii * n;
@@ -3728,8 +3736,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 		}
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			// this wil also do unbind
 			GMRFLib_stiles_rescale_end();
 		}
+
+		FIXME("gcpo_build loop end");
+		P(tref + GMRFLib_timer());
 
 		GMRFLib_idx_split_free(split);
 
@@ -3946,14 +3958,26 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	int use_group = 0;
 	int tnum_parent = omp_get_thread_num();
 	if (serial && use_stiles) {
-		GMRFLib_stiles_rescale_start();
+		GMRFLib_stiles_rescale_start(1);
 		use_group = GMRFLib_stiles_rescale_group();
 	}
 
-#pragma omp parallel for num_threads(nt_inner) if(!use_stiles || (use_stiles && serial))
+	double tref = -GMRFLib_timer();
+	FIXME("gcpo loop begin");
+
+	int run_parallel = !use_stiles || (use_stiles && serial);
+#pragma omp parallel for num_threads(nt_inner) if(run_parallel) schedule(static)
 	for (int kk = 0; kk < split->n; kk++) {
+
 		int tnum = omp_get_thread_num();
 		GMRFLib_idx_tp *lnode_idx = (GMRFLib_idx_tp *) split->ptr[kk];
+		GMRFLib_stiles_idx_tp stiles_idx = { use_group, (serial ? tnum : tnum_parent), lnode_idx->n };
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+			// bind is set only if its not already set
+			GMRFLib_stiles_set_idx(&stiles_idx, lnode_idx->n);
+			GMRFLib_stiles_bind(&stiles_idx);
+		}
+
 		double *Saa = Swork[tnum];
 		GMRFLib_dfill(nn * nrhs, 0.0, Saa);
 
@@ -3963,7 +3987,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 			GMRFLib_unpack(v->n, v->val, Saa + inode * nn, v->idx);
 		}
 
-		GMRFLib_stiles_idx_tp stiles_idx = { use_group, (serial ? tnum : tnum_parent), lnode_idx->n };
 		GMRFLib_Qsolves(Saa, lnode_idx->n, ai_store_id->problem, &stiles_idx);
 
 		for (int inode = 0; inode < lnode_idx->n; inode++) {
@@ -4016,8 +4039,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 	}
 
 	if (serial && use_stiles) {
+		// this will also do unbind()
 		GMRFLib_stiles_rescale_end();
 	}
+
+	FIXME("gcpo loop end");
+	P(tref + GMRFLib_timer());
 
 	for (int i = 0; i < Swork_len; i++) {
 		Free(Swork[i]);
@@ -4928,16 +4955,17 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				if (nt * nhpt < nh)
 					nhpt++;
 				assert(nt * nhpt >= nh);
-				GMRFLib_stiles_rescale_start();
+				GMRFLib_stiles_rescale_start(1);
+				int group = GMRFLib_stiles_rescale_group();
 #pragma omp parallel for num_threads(nt)
 				for (int k = 0; k < nt; k++) {
 					int offset = k * nhpt;
 					int len = IMIN(nhpt, nh - offset);
 					if (len <= 0)
 						continue;
-					int group = GMRFLib_stiles_rescale_group();
 					GMRFLib_stiles_idx_tp sidx = { group, -1, 0 };
 					GMRFLib_stiles_set_idx(&sidx, len);
+					GMRFLib_stiles_bind(&sidx);
 					GMRFLib_Qsolves(b + offset * graph->n, len, ai_store->problem, &sidx);
 				}
 				GMRFLib_stiles_rescale_end();
@@ -5334,6 +5362,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 {
 	GMRFLib_ENTER_FUNCTION;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		assert(GMRFLib_smtp != GMRFLib_SMTP_STILES && "This case is not properly checked");
+	}
 
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 

@@ -50,6 +50,7 @@ typedef struct {
 	int nt_special;
 	int nt_max_threads;
 	int rescale_on;
+	int rescale_no_unbind;
 	int **perm;
 	int **iperm;
 	int *n;
@@ -98,7 +99,7 @@ void GMRFLib_stiles_print_ctl_param(FILE * fp, char *suf);
 void GMRFLib_stiles_print_idx_(GMRFLib_stiles_idx_tp * stiles_idx, FILE * fp, const char *filenam, int lineno);
 void GMRFLib_stiles_quit(void);
 void GMRFLib_stiles_rescale_end(void);
-void GMRFLib_stiles_rescale_start(void);
+void GMRFLib_stiles_rescale_start(int no_unbind);
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp * stiles_idx);
 void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
