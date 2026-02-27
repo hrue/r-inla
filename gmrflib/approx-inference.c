@@ -6158,9 +6158,11 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 			       GMRFLib_ai_store_tp *ai_store, double *improved_mean, int lookup_tables)
 {
 	/*
-	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to
-	 * avoid dependency of n, in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero
-	 * terms in 'a'.
+	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we
+	 * will try to avoid dependency of n, in both a, in a^T x, and in remap(a). We only need the range of non-zero terms
+	 * 'remap(a)' and the non-zero terms in 'a'.
+	 *
+	 * We should be able to do better by solving the rhs's in one go...
 	 */
 
 	assert(ai_store);
