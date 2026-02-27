@@ -20,34 +20,34 @@ void compute_d_values_opt(double *__restrict d, double *__restrict vals, double 
 {
 	if (nc == 3) {
 		double t0 = theta[0], t1 = theta[1], t2 = theta[2];
-		double d0 = vals[0]*t0 + vals[1]*t1 + vals[2]*t2;
-		double d1 = vals[3]*t0 + vals[4]*t1 + vals[5]*t2;
-		double d2 = vals[6]*t0 + vals[7]*t1 + vals[8]*t2;
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2;
+		double d1 = vals[3] * t0 + vals[4] * t1 + vals[5] * t2;
+		double d2 = vals[6] * t0 + vals[7] * t1 + vals[8] * t2;
 		d[0] = exp(d0);
 		d[1] = exp(d1);
 		d[2] = d2;
 		return;
 	} else if (nc == 4) {
 		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3];
-		double d0 = vals[0]*t0 + vals[1]*t1 + vals[2]*t2 + vals[3]*t3;
-		double d1 = vals[4]*t0 + vals[5]*t1 + vals[6]*t2 + vals[7]*t3;
-		double d2 = vals[8]*t0 + vals[9]*t1 + vals[10]*t2 + vals[11]*t3;
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3;
+		double d1 = vals[4] * t0 + vals[5] * t1 + vals[6] * t2 + vals[7] * t3;
+		double d2 = vals[8] * t0 + vals[9] * t1 + vals[10] * t2 + vals[11] * t3;
 		d[0] = exp(d0);
 		d[1] = exp(d1);
 		d[2] = d2;
 		return;
 	} else if (nc == 5) {
 		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3], t4 = theta[4];
-		double d0 = vals[0]*t0 + vals[1]*t1 + vals[2]*t2 + vals[3]*t3 + vals[4]*t4;
-		double d1 = vals[5]*t0 + vals[6]*t1 + vals[7]*t2 + vals[8]*t3 + vals[9]*t4;
-		double d2 = vals[10]*t0 + vals[11]*t1 + vals[12]*t2 + vals[13]*t3 + vals[14]*t4;
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3 + vals[4] * t4;
+		double d1 = vals[5] * t0 + vals[6] * t1 + vals[7] * t2 + vals[8] * t3 + vals[9] * t4;
+		double d2 = vals[10] * t0 + vals[11] * t1 + vals[12] * t2 + vals[13] * t3 + vals[14] * t4;
 		d[0] = exp(d0);
 		d[1] = exp(d1);
 		d[2] = d2;
 		return;
 	} else {
 		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
-		int nc2 = 2*nc;
+		int nc2 = 2 * nc;
 		for (int k = 0; k < nc; k++) {
 			double t = theta[k];
 			d0 += vals[k] * t;
@@ -214,7 +214,7 @@ double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED
 	}
 	// Off-diagonal case
 	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
-	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc); 
+	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc);
 	apply_single_transform(model->transform, &d_j[2]);
 
 	double *__restrict v = vals_j_p->v;
