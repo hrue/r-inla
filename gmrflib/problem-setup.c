@@ -372,7 +372,6 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
-		int inc = 1;
 		double alpha = -1.0, beta = 1.0, t_vector[nc * nrhs];
 		GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
 		dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);

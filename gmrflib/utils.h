@@ -125,8 +125,6 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno);
 void *GMRFLib_memcpy(void *dest, const void *src, size_t n);
 void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno);
-void GMRFLib_delay(int msec);
-void GMRFLib_delay_random(int msec_low, int msec_high);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno);
 void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem);
 void GMRFLib_malloc_debug_check(void);

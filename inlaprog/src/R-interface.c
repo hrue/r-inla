@@ -38,7 +38,6 @@ int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
-void GMRFLib_delay(int msec);
 
 __END_DECLS
 #include "R-interface.h"
