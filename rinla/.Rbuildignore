@@ -16,3 +16,5 @@
 ^doc$
 ^Meta$
 ^misc$
+^\.lintr$
+^\.styler\.R$
