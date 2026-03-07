@@ -88,33 +88,35 @@ void GMRFLib_getMemory(int POSSIBLY_UNUSED(*currRealMem), int POSSIBLY_UNUSED(*p
 	// stores each word in status file
 	char buffer[1024] = "";
 
+	*currRealMem = 0;
+	*peakRealMem = 0;
+	*currVirtMem = 0;
+	*peakVirtMem = 0;
+
 	// linux file contains this-process info
 	FILE *file = fopen("/proc/self/status", "r");
-
 	if (file) {
 		// read the entire file
 		while (fscanf(file, " %1023s", buffer) == 1) {
 
 			if (strcmp(buffer, "VmRSS:") == 0) {
 				if (fscanf(file, " %d", currRealMem) == 0)
-					currRealMem = 0;
+					*currRealMem = 0;
 			}
 			if (strcmp(buffer, "VmHWM:") == 0) {
 				if (fscanf(file, " %d", peakRealMem) == 0)
-					peakRealMem = 0;
+					*peakRealMem = 0;
 			}
 			if (strcmp(buffer, "VmSize:") == 0) {
 				if (fscanf(file, " %d", currVirtMem) == 0)
-					currVirtMem = 0;
+					*currVirtMem = 0;
 			}
 			if (strcmp(buffer, "VmPeak:") == 0) {
 				if (fscanf(file, " %d", peakVirtMem) == 0)
-					peakVirtMem = 0;
+					*peakVirtMem = 0;
 			}
 		}
 		fclose(file);
-	} else {
-		currRealMem = peakRealMem = currVirtMem = peakVirtMem = 0;
 	}
 #endif
 }
@@ -128,23 +130,6 @@ void GMRFLib_printMem_core(FILE POSSIBLY_UNUSED(*fp), const char POSSIBLY_UNUSED
 	fprintf(ffp, "%s:%d: {cur,peak}-Mem used: Real[%.1f, %.1f]Mb, Virt[%.1f, %.1f]Mb\n",
 		fnm, lineno, crm / 1024.0, prm / 1024.0, cvm / 1024.0, pvm / 1024.0);
 #endif
-}
-
-void GMRFLib_delay(int msec)
-{
-	long pause;
-	clock_t now, then;
-
-	pause = msec * (CLOCKS_PER_SEC / 1000);
-	now = then = clock();
-	while ((now - then) < pause) {
-		now = clock();
-	}
-}
-
-void GMRFLib_delay_random(int msec_low, int msec_high)
-{
-	GMRFLib_delay(msec_low + (int) ((msec_high - msec_low) * GMRFLib_uniform()));
 }
 
 char *GMRFLib_vec2char(double *x, int len)
@@ -252,7 +237,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 		return ptr;
 	}
 	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%zu elements of size=%zu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -273,7 +258,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	}
 
 	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to malloc size=%zu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -285,19 +270,15 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	assert(size < PTRDIFF_MAX);
 	void *ptr = realloc(old_ptr, size);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuse-after-free"
 	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu,  from address %p to address %p\n", file, funcname, lineno, size,
-		       old_ptr, ptr);
+		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu, to address %p\n", file, funcname, lineno, size, ptr);
 	}
-#pragma GCC diagnostic pop
 
 	if (ptr) {
 		return ptr;
 	}
 	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to realloc size=%zu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -321,11 +302,11 @@ char *GMRFLib_rindex(const char *p, int ch)
 	 */
 	char *save = NULL, *pp = (char *) p;
 	for (save = NULL;; ++pp) {
-		if (*pp == ch) {
-			save = pp;
-		}
 		if (!*pp) {
 			return (save);
+		}
+		if (*pp == ch) {
+			save = pp;
 		}
 	}
 	abort();
@@ -2445,7 +2426,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 					}
 				}
 			}
-		      label_end:
+		label_end:
 #else
 			Memset(&L123, 0, sizeof(GMRFLib_sys_cache_tp));
 #endif
