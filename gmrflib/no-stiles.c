@@ -15,7 +15,7 @@ extern "C" {
 #       endif
 
 #       define EMPTY_FUNCTION {						\
-		fprintf(stderr, "\n\n\n *** sTiles is not available in this build, abort()\n\n\n"); \
+		fprintf(stderr, "\n\n\n *** [%s] sTiles is not available in this build, abort()\n\n\n", __GMRFLib_FuncName); \
 		abort();						\
 	}
 
@@ -62,7 +62,6 @@ void sTiles_print_chol_timings(int, void **) EMPTY_FUNCTION;
 void sTiles_print_logdets(int, void **) EMPTY_FUNCTION;
 void sTiles_print_selinv_timings(int, void **) EMPTY_FUNCTION;
 void sTiles_print_version(void) EMPTY_FUNCTION;
-void sTiles_print_params(void) EMPTY_FUNCTION;
 void sTiles_quit(void) EMPTY_FUNCTION;
 void sTiles_set_log_level(int) EMPTY_FUNCTION;
 void sTiles_set_rescale_cores(const int *, int) EMPTY_FUNCTION;
@@ -93,6 +92,9 @@ void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim))
 {
 }
 void sTiles_expert_user(void)
+{
+}
+void sTiles_print_params(void) 
 {
 }
 void sTiles_turn_off_rescale(int, void *) EMPTY_FUNCTION;
