@@ -19699,7 +19699,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	// no longer used
-	int tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 40);
+	int UNUSED(tile_size) = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 40);
 
 	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 40);
 	if (mb->verbose) {
