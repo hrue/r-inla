@@ -22,8 +22,13 @@ extern "C" {
 	void sTiles_set_tile_size(int) {
 		// empty
 	}
-	// ... int sTiles_return_tile_size(void) { return 40; const char *sTiles_get_version(void) { return (const char *) NULL;
+	// ... int sTiles_return_tile_size(void) { return 40; }
+
+static const char* sTiles_VERSION_STRING = "No sTiles version";
+const char *sTiles_get_version(void) {
+  return sTiles_VERSION_STRING;
 }
+
 double sTiles_GetGroupMemoryUsage(int) EMPTY_FUNCTION;
 double sTiles_GetGroupsMemoryUsage(void) EMPTY_FUNCTION;
 double sTiles_debug_matrix(int, int, void **) EMPTY_FUNCTION;
@@ -57,6 +62,7 @@ void sTiles_print_chol_timings(int, void **) EMPTY_FUNCTION;
 void sTiles_print_logdets(int, void **) EMPTY_FUNCTION;
 void sTiles_print_selinv_timings(int, void **) EMPTY_FUNCTION;
 void sTiles_print_version(void) EMPTY_FUNCTION;
+void sTiles_print_params(void) EMPTY_FUNCTION;
 void sTiles_quit(void) EMPTY_FUNCTION;
 void sTiles_set_log_level(int) EMPTY_FUNCTION;
 void sTiles_set_rescale_cores(const int *, int) EMPTY_FUNCTION;
