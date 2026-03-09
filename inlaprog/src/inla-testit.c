@@ -6397,6 +6397,14 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 198: 
+	{
+		GMRFLib_graph_tp *g = NULL;
+		GMRFLib_graph_read(&g, args[0]);
+		GMRFLib_printf_graph(stdout, g);
+	}
+	break;
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
