@@ -488,7 +488,6 @@ dictionary *iniparser_load(const char *ininame)
 	char *val = NULL;
 	char *where = NULL;
 	FILE *ini = NULL;
-	int lineno = 0;
 	size_t len_str = 0;
 
 	if ((ini = fopen(ininame, "r")) == NULL) {
@@ -517,10 +516,6 @@ dictionary *iniparser_load(const char *ininame)
 				val = (char *) realloc((void *) val, len_str);
 			}
 		}
-
-		lineno++;
-
-		// if (!(lineno % 1000)) printf("lineno %d\n", lineno);
 
 		where = strskp(lin);			       /* Skip leading spaces */
 		if (*where == ';' || *where == '#' || *where == 0) {

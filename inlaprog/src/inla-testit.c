@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
 
 #if !defined(INLA_WITH_DEVEL)
 
@@ -2462,6 +2463,7 @@ int testit(int argc, char **argv)
 			}
 		}
 		time += GMRFLib_timer();
+		P(sum);
 		printf("IMAX/MIN %.12f\n", time);
 
 		sum = 0.0;
@@ -2483,6 +2485,7 @@ int testit(int argc, char **argv)
 			}
 		}
 		time += GMRFLib_timer();
+		P(sum);
 		printf("if/ %.12f\n", time);
 	}
 		break;
@@ -2556,18 +2559,20 @@ int testit(int argc, char **argv)
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < m; k++) {
 			tref1 -= GMRFLib_timer();
-			double s = GMRFLib_uniform();
+			double s = 0.0;
 #       pragma omp simd reduction(+: s)
 			for (int i = 0; i < n; i++) {
 				s += xx[i];
 			}
 			tref1 += GMRFLib_timer();
 			tref2 -= GMRFLib_timer();
+			double ss = 0.0;
 #       pragma GCC ivdep
 			for (int i = 0; i < n; i++) {
-				s += xx[i];
+				ss += xx[i];
 			}
 			tref2 += GMRFLib_timer();
+			assert(ABS(s-ss) < FLT_EPSILON);
 		}
 		printf("simd %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
@@ -6261,7 +6266,7 @@ int testit(int argc, char **argv)
 
 	case 196:
 	{
-		omp_set_nested(1);
+		omp_set_nested_(1);
 		printf("\nSerial loop\n");
 		for (int i = 0; i < 2; i++) {
 			if (i == 0)

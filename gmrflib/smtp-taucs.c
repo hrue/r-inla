@@ -862,7 +862,7 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 		(PAPT->colptr)[j] = (PAPT->colptr)[j - 1] + len[j - 1];
 
 	memcpy((void *) len, (void *) (PAPT->colptr), (size_t) (n * sizeof(int)));
-	for (int j = 0, k = 0; j < n; j++) {
+	for (int j = 0; j < n; j++) {
 		int iJJ = invperm[j];
 		for (int ip = A->colptr[j]; ip < A->colptr[j + 1]; ip++) {
 			double AIJ = A->values[ip];
@@ -873,7 +873,6 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 			(PAPT->values)[len[iJ]] = AIJ;
 			(*vperm)[len[iJ]] = ip;
 			len[iJ]++;
-			k++;
 		}
 	}
 
@@ -1094,9 +1093,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
 	}
 
-	double time_chol = -GMRFLib_timer();
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
-	time_chol += GMRFLib_timer();
 	if (retval) {
 		taucs_supernodal_factor_free_numeric(*symb_fact);	/* remove the numerics, preserve the symbolic */
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",

@@ -1583,7 +1583,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	cpu[1] += GMRFLib_timer();
 
 	if (0) {
-		double check = 0.0;
+		double POSSIBLY_UNUSED(check) = 0.0;
 		for (int i = 0; i < graph->n; i++) {
 			check += ABS(xx[i]);
 		}

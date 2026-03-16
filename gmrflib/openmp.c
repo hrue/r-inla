@@ -8,10 +8,6 @@
 
 #define omp_max_max_nested() 3
 
-// deprecated functions
-#define omp_set_nested(v_) omp_set_max_active_levels(((v_) ? 3 : 1))
-#define omp_get_nested() (omp_get_max_active_levels() > 1 ? 1 : 0)
-
 static int blas_num_threads = 1;
 int GMRFLib_get_blas_num_threads(void)
 {
@@ -44,7 +40,7 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner)
 	GMRFLib_openmp->place = GMRFLib_OPENMP_PLACES_SPECIAL;
 	GMRFLib_openmp->max_threads_outer = IMAX(1, outer);
 	GMRFLib_openmp->max_threads_inner = IMAX(1, inner);
-	omp_set_nested((inner > 1));
+	omp_set_nested_((inner > 1));
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->max_threads_inner);
 
 	return GMRFLib_SUCCESS;
@@ -491,8 +487,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	// P(nested);
 
 	// only set if changed
-	if ((nested && !omp_get_nested()) || (!nested && omp_get_nested())) {
-		omp_set_nested(nested);
+	if ((nested && !omp_get_nested_()) || (!nested && omp_get_nested_())) {
+		omp_set_nested_(nested);
 	}
 
 	omp_sched_t kind;
@@ -517,7 +513,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	if (debug) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
-		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested());
+		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested_());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] blas.num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_MAX_THREADS(), nt, blas_num_threads, GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	}
