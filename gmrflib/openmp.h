@@ -158,8 +158,8 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 void GMRFLib_adapt_nt_print(FILE * fp);
 
 // deprecated functions
-#define omp_set_nested_(v_) omp_set_max_active_levels(((v_) ? 3 : 1))
-#define omp_get_nested_() (omp_get_max_active_levels() > 1 ? 1 : 0)
+#       define omp_set_nested_(v_) omp_set_max_active_levels(((v_) ? 3 : 1))
+#       define omp_get_nested_() (omp_get_max_active_levels() > 1 ? 1 : 0)
 
 __END_DECLS
 #endif

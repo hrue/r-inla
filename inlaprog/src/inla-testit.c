@@ -2572,7 +2572,7 @@ int testit(int argc, char **argv)
 				ss += xx[i];
 			}
 			tref2 += GMRFLib_timer();
-			assert(ABS(s-ss) < FLT_EPSILON);
+			assert(ABS(s - ss) < FLT_EPSILON);
 		}
 		printf("simd %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
@@ -6402,14 +6402,14 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 198: 
+	case 198:
 	{
 		GMRFLib_graph_tp *g = NULL;
 		GMRFLib_graph_read(&g, args[0]);
 		GMRFLib_printf_graph(stdout, g);
 	}
-	break;
-		
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
