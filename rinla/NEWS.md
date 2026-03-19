@@ -1,3 +1,7 @@
+# INLA 26.05.19
+* Work on the forthcoming sTiles integration
+* Minor code revision and optimization
+
 # INLA 26.02.06
 * Code cleanup 
 * Revise installation scripts
