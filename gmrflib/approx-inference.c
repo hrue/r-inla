@@ -2276,7 +2276,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				}
 				if (dic) {
 					deviance_theta[i][dens_count] =
-					    GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
+						GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
 				}
 				if (po) {
 					GMRFLib_ai_po_integrate(thread_id, &po_theta[i][dens_count], &po2_theta[i][dens_count],
@@ -3549,9 +3549,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_rescale_start(1);
 		}
 
-		double tref = -GMRFLib_timer();
-		FIXME("gcpo_build loop begin");
-
 #pragma omp parallel for num_threads(nt_outer) schedule(static)
 		for (int kk = 0; kk < split->n; kk++) {
 			GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
@@ -3737,9 +3734,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			// this wil also do unbind
 			GMRFLib_stiles_rescale_end();
 		}
-
-		FIXME("gcpo_build loop end");
-		P(tref + GMRFLib_timer());
 
 		GMRFLib_idx_split_free(split);
 
@@ -3960,9 +3954,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		use_group = GMRFLib_stiles_rescale_group();
 	}
 
-	double tref = -GMRFLib_timer();
-	FIXME("gcpo loop begin");
-
 	int run_parallel = !use_stiles || (use_stiles && serial);
 #pragma omp parallel for num_threads(nt_inner) if(run_parallel) schedule(static)
 	for (int kk = 0; kk < split->n; kk++) {
@@ -4040,9 +4031,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		// this will also do unbind()
 		GMRFLib_stiles_rescale_end();
 	}
-
-	FIXME("gcpo loop end");
-	P(tref + GMRFLib_timer());
 
 	for (int i = 0; i < Swork_len; i++) {
 		Free(Swork[i]);

@@ -6598,6 +6598,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		if (d_mode) {
 			if (plain) {
+#pragma omp simd reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = x;
