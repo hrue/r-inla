@@ -1468,11 +1468,32 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 {
-	*logdet = 0.0;
-	for (int i = 0; i < L->n; i++) {
-		*logdet += log(L->values[L->colptr[i]]);
+	double ret = 0.0;
+#if 1
+	int n = L->n;
+	int N = 64;
+	int limit = n & ~(N-1);
+	double *v = L->values;
+	
+	for (int i = 0; i < limit; i += N) {
+		double xx[N];
+		int *idx = L->colptr + i;
+		for(int j = 0; j < N; j++) {
+			xx[j] = v[idx[j]];
+		}
+		GMRFLib_log(N, xx, xx);
+		ret += GMRFLib_dsum(N, xx);
 	}
-	*logdet *= 2.0;
+
+	for (int i = limit; i < n; i++) {
+		ret += log(v[L->colptr[i]]);
+	}
+#else
+	for (int i = 0; i < L->n; i++) {
+		ret += log(L->values[L->colptr[i]]);
+	}
+#endif	
+	*logdet = 2.0 * ret;
 
 	return GMRFLib_SUCCESS;
 }
