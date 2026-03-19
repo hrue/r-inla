@@ -46,12 +46,14 @@
                                          "Fedora Linux-41", 
                                          "Fedora Linux-42", 
                                          "Fedora Linux-43", 
+                                         "Fedora Linux-44", 
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
                                          "Ubuntu-20.04", 
                                          "Ubuntu-22.04",
                                          "Ubuntu-24.04",
-                                         "Ubuntu-25.04"), 
+                                         "Ubuntu-25.04", 
+                                         "Ubuntu-26.04"), 
                                   path = NULL, 
                                   verbose = TRUE,
                                   md5.check = TRUE,
@@ -82,13 +84,14 @@
     ff <- ff[grep(version, ff)]
 
     if (is.null(os)) {
-
         ## filter on this one
         aa <- "aarch64"
         if (inla.one.of(R.version$arch, aa)) {
             ff <- ff[grep(aa, ff)]
         } else {
-            ff <- ff[-grep(aa, ff)]
+            if (length(grep(aa, ff)) > 0) {
+                ff <- ff[-grep(aa, ff)]
+            }
         }
         nf <- length(ff)
 
