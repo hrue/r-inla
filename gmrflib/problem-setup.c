@@ -359,35 +359,28 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 
 	GMRFLib_ENTER_FUNCTION;
 
+#if 0
+	static double tref = 0.0;
+#       pragma omp threadprivate(tref)
+	static int trefc = 0;
+#       pragma omp threadprivate(trefc)
+	tref -= GMRFLib_timer();
+#endif
+
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
-
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
-		int inc = 1;
-		double alpha = -1.0, beta = 1.0;
-
-		if (1) {
-			// runs better for many rhs's
-			double t_vector[nc * nrhs];
-			GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
-			dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
-		} else {
-			// this is the old code
-#define CODE_BLOCK							\
-			for (int i = 0; i < nrhs; i++) {		\
-				CODE_BLOCK_INIT();			\
-				int offset = i * n;			\
-				double t_vector[nc];			\
-				GMRFLib_eval_constr0(t_vector, NULL, x + offset, problem->sub_constr, problem->sub_graph); \
-				dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x + offset, &inc, F_ONE); \
-			}
-
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS() / 2L, 0, 0);
-#undef CODE_BLOCK
-		}
+		double alpha = -1.0, beta = 1.0, t_vector[nc * nrhs];
+		GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
+		dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
 	}
+#if 0
+	tref += GMRFLib_timer();
+	trefc += nrhs;
+	printf("[%1d] Qsolves: use %.5fs on %1d nrhs, which %.5f x 1E-6 s/rhs\n", omp_get_thread_num(), tref, trefc, tref / trefc * 1.0E6);
+#endif
 
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
@@ -479,6 +472,9 @@ int GMRFLib_init_problem_store(int thread_id,
 	if (stiles_idx) {
 		GMRFLib_stiles_idx_tp *sidx = Calloc(1, GMRFLib_stiles_idx_tp);
 		Memcpy(sidx, stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
+		if (sidx->within_group < 0) {
+			sidx->within_group = omp_get_thread_num();
+		}
 		(*problem)->stiles_idx = sidx;
 	} else {
 		(*problem)->stiles_idx = NULL;
@@ -653,6 +649,16 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph, *problem);
 	if (ret != GMRFLib_SUCCESS) {
+#if 0
+#       pragma omp critical (Name_f00e7fa853c3143c7e085df069302f8c195844d1)
+		{
+			FILE *fp = fopen("Q-trouble.txt", "w");
+			GMRFLib_printf_Qfunc(thread_id, fp, (*problem)->sub_graph, (*problem)->tab->Qfunc, (char *) ((*problem)->tab->Qfunc_arg));
+			fclose(fp);
+			FIXME("WRITE failed Q to file and exit");
+		}
+		exit(0);
+#endif
 		return ret;
 	}
 
@@ -1684,6 +1690,9 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
 	DUPLICATE(stiles_idx, 1, GMRFLib_stiles_idx_tp, skeleton);
+	if (np->stiles_idx)
+		np->stiles_idx->within_group = -1;
+
 	DUPLICATE(sample, n, double, skeleton);
 	DUPLICATE(mean, n, double, skeleton);
 	DUPLICATE(mean_constr, n, double, skeleton);

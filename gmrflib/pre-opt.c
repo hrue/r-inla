@@ -265,7 +265,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	// build up structure for the likelihood part
 
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
 	A_idxval = GMRFLib_idxval_ncreate_x(npred, IMAX(1, nf + nbeta), num_threads);
 
 	if (debug) {
@@ -1583,7 +1583,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	cpu[1] += GMRFLib_timer();
 
 	if (0) {
-		double check = 0.0;
+		double POSSIBLY_UNUSED(check) = 0.0;
 		for (int i = 0; i < graph->n; i++) {
 			check += ABS(xx[i]);
 		}

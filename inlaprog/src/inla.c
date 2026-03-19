@@ -1437,7 +1437,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
 	const int debug = 0;
 
-	GMRFLib_stiles_idx_tp stiles_idx = { 0, 0, 0 };
+	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 	GMRFLib_stiles_set_idx(&stiles_idx, 1);
 
 	int theta_free = 0;
@@ -6079,7 +6079,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSetup...................... [%.2fs]\n", GMRFLib_timer() - tref);
 		printf("\tSparse-matrix library...... [%s]\n", mb->smtp);
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-			printf("\tsTiles tile-size........... [%1d]\n", GMRFLib_stiles_get_tile_size());
+			printf("\tsTiles.version ............ [%s\n", sTiles_get_version());
 		}
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -6598,6 +6598,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		if (d_mode) {
 			if (plain) {
+#pragma omp simd reduction(+: m1, m2)
 				for (int i = 0; i < np; i++) {
 					double x = xp[i] * stdev + mean;
 					double f = x;

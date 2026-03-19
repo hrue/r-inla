@@ -455,20 +455,18 @@ inla.spde3.matern =
     n.theta = ncol(B.kappa)-1L
 
     fem = fmesher::fm_fem(mesh, order = 2)
-    if ((d==1) && (mesh$degree==2)) {
-        fem$c0 = fem$c1 ## Use higher order matrix.
-    }
+    fem <- fmesher_fem_cc_compat(mesh, fem) # Not needed from fmesher 0.7.0.9001
 
     if (alpha==2) {
         B.phi0 = param$B.tau
         B.phi1 = 2*param$B.kappa
-        M0 = fem$c0
+        M0 = fem$cc
         M1 = fem$g1
         M2 = fem$g2
     } else if (alpha==1) {
         B.phi0 = param$B.tau
         B.phi1 = param$B.kappa
-        M0 = fem$c0
+        M0 = fem$cc
         M1 = fem$g1*0
         M2 = fem$g1
     } else if (!param$is.stationary) {
@@ -487,7 +485,7 @@ inla.spde3.matern =
         }
         B.phi0 = param$B.tau + (alpha-2)*param$B.kappa
         B.phi1 = 2*param$B.kappa
-        M0 = fem$c0*b[1]
+        M0 = fem$cc*b[1]
         M1 = fem$g1*b[2]/2
         M2 = fem$g2*b[3]
     } else if ((alpha<1) && (alpha>0)) {
@@ -504,7 +502,7 @@ inla.spde3.matern =
         }
         B.phi0 = param$B.tau + (alpha-1)*param$B.kappa
         B.phi1 = param$B.kappa
-        M0 = fem$c0*b[1]
+        M0 = fem$cc*b[1]
         M1 = fem$g1*0
         M2 = fem$g1*b[2]
     } else {
@@ -606,13 +604,10 @@ inla.spde3.iheat =
     n.theta = 2L ## gamma.s, gamma.t
 
     fem.space = fmesher::fm_fem(mesh.space, order = 2)
-    if ((d.space==1) && (mesh.space$degree==2)) {
-        fem.space$c0 = fem.space$c1 ## Use higher order matrix.
-    }
     fem.time = fmesher::fm_fem(mesh.time, order = 2)
-    if (mesh.time$degree==2) {
-        fem.time$c0 = fem.time$c1 ## Use higher order matrix.
-    }
+    # Not needed from fmesher 0.7.0.9001:
+    fem <- fmesher_fem_cc_compat(mesh.space, fem,space)
+    fem <- fmesher_fem_cc_compat(mesh.time, fem.time)
 
     ## TODO: the rest
     if (FALSE) {

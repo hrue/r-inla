@@ -322,8 +322,8 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_sys_cache(&L123);
 		printf("\t\tL1 Data  Cache: %zu bytes\n", L123.l1_data);
 		printf("\t\tL1 Instr Cache: %zu bytes\n", L123.l1_inst);
-		printf("\t\tL2       Cache: %zu bytes\n", L123.l2);
-		printf("\t\tL3       Cache: %zu bytes\n", L123.l3);
+		printf("\t\tL2       Cache: %zu Mbytes\n", L123.l2 / ISQR(1024));
+		printf("\t\tL3       Cache: %zu Mbytes\n", L123.l3 / ISQR(1024));
 
 #if defined(__VERSION__)
 		printf("\t\tGCC/Compiler version[%s]\n", __VERSION__);
@@ -19684,38 +19684,50 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = STILES
 	 */
-	char *secname = NULL;
-	int verbose, tile_size;
-
 	if (mb->verbose) {
 		printf("\tinla_parse_stiles...\n");
 	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
+
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	int verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
 	if (mb->verbose) {
 		printf("\t\tverbose[%1d]\n", verbose);
 	}
 
-	// this assure backward compatibility
-	int debug = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	if (debug != 0) {
-		printf("\t\tverbose[%1d]\n", debug);
-	}
+	// no longer used
+	int UNUSED(tile_size) = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 40);
 
-	tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 0);
+	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 40);
 	if (mb->verbose) {
-		printf("\t\ttile.size[%1d]\n", tile_size);
-	}
-	GMRFLib_stiles_set_ctl(verbose, tile_size);
-
-	if (mb->verbose) {
-		printf("\t\tdefault tile.size[%1d]\n", GMRFLib_stiles_get_tile_size());
+		printf("\t\tblock.size[%1d]\n", block_size);
 	}
 
+	int len = 0, *param = NULL, ret = 0;
+	char *filename = iniparser_getstring(ini, inla_string_join(secname, "PARAM"), NULL);
+	if (filename) {
+		GMRFLib_io_tp *io = NULL;
+		ret = GMRFLib_io_open(&io, filename, "rb");
+		assert(ret == GMRFLib_SUCCESS);
+		GMRFLib_io_read(io, &len, sizeof(int));
+		assert(len > 0);
+		param = Malloc(len, int);
+		GMRFLib_ifill(len, -1, param);
+		if (len > 0) {
+			ret = GMRFLib_io_read(io, param, len * sizeof(int));
+			assert(ret == GMRFLib_SUCCESS);
+		}
+		GMRFLib_io_close(io);
+	} else {
+		len = 32;
+		param = Malloc(len, int);
+		GMRFLib_ifill(len, -1, param);
+	}
+	GMRFLib_stiles_set_ctl(verbose, block_size, len, param);
+	GMRFLib_stiles_print_ctl_param(stdout, "\t\t");
 	return INLA_OK;
 }
 

@@ -38,16 +38,11 @@ typedef struct {
 	size_t l3;
 } GMRFLib_sys_cache_tp;
 
-
-
-char *Strdup(const char *s);
-unsigned char *Strdup_sha(unsigned char *sha);
-unsigned char *GMRFLib_prettify_sha(unsigned char *sha);
-
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno);
 char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 char *GMRFLib_vec2char(double *arr, int len);
+char *Strdup(const char *s);
 const char *GMRFLib_function_name_strip(const char *name);
 double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
 double GMRFLib_cdfnorm(double x);
@@ -70,19 +65,29 @@ int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_dcmp_abs_r(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
+int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_find_value(double *array, int len, int direction, double value);
-int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue);
+int GMRFLib_get_cachelinesize(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
-int GMRFLib_is_zero(double *x, int n);
+int GMRFLib_iamax_value(int *x, int n, int *idx);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_icmp_r(const void *a, const void *b);
-int GMRFLib_iamax_value(int *x, int n, int *idx);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
+int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
+int GMRFLib_is_sorted_ddec(int n, double *a);
+int GMRFLib_is_sorted_ddec_plain(int n, double *a);
+int GMRFLib_is_sorted_dinc(int n, double *a);
+int GMRFLib_is_sorted_dinc_plain(int n, double *a);
+int GMRFLib_is_sorted_idec(int n, int *a);
+int GMRFLib_is_sorted_idec_plain(int n, int *a);
+int GMRFLib_is_sorted_iinc(int n, int *a);
+int GMRFLib_is_sorted_iinc_plain(int n, int *a);
+int GMRFLib_is_zero(double *x, int n);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, unsigned int len);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno);
@@ -114,48 +119,35 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
 mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
+unsigned char *GMRFLib_prettify_sha(unsigned char *sha);
+unsigned char *Strdup_sha(unsigned char *sha);
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno);
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno);
 void *GMRFLib_memcpy(void *dest, const void *src, size_t n);
 void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno);
-void GMRFLib_delay(int msec);
-void GMRFLib_delay_random(int msec_low, int msec_high);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno);
 void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem);
-void GMRFLib_printMem_core(FILE * fp, const char *file, int lineno);
 void GMRFLib_malloc_debug_check(void);
+void GMRFLib_printMem_core(FILE * fp, const char *file, int lineno);
+void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
+void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
+void GMRFLib_sort_d(double *ix, int n);
+void GMRFLib_sort_i(int *ix, int n);
+void GMRFLib_sys_cache(GMRFLib_sys_cache_tp * l123);
+void GMRFLib_zero_small(int n, double eps, double *x);
 void gsl_sort2_dd(double *data1, double *data2, const int n);
 void gsl_sort2_id(int *data1, double *data2, const int n);
 void gsl_sort2_ii(int *data1, int *data2, const int n);
+void my_insertionSort_d(double *__restrict iarr, int n);
 void my_insertionSort_dd(double *iarr, double *darr, int n);
+void my_insertionSort_i(int *__restrict iarr, int n);
 void my_insertionSort_id(int *iarr, double *darr, int n);
 void my_insertionSort_ii(int *iarr, int *darr, int n);
-void my_insertionSort_i(int *__restrict iarr, int n);
-void my_insertionSort_d(double *__restrict iarr, int n);
 void my_sort2_dd(double *ix, double *x, int n);
 void my_sort2_id(int *ix, double *x, int n);
+void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work);
 void my_sort2_id_x(int *ix, double *x, int n, void *work);
 void my_sort2_ii(int *ix, int *x, int n);
-void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work);
-
-void GMRFLib_sort_i(int *ix, int n);
-void GMRFLib_sort_d(double *ix, int n);
-
-
-int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
-int GMRFLib_is_sorted_ddec(int n, double *a);
-int GMRFLib_is_sorted_ddec_plain(int n, double *a);
-int GMRFLib_is_sorted_dinc(int n, double *a);
-int GMRFLib_is_sorted_dinc_plain(int n, double *a);
-int GMRFLib_is_sorted_idec(int n, int *a);
-int GMRFLib_is_sorted_idec_plain(int n, int *a);
-int GMRFLib_is_sorted_iinc(int n, int *a);
-int GMRFLib_is_sorted_iinc_plain(int n, int *a);
-void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *));
-void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *));
-
-int GMRFLib_get_cachelinesize(void);
-void GMRFLib_sys_cache(GMRFLib_sys_cache_tp * l123);
 
 __END_DECLS
 #endif

@@ -1,6 +1,24 @@
 #' @include spde.common.R
 NULL
 
+# Note: Compatibility wrapper, not needed from fmesher 0.7.0.9001,
+# so calls to it can be removed whaen fmesher 0.8.0 is released, and
+# the version dependency is increased to 0.8.0
+fmesher_fem_cc_compat <- function(mesh, fem) {
+    if (is.null(fem[["cc"]])) { # Not needed from fmesher 0.7.0.9001
+        if (inherits(mesh, "fm_mesh_1d") &&
+            identical(mesh$degree, 2)) {
+            # Use higher order matrix.
+            fem$cc <- fem$c1
+        } else {
+            # Use mass lumped matrix as fallback option
+            fem$cc <- fem$c0
+        }
+    }
+    fem
+}
+
+
 #' Generic spde2 model creation.
 #'
 #' Creates and inla.spde2 object describing the internal structure of an
@@ -801,20 +819,18 @@ inla.spde2.matern <- function(mesh,
     n.theta <- ncol(B.kappa) - 1L
 
     fem <- fmesher::fm_fem(mesh, order = 2)
-    if ((d == 1) && (mesh$degree == 2)) {
-        fem$c0 <- fem$c1 ## Use higher order matrix.
-    }
+    fem <- fmesher_fem_cc_compat(mesh, fem) # Not needed from fmesher 0.7.0.9001
 
     if (alpha == 2) {
         B.phi0 <- param$B.tau
         B.phi1 <- 2 * param$B.kappa
-        M0 <- fem$c0
+        M0 <- fem$cc
         M1 <- fem$g1
         M2 <- fem$g2
     } else if (alpha == 1) {
         B.phi0 <- param$B.tau
         B.phi1 <- param$B.kappa
-        M0 <- fem$c0
+        M0 <- fem$cc
         M1 <- fem$g1 * 0
         M2 <- fem$g1
     } else if (!param$is.stationary) {
@@ -837,7 +853,7 @@ inla.spde2.matern <- function(mesh,
         }
         B.phi0 <- param$B.tau + (alpha - 2) * param$B.kappa
         B.phi1 <- 2 * param$B.kappa
-        M0 <- fem$c0 * b[1]
+        M0 <- fem$cc * b[1]
         M1 <- fem$g1 * b[2] / 2
         M2 <- fem$g2 * b[3]
     } else if ((alpha < 1) && (alpha > 0)) {
@@ -858,7 +874,7 @@ inla.spde2.matern <- function(mesh,
         }
         B.phi0 <- param$B.tau + (alpha - 1) * param$B.kappa
         B.phi1 <- param$B.kappa
-        M0 <- fem$c0 * b[1]
+        M0 <- fem$cc * b[1]
         M1 <- fem$g1 * 0
         M2 <- fem$g1 * b[2]
     } else {
@@ -907,7 +923,7 @@ inla.spde2.matern <- function(mesh,
             A.constr <- rbind(
                 A.constr,
                 matrix(
-                    colSums(fem$c1) / n.iid.group,
+                    colSums(fem$c0) / n.iid.group,
                     1, n.spde * n.iid.group
                 )
             )
@@ -1349,31 +1365,24 @@ inla.spde2.iheat <- function(mesh.space,
     n.spde <- n.space * n.time
     n.theta <- 2L ## gamma.s, gamma.t
 
-    if (d.space >= 2) {
-        fem.space <- fmesher::fm_fem(mesh.space, order = 2)
-    } else {
-        fem.space <- fmesher::fm_fem(mesh.space, order = 2)
-        if (mesh.space$degree == 2) {
-            fem.space$c0 <- fem.space$c1 ## Use higher order matrix.
-        }
-    }
+    fem.space <- fmesher::fm_fem(mesh.space, order = 2)
     fem.time <- fmesher::fm_fem(mesh.time, order = 2)
-    if (mesh.time$degree == 2) {
-        fem.time$c0 <- fem.time$c1 ## Use higher order matrix.
-    }
+    # Not needed from fmesher 0.7.0.9001:
+    fem.space <- fmesher_fem_cc_compat(mesh.space, fem.space)
+    fem.time <- fmesher_fem_cc_compat(mesh.time, fem.time)
 
     ## TODO: the rest
     if (FALSE) {
         if (alpha == 2) {
             B.phi0 <- param$B.tau
             B.phi1 <- 2 * param$B.kappa
-            M0 <- fem$c0
+            M0 <- fem$cc
             M1 <- fem$g1
             M2 <- fem$g2
         } else if (alpha == 1) {
             B.phi0 <- param$B.tau
             B.phi1 <- param$B.kappa
-            M0 <- fem$c0
+            M0 <- fem$cc
             M1 <- fem$g1 * 0
             M2 <- fem$g1
         } else if (!param$is.stationary) {
@@ -1396,7 +1405,7 @@ inla.spde2.iheat <- function(mesh.space,
             }
             B.phi0 <- param$B.tau + (alpha - 2) * param$B.kappa
             B.phi1 <- 2 * param$B.kappa
-            M0 <- fem$c0 * b[1]
+            M0 <- fem$cc * b[1]
             M1 <- fem$g1 * b[2] / 2
             M2 <- fem$g2 * b[3]
         } else if ((alpha < 1) && (alpha > 0)) {
@@ -1417,7 +1426,7 @@ inla.spde2.iheat <- function(mesh.space,
             }
             B.phi0 <- param$B.tau + (alpha - 1) * param$B.kappa
             B.phi1 <- param$B.kappa
-            M0 <- fem$c0 * b[1]
+            M0 <- fem$cc * b[1]
             M1 <- fem$g1 * 0
             M2 <- fem$g1 * b[2]
         } else {

@@ -7,29 +7,18 @@
 \alias{inla.getOption}
 \title{Set and get global options for INLA}
 \usage{
-inla.getOption(
-  option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads",
-    "smtp", "safe", "keep", "verbose", "save.memory", "internal.opt",
-    "working.directory", "silent", "debug", "show.warning.graph.file",
-    "scale.model.default", "short.summary", "inla.timeout", "inla.mode", "malloc.lib",
-    "fmesher.evolution", "fmesher.evolution.warn", "fmesher.evolution.verbosity",
-    "INLAjoint.features", "numa", "disable.values.warning")
-)
+inla.getOption(option = NULL, list.out = NULL)
 
 inla.setOption(...)
 }
 \arguments{
 \item{option}{The option to get. If \code{option = NULL} then
-\code{inla.getOption} then \code{inla.getOption} will return a named list of
-current values, otherwise, \code{option} must be one of
+\code{inla.getOption} will return a named list of
+current values, otherwise, \code{option} must be one (or a vector of several) of
 \describe{
 \item{inla.call}{The path to the inla-program.}
 
 \item{inla.arg}{Additional arguments to \code{inla.call}}
-
-\item{fmesher.call}{The path to the fmesher-program}
-
-\item{fmesher.arg}{Additional arguments to \code{fmesher.call}}
 
 \item{num.threads}{Character string with the number of threads to use as
 \code{A:B}, see \code{?inla}}
@@ -87,15 +76,10 @@ If \code{malloc.lib} is a complete path to an external library, that file will b
 instead of one of the supported ones.}
 
 \item{fmesher.evolution}{Control use of fmesher methods during the transition
-to a separate fmesher package. Levels of
-\code{fmesher.evolution}:
-
-\code{1L} uses the intermediate \verb{fm_*} methods in \code{fmesher} that were already
-available via \code{inlabru} from 2.8.0.
-
-\code{2L} (current default) uses the full range of \code{fmesher} package methods.
-
-Further levels may be added as the package development progresses.}
+to a separate fmesher package. Only supported value is \code{2L}, for using the
+full range of \code{fmesher} package methods. A higher value may be used in the future
+to force use of newer methods, but this is not currently implemented.
+Default is \code{2L}.}
 
 \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
@@ -115,6 +99,15 @@ minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
 
 \item{disable.values.warning}{logical Disable warning about missing 'values'}
 }}
+
+\item{list.out}{logical; If \code{TRUE}, then \code{inla.getOption} will return a named
+list of values, even if only one option is requested.  Default is \code{NULL},
+which means that a named list will be returned if more than one option is
+requested, and a single value will be returned if only one option is
+requested. Using \code{list.out = FALSE} will return a plain vector of values,
+without names, even if more than one option is requested; the data type may
+depend on which options are requested, and may be unpredictable, so use only
+if you know what you're doing.}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}
 }

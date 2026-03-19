@@ -5,14 +5,21 @@
 \alias{inla.set.control.stiles.default}
 \title{control.stiles}
 \usage{
-control.stiles(verbose = FALSE, tile.size = 0)
+control.stiles(verbose = FALSE, block.size = -1, param = rep(-1, 20))
 
 inla.set.control.stiles.default(...)
 }
 \arguments{
 \item{verbose}{Show detailed output (default FALSE)}
 
-\item{tile.size}{The size of the tile (default 0 will chose automatically)}
+\item{block.size}{(integer) Preferred number of rhs's in each parallel solve. Used to
+split many rhs's into threads. Default value (-1) is to use the 'tile.size'
+from sTiles, which is a reasonable tradeoff between speed and memory use.
+A higher value will increase memory usage.}
+
+\item{param}{An integer vector of parameters (variable length).
+Default values are given by '-1'.
+See sTiles documentation for explaination of these parameters}
 
 \item{...}{Named arguments passed on to the main function}
 }

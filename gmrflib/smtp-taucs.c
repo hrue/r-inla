@@ -862,7 +862,7 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 		(PAPT->colptr)[j] = (PAPT->colptr)[j - 1] + len[j - 1];
 
 	memcpy((void *) len, (void *) (PAPT->colptr), (size_t) (n * sizeof(int)));
-	for (int j = 0, k = 0; j < n; j++) {
+	for (int j = 0; j < n; j++) {
 		int iJJ = invperm[j];
 		for (int ip = A->colptr[j]; ip < A->colptr[j + 1]; ip++) {
 			double AIJ = A->values[ip];
@@ -873,7 +873,6 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 			(PAPT->values)[len[iJ]] = AIJ;
 			(*vperm)[len[iJ]] = ip;
 			len[iJ]++;
-			k++;
 		}
 	}
 
@@ -1021,6 +1020,47 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
+// not yet tested
+int export_sparse_matrix(const double *values, const int *colptr, const int *rowind, int nrows, int ncols, int nnz, const char *filename)
+{
+	if (values == NULL || colptr == NULL || rowind == NULL || filename == NULL) {
+		fprintf(stderr, "Error: NULL pointer provided\n");
+		return -1;
+	}
+
+	FILE *fp = fopen(filename, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "Error: Could not open file %s\n", filename);
+		return -1;
+	}
+
+	fprintf(fp, "%d %d %d\n", nrows, ncols, nnz);
+
+	// Write colptr array (ncols + 1 elements)
+	fprintf(fp, "colptr:\n");
+	for (int i = 0; i <= ncols; i++) {
+		fprintf(fp, " %1d", colptr[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Write rowind array (nnz elements)
+	fprintf(fp, "rowind:\n");
+	for (int i = 0; i < nnz; i++) {
+		fprintf(fp, " %1d", rowind[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Write values array (nnz elements)
+	fprintf(fp, "values:\n");
+	for (int i = 0; i < nnz; i++) {
+		fprintf(fp, " %.15g", values[i]);
+	}
+	fprintf(fp, "\n");
+
+	fclose(fp);
+	return 0;
+}
+
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
 					  GMRFLib_fact_info_tp *finfo)
 {
@@ -1028,6 +1068,17 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		return GMRFLib_SUCCESS;
 	}
 	assert(*L);
+
+	// not tested yet
+#if 0
+	char *filename = NULL;
+	static int count = 0;
+	GMRFLib_sprintf(&filename, "Q-%1d.txt", count++);
+	FILE *fp = fopen(filename, "w");
+	export_sparse_matrix((*L)->values, (*L)->colptr, (*L)->rowind, (*L)->n, (*L)->n, (*L)->colptr[(*L)->n], filename);
+	printf("SAVE %s\n", filename);
+	Free(filename);
+#endif
 
 	/*
 	 * compute some info about the factorization 
@@ -1042,9 +1093,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
 	}
 
-	double time_chol = -GMRFLib_timer();
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
-	time_chol += GMRFLib_timer();
 	if (retval) {
 		taucs_supernodal_factor_free_numeric(*symb_fact);	/* remove the numerics, preserve the symbolic */
 		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
@@ -1180,6 +1229,17 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
+#if 0
+	static double tref = 0;
+#       pragma omp threadprivate(tref)
+	static double trefc = 0;
+#       pragma omp threadprivate(trefc)
+	if (nrhs > 1) {
+		tref += -GMRFLib_timer();
+	}
+#endif
+
+
 	int n = graph->n;
 	int skip_reordering = 0;
 	GMRFLib_graph_tp g;
@@ -1216,6 +1276,15 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			GMRFLib_convert_from_mapped(rhs + offset, work + offset, graph, remap);
 		}
 	}
+
+#if 0
+	if (nrhs > 1) {
+		tref += GMRFLib_timer();
+		trefc += nrhs;
+		printf("[%1d] solve %1d rhs using %.6f * E-6 each\n", omp_get_thread_num(), (int) trefc, 1.0E6 * tref / trefc);
+	}
+#endif
+
 
 	return GMRFLib_SUCCESS;
 }
@@ -1399,11 +1468,32 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 {
-	*logdet = 0.0;
-	for (int i = 0; i < L->n; i++) {
-		*logdet += log(L->values[L->colptr[i]]);
+	double ret = 0.0;
+#if 1
+	int n = L->n;
+	int N = 64;
+	int limit = n & ~(N-1);
+	double *v = L->values;
+	
+	for (int i = 0; i < limit; i += N) {
+		double xx[N];
+		int *idx = L->colptr + i;
+		for(int j = 0; j < N; j++) {
+			xx[j] = v[idx[j]];
+		}
+		GMRFLib_log(N, xx, xx);
+		ret += GMRFLib_dsum(N, xx);
 	}
-	*logdet *= 2.0;
+
+	for (int i = limit; i < n; i++) {
+		ret += log(v[L->colptr[i]]);
+	}
+#else
+	for (int i = 0; i < L->n; i++) {
+		ret += log(L->values[L->colptr[i]]);
+	}
+#endif	
+	*logdet = 2.0 * ret;
 
 	return GMRFLib_SUCCESS;
 }

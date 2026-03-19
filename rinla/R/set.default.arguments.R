@@ -458,8 +458,16 @@ control.gcpo <-
              #' @param verbose Show detailed output (default FALSE)
              verbose = FALSE,
 
-             #' @param tile.size The size of the tile (default 0 will chose automatically)
-             tile.size = 0
+             #' @param block.size (integer) Preferred number of rhs's in each parallel solve. Used to
+             #' split many rhs's into threads. Default value (-1) is to use the 'tile.size'
+             #' from sTiles, which is a reasonable tradeoff between speed and memory use.
+             #' A higher value will increase memory usage.
+             block.size = -1, 
+
+             #' @param param An integer vector of parameters (variable length).
+             #' Default values are given by '-1'.
+             #' See sTiles documentation for explaination of these parameters
+             param = rep(-1, 20) 
              ) {
         ctrl_object(as.list(environment()), "stiles", check = FALSE)
     }
@@ -474,6 +482,7 @@ control.gcpo <-
              #' @param block.size Minimum number of rhs's in each parallel solve. Used to split
              #' rhs into threads (on the inner level)
              min.block.size = 4, 
+
              #' @param block.size Preferred number of rhs's in each parallel solve. Used to
              #' split many rhs's into threads (on the outer level)
              block.size = 64

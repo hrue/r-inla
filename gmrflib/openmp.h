@@ -120,18 +120,25 @@ typedef struct {
 
 #       define GMRFLib_ADAPTIVE_NUM_THREADS() (GMRFLib_openmp->adaptive ? GMRFLib_openmp->adaptive : GMRFLib_openmp->max_threads_nested[1])
 
-#       define GMRFLib_OPENMP_IN_SERIAL()                  ((omp_get_num_threads() == 1) && (omp_get_level() == 0))
-#       define GMRFLib_OPENMP_IN_PARALLEL()                (!GMRFLib_OPENMP_IN_SERIAL())
-#       define GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()     ((omp_get_num_threads() == 1) && (omp_get_level() == 1))
-#       define GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() (omp_in_parallel() == 1)
-
-#       define GMRFLib_OPENMP_IN_OUTER() (omp_get_level() == 0)
-#       define GMRFLib_OPENMP_IN_INNER() (omp_get_level() == 1)
+// 'omp_get_level()==0'  is equivalent to 'omp_in_parallel()==0'
+#       define GMRFLib_OPENMP_IN_INNER()                (omp_get_level() == 2)
+#       define GMRFLib_OPENMP_IN_OUTER()                (omp_get_level() == 1)
+#       define GMRFLib_OPENMP_IN_PARALLEL()             (!GMRFLib_OPENMP_IN_SERIAL())
+#       define GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()  (GMRFLib_OPENMP_IN_PARALLEL() && (omp_get_num_threads() == 1))
+#       define GMRFLib_OPENMP_IN_SERIAL()               (omp_get_level() == 0)
 
 #       define GMRFLib_OPENMP_NUM_THREADS_LEVEL() (GMRFLib_OPENMP_IN_OUTER() ? GMRFLib_openmp->max_threads_outer : \
 					    GMRFLib_openmp->max_threads_inner)
 
-#       define GMRFLib_STOP_IF_NOT_SERIAL() assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD())
+#       define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
+	if (GMRFLib_OPENMP_IN_SERIAL()) {				\
+		_Pragma("omp parallel for num_threads(1)")		\
+			for(int k_ = 0; k_ < 1; k_++) {			\
+				GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR;	\
+			}						\
+	} else {							\
+		GMRFLib_OPENMP_ENSURE_IN_PARALLEL_EXPR;			\
+	}
 
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
@@ -149,6 +156,10 @@ void GMRFLib_adapt_nt_init(int max_levels);
 int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_threads);
 void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime);
 void GMRFLib_adapt_nt_print(FILE * fp);
+
+// deprecated functions
+#       define omp_set_nested_(v_) omp_set_max_active_levels(((v_) ? 3 : 1))
+#       define omp_get_nested_() (omp_get_max_active_levels() > 1 ? 1 : 0)
 
 __END_DECLS
 #endif

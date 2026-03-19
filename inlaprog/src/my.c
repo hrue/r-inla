@@ -260,7 +260,6 @@ double my_betabinomial_helper8(int n, double a, double *work)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
-#pragma omp simd reduction(*: s)
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
@@ -295,7 +294,6 @@ double my_betabinomial_helper16(int n, double a, double *work)
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
-#pragma omp simd reduction(*: s)
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
