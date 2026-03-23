@@ -8,7 +8,7 @@
 #include <strings.h>
 
 #if defined(INLA_WITH_MUPARSER)
-#       include <muParser/muParserDLL.h>
+#       include <muParserDLL.h>
 #endif
 
 #include "GMRFLib/GMRFLib.h"
@@ -212,7 +212,10 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 		mupSetDecSep(hParser, '.');
 		mupSetThousandsSep(hParser, 0);
 		mupDefineConst(hParser, "pi", M_PI);
-		mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0);
+
+		// do not need this one
+		//mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0, 0);
+
 		mupDefineFun1(hParser, "return", inla_eval_Return, 1);
 		mupDefineFun1(hParser, "gamma", inla_eval_Gamma, 1);
 		mupDefineFun1(hParser, "lgamma", inla_eval_LogGamma, 1);
