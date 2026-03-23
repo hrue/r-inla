@@ -1954,3 +1954,155 @@ double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
 	return (ret);
 }
 ```
+
+## Beta example
+
+Here is an example with Beta-likelihood, where we extend the precision
+parameter to take a covariate as well.
+
+The Beta-distribution has the following density
+\begin{displaymath}
+    \pi(y) = \frac{1}{B(a, b)} y^{a-1}(1-y)^{b-1}, \qquad 0 < y < 1,
+    \quad a>0, \quad b > 0
+\end{displaymath}
+where $B(a, b)$
+is the Beta-function 
+\begin{displaymath}
+    B(a, b) = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}
+\end{displaymath}
+and $\Gamma(x)$ is the Gamma-function.
+The (re-)parameterisation used is
+\begin{displaymath}
+    \mu = \frac{a}{a+b}, \qquad 0 < \mu < 1
+\end{displaymath}
+and
+\begin{displaymath}
+    \phi = a + b, \qquad \phi > 0,
+\end{displaymath}
+as it makes
+\begin{displaymath}
+    \text{E}(y) = \mu \quad\text{and}\quad \text{Var}(y) = \frac{\mu(1-\mu)}{1+\phi}.
+\end{displaymath}
+The parameter $\phi$ is know as the \emph{precision parameter}, since
+for fixed $\mu$, the larger $\phi$ the smaller the variance of $y$.
+The parameters $\{a, b\}$ are given as $\{\mu, \phi\}$ as follows,
+\begin{displaymath}
+    a = \mu \phi \quad\text{and}\quad  b = -\mu \phi + \phi.
+\end{displaymath}
+
+The parameter $\mu$ depends on the linear predictor
+\begin{displaymath}
+    \mu = \frac{\exp(\eta)}{1+\exp(\eta)}.
+\end{displaymath}
+whereas $\phi$ we express, and this is the extention, as
+\begin{displaymath}
+	\phi = \exp(\theta_1 + \theta_2 * z)
+\end{displaymath}
+for covariate $z$. 
+
+Here is the code, where the `C`-file is available in the repository as
+`cloglike-demo-beta.c`.
+```{r eval=FALSE}
+#include <math.h>
+#include <stdlib.h>
+#include "cgeneric.h"
+
+#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#define Malloc(n_, type_)  (type_ *)malloc((n_) * sizeof(type_))
+#define SQR(x_) ((x_)*(x_))
+
+double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
+			   inla_cgeneric_data_tp *data, int ny, double *y,
+			   int nx, double *x, double *result)
+{
+	double *ret = NULL;
+
+	switch (cmd) {
+	case INLA_CLOGLIKE_INITIAL:
+	{
+		ret = Malloc(3, double);
+		ret[0] = 2;
+		ret[1] = 1;
+		ret[2] = 1;
+	}
+	break;
+
+	case INLA_CLOGLIKE_LOG_PRIOR:
+	{
+		double prec[2] = {1, 1};
+		ret = Malloc(1, double);
+		ret[0] = log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[0])
+			- 0.5 * prec[0] * SQR(theta[0]);
+		ret[0] += log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[1])
+			- 0.5 * prec[1] * SQR(theta[1]);
+	}
+	break;
+
+	case INLA_CLOGLIKE_LOGLIKE:
+	{
+		// covariate for phi is y[1]
+		for (int i = 0; i < nx; i++) {
+			double mu = exp(x[i]) / (1.0 + exp(x[i]));
+			double phi = exp(theta[0] + theta[1] * y[1]);
+			double a = mu * phi;
+			double b = -mu * phi + phi;
+			result[i] = (a-1.0) * log(y[0])
+				+ (b-1.0) * log(1.0 - y[0])
+				+ (lgamma(a+b) - (lgamma(a) + lgamma(b))); 
+		}
+	}
+	break;
+
+	case INLA_CLOGLIKE_CDF:
+	{
+		for (int i = 0; i < nx; i++) {
+			result[i] = NAN;
+		}
+	}
+	break;
+
+	case INLA_CLOGLIKE_QUIT:
+		break;
+	}
+
+	return (ret);
+}
+```
+The output from a typical run will look like
+```{r eval=FALSE}
+> n = 10^4
+> z = rnorm(n, sd=0.3)
+> zz = rnorm(n, sd=0.4)
+> eta = 1 + z
+> phi <- exp(1 + zz)
+> mu = exp(eta)/(1+exp(eta))
+> a = mu * phi
+> b = -mu * phi + phi
+> y = rbeta(n, a, b)
+
+> Y <- inla.mdata(cbind(y, zz))
+> cloglike <- inla.cloglike.define(model = "inla_cloglike_beta", 
++                                  shlib = "cloglike-demo-beta.so")
+> formula = Y ~ 1 + z
+> r = inla(formula,
++          data = list(Y = Y), 
++          family = "cloglike",
++          control.family = list(cloglike = cloglike))
+
+> summary(r)
+Time used:
+    Pre = 0.141, Running = 2.95, Post = 0.0427, Total = 3.13 
+Fixed effects:
+             mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+(Intercept) 1.011 0.011      0.989    1.011      1.032 1.011   0
+z           0.970 0.033      0.905    0.970      1.035 0.970   0
+
+Model hyperparameters:
+                      mean    sd 0.025quant 0.5quant 0.975quant mode
+Theta1 for INLA.Data1 1.01 0.013      0.983     1.01       1.03 1.01
+Theta2 for INLA.Data1 1.03 0.030      0.974     1.03       1.09 1.03
+
+Marginal log-Likelihood:  4951.11 
+ is computed 
+Posterior summaries for the linear predictor and the fitted values are computed
+```
