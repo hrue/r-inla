@@ -1472,13 +1472,13 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 #if 1
 	int n = L->n;
 	int N = 64;
-	int limit = n & ~(N-1);
+	int limit = n & ~(N - 1);
 	double *v = L->values;
-	
+
 	for (int i = 0; i < limit; i += N) {
 		double xx[N];
 		int *idx = L->colptr + i;
-		for(int j = 0; j < N; j++) {
+		for (int j = 0; j < N; j++) {
 			xx[j] = v[idx[j]];
 		}
 		GMRFLib_log(N, xx, xx);
@@ -1492,7 +1492,7 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 	for (int i = 0; i < L->n; i++) {
 		ret += log(L->values[L->colptr[i]]);
 	}
-#endif	
+#endif
 	*logdet = 2.0 * ret;
 
 	return GMRFLib_SUCCESS;

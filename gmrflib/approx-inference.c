@@ -2276,7 +2276,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				}
 				if (dic) {
 					deviance_theta[i][dens_count] =
-						GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
+					    GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
 				}
 				if (po) {
 					GMRFLib_ai_po_integrate(thread_id, &po_theta[i][dens_count], &po2_theta[i][dens_count],

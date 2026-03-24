@@ -214,7 +214,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 		mupDefineConst(hParser, "pi", M_PI);
 
 		// do not need this one
-		//mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0, 0);
+		// mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0, 0);
 
 		mupDefineFun1(hParser, "return", inla_eval_Return, 1);
 		mupDefineFun1(hParser, "gamma", inla_eval_Gamma, 1);

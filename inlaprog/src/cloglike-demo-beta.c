@@ -7,8 +7,7 @@
 #define SQR(x_) ((x_)*(x_))
 
 double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
-			   inla_cgeneric_data_tp *data, int ny, double *y,
-			   int nx, double *x, double *result)
+			   inla_cgeneric_data_tp *data, int ny, double *y, int nx, double *x, double *result)
 {
 	double *ret = NULL;
 
@@ -20,18 +19,18 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 		ret[1] = 1;
 		ret[2] = 1;
 	}
-	break;
+		break;
 
 	case INLA_CLOGLIKE_LOG_PRIOR:
 	{
-		double prec[2] = {1, 1};
+		double prec[2] = { 1, 1 };
 		ret = Malloc(1, double);
 		ret[0] = log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[0])
-			- 0.5 * prec[0] * SQR(theta[0]);
+		    - 0.5 * prec[0] * SQR(theta[0]);
 		ret[0] += log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[1])
-			- 0.5 * prec[1] * SQR(theta[1]);
+		    - 0.5 * prec[1] * SQR(theta[1]);
 	}
-	break;
+		break;
 
 	case INLA_CLOGLIKE_LOGLIKE:
 	{
@@ -41,12 +40,12 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 			double phi = exp(theta[0] + theta[1] * y[1]);
 			double a = mu * phi;
 			double b = -mu * phi + phi;
-			result[i] = (a-1.0) * log(y[0])
-				+ (b-1.0) * log(1.0 - y[0])
-				+ (lgamma(a+b) - (lgamma(a) + lgamma(b))); 
+			result[i] = (a - 1.0) * log(y[0])
+			    + (b - 1.0) * log(1.0 - y[0])
+			    + (lgamma(a + b) - (lgamma(a) + lgamma(b)));
 		}
 	}
-	break;
+		break;
 
 	case INLA_CLOGLIKE_CDF:
 	{
@@ -54,7 +53,7 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 			result[i] = NAN;
 		}
 	}
-	break;
+		break;
 
 	case INLA_CLOGLIKE_QUIT:
 		break;
