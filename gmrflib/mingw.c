@@ -28,18 +28,26 @@ void __chkstk()
 		 pop rax				       // Restore original registers
  pop rcx ret}}
 #       endif
-														// does not work void// __chkstk(size_t size) { if (size 
-														// // == 0) return; size_t pages =// (size + 4095) / 4096;// Round up 
-														// to page boundary volatile char
-														// *probe_ptr = (volatile char *)
-														// &probe_ptr - size; for (size_t i = 0; i < pages; ++i) {
-	*probe_ptr = 0;
-	probe_ptr += 4096;
-}} uint64_t __security_cookie;
+
+void __chkstk(size_t size)
+{							       /* does not work */
+	if (size == 0)
+		return;
+	size_t pages = (size + 4095) / 4096;
+	*probe_ptr = (volatile char *) &probe_ptr - size;
+	for (size_t i = 0; i < pages; ++i) {
+		*probe_ptr = 0;
+		probe_ptr += 4096;
+	}
+}
+
+uint64_t __security_cookie;
+
 void __security_init_cookie()
 {
 	__security_cookie = 0;
 }
+
 void __security_check_cookie(uint64_t retrieved)
 {
 	if (__security_cookie != retrieved) {
