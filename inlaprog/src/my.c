@@ -342,7 +342,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 
 double my_betabinomial_helper(int n, double a, double *work)
 {
-	return (n <= 104L ? my_betabinomial_helper8(n, a, work) : my_betabinomial_helper16(n, a, work));
+	return my_betabinomial_helper8(n, a, work); 
 }
 
 double my_betabinomial(int y, int n, double a, double b, double *work)
