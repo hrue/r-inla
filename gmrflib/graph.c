@@ -19,7 +19,7 @@ static int graph_store_debug = 0;
 				       (graph_->n <= 1E2 ? 1 :		\
 					(graph_->n < 1E3 ? 2 :		\
 					 (graph_->n < 1E4 ? 4 :		\
-					  (graph_->n < 1E4 ? 8 : GMRFLib_MAX_THREADS())))))
+					  (graph_->n <= 1E4 ? 8 : GMRFLib_MAX_THREADS())))))
 
 int GMRFLib_graph_init_store(void)
 {
@@ -109,6 +109,9 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 	(*graph)->nnbs = Calloc((*graph)->n + 1, int);
 	(*graph)->nbs = Calloc((*graph)->n + 1, int *);
 
+	assert((*graph)->nnbs);
+	assert((*graph)->nbs);
+	
 	min_node = INT_MAX;
 	max_node = INT_MIN;
 
@@ -155,7 +158,6 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 		 * This is a 1-based graph; convert it to a zero-based graph 
 		 */
 		int im;
-
 		for (i = 1; i <= (*graph)->n; i++) {	       /* YES! */
 			im = i - 1;
 			(*graph)->nnbs[im] = (*graph)->nnbs[i];
@@ -167,17 +169,15 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 				}
 			}
 		}
-	} else {
-		if (!(min_node == 0 && max_node == (*graph)->n - 1)) {
-			/*
-			 * then there is something wrong; write a message and say so 
-			 */
-			fprintf(stderr, "\n\n\n");
-			fprintf(stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
-			fprintf(stderr, " *** The position in reported in the file is not correct...\n");
-			GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
-			return GMRFLib_EREADFILE;
-		}
+	} else if (!(min_node == 0 && max_node == (*graph)->n - 1)) {
+		/*
+		 * then there is something wrong; write a message and say so 
+		 */
+		fprintf(stderr, "\n\n\n");
+		fprintf(stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
+		fprintf(stderr, " *** The position in reported in the file is not correct...\n");
+		GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
+		return GMRFLib_EREADFILE;
 	}
 
 	GMRFLib_EWRAP0(GMRFLib_io_close(io));
@@ -714,13 +714,14 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 	int *row2col = Calloc(N, int);
 	assert(N > 0);
 
-	if (0) {
-		int *row = Calloc(graph->n + 1, int);
-		row[0] = 0;
-		for (int i = 1; i < n + 1; i++) {
-			row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
-		}
+#if 0
+	int *row = Calloc(graph->n + 1, int);
+	row[0] = 0;
+	for (int i = 1; i < n + 1; i++) {
+		row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
 	}
+#endif
+
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 
 	int nt = NUM_THREADS_GRAPH(graph);

@@ -1091,6 +1091,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	flags = (*L)->flags;
 	if (!*symb_fact) {
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
+		assert(*symb_fact);
 	}
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
