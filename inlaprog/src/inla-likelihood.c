@@ -7286,7 +7286,7 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 	/*
 	 * BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
 	 */
-#define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
+#define _LOGGAMMA_INT(xx_) my_gsl_sf_lnfact(((xx_) - 1))
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7309,20 +7309,19 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 
 	LINK_INIT;
 	if (m > 0) {
-		// issues occur when x[i] is to large
-		double p_upper = 0.999, xmax;
-		double work[n];
-		xmax = GMRFLib_max_value(x, m, NULL) + off;
+		bool large =  ((y >= 16) + (n-y >= 16) + (n >= 16)) >= 2; // chose 'large' version of code
+		int len_work = my_betabinomial_work_len(n);
+		double work[len_work];
+		double p_upper = 0.999;
+		double xmax = GMRFLib_max_value(x, m, NULL) + off;
 		p = PREDICTOR_INVERSE_LINK(xmax, off);
 		if (p < p_upper) {
 			for (int i = 0; i < m; i++) {
 				p = PREDICTOR_INVERSE_LINK(x[i], off);
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
-
-				// joinig the beta-expressions, we can do better and be more robust
 				// logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
-				logll[i] = normc + my_betabinomial(y, n, a, b, work);
+				logll[i] = normc + my_betabinomial(y, n, a, b, work, large);
 			}
 		} else {
 			// extrapolate linearly
@@ -7334,7 +7333,7 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 				p = PREDICTOR_INVERSE_LINK(xx[i], off);
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
-				ll[i] = normc + my_betabinomial(y, n, a, b, work);
+				ll[i] = normc + my_betabinomial(y, n, a, b, work, large);
 			}
 			diff = (ll[2] - ll[0]) / (2.0 * h);
 			ddiff = (ll[2] - 2.0 * ll[1] + ll[0]) / SQR(h);

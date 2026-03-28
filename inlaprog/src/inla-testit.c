@@ -2655,65 +2655,6 @@ int testit(int argc, char **argv)
 		break;
 
 	case 93:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		double *a = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
-			a[i] = GMRFLib_uniform();
-		}
-
-		P(n);
-		P(m);
-		double sum = 0.0, sum1 = 0.0, sum2 = 0.0, sum0 = 0.0;
-		double tref[3] = { 0, 0, 0 };
-		double work[n];
-
-		for (int k = 0; k < m; k++) {
-			tref[0] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum += my_betabinomial_helper4(n, a[i], work);
-			}
-			tref[0] += GMRFLib_timer();
-			tref[1] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum1 += my_betabinomial_helper8(n, a[i], work);
-			}
-			tref[1] += GMRFLib_timer();
-			tref[2] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum2 += my_betabinomial_helper16(n, a[i], work);
-			}
-			tref[2] += GMRFLib_timer();
-		}
-		printf("h4 = %.6f h8 = %.6f h16= %.6f\n", tref[0], tref[1], tref[2]);
-		P((sum1 - sum2) / (sum1 + sum2));
-		P((sum - sum2) / (sum + sum2));
-		sum0 = sum;
-
-		tref[0] = tref[1] = tref[2] = sum = sum1 = sum2 = 0.0;
-		for (int k = 0; k < m; k++) {
-			tref[0] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum += my_betabinomial_helper_core(n, a[i], work, 8);
-			}
-			tref[0] += GMRFLib_timer();
-			tref[1] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum1 += my_betabinomial_helper_core(n, a[i], work, 12);
-			}
-			tref[1] += GMRFLib_timer();
-			tref[2] -= GMRFLib_timer();
-			for (int i = 0; i < n; i++) {
-				sum2 += my_betabinomial_helper_core(n, a[i], work, 16);
-			}
-			tref[2] += GMRFLib_timer();
-		}
-		printf("CORE h8 = %.6f h12 = %.6f h16= %.6f\n", tref[0], tref[1], tref[2]);
-		P((sum1 - sum2) / (sum1 + sum2));
-		P((sum - sum2) / (sum + sum2));
-		P((sum0 - sum2) / (sum0 + sum2));
-	}
 		break;
 
 	case 94:
