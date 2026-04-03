@@ -7,7 +7,7 @@
 #include "GMRFLib/GMRFLib.h"
 
 // set to 1 to enable and 0 to disable
-#define USE_ALIGNMENT 0
+#define USE_ALIGNMENT 1
 
 void *malloc_intern(size_t size)
 {
