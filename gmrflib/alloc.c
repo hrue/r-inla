@@ -7,7 +7,12 @@
 #include "GMRFLib/GMRFLib.h"
 
 // set to 1 to enable and 0 to disable
-#define USE_ALIGNMENT 1
+#if defined(_WIN32)
+// windows does not have aligned alloc without using a dedicated free, so for that reason I have to turn that off
+#       define USE_ALIGNMENT 0
+#else
+#       define USE_ALIGNMENT 1
+#endif
 
 void *malloc_intern(size_t size)
 {
