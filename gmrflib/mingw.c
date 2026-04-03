@@ -28,7 +28,6 @@ void __chkstk()
 		 pop rax				       // Restore original registers
  pop rcx ret}}
 #       endif
-
 void __chkstk(size_t size)
 {							       /* does not work */
 	if (size == 0)

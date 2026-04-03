@@ -6175,9 +6175,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7309,7 +7309,7 @@ int loglikelihood_betabinomial(int thread_id, int *UNUSED(lcache_idx), double *_
 
 	LINK_INIT;
 	if (m > 0) {
-		bool large =  ((y >= 16) + (n-y >= 16) + (n >= 16)) >= 2; // chose 'large' version of code
+		bool large = ((y >= 16) + (n - y >= 16) + (n >= 16)) >= 2;	// chose 'large' version of code
 		int len_work = my_betabinomial_work_len(n);
 		double work[len_work];
 		double p_upper = 0.999;

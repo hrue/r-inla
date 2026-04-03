@@ -15,7 +15,6 @@
 __BEGIN_DECLS
 // AVX512 require 64, AVX2 require 32 ...
 #       define GMRFLib_MEM_ALIGN 64u
-
 size_t GMRFLib_align_len(size_t n, size_t size);
 void *calloc_intern(size_t nmemb, size_t size);
 void *malloc_intern(size_t size);

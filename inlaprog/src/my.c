@@ -220,8 +220,7 @@ double my_betabinomial_helper8(int n, double a, double *work)
 		int j = nn - 1 - i;
 		double aa = a + i * roll;
 		double bb = a + j * roll + roll2;
-		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) *
-			   bb * (bb + 1) * (bb + 2) * (bb + 3));
+		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * bb * (bb + 1) * (bb + 2) * (bb + 3));
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -257,10 +256,10 @@ double my_betabinomial_helper16(int n, double a, double *work)
 		int j = nn - 1 - i;
 		double aa = a + i * roll;
 		double bb = a + j * roll + roll2;
-		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) * 
+		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) *
 			   bb * (bb + 1) * (bb + 2) * (bb + 3) * (bb + 4) * (bb + 5) * (bb + 6) * (bb + 7));
 	}
-	
+
 	GMRFLib_log(nn, work, work);
 	double s0 = GMRFLib_dsum(nn, work);
 
@@ -285,7 +284,7 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 	const int roll = 16L;
 	const int roll2 = roll / 2;
 
-	for(int k = 0; k < mm; k++) {
+	for (int k = 0; k < mm; k++) {
 		int n = ns[k];
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
@@ -298,10 +297,10 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 			int j = nn - 1 - i;
 			double aa = a + i * roll;
 			double bb = a + j * roll + roll2;
-			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) * 
+			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) *
 				   bb * (bb + 1) * (bb + 2) * (bb + 3) * (bb + 4) * (bb + 5) * (bb + 6) * (bb + 7));
 		}
-	
+
 		GMRFLib_log(nn, work, work);
 		double s0 = GMRFLib_dsum(nn, work);
 
@@ -326,7 +325,7 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 	const int roll = 8L;
 	const int roll2 = roll / 2;
 
-	for(int k = 0; k < mm; k++) {
+	for (int k = 0; k < mm; k++) {
 		int n = ns[k];
 		div_t d = div(n, roll);
 		int m = d.quot * roll;
@@ -339,10 +338,9 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 			int j = nn - 1 - i;
 			double aa = a + i * roll;
 			double bb = a + j * roll + roll2;
-			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) *
-				   bb * (bb + 1) * (bb + 2) * (bb + 3));
+			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * bb * (bb + 1) * (bb + 2) * (bb + 3));
 		}
-	
+
 		GMRFLib_log(nn, work, work);
 		double s0 = GMRFLib_dsum(nn, work);
 
@@ -396,7 +394,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 #pragma GCC diagnostic pop
 
 // these functions work together!
-int my_betabinomial_work_len(int n) 
+int my_betabinomial_work_len(int n)
 {
 	return 1 + n / 8L;
 }
@@ -404,9 +402,9 @@ int my_betabinomial_work_len(int n)
 double my_betabinomial(int y, int n, double a, double b, double *work, bool large)
 {
 	// recall to change _work_len() if this is changed
-	int nn[3] = {y, n-y, n};
-	double ab[3] = {a, b, a+b};
-	double out[3] = {0};
+	int nn[3] = { y, n - y, n };
+	double ab[3] = { a, b, a + b };
+	double out[3] = { 0 };
 	if (large) {
 		my_betabinomial_helper16_s(3, nn, ab, work, out);
 	} else {

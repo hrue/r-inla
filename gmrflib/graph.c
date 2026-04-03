@@ -111,7 +111,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 
 	assert((*graph)->nnbs);
 	assert((*graph)->nbs);
-	
+
 	min_node = INT_MAX;
 	max_node = INT_MIN;
 
