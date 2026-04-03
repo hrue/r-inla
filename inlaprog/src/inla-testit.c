@@ -5687,12 +5687,12 @@ int testit(int argc, char **argv)
 		idx = idx + kk;
 		bx = bx + kk;
 
-		P(SIMD_ALIGNED(x));
-		P(SIMD_ALIGNED(y));
-		P(SIMD_ALIGNED(ix));
-		P(SIMD_ALIGNED(iy));
-		P(SIMD_ALIGNED(idx));
-		P(SIMD_ALIGNED(bx));
+		P(GMRFLib_is_aligned(x));
+		P(GMRFLib_is_aligned(y));
+		P(GMRFLib_is_aligned(ix));
+		P(GMRFLib_is_aligned(iy));
+		P(GMRFLib_is_aligned(idx));
+		P(GMRFLib_is_aligned(bx));
 
 		double tref[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 #       if defined(INLA_WITH_OPENBLAS)
@@ -5814,7 +5814,7 @@ int testit(int argc, char **argv)
 				y[k] = x[k] * a;
 			tref_native[10] += GMRFLib_timer();
 		}
-		printf("aligned %s\n", (SIMD_ALIGNED(x)) ? "YES" : "NO");
+		printf("aligned %s\n", (GMRFLib_is_aligned(x)) ? "YES" : "NO");
 		printf("ddot               %.8f\n", tref[9]);
 		printf("sparse_ddot        %.8f\n", tref[0]);
 

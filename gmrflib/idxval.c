@@ -323,7 +323,7 @@ int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 			for (int g = 0; g < hold->g_n; g++) {
 				fprintf(fp, "\tgroup %d has length %d (one=%s) (aligned=%s:%s)\n", g, hold->g_len[g],
 					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"),
-					(SIMD_ALIGNED(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), (SIMD_ALIGNED(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
+					(GMRFLib_is_aligned(hold->g_idx[g][0]) ? "TRUE" : "FALSE"), (GMRFLib_is_aligned(hold->g_val[g][0]) ? "TRUE" : "FALSE"));
 				if (show_details) {
 					fprintf(fp, "\t\t");
 					for (int k = 0; k < IABS(hold->g_len[g]); k++) {
