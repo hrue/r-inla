@@ -267,7 +267,11 @@
    
              #' @param opt.num.threads Reduce the number of threads adaptively if needed at
              #' critical places to optimize wall-clock time
-             opt.num.threads = TRUE
+             opt.num.threads = TRUE, 
+
+             #' @param memory.alignment Logical. Use 64-byte alignment for alloc (Linux and Mac
+             #' only). (EXPERIMENTAL OPTION)
+             memory.alignment = FALSE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }

@@ -19923,11 +19923,13 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
+	GMRFLib_memory_alignment = iniparser_getboolean(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
 
 	if (mb->verbose) {
 		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 		printf("\t\t\tOptimise storage      = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads  = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
+		printf("\t\t\tMemory.alignment      = [%s]\n", (GMRFLib_memory_alignment ? "Yes" : "No"));
 	}
 
 	/*

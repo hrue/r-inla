@@ -144,6 +144,7 @@ int GMRFLib_cachelinesize = 64;
 int GMRFLib_model_idx = 0;
 int GMRFLib_model_n = 1;
 int GMRFLib_force_stiles = 0;
+int GMRFLib_memory_alignment = 0;
 double GMRFLib_overall_cpu[8] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 char *GMRFLib_tmpdir = NULL;

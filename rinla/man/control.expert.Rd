@@ -13,7 +13,8 @@ control.expert(
   globalconstr = list(A = NULL, e = NULL),
   opt.solve = FALSE,
   opt.storage = FALSE,
-  opt.num.threads = TRUE
+  opt.num.threads = TRUE,
+  memory.alignment = FALSE
 )
 
 inla.set.control.expert.default(...)
@@ -43,6 +44,9 @@ Might benefite larger models. (EXPERIMENTAL OPTION)}
 
 \item{opt.num.threads}{Reduce the number of threads adaptively if needed at
 critical places to optimize wall-clock time}
+
+\item{memory.alignment}{Logical. Use 64-byte alignment for alloc (Linux and Mac
+only). (EXPERIMENTAL OPTION)}
 
 \item{...}{Named arguments passed on to the main function}
 }

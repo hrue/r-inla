@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define malloc(a_) malloc_intern(a_)
+#define calloc(a_, b_) calloc_intern(a_, b_)
+#define realloc(a_, b_) realloc_intern(a_, b_)
+
 #include "GMRFLib/GMRFLib.h"
 
 // >>>>>>>> LINUX ONLY <<<<<<<<

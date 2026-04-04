@@ -18,10 +18,6 @@ __BEGIN_DECLS
 #include <stdlib.h>
 #include <stdint.h>
 
-#if defined(INLA_WITH_MIMALLOC)
-#include <mimalloc.h> 
-#endif
-
 #if defined(INLA_WITH_JEMALLOC)
 #include <jemalloc/jemalloc.h> 
 #endif

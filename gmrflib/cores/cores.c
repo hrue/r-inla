@@ -9,7 +9,12 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
+#define malloc(a_) malloc_intern(a_)
+#define calloc(a_, b_) calloc_intern(a_, b_)
+#define realloc(a_, b_) realloc_intern(a_, b_)
+#include "GMRFLib/alloc.h"
 #include "GMRFLib/cores.h"
+
 #include <stdlib.h>					       /* malloc, realloc, free */
 #include <stdio.h>					       /* fprintf */
 #include <time.h>					       /* clock_t, clock, CLOCKS_PER_SEC, nanosleep */

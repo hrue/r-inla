@@ -1853,6 +1853,7 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("opt.solve", args$opt.solve, file)
     inla.write.boolean.field("opt.storage", args$opt.storage, file)
     inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
+    inla.write.boolean.field("memory.alignment", args$memory.alignment, file)
 
     gconstr <- args$globalconstr
     if (!is.null(gconstr) && !is.null(gconstr$A)) {

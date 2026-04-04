@@ -7,6 +7,10 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
 
+#define malloc(a_) malloc_intern(a_)
+#define calloc(a_, b_) calloc_intern(a_, b_)
+#define realloc(a_, b_) realloc_intern(a_, b_)
+
 /*
 
 Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
