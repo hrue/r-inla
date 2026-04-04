@@ -19948,10 +19948,8 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	mb->expert_cpo_idx = idx;
 
 	if (mb->verbose) {
-		int i;
-
 		printf("\t\t\tcpo.manual=[%1d]\n", mb->expert_cpo_manual);
-		for (i = 0; i < mb->expert_n_cpo_idx; i++) {
+		for (int i = 0; i < mb->expert_n_cpo_idx; i++) {
 			printf("\t\t\tcpo.idx=[%1d]\n", mb->expert_cpo_idx[i]);
 		}
 	}
