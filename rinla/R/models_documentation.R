@@ -245,7 +245,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{min.diff = }{\verb{1e-06}}
+#'               \item{min.diff = }{\verb{1e-08}}
 #'               \item{pdf = }{\verb{rw1}}
 #'              }
 #'            }
@@ -280,7 +280,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{min.diff = }{\verb{1e-04}}
+#'               \item{min.diff = }{\verb{1e-08}}
 #'               \item{pdf = }{\verb{rw2}}
 #'              }
 #'            }
@@ -315,7 +315,7 @@
 #'               \item{n.div.by = }{\verb{NULL}}
 #'               \item{n.required = }{\verb{FALSE}}
 #'               \item{set.default.values = }{\verb{FALSE}}
-#'               \item{min.diff = }{\verb{1e-04}}
+#'               \item{min.diff = }{\verb{1e-08}}
 #'               \item{pdf = }{\verb{crw2}}
 #'              }
 #'            }

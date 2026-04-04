@@ -196,7 +196,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    min.diff = 1E-6,
+                    min.diff = 1E-8,
                     pdf = "rw1"
                 ),
 
@@ -223,7 +223,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    min.diff = 1E-4,
+                    min.diff = 1E-8,
                     pdf = "rw2"
                 ),
 
@@ -250,7 +250,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    min.diff = 1E-4,
+                    min.diff = 1E-8,
                     pdf = "crw2"
                 ),
 

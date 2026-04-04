@@ -1018,14 +1018,18 @@
           return(invisible())
       }
 
-    min.diff <- min(diff(sort(loc))) / diff(range(loc))
+    s.loc <- unique(sort(loc))
+    s.range <- diff(range(s.loc))
+    min.ds <-  min(diff(s.loc))
+    mean.ds <- s.range / (length(s.loc) -1)
+    min.diff <- min.ds / mean.ds
     if (min.diff < lim) {
         stop(paste(
             sep = "",
             "Locations are too close for f(",
             term, ", model=\"",
-            model, "\", ...): ",
-            " min(diff(sort(x)))/diff(range(x)) = ",
+            model, "\", ...): ", "\n", 
+            "\t", "min.ds / mean.ds = ",
             format(min.diff, scientific = TRUE, digits = 4L),
             " < ", format(lim, scientific = TRUE, digits = 4L), "\n",
             "  You can fix this by some kind of binning, see ?inla.group", "\n",
