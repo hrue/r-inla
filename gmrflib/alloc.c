@@ -6,16 +6,10 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#if defined(_WIN32) && !defined(INLA_WITH_MIMALLOC) && !defined(INLA_WITH_JEMALLOC)
-static int use_alignment = 0;
-#else
-static int use_alignment = GMRFLib_memory_alignment;
-#endif
-
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
-	if (use_alignment) {
+	if (GMRFLib_memory_alignment) {
 		p = aligned_alloc(GMRFLib_MEM_ALIGN, size);
 	} else {
 		p = malloc(size);
@@ -27,7 +21,7 @@ void *malloc_intern(size_t size)
 void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
-	if (use_alignment) {
+	if (GMRFLib_memory_alignment) {
 		size_t n = nmemb * size;
 		p = aligned_alloc(GMRFLib_MEM_ALIGN, n);
 		assert(p);
@@ -45,7 +39,7 @@ void *realloc_intern(void *ptr, size_t size)
 	if (!ptr) {
 		p = malloc_intern(size);
 	} else {
-		if (use_alignment) {
+		if (GMRFLib_memory_alignment) {
 #       if defined(INLA_WITH_MIMALLOC)
 			void *mi_realloc_aligned(void *, size_t, size_t);
 			p = mi_realloc_aligned(ptr, size, GMRFLib_MEM_ALIGN);
