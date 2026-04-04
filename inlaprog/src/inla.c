@@ -49,6 +49,7 @@
 #endif
 
 #include "GMRFLib/GMRFLib.h"
+
 #if !defined(ISNAN)
 #       define ISNAN(x) (isnan(x)!=0)
 #endif

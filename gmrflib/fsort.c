@@ -7,6 +7,7 @@
 #       pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 #endif
 
+#include "GMRFLib/alloc.h"
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/fsort/fluxsort.h"
 

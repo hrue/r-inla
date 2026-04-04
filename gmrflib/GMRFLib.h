@@ -16,6 +16,8 @@
 #              define _GNU_SOURCE 1
 #       endif
 
+#       include "GMRFLib/alloc.h"
+
 #       include <errno.h>
 #       include <assert.h>
 #       include <stddef.h>

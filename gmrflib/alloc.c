@@ -6,67 +6,62 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-// set to 1 to enable and 0 to disable
-#if defined(_WIN32)
-// windows does not have aligned alloc without using a dedicated free, so for that reason I have to turn that off
-#       define USE_ALIGNMENT 0
+#if defined(_WIN32) && !defined(INLA_WITH_MIMALLOC) && !defined(INLA_WITH_JEMALLOC)
+#       define WITH_ALIGNMENT 0
 #else
-#       define USE_ALIGNMENT 1
+#       define WITH_ALIGNMENT 1
 #endif
 
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
-
-#if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
-	// quick alternative as most allocators align by default at 16
-	p = malloc(size);
-	assert(p);
-	if (GMRFLib_is_aligned(p)) {
-		return p;
-	} else {
-		free(p);
-	}
-#endif
-
-#if USE_ALIGNMENT
-	size_t newsize = sMAX(size, GMRFLib_MEM_ALIGN);
-	int rem = (newsize % GMRFLib_MEM_ALIGN);
-	newsize += (rem > 0 ? GMRFLib_MEM_ALIGN - rem : 0);
-	p = aligned_alloc(GMRFLib_MEM_ALIGN, newsize);
-	assert(p);
+#if WITH_ALIGNMENT
+	p = aligned_alloc(GMRFLib_MEM_ALIGN, size);
 #else
 	p = malloc(size);
-	assert(p);
 #endif
+	assert(p);
 	return p;
 }
 
 void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
-
-#if USE_ALIGNMENT && GMRFLib_MEM_ALIGN == 16u
-	p = calloc(nmemb, size);
+#if WITH_ALIGNMENT
+	size_t n = nmemb * size;
+	p = aligned_alloc(GMRFLib_MEM_ALIGN, n);
 	assert(p);
-	if (GMRFLib_is_aligned(p)) {
-		return p;
-	} else {
-		free(p);
-	}
-#endif
-
-#if USE_ALIGNMENT
-	size_t newsize = sMAX(nmemb * size, GMRFLib_MEM_ALIGN);
-	int rem = (newsize % GMRFLib_MEM_ALIGN);
-	newsize += (rem > 0 ? GMRFLib_MEM_ALIGN - rem : 0);
-	p = aligned_alloc(GMRFLib_MEM_ALIGN, newsize);
-	assert(p);
-	memset(p, 0, newsize);
+	Memset(p, 0, n);
 #else
 	p = calloc(nmemb, size);
-	assert(p);
 #endif
+	assert(p);
+	return p;
+}
+
+void *realloc_intern(void *ptr, size_t size)
+{
+	void *p = NULL;
+	if (!ptr) {
+		p = malloc_intern(size);
+	} else {
+#if WITH_ALIGNMENT
+#       if defined(INLA_WITH_MIMALLOC)
+		// don't know why its not there with including mimalloc.h
+		void *mi_realloc_aligned(void *, size_t, size_t);
+		p = mi_realloc_aligned(ptr, size, GMRFLib_MEM_ALIGN);
+#       elif defined(INLA_WITH_JEMALLOC)
+		// void *rallocx(void *, size_t, int); 
+		p = rallocx(ptr, size, MALLOCX_ALIGN(GMRFLib_MEM_ALIGN));
+#       else
+		p = realloc(ptr, size);
+#       endif
+#else
+		p = realloc(ptr, size);
+#endif
+	}
+
+	assert(p);
 	return p;
 }
 

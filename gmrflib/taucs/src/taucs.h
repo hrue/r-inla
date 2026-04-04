@@ -1,13 +1,12 @@
 #if !defined(TAUCS_TAUCS_H)
 #       define TAUCS_TAUCS_H
 
+#       include "GMRFLib/alloc.h"
+
 #       include <assert.h>
 #       include <stddef.h>
 #       include <time.h>
 #       include <omp.h>
-#       if __has_include(<malloc.h>)
-#              include <malloc.h>
-#       endif
 
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
@@ -170,38 +169,11 @@ typedef struct {
 
 double taucs_get_nan(void);
 
-double taucs_allocation_amount(void);
-int taucs_allocation_count(void);
-int taucs_allocation_attempts(void);
-void taucs_allocation_assert_clean(void);
-void taucs_allocation_mark_clean(void);
-void taucs_allocation_induce_failure(int i);
-
 #       include <stdlib.h>
-
-void *taucs_malloc(size_t size);
-void *taucs_calloc(size_t nmemb, size_t size);
-void *taucs_realloc(void *ptr, size_t size);
-void taucs_free(void *ptr);
-
-#       if defined(TAUCS_CORE)
-
-void *taucs_calloc_stub(size_t nmemb, size_t size);
-void *taucs_malloc_stub(size_t size);
-void *taucs_realloc_stub(void *ptr, size_t size);
-void taucs_free_stub(void *ptr);
-
-#              define realloc(x,y) taucs_must_not_call_realloc_directly(x,y)
-#              define malloc(x)    taucs_must_not_call_malloc_directly(x)
-#              define calloc(x,y)  taucs_must_not_call_calloc_directly(x,y)
-#              define free(x)      taucs_must_not_call_free_directly(x)
-
-#              define taucs_realloc(x,y) taucs_realloc_stub(x,y)
-#              define taucs_malloc(x)    taucs_malloc_stub(x)
-#              define taucs_calloc(x,y)  taucs_calloc_stub(x,y)
-#              define taucs_free(x)      taucs_free_stub(x)
-
-#       endif
+#       define taucs_realloc(x,y) realloc_intern(x,y)
+#       define taucs_malloc(x)    malloc_intern(x)
+#       define taucs_calloc(x,y)  calloc_intern(x,y)
+#       define taucs_free(x)      free(x)
 
 #       ifndef max
 #              define max(x,y) ( ((x) > (y)) ? (x) : (y) )

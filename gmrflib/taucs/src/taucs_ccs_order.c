@@ -123,8 +123,8 @@ static void taucs_ccs_amd(taucs_ccs_matrix *m, int **perm, int **invperm, char *
 		offset = 1;				       /* Fortran */
 	}
 	iovflo = INT_MAX;				       /* for 32-bit only! */
-	for (i = 0; i < n; i++)
-		len[i] = 0;
+	Memset(len, 0, sizeof(int) * n);
+	Memset(pe, 0, sizeof(int) * n);
 	for (j = 0; j < n; j++) {
 		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
 			i = (m->rowind)[ip];
