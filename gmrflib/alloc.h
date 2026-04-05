@@ -18,26 +18,41 @@ __BEGIN_DECLS
 #include <stdlib.h>
 #include <stdint.h>
 
-#if defined(INLA_WITH_JEMALLOC)
-#include <jemalloc/jemalloc.h> 
-#endif
-
-// windows does not have aligned alloc without using a dedicated free, so for that reason I'll use the default: 16
 #       if defined(_WIN32)
 #              define GMRFLib_MEM_ALIGN 16u
 #       else
-#              define GMRFLib_MEM_ALIGN 64u
+#              define GMRFLib_MEM_ALIGN 32u
 #       endif
+
+static inline int GMRFLib_mem_align_test(void *p) 
+{
+	return (((uintptr_t) (p)) % GMRFLib_MEM_ALIGN == 0 ? 1 : 0);
+}
+
+static inline int GMRFLib_is_aligned(void *p) 
+{
+	return GMRFLib_mem_align_test(p);
+}
+
+static inline int GMRFLib_is_aligned2(void *p, void *pp) 
+{
+	return (GMRFLib_is_aligned(p) && GMRFLib_is_aligned(pp));
+}
+
+static inline int GMRFLib_is_aligned3(void *p, void *pp, void *ppp) 
+{
+	return (GMRFLib_is_aligned2(p, pp) && GMRFLib_is_aligned(ppp));
+}
 
 size_t GMRFLib_align_len(size_t n, size_t size);
 void *calloc_intern(size_t nmemb, size_t size);
 void *malloc_intern(size_t size);
 void *realloc_intern(void *ptr, size_t size);
 
-#       define GMRFLib_MEM_ALIGN_TEST_(p_) ((uintptr_t) (p_) % GMRFLib_MEM_ALIGN == 0)
-#       define GMRFLib_is_aligned(p_) GMRFLib_MEM_ALIGN_TEST_(p_)
-#       define GMRFLib_is_aligned2(p_, pp_) (GMRFLib_MEM_ALIGN_TEST_(p_) && GMRFLib_MEM_ALIGN_TEST_(pp_))
-#       define GMRFLib_is_aligned3(p_, pp_, ppp_) (GMRFLib_MEM_ALIGN_TEST_(p_) && GMRFLib_MEM_ALIGN_TEST_(pp_) && GMRFLib_MEM_ALIGN_TEST_(ppp_))
+int GMRFLib_mem_align_test(void *p);
+int GMRFLib_is_aligned(void *p);
+int GMRFLib_is_aligned2(void *p, void *pp);
+int GMRFLib_is_aligned3(void *p, void *pp, void *ppp);
 
 #       define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_)*sizeof(type_) <= PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 

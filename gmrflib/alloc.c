@@ -6,6 +6,12 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+// Cannot link to mi_ version f.ex, as I do not control the use of 'free'.
+// Windows does not have aligned_alloc()
+#if defined(_WIN32)
+#define aligned_alloc(a_, b_) malloc(b_)
+#endif
+
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
@@ -40,15 +46,16 @@ void *realloc_intern(void *ptr, size_t size)
 		p = malloc_intern(size);
 	} else {
 		if (GMRFLib_memory_alignment) {
-#       if defined(INLA_WITH_MIMALLOC)
-			void *mi_realloc_aligned(void *, size_t, size_t);
-			p = mi_realloc_aligned(ptr, size, GMRFLib_MEM_ALIGN);
-#       elif defined(INLA_WITH_JEMALLOC)
-			// void *rallocx(void *, size_t, int); 
-			p = rallocx(ptr, size, MALLOCX_ALIGN(GMRFLib_MEM_ALIGN));
-#       else
 			p = realloc(ptr, size);
-#       endif
+			// this is a workaround for not having aligned realloc.
+			// good thing is that 'size' is valid so we can do Memcpy!
+			if (!GMRFLib_is_aligned(p)) {
+				void *pp = malloc_intern(size);
+				assert(pp);
+				Memcpy(pp, p, size);
+				Free(p);
+				p = pp;
+			}
 		} else {
 			p = realloc(ptr, size);
 		}
