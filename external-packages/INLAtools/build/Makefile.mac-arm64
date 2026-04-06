@@ -4,7 +4,8 @@ TARGET = libINLAtools.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 $(TARGET) : $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -lgomp $(LIBLTDL) -lm
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -Wl,--no-as-needed -lgomp -Wl,--as-needed $(LIBLTDL) -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
+gcc -shared -fPIC -o libmylib.so mylib.c 
