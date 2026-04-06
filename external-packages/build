@@ -17,7 +17,7 @@ for p in *; do
 	    make download
 	    ( 
 		cd ./build
-		make -f Makefile.$TYPE clean
+		make -f Makefile.$TYPE "$@" clean
 		make -f Makefile.$TYPE "$@"
 	    )
 	)
