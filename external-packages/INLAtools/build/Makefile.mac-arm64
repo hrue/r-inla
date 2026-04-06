@@ -8,5 +8,3 @@ $(TARGET) : $(OBJ)
 	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -Wl,-force_load,$(LIBGOMP) $(LIBLTDL) -lm
 
 clean :; rm -f $(TARGET) $(OBJ)
-
-gcc -shared -fPIC -o libmylib.so mylib.c 
