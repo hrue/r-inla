@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 
 dir=$( { uname -a | grep -q x86_64; } && echo build64 || echo arm64 )
+prelib="libgomp.dylib"
 lib1=$HOME/builds/$dir/local/lib
 lib2=/opt/local/lib
 lib3=$(echo /opt/arm/armpl_*flang*/lib | head -n1)
-LIBS="$lib1 $lib3 $lib3"
+lib4=/opt/local/lib/libgcc
+LIBS="$lib1 $lib2 $lib3 $lib4"
 
 findLIBS () {
     for f in "$@"; do
 	found=0
 	for d in $LIBS; do
 	    if [ -f "$d/$f" ]; then
-		echo "$d/$f"
+		echo "$d/$f"; 
 		found=1
 	    fi
 	done
@@ -44,4 +46,7 @@ process () {
     } | sort | uniq
 }
 
-process $(process $(process $(process "$@")))
+{
+    process $(process $(process $(process "$@")))
+    process $(findLIBS $prelib)
+} | sort | uniq
