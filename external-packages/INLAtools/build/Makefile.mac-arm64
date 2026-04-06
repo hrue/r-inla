@@ -2,7 +2,7 @@ CFLAGS = -framework Accelerate $(FLAGS) $(INC) -O3 -mtune=native -fopenmp  -fpic
 LDFLAGS = -framework Accelerate $(LIB)
 TARGET = libINLAtools.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
-LIBGOMP := $(shell $(CC)  --print-file-name=libgomp.a)
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
 
 $(TARGET) : $(OBJ)
 	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -Wl,-force_load,$(LIBGOMP) $(LIBLTDL) -lm
