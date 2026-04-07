@@ -4206,7 +4206,7 @@ int testit(int argc, char **argv)
 		double tref[] = { 0, 0, 0, 0 };
 		double ssum = 0.0;
 		for (int k = 0; k < m; k++) {
-			aligned_double(sum) = 0.0;
+			double sum = 0.0;
 
 			tref[0] -= GMRFLib_timer();
 #       pragma omp simd reduction(+: sum)
@@ -5500,8 +5500,8 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
-		aligned_double(*x) = Calloc(n + 1, double);
-		aligned_double(*y) = Calloc(n + 1, double);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
 
 		double *tref = Calloc(2, double);
 		for (int i = 0; i < m; i++) {
@@ -5510,7 +5510,7 @@ int testit(int argc, char **argv)
 				x[j] = GMRFLib_uniform();
 				y[j] = GMRFLib_uniform();
 			}
-			aligned_double(a) = GMRFLib_uniform();
+			double a = GMRFLib_uniform();
 
 			tref[0] -= GMRFLib_timer();
 			GMRFLib_daxpy(n, a, x, y);
@@ -5531,12 +5531,12 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
-		aligned_double(*x) = Calloc(n + 1, double);
-		aligned_double(*y) = Calloc(n + 1, double);
+		double *x = Calloc(n + 1, double);
+		double *y = Calloc(n + 1, double);
 
 		double tref[] = { 0, 0 };
 		for (int i = 0; i < m; i++) {
-			aligned_double(a) = GMRFLib_uniform();
+			double a = GMRFLib_uniform();
 			for (int j = 0; j < n; j++) {
 				x[j] = y[j] = GMRFLib_uniform();
 			}
@@ -5546,7 +5546,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#       pragma omp simd aligned(y: GMRFLib_MEM_ALIGN)
+#       pragma omp simd 
 			for (int j = 0; j < n; j++) {
 				y[j] *= a;
 			}
@@ -5579,7 +5579,7 @@ int testit(int argc, char **argv)
 
 			double sum = 0.0;
 			tref[0] -= GMRFLib_timer();
-#       pragma omp simd aligned(x, y: GMRFLib_MEM_ALIGN) reduction(+: sum)
+#       pragma omp simd reduction(+: sum)
 			for (int j = 0; j < n; j++) {
 				sum += x[j] * y[j];
 			}

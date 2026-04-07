@@ -476,11 +476,6 @@ typedef enum {
 #       define likely(x)   __builtin_expect(!!(x), 1)
 #       define unlikely(x) __builtin_expect(!!(x), 0)
 
-#       define aligned_double(a_) double a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
-#       define aligned_int(a_)    int    a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
-#       define aligned_void(a_)   void   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
-#       define aligned_char(a_)   char   a_  __attribute__((aligned(GMRFLib_MEM_ALIGN)))
-
 #       define ABS(x) fabs(x)
 #       define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #       define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}

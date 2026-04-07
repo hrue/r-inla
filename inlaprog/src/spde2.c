@@ -131,7 +131,7 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	case SPDE2_TRANSFORM_LOG:
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
-			aligned_int(off) = 2 + i * 3;
+			int off = 2 + i * 3;
 			dij[off] = 2.0 * exp(dij[off]) - 1.0;
 		}
 		break;
@@ -139,7 +139,7 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 	case SPDE2_TRANSFORM_LOGIT:
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
-			aligned_int(off) = 2 + i * 3;
+			int off = 2 + i * 3;
 			dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
 		}
 		break;
@@ -155,25 +155,25 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
 {
-	aligned_double(d_i0) = dij[0];
-	aligned_double(d_i1) = dij[1];
-	aligned_double(d_i2) = dij[2];
+	double d_i0 = dij[0];
+	double d_i1 = dij[1];
+	double d_i2 = dij[2];
 
 #pragma omp simd
 	for (int kk = 0; kk <= nb; kk++) {
-		aligned_int(v_off) = kk * 4;
-		aligned_int(d_off) = kk * 3;
-
-		aligned_double(d_j0) = dij[d_off];
-		aligned_double(d_j1) = dij[d_off + 1];
-		aligned_double(d_j2) = dij[d_off + 2];
-
-		aligned_double(v0) = v[v_off];
-		aligned_double(v1) = v[v_off + 1];
-		aligned_double(v2) = v[v_off + 2];
-		aligned_double(v3) = v[v_off + 3];
-
-		aligned_double(inner) = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
+		int v_off = kk * 4;
+		int d_off = kk * 3;
+		    
+		double d_j0 = dij[d_off];
+		double d_j1 = dij[d_off + 1];
+		double d_j2 = dij[d_off + 2];
+		       
+		double v0 = v[v_off];
+		double v1 = v[v_off + 1];
+		double v2 = v[v_off + 2];
+		double v3 = v[v_off + 3];
+		       
+		double inner = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
 		values[kk] = d_i0 * d_j0 * inner;
 	}
 }
@@ -188,7 +188,7 @@ double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
 	int lim2 = 64;
-	double d_storage[6] __attribute__((aligned(GMRFLib_MEM_ALIGN))) = { 0, 0, 0, 0, 0, 0 };
+	double d_storage[6] = { 0 };
 	double *__restrict d_i = d_storage;
 	double *__restrict d_j = d_storage + 3;
 
@@ -372,9 +372,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	}
 
 	if (nc < use_ddot_lim) {
-		aligned_double(d0) = 0.0;
-		aligned_double(d1) = 0.0;
-		aligned_double(d2) = 0.0;
+		double d0 = 0.0;
+		double d1 = 0.0;
+		double d2 = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_i[k] * theta[k];
@@ -424,9 +424,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 	double *vals_j = vals_j_p->V;
 
 	if (nc < use_ddot_lim) {
-		aligned_double(d0) = 0.0;
-		aligned_double(d1) = 0.0;
-		aligned_double(d2) = 0.0;
+		double d0 = 0.0;
+		double d1 = 0.0;
+		double d2 = 0.0;
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_j[k] * theta[k];
