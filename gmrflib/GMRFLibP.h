@@ -414,7 +414,7 @@ typedef enum {
 
 #       define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
-	size_t calloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
+	size_t calloc_mem_align_ = GMRFLib_memory_alignment / sizeof(double);	\
 	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_mem_align_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
@@ -423,7 +423,7 @@ typedef enum {
 
 #       define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
-	size_t icalloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(int);	\
+	size_t icalloc_mem_align_ = GMRFLib_memory_alignment / sizeof(int);	\
 	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_mem_align_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
@@ -432,7 +432,7 @@ typedef enum {
 
 #       define Malloc_init(n_, m_)						\
 	size_t malloc_m_ = (m_);					\
-	size_t malloc_mem_align_ = GMRFLib_MEM_ALIGN / sizeof(double);	\
+	size_t malloc_mem_align_ = GMRFLib_memory_alignment / sizeof(double);	\
 	size_t malloc_len_ = (size_t)((n_) + malloc_m_ * malloc_mem_align_); \
 	size_t malloc_offset_ = 0;					\
 	size_t malloc_m_count_ = 0;					\

@@ -18,15 +18,11 @@ __BEGIN_DECLS
 #include <stdlib.h>
 #include <stdint.h>
 
-#       if defined(_WIN32)
-#              define GMRFLib_MEM_ALIGN 16u
-#       else
-#              define GMRFLib_MEM_ALIGN 32u
-#       endif
+extern unsigned int GMRFLib_memory_alignment;
 
 static inline int GMRFLib_mem_align_test(void *p) 
 {
-	return (((uintptr_t) (p)) % GMRFLib_MEM_ALIGN == 0 ? 1 : 0);
+	return (((uintptr_t) (p)) % GMRFLib_memory_alignment == 0 ? 1 : 0);
 }
 
 static inline int GMRFLib_is_aligned(void *p) 

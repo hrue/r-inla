@@ -316,7 +316,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t'long double' is %1zu bytes\n", sizeof(long double));
 		printf("\t\tBUFSIZ is %1zu bytes\n", (size_t) BUFSIZ);
 		printf("\t\tCACHE_LINE_SIZE is %1zu bytes\n", (size_t) GMRFLib_cachelinesize);
-		printf("\t\tMEM_ALIGN is %1zu bytes\n", (size_t) GMRFLib_MEM_ALIGN);
+		printf("\t\tMEM_ALIGN is %1zu bytes\n", (size_t) GMRFLib_memory_alignment);
 
 		GMRFLib_sys_cache_tp L123;
 		GMRFLib_sys_cache(&L123);
@@ -19923,7 +19923,16 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
-	GMRFLib_memory_alignment = iniparser_getboolean(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
+	int malign = iniparser_getboolean(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
+	if (malign <= 16) {
+		GMRFLib_memory_alignment = 16;
+	} else if (malign <= 32) {
+		GMRFLib_memory_alignment = 32;
+	} else if (malign <= 64) {
+		GMRFLib_memory_alignment = 64;
+	} else {
+		assert(malign == 16 || malign == 32 || malign == 64);
+	}
 
 	// not enabled on Windows for the moment
 #if defined(_WIN32)
@@ -19934,7 +19943,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 		printf("\t\t\tOptimise storage      = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads  = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
-		printf("\t\t\tMemory.alignment      = [%s]\n", (GMRFLib_memory_alignment ? "Yes" : "No"));
+		printf("\t\t\tMemory.alignment      = [%u]\n", GMRFLib_memory_alignment);
 	}
 
 	/*
