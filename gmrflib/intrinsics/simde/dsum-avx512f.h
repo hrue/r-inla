@@ -22,7 +22,7 @@
 		}
 		return r;
 	} else {
-#include "dsum-sse2.h"
+#include "dsum-avx2.h"
 	}
 
 #if 0

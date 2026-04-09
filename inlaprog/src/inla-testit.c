@@ -5674,6 +5674,8 @@ int testit(int argc, char **argv)
 		P(kk);
 		double *x = Calloc(n + 100, double);
 		double *y = Calloc(n + 100, double);
+		double *xx = Calloc(n + 100, double);
+		double *yy = Calloc(n + 100, double);
 		double *ys = Calloc(mm * n + 100, double);
 		int *ix = Calloc(n + 100, int);
 		int *iy = Calloc(n + 100, int);
@@ -5682,6 +5684,8 @@ int testit(int argc, char **argv)
 
 		x = x + kk;
 		y = y + kk;
+		xx = xx + kk;
+		yy = yy + kk;
 		ix = ix + kk;
 		iy = iy + kk;
 		idx = idx + kk;
@@ -5811,8 +5815,14 @@ int testit(int argc, char **argv)
 			tref_native[10] -= GMRFLib_timer();
 #       pragma omp simd
 			for (int k = 0; k < n; k++)
-				y[k] = x[k] * a;
+				yy[k] = x[k] * f;
 			tref_native[10] += GMRFLib_timer();
+
+			double err = 0.0;
+			for (int k = 0; k < n; k++) {
+				err = DMAX(err, ABS(y[k]-yy[k]));
+			}
+			assert(err < FLT_EPSILON);
 		}
 		printf("aligned %s\n", (GMRFLib_is_aligned(x)) ? "YES" : "NO");
 		printf("ddot               %.8f\n", tref[9]);
