@@ -1,19 +1,19 @@
 	if (n >= 8) {
-		__m128d s0 = _mm_setzero_pd();
-		__m128d s1 = _mm_setzero_pd();
-		__m128d s2 = _mm_setzero_pd();
-		__m128d s3 = _mm_setzero_pd();
+		__m128d s0 = simde_mm_setzero_pd();
+		__m128d s1 = simde_mm_setzero_pd();
+		__m128d s2 = simde_mm_setzero_pd();
+		__m128d s3 = simde_mm_setzero_pd();
 		int i = 0;
 		for (; i <= n - 8; i += 8) {
-			s0 = _mm_add_pd(s0, _mm_loadu_pd(&x[i]));
-			s1 = _mm_add_pd(s1, _mm_loadu_pd(&x[i + 2]));
-			s2 = _mm_add_pd(s2, _mm_loadu_pd(&x[i + 4]));
-			s3 = _mm_add_pd(s3, _mm_loadu_pd(&x[i + 6]));
+			s0 = simde_mm_add_pd(s0, simde_mm_loadu_pd(&x[i]));
+			s1 = simde_mm_add_pd(s1, simde_mm_loadu_pd(&x[i + 2]));
+			s2 = simde_mm_add_pd(s2, simde_mm_loadu_pd(&x[i + 4]));
+			s3 = simde_mm_add_pd(s3, simde_mm_loadu_pd(&x[i + 6]));
 		}
-		__m128d final_sum = _mm_add_pd(_mm_add_pd(s0, s1), _mm_add_pd(s2, s3));
-		__m128d shuffled = _mm_unpackhi_pd(final_sum, final_sum);
-		__m128d res_vec = _mm_add_pd(final_sum, shuffled);
-		double r = _mm_cvtsd_f64(res_vec);
+		__m128d final_sum = simde_mm_add_pd(simde_mm_add_pd(s0, s1), simde_mm_add_pd(s2, s3));
+		__m128d shuffled = simde_mm_unpackhi_pd(final_sum, final_sum);
+		__m128d res_vec = simde_mm_add_pd(final_sum, shuffled);
+		double r = simde_mm_cvtsd_f64(res_vec);
 		for (; i < n; i++) {
 			r += x[i];
 		}
