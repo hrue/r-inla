@@ -443,158 +443,166 @@ inla.internal.test.spde2.sd.basis <- function(k = 1,
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.spde2.matern()]
 #' @export param2.matern.orig
-param2.matern.orig <- function(mesh,
-                               alpha = 2,
-                               B.tau = matrix(c(0, 1, 0), 1, 3),
-                               B.kappa = matrix(c(0, 0, 1), 1, 3),
-                               prior.variance.nominal = 1,
-                               prior.range.nominal = NULL,
-                               prior.tau = NULL,
-                               prior.kappa = NULL,
-                               theta.prior.mean = NULL,
-                               theta.prior.prec = 0.1) {
-    ## NOTE: For d==1, degree==2, the B.* must be given per basis
-    ## function, not per knot.
+param2.matern.orig <-
+    function(mesh,
+             alpha = 2,
+             B.tau = matrix(c(0, 1, 0), 1, 3),
+             B.kappa = matrix(c(0, 0, 1), 1, 3),
+             prior.variance.nominal = 1,
+             prior.range.nominal = NULL,
+             prior.tau = NULL,
+             prior.kappa = NULL,
+             theta.prior.mean = NULL,
+             theta.prior.prec = 0.1) {
+        ## NOTE: For d==1, degree==2, the B.* must be given per basis
+        ## function, not per knot.
 
-    # Should not need to know the precise fmesher class; only requires
-    # a class that supports fm_dof, fm_manifold_dim, and fm_fem
-    # inla.require.inherits(mesh, c("inla.mesh",
-    #                               "inla.mesh.1d",
-    #                               "fm_mesh_1d",
-    #                               "fm_mesh_2d",
-    #                               "fm_mesh_3d"), "'mesh'")
+        # Should not need to know the precise fmesher class; only requires
+        # a class that supports fm_dof, fm_manifold_dim, and fm_fem
+        # inla.require.inherits(mesh, c("inla.mesh",
+        #                               "inla.mesh.1d",
+        #                               "fm_mesh_1d",
+        #                               "fm_mesh_2d",
+        #                               "fm_mesh_3d"), "'mesh'")
 
-    if (is.null(B.tau)) {
-        stop("B.tau must not be NULL.")
-    }
-    if (is.null(B.kappa)) {
-        stop("B.kappa must not be NULL.")
-    }
-    is.stationary <- (nrow(B.kappa) == 1) && (nrow(B.tau) == 1)
-
-    d <- fmesher::fm_manifold_dim(mesh)
-    nu <- alpha - d / 2
-    nu.nominal <- max(0.5, nu)
-    alpha.nominal <- max(nu.nominal + d / 2, alpha)
-
-    n.spde <- fmesher::fm_dof(mesh)
-    n.theta <- ncol(B.kappa) - 1L
-
-    B.kappa <- inla.spde.homogenise_B_matrix(B.kappa, n.spde, n.theta)
-    B.tau <- inla.spde.homogenise_B_matrix(B.tau, n.spde, n.theta)
-
-    B.prec <-
-        cbind(
-            +lgamma(alpha.nominal) - lgamma(nu.nominal)
-                + (d / 2) * log(4 * pi) + 2 * nu.nominal * B.kappa[, 1]
-                + 2 * B.tau[, 1],
-            2 * nu.nominal * B.kappa[, -1, drop = FALSE]
-                + 2 * B.tau[, -1, drop = FALSE]
-        )
-    if (is.stationary) {
-        B.tau <- B.tau[1, , drop = FALSE]
-        B.kappa <- B.kappa[1, , drop = FALSE]
-        B.prec <- B.prec[1, , drop = FALSE]
-    }
-    B.variance <- -B.prec
-    B.range <-
-        cbind(
-            0.5 * log(8 * nu.nominal) - B.kappa[, 1],
-            -B.kappa[, -1, drop = FALSE]
-        )
-
-    if (n.theta > 0) {
-        B.theta <- cbind(0, diag(1, n.theta))
-        rownames(B.theta) <- rownames(B.theta, do.NULL = FALSE, prefix = "theta.")
-    } else {
-        B.theta <- NULL
-    }
-    rownames(B.tau) <- rownames(B.tau, do.NULL = FALSE, prefix = "tau.")
-    rownames(B.kappa) <- rownames(B.kappa, do.NULL = FALSE, prefix = "kappa.")
-    rownames(B.variance) <-
-        rownames(B.variance, do.NULL = FALSE, prefix = "variance.nominal.")
-    rownames(B.range) <-
-        rownames(B.range, do.NULL = FALSE, prefix = "range.nominal.")
-    BLC <- rbind(B.theta, B.tau, B.kappa, B.variance, B.range)
-
-
-    ## Construct priors.
-    if (is.null(theta.prior.prec)) {
-        theta.prior.prec <- diag(0.1, n.theta, n.theta)
-    } else {
-        theta.prior.prec <- as.matrix(theta.prior.prec)
-        if (ncol(theta.prior.prec) == 1) {
-            theta.prior.prec <-
-                diag(as.vector(theta.prior.prec), n.theta, n.theta)
+        if (is.null(B.tau)) {
+            stop("B.tau must not be NULL.")
         }
-        if ((nrow(theta.prior.prec) != n.theta) ||
-            (ncol(theta.prior.prec) != n.theta)) {
-            stop(paste(
-                "Size of theta.prior.prec is (",
-                paste(dim(theta.prior.prec), collapse = ",", sep = ""),
-                ") but should be (",
-                paste(c(n.theta, n.theta), collapse = ",", sep = ""),
-                ")."
-            ))
+        if (is.null(B.kappa)) {
+            stop("B.kappa must not be NULL.")
         }
-    }
+        is.stationary <- (nrow(B.kappa) == 1) && (nrow(B.tau) == 1)
 
-    if (is.null(theta.prior.mean)) {
-        if (is.null(prior.range.nominal)) {
-            mesh.range <-
-                inla.ifelse(
-                    d == 2,
-                    (max(c(
-                        diff(range(mesh$loc[, 1])),
-                        diff(range(mesh$loc[, 2])),
-                        diff(range(mesh$loc[, 3]))
-                    ))),
-                    diff(mesh$interval)
-                )
-            prior.range.nominal <- mesh.range * 0.2
+        d <- fmesher::fm_manifold_dim(mesh)
+        nu <- alpha - d / 2
+        nu.nominal <- max(0.5, nu)
+        alpha.nominal <- max(nu.nominal + d / 2, alpha)
+
+        n.spde <- fmesher::fm_dof(mesh)
+        n.theta <- ncol(B.kappa) - 1L
+
+        B.kappa <- inla.spde.homogenise_B_matrix(B.kappa, n.spde, n.theta)
+        B.tau <- inla.spde.homogenise_B_matrix(B.tau, n.spde, n.theta)
+
+        B.prec <-
+            cbind(
+                +lgamma(alpha.nominal) - lgamma(nu.nominal)
+                    + (d / 2) * log(4 * pi) + 2 * nu.nominal * B.kappa[, 1]
+                    + 2 * B.tau[, 1],
+                2 * nu.nominal * B.kappa[, -1, drop = FALSE]
+                    + 2 * B.tau[, -1, drop = FALSE]
+            )
+        if (is.stationary) {
+            B.tau <- B.tau[1, , drop = FALSE]
+            B.kappa <- B.kappa[1, , drop = FALSE]
+            B.prec <- B.prec[1, , drop = FALSE]
+        }
+        B.variance <- -B.prec
+        B.range <-
+            cbind(
+                0.5 * log(8 * nu.nominal) - B.kappa[, 1],
+                -B.kappa[, -1, drop = FALSE]
+            )
+
+        if (n.theta > 0) {
+            B.theta <- cbind(0, diag(1, n.theta))
+            rownames(B.theta) <- rownames(B.theta, do.NULL = FALSE, prefix = "theta.")
         } else {
-            if (!is.numeric(prior.range.nominal) ||
-                (length(prior.range.nominal) != 1)) {
-                stop(paste0(
-                    "'prior.range.nominal' must be NULL or a single scalar value.\n",
-                    "Did you intend to supply 'prior.range' to inla.spde2.pcmatern instead?"
+            B.theta <- NULL
+        }
+        rownames(B.tau) <- rownames(B.tau, do.NULL = FALSE, prefix = "tau.")
+        rownames(B.kappa) <- rownames(B.kappa, do.NULL = FALSE, prefix = "kappa.")
+        rownames(B.variance) <-
+            rownames(B.variance, do.NULL = FALSE, prefix = "variance.nominal.")
+        rownames(B.range) <-
+            rownames(B.range, do.NULL = FALSE, prefix = "range.nominal.")
+        BLC <- rbind(B.theta, B.tau, B.kappa, B.variance, B.range)
+
+
+        ## Construct priors.
+        if (is.null(theta.prior.prec)) {
+            theta.prior.prec <- diag(0.1, n.theta, n.theta)
+        } else {
+            theta.prior.prec <- as.matrix(theta.prior.prec)
+            if (ncol(theta.prior.prec) == 1) {
+                theta.prior.prec <-
+                    diag(as.vector(theta.prior.prec), n.theta, n.theta)
+            }
+            if ((nrow(theta.prior.prec) != n.theta) ||
+                (ncol(theta.prior.prec) != n.theta)) {
+                stop(paste(
+                    "Size of theta.prior.prec is (",
+                    paste(dim(theta.prior.prec), collapse = ",", sep = ""),
+                    ") but should be (",
+                    paste(c(n.theta, n.theta), collapse = ",", sep = ""),
+                    ")."
                 ))
             }
         }
 
-        if (is.null(prior.kappa)) {
-            prior.kappa <- sqrt(8 * nu.nominal) / prior.range.nominal
-        }
-        if (is.null(prior.tau)) {
-            prior.tau <-
-                sqrt(gamma(nu.nominal) / gamma(alpha.nominal) /
-                    (4 * pi * prior.kappa^(2 * nu.nominal) * prior.variance.nominal))
-        }
-
-        if (n.theta > 0) {
-            theta.prior.mean <-
-                qr.solve(
-                    rbind(B.tau[, -1, drop = FALSE], B.kappa[, -1, drop = FALSE]),
-                    c(
-                        log(prior.tau) - B.tau[, 1],
-                        log(prior.kappa) - B.kappa[, 1]
+        if (is.null(theta.prior.mean)) {
+            if (is.null(prior.range.nominal)) {
+                mesh.range <- fmesher::fm_diameter(mesh)
+                if (length(mesh.range) > 1) {
+                    msg <- paste0(
+                        "Mesh diameter is not a single scalar value.\n",
+                        "Using the maximum pairwise distance between mesh",
+                        " vertices as the nominal range."
                     )
-                )
-        } else {
-            theta.prior.mean <- rep(0, n.theta) ## Empty vector
+                    if (utils::packageVersion("fmesher") < "0.7.0.9004") {
+                        msg <- paste0(
+                            msg,
+                            "\nConsider updating to fmesher version 0.7.0.9004",
+                            " or later, which solves this issue for fm_tensor",
+                            " and fm_collect meshes."
+                        )
+                    }
+                    warning(msg, immediate. = TRUE)
+                    mesh.range <- max(mesh.range)
+                }
+                prior.range.nominal <- mesh.range * 0.2
+            } else {
+                if (!is.numeric(prior.range.nominal) ||
+                    (length(prior.range.nominal) != 1)) {
+                    stop(paste0(
+                        "'prior.range.nominal' must be NULL or a single scalar value.\n",
+                        "Did you intend to supply 'prior.range' to inla.spde2.pcmatern instead?"
+                    ))
+                }
+            }
+
+            if (is.null(prior.kappa)) {
+                prior.kappa <- sqrt(8 * nu.nominal) / prior.range.nominal
+            }
+            if (is.null(prior.tau)) {
+                prior.tau <-
+                    sqrt(gamma(nu.nominal) / gamma(alpha.nominal) /
+                        (4 * pi * prior.kappa^(2 * nu.nominal) * prior.variance.nominal))
+            }
+
+            if (n.theta > 0) {
+                theta.prior.mean <-
+                    qr.solve(
+                        rbind(B.tau[, -1, drop = FALSE], B.kappa[, -1, drop = FALSE]),
+                        c(
+                            log(prior.tau) - B.tau[, 1],
+                            log(prior.kappa) - B.kappa[, 1]
+                        )
+                    )
+            } else {
+                theta.prior.mean <- rep(0, n.theta) ## Empty vector
+            }
         }
+
+        param <-
+            list(
+                is.stationary = is.stationary,
+                B.tau = B.tau, B.kappa = B.kappa, BLC = BLC,
+                theta.prior.mean = theta.prior.mean,
+                theta.prior.prec = theta.prior.prec
+            )
+        return(param)
     }
-
-    param <-
-        list(
-            is.stationary = is.stationary,
-            B.tau = B.tau, B.kappa = B.kappa, BLC = BLC,
-            theta.prior.mean = theta.prior.mean,
-            theta.prior.prec = theta.prior.prec
-        )
-    return(param)
-}
-
 
 
 #' Matern SPDE model object for INLA
@@ -1256,7 +1264,8 @@ inla.spde2.pcmatern <- function(mesh,
         extraconstr.int = extraconstr.int,
         extraconstr = extraconstr,
         fractional.method = fractional.method,
-        n.iid.group = n.iid.group
+        n.iid.group = n.iid.group,
+        theta.prior.mean = c(0, 0)
     )
 
     ## Calculate hyperparameters
