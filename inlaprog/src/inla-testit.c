@@ -5546,7 +5546,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#       pragma omp simd 
+#       pragma omp simd
 			for (int j = 0; j < n; j++) {
 				y[j] *= a;
 			}
@@ -5820,7 +5820,7 @@ int testit(int argc, char **argv)
 
 			double err = 0.0;
 			for (int k = 0; k < n; k++) {
-				err = DMAX(err, ABS(y[k]-yy[k]));
+				err = DMAX(err, ABS(y[k] - yy[k]));
 			}
 			assert(err < FLT_EPSILON);
 		}

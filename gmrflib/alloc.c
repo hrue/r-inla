@@ -7,13 +7,13 @@
 #include "GMRFLib/GMRFLib.h"
 
 #if defined(_WIN32)
-#define aligned_alloc(a_, b_) malloc(b_)
+#       define aligned_alloc(a_, b_) malloc(b_)
 bool not_windows = 0;
 #else
 bool not_windows = 1;
 #endif
 
-unsigned int GMRFLib_memory_alignment = 16;
+unsigned int GMRFLib_memory_alignment = 64;
 
 void *malloc_intern(size_t size)
 {

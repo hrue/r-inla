@@ -12,30 +12,28 @@
 #       endif
 
 __BEGIN_DECLS
-
-#include <stddef.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-
+#       include <stddef.h>
+#       include <string.h>
+#       include <stdlib.h>
+#       include <stdint.h>
 extern unsigned int GMRFLib_memory_alignment;
 
-static inline int GMRFLib_mem_align_test(void *p) 
+static inline int GMRFLib_mem_align_test(void *p)
 {
 	return (((uintptr_t) (p)) % GMRFLib_memory_alignment == 0 ? 1 : 0);
 }
 
-static inline int GMRFLib_is_aligned(void *p) 
+static inline int GMRFLib_is_aligned(void *p)
 {
 	return GMRFLib_mem_align_test(p);
 }
 
-static inline int GMRFLib_is_aligned2(void *p, void *pp) 
+static inline int GMRFLib_is_aligned2(void *p, void *pp)
 {
 	return (GMRFLib_is_aligned(p) && GMRFLib_is_aligned(pp));
 }
 
-static inline int GMRFLib_is_aligned3(void *p, void *pp, void *ppp) 
+static inline int GMRFLib_is_aligned3(void *p, void *pp, void *ppp)
 {
 	return (GMRFLib_is_aligned2(p, pp) && GMRFLib_is_aligned(ppp));
 }

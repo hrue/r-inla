@@ -1,50 +1,53 @@
-#if 1
-	__m512d s_xy0 = _mm512_setzero_pd();
-	__m512d s_xy1 = _mm512_setzero_pd();
-	__m512d s_xz0 = _mm512_setzero_pd();
-	__m512d s_xz1 = _mm512_setzero_pd();
+// optimize this code for n=16, which is the case used
 
+#if 1
+
+	__m512d s_xy0 = simde_mm512_setzero_pd();
+	__m512d s_xy1 = simde_mm512_setzero_pd();
+	__m512d s_xz0 = simde_mm512_setzero_pd();
+	__m512d s_xz1 = simde_mm512_setzero_pd();
 	int i = 0;
 	for (; i <= n - 16; i += 16) {
-		__m512d vx0 = _mm512_loadu_pd(&x[i]);
-		__m512d vx1 = _mm512_loadu_pd(&x[i + 8]);
-		s_xy0 = _mm512_fmadd_pd(vx0, _mm512_loadu_pd(&y[i]), s_xy0);
-		s_xy1 = _mm512_fmadd_pd(vx1, _mm512_loadu_pd(&y[i + 8]), s_xy1);
-		s_xz0 = _mm512_fmadd_pd(vx0, _mm512_loadu_pd(&z[i]), s_xz0);
-		s_xz1 = _mm512_fmadd_pd(vx1, _mm512_loadu_pd(&z[i + 8]), s_xz1);
+		__m512d vx0 = simde_mm512_loadu_pd(&x[i]);
+		__m512d vx1 = simde_mm512_loadu_pd(&x[i + 8]);
+		s_xy0 = simde_mm512_fmadd_pd(vx0, simde_mm512_loadu_pd(&y[i]), s_xy0);
+		s_xy1 = simde_mm512_fmadd_pd(vx1, simde_mm512_loadu_pd(&y[i + 8]), s_xy1);
+		s_xz0 = simde_mm512_fmadd_pd(vx0, simde_mm512_loadu_pd(&z[i]), s_xz0);
+		s_xz1 = simde_mm512_fmadd_pd(vx1, simde_mm512_loadu_pd(&z[i + 8]), s_xz1);
 	}
-	__m512d final_xy = _mm512_add_pd(s_xy0, s_xy1);
-	__m512d final_xz = _mm512_add_pd(s_xz0, s_xz1);
+	__m512d final_xy = simde_mm512_add_pd(s_xy0, s_xy1);
+	__m512d final_xz = simde_mm512_add_pd(s_xz0, s_xz1);
 	if (i < n) {
 		int rem = n - i;
 		if (rem >= 8) {
-			__m512d vx = _mm512_loadu_pd(&x[i]);
-			final_xy = _mm512_add_pd(final_xy, _mm512_mul_pd(vx, _mm512_loadu_pd(&y[i])));
-			final_xz = _mm512_add_pd(final_xz, _mm512_mul_pd(vx, _mm512_loadu_pd(&z[i])));
+			__m512d vx = simde_mm512_loadu_pd(&x[i]);
+			final_xy = simde_mm512_add_pd(final_xy, simde_mm512_mul_pd(vx, simde_mm512_loadu_pd(&y[i])));
+			final_xz = simde_mm512_add_pd(final_xz, simde_mm512_mul_pd(vx, simde_mm512_loadu_pd(&z[i])));
 			i += 8;
 			rem -= 8;
 		}
 		if (rem > 0) {
 			__mmask8 mask = (__mmask8)((1ULL << rem) - 1);
-			__m512d vx = _mm512_maskz_loadu_pd(mask, &x[i]);
-			final_xy = _mm512_add_pd(final_xy, _mm512_mul_pd(vx, _mm512_maskz_loadu_pd(mask, &y[i])));
-			final_xz = _mm512_add_pd(final_xz, _mm512_mul_pd(vx, _mm512_maskz_loadu_pd(mask, &z[i])));
+			__m512d vx = simde_mm512_maskz_loadu_pd(mask, &x[i]);
+			final_xy = simde_mm512_add_pd(final_xy, simde_mm512_mul_pd(vx, simde_mm512_maskz_loadu_pd(mask, &y[i])));
+			final_xz = simde_mm512_add_pd(final_xz, simde_mm512_mul_pd(vx, simde_mm512_maskz_loadu_pd(mask, &z[i])));
 		}
 	}
+	double buf_xy[8];
+	double buf_xz[8];
+	double sum_xy;
+	double sum_xz;
 
-#define REDUCE_512(r_, v_) {						\
-		__m256d low = _mm256_castpd512_pd256(v_);		\
-		__m256d high = _mm256_extractf128_pd(_mm256_castpd512_pd256(_mm512_alignr_epi64(v_, v_, 32)), 1); \
-		double temp[8];						\
-		_mm512_storeu_pd(temp, v_);				\
-		double s = 0;						\
-		for(int k = 0; k < 8; k++) s += temp[k];		\
-		r_ = s;							\
-	}
+	simde_mm512_storeu_pd(buf_xy, final_xy);
+	sum_xy = buf_xy[0] + buf_xy[1] + buf_xy[2] + buf_xy[3];
+	sum_xy += buf_xy[4] + buf_xy[5] + buf_xy[6] + buf_xy[7];
 
-	REDUCE_512(*a, final_xy);
-	REDUCE_512(*b, final_xz);
-#undef REDUCE_512
+	simde_mm512_storeu_pd(buf_xz, final_xz);
+	sum_xz = buf_xz[0] + buf_xz[1] + buf_xz[2] + buf_xz[3];
+	sum_xz += buf_xz[4] + buf_xz[5] + buf_xz[6] + buf_xz[7];
+
+	*a = sum_xy;
+	*b = sum_xz;
 
 #else
 
@@ -70,4 +73,5 @@
 	}
 	*a = aa;
         *b = bb;
+
 #endif

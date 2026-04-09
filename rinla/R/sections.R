@@ -1854,10 +1854,10 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("opt.storage", args$opt.storage, file)
     inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
     ma <- args$memory.alignment
-    if (is.null(ma) || all(ma != c(16, 32, 64))) {
-        ma <- 16
+    if (is.null(ma) || all(ma != c(0, 16, 32, 64))) {
+        ma <- 0
     }
-    stopifnot(length(ma) == 1 && any(ma == c(16, 32, 64)))
+    stopifnot(length(ma) == 1 && any(ma == c(0, 16, 32, 64)))
     cat("memory.alignment =", ma, "\n", file = file, append = TRUE)
 
     gconstr <- args$globalconstr

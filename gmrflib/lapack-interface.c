@@ -1722,7 +1722,7 @@ int GMRFLib_isum(int n, int *x)
 
 #define SPARSE_DSUM()					\
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
-	int m = n & ~7;					\
+	int m = n & ~7;				\
 	for (int i = 0; i < m; i += 8) {		\
 		s0 += a[idx[i + 0]];			\
 		s1 += a[idx[i + 1]];			\

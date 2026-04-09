@@ -163,16 +163,16 @@ void compute_diagonal_values(double *__restrict dij, double *__restrict v, doubl
 	for (int kk = 0; kk <= nb; kk++) {
 		int v_off = kk * 4;
 		int d_off = kk * 3;
-		    
+
 		double d_j0 = dij[d_off];
 		double d_j1 = dij[d_off + 1];
 		double d_j2 = dij[d_off + 2];
-		       
+
 		double v0 = v[v_off];
 		double v1 = v[v_off + 1];
 		double v2 = v[v_off + 2];
 		double v3 = v[v_off + 3];
-		       
+
 		double inner = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
 		values[kk] = d_i0 * d_j0 * inner;
 	}

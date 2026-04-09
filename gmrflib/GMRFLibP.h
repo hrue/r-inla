@@ -51,6 +51,9 @@ typedef int fortran_charlen_t;
 #              define POSSIBLY_UNUSED(x) x
 #       endif
 
+#       define align_double alignas(64) double
+#       define align_int    alignas(64) int
+
 #       pragma omp declare simd
 static double POSSIBLY_UNUSED(SQR) (double x) {
 	return (x * x);
@@ -471,7 +474,7 @@ typedef enum {
 
 #       define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_); }
 #       define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
-#       define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_); } 
+#       define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_); }
 
 #       define likely(x)   __builtin_expect(!!(x), 1)
 #       define unlikely(x) __builtin_expect(!!(x), 0)

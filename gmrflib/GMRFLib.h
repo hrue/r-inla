@@ -18,6 +18,7 @@
 
 #       include "GMRFLib/alloc.h"
 
+#       include <stdalign.h>
 #       include <errno.h>
 #       include <assert.h>
 #       include <stddef.h>

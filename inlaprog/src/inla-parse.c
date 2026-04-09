@@ -19923,7 +19923,12 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
+
 	int malign = iniparser_getboolean(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
+	if (malign == 0) {
+		malign = GMRFLib_memory_alignment;
+	}
+
 	if (malign <= 16) {
 		GMRFLib_memory_alignment = 16;
 	} else if (malign <= 32) {
@@ -19931,21 +19936,25 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	} else if (malign <= 64) {
 		GMRFLib_memory_alignment = 64;
 	} else {
-		assert(malign == 16 || malign == 32 || malign == 64);
+		assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
 	}
-
-	// not enabled on Windows for the moment
-#if defined(_WIN32)
-	GMRFLib_memory_alignment = 0;
-#endif
 
 	if (mb->verbose) {
-		printf("\t\t\tOptimise linear solve = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
-		printf("\t\t\tOptimise storage      = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
-		printf("\t\t\tOptimise num.threads  = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
-		printf("\t\t\tMemory.alignment      = [%u]\n", GMRFLib_memory_alignment);
+		printf("\t\t\tOptimise linear solve  = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
+		printf("\t\t\tOptimise storage       = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
+		printf("\t\t\tOptimise num.threads   = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
+		printf("\t\t\tMemory.alignment       = [%u bits]\n", GMRFLib_memory_alignment);
 	}
 
+#if !defined(_WIN32)
+	if (mb->verbose) {
+		// alignof is in bytes not bits 
+		int *xx = Malloc(1, int);
+		printf("\t\t\tMemory.alignment.check = [%s]\n", (8 * alignof(xx) == GMRFLib_memory_alignment ? "PASS" : "FAIL"));
+		Free(xx);
+	}
+#endif
+	
 	/*
 	 * do error-checking later on 
 	 */

@@ -12,8 +12,6 @@
 		simde_mm512_storeu_pd(&y[i + 24], simde_mm512_mul_pd(x3, va));
 	}
 	if (i < n) {
-		int rem = n - i;
-		__mmask8 mask = (__mmask8)((1U << (rem % 8)) - 1); 
 		while (i < n) {
 			if (n - i >= 8) {
 				simde_mm512_storeu_pd(&y[i], simde_mm512_mul_pd(simde_mm512_loadu_pd(&x[i]), va));

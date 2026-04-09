@@ -7165,7 +7165,6 @@ int main(int argc, char **argv)
 	GMRFLib_opt_solve = 0;
 	GMRFLib_opt_num_threads = 0;
 	GMRFLib_turn_off_gsl_error_handler = 1;
-	GMRFLib_memory_alignment = 16;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
