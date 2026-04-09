@@ -164,7 +164,7 @@
             },
             envir = tmp.env
         ))
-        if (class(res) %in% "try-error") {
+        if (inherits(res, "try-error")) {
               warning(paste0("Got an error while sourcing file ", fff))
           }
     }
@@ -176,7 +176,7 @@
     for (func in funcs) {
         if (existsFunction(f = func, where = tmp.env)) {
             locked <- try(bindingIsLocked(func, env), silent = TRUE)
-            if (class(locked) %in% "try-error") {
+            if (inherits(locked, "try-error")) {
                 ## then this function does not exists in package:INLA,
                 ## so we assign it in the globalenv()
                 assign(func, get(func, envir = tmp.env), envir = globalenv())

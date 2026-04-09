@@ -269,9 +269,9 @@
              #' critical places to optimize wall-clock time
              opt.num.threads = TRUE, 
 
-             #' @param memory.alignment Logical. Force memory alignment for alloc (Linux and Mac
-             #' only). (EXPERIMENTAL OPTION)
-             memory.alignment = TRUE
+             #' @param memory.alignment Memory alignment for alloc (Linux and Mac
+             #' only). One of 16, 32 or 64(bit). (EXPERIMENTAL OPTION)
+             memory.alignment = 16
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }

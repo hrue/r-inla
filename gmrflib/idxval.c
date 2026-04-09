@@ -714,8 +714,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		seq_len += g_len[g];
 	}
 
-	int align_i = GMRFLib_MEM_ALIGN / sizeof(int);
-	int align_d = GMRFLib_MEM_ALIGN / sizeof(double);
+	int align_i = GMRFLib_memory_alignment / sizeof(int);
+	int align_d = GMRFLib_memory_alignment / sizeof(double);
 	int len_i = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i;
 	int len_d = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d;
 	int *new_idx = Calloc(len_i, int);

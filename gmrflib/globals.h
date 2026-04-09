@@ -107,8 +107,6 @@ extern int GMRFLib_force_stiles;
 
 extern int GMRFLib_turn_off_gsl_error_handler;
 
-extern int GMRFLib_memory_alignment;
-
 extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];
