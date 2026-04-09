@@ -1454,7 +1454,7 @@ double GMRFLib_dssqr(int n, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
@@ -1479,7 +1479,7 @@ void GMRFLib_dscale(int n, double a, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
 {
@@ -1533,7 +1533,7 @@ void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
@@ -1581,7 +1581,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
@@ -1593,7 +1593,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 {
@@ -1624,7 +1624,7 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
@@ -1636,7 +1636,7 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
@@ -1667,7 +1667,7 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
 {
@@ -1686,7 +1686,7 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
@@ -1707,7 +1707,7 @@ double GMRFLib_dsum(int n, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
@@ -1740,7 +1740,7 @@ int GMRFLib_isum(int n, int *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
@@ -1770,7 +1770,7 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_dfill(int n, double a, double *x)
 {
@@ -1780,7 +1780,7 @@ void GMRFLib_dfill(int n, double a, double *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_ifill(int n, int a, int *x)
 {
@@ -1796,7 +1796,7 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
@@ -1820,7 +1820,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
@@ -1836,7 +1836,7 @@ void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
-__attribute__((optimize("O3")))
+__attribute__((optimize("O3", "fast-math")))
 void GMRFLib_powx(int n, double *x, double a, double *y)
 {
 	// y = x^a

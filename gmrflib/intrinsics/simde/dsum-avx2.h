@@ -16,7 +16,6 @@
 		__m128d low = simde_mm256_castpd256_pd128(final_sum);
 		__m128d high = simde_mm256_extractf128_pd(final_sum, 1);
 		__m128d combined = simde_mm_add_pd(low, high);
-    
 		__m128d shuffled = simde_mm_unpackhi_pd(combined, combined);
 		__m128d result_vec = simde_mm_add_pd(combined, shuffled);
 		double r = simde_mm_cvtsd_f64(result_vec);
