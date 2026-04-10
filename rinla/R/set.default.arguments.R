@@ -270,7 +270,7 @@
              opt.num.threads = TRUE, 
 
              #' @param memory.alignment Memory alignment for alloc (Linux and Mac
-             #' only). One of 0 (chose adaptively), 16, 32 or 64(bit). (EXPERIMENTAL OPTION)
+             #' only). One of 0 (chose adaptively), 16, 32 or 64 bytes (EXPERIMENTAL OPTION)
              memory.alignment = 0
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)

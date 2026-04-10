@@ -4644,12 +4644,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 
 	// we use _ALLOC_LEN instead if GMRFLib_INT_GHQ_POINTS, as _ALLOC_LEN is a multiplum of 16 so SIMD is faster. The remaining
 	// extra terms are just zero, so no harm done. 
-#if 1
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_ALLOC_LEN, sd, xp, mean, x_user);
-#else
-	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
-#endif
-
 	loglFunc(thread_id, ccache_idx_numa, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg);
 
 	double s_inv = 1.0 / sd, ds_inv = -d * s_inv, ds2_inv = -d * SQR(s_inv);
@@ -4660,13 +4655,12 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	// we use _ALLOC_LEN instead if GMRFLib_INT_GHQ_POINTS, as _ALLOC_LEN is a multiplum of 16 so SIMD is faster. The remaining
 	// extra terms are just zero, so no harm done. Also the dot2 version, merge the two dots and compute simultanously both
 	// dot-products at the same time.
-#if 0
-	double B = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp);
-	double C = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp2);
-#else
+
+	// double B = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp);
+	// double C = GMRFLib_ddot(GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp2);
+	// oops: the SIMD-part of this function assumes GMRFLib_INT_GHQ_ALLOC_LEN==16
 	double B = 0.0, C = 0.0;
 	GMRFLib_ddot2(&B, &C, GMRFLib_INT_GHQ_ALLOC_LEN, loglik, wxp, wxp2);
-#endif
 
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;

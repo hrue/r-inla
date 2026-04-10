@@ -19,7 +19,8 @@ void *malloc_intern(size_t size)
 {
 	void *p = NULL;
 	if (not_windows) {
-		p = aligned_alloc(GMRFLib_memory_alignment, size);
+		size_t new_size = GMRFLib_align_len(size, 1);
+		p = aligned_alloc(GMRFLib_memory_alignment, new_size);
 	} else {
 		p = malloc(size);
 	}
@@ -32,9 +33,10 @@ void *calloc_intern(size_t nmemb, size_t size)
 	void *p = NULL;
 	if (not_windows) {
 		size_t n = nmemb * size;
-		p = aligned_alloc(GMRFLib_memory_alignment, n);
+		size_t nn = GMRFLib_align_len(n, 1);
+		p = aligned_alloc(GMRFLib_memory_alignment, nn);
 		assert(p);
-		Memset(p, 0, n);
+		Memset(p, 0, nn);
 	} else {
 		p = calloc(nmemb, size);
 	}
@@ -53,7 +55,8 @@ void *realloc_intern(void *ptr, size_t size)
 			// this is a workaround for not having aligned realloc.
 			// good thing is that 'size' is valid so we can do Memcpy!
 			if (!GMRFLib_is_aligned(p)) {
-				void *pp = malloc_intern(size);
+				size_t new_size = GMRFLib_align_len(size, 1);
+				void *pp = malloc_intern(new_size);
 				assert(pp);
 				Memcpy(pp, p, size);
 				Free(p);
@@ -71,8 +74,9 @@ void *realloc_intern(void *ptr, size_t size)
 size_t GMRFLib_align_len(size_t n, size_t size)
 {
 	// return 'N >= n' so that the endpoint is aligned at
-	// GMRFLib_memory_alignment bytes boundary
+	// GMRFLib_memory_alignment bytes boundary.
 
+	// assume that _memory_alignment divisible by size (oops: no check)
 	int mm = (size_t) GMRFLib_memory_alignment / size;
 	div_t d = div(n, mm);
 

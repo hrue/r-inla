@@ -6361,6 +6361,24 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 199: 
+	{
+		GMRFLib_memory_alignment = 32;
+		P(GMRFLib_memory_alignment);
+		for(int n = 1; n < 100; n++) {
+			printf("n = %1d,", n);
+			int nn;
+			nn = GMRFLib_align_len(n, sizeof(double));
+			printf(" n.double = %1d", nn);  
+			nn = GMRFLib_align_len(n, sizeof(int));
+			printf(" n.int = %1d", nn);  
+			nn = GMRFLib_align_len(n, sizeof(bool));
+			printf(" n.bool = %1d", nn);
+			printf("\n");
+		}
+	}
+	break;
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
