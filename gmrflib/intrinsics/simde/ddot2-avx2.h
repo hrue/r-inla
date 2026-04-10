@@ -1,4 +1,4 @@
-#if 1
+{
 	__m256d sum_xy0 = simde_mm256_setzero_pd();
 	__m256d sum_xy1 = simde_mm256_setzero_pd();
 	__m256d sum_xy2 = simde_mm256_setzero_pd();
@@ -37,10 +37,10 @@
 		sum_xz3 = simde_mm256_add_pd(sum_xz3, simde_mm256_mul_pd(vx3, vz3));
 	}
 
-	__m256d f_xy = simde_mm256_add_pd(simde_mm256_add_pd(sum_xy0, sum_xy1), 
+	__m256d f_xy = simde_mm256_add_pd(simde_mm256_add_pd(sum_xy0, sum_xy1),
 					  simde_mm256_add_pd(sum_xy2, sum_xy3));
-    
-	__m256d f_xz = simde_mm256_add_pd(simde_mm256_add_pd(sum_xz0, sum_xz1), 
+
+	__m256d f_xz = simde_mm256_add_pd(simde_mm256_add_pd(sum_xz0, sum_xz1),
 					  simde_mm256_add_pd(sum_xz2, sum_xz3));
 
 #define HORIZONTAL_ADD(r_, v_) {					\
@@ -49,7 +49,7 @@
 		__m128d combined = simde_mm_add_pd(low, high);		\
 		__m128d shuffled = simde_mm_unpackhi_pd(combined, combined); \
 		r_ = simde_mm_cvtsd_f64(simde_mm_add_pd(combined, shuffled)); \
-	}								
+	}
 
 	double aa, bb;
 	HORIZONTAL_ADD(aa, f_xy);
@@ -62,7 +62,10 @@
 	}
 	*a = aa;
 	*b = bb;
-#else 
+}
+
+#if 0
+{
 	double aa = 0.0, bb = 0.0;
 	int limit = n & ~3;
 	if (limit > 0) {
@@ -75,10 +78,10 @@
 			sum_a = simde_mm256_add_pd(sum_a, simde_mm256_mul_pd(xvec, yvec));
 			sum_b = simde_mm256_add_pd(sum_b, simde_mm256_mul_pd(xvec, zvec));
 		}
-		sum_a = simde_mm256_hadd_pd(sum_a, sum_a);  // [a0+a1, a0+a1, a2+a3, a2+a3]
+		sum_a = simde_mm256_hadd_pd(sum_a, sum_a);     // [a0+a1, a0+a1, a2+a3, a2+a3]
 		simde__m128d low_a = simde_mm256_castpd256_pd128(sum_a);
 		simde__m128d high_a = simde_mm256_extractf128_pd(sum_a, 1);
-		low_a = simde_mm_add_pd(low_a, high_a);  // [total, total]
+		low_a = simde_mm_add_pd(low_a, high_a);	       // [total, total]
 		aa += simde_mm_cvtsd_f64(low_a);
 		sum_b = simde_mm256_hadd_pd(sum_b, sum_b);
 		simde__m128d low_b = simde_mm256_castpd256_pd128(sum_b);
@@ -92,4 +95,5 @@
 	}
 	*a = aa;
 	*b = bb;
+}
 #endif

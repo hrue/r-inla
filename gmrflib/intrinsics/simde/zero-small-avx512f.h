@@ -1,3 +1,4 @@
+{
 	__m512d eps_vec = _mm512_set1_pd(eps);
 	int i = 0;
 	int simd_n = n & ~7;
@@ -8,5 +9,7 @@
 		_mm512_mask_storeu_pd(&x[i], mask, _mm512_setzero_pd());
 	}
 	for (; i < n; i++) {
-		if (fabs(x[i]) < eps) x[i] = 0;
+		if (fabs(x[i]) < eps)
+			x[i] = 0;
 	}
+}

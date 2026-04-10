@@ -1,3 +1,4 @@
+{
 	if (n >= 8) {
 		__m128d s0 = simde_mm_setzero_pd();
 		__m128d s1 = simde_mm_setzero_pd();
@@ -20,14 +21,16 @@
 		return r;
 	} else {
 		double r = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			r += x[i];
 		}
 		return r;
 	}
+}
 
 #if 0
-        double r = 0.0;
+{
+	double r = 0.0;
 	int limit = n & ~7;
 	if (limit > 0) {
 		simde__m128d sum0 = simde_mm_setzero_pd();
@@ -55,4 +58,5 @@
 		r += x[i];
 	}
 	return r;
+}
 #endif

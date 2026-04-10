@@ -1,3 +1,4 @@
+{
 	if (n >= 32) {
 		__m512d s0 = simde_mm512_setzero_pd();
 		__m512d s1 = simde_mm512_setzero_pd();
@@ -14,7 +15,7 @@
 		double temp[8];
 		simde_mm512_storeu_pd(temp, final_sum);
 		double r = 0;
-		for(int k=0; k<8; k++) {
+		for (int k = 0; k < 8; k++) {
 			r += temp[k];
 		}
 		for (; i < n; i++) {
@@ -24,10 +25,12 @@
 	} else {
 #include "dsum-avx2.h"
 	}
+}
 
 #if 0
+{
 	double r = 0.0;
-	int limit = n & ~7;  // Align to 8 doubles
+	int limit = n & ~7;
 	if (limit > 0) {
 		simde_m512d sum0 = simde_mm512_setzero_pd();
 		for (int i = 0; i < limit; i += 8) {
@@ -40,4 +43,5 @@
 		r += x[i];
 	}
 	return r;
+}
 #endif

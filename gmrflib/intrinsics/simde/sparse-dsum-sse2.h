@@ -1,3 +1,4 @@
+{
 	double r = 0.0;
 	int limit = n & ~3;
 	if (limit > 0) {
@@ -22,3 +23,4 @@
 		r += a[idx[i]];
 	}
 	return r;
+}

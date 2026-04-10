@@ -1,7 +1,6 @@
 // optimize this code for n=16, which is the case used
 
-#if 1
-
+{
 	__m512d s_xy0 = simde_mm512_setzero_pd();
 	__m512d s_xy1 = simde_mm512_setzero_pd();
 	__m512d s_xz0 = simde_mm512_setzero_pd();
@@ -27,7 +26,7 @@
 			rem -= 8;
 		}
 		if (rem > 0) {
-			__mmask8 mask = (__mmask8)((1ULL << rem) - 1);
+			__mmask8 mask = (__mmask8) ((1ULL << rem) - 1);
 			__m512d vx = simde_mm512_maskz_loadu_pd(mask, &x[i]);
 			final_xy = simde_mm512_add_pd(final_xy, simde_mm512_mul_pd(vx, simde_mm512_maskz_loadu_pd(mask, &y[i])));
 			final_xz = simde_mm512_add_pd(final_xz, simde_mm512_mul_pd(vx, simde_mm512_maskz_loadu_pd(mask, &z[i])));
@@ -48,9 +47,10 @@
 
 	*a = sum_xy;
 	*b = sum_xz;
+}
 
-#else
-
+#if 0
+{
 	double aa = 0.0, bb = 0.0;
 	int limit = n & ~7;
 	if (limit > 0) {
@@ -66,12 +66,12 @@
 		aa += _mm512_reduce_add_pd(sum_a);
 		bb += _mm512_reduce_add_pd(sum_b);
 	}
-#pragma omp simd reduction(+: aa, bb)
+#       pragma omp simd reduction(+: aa, bb)
 	for (int i = limit; i < n; i++) {
 		aa += x[i] * y[i];
 		bb += x[i] * z[i];
 	}
 	*a = aa;
-        *b = bb;
-
+	*b = bb;
+}
 #endif

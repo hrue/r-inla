@@ -1,3 +1,4 @@
+{
 	simde__m128d scalar = simde_mm_set1_pd(a);
 	int limit = n & ~3;
 	for (int i = 0; i < limit; i += 4) {
@@ -11,3 +12,4 @@
 	for (int i = limit; i < n; i++) {
 		y[i] = a * x[i];
 	}
+}

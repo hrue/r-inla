@@ -1,3 +1,4 @@
+{
 	__m256d eps_vec = _mm256_set1_pd(eps);
 	int i = 0;
 	int simd_n = n & ~3;
@@ -8,5 +9,7 @@
 		_mm256_storeu_pd(&x[i], _mm256_andnot_pd(mask, v));
 	}
 	for (; i < n; i++) {
-		if (fabs(x[i]) < eps) x[i] = 0;
+		if (fabs(x[i]) < eps)
+			x[i] = 0;
 	}
+}

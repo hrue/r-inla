@@ -1,8 +1,9 @@
 // a = ddot(x,y) && b = ddot(x,z)
 
+{
 	double aa = 0.0, bb = 0.0;
 	int limit = n & ~3;
-        if (limit > 0) {
+	if (limit > 0) {
 		simde__m128d sum_a = simde_mm_setzero_pd();
 		simde__m128d sum_b = simde_mm_setzero_pd();
 		for (int i = 0; i < limit; i += 4) {
@@ -28,3 +29,4 @@
 	}
 	*a = aa;
 	*b = bb;
+}

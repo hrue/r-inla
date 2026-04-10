@@ -1,3 +1,4 @@
+{
 	int limit = n & ~3;
 	for (int i = 0; i < limit; i += 4) {
 		simde__m128i indices1 = simde_mm_loadu_si128((simde__m128i *) & ia[i]);
@@ -12,3 +13,4 @@
 	for (int i = limit; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
+}

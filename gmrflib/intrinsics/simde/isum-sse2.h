@@ -1,3 +1,4 @@
+{
 	int limit = n & ~7;
 	int r = 0;
 	if (limit > 0) {
@@ -18,3 +19,4 @@
 		r += x[i];
 	}
 	return r;
+}
