@@ -54,7 +54,8 @@
 #                     include <simde/x86/avx2.h>
 #              endif
 #              
-#              if defined(__AVX512F__)
+// turn off AVX512 for the moment
+#              if 0 && defined(__AVX512F__)
 #                     define INLA_WITH_SIMDE_AVX512F_
 #                     include <simde/x86/avx512.h>
 #              elif defined(_WIN32)
@@ -68,7 +69,9 @@
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
 #              undef INLA_CLONE_TARGETS
 #              if defined(__x86_64__)
-#                     define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
+// turn off AVX512 for the moment
+//#                     define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
+#                     define INLA_CLONE_TARGETS "sse2", "avx2",
 #              elif defined(__aarch64__)
 #                     define INLA_CLONE_TARGETS "sve", "sve2",
 #              else
@@ -79,7 +82,9 @@
 #              define INLA_CLONE_TARGETS "sve", "sve2", "cpu=apple-m1", "cpu=apple-m2",  "cpu=apple-m3",
 #       elif defined(INLA_CLONE_TARGETS) && defined(__APPLE) && defined(__x86_64__)
 #              undef INLA_CLONE_TARGETS
-#              define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
+// turn off AVX512 for the moment
+//#              define INLA_CLONE_TARGETS "sse2", "avx2", "avx512f",
+#              define INLA_CLONE_TARGETS "sse2", "avx2", 
 #       else
 #              undef INLA_WITH_CLONE_TARGETS
 #              undef INLA_CLONE_TARGETS
