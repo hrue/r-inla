@@ -4622,25 +4622,37 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	if (!lwork[*ccache_idx_numa]) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
 		if (!lwork[*ccache_idx_numa]) {
-			double *worktmp = Malloc(5 * GMRFLib_INT_GHQ_ALLOC_LEN, double), *wtmp = NULL, *xtmp = NULL;
-			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
-			GMRFLib_dfill(5 * GMRFLib_INT_GHQ_ALLOC_LEN, 0.0, worktmp);
+			int len_offset = GMRFLib_memory_alignment / sizeof(double);
+			int len = GMRFLib_align_len(GMRFLib_INT_GHQ_ALLOC_LEN, sizeof(double));
+			
+			double *worktmp = Malloc(5 * len + len_offset, double), *wtmp = NULL, *xtmp = NULL;
+			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * len + len_offset, double);
+			GMRFLib_dfill(5 * len + len_offset, 0.0, worktmp);
 
+			// ensure worktmp ptr is aligned. we might change the ptr so we cannot free
+			for(int k = 0; k < len_offset; k++) {
+				if (GMRFLib_is_aligned(worktmp + k)) {
+					worktmp += k;
+					break;
+				}
+			}
+			
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
 			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-				worktmp[1 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * xtmp[i];
-				worktmp[2 * GMRFLib_INT_GHQ_ALLOC_LEN + i] = wtmp[i] * (SQR(xtmp[i]) - 1.0);
+				worktmp[1 * len + i] = wtmp[i] * xtmp[i];
+				worktmp[2 * len + i] = wtmp[i] * (SQR(xtmp[i]) - 1.0);
 			}
 			lwork[*ccache_idx_numa] = worktmp;
 		}
 	}
 
+	int len = GMRFLib_align_len(GMRFLib_INT_GHQ_ALLOC_LEN, sizeof(double));
 	double *xp = lwork[*ccache_idx_numa];
-	double *wxp = lwork[*ccache_idx_numa] + 1 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *wxp2 = lwork[*ccache_idx_numa] + 2 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *loglik = lwork[*ccache_idx_numa] + 3 * GMRFLib_INT_GHQ_ALLOC_LEN;
-	double *x_user = lwork[*ccache_idx_numa] + 4 * GMRFLib_INT_GHQ_ALLOC_LEN;
+	double *wxp = lwork[*ccache_idx_numa] + 1 * len;
+	double *wxp2 = lwork[*ccache_idx_numa] + 2 * len;
+	double *loglik = lwork[*ccache_idx_numa] + 3 * len;
+	double *x_user = lwork[*ccache_idx_numa] + 4 * len;
 
 	// we use _ALLOC_LEN instead if GMRFLib_INT_GHQ_POINTS, as _ALLOC_LEN is a multiplum of 16 so SIMD is faster. The remaining
 	// extra terms are just zero, so no harm done. 
@@ -5067,7 +5079,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		int nt_loc1 = GMRFLib_adapt_nt_get(tag1, tnum, level, num_threads);
 		double tref1 = -GMRFLib_timer();
 
-		RUN_CODE_BLOCK_X(nt_loc1, 1, 2 * GMRFLib_INT_GHQ_ALLOC_LEN, int);
+		int alloc_len = GMRFLib_align_len(GMRFLib_INT_GHQ_ALLOC_LEN, sizeof(double));
+		RUN_CODE_BLOCK_X(nt_loc1, 1, 2 * alloc_len, int);
 
 		tref1 += GMRFLib_timer();
 		GMRFLib_adapt_nt_update(tag1, tnum, level, tref1);
