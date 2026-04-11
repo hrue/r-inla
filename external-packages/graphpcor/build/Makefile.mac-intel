@@ -2,9 +2,10 @@ CFLAGS = -framework Accelerate $(INC) -O3 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = -framework Accelerate $(LIB)
 TARGET = libgraphpcor.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
 
 $(TARGET) : $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp $(LIBLTDL) -lm
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran  -Wl,-force_load,$(LIBGOMP),$(LIBLTDL) -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 

@@ -2,9 +2,10 @@ CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp  -fpic -I.
 LDFLAGS = -framework Accelerate
 TARGET = libfbesag.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
 
 $(TARGET) : $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -Wl,-force_load,$(LIBGOMP) -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 

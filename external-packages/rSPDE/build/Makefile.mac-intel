@@ -3,9 +3,10 @@ CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
 LDFLAGS = -framework Accelerate 
 TARGET = librSPDE.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c)) $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
 
 $(TARGET) : $(OBJ)
-	$(CXX) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp -lm
+	$(CXX) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -Wl,-force_load,$(LIBGOMP) -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
