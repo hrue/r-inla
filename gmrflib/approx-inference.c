@@ -5159,7 +5159,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON, &try_first);
-				P(try_first);
 			}
 			if (debug) {
 				printf("MM\n");

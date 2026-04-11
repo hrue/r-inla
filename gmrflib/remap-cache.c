@@ -29,7 +29,7 @@ int GMRFLib_remap_init_store(void)
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 {
 	GMRFLib_SHA_TP c;
-	unsigned char *md = aMalloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	unsigned char *md = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 	GMRFLib_SHA_Init(&c);
 	GMRFLib_SHA_IUPDATE(remap, n, c);
 	GMRFLib_SHA_IUPDATE(&n, 1, c);
@@ -77,9 +77,32 @@ GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 		} else {
 			int numa_node = -1;
 			GMRFLib_numa_get(NULL, &numa_node);
-			int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
-			int *re1 = aCalloc(n * nrhs, int);
+			int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int) + GMRFLib_memory_alignment, numa_node);
+			int *re1 = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int) + GMRFLib_memory_alignment, numa_node);
 			int *re2 = aCalloc(n * nrhs, int);
+
+			// ensure alignment
+			int *re_free = re;
+			for(int k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+				if (GMRFLib_is_aligned(re + k)){
+					re = re + k;
+					break;
+				}
+			}
+			if (!GMRFLib_is_aligned(re)) {
+				FIXME("->re not aligned. fixme");
+			}
+
+			int *re1_free = re1;
+			for(int k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+				if (GMRFLib_is_aligned(re1 + k)){
+					re1 = re1 + k;
+					break;
+				}
+			}
+			if (!GMRFLib_is_aligned(re1)) {
+				FIXME("->re1 not aligned. fixme");
+			}
 
 			// two step mapping
 			for (int j = 0; j < nrhs; j++) {
@@ -104,6 +127,8 @@ GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 			r->nrhs = nrhs;
 			r->numa_node = numa_node;
 			r->count = 1;
+			r->remap_free = re_free;
+			r->remap_inv_free = re1_free;
 			r->remap = re;
 			r->remap_inv = re1;
 
@@ -145,7 +170,8 @@ void GMRFLib_remap_reset(void)
 		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
 			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
 			if (r && r->remap) {
-				GMRFLib_numa_free((void *) r->remap, r->n * r->nrhs * sizeof(int));
+				GMRFLib_numa_free((void *) r->remap_free, r->n * r->nrhs * sizeof(int));
+				GMRFLib_numa_free((void *) r->remap_inv_free, r->n * r->nrhs * sizeof(int));
 				Free(r->sha);
 				Free(r);
 			}

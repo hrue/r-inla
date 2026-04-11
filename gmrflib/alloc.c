@@ -62,7 +62,11 @@ void *acalloc_intern(size_t nmemb, size_t size)
 void *realloc_intern(void *ptr, size_t size)
 {
 	void *p = NULL;
-	p = realloc(ptr, size);
+	if (ptr) {
+		p = realloc(ptr, size);
+	} else {
+		p = malloc(size);
+	}
 	assert(p);
 	return p;
 }

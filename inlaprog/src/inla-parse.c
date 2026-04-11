@@ -792,7 +792,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 }
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow="
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
 int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*

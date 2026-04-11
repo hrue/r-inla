@@ -24,6 +24,8 @@ __BEGIN_DECLS
 	int n;
 	int nrhs;
 	int numa_node;
+	int *remap_free;
+	int *remap_inv_free;
 	int *remap;					       /* length n * nrhs */
 	int *remap_inv;					       /* length n * nrhs */
 	int count;
