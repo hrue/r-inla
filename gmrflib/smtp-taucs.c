@@ -55,12 +55,12 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 			Memcpy(nc->len, cache->len, nc->n * sizeof(int));
 		}
 		if (nc->nnz && cache->rowind) {
-			nc->rowind = Malloc(nc->nnz, int);
+			nc->rowind = aMalloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
 			if (cache->perm) {
-				nc->rowind_sorted = Malloc(nc->nnz, int);
+				nc->rowind_sorted = aMalloc(nc->nnz, int);
 				Memcpy(nc->rowind_sorted, cache->rowind_sorted, nc->nnz * sizeof(int));
-				nc->perm = Malloc(nc->nnz, int);
+				nc->perm = aMalloc(nc->nnz, int);
 				Memcpy(nc->perm, cache->perm, nc->nnz * sizeof(int));
 			}
 		}
@@ -99,7 +99,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 	int nt = (n < 1E3 ? 1 : (n < 10E4 ? 2 : 4));
 
 	if (cache == NULL || *cache == NULL) {
-		len = Calloc(n, int);
+		len = aCalloc(n, int);
 		for (int sn = 0; sn < L->n_sn; sn++) {
 			int Lsize = L->sn_size[sn];
 			int Lup_size = L->sn_up_size[sn];
@@ -169,14 +169,14 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 		RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
-		(*cache)->rowind = Malloc(nnz, int);
+		(*cache)->rowind = aMalloc(nnz, int);
 		Memcpy((*cache)->rowind, C->rowind, nnz * sizeof(int));
 
 		if (do_sort_idx) {
-			(*cache)->rowind_sorted = Malloc(nnz, int);
+			(*cache)->rowind_sorted = aMalloc(nnz, int);
 			Memcpy((*cache)->rowind_sorted, C->rowind, nnz * sizeof(int));
 
-			int *perm = Malloc(nnz, int);
+			int *perm = aMalloc(nnz, int);
 #pragma omp simd
 			for (int j = 0; j < nnz; j++) {
 				perm[j] = j;
@@ -224,7 +224,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 #undef CODE_BLOCK
 
 	if (do_sort_idx && cache && (*cache)->perm) {
-		double *work = Malloc(nnz, double);
+		double *work = aMalloc(nnz, double);
 		Memcpy(C->rowind, (*cache)->rowind_sorted, nnz * sizeof(int));
 		Memcpy(work, C->values, nnz * sizeof(double));
 		GMRFLib_pack(nnz, work, (*cache)->perm, C->values);
@@ -242,100 +242,11 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 }
 #pragma GCC diagnostic pop
 
-taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL, GMRFLib_taucs_cache_tp **UNUSED(cache))
-{
-	GMRFLib_ENTER_FUNCTION;
-	// original version, with added unused argument
-
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-	taucs_ccs_matrix *C = NULL;
-	int n, nnz = 0, *len = NULL;
-	double v;
-
-	n = L->n;
-	if (n == 0) {
-		return NULL;
-	}
-	len = Calloc(n, int);
-
-	for (int sn = 0; sn < L->n_sn; sn++) {
-		int Lsize = L->sn_size[sn];
-		int Lup_size = L->sn_up_size[sn];
-		int *Lss = L->sn_struct[sn];
-
-		for (int jp = 0; jp < Lsize; jp++) {
-			int j = Lss[jp];
-			int *len_j = len + j;
-			*len_j = 0;
-			for (int ip = jp; ip < Lsize; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					(*len_j)++;
-					nnz++;
-				}
-			}
-			for (int ip = Lsize; ip < Lup_size; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					(*len_j)++;
-					nnz++;
-				}
-			}
-		}
-	}
-
-	C = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	(C->colptr)[0] = 0;
-	for (int j = 1; j <= n; j++) {
-		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
-	}
-
-	for (int sn = 0; sn < L->n_sn; sn++) {
-		int *Lss = L->sn_struct[sn];
-		int Lsbl = L->sn_blocks_ld[sn];
-		int Lsize = L->sn_size[sn];
-		int Lubl = L->up_blocks_ld[sn];
-		int Lup_size = L->sn_up_size[sn];
-		double *Lsb = L->sn_blocks[sn];
-		double *Lub = L->up_blocks[sn];
-
-		for (int jp = 0; jp < Lsize; jp++) {
-			int j = Lss[jp];
-			int next = C->colptr[j];
-
-			double *Lsb_p = Lsb + jp * Lsbl;
-			double *Lub_p = Lub + jp * Lubl - Lsize;
-			for (int ip = jp; ip < Lsize; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					v = Lsb_p[ip];
-					C->rowind[next] = i;
-					C->values[next] = v;
-					next++;
-				}
-			}
-			for (int ip = Lsize; ip < Lup_size; ip++) {
-				int i = Lss[ip];
-				if (i >= j) {
-					v = Lub_p[ip];
-					C->rowind[next] = i;
-					C->values[next] = v;
-					next++;
-				}
-			}
-		}
-	}
-
-	Free(len);
-	GMRFLib_LEAVE_FUNCTION;
-	return C;
-}
-
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix *L)
 {
 #define DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
-			LL->name = (type *)Malloc((len), type);		\
+			LL->name = (type *)aMalloc((len), type);	\
 			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
@@ -544,9 +455,9 @@ taucs_crs_matrix *GMRFLib_LL_duplicate_TAUCS(taucs_crs_matrix *LL)
 
 	L = Calloc(1, taucs_crs_matrix);
 	L->flags = LL->flags;
-	L->rowptr = Malloc(n + 1, int);
-	L->colind = Malloc(nnz, int);
-	L->values = Malloc(nnz, double);
+	L->rowptr = aMalloc(n + 1, int);
+	L->colind = aMalloc(nnz, int);
+	L->values = aMalloc(nnz, double);
 
 	Memcpy(L->rowptr, LL->rowptr, (n + 1) * sizeof(int));
 	Memcpy(L->colind, LL->colind, nnz * sizeof(int));
@@ -757,7 +668,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 * doit like this to maintain the MEMCHECK facility of GMRFLib 
 		 */
 		free(perm);
-		perm = Malloc(graph->n, int);		       /* yes, need graph->n. */
+		perm = aMalloc(graph->n, int);		       /* yes, need graph->n. */
 		Memcpy(perm, iperm, n * sizeof(int));
 		free(iperm);
 		iperm = perm;
@@ -781,7 +692,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 */
 		ns = subgraph->n;
 		n = graph->n;
-		iperm_new = Malloc(graph->n, int);
+		iperm_new = aMalloc(graph->n, int);
 		for (i = 0; i < ns; i++) {
 			iperm_new[iperm[i]] = i;
 		}
@@ -791,8 +702,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		 * given highest node-number. 
 		 */
 		int ng = n - ns;
-		int *node = Malloc(ng, int);
-		int *nnbs = Malloc(ng, int);
+		int *node = aMalloc(ng, int);
+		int *nnbs = aMalloc(ng, int);
 
 		for (i = 0, j = 0; i < n; i++) {
 			if (fixed[i]) {
@@ -844,10 +755,10 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically_NEW(taucs_ccs_matrix *A, int *
 	if (!PAPT)
 		return NULL;
 
-	*vperm = Malloc(nnz, int);
+	*vperm = aMalloc(nnz, int);
 
 	PAPT->flags = A->flags;
-	int *len = Calloc(n, int);
+	int *len = aCalloc(n, int);
 
 	for (int j = 0; j < n; j++) {
 		int iJJ = invperm[j];
@@ -940,7 +851,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
 		GMRFLib_pack(nnz, arg->Q->a, graph->row2col, Q->values);
 	} else {
-		int *ic_idx = Malloc(n, int);
+		int *ic_idx = aMalloc(n, int);
 		Q->colptr[0] = 0;
 		for (int i = 0, ic = 0; i < n; i++) {
 			Q->rowind[ic] = i;
@@ -986,17 +897,17 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
 		if (!cache->rowind) {
-			cache->rowind = Malloc(nnz, int);
+			cache->rowind = aMalloc(nnz, int);
 		}
 		Memcpy(cache->rowind, (*L)->rowind, nnz * sizeof(int));
 
 		if (!cache->colptr) {
-			cache->colptr = Malloc(n + 1, int);
+			cache->colptr = aMalloc(n + 1, int);
 		}
 		Memcpy(cache->colptr, (*L)->colptr, (n + 1) * sizeof(int));
 
 		Free(cache->vperm2);
-		int *iv = Malloc(nnz, int);
+		int *iv = aMalloc(nnz, int);
 		for (int i = 0; i < nnz; i++) {
 			iv[i] = graph->row2col[vperm[i]];
 		}
@@ -1020,47 +931,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-// not yet tested
-int export_sparse_matrix(const double *values, const int *colptr, const int *rowind, int nrows, int ncols, int nnz, const char *filename)
-{
-	if (values == NULL || colptr == NULL || rowind == NULL || filename == NULL) {
-		fprintf(stderr, "Error: NULL pointer provided\n");
-		return -1;
-	}
-
-	FILE *fp = fopen(filename, "w");
-	if (fp == NULL) {
-		fprintf(stderr, "Error: Could not open file %s\n", filename);
-		return -1;
-	}
-
-	fprintf(fp, "%d %d %d\n", nrows, ncols, nnz);
-
-	// Write colptr array (ncols + 1 elements)
-	fprintf(fp, "colptr:\n");
-	for (int i = 0; i <= ncols; i++) {
-		fprintf(fp, " %1d", colptr[i]);
-	}
-	fprintf(fp, "\n");
-
-	// Write rowind array (nnz elements)
-	fprintf(fp, "rowind:\n");
-	for (int i = 0; i < nnz; i++) {
-		fprintf(fp, " %1d", rowind[i]);
-	}
-	fprintf(fp, "\n");
-
-	// Write values array (nnz elements)
-	fprintf(fp, "values:\n");
-	for (int i = 0; i < nnz; i++) {
-		fprintf(fp, " %.15g", values[i]);
-	}
-	fprintf(fp, "\n");
-
-	fclose(fp);
-	return 0;
-}
-
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_taucs_cache_tp **cache,
 					  GMRFLib_fact_info_tp *finfo)
 {
@@ -1068,17 +938,6 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 		return GMRFLib_SUCCESS;
 	}
 	assert(*L);
-
-	// not tested yet
-#if 0
-	char *filename = NULL;
-	static int count = 0;
-	GMRFLib_sprintf(&filename, "Q-%1d.txt", count++);
-	FILE *fp = fopen(filename, "w");
-	export_sparse_matrix((*L)->values, (*L)->colptr, (*L)->rowind, (*L)->n, (*L)->n, (*L)->colptr[(*L)->n], filename);
-	printf("SAVE %s\n", filename);
-	Free(filename);
-#endif
 
 	/*
 	 * compute some info about the factorization 
@@ -2078,12 +1937,12 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix *L)
 	int n = L->n;
 	int nnz = L->colptr[n];
 
-	LL->rowptr = Calloc(n + 1, int);
-	LL->colind = Calloc(nnz, int);
-	LL->values = Calloc(nnz, double);
+	LL->rowptr = aCalloc(n + 1, int);
+	LL->colind = aCalloc(nnz, int);
+	LL->values = aCalloc(nnz, double);
 
 	// number of elements pr column
-	int *clen = Calloc(n, int);
+	int *clen = aCalloc(n, int);
 
 	for (int j = 0; j < n; j++) {
 		int ip = L->colptr[j];

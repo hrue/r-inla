@@ -29,7 +29,7 @@ int GMRFLib_remap_init_store(void)
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
 {
 	GMRFLib_SHA_TP c;
-	unsigned char *md = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	unsigned char *md = aMalloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 	GMRFLib_SHA_Init(&c);
 	GMRFLib_SHA_IUPDATE(remap, n, c);
 	GMRFLib_SHA_IUPDATE(&n, 1, c);
@@ -78,8 +78,8 @@ GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 			int numa_node = -1;
 			GMRFLib_numa_get(NULL, &numa_node);
 			int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int), numa_node);
-			int *re1 = Calloc(n * nrhs, int);
-			int *re2 = Calloc(n * nrhs, int);
+			int *re1 = aCalloc(n * nrhs, int);
+			int *re2 = aCalloc(n * nrhs, int);
 
 			// two step mapping
 			for (int j = 0; j < nrhs; j++) {

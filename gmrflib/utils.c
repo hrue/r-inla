@@ -28,9 +28,6 @@
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
-static int malloc_debug = -1;
-static int malloc_debug_show_free = 0;			       /* print 'free' or not */
-
 // better with function than macro...
 char *Strdup(const char *s)
 {
@@ -201,98 +198,6 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 	}
 
 	return GMRFLib_SUCCESS;
-}
-
-void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
-{
-	assert(n < PTRDIFF_MAX);
-	memcpy(dest, src, n);
-	return NULL;
-}
-
-void GMRFLib_malloc_debug_check(void)
-{
-	if (malloc_debug < 0) {
-		char *def = getenv("INLA_MALLOC_DEBUG");
-		if (def) {
-			int val = atoi(def);
-			malloc_debug = (val > 0 ? val : 0);
-		} else {
-			malloc_debug = 0;
-		}
-	}
-}
-
-void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno)
-{
-	assert(nmemb * size < PTRDIFF_MAX);
-	void *ptr = calloc(nmemb, size);
-
-	if (malloc_debug > 0 && nmemb * size >= (size_t) malloc_debug) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: calloc nmemb = %zu size = %zu, got address %p\n", file, funcname, lineno, nmemb, size,
-		       ptr);
-	}
-
-	if (ptr) {
-		return ptr;
-	}
-	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%zu elements of size=%zu bytes", nmemb, size);
-	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno)
-{
-	assert(size < PTRDIFF_MAX);
-	void *ptr = malloc(size);
-
-	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %1d: malloc size = %zu, got address %p\n", file, funcname, lineno, size, ptr);
-	}
-
-	if (ptr) {
-		return ptr;
-	}
-
-	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to malloc size=%zu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno)
-{
-	assert(size < PTRDIFF_MAX);
-	void *ptr = realloc(old_ptr, size);
-
-	if (malloc_debug > 0 && size >= (size_t) malloc_debug) {
-		printf(" *** MALLOC_DEBUG *** %s: %s: %d: realloc size = %zu, to address %p\n", file, funcname, lineno, size, ptr);
-	}
-
-	if (ptr) {
-		return ptr;
-	}
-	char *msg = NULL;
-	GMRFLib_sprintf(&msg, "Failed to realloc size=%zu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
-{
-	if (ptr) {
-		if (malloc_debug_show_free && malloc_debug > 0) {
-			printf(" *** MALLOC_DEBUG *** %s: %s: %d: free address %p\n", file, funcname, lineno, ptr);
-		}
-		free(ptr);
-	}
 }
 
 char *GMRFLib_rindex(const char *p, int ch)

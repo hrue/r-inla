@@ -791,6 +791,8 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	return INLA_OK;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow="
 int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
@@ -807,7 +809,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	mb->nds++;
 	mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
 	ds = &(mb->data_sections[mb->nds - 1]);		       /* shorthand */
-	assert(ds);
 	Memset(ds, 0, sizeof(Data_section_tp));
 
 	if (mb->verbose) {
@@ -10478,6 +10479,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	return INLA_OK;
 }
+#pragma GCC diagnostic pop
 
 int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 {

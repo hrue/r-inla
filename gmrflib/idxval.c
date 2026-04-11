@@ -31,8 +31,8 @@ int GMRFLib_idx_create(GMRFLib_idx_tp **hold)
 int GMRFLib_idx_create_x(GMRFLib_idx_tp **hold, int len)
 {
 	len = IMAX(1, len);
-	*hold = Calloc(1, GMRFLib_idx_tp);
-	(*hold)->idx = Calloc(len, int);
+	*hold = aCalloc(1, GMRFLib_idx_tp);
+	(*hold)->idx = aCalloc(len, int);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -47,8 +47,8 @@ int GMRFLib_str_create(GMRFLib_str_tp **hold)
 int GMRFLib_str_create_x(GMRFLib_str_tp **hold, int len)
 {
 	len = IMAX(1, len);
-	*hold = Calloc(1, GMRFLib_str_tp);
-	(*hold)->str = Calloc(len, char *);
+	*hold = aCalloc(1, GMRFLib_str_tp);
+	(*hold)->str = aCalloc(len, char *);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -63,10 +63,10 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold)
 int GMRFLib_idx2_create_x(GMRFLib_idx2_tp **hold, int len)
 {
 	len = IMAX(1, len);
-	*hold = Calloc(1, GMRFLib_idx2_tp);
-	(*hold)->idx = Calloc(2, int *);
-	(*hold)->idx[0] = Calloc(len, int);
-	(*hold)->idx[1] = Calloc(len, int);
+	*hold = aCalloc(1, GMRFLib_idx2_tp);
+	(*hold)->idx = aCalloc(2, int *);
+	(*hold)->idx[0] = aCalloc(len, int);
+	(*hold)->idx[1] = aCalloc(len, int);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -75,8 +75,8 @@ int GMRFLib_idx2_create_x(GMRFLib_idx2_tp **hold, int len)
 
 int GMRFLib_val_create(GMRFLib_val_tp **hold)
 {
-	*hold = Calloc(1, GMRFLib_val_tp);
-	(*hold)->val = Calloc(IDX_ALLOC_INITIAL, double);
+	*hold = aCalloc(1, GMRFLib_val_tp);
+	(*hold)->val = aCalloc(IDX_ALLOC_INITIAL, double);
 	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
@@ -90,8 +90,8 @@ int GMRFLib_ptr_create(GMRFLib_ptr_tp **hold)
 
 int GMRFLib_ptr_create_x(GMRFLib_ptr_tp **hold, int len)
 {
-	*hold = Calloc(1, GMRFLib_ptr_tp);
-	(*hold)->ptr = Malloc(len, void *);
+	*hold = aCalloc(1, GMRFLib_ptr_tp);
+	(*hold)->ptr = aMalloc(len, void *);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -106,9 +106,9 @@ int GMRFLib_idxval_create(GMRFLib_idxval_tp **hold)
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp **hold, int len)
 {
 	len = IMAX(1, len);
-	*hold = Calloc(1, GMRFLib_idxval_tp);
-	(*hold)->idx = Calloc(len, int);
-	(*hold)->val = Calloc(len, double);
+	*hold = aCalloc(1, GMRFLib_idxval_tp);
+	(*hold)->idx = aCalloc(len, int);
+	(*hold)->val = aCalloc(len, double);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 	(*hold)->iaddto = 0;
@@ -119,7 +119,7 @@ int GMRFLib_idxval_create_x(GMRFLib_idxval_tp **hold, int len)
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+		GMRFLib_idx_tp **a = aCalloc(n, GMRFLib_idx_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx_create(&(a[i]));
 		}
@@ -132,7 +132,7 @@ GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
 GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
 {
 	if (n > 0) {
-		GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+		GMRFLib_idx_tp **a = aCalloc(n, GMRFLib_idx_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx_create_x(&(a[i]), len);
 		}
@@ -145,7 +145,7 @@ GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
 GMRFLib_str_tp **GMRFLib_str_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_str_tp **a = Calloc(n, GMRFLib_str_tp *);
+		GMRFLib_str_tp **a = aCalloc(n, GMRFLib_str_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_str_create(&(a[i]));
 		}
@@ -158,7 +158,7 @@ GMRFLib_str_tp **GMRFLib_str_ncreate(int n)
 GMRFLib_str_tp **GMRFLib_str_ncreate_x(int n, int len)
 {
 	if (n > 0) {
-		GMRFLib_str_tp **a = Calloc(n, GMRFLib_str_tp *);
+		GMRFLib_str_tp **a = aCalloc(n, GMRFLib_str_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_str_create_x(&(a[i]), len);
 		}
@@ -171,7 +171,7 @@ GMRFLib_str_tp **GMRFLib_str_ncreate_x(int n, int len)
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+		GMRFLib_idx2_tp **a = aCalloc(n, GMRFLib_idx2_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx2_create(&(a[i]));
 		}
@@ -184,7 +184,7 @@ GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
 {
 	if (n > 0) {
-		GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+		GMRFLib_idx2_tp **a = aCalloc(n, GMRFLib_idx2_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx2_create_x(&(a[i]), len);
 		}
@@ -197,7 +197,7 @@ GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
 GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_val_tp **a = Calloc(n, GMRFLib_val_tp *);
+		GMRFLib_val_tp **a = aCalloc(n, GMRFLib_val_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_val_create(&(a[i]));
 		}
@@ -210,7 +210,7 @@ GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 GMRFLib_ptr_tp **GMRFLib_ptr_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_ptr_tp **a = Calloc(n, GMRFLib_ptr_tp *);
+		GMRFLib_ptr_tp **a = aCalloc(n, GMRFLib_ptr_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_ptr_create(&(a[i]));
 		}
@@ -223,7 +223,7 @@ GMRFLib_ptr_tp **GMRFLib_ptr_ncreate(int n)
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 {
 	if (n > 0) {
-		GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+		GMRFLib_idxval_tp **a = aCalloc(n, GMRFLib_idxval_tp *);
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idxval_create(&(a[i]));
 		}
@@ -236,7 +236,7 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len, int num_threads)
 {
 	if (n > 0) {
-		GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+		GMRFLib_idxval_tp **a = aCalloc(n, GMRFLib_idxval_tp *);
 		if (num_threads > 0) {
 #pragma omp parallel for num_threads(num_threads)
 			for (int i = 0; i < n; i++) {
@@ -475,7 +475,7 @@ int GMRFLib_idx_prune(GMRFLib_idx_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
-			hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
+			hold->idx = aRealloc(hold->idx, IMAX(1, hold->n), int);
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -486,7 +486,7 @@ int GMRFLib_str_prune(GMRFLib_str_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
-			hold->str = Realloc(hold->str, IMAX(1, hold->n), char *);
+			hold->str = aRealloc(hold->str, IMAX(1, hold->n), char *);
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -497,8 +497,8 @@ int GMRFLib_idx2_prune(GMRFLib_idx2_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
-			hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
-			hold->idx[1] = Realloc(hold->idx[1], IMAX(1, hold->n), int);
+			hold->idx[0] = aRealloc(hold->idx[0], IMAX(1, hold->n), int);
+			hold->idx[1] = aRealloc(hold->idx[1], IMAX(1, hold->n), int);
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -509,7 +509,7 @@ int GMRFLib_val_prune(GMRFLib_val_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
-			hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
+			hold->val = aRealloc(hold->val, IMAX(1, hold->n), double);
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -520,7 +520,7 @@ int GMRFLib_ptr_prune(GMRFLib_ptr_tp *hold)
 {
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
-			hold->ptr = Realloc(hold->ptr, IMAX(1, hold->n), void *);
+			hold->ptr = aRealloc(hold->ptr, IMAX(1, hold->n), void *);
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -532,8 +532,8 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp *hold)
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			int n = IMAX(1, hold->n);
-			hold->idx = Realloc(hold->idx, n, int);
-			hold->val = Realloc(hold->val, n, double);
+			hold->idx = aRealloc(hold->idx, n, int);
+			hold->val = aRealloc(hold->val, n, double);
 			hold->n_alloc = n;
 		}
 	}
@@ -652,11 +652,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		ng += 2;
 	}
 
-	int *g_istart = Calloc(ng, int);
-	int *g_len = Calloc(ng, int);
-	int *g_1 = Calloc(ng, int);
-	int **g_idx = Calloc(ng, int *);
-	double **g_val = Calloc(ng, double *);
+	int *g_istart = aCalloc(ng, int);
+	int *g_len = aCalloc(ng, int);
+	int *g_1 = aCalloc(ng, int);
+	int **g_idx = aCalloc(ng, int *);
+	double **g_val = aCalloc(ng, double *);
 
 	// collect sequential groups, starting from group=1, as group=0 is reserved for the irregular one
 	ng = 1;
@@ -719,8 +719,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	int align_d = GMRFLib_memory_alignment / sizeof(double);
 	int len_i = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_i;
 	int len_d = irr_len + seq_len + (ng + 1) * limit_merge + 2 * (ng + 1) * align_d;
-	int *new_idx = Calloc(len_i, int);
-	double *new_val = Calloc(len_d, double);
+	int *new_idx = aCalloc(len_i, int);
+	double *new_val = aCalloc(len_d, double);
 
 	// build the irregular group
 	int k = 0;
@@ -886,7 +886,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_idx = g_idx;
 	h->g_val = g_val;
 	h->g_n_mem = 2;
-	h->g_mem = Calloc(h->g_n_mem, void *);
+	h->g_mem = aCalloc(h->g_n_mem, void *);
 	h->g_mem[0] = (void *) new_idx;
 	h->g_mem[1] = (void *) new_val;
 	h->dot_product_func = NULL;
@@ -1050,7 +1050,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 			}
 
 			int len = IMAX(2 * nmax, ISQR(256));
-			double *xx = Calloc(len, double);
+			double *xx = aCalloc(len, double);
 			for (int i = 0; i < len; i++) {
 				xx[i] = GMRFLib_uniform();
 			}
@@ -1159,7 +1159,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->idx = aRealloc((*hold)->idx, (*hold)->n_alloc, int);
 	}
 	(*hold)->idx[(*hold)->n] = idx;
 	(*hold)->n++;
@@ -1174,7 +1174,7 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 	}
 	if ((*hold)->n + n > (*hold)->n_alloc) {
 		(*hold)->n_alloc += IMAX(n, IDX_ALLOC_INCREASE);
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->idx = aRealloc((*hold)->idx, (*hold)->n_alloc, int);
 		assert((*hold)->idx);
 	}
 	Memcpy((*hold)->idx + (*hold)->n, idx, n * sizeof(int));
@@ -1310,7 +1310,7 @@ int GMRFLib_str_add(GMRFLib_str_tp **hold, char *s)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->str = Realloc((*hold)->str, (*hold)->n_alloc, char *);
+		(*hold)->str = aRealloc((*hold)->str, (*hold)->n_alloc, char *);
 	}
 	(*hold)->str[(*hold)->n] = Strdup(s);
 	(*hold)->n++;
@@ -1345,8 +1345,8 @@ int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
-		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
+		(*hold)->idx[0] = aRealloc((*hold)->idx[0], (*hold)->n_alloc, int);
+		(*hold)->idx[1] = aRealloc((*hold)->idx[1], (*hold)->n_alloc, int);
 	}
 	(*hold)->idx[0][(*hold)->n] = idx0;
 	(*hold)->idx[1][(*hold)->n] = idx1;
@@ -1362,7 +1362,7 @@ int GMRFLib_val_add(GMRFLib_val_tp **hold, double val)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+		(*hold)->val = aRealloc((*hold)->val, (*hold)->n_alloc, double);
 	}
 	(*hold)->val[(*hold)->n] = val;
 	(*hold)->n++;
@@ -1377,7 +1377,7 @@ int GMRFLib_ptr_add(GMRFLib_ptr_tp **hold, void *ptr)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->ptr = Realloc((*hold)->ptr, (*hold)->n_alloc, void *);
+		(*hold)->ptr = aRealloc((*hold)->ptr, (*hold)->n_alloc, void *);
 	}
 	(*hold)->ptr[(*hold)->n] = ptr;
 	(*hold)->n++;
@@ -1392,8 +1392,8 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp **hold, int idx, double val)
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
-		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+		(*hold)->idx = aRealloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->val = aRealloc((*hold)->val, (*hold)->n_alloc, double);
 	}
 	(*hold)->idx[(*hold)->n] = idx;
 	(*hold)->val[(*hold)->n] = val;
@@ -1438,8 +1438,8 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp **hold, int idx, double val)
 
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_INCREASE;
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
-		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+		(*hold)->idx = aRealloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->val = aRealloc((*hold)->val, (*hold)->n_alloc, double);
 	}
 	(*hold)->idx[(*hold)->n] = idx;
 	(*hold)->val[(*hold)->n] = val;

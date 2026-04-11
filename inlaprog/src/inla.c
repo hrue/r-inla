@@ -7141,8 +7141,6 @@ int main(int argc, char **argv)
 	int disable_output = 0;
 
 	GMRFLib_numa_init();				       /* must init */
-	GMRFLib_malloc_debug_check();
-
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
 	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing

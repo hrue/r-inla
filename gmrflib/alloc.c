@@ -18,6 +18,13 @@ unsigned int GMRFLib_memory_alignment = 16;
 
 void *malloc_intern(size_t size)
 {
+	void *p = malloc(size);
+	assert(p);
+	return p;
+}
+
+void *amalloc_intern(size_t size)
+{
 	void *p = NULL;
 	if (GMRFLib_memory_alignment_enabled) {
 		size_t new_size = GMRFLib_align_len(size, 1);
@@ -30,6 +37,13 @@ void *malloc_intern(size_t size)
 }
 
 void *calloc_intern(size_t nmemb, size_t size)
+{
+	void *p = calloc(nmemb, size);
+	assert(p);
+	return p;
+}
+
+void *acalloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
 	if (GMRFLib_memory_alignment_enabled) {
@@ -46,6 +60,14 @@ void *calloc_intern(size_t nmemb, size_t size)
 }
 
 void *realloc_intern(void *ptr, size_t size)
+{
+	void *p = NULL;
+	p = realloc(ptr, size);
+	assert(p);
+	return p;
+}
+
+void *arealloc_intern(void *ptr, size_t size)
 {
 	void *p = NULL;
 	if (!ptr) {
