@@ -8,17 +8,18 @@
 
 #if defined(_WIN32)
 #       define aligned_alloc(a_, b_) malloc(b_)
-bool not_windows = 0;
+int GMRFLib_memory_alignment_enabled = 0;
 #else
-bool not_windows = 1;
+int GMRFLib_memory_alignment_enabled = 1;
 #endif
 
-unsigned int GMRFLib_memory_alignment = 64;
+// will be over-rided by an adaptive default in inla-parse.c
+unsigned int GMRFLib_memory_alignment = 16;
 
 void *malloc_intern(size_t size)
 {
 	void *p = NULL;
-	if (not_windows) {
+	if (GMRFLib_memory_alignment_enabled) {
 		size_t new_size = GMRFLib_align_len(size, 1);
 		p = aligned_alloc(GMRFLib_memory_alignment, new_size);
 	} else {
@@ -31,7 +32,7 @@ void *malloc_intern(size_t size)
 void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
-	if (not_windows) {
+	if (GMRFLib_memory_alignment_enabled) {
 		size_t n = nmemb * size;
 		size_t nn = GMRFLib_align_len(n, 1);
 		p = aligned_alloc(GMRFLib_memory_alignment, nn);
@@ -50,7 +51,7 @@ void *realloc_intern(void *ptr, size_t size)
 	if (!ptr) {
 		p = malloc_intern(size);
 	} else {
-		if (not_windows) {
+		if (GMRFLib_memory_alignment_enabled) {
 			p = realloc(ptr, size);
 			// this is a workaround for not having aligned realloc.
 			// good thing is that 'size' is valid so we can do Memcpy!

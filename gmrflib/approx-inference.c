@@ -3309,6 +3309,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define A_idx_ptr() (preopt->pAA_idxval ? preopt->pAA_idxval : preopt->A_idxval)
 #define W(node_) (gcpo_param->weights[node_])
 #define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
 			     GMRFLib_iwhich_sorted(node_, gcpo_param->group_selection->idx, (unsigned int) gcpo_param->group_selection->n) >= 0)
@@ -3365,9 +3366,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double big = 1.0 / GSL_DBL_EPSILON;
 
 			double *mask = Malloc(nn, double);
-			double *diag = Malloc(nn, double);
+			double *diag = Calloc(nn, double);
 			GMRFLib_dfill(nn, 1.0, mask);
-			GMRFLib_dfill(nn, 0.0, diag);
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);
@@ -3549,7 +3549,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_rescale_start(1);
 		}
 
-#pragma omp parallel for num_threads(nt_outer) schedule(static)
+#pragma omp parallel for num_threads(nt_outer)
 		for (int kk = 0; kk < split->n; kk++) {
 			GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
 
@@ -3584,7 +3584,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 
 			GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
-
+			
 #pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1) schedule(static)
 			for (int ii = 0; ii < sel->n; ii++) {
 				int node = sel->idx[ii];
@@ -3598,17 +3598,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_dfill(dn, 0.0, cor);
 				GMRFLib_dfill(dn, 0.0, cor_abs);
 
+				double s = isd[node];
+				GMRFLib_idxval_tp **Aw = A_idx_ptr();
 				for (int knode = 0; knode < dn; knode++) {
 					int nnode = d_idx->idx[knode];
-					GMRFLib_idxval_tp *vv = A_idx(nnode);
-					double sum = 0.0;
-					sum = GMRFLib_sparse_ddot_(vv, Sa);
-					sum *= isd[node] * isd[nnode];
+					GMRFLib_idxval_tp *vv = Aw[nnode];
+					double sum = GMRFLib_sparse_ddot_(vv, Sa);
+					sum *= s * isd[nnode];
 					cor[knode] = TRUNCATE(sum, -1.0, 1.0);
 					cor_abs[knode] = ABS(cor[knode]);
-
-					if (node == nnode) {
-						// make sure its exact
+					if (unlikely(node == nnode)) {
 						cor[knode] = cor_abs[knode] = 1.0;
 					}
 				}
@@ -3819,6 +3818,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	TIMER_SUMMARY;
 
 #undef A_idx
+#undef A_idx_ptr
 #undef W
 #undef LEGAL_TO_ADD
 	GMRFLib_LEAVE_FUNCTION;
@@ -5087,13 +5087,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK
 #undef CODE_BLOCK_WORK_TP_FREE
 
-		if (0) {
-			for (int ii = 0; ii < d_idx->n; ii++) {
-				int i = d_idx->idx[ii];
-				printf("i %d BB %g CC %g\n", i, BB[i], CC[i]);
-			}
-		}
-
 		static char *tag2 = NULL;
 		if (!tag2) {
 #pragma omp critical (Name_52981f1efc676db84ff4fa65de8c45e37fff72a3)
@@ -5121,7 +5114,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (update_MM) {
-			int enable3 = 1;
+			int enable3 = 0;		       /* turn this off, should not be needed */
 			static char *tag3 = NULL;
 			if (enable3 && !tag3) {
 #pragma omp critical (Name_3781a6d8d63c453af3ccbb128d59370d733087f8)
@@ -5136,7 +5129,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				CODE_BLOCK_INIT();			\
 				GMRFLib_QM(thread_id, QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg, &(tmax__)); \
 				if (1) {				\
-					GMRFLib_gsl_dgemm_sym(Mt, QM, MM); \
+					GMRFLib_gsl_dgemm_sym(Mt, QM, MM, num_threads); \
 				} else {				\
 					gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, Mt, QM, zero, MM); \
 				}					\
@@ -5166,6 +5159,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
 				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON, &try_first);
+				P(try_first);
 			}
 			if (debug) {
 				printf("MM\n");

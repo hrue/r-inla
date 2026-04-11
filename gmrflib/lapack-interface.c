@@ -10,7 +10,7 @@
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
+void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_threads)
 {
 	// this is a special case.
 
@@ -25,7 +25,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 
 	int block_m;
 	if (m >= 2 * SIZE) {
-		block_m = IMIN(m, SIZE);
+		block_m = SIZE;
 	} else if (m > SIZE) {
 		block_m = (m + 1) / 2;
 	} else {
@@ -34,33 +34,66 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 
 	int block_n;
 	if (n >= 2 * SIZE) {
-		block_n = IMIN(n, SIZE);
+		block_n = SIZE;
 	} else if (n > SIZE) {
 		block_n = (n + 1) / 2;
 	} else {
 		block_n = n;
 	}
 
+	// we cannot do schedule(static) using collapse(2), so we make a helper variable keeping (ii,jj) instead
+	typedef struct 
+	{
+		int ii, jj;
+	}
+		iijj_tp;
+	iijj_tp *xx = Calloc(ISQR(n/block_n + 1), iijj_tp);
+	int num_k = 0;
 	for (int ii = 0; ii < n; ii += block_n) {
-		int ni = (ii + block_n < n) ? block_n : n - ii;
 		for (int jj = ii; jj < n; jj += block_n) {
-			int nj = (jj + block_n < n) ? block_n : n - jj;
-			for (int kk = 0; kk < m; kk += block_m) {
-				int nk = (kk + block_m < m) ? block_m : m - kk;
-				cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ni, nj, nk, 1.0,
-					    &A->data[ii * m + kk], m, &B->data[kk * n + jj], n, 1.0, &C->data[ii * n + jj], n);
-			}
-			// this does not ensure _exact_ symmetry for ii==jj due to numerical sum error, but we can call
-			// GMRFLib_gsl_force_symmetric() to do that
-			if (ii != jj) {
-				for (int p = 0; p < ni; p++) {
-					for (int q = 0; q < nj; q++) {
-						C->data[(jj + q) * n + (ii + p)] = C->data[(ii + p) * n + (jj + q)];
-					}
+			xx[num_k].ii = ii;
+			xx[num_k].jj = jj;
+			num_k++;
+		}
+	}
+
+#if 0
+#pragma omp parallel for collapse(2) num_threads(num_threads) if (num_threads > 1) 
+	for (int ii = 0; ii < n; ii += block_n) {
+		for (int jj = ii; jj < n; jj += block_n) {
+			//
+			//
+		}
+	}
+#endif
+
+#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
+	for(int k = 0; k < num_k; k++) {
+		int ii =  xx[k].ii;
+		int jj =  xx[k].jj;
+		// printf("%d %d in thread %d\n", ii, jj, omp_get_thread_num());
+
+		int ni = (ii + block_n < n) ? block_n : n - ii;
+		int nj = (jj + block_n < n) ? block_n : n - jj;
+
+		for (int kk = 0; kk < m; kk += block_m) {
+			int nk = (kk + block_m < m) ? block_m : m - kk;
+			cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ni, nj, nk, 1.0,
+				    &A->data[ii * m + kk], m, &B->data[kk * n + jj], n, 1.0, &C->data[ii * n + jj], n);
+		}
+
+		// this does not ensure _exact_ symmetry for ii==jj due to numerical sum error, but we can call
+		// GMRFLib_gsl_force_symmetric() to do that
+		if (ii != jj) {
+			for (int p = 0; p < ni; p++) {
+				for (int q = 0; q < nj; q++) {
+					C->data[(jj + q) * n + (ii + p)] = C->data[(ii + p) * n + (jj + q)];
 				}
 			}
 		}
 	}
+
+	Free(xx);
 #undef SIZE
 }
 #pragma GCC diagnostic pop
@@ -997,8 +1030,9 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 		}
 	}
 	// if try_first did not succeed, then set it to 0
-	if (try_first)
+	if (try_first) {
 		*try_first = 0;
+	}
 
 	const int debug = 0;
 	assert(tol >= 0.0);
@@ -1073,8 +1107,9 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 		}
 	}
 	// if try_first did not succeed, then set it to 0
-	if (try_first)
+	if (try_first) {
 		*try_first = 0;
+	}
 
 	const int debug = 0;
 	assert(tol >= 0.0);
@@ -1460,7 +1495,6 @@ void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
 	if (n < 32) {
-#pragma omp simd
 		for (int i = 0; i < n; i++) {
 			x[i] *= a;
 		}
@@ -1549,10 +1583,6 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		for (int i = limit; i < n; i++) {
 			y[i] = a * x[i] + b;
 		}
-//#               pragma omp simd
-//              for(int i = 0; i < n; i++) {
-//                      y[i] = a * x[i] + b;
-//              }
 	} else {
 		GMRFLib_dfill(n, b, y);
 		GMRFLib_daxpy(n, a, x, y);
@@ -1606,7 +1636,6 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 	if (n < cutoff_) {						\
 		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
 		int limit = n & ~3;					\
-		_Pragma("omp simd reduction(+:sum0,sum1,sum2,sum3)")	\
 		for (int i = 0; i < limit; i += 4) {			\
 			sum0 += x[i] * y[i];				\
 			sum1 += x[i+1] * y[i+1];			\
@@ -1693,7 +1722,6 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 
 #define SUM_CORE(TYPE_)						\
 	TYPE_ r = 0;						\
-	_Pragma("omp simd reduction(+: r)")			\
 	for (int i = 0; i < n; i++) {				\
 		r += x[i];					\
 	}							\
@@ -1737,12 +1765,13 @@ int GMRFLib_isum(int n, int *x)
 
 #define SPARSE_DSUM()					\
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
-	int m = n & ~7;				\
+	int m = n & ~7;					\
 	for (int i = 0; i < m; i += 8) {		\
 		s0 += a[idx[i + 0]];			\
 		s1 += a[idx[i + 1]];			\
 		s2 += a[idx[i + 2]];			\
 		s3 += a[idx[i + 3]];			\
+							\
 		s0 += a[idx[i + 4]];			\
 		s1 += a[idx[i + 5]];			\
 		s2 += a[idx[i + 6]];			\
@@ -1858,7 +1887,6 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 #if defined(INLA_WITH_MKL)
 	vdPowx(n, x, a, y);
 #else
-#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = pow(x[i], a);
 	}

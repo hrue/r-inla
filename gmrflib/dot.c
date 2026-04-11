@@ -8,7 +8,6 @@
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;			\
 	int unroll = 8;							\
 	int m = n & ~(unroll - 1);					\
-	_Pragma("omp simd reduction(+:s0,s1,s2,s3)")			\
 	for (int i = 0; i < m; i += unroll) {				\
 		s0 += v[i + 0] * a[idx[i + 0]];				\
 		s1 += v[i + 1] * a[idx[i + 1]];				\

@@ -6159,7 +6159,7 @@ int testit(int argc, char **argv)
 			dummy += gsl_matrix_get(C, i, j);
 
 			tref1 -= GMRFLib_timer();
-			GMRFLib_gsl_dgemm_sym(A, B, C);
+			GMRFLib_gsl_dgemm_sym(A, B, C, 1);
 			tref1 += GMRFLib_timer();
 			dummy -= gsl_matrix_get(C, i, j);
 			gsl_matrix_free(C);

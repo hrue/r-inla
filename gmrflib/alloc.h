@@ -16,7 +16,11 @@ __BEGIN_DECLS
 #       include <string.h>
 #       include <stdlib.h>
 #       include <stdint.h>
+
+/*
+ */
 extern unsigned int GMRFLib_memory_alignment;
+extern int GMRFLib_memory_alignment_enabled;
 
 static inline int GMRFLib_mem_align_test(void *p)
 {

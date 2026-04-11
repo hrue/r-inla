@@ -19924,35 +19924,59 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
 
-	int malign = iniparser_getint(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
-	if (malign == 0) {
-		malign = GMRFLib_memory_alignment;
-	}
-	if (malign <= 16) {
-		GMRFLib_memory_alignment = 16;
-	} else if (malign <= 32) {
+
+	GMRFLib_memory_alignment = 64;
+#if defined(__linux__)
+	GMRFLib_memory_alignment = 64;
+#       if defined(__x86_64__)
+	GMRFLib_memory_alignment = 16;
+	if (__builtin_cpu_supports("avx2")) {
 		GMRFLib_memory_alignment = 32;
-	} else if (malign <= 64) {
-		GMRFLib_memory_alignment = 64;
-	} else {
-		assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
 	}
+	if (__builtin_cpu_supports("avx512f")) {
+		GMRFLib_memory_alignment = 64;
+	}
+#       endif
+#endif
+#if defined(__APPLE__)
+	GMRFLib_memory_alignment = 64;
+#endif
+	int malign = iniparser_getint(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
+	if (malign < 0) {
+		GMRFLib_memory_alignment_enabled = 0;
+		GMRFLib_memory_alignment = 16;
+	} else {
+		GMRFLib_memory_alignment_enabled = 1;
+		if (malign == 0) {
+			malign = GMRFLib_memory_alignment;
+		}
+		if (malign <= 16) {
+			GMRFLib_memory_alignment = 16;
+		} else if (malign <= 32) {
+			GMRFLib_memory_alignment = 32;
+		} else if (malign <= 64) {
+			GMRFLib_memory_alignment = 64;
+		} else {
+			assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
+		}
+	}
+	
 	if (mb->verbose) {
-		printf("\t\t\tOptimise linear solve  = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
-		printf("\t\t\tOptimise storage       = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
-		printf("\t\t\tOptimise num.threads   = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
-		printf("\t\t\tMemory.alignment       = [%u bytes]\n", GMRFLib_memory_alignment);
+		printf("\t\t\tOptimise linear solve    = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
+		printf("\t\t\tOptimise storage         = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
+		printf("\t\t\tOptimise num.threads     = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
+		printf("\t\t\tMemory.alignment         = [%u bytes]\n", GMRFLib_memory_alignment);
+		printf("\t\t\tMemory.alignment.enabled = [%s]\n", (GMRFLib_memory_alignment_enabled ? "Yes" : "No"));
 	}
 
 #if !defined(_WIN32)
-	if (mb->verbose) {
-		// alignof is in bytes not bits 
+	if (GMRFLib_memory_alignment_enabled && mb->verbose) {
 		int *xx = Malloc(1, int);
-		printf("\t\t\tMemory.alignment.check = [%s]\n", (8 * alignof(xx) == GMRFLib_memory_alignment ? "PASS" : "FAIL"));
+		printf("\t\t\tMemory.alignment.check   = [%s]\n", (GMRFLib_is_aligned(xx) ? "PASS" : "FAIL"));
 		Free(xx);
 	}
 #endif
-	
+
 	/*
 	 * do error-checking later on 
 	 */

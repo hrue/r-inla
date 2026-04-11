@@ -134,7 +134,7 @@ void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_dscale(int n, double a, double *x);
 void GMRFLib_dscale2(int n, double a, double *x, double *y);
-void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C);
+void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, int num_threads);
 void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *a, int *ia, double *y);
 void GMRFLib_powx(int n, double *x, double a, double *y);

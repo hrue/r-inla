@@ -1,9 +1,10 @@
 {
-	if (n < 4) {
+	if (n < 8) {
 		double sum = 0.0;
 		for (int i = 0; i < n; i++) sum += x[i];
 		return sum;
 	}
+
 	if (n < 32) {
 		__m256d sum_vec = simde_mm256_setzero_pd();
 		int i = 0;
