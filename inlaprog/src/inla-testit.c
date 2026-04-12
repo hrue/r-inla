@@ -1409,25 +1409,6 @@ int testit(int argc, char **argv)
 
 	case 55:
 	{
-		double skew3 = GMRFLib_skew_to_skew3(0.3);
-		GMRFLib_snq_tp *q = NULL;
-		int n = 31;
-
-		q = GMRFLib_snq(n, skew3);
-		for (int i = 0; i < q->n; i++) {
-			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, q->nodes[i], q->w[i], q->w_grad[i], q->w_hess[i]);
-		}
-
-		double fun = 0, fund = 0, fundd = 0, fval = 0;
-		for (int i = 0; i < q->n; i++) {
-			fval = sin(q->nodes[i]);
-			fun += fval * q->w[i];
-			fund += fval * q->w_grad[i];
-			fundd += fval * q->w_hess[i];
-		}
-		printf("sin(x): value= %.8f deriv= %.8f dderiv= %.8f\n", fun, fund, fundd);
-
-		GMRFLib_snq_free(q);
 	}
 		break;
 

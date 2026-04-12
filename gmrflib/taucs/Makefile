@@ -10,7 +10,7 @@ LIBOBJ = obj/amdatr.o obj/amdbarNEW.o obj/amdbar.o obj/amdexa.o \
 	obj/amdhaf.o obj/amdhat.o obj/amdNEW.o obj/amdpre.o obj/amdtru.o \
 	obj/colamd.o obj/genmmd.o obj/readhb.o obj/taucs_ccs_base_D.o \
 	obj/taucs_ccs_base.o obj/taucs_ccs_order.o \
-	obj/taucs_ccs_solve_llt_D.o obj/taucs_ccs_solve_llt.o obj/taucs_malloc.o \
+	obj/taucs_ccs_solve_llt_D.o obj/taucs_ccs_solve_llt.o \
 	obj/taucs_sn_llt_D.o obj/taucs_sn_llt.o \
 	amd/src/amd_1.o	amd/src/amd_2.o amd/src/amd_aat.o amd/src/amdbar.o \
 	amd/src/amd_control.o amd/src/amd_defaults.o amd/src/amd_dump.o \

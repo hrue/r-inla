@@ -39,8 +39,6 @@ $(DIROBJ)taucs_ccs_solve_llt.o: $(DIRSRC)taucs_ccs_solve_llt.c $(INCS) $(STDDEPS
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_solve_llt.c -o $(DIROBJ)taucs_ccs_solve_llt.o
 $(DIROBJ)taucs_ccs_solve_llt_D.o: $(DIRSRC)taucs_ccs_solve_llt.c $(INCS) $(STDDEPS)
 	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_solve_llt.c -o $(DIROBJ)taucs_ccs_solve_llt_D.o
-$(DIROBJ)taucs_malloc.o: $(DIRSRC)taucs_malloc.c $(INCS) $(STDDEPS)
-	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_malloc.c -o $(DIROBJ)taucs_malloc.o
 $(DIROBJ)readhb.o: $(DIREXTSRC)readhb.f $(STDDEPS)
 	$(FC) -c $(FFLAGS) $(DIREXTSRC)readhb.f -o $(DIROBJ)readhb.o
 $(DIROBJ)amdatr.o: $(DIREXTSRC)amdatr.f $(STDDEPS)
@@ -74,7 +72,6 @@ libtaucs_content = \
   $(DIROBJ)taucs_ccs_order.o \
   $(DIROBJ)taucs_ccs_solve_llt.o \
   $(DIROBJ)taucs_ccs_solve_llt_D.o \
-  $(DIROBJ)taucs_malloc.o \
   $(DIROBJ)readhb.o \
   $(DIROBJ)amdatr.o \
   $(DIROBJ)amdbar.o \
