@@ -272,7 +272,7 @@
              #' @param memory.alignment Memory alignment for alloc (Linux and Mac
              #' only). One of -1 (no alignment correction done),  0 (chose automatically),
              #' 16, 32 or 64 bytes (EXPERIMENTAL OPTION)
-             memory.alignment = 0
+             memory.alignment = -1
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }
@@ -844,7 +844,7 @@ control.vb <-
              step.len = 0.0,
 
              #' @param stencil Numerical Number of points in the stencil used to compute the
-             #' numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)
+             #' numerical derivaties of the log-likelihood (5 or 7). (default 5)
              stencil = 5L,
 
              #' @param lincomb.derived.correlation.matrix Logical If TRUE compute also the

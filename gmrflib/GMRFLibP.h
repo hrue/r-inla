@@ -51,8 +51,13 @@ typedef int fortran_charlen_t;
 #              define POSSIBLY_UNUSED(x) x
 #       endif
 
-#       define align_double alignas(64) double
-#       define align_int    alignas(64) int
+#       if 1
+#              define aligned_double alignas(64) double
+#              define aligned_int    alignas(64) int
+#       else
+#              define aligned_double double
+#              define aligned_int    int
+#       endif
 
 #       pragma omp declare simd
 static double POSSIBLY_UNUSED(SQR) (double x) {

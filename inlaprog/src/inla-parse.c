@@ -19208,7 +19208,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
 	if (ISZERO(mb->ai_par->step_len)) {
 		double scale = GSL_DBL_EPSILON / 2.220446049e-16;
-		mb->ai_par->step_len = scale * (mb->ai_par->stencil == 5 ? 1.0e-4 : (mb->ai_par->stencil == 7 ? 5.0e-4 : 1.0e-3));
+		mb->ai_par->step_len = scale * (mb->ai_par->stencil == 5 ? 1.0e-4 : 5.0e-4);
 	}
 
 	mb->ai_par->cutoff = iniparser_getdouble(ini, inla_string_join(secname, "CUTOFF"), mb->ai_par->cutoff);

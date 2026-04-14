@@ -58,7 +58,7 @@ GMRFLib_taucs_cache_tp *GMRFLib_taucs_cache_duplicate(GMRFLib_taucs_cache_tp *ca
 			nc->rowind = Malloc(nc->nnz, int);
 			Memcpy(nc->rowind, cache->rowind, nc->nnz * sizeof(int));
 			if (cache->perm) {
-				nc->rowind_sorted = aMalloc(nc->nnz, int);
+				nc->rowind_sorted = Malloc(nc->nnz, int);
 				Memcpy(nc->rowind_sorted, cache->rowind_sorted, nc->nnz * sizeof(int));
 				nc->perm = aMalloc(nc->nnz, int);
 				Memcpy(nc->perm, cache->perm, nc->nnz * sizeof(int));

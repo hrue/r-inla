@@ -1054,42 +1054,33 @@ int testit(int argc, char **argv)
 
 		stencil = 3;
 		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
-		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("taylor: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 		stencil = 5;
 		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
-		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("taylor: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 		stencil = 7;
 		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
-		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
-		stencil = 9;
-		GMRFLib_2order_taylor(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
-		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("taylor: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 
 		printf("\n");
 		stencil = 5;
 		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("approx: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 		stencil = 7;
 		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
-		stencil = 9;
-		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("approx: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 
 		printf("\n");
 		dd = 0.0;
 		stencil = 3;
 		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("approx: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 		stencil = 5;
 		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("approx: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 		stencil = 7;
 		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
-		stencil = 9;
-		GMRFLib_2order_approx(thread_id, &cache_idx, &a, &b, &c, NULL, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
-		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		printf("approx: stencil= %d a= %.12g b= %.12g c= %.12g dd= %.12g\n", stencil, a, b, c, dd);
 	}
 		break;
 

@@ -1047,7 +1047,7 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 
 	LINK_INIT;
 
-	if (ds->data_observations.log_prec_gaussian_offset[thread_id][0] > log_prec_limit) {
+	if (likely(ds->data_observations.log_prec_gaussian_offset[thread_id][0] > log_prec_limit)) {
 		lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
 		prec = exp(lprec);
 	} else {
@@ -1058,9 +1058,9 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *__res
 		lprec = log(prec);
 	}
 
-	if (m > 0) {
-		if (PREDICTOR_LINK_EQ(link_identity)) {
-			if (PREDICTOR_SCALE == 1.0) {
+	if (likely(m > 0)) {
+		if (likely(PREDICTOR_LINK_EQ(link_identity))) {
+			if (likely(PREDICTOR_SCALE == 1.0)) {
 				double a = -0.5 * prec;
 				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
 #pragma omp simd
@@ -1603,7 +1603,7 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *__restrict 
 			}
 		}
 
-		double eta[m];
+		aligned_double eta[m];
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = c[0] + c[1] * eta[i];
@@ -2613,6 +2613,7 @@ int loglikelihood_gpoisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			  double *UNUSED(x_vec), double *y_cdf, void *arg)
@@ -2639,20 +2640,20 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 
 	LINK_INIT;
 
-	if (m > 0) {
+	if (likely(m > 0)) {
 		double ylEmn = normc;
-		if (PREDICTOR_LINK_EQ(link_log)) {
-			if ((PREDICTOR_SCALE == 1.0)) {
+		if (likely(PREDICTOR_LINK_EQ(link_log))) {
+			if (likely(PREDICTOR_SCALE == 1.0)) {
 				const int mkl_lim = 4L;
-				if (m >= mkl_lim) {
-					double xx[m];
-					double exp_x[m];
+				if (likely(m >= mkl_lim)) {
+					aligned_double xx[m];
+					aligned_double exp_x[m];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
 					}
 					GMRFLib_exp(m, xx, exp_x);
-					if (y > 0.0) {
+					if (likely(y > 0.0)) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							logll[i] = ylEmn + y * xx[i] - E * exp_x[i];
@@ -2664,7 +2665,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 						}
 					}
 				} else {
-					if (y > 0.0) {
+					if (likely(y > 0.0)) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							double xx = x[i] + off;
@@ -2679,7 +2680,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 					}
 				}
 			} else {
-				if (y > 0.0) {
+				if (likely(y > 0.0)) {
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
@@ -2705,7 +2706,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
-			if (ISZERO(E * lambda)) {
+			if (unlikely(ISZERO(E * lambda))) {
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
 				} else {
@@ -2993,8 +2994,8 @@ int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *__restric
 
 	LINK_INIT;
 	if (m > 0) {
-		double mean[m];
-		double lambda[m];
+		aligned_double mean[m];
+		aligned_double lambda[m];
 #pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i], off);
@@ -3313,7 +3314,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
 			if (ny >= mkl_lim) {
-				double w[m], ww[m];
+				aligned_double w[m], ww[m];
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
 					double Xbeta = GMRFLib_ddot(nb, beta, xx);
@@ -3356,7 +3357,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					double elogll0 = exp(logll0);
 					if (m >= mkl_lim) {
-						double xx[m], exx[m];
+						aligned_double xx[m], exx[m];
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							xx[i] = x[i] + off;
@@ -3398,7 +3399,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *__re
 			} else {
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					if (m >= mkl_lim) {
-						double w[m], ww[m];
+						aligned_double w[m], ww[m];
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							w[i] = -(x[i] + off);
@@ -4646,7 +4647,6 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 	double y = d->y;
 	double E = d->E;
 	double S = d->S;
-
 	double size = (ds->variant == 0 ? 1.0 : (ds->variant == 1 ? E : S)) * exp(ds->data_observations.log_size[thread_id][0]);
 
 	LINK_INIT;
@@ -4711,8 +4711,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 		}
 	}
 
-
-	if (m > 0) {
+	if (likely(m > 0)) {
 		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
 		double lnorm = -normc;
 		if (y >= ylim) {
@@ -4724,23 +4723,12 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 			}
 		}
 
-		if (PREDICTOR_LINK_EQ(link_log)) {
-
-			if (0) {
-				// old code
-				for (int i = 0; i < m; i++) {
-					double lambda = exp(PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off));
-					double mu = E * lambda;
-					double p = size / (size + mu);
-					logll[i] = lnorm + size * LOG_p(p) + y * LOG_1mp(p);
-				}
-			}
-			// optimised code
+		if (likely(PREDICTOR_LINK_EQ(link_log))) {
 			double lsize = log(size);
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
 
-			if (PREDICTOR_SCALE == 1.0) {
+			if (likely(PREDICTOR_SCALE == 1.0)) {
 				double tt2 = t2 + t3 * lsize;
 				if (0) {
 					double b = E / size;
@@ -4757,13 +4745,13 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 						}
 					}
 				} else {
-					double xx[m], ex[m], lx[m];
+					aligned_double xx[m], ex[m], lx[m];
 					GMRFLib_cdaddto(m, x, off, xx);
 					GMRFLib_exp(m, xx, ex);
 					GMRFLib_dscale(m, E / size, ex);
 					GMRFLib_log1p(m, ex, lx);
 
-					if (y > 0) {
+					if (likely(y > 0)) {
 						// logll[i] = tt2 + t3 * lx[i] + y * x[i]);
 						GMRFLib_daxpbypcz(m, t3, lx, y, xx, tt2, logll);
 					} else {
@@ -5380,7 +5368,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 	 * this is the normal case...
 	 */
 	LINK_INIT;
-	if (m > 0) {
+	if (likely(m > 0)) {
 		gsl_sf_result res = { 0, 0 };
 		if (ISNAN(normc)) {
 			if (ds->variant == 0) {
@@ -5399,10 +5387,10 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 		int fast = (PREDICTOR_SCALE == 1.0);
 
 		// special code for this case
-		if (PREDICTOR_LINK_EQ(link_logit)) {
+		if (likely(PREDICTOR_LINK_EQ(link_logit))) {
 			if (ISZERO(y)) {
-				if (m >= mkl_lim) {
-					double v_eta[m], v_ee[m], v_lee[m];
+				if (likely(m >= mkl_lim)) {
+					aligned_double v_eta[m], v_ee[m], v_lee[m];
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -5432,7 +5420,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 				}
 			} else if (ISZERO(ny)) {
 				if (m >= mkl_lim) {
-					double v_eta[m], v_ee[m], v_lee[m];
+					aligned_double v_eta[m], v_ee[m], v_lee[m];
 
 					if (fast) {
 #pragma omp simd
@@ -5462,8 +5450,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *__res
 					}
 				}
 			} else {
-				if (m >= mkl_lim) {
-					double v_eta[m], v_meta[m], v_ee[m], v_iee[m], v_lee[m], v_liee[m];
+				if (likely(m >= mkl_lim)) {
+					aligned_double v_eta[m], v_meta[m], v_ee[m], v_iee[m], v_lee[m], v_liee[m];
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
@@ -7454,7 +7442,7 @@ int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	LINK_INIT;
 
 	if (m > 0) {
-		double mu[m];
+		aligned_double mu[m];
 		for (int i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 		}
