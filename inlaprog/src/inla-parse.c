@@ -19926,7 +19926,6 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
 
-
 	GMRFLib_memory_alignment = 64;
 #if defined(__linux__)
 	GMRFLib_memory_alignment = 64;
@@ -19939,10 +19938,12 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_memory_alignment = 64;
 	}
 #       endif
-#endif
-#if defined(__APPLE__)
+#elif defined(__APPLE__)
 	GMRFLib_memory_alignment = 64;
+#elif defined(_WIN32)
+	GMRFLib_memory_alignment = 32;
 #endif
+
 	int malign = iniparser_getint(ini, inla_string_join(secname, "MEMORY.ALIGNMENT"), GMRFLib_memory_alignment);
 	if (malign < 0) {
 		GMRFLib_memory_alignment_enabled = 0;
@@ -19962,13 +19963,13 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 			assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
 		}
 	}
-	
+
 	if (mb->verbose) {
 		printf("\t\t\tOptimise linear solve    = [%s]\n", (GMRFLib_opt_solve ? "Yes" : "No"));
 		printf("\t\t\tOptimise storage         = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads     = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
-		printf("\t\t\tMemory.alignment         = [%u bytes]\n", GMRFLib_memory_alignment);
 		printf("\t\t\tMemory.alignment.enabled = [%s]\n", (GMRFLib_memory_alignment_enabled ? "Yes" : "No"));
+		printf("\t\t\tMemory.alignment         = [%u] bytes\n", GMRFLib_memory_alignment);
 	}
 
 #if !defined(_WIN32)

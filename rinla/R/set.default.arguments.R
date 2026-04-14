@@ -272,7 +272,7 @@
              #' @param memory.alignment Memory alignment for alloc (Linux and Mac
              #' only). One of -1 (no alignment correction done),  0 (chose automatically),
              #' 16, 32 or 64 bytes (EXPERIMENTAL OPTION)
-             memory.alignment = -1
+             memory.alignment = 0
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }
