@@ -1720,6 +1720,7 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 
 #define SUM_CORE(TYPE_)						\
 	TYPE_ r = 0;						\
+	_Pragma("omp simd reduction(+: r)")			\
 	for (int i = 0; i < n; i++) {				\
 		r += x[i];					\
 	}							\
@@ -1736,8 +1737,8 @@ double GMRFLib_dsum(int n, double *x)
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 	double alignas(64) r0 = 0.0;
-	int k = (64 - ((uintptr_t) x & 63)) & 63;
-	if (n > k) {
+	int k = ((64 - ((uintptr_t) x & 63)) & 63) / sizeof(double);
+	if (likely(n >= 8 + k)) {
 		for (int i = 0; i < k; i++) {
 			r0 += x[i];
 		}
@@ -1752,8 +1753,8 @@ double GMRFLib_dsum(int n, double *x)
 	}
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 	double alignas(32) r0 = 0.0;
-	int k = (32 - ((uintptr_t) x & 31)) & 31;
-	if (n > k) {
+	int k = ((32 - ((uintptr_t) x & 31)) & 31) / sizeof(double);
+	if (likely(n >= 4 + k)) {
 		for (int i = 0; i < k; i++) {
 			r0 += x[i];
 		}
@@ -1768,8 +1769,8 @@ double GMRFLib_dsum(int n, double *x)
 	}
 #elif defined(INLA_WITH_SIMDE)
 	double alignas(16) r0 = 0.0;
-	int k = (16 - ((uintptr_t) x & 15)) & 15;
-	if (n > k) {
+	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
+	if (likely(n >= 2 + k)) {
 		for (int i = 0; i < k; i++) {
 			r0 += x[i];
 		}
