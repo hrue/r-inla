@@ -47,7 +47,7 @@
 				rem -= 8;
 			} else {
 				__mmask8 mask = (__mmask8)((1ULL << rem) - 1);
-				final_v = simde_mm512_add_pd(final_v, simde_mm512_maskz_load_pd(mask, &x[i]));
+				final_v = simde_mm512_add_pd(final_v, simde_mm512_maskz_loadu_pd(mask, &x[i]));
 				rem = 0;
 			}
 		}
