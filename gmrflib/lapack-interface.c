@@ -42,12 +42,10 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	}
 
 	// we cannot do schedule(static) using collapse(2), so we make a helper variable keeping (ii,jj) instead
-	typedef struct 
-	{
+	typedef struct {
 		int ii, jj;
-	}
-		iijj_tp;
-	iijj_tp *xx = Calloc(ISQR(n/block_n + 1), iijj_tp);
+	} iijj_tp;
+	iijj_tp *xx = Calloc(ISQR(n / block_n + 1), iijj_tp);
 	int num_k = 0;
 	for (int ii = 0; ii < n; ii += block_n) {
 		for (int jj = ii; jj < n; jj += block_n) {
@@ -58,19 +56,19 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	}
 
 #if 0
-#pragma omp parallel for collapse(2) num_threads(num_threads) if (num_threads > 1) 
+#       pragma omp parallel for collapse(2) num_threads(num_threads) if (num_threads > 1)
 	for (int ii = 0; ii < n; ii += block_n) {
 		for (int jj = ii; jj < n; jj += block_n) {
-			//
-			//
+			// 
+			// 
 		}
 	}
 #endif
 
 #pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
-	for(int k = 0; k < num_k; k++) {
-		int ii =  xx[k].ii;
-		int jj =  xx[k].jj;
+	for (int k = 0; k < num_k; k++) {
+		int ii = xx[k].ii;
+		int jj = xx[k].jj;
 		// printf("%d %d in thread %d\n", ii, jj, omp_get_thread_num());
 
 		int ni = (ii + block_n < n) ? block_n : n - ii;
@@ -1733,15 +1731,55 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
+	double r0 = 0.0;
 #if defined(INLA_WITH_OPENBLAS)
 	double cblas_dsum(int, double *, int);
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	int k = (64 - ((uintptr_t) x & 63)) & 63;
+	if (n > k) {
+		for (int i = 0; i < k; i++) {
+			r0 += x[i];
+		}
+		x += k;
+		n -= k;
 #       include "intrinsics/simde/dsum-avx512f.h"
+	} else {
+		for (int i = 0; i < n; i++) {
+			r0 += x[i];
+		}
+		return r0;
+	}
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+	int k = (32 - ((uintptr_t) x & 31)) & 31;
+	if (n > k) {
+		for (int i = 0; i < k; i++) {
+			r0 += x[i];
+		}
+		x += k;
+		n -= k;
 #       include "intrinsics/simde/dsum-avx2.h"
+	} else {
+		for (int i = 0; i < n; i++) {
+			r0 += x[i];
+		}
+		return r0;
+	}
 #elif defined(INLA_WITH_SIMDE)
+	int k = (16 - ((uintptr_t) x & 15)) & 15;
+	if (n > k) {
+		for (int i = 0; i < k; i++) {
+			r0 += x[i];
+		}
+		x += k;
+		n -= k;
 #       include "intrinsics/simde/dsum-sse2.h"
+	} else {
+		for (int i = 0; i < n; i++) {
+			r0 += x[i];
+		}
+		return r0;
+	}
 #else
 	SUM_CORE(double);
 #endif

@@ -1,11 +1,12 @@
 {
+	double alignas(16) total_sum = r0;
 	if (n < 8) {
-		double r = 0.0;
-		for (int i = 0; i < n; i++) r += x[i];
-		return r;
+		for (int i = 0; i < n; i++) {
+			total_sum += x[i];
+		}
+		return total_sum;
 	}
 
-	double r = 0.0;
 	int limit = n & ~7;
 	if (limit > 0) {
 		simde__m128d sum0 = simde_mm_setzero_pd();
@@ -13,10 +14,10 @@
 		simde__m128d sum2 = simde_mm_setzero_pd();
 		simde__m128d sum3 = simde_mm_setzero_pd();
 		for (int i = 0; i < limit; i += 8) {
-			simde__m128d data0 = simde_mm_loadu_pd(&x[i]);
-			simde__m128d data1 = simde_mm_loadu_pd(&x[i + 2]);
-			simde__m128d data2 = simde_mm_loadu_pd(&x[i + 4]);
-			simde__m128d data3 = simde_mm_loadu_pd(&x[i + 6]);
+			simde__m128d data0 = simde_mm_load_pd(&x[i]);
+			simde__m128d data1 = simde_mm_load_pd(&x[i + 2]);
+			simde__m128d data2 = simde_mm_load_pd(&x[i + 4]);
+			simde__m128d data3 = simde_mm_load_pd(&x[i + 6]);
 			sum0 = simde_mm_add_pd(sum0, data0);
 			sum1 = simde_mm_add_pd(sum1, data1);
 			sum2 = simde_mm_add_pd(sum2, data2);
@@ -27,10 +28,10 @@
 		sum0 = simde_mm_add_pd(sum0, sum2);
 		simde__m128d sum_swapped = simde_mm_shuffle_pd(sum0, sum0, 1);
 		simde__m128d sum_total = simde_mm_add_pd(sum0, sum_swapped);
-		simde_mm_store_sd(&r, sum_total);
+		simde_mm_store_sd(&total_sum, sum_total);
 	}
 	for (int i = limit; i < n; i++) {
-		r += x[i];
+		total_sum += x[i];
 	}
-	return r;
+	return total_sum;
 }
