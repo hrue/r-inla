@@ -3349,7 +3349,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_ai_store_tp *local_ai_store = NULL;
 
 		if (gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR) {
-
 			int nn = ai_store->problem->n;
 			int n_offset = 0;
 			int idx_offset = 0;
@@ -3582,7 +3581,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_idxval_tp *v = A_idx(node);
 				GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 			}
-
 			GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
 			
 #pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1) schedule(static)
@@ -4629,12 +4627,17 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * len + len_offset, double);
 			GMRFLib_dfill(5 * len + len_offset, 0.0, worktmp);
 
-			// ensure worktmp ptr is aligned. we might change the ptr so we cannot free
-			for(int k = 0; k < len_offset; k++) {
-				if (GMRFLib_is_aligned(worktmp + k)) {
-					worktmp += k;
-					break;
+			if (GMRFLib_memory_alignment_enabled) {
+				// ensure worktmp ptr is aligned. we might change the ptr so we cannot free
+				int ok = 0;
+				for(int k = 0; k < len_offset; k++) {
+					if (GMRFLib_is_aligned(worktmp + k)) {
+						worktmp += k;
+						ok = 1;
+						break;
+					}
 				}
+				if (!ok) FIXME("Memory alignment failed");
 			}
 			
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */

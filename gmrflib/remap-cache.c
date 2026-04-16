@@ -83,27 +83,28 @@ GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
 
 			// ensure alignment
 			int *re_free = re;
-			for(int k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
-				if (GMRFLib_is_aligned(re + k)){
-					re = re + k;
-					break;
-				}
-			}
-			if (!GMRFLib_is_aligned(re)) {
-				FIXME("->re not aligned. fixme");
-			}
-
 			int *re1_free = re1;
-			for(int k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
-				if (GMRFLib_is_aligned(re1 + k)){
-					re1 = re1 + k;
-					break;
+			if (GMRFLib_memory_alignment_enabled) {
+				int ok = 0;
+				for(size_t k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+					if (GMRFLib_is_aligned(re + k)){
+						re = re + k;
+						ok = 1;
+						break;
+					}
 				}
+				if (!ok) FIXME("Memory alignment failed");
+				ok = 0;
+				for(size_t k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+					if (GMRFLib_is_aligned(re1 + k)){
+						re1 = re1 + k;
+						ok = 1;
+						break;
+					}
+				}
+				if (!ok) FIXME("Memory alignment failed");
 			}
-			if (!GMRFLib_is_aligned(re1)) {
-				FIXME("->re1 not aligned. fixme");
-			}
-
+			
 			// two step mapping
 			for (int j = 0; j < nrhs; j++) {
 				int offset = j * n;

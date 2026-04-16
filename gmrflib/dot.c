@@ -51,6 +51,12 @@ double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__re
 	return (GMRFLib_dsum(ELM_->n, ARR_ + ELM_->idx[0]));
 }
 
+double GMRFLib_sparse_ddot_sum1_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	// special case, n==1
+	return (ARR_ + ELM_->idx[0])[0];
+}
+
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 #if defined(INLA_WITH_ARMPL)
