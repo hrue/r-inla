@@ -1731,11 +1731,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	double r0 = 0.0;
 #if defined(INLA_WITH_OPENBLAS)
 	double cblas_dsum(int, double *, int);
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	double alignas(64) r0 = 0.0;
 	int k = (64 - ((uintptr_t) x & 63)) & 63;
 	if (n > k) {
 		for (int i = 0; i < k; i++) {
@@ -1751,6 +1751,7 @@ double GMRFLib_dsum(int n, double *x)
 		return r0;
 	}
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+	double alignas(32) r0 = 0.0;
 	int k = (32 - ((uintptr_t) x & 31)) & 31;
 	if (n > k) {
 		for (int i = 0; i < k; i++) {
@@ -1766,6 +1767,7 @@ double GMRFLib_dsum(int n, double *x)
 		return r0;
 	}
 #elif defined(INLA_WITH_SIMDE)
+	double alignas(16) r0 = 0.0;
 	int k = (16 - ((uintptr_t) x & 15)) & 15;
 	if (n > k) {
 		for (int i = 0; i < k; i++) {
