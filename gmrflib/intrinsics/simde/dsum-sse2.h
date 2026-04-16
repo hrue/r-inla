@@ -1,5 +1,5 @@
 {
-	double alignas(16) total_sum = r0;
+	double alignas(16) total_sum = 0.0;
 	int limit = n & ~7;
 	if (limit > 0) {
 		simde__m128d sum0 = simde_mm_setzero_pd();
@@ -23,6 +23,7 @@
 		simde__m128d sum_total = simde_mm_add_pd(sum0, sum_swapped);
 		simde_mm_store_sd(&total_sum, sum_total);
 	}
+	total_sum += r0;
 	for (int i = limit; i < n; i++) {
 		total_sum += x[i];
 	}

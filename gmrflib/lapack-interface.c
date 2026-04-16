@@ -1802,15 +1802,17 @@ int GMRFLib_isum(int n, int *x)
 #define SPARSE_DSUM()					\
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
 	int m = n & ~7;					\
+	int *iidx = idx;				\
 	for (int i = 0; i < m; i += 8) {		\
-		s0 += a[idx[i + 0]];			\
-		s1 += a[idx[i + 1]];			\
-		s2 += a[idx[i + 2]];			\
-		s3 += a[idx[i + 3]];			\
-		s0 += a[idx[i + 4]];			\
-		s1 += a[idx[i + 5]];			\
-		s2 += a[idx[i + 6]];			\
-		s3 += a[idx[i + 7]];			\
+		s0 += a[iidx[0]];			\
+		s1 += a[iidx[1]];			\
+		s2 += a[iidx[2]];			\
+		s3 += a[iidx[3]];			\
+		s0 += a[iidx[4]];			\
+		s1 += a[iidx[5]];			\
+		s2 += a[iidx[6]];			\
+		s3 += a[iidx[7]];			\
+		iidx += 8;				\
 	}						\
 	for (int i = m; i < n; i++) {			\
 		s0 += a[idx[i]];			\
