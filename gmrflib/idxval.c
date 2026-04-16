@@ -19,9 +19,9 @@
 #endif
 
 #define IDX_ALLOC_INITIAL 8
-#define IDX_ALLOC_ADD     64
-#define IDX_ALLOC_NDIV    4
-#define IDX_ALLOC_INCREASE(n_) (IMAX(IDX_ALLOC_ADD, (n_) / IDX_ALLOC_NDIV))
+#define IDX_ALLOC_ADD     0
+#define IDX_ALLOC_MUL     2
+#define IDX_ALLOC_INCREASE(n_) (IDX_ALLOC_ADD + (n_) * IDX_ALLOC_MUL)
 
 int GMRFLib_idx_create(GMRFLib_idx_tp **hold)
 {
@@ -91,7 +91,7 @@ int GMRFLib_ptr_create(GMRFLib_ptr_tp **hold)
 int GMRFLib_ptr_create_x(GMRFLib_ptr_tp **hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_ptr_tp);
-	(*hold)->ptr = Malloc(len, void *);
+	(*hold)->ptr = Calloc(len, void *);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -556,7 +556,7 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	// x is a test vector
-	const int limit_merge = 8L, limit_sequential = 4L;
+	const int limit_merge = 8L, limit_sequential = 8L;
 #if 0
 	static int limit_merge = 0, limit_sequential = 0;
 	if (!limit_merge)
@@ -623,8 +623,19 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			if (all_one) {
 				// special case, all_one and sequential, call _dsum directly
 				if (h->n == 1) {
-					// this do happens, so let us catch these ones early
 					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum1_;
+				} else if (h->n == 2) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum2_;
+				} else if (h->n == 3) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum3_;
+				} else if (h->n == 4) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum4_;
+				} else if (h->n == 5) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum5_;
+				} else if (h->n == 6) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum6_;
+				} else if (h->n == 7) {
+					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum7_;
 				} else {
 					h->dot_product_func = (GMRFLib_dot_product_tp *) GMRFLib_sparse_ddot_sum_;
 				}

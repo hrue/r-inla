@@ -6346,7 +6346,18 @@ int testit(int argc, char **argv)
 			printf(" n.int = %1d", nn);  
 			nn = GMRFLib_align_len(n, sizeof(bool));
 			printf(" n.bool = %1d", nn);
+
+			nn = GMRFLib_align_len_OLD(n, sizeof(double));
+			printf(" n2.double = %1d", nn);  
+			nn = GMRFLib_align_len_OLD(n, sizeof(int));
+			printf(" n2.int = %1d", nn);  
+			nn = GMRFLib_align_len_OLD(n, sizeof(bool));
+			printf(" n2.bool = %1d", nn);
 			printf("\n");
+
+			assert(GMRFLib_align_len(n, sizeof(double)) ==  GMRFLib_align_len_OLD(n, sizeof(double)));
+			assert(GMRFLib_align_len(n, sizeof(int)) ==  GMRFLib_align_len_OLD(n, sizeof(int)));
+			assert(GMRFLib_align_len(n, sizeof(bool)) ==  GMRFLib_align_len_OLD(n, sizeof(bool)));
 		}
 	}
 	break;

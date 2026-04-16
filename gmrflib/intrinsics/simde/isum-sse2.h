@@ -13,7 +13,7 @@
 		sum0 = simde_mm_add_epi32(sum0, sum1);
 		int sum_array[4];
 		simde_mm_store_si128((simde__m128i *) sum_array, sum0);
-		r = sum_array[0] + sum_array[1] + sum_array[2] + sum_array[3];
+		r = (sum_array[0] + sum_array[1]) + (sum_array[2] + sum_array[3]);
 	}
 	for (int i = limit; i < n; i++) {
 		r += x[i];

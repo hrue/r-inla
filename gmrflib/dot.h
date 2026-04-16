@@ -29,6 +29,12 @@ double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp * __restrict ELM_, do
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_sparse_ddot_sum1_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum2_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum3_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum4_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum5_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum6_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 
 __END_DECLS
 #endif

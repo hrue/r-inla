@@ -4627,7 +4627,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * len + len_offset, double);
 			GMRFLib_dfill(5 * len + len_offset, 0.0, worktmp);
 
-			if (GMRFLib_memory_alignment_enabled) {
+			if (1 || GMRFLib_memory_alignment_enabled) {
 				// ensure worktmp ptr is aligned. we might change the ptr so we cannot free
 				int ok = 0;
 				for(int k = 0; k < len_offset; k++) {

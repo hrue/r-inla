@@ -19941,6 +19941,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 #elif defined(__APPLE__)
 	GMRFLib_memory_alignment = 64;
 #elif defined(_WIN32)
+
 	GMRFLib_memory_alignment = 32;
 #endif
 

@@ -1,6 +1,6 @@
 {
 	double alignas(16) total_sum = r0;
-[	int limit = n & ~7;
+	int limit = n & ~7;
 	if (limit > 0) {
 		simde__m128d sum0 = simde_mm_setzero_pd();
 		simde__m128d sum1 = simde_mm_setzero_pd();

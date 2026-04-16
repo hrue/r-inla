@@ -43,6 +43,7 @@ static inline int GMRFLib_is_aligned3(void *p, void *pp, void *ppp)
 }
 
 size_t GMRFLib_align_len(size_t n, size_t size);
+size_t GMRFLib_align_len_OLD(size_t n, size_t size);
 void *acalloc_intern(size_t nmemb, size_t size);
 void *amalloc_intern(size_t size);
 void *arealloc_intern(void *ptr, size_t size);

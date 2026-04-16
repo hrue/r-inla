@@ -98,14 +98,22 @@ void *arealloc_intern(void *ptr, size_t size)
 	return p;
 }
 
-size_t GMRFLib_align_len(size_t n, size_t size)
+size_t GMRFLib_align_len_OLD(size_t n, size_t size)
 {
-	// return 'N >= n' so that the endpoint is aligned at
-	// GMRFLib_memory_alignment bytes boundary.
-
 	// assume that _memory_alignment divisible by size (oops: no check)
 	int mm = (size_t) GMRFLib_memory_alignment / size;
 	div_t d = div(n, mm);
 
 	return n + (d.rem == 0 ? 0 : mm - d.rem);
 }
+
+size_t GMRFLib_align_len(size_t n, size_t size) 
+{
+	// return 'nn >= n' so that 'nn' elements each of size 'size' is a aligned at 'GMRFLib_memory_alignment'. it assumes that
+	// 'GMRFLib_memory_alignment' is divisible by 'size' (there is no check).
+#define ALIGN_(x, a) (((x) + (a) - 1) & ~((a) - 1))
+	return (ALIGN_(n * size, GMRFLib_memory_alignment) / size);
+#undef ALIGN_
+}
+
+	

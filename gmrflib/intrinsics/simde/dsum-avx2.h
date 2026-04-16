@@ -17,7 +17,7 @@
 		__m256d sum23 = simde_mm256_add_pd(sum2, sum3);
 		__m256d final_sum_reg = simde_mm256_add_pd(sum01, sum23);
 		simde_mm256_store_pd(temp, final_sum_reg);
-		total_sum += temp[0] + temp[1] + temp[2] + temp[3];
+		total_sum += (temp[0] + temp[1]) + (temp[2] + temp[3]);
 	}
 	if (n - i >= 4) {
 		__m256d rem_sum = simde_mm256_setzero_pd();
@@ -25,7 +25,7 @@
 			rem_sum = simde_mm256_add_pd(rem_sum, simde_mm256_loadu_pd(&x[i]));
 		}
 		simde_mm256_store_pd(temp, rem_sum);
-		total_sum += temp[0] + temp[1] + temp[2] + temp[3];
+		total_sum += (temp[0] + temp[1]) + (temp[2] + temp[3]);
 	}
 	if (n - i >= 2) {
 		__m128d sse_sum = simde_mm_loadu_pd(&x[i]);

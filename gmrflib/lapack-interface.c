@@ -1630,20 +1630,25 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 #pragma GCC diagnostic pop
 #undef DAXPY_CORE
 
+//		_Pragma("omp simd reduction(+: sum0,sum1,sum2,sum3)")
+
 #define DDOT_CORE(cutoff_)						\
 	if (n < cutoff_) {						\
 		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
+		double *xx = x, *yy = y;				\
 		int limit = n & ~3;					\
-		for (int i = 0; i < limit; i += 4) {			\
-			sum0 += x[i] * y[i];				\
-			sum1 += x[i+1] * y[i+1];			\
-			sum2 += x[i+2] * y[i+2];			\
-			sum3 += x[i+3] * y[i+3];			\
+			for (int i = 0; i < limit; i += 4) {		\
+			sum0 += xx[0] * yy[0];				\
+			sum1 += xx[1] * yy[1];				\
+			sum2 += xx[2] * yy[2];				\
+			sum3 += xx[3] * yy[3];				\
+			xx += 4;					\
+			yy += 4;					\
 		}							\
 		for (int i = limit; i < n; i++) {			\
 			sum0 += x[i] * y[i];				\
 		}							\
-		return sum0 + sum1 + sum2 + sum3;			\
+		return (sum0 + sum1) + (sum2 + sum3);			\
 	} else {							\
 		int one = 1;						\
 		return ddot_(&n, x, &one, y, &one);			\
@@ -1718,10 +1723,17 @@ double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cut
 #pragma GCC diagnostic pop
 #undef DDOT_CORE
 
-#define SUM_CORE(TYPE_)						\
+#define SUM_CORE_PLAIN(TYPE_, n_)				\
+	TYPE_ r = 0;						\
+	for (int i = 0; i < (n_); i++) {			\
+		r += x[i];					\
+	}							\
+	return r
+
+#define SUM_CORE(TYPE_, n_)					\
 	TYPE_ r = 0;						\
 	_Pragma("omp simd reduction(+: r)")			\
-	for (int i = 0; i < n; i++) {				\
+	for (int i = 0; i < (n_); i++) {			\
 		r += x[i];					\
 	}							\
 	return r
@@ -1732,57 +1744,39 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
+	if (unlikely(n < 16)) {
+		SUM_CORE_PLAIN(double, n);
+	}
 #if defined(INLA_WITH_OPENBLAS)
 	double cblas_dsum(int, double *, int);
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 	double alignas(64) r0 = 0.0;
 	int k = ((64 - ((uintptr_t) x & 63)) & 63) / sizeof(double);
-	if (likely(n >= 8 + k)) {
-		for (int i = 0; i < k; i++) {
-			r0 += x[i];
-		}
-		x += k;
-		n -= k;
-#       include "intrinsics/simde/dsum-avx512f.h"
-	} else {
-		for (int i = 0; i < n; i++) {
-			r0 += x[i];
-		}
-		return r0;
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
 	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 	double alignas(32) r0 = 0.0;
 	int k = ((32 - ((uintptr_t) x & 31)) & 31) / sizeof(double);
-	if (likely(n >= 4 + k)) {
-		for (int i = 0; i < k; i++) {
-			r0 += x[i];
-		}
-		x += k;
-		n -= k;
-#       include "intrinsics/simde/dsum-avx2.h"
-	} else {
-		for (int i = 0; i < n; i++) {
-			r0 += x[i];
-		}
-		return r0;
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
 	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-avx2.h"
 #elif defined(INLA_WITH_SIMDE)
 	double alignas(16) r0 = 0.0;
 	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
-	if (likely(n >= 2 + k)) {
-		for (int i = 0; i < k; i++) {
-			r0 += x[i];
-		}
-		x += k;
-		n -= k;
-#       include "intrinsics/simde/dsum-sse2.h"
-	} else {
-		for (int i = 0; i < n; i++) {
-			r0 += x[i];
-		}
-		return r0;
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
 	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-sse2.h"
 #else
 	SUM_CORE(double);
 #endif
@@ -1802,6 +1796,7 @@ int GMRFLib_isum(int n, int *x)
 #endif
 }
 #undef SUM_CORE
+#undef SUM_CORE_PLAIN
 #pragma GCC diagnostic pop
 
 #define SPARSE_DSUM()					\
@@ -1812,7 +1807,6 @@ int GMRFLib_isum(int n, int *x)
 		s1 += a[idx[i + 1]];			\
 		s2 += a[idx[i + 2]];			\
 		s3 += a[idx[i + 3]];			\
-							\
 		s0 += a[idx[i + 4]];			\
 		s1 += a[idx[i + 5]];			\
 		s2 += a[idx[i + 6]];			\
@@ -1821,7 +1815,7 @@ int GMRFLib_isum(int n, int *x)
 	for (int i = m; i < n; i++) {			\
 		s0 += a[idx[i]];			\
 	}						\
-	return s0 + s1 + s2 + s3
+	return (s0 + s1) + (s2 + s3)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"

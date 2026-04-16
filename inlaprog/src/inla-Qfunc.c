@@ -822,7 +822,7 @@ double mfunc_mec(int thread_id, int i, void *arg)
 	double *x_obs = a->x_obs;
 	double *scale = a->scale;
 
-	return beta * (prec_obs * scale[i] * x_obs[i] + prec_x * mean_x) / (prec_obs * scale[i] + prec_x);
+	return beta * ((prec_obs * scale[i] * x_obs[i]) + (prec_x * mean_x)) / ((prec_obs * scale[i]) + prec_x);
 }
 
 double Qfunc_meb(int thread_id, int i, int j, double *UNUSED(values), void *arg)

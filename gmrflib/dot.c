@@ -21,7 +21,7 @@
 	for (int i = m; i < n; i++) {					\
 		s0 += v[i] * a[idx[i]];					\
 	}								\
-	return s0 + s1 + s2 + s3
+	return (s0 + s1) + (s2 + s3)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -48,14 +48,57 @@ double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// special case: ->idx == sequential and all(->val == 1.0)
+	// return (GMRFLib_dsum(ELM_->n, ARR_ + ELM_->idx[0]));
+#if defined(INLA_WITH_SIMDE)
+	int n = ELM_->n;
+	if (n < 16) {
+		double *x = ARR_ + ELM_->idx[0];
+		// it returns inside here:
+#       include "intrinsics/simde/dsum-sse2-small.h"
+	} 
+#endif
 	return (GMRFLib_dsum(ELM_->n, ARR_ + ELM_->idx[0]));
 }
 
+// special cases
+#pragma GCC diagnostic push
+__attribute__((optimize("fast-math")))
 double GMRFLib_sparse_ddot_sum1_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
-	// special case, n==1
-	return (ARR_ + ELM_->idx[0])[0];
+	double * x = ARR_ + ELM_->idx[0];
+	return x[0];
 }
+double GMRFLib_sparse_ddot_sum2_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return x[0] + x[1];
+}
+double GMRFLib_sparse_ddot_sum3_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return x[0] + x[1] + x[2];
+}
+double GMRFLib_sparse_ddot_sum4_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return (x[0] + x[1]) + (x[2] + x[3]);
+}
+double GMRFLib_sparse_ddot_sum5_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return ((x[0] + x[1]) + (x[2] + x[3])) + x[4];
+}
+double GMRFLib_sparse_ddot_sum6_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return (x[0] + x[1] + x[2]) + (x[3] + x[4] + x[5]);
+}
+double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+{
+	double * x = ARR_ + ELM_->idx[0];
+	return ((x[0] + x[1] + x[2]) + (x[3] + x[4] + x[5])) + x[6];
+}
+#pragma GCC diagnostic pop
 
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {

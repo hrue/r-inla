@@ -250,7 +250,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 		case 5:
 		{
-			if (!step_len || ISZERO(*step_len)) {
+			if (unlikely(!step_len || ISZERO(*step_len))) {
 				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
 				step = ref * 5.0e-4;
 			} else {
@@ -259,13 +259,27 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 			int n = 5, nn = 2, wlength = 8;
 
-			if (!(w->wf[stenc])) {
+			if (unlikely(!(w->wf[stenc]))) {
 #pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
 				if (!(w->wf[stenc])) {
-					int len = 3 * wlength;
+					int len_offset = GMRFLib_memory_alignment / sizeof(double);
+					int len = 3 * wlength + len_offset;
 					double *ww = Malloc(len, double);
 					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
+					if (1 || GMRFLib_memory_alignment_enabled) {
+						// ensure ww is aligned. we might change the ptr so we cannot free
+						int ok = 0;
+						for(int k = 0; k < len; k++) {
+							if (GMRFLib_is_aligned(ww + k)) {
+								ww += k;
+								ok = 1;
+								break;
+							}
+						}
+						if (!ok) FIXME("Memory alignment failed");
+					}
 
 					ww[0] = 1.0 / 12.0;
 					ww[1] = -2.0 / 3.0;
@@ -327,10 +341,24 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			if (!(w->wf[stenc])) {
 #pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
 				if (!(w->wf[stenc])) {
-					int len = 3 * wlength;
+					int len_offset = GMRFLib_memory_alignment / sizeof(double);
+					int len = 3 * wlength + len_offset;
 					double *ww = Malloc(len, double);
 					GMRFLib_dfill(len, 0.0, ww);
 					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+
+					if (1 || GMRFLib_memory_alignment_enabled) {
+						// ensure ww is aligned. we might change the ptr so we cannot free
+						int ok = 0;
+						for(int k = 0; k < len_offset; k++) {
+							if (GMRFLib_is_aligned(ww + k)) {
+								ww += k;
+								ok = 1;
+								break;
+							}
+						}
+						if (!ok) FIXME("Memory alignment failed");
+					}
 
 					ww[0] = - 1.0 / 60.0;
 					ww[1] = 0.15;

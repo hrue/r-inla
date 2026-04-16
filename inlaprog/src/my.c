@@ -219,8 +219,9 @@ double my_betabinomial_helper8(int n, double a, double *work)
 	for (int i = 0; i < nn; i++) {
 		int j = nn - 1 - i;
 		double aa = a + i * roll;
+
 		double bb = a + j * roll + roll2;
-		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * bb * (bb + 1) * (bb + 2) * (bb + 3));
+		work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1) )* ((bb + 2) * (bb + 3)));
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -256,8 +257,8 @@ double my_betabinomial_helper16(int n, double a, double *work)
 		int j = nn - 1 - i;
 		double aa = a + i * roll;
 		double bb = a + j * roll + roll2;
-		work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) *
-			   bb * (bb + 1) * (bb + 2) * (bb + 3) * (bb + 4) * (bb + 5) * (bb + 6) * (bb + 7));
+		work[i] = (((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * (((aa + 4) * (aa + 5)) * ((aa + 6) * (aa + 7)))) *
+			(((bb * (bb + 1)) * ((bb + 2) * (bb + 3))) * (((bb + 4) * (bb + 5)) * ((bb + 6) * (bb + 7))));
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -338,7 +339,7 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 			int j = nn - 1 - i;
 			double aa = a + i * roll;
 			double bb = a + j * roll + roll2;
-			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * bb * (bb + 1) * (bb + 2) * (bb + 3));
+			work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 		}
 
 		GMRFLib_log(nn, work, work);
@@ -419,11 +420,11 @@ double my_betabinomial2(int y, int n, double a, double b, double *work)
 	double mul = 1.0;
 	while (a > 1.0) {
 		a--;
-		mul *= ((y + a) * (a + b) / (n + a + b) / a);
+		mul *= (((y + a) * (a + b)) / ((n + a + b) / a));
 	}
 	while (b > 1.0) {
 		b--;
-		mul *= ((n - y + b) * (a + b) / (n + a + b) / b);
+		mul *= (((n - y + b) * (a + b)) / ((n + a + b) / b));
 	}
 
 	// here we have 0<a<1, 0<b<1, but NOT a+b<1.
@@ -431,7 +432,7 @@ double my_betabinomial2(int y, int n, double a, double b, double *work)
 	double s1 = my_betabinomial_helper8(y, a, work);
 	double s2 = my_betabinomial_helper8(n - y, b, work);
 	double s3 = my_betabinomial_helper8(n, a + b, work);
-	return (s1 + s2 - s3 + log(mul));
+	return (s1 + s2) - (s3 + log(mul));
 }
 
 double my_lambert_W0(double y)
