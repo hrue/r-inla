@@ -115,7 +115,8 @@ int GMRFLib_2order_approx(int thread_id, int *lcache_idx, double *a, double *b, 
 	}
 
 	if (idx == give_warning_idx && give_warning_c > 1) {
-		fprintf(stderr, " *** WARNING *** GMRFLib_2order_approx: reset counter for %1d NAN/INF values in logl\n", give_warning_c);
+		fprintf(stderr, "[%1d] *** WARNING *** GMRFLib_2order_approx: reset counter for %1d NAN/INF values in logl\n",
+			omp_get_thread_num(), give_warning_c);
 #pragma omp critical (Name_61a18063454b0e56bccffa14dda9ace39df612f8)
 		give_warning_c = 0;
 	}
