@@ -249,6 +249,7 @@ typedef enum {
 	L_1POISSONS,
 	L_NVM,
 	L_LAVM,
+	L_GAMMACOUNT2,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -759,9 +760,12 @@ typedef struct {
 	double **mix_log_prec_loggamma;
 
 	/*
-	 * Gammacount; parameter alpha
+	 * Gammacount{,2}; parameter alpha
 	 */
 	double **gammacount_log_alpha;
+
+	double **gammacount2_log_alpha;
+	double *gammacount2_T;
 
 	/*
 	 * The qKumar likelihood

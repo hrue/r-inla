@@ -190,6 +190,13 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_GAMMACOUNT2:
+	{
+		idiv = 3;
+		a[0] = ds->data_observations.gammacount2_T = Calloc(mb->predictor_ndata, double);
+	}
+		break;
+
 	case L_NBINOMIAL:
 	{
 		idiv = 4;
@@ -6163,9 +6170,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -6900,6 +6907,54 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 
 	LINK_END;
 #undef _G
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gammacount2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	// gsl has 'scale=' not 'rate='
+#define G(T_, alpha_, beta_) gsl_cdf_gamma_P(T_, alpha_, 1.0 / (beta_))
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double alpha = map_exp_forward(ds->data_observations.gammacount2_log_alpha[thread_id][0], MAP_FORWARD, NULL);
+	double T = ds->data_observations.gammacount2_T[idx];
+	double tt = 1.0 / (2.0 * T);
+
+	LINK_INIT;
+
+	if (m > 0) {
+		bool y0 = (ISZERO(y) ? 1 : 0);
+		for (int i = 0; i < m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * lambda + tt;
+
+			// scale the comptuations
+			double a = alpha * (y + 0.5);
+			double b = beta;
+			double mu = a / b;
+			double scale = TRUNCATE(mu, 0.1, 1.0 / 0.1);
+
+			double p = (y0 ? 1.0 : G(T / scale, y * alpha, beta / scale)) - G(T / scale, (y + 1) * alpha, beta / scale);
+			p = DMAX(p, DBL_EPSILON);
+			logll[i] = LOG_p(p);
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * lambda + tt;
+			logll[i] = G(T, (y + 1.0) * alpha, beta);
+		}
+	}
+
+	LINK_END;
+#undef G
 	return GMRFLib_SUCCESS;
 }
 

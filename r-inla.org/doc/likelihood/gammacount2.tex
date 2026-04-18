@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The Gammacount2-likelihood}
+
+\subsection*{Parametrisation}
+
+The Gammacount2-distribution is a discrete probability distribution on
+$0, 1, 2, 3, \ldots$,  where
+\begin{displaymath}
+    \text{Prob}(y) = G(T; y\alpha, \beta) - G(T; (y+1)\alpha, \beta)
+\end{displaymath}
+where $G(\cdot; a, b)$ is the cummulative distribution function of the
+Gamma distribution, with shape $a>0$ and rate $b>0$,
+\begin{displaymath}
+    G(T; a, b) = \frac{b^a}{\Gamma(a)} \int_0^{T} t^{a-1}\exp(-bt) dx.
+\end{displaymath}
+This model exhibits underdispersion if $\alpha < 1$,
+equidispersion if $\alpha=1$ and overdispersion if $\alpha>1$.
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the event-rate $\lambda$
+\begin{displaymath}
+    \beta = \alpha\lambda+ \frac{1}{2T}
+\end{displaymath}
+and 
+\begin{displaymath}
+    \log(\lambda) = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+The hyperparameter is the parameter $\alpha$, which is
+represented as
+\begin{displaymath}
+    \alpha = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="gammacount2"}
+\item Required arguments: $y$ and $T$, given  as
+    $\texttt{inla.mdata(y,T)}$ (see the example).
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gammacount2.tex}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-gammacount2.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

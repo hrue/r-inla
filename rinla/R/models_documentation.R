@@ -14593,6 +14593,37 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'gammacount2'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{A Gamma generalisation of the Poisson likelihood (version 2)}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{FALSE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{pdf = }{\verb{gammacount2}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 1.
+#'          \describe{
+#'           \item{Hyperparameter 'theta'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{59101}}
+#'             \item{name = }{\verb{log alpha}}
+#'             \item{short.name = }{\verb{alpha}}
+#'             \item{output.name = }{\verb{Log-alpha parameter for Gammacount2 observations}}
+#'             \item{output.name.intern = }{\verb{Alpha parameter for Gammacount2 observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{pc.gammacount}}
+#'             \item{param = }{\verb{3}}
+#'             \item{to.theta = }{\verb{function(x) log(x)}}
+#'             \item{from.theta = }{\verb{function(x) exp(x)}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'qkumar'.}{
 #'          \describe{
 #'           \item{Properties:}{

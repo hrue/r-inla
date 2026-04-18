@@ -14,7 +14,7 @@ control.expert(
   opt.solve = FALSE,
   opt.storage = FALSE,
   opt.num.threads = TRUE,
-  memory.alignment = 16
+  memory.alignment = -1
 )
 
 inla.set.control.expert.default(...)
@@ -46,7 +46,8 @@ Might benefite larger models. (EXPERIMENTAL OPTION)}
 critical places to optimize wall-clock time}
 
 \item{memory.alignment}{Memory alignment for alloc (Linux and Mac
-only). One of 16, 32 or 64(bit). (EXPERIMENTAL OPTION)}
+only). One of -1 (no alignment correction done),  0 (chose automatically),
+16, 32 or 64 bytes (EXPERIMENTAL OPTION)}
 
 \item{...}{Named arguments passed on to the main function}
 }

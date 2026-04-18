@@ -2157,6 +2157,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				break;
 
 			case L_GAMMACOUNT:
+			case L_GAMMACOUNT2:
 			{
 				if (!ds->data_fixed) {
 					double log_alpha = theta[count];
