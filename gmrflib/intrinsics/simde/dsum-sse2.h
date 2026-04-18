@@ -1,5 +1,5 @@
 {
-	double alignas(16) total_sum = 0.0;
+	double alignas(16) total_sum = r0;
 	int limit = n & ~7;
 	if (limit > 0) {
 		simde__m128d sum0 = simde_mm_setzero_pd();
@@ -21,11 +21,13 @@
 		sum0 = simde_mm_add_pd(sum0, sum2);
 		simde__m128d sum_swapped = simde_mm_shuffle_pd(sum0, sum0, 1);
 		simde__m128d sum_total = simde_mm_add_pd(sum0, sum_swapped);
-		simde_mm_store_sd(&total_sum, sum_total);
+		double alignas(16) tmp_sum;
+		simde_mm_store_sd(&tmp_sum, sum_total);
+		total_sum += tmp_sum;
 	}
-	total_sum += r0;
 	for (int i = limit; i < n; i++) {
 		total_sum += x[i];
 	}
+	total_sum += r0;
 	return total_sum;
 }

@@ -2,10 +2,12 @@
 	int i = 0;
 	if (n >= 9) {
 		for (; i <= n - 9; i += 8) {
-			__m256i current = _mm256_loadu_si256((__m256i *) & a[i]);
-			__m256i next = _mm256_loadu_si256((__m256i *) & a[i + 1]);
-			__m256i comparison = _mm256_cmpgt_epi32(current, next);
-			if (!_mm256_testz_si256(comparison, comparison)) {
+			simde__m256i current;
+			memcpy(&current, &a[i], sizeof(current));
+			simde__m256i next;
+			memcpy(&next, &a[i + 1], sizeof(next));
+			simde__m256i comparison = simde_mm256_cmpgt_epi32(current, next);
+			if (!simde_mm256_testz_si256(comparison, comparison)) {
 				return 0;
 			}
 		}
