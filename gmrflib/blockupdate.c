@@ -272,25 +272,26 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					if (1 || GMRFLib_memory_alignment_enabled) {
 						// ensure ww is aligned. we might change the ptr so we cannot free
 						int ok = 0;
-						for(int k = 0; k < len; k++) {
+						for (int k = 0; k < len; k++) {
 							if (GMRFLib_is_aligned(ww + k)) {
 								ww += k;
 								ok = 1;
 								break;
 							}
 						}
-						if (!ok) FIXME("Memory alignment failed");
+						if (!ok)
+							FIXME("Memory alignment failed");
 					}
 
 					ww[0] = 1.0 / 12.0;
 					ww[1] = -2.0 / 3.0;
 					ww[3] = 2.0 / 3.0;
-					ww[4] = - 1.0 / 12.0;
-					ww[8] = - 1.0 / 12.0;
-					ww[9] = 4.0 / 3.0; 
+					ww[4] = -1.0 / 12.0;
+					ww[8] = -1.0 / 12.0;
+					ww[9] = 4.0 / 3.0;
 					ww[10] = -2.5;
-					ww[11] = 4.0 / 3.0; 
-					ww[12] = - 1.0 / 12; 
+					ww[11] = 4.0 / 3.0;
+					ww[12] = -1.0 / 12;
 					ww[16] = -0.5;
 					ww[17] = 1.0;
 					ww[19] = -1.0;
@@ -351,26 +352,27 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					if (1 || GMRFLib_memory_alignment_enabled) {
 						// ensure ww is aligned. we might change the ptr so we cannot free
 						int ok = 0;
-						for(int k = 0; k < len_offset; k++) {
+						for (int k = 0; k < len_offset; k++) {
 							if (GMRFLib_is_aligned(ww + k)) {
 								ww += k;
 								ok = 1;
 								break;
 							}
 						}
-						if (!ok) FIXME("Memory alignment failed");
+						if (!ok)
+							FIXME("Memory alignment failed");
 					}
 
-					ww[0] = - 1.0 / 60.0;
+					ww[0] = -1.0 / 60.0;
 					ww[1] = 0.15;
 					ww[2] = -0.75;
 					ww[4] = 0.75;
 					ww[5] = -0.15;
-					ww[6] = 1.0 / 60.0; 
+					ww[6] = 1.0 / 60.0;
 					ww[8] = 1.0 / 90.0;
 					ww[9] = -0.15;
 					ww[10] = 1.5;
-					ww[11] = - 49.0 / 18.0;
+					ww[11] = -49.0 / 18.0;
 					ww[12] = 1.5;
 					ww[13] = -0.15;
 					ww[14] = 1.0 / 90.0;

@@ -107,7 +107,7 @@ size_t GMRFLib_align_len_OLD(size_t n, size_t size)
 	return n + (d.rem == 0 ? 0 : mm - d.rem);
 }
 
-size_t GMRFLib_align_len(size_t n, size_t size) 
+size_t GMRFLib_align_len(size_t n, size_t size)
 {
 	// return 'nn >= n' so that 'nn' elements each of size 'size' is a aligned at 'GMRFLib_memory_alignment'. it assumes that
 	// 'GMRFLib_memory_alignment' is divisible by 'size' (there is no check).
@@ -115,5 +115,3 @@ size_t GMRFLib_align_len(size_t n, size_t size)
 	return (ALIGN_(n * size, GMRFLib_memory_alignment) / size);
 #undef ALIGN_
 }
-
-	

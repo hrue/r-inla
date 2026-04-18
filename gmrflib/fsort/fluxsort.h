@@ -1,3 +1,4 @@
+
 /*
 https://github.com/scandum/fluxsort
 
@@ -30,33 +31,33 @@ For more information, please refer to <http://unlicense.org>
 // fluxsort 1.2.1.3 - Igor van den Hoven ivdhoven@gmail.com
 
 #ifndef FLUXSORT_H
-#define FLUXSORT_H
+#       define FLUXSORT_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <string.h>
+#       include <stdlib.h>
+#       include <stdio.h>
+#       include <assert.h>
+#       include <errno.h>
+#       include <float.h>
+#       include <string.h>
 
 typedef int CMPFUNC(const void *a, const void *b);
 
-#ifndef QUADSORT_H
-#include "GMRFLib/fsort/quadsort.h"
-#endif
+#       ifndef QUADSORT_H
+#              include "GMRFLib/fsort/quadsort.h"
+#       endif
 
 // When sorting an array of 32/64 bit pointers, like a string array, QUAD_CACHE
 // needs to be adjusted in quadsort.h and here for proper performance when
 // sorting large arrays.
 
-#ifdef cmp
-#define QUAD_CACHE 4294967295
-#else
+#       ifdef cmp
+#              define QUAD_CACHE 4294967295
+#       else
 //#define QUAD_CACHE 131072
-#define QUAD_CACHE 262144
+#              define QUAD_CACHE 262144
 //#define QUAD_CACHE 524288
 //#define QUAD_CACHE 4294967295
-#endif
+#       endif
 
 //////////////////////////////////////////////////////////
 // ┌───────────────────────────────────────────────────┐//
@@ -69,39 +70,39 @@ typedef int CMPFUNC(const void *a, const void *b);
 // └───────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR int
-#define FUNC(NAME) NAME##32
+#       define VAR int
+#       define FUNC(NAME) NAME##32
 
-#include "GMRFLib/fsort/fluxsort.c"
+#       include "GMRFLib/fsort/fluxsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 // fluxsort_prim
 
-#define VAR int
-#define FUNC(NAME) NAME##_int32
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/fluxsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/fluxsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR int
+#       define FUNC(NAME) NAME##_int32
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/fluxsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/fluxsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
-#define VAR unsigned int
-#define FUNC(NAME) NAME##_uint32
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/fluxsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/fluxsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR unsigned int
+#       define FUNC(NAME) NAME##_uint32
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/fluxsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/fluxsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 // ┌───────────────────────────────────────────────────┐//
@@ -114,45 +115,45 @@ typedef int CMPFUNC(const void *a, const void *b);
 // └───────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR long long
-#define FUNC(NAME) NAME##64
+#       define VAR long long
+#       define FUNC(NAME) NAME##64
 
-#include "GMRFLib/fsort/fluxsort.c"
+#       include "GMRFLib/fsort/fluxsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 // fluxsort_prim
 
-#define VAR long long
-#define FUNC(NAME) NAME##_int64
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/fluxsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/fluxsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR long long
+#       define FUNC(NAME) NAME##_int64
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/fluxsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/fluxsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
-#define VAR unsigned long long
-#define FUNC(NAME) NAME##_uint64
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/fluxsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/fluxsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR unsigned long long
+#       define FUNC(NAME) NAME##_uint64
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/fluxsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/fluxsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
 // This section is outside of 32/64 bit pointer territory, so no cache checks
 // necessary, unless sorting 32+ byte structures.
 
-#undef QUAD_CACHE
-#define QUAD_CACHE 4294967295
+#       undef QUAD_CACHE
+#       define QUAD_CACHE 4294967295
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -165,13 +166,13 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR char
-#define FUNC(NAME) NAME##8
+#       define VAR char
+#       define FUNC(NAME) NAME##8
 
-#include "GMRFLib/fsort/fluxsort.c"
+#       include "GMRFLib/fsort/fluxsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -184,13 +185,13 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR short
-#define FUNC(NAME) NAME##16
+#       define VAR short
+#       define FUNC(NAME) NAME##16
 
-#include "GMRFLib/fsort/fluxsort.c"
+#       include "GMRFLib/fsort/fluxsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -243,20 +244,20 @@ void fluxsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 		fluxsort32(array, nmemb, cmp);
 		break;
 
-	case 8: 
+	case 8:
 		fluxsort64(array, nmemb, cmp);
 		break;
 
 // #if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
-// 	case 16: 
-// 		fluxsort128(array, nmemb, cmp);
-// 		break;
+//      case 16: 
+//              fluxsort128(array, nmemb, cmp);
+//              break;
 // #endif
-		
+
 	default:
 		qsort(array, nmemb, size, cmp);
-	} 
-	
+	}
+
 	return;
 }
 
@@ -311,9 +312,9 @@ void fluxsort_size(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	case 8:
 		fluxsort64(pti, nmemb, cmp);
 		break;
-// 	case 16:
-//		fluxsort128(pti, nmemb, cmp);
-//		break;
+//      case 16:
+//              fluxsort128(pti, nmemb, cmp);
+//              break;
 
 	default:
 		assert(0 == 1);
@@ -333,5 +334,5 @@ void fluxsort_size(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	free(pts);
 }
 
-#undef QUAD_CACHE
-#endif // #ifndef FLUXSORT_H
+#       undef QUAD_CACHE
+#endif							       // #ifndef FLUXSORT_H

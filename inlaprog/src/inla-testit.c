@@ -6333,35 +6333,35 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 199: 
+	case 199:
 	{
 		GMRFLib_memory_alignment = 32;
 		P(GMRFLib_memory_alignment);
-		for(int n = 1; n < 100; n++) {
+		for (int n = 1; n < 100; n++) {
 			printf("n = %1d,", n);
 			int nn;
 			nn = GMRFLib_align_len(n, sizeof(double));
-			printf(" n.double = %1d", nn);  
+			printf(" n.double = %1d", nn);
 			nn = GMRFLib_align_len(n, sizeof(int));
-			printf(" n.int = %1d", nn);  
+			printf(" n.int = %1d", nn);
 			nn = GMRFLib_align_len(n, sizeof(bool));
 			printf(" n.bool = %1d", nn);
 
 			nn = GMRFLib_align_len_OLD(n, sizeof(double));
-			printf(" n2.double = %1d", nn);  
+			printf(" n2.double = %1d", nn);
 			nn = GMRFLib_align_len_OLD(n, sizeof(int));
-			printf(" n2.int = %1d", nn);  
+			printf(" n2.int = %1d", nn);
 			nn = GMRFLib_align_len_OLD(n, sizeof(bool));
 			printf(" n2.bool = %1d", nn);
 			printf("\n");
 
-			assert(GMRFLib_align_len(n, sizeof(double)) ==  GMRFLib_align_len_OLD(n, sizeof(double)));
-			assert(GMRFLib_align_len(n, sizeof(int)) ==  GMRFLib_align_len_OLD(n, sizeof(int)));
-			assert(GMRFLib_align_len(n, sizeof(bool)) ==  GMRFLib_align_len_OLD(n, sizeof(bool)));
+			assert(GMRFLib_align_len(n, sizeof(double)) == GMRFLib_align_len_OLD(n, sizeof(double)));
+			assert(GMRFLib_align_len(n, sizeof(int)) == GMRFLib_align_len_OLD(n, sizeof(int)));
+			assert(GMRFLib_align_len(n, sizeof(bool)) == GMRFLib_align_len_OLD(n, sizeof(bool)));
 		}
 	}
-	break;
-		
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

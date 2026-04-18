@@ -221,7 +221,7 @@ double my_betabinomial_helper8(int n, double a, double *work)
 		double aa = a + i * roll;
 
 		double bb = a + j * roll + roll2;
-		work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1) )* ((bb + 2) * (bb + 3)));
+		work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 	}
 
 	GMRFLib_log(nn, work, work);
@@ -258,7 +258,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 		double aa = a + i * roll;
 		double bb = a + j * roll + roll2;
 		work[i] = (((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * (((aa + 4) * (aa + 5)) * ((aa + 6) * (aa + 7)))) *
-			(((bb * (bb + 1)) * ((bb + 2) * (bb + 3))) * (((bb + 4) * (bb + 5)) * ((bb + 6) * (bb + 7))));
+		    (((bb * (bb + 1)) * ((bb + 2) * (bb + 3))) * (((bb + 4) * (bb + 5)) * ((bb + 6) * (bb + 7))));
 	}
 
 	GMRFLib_log(nn, work, work);

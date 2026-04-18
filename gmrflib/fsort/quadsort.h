@@ -31,14 +31,14 @@ For more information, please refer to <http://unlicense.org>
 // quadsort 1.2.1.3 - Igor van den Hoven ivdhoven@gmail.com
 
 #ifndef QUADSORT_H
-#define QUADSORT_H
+#       define QUADSORT_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <string.h>
+#       include <stdlib.h>
+#       include <stdio.h>
+#       include <assert.h>
+#       include <errno.h>
+#       include <float.h>
+#       include <string.h>
 
 //#include <stdalign.h>
 
@@ -54,46 +54,46 @@ typedef int CMPFUNC(const void *a, const void *b);
 
 // With a 6 MB L3 cache a value of 262144 works well.
 
-#ifdef cmp
-#define QUAD_CACHE 4294967295
-#else
+#       ifdef cmp
+#              define QUAD_CACHE 4294967295
+#       else
 //#define QUAD_CACHE 131072
-#define QUAD_CACHE 262144
+#              define QUAD_CACHE 262144
 //#define QUAD_CACHE 524288
 //#define QUAD_CACHE 4294967295
-#endif
+#       endif
 
 // utilize branchless ternary operations in clang
 
-#if !defined __clang__
-#define head_branchless_merge(ptd, x, ptl, ptr, cmp)  \
+#       if !defined __clang__
+#              define head_branchless_merge(ptd, x, ptl, ptr, cmp)  \
 	x = cmp(ptl, ptr) <= 0;  \
 	*ptd = *ptl;  \
 	ptl += x;  \
 	ptd[x] = *ptr;  \
 	ptr += !x;  \
 	ptd++;
-#else
-#define head_branchless_merge(ptd, x, ptl, ptr, cmp)  \
+#       else
+#              define head_branchless_merge(ptd, x, ptl, ptr, cmp)  \
 	*ptd++ = cmp(ptl, ptr) <= 0 ? *ptl++ : *ptr++;
-#endif
+#       endif
 
-#if !defined __clang__
-#define tail_branchless_merge(tpd, y, tpl, tpr, cmp)  \
+#       if !defined __clang__
+#              define tail_branchless_merge(tpd, y, tpl, tpr, cmp)  \
 	y = cmp(tpl, tpr) <= 0;  \
 	*tpd = *tpl;  \
 	tpl -= !y;  \
 	tpd--;  \
 	tpd[y] = *tpr;  \
 	tpr -= y;
-#else
-#define tail_branchless_merge(tpd, x, tpl, tpr, cmp)  \
+#       else
+#              define tail_branchless_merge(tpd, x, tpl, tpr, cmp)  \
 	*tpd-- = cmp(tpl, tpr) > 0 ? *tpl-- : *tpr--;
-#endif
+#       endif
 
 // guarantee small parity merges are inlined with minimal overhead
 
-#define parity_merge_two(array, swap, x, ptl, ptr, pts, cmp)  \
+#       define parity_merge_two(array, swap, x, ptl, ptr, pts, cmp)  \
 	ptl = array; ptr = array + 2; pts = swap;  \
 	head_branchless_merge(pts, x, ptl, ptr, cmp);  \
 	*pts = cmp(ptl, ptr) <= 0 ? *ptl : *ptr;  \
@@ -102,7 +102,7 @@ typedef int CMPFUNC(const void *a, const void *b);
 	tail_branchless_merge(pts, x, ptl, ptr, cmp);  \
 	*pts = cmp(ptl, ptr)  > 0 ? *ptl : *ptr;
 
-#define parity_merge_four(array, swap, x, ptl, ptr, pts, cmp)  \
+#       define parity_merge_four(array, swap, x, ptl, ptr, pts, cmp)  \
 	ptl = array + 0; ptr = array + 4; pts = swap;  \
 	head_branchless_merge(pts, x, ptl, ptr, cmp);  \
 	head_branchless_merge(pts, x, ptl, ptr, cmp);  \
@@ -116,21 +116,21 @@ typedef int CMPFUNC(const void *a, const void *b);
 	*pts = cmp(ptl, ptr)  > 0 ? *ptl : *ptr;
 
 
-#if !defined __clang__
-#define branchless_swap(pta, swap, x, cmp)  \
+#       if !defined __clang__
+#              define branchless_swap(pta, swap, x, cmp)  \
 	x = cmp(pta, pta + 1) > 0;  \
 	swap = pta[!x];  \
 	pta[0] = pta[x];  \
 	pta[1] = swap;
-#else
-#define branchless_swap(pta, swap, x, cmp)  \
+#       else
+#              define branchless_swap(pta, swap, x, cmp)  \
 	x = 0;  \
 	swap = cmp(pta, pta + 1) > 0 ? pta[x++] : pta[1];  \
 	pta[0] = pta[x];  \
 	pta[1] = swap;
-#endif
+#       endif
 
-#define swap_branchless(pta, swap, x, y, cmp)  \
+#       define swap_branchless(pta, swap, x, y, cmp)  \
 	x = cmp(pta, pta + 1) > 0;  \
 	y = !x;  \
 	swap = pta[y];  \
@@ -148,39 +148,39 @@ typedef int CMPFUNC(const void *a, const void *b);
 // └───────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR int
-#define FUNC(NAME) NAME##32
+#       define VAR int
+#       define FUNC(NAME) NAME##32
 
-#include "GMRFLib/fsort/quadsort.c"
+#       include "GMRFLib/fsort/quadsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 // quadsort_prim
 
-#define VAR int
-#define FUNC(NAME) NAME##_int32
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/quadsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/quadsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR int
+#       define FUNC(NAME) NAME##_int32
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/quadsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/quadsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
-#define VAR unsigned int
-#define FUNC(NAME) NAME##_uint32
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/quadsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/quadsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR unsigned int
+#       define FUNC(NAME) NAME##_uint32
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/quadsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/quadsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 // ┌───────────────────────────────────────────────────┐//
@@ -193,45 +193,45 @@ typedef int CMPFUNC(const void *a, const void *b);
 // └───────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR long long
-#define FUNC(NAME) NAME##64
+#       define VAR long long
+#       define FUNC(NAME) NAME##64
 
-#include "GMRFLib/fsort/quadsort.c"
+#       include "GMRFLib/fsort/quadsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 // quadsort_prim
 
-#define VAR long long
-#define FUNC(NAME) NAME##_int64
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/quadsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/quadsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR long long
+#       define FUNC(NAME) NAME##_int64
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/quadsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/quadsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
-#define VAR unsigned long long
-#define FUNC(NAME) NAME##_uint64
-#ifndef cmp
-#define cmp(a,b) (*(a) > *(b))
-#include "GMRFLib/fsort/quadsort.c"
-#undef cmp
-#else
-#include "GMRFLib/fsort/quadsort.c"
-#endif
-#undef VAR
-#undef FUNC
+#       define VAR unsigned long long
+#       define FUNC(NAME) NAME##_uint64
+#       ifndef cmp
+#              define cmp(a,b) (*(a) > *(b))
+#              include "GMRFLib/fsort/quadsort.c"
+#              undef cmp
+#       else
+#              include "GMRFLib/fsort/quadsort.c"
+#       endif
+#       undef VAR
+#       undef FUNC
 
 // This section is outside of 32/64 bit pointer territory, so no cache checks
 // necessary, unless sorting 32+ byte structures.
 
-#undef QUAD_CACHE
-#define QUAD_CACHE 4294967295
+#       undef QUAD_CACHE
+#       define QUAD_CACHE 4294967295
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -244,13 +244,13 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR char
-#define FUNC(NAME) NAME##8
+#       define VAR char
+#       define FUNC(NAME) NAME##8
 
-#include "GMRFLib/fsort/quadsort.c"
+#       include "GMRFLib/fsort/quadsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -263,13 +263,13 @@ typedef int CMPFUNC(const void *a, const void *b);
 //└────────────────────────────────────────────────────┘//
 //////////////////////////////////////////////////////////
 
-#define VAR short
-#define FUNC(NAME) NAME##16
+#       define VAR short
+#       define FUNC(NAME) NAME##16
 
-#include "GMRFLib/fsort/quadsort.c"
+#       include "GMRFLib/fsort/quadsort.c"
 
-#undef VAR
-#undef FUNC
+#       undef VAR
+#       undef FUNC
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -336,28 +336,28 @@ void quadsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	}
 
 	switch (size) {
-	case 1: 
+	case 1:
 		quadsort8(array, nmemb, cmp);
 		return;
 
-	case 2: 
+	case 2:
 		quadsort16(array, nmemb, cmp);
 		return;
 
-	case 4: 
+	case 4:
 		quadsort32(array, nmemb, cmp);
 		return;
 
-	case 8: 
+	case 8:
 		quadsort64(array, nmemb, cmp);
 		return;
 
 // #if !(defined(__ARM_64BIT_STATE) && defined(__APPLE__))
-//	case 64: 
-// 		quadsort128(array, nmemb, cmp);
-// 		return;
+//      case 64: 
+//              quadsort128(array, nmemb, cmp);
+//              return;
 // #endif
-		
+
 	default:
 		qsort(array, nmemb, size, cmp);
 		return;
@@ -442,6 +442,6 @@ void quadsort_size(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	free(pts);
 }
 
-#undef QUAD_CACHE
+#       undef QUAD_CACHE
 
 #endif

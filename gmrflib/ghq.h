@@ -15,10 +15,10 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-__BEGIN_DECLS 
+__BEGIN_DECLS
+
 /*
  */
-
 int GMRFLib_ghq(double **xp, double **wp, int n);
 int GMRFLib_ghq__intern(double *x, double *w, int n);
 int GMRFLib_ghq_abscissas(double **xp, int n);

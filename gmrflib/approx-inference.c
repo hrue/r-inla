@@ -3582,7 +3582,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_unpack(v->n, v->val, Saa + n * ii, v->idx);
 			}
 			GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
-			
+
 #pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1) schedule(static)
 			for (int ii = 0; ii < sel->n; ii++) {
 				int node = sel->idx[ii];
@@ -4622,7 +4622,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		if (!lwork[*ccache_idx_numa]) {
 			int len_offset = GMRFLib_memory_alignment / sizeof(double);
 			int len = GMRFLib_align_len(GMRFLib_INT_GHQ_ALLOC_LEN, sizeof(double));
-			
+
 			double *worktmp = Malloc(5 * len + len_offset, double), *wtmp = NULL, *xtmp = NULL;
 			GMRFLib_ENSURE_NUMA_PTR(worktmp, 5 * len + len_offset, double);
 			GMRFLib_dfill(5 * len + len_offset, 0.0, worktmp);
@@ -4630,16 +4630,17 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			if (1 || GMRFLib_memory_alignment_enabled) {
 				// ensure worktmp ptr is aligned. we might change the ptr so we cannot free
 				int ok = 0;
-				for(int k = 0; k < len_offset; k++) {
+				for (int k = 0; k < len_offset; k++) {
 					if (GMRFLib_is_aligned(worktmp + k)) {
 						worktmp += k;
 						ok = 1;
 						break;
 					}
 				}
-				if (!ok) FIXME("Memory alignment failed");
+				if (!ok)
+					FIXME("Memory alignment failed");
 			}
-			
+
 			GMRFLib_ghq(&xtmp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
 			Memcpy(worktmp, xtmp, GMRFLib_INT_GHQ_POINTS * sizeof(double));
 			for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {

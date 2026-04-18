@@ -1630,7 +1630,7 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 #pragma GCC diagnostic pop
 #undef DAXPY_CORE
 
-//		_Pragma("omp simd reduction(+: sum0,sum1,sum2,sum3)")
+//              _Pragma("omp simd reduction(+: sum0,sum1,sum2,sum3)")
 
 #define DDOT_CORE(cutoff_)						\
 	if (n < cutoff_) {						\
