@@ -6362,6 +6362,18 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 200:
+	{
+		printf("n m len\n");
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		int len = atoi(args[2]);
+		P(n);
+		P(m);
+		P(len);
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

@@ -54,6 +54,7 @@ double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__re
 	if (n < 16) {
 		double *x = ARR_ + ELM_->idx[0];
 		// it returns inside here:
+		const double r0 = 0.0;
 #       include "intrinsics/simde/dsum-sse2-small.h"
 	}
 #endif
