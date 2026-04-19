@@ -6170,9 +6170,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -6911,12 +6911,11 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 }
 
 int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
-			      double *UNUSED(x_vec), double *y_cdf, void *arg)
+				 double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-
 	// gsl has 'scale=' not 'rate='
 #define G(T_, alpha_, beta_) gsl_cdf_gamma_P(T_, alpha_, 1.0 / (beta_))
 
