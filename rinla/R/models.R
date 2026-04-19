@@ -12095,15 +12095,15 @@
                     pdf = "gammacount"
                 ),
 
-                gammacount2 = list(
-                    doc = "A Gamma generalisation of the Poisson likelihood (version 2)",
+                gammacountmean = list(
+                    doc = "Another Gamma generalisation of the Poisson likelihood",
                     hyper = list(
                         theta = list(
                             hyperid = 59101,
                             name = "log alpha",
                             short.name = "alpha",
-                            output.name = "Log-alpha parameter for Gammacount2 observations",
-                            output.name.intern = "Alpha parameter for Gammacount2 observations",
+                            output.name = "Log-alpha parameter for Gammacountmean observations",
+                            output.name.intern = "Alpha parameter for Gammacountmean observations",
                             initial = log(1.0),
                             fixed = FALSE,
                             prior = "pc.gammacount",
@@ -12115,7 +12115,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "log"),
-                    pdf = "gammacount2"
+                    pdf = "gammacountmean"
                 ),
 
                 qkumar = list(

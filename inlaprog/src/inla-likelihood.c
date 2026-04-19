@@ -190,10 +190,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
-	case L_GAMMACOUNT2:
+	case L_GAMMACOUNTMEAN:
 	{
 		idiv = 3;
-		a[0] = ds->data_observations.gammacount2_T = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.gammacountmean_T = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -6910,7 +6910,7 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gammacount2(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			      double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
@@ -6922,8 +6922,8 @@ int loglikelihood_gammacount2(int thread_id, int *UNUSED(lcache_idx), double *__
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double alpha = map_exp_forward(ds->data_observations.gammacount2_log_alpha[thread_id][0], MAP_FORWARD, NULL);
-	double T = ds->data_observations.gammacount2_T[idx];
+	double alpha = map_exp_forward(ds->data_observations.gammacountmean_log_alpha[thread_id][0], MAP_FORWARD, NULL);
+	double T = ds->data_observations.gammacountmean_T[idx];
 	double tt = 1.0 / (2.0 * T);
 
 	LINK_INIT;

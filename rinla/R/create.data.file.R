@@ -484,7 +484,7 @@
         offset <- response[, 5, drop = FALSE]
         X <- response[, -(1:5), drop = FALSE]
         response <- cbind(idx, E, event, offset, X, Y)
-    } else if (inla.one.of(family, c("gammacount2"))) {
+    } else if (inla.one.of(family, c("gammacountmean"))) {
         response <- cbind(IDX = ind, y.orig)
         na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
         na.TT <- apply(response[, 3, drop = FALSE], 1, function(x) any(is.na(x)))

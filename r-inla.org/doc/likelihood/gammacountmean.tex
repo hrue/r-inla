@@ -1,0 +1,103 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The \texttt{gammacountmean} likelihood}
+
+\subsection*{Parametrisation}
+
+The \texttt{gammacount\_mu} distribution is a discrete probability
+distribution on $0, 1, 2, 3, \ldots$, derived from a renewal process
+with Gamma-distributed inter-arrival times. The probability mass
+function is
+\begin{displaymath}
+    \text{Prob}(y) = G(T; y\alpha, \beta) - G(T; (y+1)\alpha, \beta)
+\end{displaymath}
+where $G(\cdot; a, b)$ is the cummulative distribution function of the
+Gamma distribution, with shape $a>0$ and rate $b>0$,
+\begin{displaymath}
+    G(T; a, b) = \frac{b^a}{\Gamma(a)} \int_0^{T} u^{a-1}e^{-bu} du.
+\end{displaymath}
+This model exhibits:
+\begin{itemize}
+\item underdispersion if $\alpha > 1$ ($\mathrm{Var}(Y) < \mu$),
+\item equidispersion if $\alpha = 1$ (Poisson limit),
+\item overdispersion if $0 < \alpha < 1$ ($\mathrm{Var}(Y) > \mu$).
+\end{itemize}
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the event rate
+$\lambda = {\texttt E}[Y]/T$ via
+\begin{displaymath}
+    \log(\lambda) = \eta,
+\end{displaymath}
+and the Gamma rate parameter $\beta$ is related to $\lambda$ through
+the mean-parametrized renewal link
+\begin{displaymath}
+    \beta = \alpha \lambda + \frac{1}{2T}.
+\end{displaymath}
+This formulation accommodates unequal observation windows $T_i$ and
+provides direct interpretation of $\exp(\eta_j)$ as the multiplicative
+change in event rate per unit time.
+
+\subsection*{Hyperparameter}
+
+The dispersion parameter $\alpha > 0$ is modeled as
+\begin{displaymath}
+    \alpha = \exp(\theta),
+\end{displaymath}
+with a prior defined on the log-scale parameter $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family = "gammacountmean"}
+\item Required arguments: response $y$ and exposure time $T$, provided as\\
+    \texttt{inla.mdata(y, T)} (see example).
+\end{itemize}
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/likelihood/gammacountmean.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+dataset with varying exposure times.
+\verbatiminput{example-gammacountmean.R}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item This model extends the classical Gamma-count framework
+    (Winkelmann, 1995; Zeviani et al., 2014) by directly regressing on
+    the event rate $\lambda$, unlike the original \texttt{gammacount}
+    family in \texttt{R-INLA} (Nadifar et al., 2023), which assumes
+    fixed $T=1$ and models waiting times.
+\item The approximation
+    ${\texttt E}[Y] \approx \beta T / \alpha - 1/(2\alpha)$ is
+    asymptotically valid for moderate-to-large $T$ (Smith, 1958; Cox,
+    1962).
+\end{itemize}
+
+\section*{References}
+\begin{itemize}
+\item  Cox, D. R. (1962). \textit{Renewal Theory}. Methuen.
+\item  Nadifar, M., Baghishani, H., Fallah, A. (2023). A flexible
+    generalized Poisson likelihood for spatial counts constructed by
+    renewal theory, motivated by groundwater quality assessment.
+    \textit{Journal of Agricultural, Biological, and Environmental
+        Statistics}, 28(4), 726-748.
+\item  Smith, W. L. (1958). Renewal theory and its ramifications.
+    \textit{Journal of the Royal Statistical Society: Series B},
+    20(2), 243–302.
+\item  Winkelmann, R. (1995). Duration dependence and dispersion in
+    count data models. \textit{Journal of Business \& Economic
+        Statistics}, 13(4), 467–474.
+\item  Zeviani, W. M., et al. (2014). The Gamma-count distribution
+    in the analysis of experimental underdispersed data.
+    \textit{Journal of Applied Statistics}, 41(7), 1513–1527.
+\end{itemize}
+\end{document}

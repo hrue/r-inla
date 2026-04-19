@@ -1020,9 +1020,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
 		ds->data_id = L_GAMMACOUNT;
 		discrete_data = 1;
-	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT2")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount2;
-		ds->data_id = L_GAMMACOUNT2;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNTMEAN")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacountmean;
+		ds->data_id = L_GAMMACOUNTMEAN;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "QKUMAR")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qkumar;
@@ -1840,13 +1840,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_GAMMACOUNT2:
+	case L_GAMMACOUNTMEAN:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.gammacount2_T[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Gammacount2 data[%1d] (T,y) = (%g, %g) is void\n", secname, i,
-							ds->data_observations.gammacount2_T[i], ds->data_observations.y[i]);
+				if (ds->data_observations.gammacountmean_T[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gammacountmean data[%1d] (T,y) = (%g, %g) is void\n", secname, i,
+							ds->data_observations.gammacountmean_T[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -5702,7 +5702,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case L_GAMMACOUNT2:
+	case L_GAMMACOUNTMEAN:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
@@ -5711,9 +5711,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (mb->mode_fixed)
 				ds->data_fixed = 1;
 		}
-		HYPER_NEW(ds->data_observations.gammacount2_log_alpha, tmp);
+		HYPER_NEW(ds->data_observations.gammacountmean_log_alpha, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_alpha[%g]\n", ds->data_observations.gammacount2_log_alpha[0][0]);
+			printf("\t\tinitialise log_alpha[%g]\n", ds->data_observations.gammacountmean_log_alpha[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
@@ -5725,8 +5725,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-alpha parameter for Gammacount2 observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Alpha parameter for Gammacount2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-alpha parameter for Gammacountmean observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Alpha parameter for Gammacountmean observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -5735,7 +5735,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_from[mb->ntheta] = Strdup(ds->data_prior.from_theta);
 			mb->theta_to[mb->ntheta] = Strdup(ds->data_prior.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.gammacount2_log_alpha;
+			mb->theta[mb->ntheta] = ds->data_observations.gammacountmean_log_alpha;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);

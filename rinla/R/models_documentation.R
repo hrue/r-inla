@@ -14593,15 +14593,15 @@
 #'           }
 #'          }
 #'        }
-#'       \item{Model 'gammacount2'.}{
+#'       \item{Model 'gammacountmean'.}{
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{\verb{A Gamma generalisation of the Poisson likelihood (version 2)}}
+#'               \item{doc = }{\verb{Another Gamma generalisation of the Poisson likelihood}}
 #'               \item{survival = }{\verb{FALSE}}
 #'               \item{discrete = }{\verb{FALSE}}
 #'               \item{link = }{\verb{default log}}
-#'               \item{pdf = }{\verb{gammacount2}}
+#'               \item{pdf = }{\verb{gammacountmean}}
 #'              }
 #'            }
 #'          }
@@ -14612,8 +14612,8 @@
 #'             \item{hyperid = }{\verb{59101}}
 #'             \item{name = }{\verb{log alpha}}
 #'             \item{short.name = }{\verb{alpha}}
-#'             \item{output.name = }{\verb{Log-alpha parameter for Gammacount2 observations}}
-#'             \item{output.name.intern = }{\verb{Alpha parameter for Gammacount2 observations}}
+#'             \item{output.name = }{\verb{Log-alpha parameter for Gammacountmean observations}}
+#'             \item{output.name.intern = }{\verb{Alpha parameter for Gammacountmean observations}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{pc.gammacount}}
