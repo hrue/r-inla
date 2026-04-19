@@ -1778,7 +1778,7 @@ double GMRFLib_dsum(int n, double *x)
 	n -= k;
 #       include "intrinsics/simde/dsum-sse2.h"
 #else
-	SUM_CORE(double);
+	SUM_CORE(double, n);
 #endif
 }
 #pragma GCC diagnostic pop
@@ -1792,7 +1792,7 @@ int GMRFLib_isum(int n, int *x)
 #if defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/isum-sse2.h"
 #else
-	SUM_CORE(int);
+	SUM_CORE(int, n);
 #endif
 }
 #undef SUM_CORE
