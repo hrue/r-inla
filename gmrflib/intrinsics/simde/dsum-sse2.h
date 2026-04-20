@@ -28,6 +28,5 @@
 	for (int i = limit; i < n; i++) {
 		total_sum += x[i];
 	}
-	total_sum += r0;
 	return total_sum;
 }
