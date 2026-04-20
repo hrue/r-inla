@@ -1,4 +1,8 @@
-# INLA 26.05.19
+# INLA 25.04.20
+* New likelihood: 'gammacountmean'
+* Code cleanup and improvements
+
+# INLA 26.03.19
 * Work on the forthcoming sTiles integration
 * Minor code revision and optimization
 
