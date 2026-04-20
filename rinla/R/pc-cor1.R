@@ -42,8 +42,8 @@ inla.pc.cor1.lambda <- function(u, alpha, lambda) {
               stop(paste("inla.pc.cor1.lambda: alpha >", alpha.min))
           }
         fun <- function(lam, u, alpha) {
-            F <- (1 - exp(-lam * sqrt(1 - u))) / (1 - exp(-lam * sqrt(2)))
-            return((F - alpha)^2)
+            FF <- (1 - exp(-lam * sqrt(1 - u))) / (1 - exp(-lam * sqrt(2)))
+            return((FF - alpha)^2)
         }
         lambdas <- unique(c(seq(0.0000001, 10, length.out = 100),
                             seq(10, 100, length.out = 10)))

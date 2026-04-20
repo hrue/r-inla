@@ -68,11 +68,6 @@
                                          p2char(h4$param), "]", "\n",
                 sep = ""
             )
-            if (FALSE) {
-                if (h4$prior %in% "mvnorm") {
-                      mvnorm.prior.print(h4$param)
-                  }
-            }
         }
         return (nh)
     }

@@ -144,7 +144,7 @@
         ## This can be slow, so its better to stop and say that the
         ## matrix has to be converted upfront.
         stop("Matrix is not of type 'dgTMatrix'; please convert it with inla.as.dgTMatrix().")
-        A <- inla.as.dgTMatrix(A)
+        ## A <- inla.as.dgTMatrix(A)
     }
 
     if (!missing(row)) {

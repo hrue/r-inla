@@ -53,7 +53,7 @@
       }
 
     quit <- FALSE
-    while (TRUE) {
+    repeat {
         cat("\nChose directory to view\n")
         i <- 1
         for (a in dd) {

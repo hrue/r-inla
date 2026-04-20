@@ -18,15 +18,6 @@
         return (invisible())
     }
 
-    ## not that informative any more
-    if (FALSE) {
-        form <- strwrap(inla.formula2character(x$call))
-        cat("Call:\n")
-        for (i in seq_along(form)) {
-            cat("  ", form[i], "\n")
-        }
-    }
-    
     if (inla.is.element("cpu.used", x)) {
         cat("Time used:\n  ")
         cat(

@@ -309,7 +309,7 @@ NULL
         }
         return (Finv(x))
     } else {
-        F <- function(x) {
+        FF <- function(x) {
             qalpha <- 0
             alpha <- 0.5
             beta <- 0.5
@@ -323,7 +323,7 @@ NULL
             }
             return (pfrechet(x))
         }
-        return (F(x))
+        return (FF(x))
     }
 }
 

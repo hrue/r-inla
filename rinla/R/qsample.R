@@ -214,7 +214,6 @@
                 Q.file, x.file, as.integer(n), rng.file,
                 sample.file, b.file, mu.file, constr.file, cmean.file, selection.file
             ))
-            browser()
         }
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qsample",

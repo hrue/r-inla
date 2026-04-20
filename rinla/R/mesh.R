@@ -540,7 +540,8 @@ inla.mesh <- function(...) {
     }
   }
   stop("'inla.mesh(...)' is deprecated.  Use 'fmesher::fm_mesh_2d_inla(...)' instead.")
-  return(inla.mesh.create(...))
+  ## comment this out as it triggers warning by 'jarl'
+  ##return(inla.mesh.create(...))
 }
 
 

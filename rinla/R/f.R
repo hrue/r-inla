@@ -463,18 +463,8 @@
     ## so, this lead to an obscure error later on...
     ##
     ## we first collect all arguments of type `name = value'
-    if (TRUE) {
-        ## New code
-        args.eq <- names(match.call(expand.dots = TRUE))
-        args.eq <- args.eq[args.eq != ""]
-    } else {
-        args.eq <- c()
-        for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots = TRUE))), ","))) {
-            if (length(grep("=", arg)) > 0) {
-                args.eq <- c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
-            }
-        }
-    }
+    args.eq <- names(match.call(expand.dots = TRUE))
+    args.eq <- args.eq[args.eq != ""]
 
     ## then we compare these with the legal ones in f(), and
     ## flag an error its not among the legal ones.

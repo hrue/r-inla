@@ -22,30 +22,6 @@ inla.print.version <- function() {
             " - List available models/likelihoods/etc with inla.list.models()\n", 
             " - Use inla.doc(<NAME>) to access documentation"
         )
-
-        if (FALSE) {
-            if (!inla.os("windows")) {
-                hello <- paste0(hello,
-                                "\n",
-                                " - To enable PARDISO sparse library; see inla.pardiso()"
-                                )
-            }
-        }
-        
-        if (FALSE) {
-            s <- inla.prune.check()
-            if (s > 0) {
-                hello <- paste0(
-                    hello,
-                    "\n",
-                    paste0(
-                        " - Save ", s,
-                        "Mb of storage running 'inla.prune()'"
-                    )
-                )
-            }
-        }
-        
         opts <- options()
         options(timeout = 2)
         suppressWarnings({

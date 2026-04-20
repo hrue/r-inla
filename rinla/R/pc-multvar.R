@@ -134,7 +134,9 @@ inla.pc.multvar.simplex.d <- function(
 
 inla.pc.multvar.simplex.core <- function(
                                          x = NULL, n = NULL, lambda = 1, log = FALSE,
-                                         h = inla.pc.multvar.h.default, b = NULL, mode = c("r", "d")) {
+                                         h = inla.pc.multvar.h.default, b = NULL, mode = c("r",
+                                                                                           "d"))
+{
     ## this is the case where d = h( b^T x)
     ## for vector b>0
 
@@ -170,12 +172,10 @@ inla.pc.multvar.simplex.core <- function(
         }
         return(if (log) ldens.x else exp(ldens.x))
     }
-
-    stop("Should not happen")
-    return()
 }
 
-inla.pc.multvar.sphere.r.core <- function(n, p, lambda = 1, h = inla.pc.multvar.h.default) {
+inla.pc.multvar.sphere.r.core <- function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
+{
     ## simulate from the pc prior where d = h(1/2 * \sum x_i^2)
     stopifnot(n > 0)
     stopifnot(p > 0)
@@ -199,7 +199,8 @@ inla.pc.multvar.sphere.r.core <- function(n, p, lambda = 1, h = inla.pc.multvar.
 }
 
 inla.pc.multvar.sphere.d.core <- function(x, lambda = 1, log = FALSE,
-                                          h = inla.pc.multvar.h.default) {
+                                          h = inla.pc.multvar.h.default)
+{
     ## evaluate the density from the pc prior where d = h(1/2 * \sum x_i^2), x_i >=0.
 
     sphere.log.surface <- function(n) {
@@ -233,7 +234,9 @@ inla.pc.multvar.sphere.d.core <- function(x, lambda = 1, log = FALSE,
 #' @rdname pc-multvar
 #' @export
 inla.pc.multvar.sphere.r <- function(
-                                     n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL) {
+                                     n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H =
+                                                                                              NULL)
+{
     return(inla.pc.multvar.sphere.core(
         n = n, lambda = lambda, h = h, H = H, mode = "r"
     ))
@@ -242,7 +245,9 @@ inla.pc.multvar.sphere.r <- function(
 #' @rdname pc-multvar
 #' @export
 inla.pc.multvar.sphere.d <- function(
-                                     x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL) {
+                                     x = NULL, lambda = 1, log = FALSE, h =
+                                                                            inla.pc.multvar.h.default, H = NULL)
+{
     return(inla.pc.multvar.sphere.core(
         x = x, lambda = lambda, log = log, h = h, H = H, mode = "d"
     ))
@@ -251,7 +256,9 @@ inla.pc.multvar.sphere.d <- function(
 
 inla.pc.multvar.sphere.core <- function(
                                         x = NULL, n = NULL, lambda = 1, log = FALSE,
-                                        h = inla.pc.multvar.h.default, H = NULL, mode = c("r", "d")) {
+                                        h = inla.pc.multvar.h.default, H = NULL, mode = c("r",
+                                                                                          "d"))
+{
     ## this is the case where d = h(1/2 x^{T} H x)
 
     mode <- match.arg(mode)
@@ -312,6 +319,4 @@ inla.pc.multvar.sphere.core <- function(
         }
         return(if (log) ldens.x else exp(ldens.x))
     }
-    stop("Should not happen")
-    return()
 }

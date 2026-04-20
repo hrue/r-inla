@@ -726,14 +726,6 @@
         }
     }
 
-    if (FALSE) {
-        if (n.family != 1) {
-            stop(paste("length(family) are", n.family, "but the response has only one column!"))
-        }
-
-        y...fake <- c(y...orig)
-        y...fake[is.na(y...fake)] <- Inf ## otherwise model.matrix() fails below
-    }
     if (debug) {
         cat("n.family", n.family, "\n")
     }
@@ -2720,7 +2712,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     } else {
         return(data)
     }
-    stop("Should not happen.")
 }
 
 `inla.expand.factors` <- function(data, exclude.names = c())

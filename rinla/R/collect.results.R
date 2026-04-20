@@ -2336,31 +2336,6 @@
     } else {
         return(im@grey)
     }
-
-    ## do not need this anymore as we do this in GMRFLib.
-    if (FALSE) {
-        if (image.dim >= im@size[1L]) {
-            n <- as.integer(im@size[1L])
-            x <- matrix(NA, n, n)
-            for (j in 1L:n) {
-                x[j, n - (1L:n) + 1L] <- im@grey[1L:n, j]
-            }
-            return(x)
-        }
-        block <- ceiling(im@size[1L] / image.dim)
-        n <- floor(im@size[1L] / block)
-        ii <- jj <- 0L
-        x <- matrix(NA, n, n)
-        for (i in seq(1L, im@size[1L] - block + 1L, by = block)) {
-            ii <- ii + 1L
-            jj <- 0L
-            for (j in seq(1L, im@size[1L] - block + 1L, by = block)) {
-                jj <- jj + 1L
-                x[jj, n - ii + 1L] <- min(im@grey[i:(i + block - 1L), j:(j + block - 1L)])
-            }
-        }
-        return(x)
-    }
 }
 
 `inla.collect.offset.linear.predictor` <- function(results.dir, debug = FALSE)

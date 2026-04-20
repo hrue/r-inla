@@ -12364,7 +12364,7 @@
                             name = "offset location",
                             short.name = "loc",
                             output.name = "offset location-parameter for the obeta observations",
-                            output.name = "intern offset location-parameter for the obeta observations",
+                            output.name.intern = "intern offset location-parameter for the obeta observations",
                             initial = 0,
                             fixed = FALSE,
                             prior = "normal",
@@ -12377,7 +12377,7 @@
                             name = "offset width",
                             short.name = "width",
                             output.name = "offset width-parameter for the obeta observations",
-                            output.name = "intern offset width-parameter for the obeta observations",
+                            output.name.intern = "intern offset width-parameter for the obeta observations",
                             initial = 0,
                             fixed = FALSE,
                             prior = "loggamma",
@@ -17948,8 +17948,6 @@
 
         return(models)
     }
-
-    stop("This should not happen")
 }
 
 `inla.is.model` <- function(model, section = NULL,

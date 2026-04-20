@@ -444,11 +444,6 @@ NULL
         ret <- list(x = xx, y = log.dens)
     }
 
-    if (FALSE) {
-        class(ret) <- "inla.marginal"
-        attr(ret, "inla.tag") <- paste(attr(marginal, "inla.tag"), "transformed")
-    }
-
     return(ret)
 }
 
