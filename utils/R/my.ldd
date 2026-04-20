@@ -1,22 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
-for f in "$@"; do
-    ff=${f%"/local/bin/inla"}
-    ff=${ff%"/local/bin/inla.mkl"}
-    ff=${ff%"/local/bin/fmesher"}
-    export LD_LIBRARY_PATH=$ff/local/lib:$LD_LIBRARY_PATH
-    ldd -r "$f" | awk '/ => / {print $3}' | grep / ## | grep -v libc.so
-done
+export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/builds/build64/local/lib:$LD_LIBRARY_PATH
+{
+    for f in "$@"; do
+	ldd -r "$f" | awk '/ => / {print $3}' | grep / | grep -v libc.so | grep -v libpthread.so | grep -v librt.so | grep -v libm.so
+    done
 
-for f in "$@"; do
-    case "$f" in 
-	*/inla.mkl*) 
-	   echo "builds/build64/local/lib/libmkl_avx.so"
-	   echo "builds/build64/local/lib/libmkl_avx2.so"
-	   echo "builds/build64/local/lib/libmkl_def.so"
-	   ;;
-    esac
-done
-
-	   
-	    
+    for f in {/usr/lib64,/usr/lib/x86_64-linux-gnu}/lib{mi,tc,je}malloc.so; do
+	if [ -f "$f" ]; then 
+	    echo $(readlink -f $f)
+	fi
+    done
+} | sort | uniq

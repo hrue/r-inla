@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+for f in "$@"; do
+    
+    echo $f
+    rm -rf tt
+    {
+	for i in {1..50}; do
+	    echo $RANDOM $(date) | shasum
+	done
+    } > tt
+    
+    awk '/^#pragma omp critical/ && $0 !~ /Name_/ {
+    	getline name < "tt"
+    	gsub(/ +/,"",name)
+    	gsub(/-+/,"",name)
+    	print $1, $2, $3, "(Name_" name ")"; 
+	next; }
+    	{print}' $f > $f.NEW && mv -f $f.NEW $f
+done
+
+rm -f tt

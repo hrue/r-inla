@@ -3,14 +3,22 @@
 ## extract the graph from a tabulated Qfunc.
 ## $Id: Qtab2graph,v 1.4 2006/04/26 12:13:12 hrue Exp $
 
-cat "$@" | \
-    grep -v ^#  | \
+cat "$@" | grep - v ^
+#| \
     awk 'NF==3{if ($1 < $2) print $1, $2; else print $2, $1}' | \
     sort -n | \
     uniq | \
     awk '$1 != $2 {nbs[$1] = nbs[$1] " " $2; nbs[$2] = nbs[$2] " " $1; nnbs[$1]++; nnbs[$2]++}
-         END{max = 0; for(i in nbs) if (int(i) > max) max = int(i); print max+1;
-	     for(i in nbs) print i, nnbs[i], nbs[i] | "sort -n"}'
+    END {
+	max = 0;
+	for (i in nbs)
+		if (int (i) > max)
+			max = int (i);
+	print max + 1;
+	for (i in nbs)
+print i, nnbs[i], nbs[i] | "sort -n"}
+'
     
 
 	
+

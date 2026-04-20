@@ -1,57 +1,105 @@
-
-/* eval.c
- * 
- * Copyright (C) 2011  Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <stdarg.h>
+#include <assert.h>
 #include <math.h>
-#include <string.h>
+#include <omp.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
-#include <muParser/muParserDLL.h>
+#if defined(INLA_WITH_MUPARSER)
+#       include <muParserDLL.h>
+#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "interpol.h"
+#include "R-interface.h"
 #include "eval.h"
+
+static const unsigned char debug = 0;
+
+double inla_eval(char *expression, double *x, double *theta, int ntheta)
+{
+	if (debug) {
+		printf("call inla_eval with %s\n", expression);
+	}
+
+	if (strncasecmp(expression, "EXPRESSION:", strlen("EXPRESSION:")) == 0) {
+#if defined(INLA_WITH_MUPARSER)
+		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x, theta, ntheta));
+#else
+		fprintf(stderr, "\n\n *** ERROR *** EXPRESSION-priors are not supported in this build\n\n");
+		abort();
+#endif
+	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
+		return (inla_eval_table(expression + strlen("TABLE:"), x, theta, ntheta));
+	} else if (strncasecmp(expression, "RPRIOR:", strlen("RPRIOR:")) == 0) {
+		int n_out = 0, one = 1;
+		double *x_out = NULL, ret = 0.0;
+
+		inla_R_funcall1(&n_out, &x_out, expression + strlen("RPRIOR:"), &one, x);
+		assert(n_out == 1);
+		ret = *x_out;
+		Free(x_out);
+
+		return (ret);
+	}
+
+	assert(0 == 1);
+	return 0.0;
+}
+double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), int UNUSED(ntheta))
+{
+	double value;
+	GMRFLib_spline_tp *s = NULL;
+	GMRFLib_matrix_tp *M = NULL;
+
+	while (*expression == ' ' || *expression == '\t') {
+		expression++;
+	}
+	if (debug) {
+		fprintf(stderr, "OPEN FILE[%s]\n", expression);
+	}
+	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
+	assert(M->nrow >= 4);
+	assert(M->ncol == 2);
+
+	s = GMRFLib_spline_create(M->A, M->A + M->nrow, M->nrow);
+	value = GMRFLib_spline_eval(*xval, s);
+
+	if (0) {
+		// a check of the interpolation
+#pragma omp critical (Name_e578aec88a26ae580f841592d1651b595dac46e4)
+		{
+			double xx;
+			for (xx = -20; xx < 20; xx += .1)
+				printf("TABLE %g %g\n", xx, GMRFLib_spline_eval(xx, s));
+			exit(1);
+		}
+	}
+
+	if (ISNAN(value)) {
+		char *msg = NULL;
+		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
+		inla_error_general(msg);
+		exit(1);
+	}
+
+	GMRFLib_matrix_free(M);
+	GMRFLib_spline_free(s);
+
+	return value;
+}
+
+
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+#if defined(INLA_WITH_MUPARSER)
 
 /* 
    This is the interface to the muparser-library (http://muparser.sourceforge.net).  This code is buildt upon example2.c in the muparser/samples directory.
  */
-
 typedef struct {
 	muFloat_t **value;
 	char **name;
@@ -60,11 +108,6 @@ typedef struct {
 	double default_value;
 } eval_keep_vars_tp;
 
-static unsigned char debug = 0;
-
-/* 
-   local functions...
- */
 double inla_eval_Gamma(double arg);
 double inla_eval_LogGamma(double arg);
 double inla_eval_Return(double v);
@@ -116,7 +159,7 @@ void inla_eval_OnError(muParserHandle_t hParser)
 	exit(1);
 }
 
-muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
+muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
 	if (*aa == NULL) {
@@ -135,7 +178,7 @@ muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 	}
 	a->value[a->n] = Calloc(1, muFloat_t);
 	a->value[a->n][0] = a->default_value;
-	a->name[a->n] = GMRFLib_strdup(a_szName);
+	a->name[a->n] = Strdup(a_szName);
 
 	if (debug) {
 		printf("Eval: Add variable [%s] = %g\n", a->name[a->n], a->value[a->n][0]);
@@ -145,20 +188,6 @@ muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 	return &(a->value[a->n - 1][0]);
 }
 
-double inla_eval(char *expression, double *x, double *theta, int ntheta)
-{
-	if (debug) {
-		printf("call inla_eval with %s\n", expression);
-	}
-
-	if (strncasecmp(expression, "EXPRESSION:", strlen("EXPRESSION:")) == 0) {
-		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x, theta, ntheta));
-	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
-		return (inla_eval_table(expression + strlen("TABLE:"), x, theta, ntheta));
-	} else {
-		assert(0 == 1);
-	}
-}
 double inla_eval_expression(char *expression, double *x, double *theta, int ntheta)
 {
 	double value;
@@ -166,7 +195,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
-#pragma omp critical
+#       pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
 	{
 		int i;
 		muParserHandle_t hParser;
@@ -183,7 +212,10 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 		mupSetDecSep(hParser, '.');
 		mupSetThousandsSep(hParser, 0);
 		mupDefineConst(hParser, "pi", M_PI);
-		mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0);
+
+		// do not need this one
+		// mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0, 0);
+
 		mupDefineFun1(hParser, "return", inla_eval_Return, 1);
 		mupDefineFun1(hParser, "gamma", inla_eval_Gamma, 1);
 		mupDefineFun1(hParser, "lgamma", inla_eval_LogGamma, 1);
@@ -224,7 +256,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	}
 
 	if (ISINF(value) || ISNAN(value)) {
-		char *msg;
+		char *msg = NULL;
 
 		GMRFLib_sprintf(&msg, "Expression[%s] evaluate to INF or NAN [%g] for x=%g\n", expression, value, *x);
 		inla_error_general(msg);
@@ -232,45 +264,5 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 
 	return value;
 }
-double inla_eval_table(char *expression, double *xval, double *theta, int ntheta)
-{
-	double value;
-	GMRFLib_spline_tp *s;
-	GMRFLib_matrix_tp *M = NULL;
 
-	while (*expression == ' ' || *expression == '\t') {
-		expression++;
-	}
-	if (debug) {
-		fprintf(stderr, "OPEN FILE[%s]\n", expression);
-	}
-	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
-	assert(M->nrow >= 4);
-	assert(M->ncol == 2);
-
-	s = inla_spline_create(M->A, M->A + M->nrow, M->nrow);
-	value = inla_spline_eval(*xval, s);
-
-	if (0) {
-		// a check of the interpolation
-#pragma omp critical
-		{
-			double xx;
-			for (xx = -20; xx < 20; xx += .1)
-				printf("TABLE %g %g\n", xx, inla_spline_eval(xx, s));
-			exit(1);
-		}
-	}
-
-	if (ISNAN(value)) {
-		char *msg;
-		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
-		inla_error_general(msg);
-		exit(1);
-	}
-
-	GMRFLib_matrix_free(M);
-	inla_spline_free(s);
-
-	return value;
-}
+#endif							       // define(INLA_WITH_MUPARSER)

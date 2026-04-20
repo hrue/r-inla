@@ -1,0 +1,59 @@
+#ifndef __GMRFLib_GDENS_H__
+#define __GMRFLib_GDENS_H__
+
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
+
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#ifdef __cplusplus
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
+#else
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
+#endif
+
+__BEGIN_DECLS typedef struct {
+	double x, xl, xm, xr, dx, b, c, lp, lfl, lfr, lfm, lfmax, lnormc;
+} GMRFLib_gdens_Elm;
+
+typedef struct {
+	int n;
+	int order;
+	double xmin, xmax;
+	GMRFLib_gdens_Elm *elm;
+} GMRFLib_gdens_tp;
+
+typedef double GMRFLib_gdens_Func_tp(double, void *);
+
+double GMRFLib_erfi(double x);
+double GMRFLib_lerf_diff(double x1, double x0);
+double GMRFLib_lerfi_diff(double x1, double x0);
+double *GMRFLib_cut_points(double fac, int n);
+int GMRFLib_gdens_1LDens(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_1Sample(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_1Eval(GMRFLib_gdens_tp * ptr, double *x, double *ldens, int flag);
+GMRFLib_gdens_tp *GMRFLib_gdens_1Init(double xmin, double xmax, int n, int n_min, GMRFLib_gdens_Func_tp * lfunc, void *lfunc_arg);
+int GMRFLib_gdens_1Update(GMRFLib_gdens_tp * ptr);
+
+int GMRFLib_gdens_2LDens(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_2Sample(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_2Eval(GMRFLib_gdens_tp * ptr, double *x, double *ldens, int flag);
+GMRFLib_gdens_tp *GMRFLib_gdens_2Init(double xmin, double xmax, int n, int n_min, GMRFLib_gdens_Func_tp * lfunc, void *lfunc_arg);
+GMRFLib_gdens_tp *GMRFLib_gdens_2InitNew(double fac, double mean, double stdev, int n, GMRFLib_gdens_Func_tp * lfunc, void *lfunc_arg);
+int GMRFLib_gdens_2Update(GMRFLib_gdens_tp * ptr);
+
+int GMRFLib_gdens_LDens(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_Sample(GMRFLib_gdens_tp * ptr, double *x, double *ldens);
+int GMRFLib_gdens_Eval(GMRFLib_gdens_tp * ptr, double *x, double *ldens, int flag);
+GMRFLib_gdens_tp *GMRFLib_gdens_Init(double xmin, double xmax, int n, int n_min, int order, GMRFLib_gdens_Func_tp * lfunc, void *lfunc_arg);
+GMRFLib_gdens_tp *GMRFLib_gdens_InitNew(double fac, double mean, double stdev, int n, GMRFLib_gdens_Func_tp * lfunc, void *lfunc_arg);
+
+int GMRFLib_gdens_Free(GMRFLib_gdens_tp * ptr);
+int GMRFLib_gdens_ElmCompare(const void *e, const void *ee);
+
+__END_DECLS
+#endif

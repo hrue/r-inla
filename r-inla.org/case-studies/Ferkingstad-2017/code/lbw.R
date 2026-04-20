@@ -1,27 +1,27 @@
 ########################################################################################
 ## Code for "low birth weight" example, illustrating the use of the inla.cut()        ##
-## function for group-wise model criticism; see ?inla.cut for documentation.          ## 
+## function for group-wise model criticism; see ?inla.cut for documentation.          ##
 ##                                                                                    ##
 ## For details see Section 4.2 of the following paper:                                ##
 ## Egil Ferkingstad, Leonhard Held and Havard Rue.                                    ##
 ## Fast and accurate Bayesian model criticism and conflict diagnostics using R-INLA.  ##
-## Published in Stat, 6:331-344, 2017, doi: 10.1002/sta4.163.                         ##     
+## Published in Stat, 6:331-344, 2017, doi: 10.1002/sta4.163.                         ##
 ## Available as arXiv preprint arXiv:1708.03272: http://arxiv.org/abs/1708.03272      ##
+########################################################################################
+## Code updated 2023-09-14 to remove dependence on obsolete 'maptools' package        ##
 ########################################################################################
 
 library(INLA)
 data <- read.csv("data.final.csv")
 
 #-- Prepare the map --#
-library(maptools)
 library(sp)
 library(spdep)
-georgia <- readShapePoly("co13_d00.shp")
+georgia <- sf::st_read("co13_d00.shp")
 ## Need to drop extra polygons 98 (Macon county polygon), 100, 105 (Taylor county polygons) + 137 (Lee county polygon)
 ## These are very small and always adjacent to "main" polygon, so we can base neighborhood structure on "main" polygon:
 rmIdx <- c(98, 100, 105, 137)
 georgia <- georgia[-rmIdx,]
-data.georgia = attr(georgia, "data")
 #################################################
 #Create the graph for adjacencies in INLA
 #Need the non thinned sph file to do the adjacency matrix!!!
@@ -31,14 +31,14 @@ nb2INLA("Georgia.graph", zzz)
 Georgia.adj <<- paste(getwd(),"/Georgia.graph",sep="")
 
 #Order based on the map
-order <- match(data.georgia$NAME,data[,1])
+order <- match(georgia$NAME,data[,1])
 data<- data[order,]
 
 #--Transform the data to be in the right format for INLA--#
 low.vector <- as.vector(as.matrix(data[,2:12]))#by column
 E.vector <- as.vector(as.matrix(data[,13:23]))#by column
 year <- numeric(0)
-for(i in 1:11){ 
+for(i in 1:11){
   year<- append(year,rep(i,dim(data)[1]))
 }
 county<- as.factor(rep(data[,1],11))
@@ -76,7 +76,7 @@ y <- 0+0.1*grid
 sel <- (sort(p) < y[-1])
 par(pty="s")
 plot(c(1:length(p))/n.p, sort(p), xlim=c(0,1), ylim=c(0,1), pch=19, cex=0.75,
-     xlab="Rank of P-values divided by total number (30) of P-values", 
+     xlab="Rank of P-values divided by total number (30) of P-values",
      ylab="Conflict P-values (ordered)", col=c(rep(2, sum(sel)), rep(1, n.p-sum(sel))))
 abline(0,1, lty=2)
 lines(grid, y, lty=2, col=2, type="l")
@@ -96,7 +96,7 @@ y <- 0+0.1*grid
 sel <- (sort(p) < y[-1])
 par(pty="s")
 plot(c(1:length(p))/n.p, sort(p), xlim=c(0,1), ylim=c(0,1), pch=19, cex=0.75,
-     xlab="Rank of P-values divided by total number (159) of P-values", 
+     xlab="Rank of P-values divided by total number (159) of P-values",
      ylab="Conflict P-values (ordered)", col=c(rep(2, sum(sel)), rep(1, n.p-sum(sel))))
 abline(0,1, lty=2)
 lines(grid, y, lty=2, col=2, type="l")
@@ -114,4 +114,4 @@ spplot(g)
 
 ## P-values for the two divergent counties:
 print(sort(p)[1:2])
-
+

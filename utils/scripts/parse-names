@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+awk '/^[ \t]+case .*_.*:/ {print $2; next}
+/->theta_tag\[.*inla_make_tag/ {print; next}
+/->theta_tag_userscale.*inla_make_tag/ {print; next}' inla-parse.c | grep -v Realloc
+

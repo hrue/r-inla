@@ -1,0 +1,82 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\begin{document}
+
+\section*{Proper random walk model of order $2$ (PRW2)}
+
+\subsection*{Parametrization}
+
+This is the proper version of the RW2 prior, defined for regular
+locations $1, 2, \ldots$,
+\begin{displaymath}
+    x_t = 2\gamma x_{t-1} - \gamma^{2} x_{t-2} + \epsilon_t, \qquad
+    |\gamma| < 1
+\end{displaymath}
+where $\epsilon_t$ is iid zero mean Gaussian noise. This process is
+made stationary with marginal precision $\kappa$, and range $r$, which is the
+'distance' or 'time' to small correlation, is defined 
+(implicitely) as
+\begin{displaymath}
+    \rho = \exp\left( - \frac{\sqrt{12} h}{r} \right)
+\end{displaymath}
+where $h$ is (typical) distance or time, `step-size', between the
+locations where the process is defined (here $h=1$). The correlation
+function of the process is found to be
+\begin{displaymath}
+    \rho(h) = \left(1  + h \frac{1-\gamma^{2}}{1+\gamma^{2}}\right)\gamma^{h},
+    \qquad h=0, 1, 2, \ldots
+\end{displaymath}
+
+Similar to RW1 and RW2, this model allows for irregular locations
+(\texttt{loc}) and the process is then derived from the corresponding
+limiting process in continous time.
+
+Note that $r$ and $h$ is in real scale, ie the scale of \texttt{loc}.
+
+\subsection*{Hyperparameters}
+
+This model has two hyperparameters, the marginal precision $\kappa$
+and the range $r$. These are defined as
+\begin{displaymath}
+    \theta_1 = \log(\kappa)
+\end{displaymath}
+\begin{displaymath}
+    \theta_2 = \log(r)
+\end{displaymath}
+and the priors are given for $(\theta_1, \theta_2)$.
+
+\subsection*{Specification}
+This model is given as \texttt{f(loc, model="prw2", ...)}.
+
+Note that \texttt{constr=FALSE} by default for this model, unlike the
+similar but intrinsic, RW2 model.
+
+The default is use PC-priors for both parameters, see
+\texttt{inla.doc("pc.prec")} and \texttt{inla.doc("pc.prw2.range")}.
+The prior \texttt{pc.prw2.range} is currently fixed and not possible
+to replace, as this prior is viral for the PRW2 model construction and
+motivation itself.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/prw2.tex}
+
+\subsection*{Example}
+%%
+{\small\verbatiminput{example-prw2.R}}
+
+\subsection*{Notes}
+
+The details for this model is available in the PhD thesis with link
+\url{http://hdl.handle.net/10754/707346}
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

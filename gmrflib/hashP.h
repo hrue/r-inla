@@ -1,46 +1,4 @@
 
-/* hashP.h
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
-
-/*!
-  \file hashP.h
-  \brief Include this file if you want to use the hash-functions.
-
-  If you want to use the hash-functions which is used in the GMRFLib-library include \ref hashP.h. The documentation of the
-  hash-function are as follows.
-
-  \verbinclude hash_doc.txt
-
-  The copyright information is available in the file \ref hashP.h
-*/
-
 /*
 
 Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
@@ -215,12 +173,163 @@ Simple example:
 
 */
 
-/*
-  THIS FILE CONTAINS the source mapkit.h and mapkit_generic.h
 
+/*
+Important defines for MapKit:
+  MAPKIT_EXITONERROR : if defined, will exit upon failure.
+    The return code is the MAPKIT error number.
+  MAPKIT_DEBUG : if defined, will print information about errors
+    and various events. Messages get printed on stderr.
+  MAPKIT_COLLISIONS : if defined, statistics about hash collisions will be
+    gathered.
 */
 
-/* MapKit, Generic functions */
+#ifndef _MAPKIT_GENERIC_
+#       define _MAPKIT_GENERIC_
+
+#       include <time.h>
+#       include <strings.h>
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <stdio.h>
+#       include <limits.h>
+#       include <string.h>
+
+#       include <stdint.h>
+#       include <inttypes.h>
+
+#       define MAPKIT_VERSION "1.4"
+
+/* MS Visual C does not recognize 'inline' */
+#       if defined(_MSC_VER) && !defined(__cplusplus) && !defined(inline)
+#              define inline __inline
+#       endif
+
+/*
+  added from: see http://www.greenend.org.uk/rjk/2003/03/inline.html
+
+  hrue added __STRICT_ANSI__ test
+*/
+#       ifdef __STRICT_ANSI__
+#              define INLINE static
+#       else
+#              ifndef INLINE
+#                     if __GNUC__
+#                            define INLINE static inline
+#                     else
+#                            define INLINE inline
+#                     endif
+#              endif
+#       endif
+
+#       if defined(__cplusplus)
+extern "C" {
+#       endif
+
+	typedef enum {
+		MAPKIT_OK = 0,
+		MAPKIT_ETOOBIG = 1,
+		MAPKIT_ENOMEM = 2,
+		MAPKIT_EBADKEY = 3,
+		MAPKIT_EKEYNOTFOUND = 4
+	} mapkit_error;
+
+/* Constants */
+	extern const char *mapkit_error_msg[5];
+
+/* Macros */
+
+/* print an appropriate error message if _err != MAPKIT_OK */
+#       define CHKMAPKIT(_err) { mapkit_error __err = (_err); if (__err) fprintf(stderr, "MAPKIT: ERROR: %s (%s, line %d)\n", mapkit_error_msg[__err], __FILE__, __LINE__); }
+
+/* if MAPKIT_DEBUG is set, most mapkit functions will output various
+   informational & error messages */
+//#ifdef MAPKIT_DEBUG
+#       if 1
+#              define MAPKIT_MSG(_err) fprintf(stderr, "MAPKIT: ERROR: %s (%s, line %d)\n", mapkit_error_msg[_err], __FILE__, __LINE__)
+#       else
+#              define MAPKIT_MSG(_err)
+#       endif
+
+#       define MAPKIT_FATAL_ERROR(_err) { MAPKIT_MSG(_err); exit(_err); }
+
+/* if MAPKIT_EXITONERROR is set, the program will quit instead of returning
+   an error message */
+//#ifdef MAPKIT_EXITONERROR
+#       if 1
+#              define MAPKIT_ERROR(_err) MAPKIT_FATAL_ERROR(_err)
+#              define MAPKIT_ERROR_NORET(_err) MAPKIT_FATAL_ERROR(_err)
+#       else
+#              define MAPKIT_ERROR(_err) { MAPKIT_MSG(_err); return (_err); }
+#              define MAPKIT_ERROR_NORET(_err) MAPKIT_MSG(_err)
+#       endif
+
+/* return index value if key not found */
+#       define MAPKIT_KEYNOTFOUND (-1)
+
+/* special key values */
+#       define MAPKIT_FULLSLOT (0)
+#       define MAPKIT_FREESLOT (-1)
+#       define MAPKIT_DELETEDSLOT (-2)
+
+/* default initial size */
+#       define MAPKIT_DEFAULT_EXPECTEDUSED (100)
+
+/* 
+   hrue: need to make sure that the SIZE_T is the same size as a pointer!
+   
+   MAPKIT defines this default as 'long' but long is 4 bit for Windows 64... so we use the new c99 invention instead.
+*/
+
+#       define mapkit_size_t intptr_t			       /* sizes, signed to accomodate MAPKIT_KEYNOTFOUND */
+#       define mapkit_hash_t uintptr_t			       /* hash values, must be unsigned (for index, decrement) */
+
+#       define MAPKIT_SIZE_T_MAX __INTPTR_MAX__
+
+/* find the lowest number in mapkit_primes greater than n */
+	extern mapkit_size_t mapkit_nextprime(const mapkit_size_t n);
+
+/* string hash function */
+	extern mapkit_hash_t mapkit_strhash(const char *string);
+
+/* memory hash function */
+	extern mapkit_hash_t mapkit_memhash(const void *data, const size_t len);
+
+/* integer hash function */
+	INLINE mapkit_hash_t mapkit_hash(mapkit_hash_t key);
+
+/* Thomas Wang's integer hash function */
+#       if MAPKIT_SIZE_T_MAX <= 0x7fffffff
+
+/* 32 bits version */
+	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
+		key += ~(key << 15);
+		key ^= (key >> 10);
+		key += (key << 3);
+		key ^= (key >> 6);
+		key += ~(key << 11);
+		key ^= (key >> 16);
+		return key;
+	}
+#       else
+
+/* 64 bits version */
+	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
+		key += ~(key << 32);
+		key ^= (key >> 22);
+		key += ~(key << 13);
+		key ^= (key >> 8);
+		key += (key << 3);
+		key ^= (key >> 15);
+		key += ~(key << 27);
+		key ^= (key >> 31);
+		return key;
+	}
+#       endif
+#       if defined(__cplusplus)
+}
+#       endif
+#endif							       /* _MAPKIT_GENERIC_ */
 
 /*
  * Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
@@ -243,215 +352,22 @@ Simple example:
  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @(#) $Jeannot: mapkit.m4h,v 1.30 2004/04/05 18:43:41 js Exp $ 
+ * MapKit Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
+ * 
+ * @(#) $Jeannot: mapkit.m4,v 1.83 2004/04/10 14:17:03 js Exp $ 
+ * @(#) $Jeannot: mapkit_defs.m4,v 1.20 2004/03/31 19:12:55 js Exp $ 
  */
-
-/* @(#) $Jeannot: mapkit_generic.h,v 1.31 2004/04/10 14:17:03 js Exp $ */
-
-/*
-Important defines for MapKit:
-  MAPKIT_EXITONERROR : if defined, will exit upon failure.
-    The return code is the MAPKIT error number.
-  MAPKIT_DEBUG : if defined, will print information about errors
-    and various events. Messages get printed on stderr.
-  MAPKIT_COLLISIONS : if defined, statistics about hash collisions will be
-    gathered.
-*/
-
-#ifndef _MAPKIT_GENERIC_
-#define _MAPKIT_GENERIC_
-
-#include <time.h>
-#include <strings.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <limits.h>
-#include <string.h>
-
-#include <stdint.h>
-#include <inttypes.h>
-
-#define MAPKIT_VERSION "1.4"
-
-/* MS Visual C does not recognize 'inline' */
-#if defined(_MSC_VER) && !defined(__cplusplus) && !defined(inline)
-#define inline __inline
-#endif
-
-/*
-  added from: see http://www.greenend.org.uk/rjk/2003/03/inline.html
-
-  hrue added __STRICT_ANSI__ test
-*/
-#ifdef __STRICT_ANSI__
-#define INLINE static
-#else
-#ifndef INLINE
-#if __GNUC__
-#define INLINE static inline
-#else
-#define INLINE inline
-#endif
-#endif
-#endif
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-	typedef enum {
-		MAPKIT_OK = 0,
-		MAPKIT_ETOOBIG = 1,
-		MAPKIT_ENOMEM = 2,
-		MAPKIT_EBADKEY = 3,
-		MAPKIT_EKEYNOTFOUND = 4
-	} mapkit_error;
-
-/* Constants */
-	extern const char *mapkit_error_msg[5];
-
-/* Macros */
-
-/* print an appropriate error message if _err != MAPKIT_OK */
-#define CHKMAPKIT(_err) { mapkit_error __err = (_err); if (__err) fprintf(stderr, "MAPKIT: ERROR: %s (%s, line %d)\n", mapkit_error_msg[__err], __FILE__, __LINE__); }
-
-/* if MAPKIT_DEBUG is set, most mapkit functions will output various
-   informational & error messages */
-//#ifdef MAPKIT_DEBUG
-#if 1
-#define MAPKIT_MSG(_err) fprintf(stderr, "MAPKIT: ERROR: %s (%s, line %d)\n", mapkit_error_msg[_err], __FILE__, __LINE__)
-#else
-#define MAPKIT_MSG(_err)
-#endif
-
-#define MAPKIT_FATAL_ERROR(_err) { MAPKIT_MSG(_err); exit(_err); }
-
-/* if MAPKIT_EXITONERROR is set, the program will quit instead of returning
-   an error message */
-//#ifdef MAPKIT_EXITONERROR
-#if 1
-#define MAPKIT_ERROR(_err) MAPKIT_FATAL_ERROR(_err)
-#define MAPKIT_ERROR_NORET(_err) MAPKIT_FATAL_ERROR(_err)
-#else
-#define MAPKIT_ERROR(_err) { MAPKIT_MSG(_err); return (_err); }
-#define MAPKIT_ERROR_NORET(_err) MAPKIT_MSG(_err)
-#endif
-
-/* return index value if key not found */
-#define MAPKIT_KEYNOTFOUND (-1)
-
-/* special key values */
-#define MAPKIT_FULLSLOT (0)
-#define MAPKIT_FREESLOT (-1)
-#define MAPKIT_DELETEDSLOT (-2)
-
-/* default initial size */
-#define MAPKIT_DEFAULT_EXPECTEDUSED (100)
-
-
-/* 
-   hrue: need to make sure that the SIZE_T is the same size as a pointer!
-   
-   MAPKIT defines this default as 'long' but long is 4 bit for Windows 64... so we use the new c99 invention instead.
-*/
-	
-#define mapkit_size_t intptr_t /* sizes, signed to accomodate MAPKIT_KEYNOTFOUND */
-#define mapkit_hash_t uintptr_t /* hash values, must be unsigned (for index, decrement) */
-
-#define MAPKIT_SIZE_T_MAX __INTPTR_MAX__
-	
-/* find the lowest number in mapkit_primes greater than n */
-	extern mapkit_size_t mapkit_nextprime(const mapkit_size_t n);
-
-/* string hash function */
-	extern mapkit_hash_t mapkit_strhash(const char *string);
-
-/* memory hash function */
-	extern mapkit_hash_t mapkit_memhash(const void *data, const size_t len);
-
-/* integer hash function */
-	INLINE mapkit_hash_t mapkit_hash(mapkit_hash_t key);
-
-/* Thomas Wang's integer hash function */
-#if MAPKIT_SIZE_T_MAX <= 0x7fffffff
-
-/* 32 bits version */
-	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
-		key += ~(key << 15);
-		key ^= (key >> 10);
-		key += (key << 3);
-		key ^= (key >> 6);
-		key += ~(key << 11);
-		key ^= (key >> 16);
-		return key;
-	}
-#else
-
-/* 64 bits version */
-	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
-		key += ~(key << 32);
-		key ^= (key >> 22);
-		key += ~(key << 13);
-		key ^= (key >> 8);
-		key += (key << 3);
-		key ^= (key >> 15);
-		key += ~(key << 27);
-		key ^= (key >> 31);
-		return key;
-	}
-#endif
-#if defined(__cplusplus)
-}
-#endif
-#endif							       /* _MAPKIT_GENERIC_ */
-   /*
-    *  
-       *//*
-       * MapKit 
-		      *//*
-		      * Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
-		      * 
-		      * Permission is hereby granted, free of charge, to any person obtaining a
-		      * copy of this software and associated documentation files (the
-		      * "Software"), to deal in the Software without restriction, including
-		      * without limitation the rights to use, copy, modify, merge, publish,
-		      * distribute, sublicense, and/or sell copies of the Software, and to
-		      * permit persons to whom the Software is furnished to do so, subject to
-		      * the following conditions:
-		      * 
-		      * The above copyright notice and this permission notice shall be included
-		      * in all copies or substantial portions of the Software.
-		      * 
-		      * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		      * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		      * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-		      * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-		      * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-		      * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-		      * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-		      
-	  *//*
-	  * @(#) $Jeannot: mapkit.m4h,v 1.30 2004/04/05 18:43:41 js Exp $ 
-									     *//*
-									     * MapKit Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
-									     * 
-									     * @(#) $Jeannot: mapkit.m4,v 1.83 2004/04/10 14:17:03 js Exp $ 
-	 *//*
-	 * @(#) $Jeannot: mapkit_defs.m4,v 1.20 2004/03/31 19:12:55 js Exp $ 
-	 */
 #ifndef _MAPKIT_
-#define _MAPKIT_
+#       define _MAPKIT_
 
 /* MS Visual C does not recognize 'inline' */
-#if defined(_MSC_VER) && !defined(__cplusplus) && !defined(inline)
-#define inline __inline
-#endif
-#if defined(__cplusplus)
+#       if defined(_MSC_VER) && !defined(__cplusplus) && !defined(inline)
+#              define inline __inline
+#       endif
+#       if defined(__cplusplus)
 extern "C" {
-#endif
+#       endif
 
 /* Map structures */
 
@@ -482,10 +398,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		int defaultvalue;
 
@@ -497,13 +413,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_ii
+#       define MAPKIT_map_ii
 
 /* read/write access to the value at key (insert as needed) */
-#define map_ii_(spm, key) (*(map_ii_insertptr(spm, key)))
+#       define map_ii_(spm, key) (*(map_ii_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_ii_haskey(spm, key) ((map_ii_ptr(spm, key)) != NULL)
+#       define map_ii_haskey(spm, key) ((map_ii_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -615,14 +531,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_ii_reallocate(spm, map_ii_shrinksize(spm, spm->used));
 			}
 		} else
@@ -636,9 +552,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_ii_reallocate(spm, map_ii_shrinksize(spm, spm->used));
 		}
 
@@ -657,24 +573,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_ii_reallocate(spm, map_ii_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_ii_set_s(spm, key, value);
@@ -687,14 +603,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_ii_value_s(spm, key);
@@ -707,14 +623,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_ii_get_s(spm, key, value);
@@ -734,17 +650,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_ii_insertptr_s(spm, key);
@@ -757,17 +673,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_ii_ptr_s(spm, key);
@@ -800,10 +716,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -815,13 +731,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_id
+#       define MAPKIT_map_id
 
 /* read/write access to the value at key (insert as needed) */
-#define map_id_(spm, key) (*(map_id_insertptr(spm, key)))
+#       define map_id_(spm, key) (*(map_id_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_id_haskey(spm, key) ((map_id_ptr(spm, key)) != NULL)
+#       define map_id_haskey(spm, key) ((map_id_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -933,14 +849,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_id_reallocate(spm, map_id_shrinksize(spm, spm->used));
 			}
 		} else
@@ -954,9 +870,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_id_reallocate(spm, map_id_shrinksize(spm, spm->used));
 		}
 
@@ -975,24 +891,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_id_reallocate(spm, map_id_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_id_set_s(spm, key, value);
@@ -1005,14 +921,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_id_value_s(spm, key);
@@ -1025,14 +941,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_id_get_s(spm, key, value);
@@ -1052,17 +968,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_id_insertptr_s(spm, key);
@@ -1075,17 +991,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_id_ptr_s(spm, key);
@@ -1118,10 +1034,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		void *defaultvalue;
 
@@ -1133,13 +1049,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_ivp
+#       define MAPKIT_map_ivp
 
 /* read/write access to the value at key (insert as needed) */
-#define map_ivp_(spm, key) (*(map_ivp_insertptr(spm, key)))
+#       define map_ivp_(spm, key) (*(map_ivp_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_ivp_haskey(spm, key) ((map_ivp_ptr(spm, key)) != NULL)
+#       define map_ivp_haskey(spm, key) ((map_ivp_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -1251,14 +1167,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_ivp_reallocate(spm, map_ivp_shrinksize(spm, spm->used));
 			}
 		} else
@@ -1272,9 +1188,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_ivp_reallocate(spm, map_ivp_shrinksize(spm, spm->used));
 		}
 
@@ -1293,24 +1209,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_ivp_reallocate(spm, map_ivp_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_ivp_set_s(spm, key, value);
@@ -1323,14 +1239,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_ivp_value_s(spm, key);
@@ -1343,14 +1259,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_ivp_get_s(spm, key, value);
@@ -1370,17 +1286,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_ivp_insertptr_s(spm, key);
@@ -1393,17 +1309,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_ivp_ptr_s(spm, key);
@@ -1436,10 +1352,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		int defaultvalue;
 
@@ -1451,13 +1367,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_ii
+#       define MAPKIT_map_h_ii
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_ii_(spm, key) (*(map_h_ii_insertptr(spm, key)))
+#       define map_h_ii_(spm, key) (*(map_h_ii_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_ii_haskey(spm, key) ((map_h_ii_ptr(spm, key)) != NULL)
+#       define map_h_ii_haskey(spm, key) ((map_h_ii_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -1570,14 +1486,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_ii_reallocate(spm, map_h_ii_shrinksize(spm, spm->used));
 			}
 		} else
@@ -1591,9 +1507,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_ii_reallocate(spm, map_h_ii_shrinksize(spm, spm->used));
 		}
 
@@ -1613,24 +1529,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_ii_reallocate(spm, map_h_ii_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_ii_set_s(spm, key, value, hash);
@@ -1644,14 +1560,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_ii_value_s(spm, key, hash);
@@ -1665,14 +1581,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_ii_get_s(spm, key, value, hash);
@@ -1693,17 +1609,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_ii_insertptr_s(spm, key, hash);
@@ -1717,17 +1633,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_ii_ptr_s(spm, key, hash);
@@ -1760,10 +1676,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -1775,13 +1691,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_id
+#       define MAPKIT_map_h_id
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_id_(spm, key) (*(map_h_id_insertptr(spm, key)))
+#       define map_h_id_(spm, key) (*(map_h_id_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_id_haskey(spm, key) ((map_h_id_ptr(spm, key)) != NULL)
+#       define map_h_id_haskey(spm, key) ((map_h_id_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -1894,14 +1810,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_id_reallocate(spm, map_h_id_shrinksize(spm, spm->used));
 			}
 		} else
@@ -1915,9 +1831,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_id_reallocate(spm, map_h_id_shrinksize(spm, spm->used));
 		}
 
@@ -1937,24 +1853,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_id_reallocate(spm, map_h_id_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_id_set_s(spm, key, value, hash);
@@ -1968,14 +1884,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_id_value_s(spm, key, hash);
@@ -1989,14 +1905,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_id_get_s(spm, key, value, hash);
@@ -2017,17 +1933,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_id_insertptr_s(spm, key, hash);
@@ -2041,17 +1957,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_id_ptr_s(spm, key, hash);
@@ -2084,10 +2000,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		void *defaultvalue;
 
@@ -2099,13 +2015,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_ivp
+#       define MAPKIT_map_h_ivp
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_ivp_(spm, key) (*(map_h_ivp_insertptr(spm, key)))
+#       define map_h_ivp_(spm, key) (*(map_h_ivp_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_ivp_haskey(spm, key) ((map_h_ivp_ptr(spm, key)) != NULL)
+#       define map_h_ivp_haskey(spm, key) ((map_h_ivp_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -2218,14 +2134,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_ivp_reallocate(spm, map_h_ivp_shrinksize(spm, spm->used));
 			}
 		} else
@@ -2239,9 +2155,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_ivp_reallocate(spm, map_h_ivp_shrinksize(spm, spm->used));
 		}
 
@@ -2261,24 +2177,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_ivp_reallocate(spm, map_h_ivp_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_ivp_set_s(spm, key, value, hash);
@@ -2292,14 +2208,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_ivp_value_s(spm, key, hash);
@@ -2313,14 +2229,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_ivp_get_s(spm, key, value, hash);
@@ -2341,17 +2257,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_ivp_insertptr_s(spm, key, hash);
@@ -2365,17 +2281,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_ivp_ptr_s(spm, key, hash);
@@ -2408,10 +2324,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		int defaultvalue;
 
@@ -2423,13 +2339,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_vpi
+#       define MAPKIT_map_vpi
 
 /* read/write access to the value at key (insert as needed) */
-#define map_vpi_(spm, key) (*(map_vpi_insertptr(spm, key)))
+#       define map_vpi_(spm, key) (*(map_vpi_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_vpi_haskey(spm, key) ((map_vpi_ptr(spm, key)) != NULL)
+#       define map_vpi_haskey(spm, key) ((map_vpi_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -2541,14 +2457,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_vpi_reallocate(spm, map_vpi_shrinksize(spm, spm->used));
 			}
 		} else
@@ -2562,9 +2478,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_vpi_reallocate(spm, map_vpi_shrinksize(spm, spm->used));
 		}
 
@@ -2583,24 +2499,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_vpi_reallocate(spm, map_vpi_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_vpi_set_s(spm, key, value);
@@ -2613,14 +2529,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_vpi_value_s(spm, key);
@@ -2633,14 +2549,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_vpi_get_s(spm, key, value);
@@ -2660,17 +2576,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_vpi_insertptr_s(spm, key);
@@ -2683,17 +2599,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_vpi_ptr_s(spm, key);
@@ -2726,10 +2642,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -2741,13 +2657,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_vpd
+#       define MAPKIT_map_vpd
 
 /* read/write access to the value at key (insert as needed) */
-#define map_vpd_(spm, key) (*(map_vpd_insertptr(spm, key)))
+#       define map_vpd_(spm, key) (*(map_vpd_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_vpd_haskey(spm, key) ((map_vpd_ptr(spm, key)) != NULL)
+#       define map_vpd_haskey(spm, key) ((map_vpd_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -2859,14 +2775,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_vpd_reallocate(spm, map_vpd_shrinksize(spm, spm->used));
 			}
 		} else
@@ -2880,9 +2796,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_vpd_reallocate(spm, map_vpd_shrinksize(spm, spm->used));
 		}
 
@@ -2901,24 +2817,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_vpd_reallocate(spm, map_vpd_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_vpd_set_s(spm, key, value);
@@ -2931,14 +2847,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_vpd_value_s(spm, key);
@@ -2951,14 +2867,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_vpd_get_s(spm, key, value);
@@ -2978,17 +2894,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_vpd_insertptr_s(spm, key);
@@ -3001,17 +2917,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_vpd_ptr_s(spm, key);
@@ -3044,10 +2960,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		void *defaultvalue;
 
@@ -3059,13 +2975,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_vpvp
+#       define MAPKIT_map_vpvp
 
 /* read/write access to the value at key (insert as needed) */
-#define map_vpvp_(spm, key) (*(map_vpvp_insertptr(spm, key)))
+#       define map_vpvp_(spm, key) (*(map_vpvp_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_vpvp_haskey(spm, key) ((map_vpvp_ptr(spm, key)) != NULL)
+#       define map_vpvp_haskey(spm, key) ((map_vpvp_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -3177,14 +3093,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_vpvp_reallocate(spm, map_vpvp_shrinksize(spm, spm->used));
 			}
 		} else
@@ -3198,9 +3114,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_vpvp_reallocate(spm, map_vpvp_shrinksize(spm, spm->used));
 		}
 
@@ -3219,24 +3135,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_vpvp_reallocate(spm, map_vpvp_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_vpvp_set_s(spm, key, value);
@@ -3249,14 +3165,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_vpvp_value_s(spm, key);
@@ -3269,14 +3185,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_vpvp_get_s(spm, key, value);
@@ -3296,17 +3212,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_vpvp_insertptr_s(spm, key);
@@ -3319,17 +3235,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_vpvp_ptr_s(spm, key);
@@ -3362,10 +3278,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		int defaultvalue;
 
@@ -3377,13 +3293,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_vpi
+#       define MAPKIT_map_h_vpi
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_vpi_(spm, key) (*(map_h_vpi_insertptr(spm, key)))
+#       define map_h_vpi_(spm, key) (*(map_h_vpi_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_vpi_haskey(spm, key) ((map_h_vpi_ptr(spm, key)) != NULL)
+#       define map_h_vpi_haskey(spm, key) ((map_h_vpi_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -3496,14 +3412,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_vpi_reallocate(spm, map_h_vpi_shrinksize(spm, spm->used));
 			}
 		} else
@@ -3517,9 +3433,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_vpi_reallocate(spm, map_h_vpi_shrinksize(spm, spm->used));
 		}
 
@@ -3539,24 +3455,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_vpi_reallocate(spm, map_h_vpi_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_vpi_set_s(spm, key, value, hash);
@@ -3570,14 +3486,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_vpi_value_s(spm, key, hash);
@@ -3591,14 +3507,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_vpi_get_s(spm, key, value, hash);
@@ -3619,17 +3535,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_vpi_insertptr_s(spm, key, hash);
@@ -3643,17 +3559,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_vpi_ptr_s(spm, key, hash);
@@ -3686,10 +3602,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -3701,13 +3617,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_vpd
+#       define MAPKIT_map_h_vpd
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_vpd_(spm, key) (*(map_h_vpd_insertptr(spm, key)))
+#       define map_h_vpd_(spm, key) (*(map_h_vpd_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_vpd_haskey(spm, key) ((map_h_vpd_ptr(spm, key)) != NULL)
+#       define map_h_vpd_haskey(spm, key) ((map_h_vpd_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -3820,14 +3736,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_vpd_reallocate(spm, map_h_vpd_shrinksize(spm, spm->used));
 			}
 		} else
@@ -3841,9 +3757,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_vpd_reallocate(spm, map_h_vpd_shrinksize(spm, spm->used));
 		}
 
@@ -3863,24 +3779,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_vpd_reallocate(spm, map_h_vpd_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_vpd_set_s(spm, key, value, hash);
@@ -3894,14 +3810,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_vpd_value_s(spm, key, hash);
@@ -3915,14 +3831,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_vpd_get_s(spm, key, value, hash);
@@ -3943,17 +3859,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_vpd_insertptr_s(spm, key, hash);
@@ -3967,17 +3883,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_vpd_ptr_s(spm, key, hash);
@@ -4010,10 +3926,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		void *defaultvalue;
 
@@ -4025,13 +3941,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_h_vpvp
+#       define MAPKIT_map_h_vpvp
 
 /* read/write access to the value at key (insert as needed) */
-#define map_h_vpvp_(spm, key) (*(map_h_vpvp_insertptr(spm, key)))
+#       define map_h_vpvp_(spm, key) (*(map_h_vpvp_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_h_vpvp_haskey(spm, key) ((map_h_vpvp_ptr(spm, key)) != NULL)
+#       define map_h_vpvp_haskey(spm, key) ((map_h_vpvp_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -4144,14 +4060,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_h_vpvp_reallocate(spm, map_h_vpvp_shrinksize(spm, spm->used));
 			}
 		} else
@@ -4165,9 +4081,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_h_vpvp_reallocate(spm, map_h_vpvp_shrinksize(spm, spm->used));
 		}
 
@@ -4187,24 +4103,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_h_vpvp_reallocate(spm, map_h_vpvp_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_h_vpvp_set_s(spm, key, value, hash);
@@ -4218,14 +4134,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_h_vpvp_value_s(spm, key, hash);
@@ -4239,14 +4155,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_h_vpvp_get_s(spm, key, value, hash);
@@ -4267,17 +4183,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_h_vpvp_insertptr_s(spm, key, hash);
@@ -4291,17 +4207,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && ((contents->key) == (key))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_h_vpvp_ptr_s(spm, key, hash);
@@ -4334,10 +4250,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		int defaultvalue;
 
@@ -4349,13 +4265,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_stri
+#       define MAPKIT_map_stri
 
 /* read/write access to the value at key (insert as needed) */
-#define map_stri_(spm, key) (*(map_stri_insertptr(spm, key)))
+#       define map_stri_(spm, key) (*(map_stri_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_stri_haskey(spm, key) ((map_stri_ptr(spm, key)) != NULL)
+#       define map_stri_haskey(spm, key) ((map_stri_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -4468,14 +4384,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_stri_reallocate(spm, map_stri_shrinksize(spm, spm->used));
 			}
 		} else
@@ -4489,9 +4405,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_stri_reallocate(spm, map_stri_shrinksize(spm, spm->used));
 		}
 
@@ -4511,24 +4427,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_stri_reallocate(spm, map_stri_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_stri_set_s(spm, key, value, hash);
@@ -4542,14 +4458,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_stri_value_s(spm, key, hash);
@@ -4563,14 +4479,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_stri_get_s(spm, key, value, hash);
@@ -4591,17 +4507,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_stri_insertptr_s(spm, key, hash);
@@ -4615,17 +4531,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_stri_ptr_s(spm, key, hash);
@@ -4658,10 +4574,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -4673,13 +4589,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_strd
+#       define MAPKIT_map_strd
 
 /* read/write access to the value at key (insert as needed) */
-#define map_strd_(spm, key) (*(map_strd_insertptr(spm, key)))
+#       define map_strd_(spm, key) (*(map_strd_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_strd_haskey(spm, key) ((map_strd_ptr(spm, key)) != NULL)
+#       define map_strd_haskey(spm, key) ((map_strd_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -4792,14 +4708,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_strd_reallocate(spm, map_strd_shrinksize(spm, spm->used));
 			}
 		} else
@@ -4813,9 +4729,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_strd_reallocate(spm, map_strd_shrinksize(spm, spm->used));
 		}
 
@@ -4835,24 +4751,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_strd_reallocate(spm, map_strd_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_strd_set_s(spm, key, value, hash);
@@ -4866,14 +4782,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_strd_value_s(spm, key, hash);
@@ -4887,14 +4803,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_strd_get_s(spm, key, value, hash);
@@ -4915,17 +4831,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_strd_insertptr_s(spm, key, hash);
@@ -4939,17 +4855,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_strd_ptr_s(spm, key, hash);
@@ -4982,10 +4898,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		void *defaultvalue;
 
@@ -4997,13 +4913,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_strvp
+#       define MAPKIT_map_strvp
 
 /* read/write access to the value at key (insert as needed) */
-#define map_strvp_(spm, key) (*(map_strvp_insertptr(spm, key)))
+#       define map_strvp_(spm, key) (*(map_strvp_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_strvp_haskey(spm, key) ((map_strvp_ptr(spm, key)) != NULL)
+#       define map_strvp_haskey(spm, key) ((map_strvp_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -5116,14 +5032,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_strvp_reallocate(spm, map_strvp_shrinksize(spm, spm->used));
 			}
 		} else
@@ -5137,9 +5053,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_strvp_reallocate(spm, map_strvp_shrinksize(spm, spm->used));
 		}
 
@@ -5159,24 +5075,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_strvp_reallocate(spm, map_strvp_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_strvp_set_s(spm, key, value, hash);
@@ -5190,14 +5106,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_strvp_value_s(spm, key, hash);
@@ -5211,14 +5127,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_strvp_get_s(spm, key, value, hash);
@@ -5239,17 +5155,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_strvp_insertptr_s(spm, key, hash);
@@ -5262,17 +5178,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_strvp_ptr_s(spm, key, hash);
@@ -5305,10 +5221,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		char *defaultvalue;
 
@@ -5320,13 +5236,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_map_strstr
+#       define MAPKIT_map_strstr
 
 /* read/write access to the value at key (insert as needed) */
-#define map_strstr_(spm, key) (*(map_strstr_insertptr(spm, key)))
+#       define map_strstr_(spm, key) (*(map_strstr_insertptr(spm, key)))
 
 /* true if key exists */
-#define map_strstr_haskey(spm, key) ((map_strstr_ptr(spm, key)) != NULL)
+#       define map_strstr_haskey(spm, key) ((map_strstr_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -5439,14 +5355,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return map_strstr_reallocate(spm, map_strstr_shrinksize(spm, spm->used));
 			}
 		} else
@@ -5460,9 +5376,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return map_strstr_reallocate(spm, map_strstr_shrinksize(spm, spm->used));
 		}
 
@@ -5482,24 +5398,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return map_strstr_reallocate(spm, map_strstr_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return map_strstr_set_s(spm, key, value, hash);
@@ -5513,14 +5429,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return map_strstr_value_s(spm, key, hash);
@@ -5534,14 +5450,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return map_strstr_get_s(spm, key, value, hash);
@@ -5562,17 +5478,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return map_strstr_insertptr_s(spm, key, hash);
@@ -5586,17 +5502,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (strcmp(contents->key, key) == 0)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!(strcmp(contents->value, spm->defaultvalue) == 0)))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return map_strstr_ptr_s(spm, key, hash);
@@ -5627,10 +5543,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -5642,13 +5558,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_spvector
+#       define MAPKIT_spvector
 
 /* read/write access to the value at key (insert as needed) */
-#define spvector_(spm, key) (*(spvector_insertptr(spm, key)))
+#       define spvector_(spm, key) (*(spvector_insertptr(spm, key)))
 
 /* true if key exists */
-#define spvector_haskey(spm, key) ((spvector_ptr(spm, key)) != NULL)
+#       define spvector_haskey(spm, key) ((spvector_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -5765,14 +5681,14 @@ extern "C" {
 
 		if (contents->key == key) {
 			contents->key = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return spvector_reallocate(spm, spvector_shrinksize(spm, spm->used));
 			}
 		} else
@@ -5786,9 +5702,9 @@ extern "C" {
 		sptr->key = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return spvector_reallocate(spm, spvector_shrinksize(spm, spm->used));
 		}
 
@@ -5813,23 +5729,23 @@ extern "C" {
 		if ((ckey = contents->key) == MAPKIT_FREESLOT) {
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return spvector_reallocate(spm, spvector_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if (ckey == key) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return spvector_set_s(spm, key, value);
@@ -5848,14 +5764,14 @@ extern "C" {
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
 
 		if ((ckey = contents->key) == key) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (ckey == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return spvector_value_s(spm, key);
@@ -5874,14 +5790,14 @@ extern "C" {
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
 
 		if ((ckey = contents->key) == key) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (ckey == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return spvector_get_s(spm, key, value);
@@ -5909,16 +5825,16 @@ extern "C" {
 
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if (ckey == key) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return spvector_insertptr_s(spm, key);
@@ -5939,17 +5855,17 @@ extern "C" {
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
 
 		if ((ckey = contents->key) == key) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (ckey == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return spvector_ptr_s(spm, key);
@@ -5987,10 +5903,10 @@ extern "C" {
 		double maxfillfactor,			       /* maxfill = maxfillfactor * size */
 		 minusedfactor;				       /* minused = minusedfactor * size */
 
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 		unsigned long insertionindexs, insertionindex_collisions;
 		unsigned long keyindexs, keyindex_collisions;
-#endif
+#       endif
 
 		double defaultvalue;
 
@@ -6002,13 +5918,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT__spmatrix
+#       define MAPKIT__spmatrix
 
 /* read/write access to the value at key (insert as needed) */
-#define _spmatrix_(spm, key) (*(_spmatrix_insertptr(spm, key)))
+#       define _spmatrix_(spm, key) (*(_spmatrix_insertptr(spm, key)))
 
 /* true if key exists */
-#define _spmatrix_haskey(spm, key) ((_spmatrix_ptr(spm, key)) != NULL)
+#       define _spmatrix_haskey(spm, key) ((_spmatrix_ptr(spm, key)) != NULL)
 
 /* Prototypes */
 
@@ -6121,14 +6037,14 @@ extern "C" {
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
 			contents->state = MAPKIT_DELETEDSLOT;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			spm->used--;
 			if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 				return _spmatrix_reallocate(spm, _spmatrix_shrinksize(spm, spm->used));
 			}
 		} else
@@ -6142,9 +6058,9 @@ extern "C" {
 		sptr->state = MAPKIT_DELETEDSLOT;
 		spm->used--;
 		if (spm->used < spm->minused) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 			fprintf(stderr, "MAPKIT: used < minused\n");
-#endif
+#       endif
 			return _spmatrix_reallocate(spm, _spmatrix_shrinksize(spm, spm->used));
 		}
 
@@ -6164,24 +6080,24 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			if (spm->fill > spm->maxfill) {
-#ifdef MAPKIT_DEBUG
+#       ifdef MAPKIT_DEBUG
 				fprintf(stderr, "MAPKIT: fill > maxfill\n");
-#endif
+#       endif
 				return _spmatrix_reallocate(spm, _spmatrix_growsize(spm, spm->used));
 			}
 			return MAPKIT_OK;
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
 			contents->value = value;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return MAPKIT_OK;
 		} else
 			return _spmatrix_set_s(spm, key, value, hash);
@@ -6195,14 +6111,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			return spm->defaultvalue;
 		} else
 			return _spmatrix_value_s(spm, key, hash);
@@ -6216,14 +6132,14 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = contents->value;
 		} else if (spm->alwaysdefault && (contents->state == MAPKIT_FREESLOT)) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->keyindexs++;
-#endif
+#       endif
 			*value = spm->defaultvalue;
 		} else
 			return _spmatrix_get_s(spm, key, value, hash);
@@ -6244,17 +6160,17 @@ extern "C" {
 			contents->state = MAPKIT_FULLSLOT;
 			contents->key = key;
 			contents->value = spm->defaultvalue;
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			spm->used++;
 			spm->fill++;
 			return &(contents->value);
 		} else if ((contents->state == MAPKIT_FULLSLOT)
 			   && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return &(contents->value);
 		} else
 			return _spmatrix_insertptr_s(spm, key, hash);
@@ -6268,17 +6184,17 @@ extern "C" {
 
 		if ((contents->state == MAPKIT_FULLSLOT)
 		    && (((contents->key).key1 == (key).key1) && ((contents->key).key2 == (key).key2))) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			if ((!spm->alwaysdefault) || (!((contents->value) == (spm->defaultvalue))))
 				return &(contents->value);
 			else
 				return NULL;
 		} else if (contents->state == MAPKIT_FREESLOT) {
-#ifdef MAPKIT_COLLISIONS
+#       ifdef MAPKIT_COLLISIONS
 			spm->insertionindexs++;
-#endif
+#       endif
 			return NULL;
 		} else
 			return _spmatrix_ptr_s(spm, key, hash);
@@ -6302,13 +6218,13 @@ extern "C" {
 /* Macros */
 
 /* set to inform the type is available */
-#define MAPKIT_spmatrix
+#       define MAPKIT_spmatrix
 
 /* read/write access to the value at (key1, key2) (insert as needed) */
-#define spmatrix_(spm, key1, key2) (*(spmatrix_insertptr(spm, key1, key2)))
+#       define spmatrix_(spm, key1, key2) (*(spmatrix_insertptr(spm, key1, key2)))
 
 /* true if (key1, key2) exists */
-#define spmatrix_haskey(spm, key1, key2) ((spmatrix_ptr(spm, key1, key2)) != NULL)
+#       define spmatrix_haskey(spm, key1, key2) ((spmatrix_ptr(spm, key1, key2)) != NULL)
 
 /* Basic functions */
 
@@ -6455,8 +6371,8 @@ extern "C" {
 		return _spmatrix_nextptr(spm, pos_contents);
 	}
 
-#if defined(__cplusplus)
+#       if defined(__cplusplus)
 }
-#endif
+#       endif
 
 #endif							       /* _MAPKIT_ */

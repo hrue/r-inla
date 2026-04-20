@@ -9,7 +9,7 @@
 This is a prior for the correlation parameter $\rho\in(-1,1)$ which is
 internally represented as
 \[
-\theta = \log\frac{\rho+1}{\rho-1}
+\theta = \log\frac{1+\rho}{1-\rho}
 \]
 
 \subsection*{Parametrization}
@@ -37,10 +37,10 @@ argument as follows:
 The prior is internally defined on the $\theta$ parameter therefore
 initial values have to be provided in the $\theta$-scale. For example
 if the desired initial value is $\rho=0.5$, which means
-$\theta=\log(1/3)=-1.098$ the following specification has to be
+$\theta=\log(3)=1.098$ the following specification has to be
 provided:
 \begin{center}
-    {\tt hyper = list(<theta> = list(prior = "betacorrelation", param=c(<a>,<b>),initial=-1.098))}
+    {\tt hyper = list(<theta> = list(prior = "betacorrelation", param=c(<a>,<b>),initial=1.098))}
 \end{center}
 
 

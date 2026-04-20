@@ -1,10 +1,11 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <omp.h>
+
 #include "my-fix.h"
 #include "iniparser.h"
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 int my_is_double(char *str)
 {
@@ -31,10 +32,11 @@ char *my_strlwc(const char *s)
 	/*
 	 * str = A:B only lowercase part B. 
 	 */
-	long int i, start, debug = 0;
-	char *f, *str;
+	long int i, start;
+	const int debug = 0;
+	char *f = NULL, *str = NULL;
 
-	str = GMRFLib_strdup(s);
+	str = Strdup(s);
 	if (debug)
 		printf("str in %s\n", str);
 	f = strchr(str, INIPARSER_SEP);
@@ -48,20 +50,14 @@ char *my_strlwc(const char *s)
 	return str;
 }
 
-#if defined(WINDOWS)
 // provide just this functiononality. this is required for windows compilation, I think (without posix libs)
+#if defined(_WIN32)
 double drand48(void)
 {
 	return GMRFLib_uniform();
 }
-void srand48(long int seed)
+void srand48(long int UNUSED(seed))
 {
 	return;
-}
-#endif
-
-#if defined(INLA_WINDOWS32_FIX)
-void _mm_pause(void) {
-  return;
 }
 #endif

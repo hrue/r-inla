@@ -1,17 +1,19 @@
 #!/bin/bash
-cmd=$(readlink -f "$0")
+
+cmd=$(readlink -e "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$0")
 prog=${tmp%%.run}
 
-D=""
+DR=""
 if [ ! -z ${R_HOME+x} ]; then 
     d="$R_HOME/lib"
     if [ -d "$d" ]; then
-	D=$d
+	DR=$d
     fi
 fi
 
+D=""
 for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib; do
     if [ -d "$d" ]; then
 	if [ -z "$D" ]; then
@@ -22,17 +24,67 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
     fi
 done
 
-if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
-    PDIR="$DIR/../../pardiso/libpardiso/linux"
+if [ -n "${INLA_ALTERNATIVE_LD_LIBRARY_PATH}" ]; then
+    ## load system first
+    export LD_LIBRARY_PATH="$DIR/first:$DR:$D:$DIR:$LD_LIBRARY_PATH"
 else
-    PDIR="$DIR/../../pardiso/libnopardiso/linux"
+    ## load local first
+    export LD_LIBRARY_PATH="$DIR/first:$DIR:$DR:$D:$LD_LIBRARY_PATH"
 fi
 
-export LD_LIBRARY_PATH="$DIR/first:$PDIR:$D:$DIR:$LD_LIBRARY_PATH"
+export PARDISOLICMESSAGE=1
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export LD_PRELOAD="${INLA_MALLOC_LIB}:$LD_PRELOAD"
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.so*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc.so*)
+			export LD_PRELOAD="$f:$LD_PRELOAD";;
+		esac
+	    done
+	done
+    fi
+    case "$LD_PRELOAD" in
+	*libjemalloc*) 
+	    ;;
+	*libmimalloc*) 
+	    ;;
+    esac
+fi
 
-if [ ! -z ${INLA_DEBUG+x} ]; then
+if [ -n "${INLA_DEBUG}" ]; then
+    export OMP_DISPLAY_ENV=true
+    for var in $(set | grep ^INLA_); do
+	echo "*** $0 *** $var"
+    done
+    echo "*** $0 *** MALLOC_CONF=$MALLOC_CONF"
+    echo "*** $0 *** LD_PRELOAD=$LD_PRELOAD"
     echo "*** $0 *** LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
     ldd -r "$DIR/$prog"
+
+    for arg in "$@"; do
+	if [ -r "$arg" ]; then
+	    echo -e "\n*** FILE $arg:"
+	    grep ^### "$arg" 
+	    echo -e "*** END OF FILE $arg:\n"
+	fi
+    done
+
 fi
 
-exec "$DIR/$prog" "$@"
+if [ -n "${INLA_DEBUG}" ]; then
+    set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
+    echo " *** $0 *** exec $DIR/$prog $@"
+fi
+
+nc=""
+if [ -n "$INLA_NUMACTL_ARG" ]; then
+    ncp=$(type --path numactl)
+    if [ -n "$ncp" ]; then
+	nc="$ncp ${INLA_NUMACTL_ARG} "
+    fi
+fi
+exec $nc "$DIR/$prog" "$@"
+

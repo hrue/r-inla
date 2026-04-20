@@ -1,69 +1,51 @@
-
-/* rw.c
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-/*!
-  \file rw.c
-  \brief Handy functions when using RW1, RW2, CRW1, CRW2 and approximate CRW2 models.
-*/
-
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $ */
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix
-  for the RW defined in \c rwdef.
-
-  This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_prune_graph()).
-
-  \param[in] node   First node
-  \param[in] nnode  Second node
-  \param[in] def  The definition of the RW1 or RW2
-
-  \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_prune_graph
-*/
-double GMRFLib_rw(int node, int nnode, void *def)
+double GMRFLib_rw0(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
-	int imax, imin, idiff, edge;
-	double prec;
-	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
+	// this is order=0 case, simpler
 
-	prec = GMRFLib_SET_PREC(rwdef);
-	prec *= (rwdef->prec_scale ? rwdef->prec_scale[0] : 1.0);
+	if (nnode < 0) {
+		return NAN;
+	}
+
+	if (node != nnode) {
+		return 0.0;
+	}
+
+	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
+	double prec = GMRFLib_SET_PREC(rwdef);
+
+	if (rwdef->prec_scale) {
+		prec *= rwdef->prec_scale[0];
+	}
+
+	if (rwdef->scale0) {
+		prec *= rwdef->scale0[node];
+	}
+
+	return prec;
+}
+
+double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
+{
+	if (nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
+	double prec = GMRFLib_SET_PREC(rwdef);
+
+	if (rwdef->prec_scale) {
+		prec *= rwdef->prec_scale[0];
+	}
 
 	/*
 	 * this is the easy case. Note that this case has an additional 'scale0' parameter
@@ -71,6 +53,8 @@ double GMRFLib_rw(int node, int nnode, void *def)
 	if (rwdef->order == 0) {
 		return (node == nnode ? ((rwdef->scale0 ? rwdef->scale0[node] : 1.0) * prec) : 0.0);
 	}
+
+	int imax, imin, idiff, edge;
 
 	if (rwdef->cyclic) {
 		/*
@@ -157,9 +141,9 @@ double GMRFLib_rw(int node, int nnode, void *def)
 				case 2:
 					return prec * 1.0;
 				default:
-					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);	
+					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
 					return NAN;
-			}
+				}
 			default:
 				return 0.0;
 			}
@@ -170,21 +154,12 @@ double GMRFLib_rw(int node, int nnode, void *def)
 	return 0.0;
 }
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for
-  the CRW defined in \c crwdef.
- 
-  This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_prune_graph()).
- 
-  \param[in]  node  First node
-  \param[in] nnode  Second node
-  \param[in] def The definition of the CRW1 or CRW2
- 
-  \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_prune_graph
-*/
-double GMRFLib_crw(int node, int nnode, void *def)
+double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
+	if (nnode < 0) {
+		return NAN;
+	}
+
 	/*
 	 * this is the continous version for order=0, 1 or 2, which take into accont the positions consistently. the order=2
 	 * uses the augmentation with the velocity.
@@ -236,10 +211,8 @@ double GMRFLib_crw(int node, int nnode, void *def)
 		 * to avoid that this workspace is note allocated several times 
 		 */
 		if (!crwdef->work) {
-#pragma omp critical
+#pragma omp critical (Name_7b79c5928d913fdbaa9b3335cf6f26f060cef587)
 			{
-				/*
-				 */
 				if (!crwdef->work) {
 
 					/*
@@ -290,6 +263,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 
 		if (idiff == 0) {
 			if (use_pos) {
+				assert(idelta);
 				if (imin == 0) {
 					return prec * idelta[0];
 				}
@@ -434,6 +408,10 @@ double GMRFLib_crw(int node, int nnode, void *def)
 		 */
 
 		if (use_pos) {
+			assert(idelta);
+			assert(idelta2);
+			assert(idelta3);
+
 			if (idiff == 0) {
 				if (node_tp == TP_POS) {
 					if (nnode_tp == TP_POS) {	/* TP_POS & TP_POS */
@@ -551,23 +529,16 @@ double GMRFLib_crw(int node, int nnode, void *def)
 #undef SETUP_LOCAL_WORK_PTRS
 #undef TP_POS
 #undef TP_VEL
+
+	return NAN;
 }
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for
-  the RW on a 2D lattice defined in \c rw2ddef.
-
-  Currently only order=2 is supported, however, it does incorporate correct boundary conditions for
-  the non-cyclic case.
- 
-  \param[in]  node  First node
-  \param[in] nnode  Second node
-  \param[in] def The definition of the RW on the 2D lattice
- 
-  \sa \ref GMRFLib_rw2ddef_tp,  \ref GMRFLib_make_rw2d_graph
-*/
-double GMRFLib_rw2d(int node, int nnode, void *def)
+double GMRFLib_rw2d(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
+	if (nnode < 0) {
+		return NAN;
+	}
+
 	/*
 	 * this function does work for non-neigbour arguments, hence it might be (and is) used for pruning. 
 	 */
@@ -752,64 +723,33 @@ double GMRFLib_rw2d(int node, int nnode, void *def)
 	return 0.0;
 }
 
-/*!
-  \brief Make the graph suitable to the RW1 or RW2 model with regular locations defined in def.
-
-  \param[out] graph  The graph for the RW1 or RW2 model with regular locations
-
-  \param[in] def The definition of the RW1 or RW2 model with regular locations
-
-  \remark \c GMRFLib_make_rw_graph() is to be used in connection with \c GMRFLib_rw() both using the
-  RW1 or RW2 model defined using \c GMRFLib_rwdef_tp.
-
-  \remark There is an alternative set of tools for the case where the locations are irregular, see
-  \c GMRFLib_make_crw_graph(), \c GMRFLib_crw() and \c GMRFLib_crwdef_tp.
-
-  \sa GMRFLib_rw, GMRFLib_rwdef_tp
-*/
-int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
+int GMRFLib_make_rw_graph(GMRFLib_graph_tp **graph, GMRFLib_rwdef_tp *def)
 {
-	GMRFLib_make_linear_graph(graph, def->n, def->order, def->cyclic);
+	GMRFLib_graph_mk_linear(graph, def->n, def->order, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Make the graph suitable to the (C)RW1 or CRW2 model with irregular locations defined in def.
-  
-  \param[out] graph  The graph for the (C)RW1 or CRW2 model with irregular locations
-  
-  \param[in] def The definition of the (C)RW1 or CRW2 model with irregular locations
-  
-  \remark \c GMRFLib_make_crw_graph() is to be used in connection with \c GMRFLib_crw() both using
-  the (C)RW1 or CRW2 model defined using \c GMRFLib_crwdef_tp.
-    
-  \remark There is an alternative set of tools for the case where the locations are regular, see \c
-  GMRFLib_make_rw_graph(), \c GMRFLib_rw() and \c GMRFLib_rwdef_tp.
-
-  \sa GMRFLib_crw(), GMRFLib_crwdef_tp
-*/
-int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
+int GMRFLib_make_crw_graph(GMRFLib_graph_tp **graph, GMRFLib_crwdef_tp *def)
 {
 	int i, *hold = NULL, n;
 	GMRFLib_graph_tp *gg = NULL;
 
 	n = def->n;
-
+	assert(n > 0);
 	if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
-		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_make_linear_graph(graph, n, n, 0);
-		GMRFLib_make_linear_graph(graph, n, def->order, 0);
+		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_graph_mk_linear(graph, n, n, 0);
+		GMRFLib_graph_mk_linear(graph, n, def->order, 0);
 		return GMRFLib_SUCCESS;
 	}
 	if (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_PAIRS) {
-		GMRFLib_make_linear_graph(graph, 2 * n, 3, 0);
+		GMRFLib_graph_mk_linear(graph, 2 * n, 3, 0);
 		return GMRFLib_SUCCESS;
 	}
 
 	/*
 	 * the rest is for the block'ed case for order 2. this is the tricky bit 
 	 */
-	GMRFLib_make_empty_graph(&gg);
+	GMRFLib_graph_mk_empty(&gg);
 	gg->n = 2 * n;
 	gg->nnbs = Calloc(2 * n, int);
 	gg->nbs = Calloc(2 * n, int *);
@@ -856,41 +796,19 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 			gg->nbs[i + n][4] = i - 1 + n;	       /* prev vel */
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(gg));
+	GMRFLib_graph_prepare(gg);
 	*graph = gg;
 
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Makes the graph suitable to the RW model on a 2D lattice in \c def.
-  
-  This function creates a lattice graph for the RW model on a 2D lattice as defined in \c
-  def. Currently only order=2 is supported. The dimention of the lattice must be at least, 5 x
-  5. The mapping of the nodes to pixel indices, is defined similar to the \ref
-  GMRFLib_make_lattice_graph(), ie using the functions \ref GMRFLib_node2lattice() and \ref
-  GMRFLib_lattice2node().
-
-  \param[out] graph  The graph for the RW model on a 2D lattice
-  
-  \param[in] def The definition of the RW model on a 2D lattice
-  
-  \sa GMRFLib_rw2d(), GMRFLib_rw2ddef_tp, GMRFLib_node2lattice(), GMRFLib_lattice2node()
-*/
-int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
+int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp **graph, GMRFLib_rw2ddef_tp *def)
 {
-	GMRFLib_graph_tp *g = NULL;
-
-	GMRFLib_EWRAP0(GMRFLib_make_lattice_graph(&g, def->nrow, def->ncol, 2, 2, def->cyclic));
-	GMRFLib_EWRAP0(GMRFLib_prune_graph(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_rw2d, (void *) def));
-
-	GMRFLib_free_graph(g);
-
+	GMRFLib_graph_mk_lattice(graph, def->nrow, def->ncol, 2, 2, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
-
-int GMRFLib_crw_scale(void *def)
+int GMRFLib_crw_scale(int thread_id, void *def)
 {
 	/*
 	 * This approach uses the constrained sampling approach, much faster
@@ -907,8 +825,6 @@ int GMRFLib_crw_scale(void *def)
 	crwdef->n = odef->n;
 	assert(odef->order > 0);
 	crwdef->order = odef->order;
-	crwdef->prec = NULL;
-	crwdef->log_prec = NULL;
 	crwdef->log_prec_omp = NULL;
 	crwdef->position = odef->position;
 	assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
@@ -919,6 +835,7 @@ int GMRFLib_crw_scale(void *def)
 
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_make_crw_graph(&graph, crwdef);
+	assert(graph->n > 0);
 
 	int i, free_position = 0;
 
@@ -964,7 +881,7 @@ int GMRFLib_crw_scale(void *def)
 	} else {
 		*prec_scale_guess = SQR(len_acum);
 	}
-	
+
 	if (crwdef->order == 2) {
 		len_acum = 0.0;
 		for (i = 0; i < graph->n; i++) {
@@ -974,21 +891,20 @@ int GMRFLib_crw_scale(void *def)
 	}
 
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
-	//GMRFLib_print_constr(stdout, constr, graph);
+	// GMRFLib_printf_constr(stdout, constr, graph);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
-	GMRFLib_problem_tp *problem;
-
-	for (i = 0; i < graph->n; i++) {
-		c[i] = eps;
-	}
-
+	assert(graph->n > 0);
+	double *c = Calloc(graph->n, double);
+	double eps = GSL_SQRT_DBL_EPSILON;
+	GMRFLib_dfill(graph->n, eps, c);
+	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
 		retval =
-		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr, NULL, &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1012,8 +928,7 @@ int GMRFLib_crw_scale(void *def)
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {
@@ -1029,7 +944,7 @@ int GMRFLib_crw_scale(void *def)
 	Free(crwdef);
 	Free(len);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 	if (free_position) {
 		Free(crwdef->position);
@@ -1038,7 +953,7 @@ int GMRFLib_crw_scale(void *def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_rw_scale(void *def)
+int GMRFLib_rw_scale(int thread_id, void *def)
 {
 	GMRFLib_rwdef_tp *rwdef = Calloc(1, GMRFLib_rwdef_tp);
 	GMRFLib_rwdef_tp *odef = (GMRFLib_rwdef_tp *) def;
@@ -1049,8 +964,6 @@ int GMRFLib_rw_scale(void *def)
 	assert(odef->order > 0);
 	rwdef->order = odef->order;
 	rwdef->cyclic = odef->cyclic;
-	rwdef->prec = NULL;
-	rwdef->log_prec = NULL;
 	rwdef->log_prec_omp = NULL;
 	rwdef->scale0 = odef->scale0;
 	rwdef->prec_scale = prec_scale_guess;
@@ -1111,18 +1024,18 @@ int GMRFLib_rw_scale(void *def)
 		constr = NULL;
 	}
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
-	GMRFLib_problem_tp *problem;
-
-	for (i = 0; i < graph->n; i++) {
-		c[i] = eps;
-	}
-
+	assert(graph->n > 0);
+	double *c = Calloc(graph->n, double);
+	double eps = GSL_SQRT_DBL_EPSILON;
+	GMRFLib_dfill(graph->n, eps, c);
+	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr, NULL, &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1147,7 +1060,7 @@ int GMRFLib_rw_scale(void *def)
 	}
 	GMRFLib_set_error_handler(old_handler);
 
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {
@@ -1160,13 +1073,13 @@ int GMRFLib_rw_scale(void *def)
 	Free(c);
 	Free(rwdef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_rw2d_scale(void *def)
+int GMRFLib_rw2d_scale(int thread_id, void *def)
 {
 	GMRFLib_rw2ddef_tp *rw2ddef = Calloc(1, GMRFLib_rw2ddef_tp);
 	GMRFLib_rw2ddef_tp *odef = (GMRFLib_rw2ddef_tp *) def;
@@ -1177,7 +1090,6 @@ int GMRFLib_rw2d_scale(void *def)
 	assert(rw2ddef->order == 2);
 	rw2ddef->cyclic = odef->cyclic;
 	rw2ddef->bvalue = odef->bvalue;
-	rw2ddef->log_prec = NULL;
 	rw2ddef->log_prec_omp = NULL;
 	rw2ddef->prec_scale = NULL;
 
@@ -1211,7 +1123,7 @@ int GMRFLib_rw2d_scale(void *def)
 		constr->e_vector = Calloc(constr->nc, double);
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-		double eps = GMRFLib_eps(0.75);
+		double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 		c = Calloc(graph->n, double);
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;
@@ -1221,14 +1133,17 @@ int GMRFLib_rw2d_scale(void *def)
 		 * The model is proper if BVALUE_ZERO is set, no need to add anything on the diagonal
 		 */
 		constr = NULL;
+		c = Calloc(graph->n, double);
 	}
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
 		retval =
-		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr, NULL,
+					 &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1253,7 +1168,7 @@ int GMRFLib_rw2d_scale(void *def)
 	}
 	GMRFLib_set_error_handler(old_handler);
 
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {
@@ -1266,22 +1181,8 @@ int GMRFLib_rw2d_scale(void *def)
 	Free(c);
 	Free(rw2ddef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
 }
-
-/*
-  Example for manual
- */
-
-/*! \page ex_rw A worked out example smoothing a time-series data, using the routines in rw.c
-  
-Solve the same problem as in \ref ex_wa, now using the routines in rw.c
-
-\par Program code:
-
-\verbinclude example-doxygen-rw.txt
-
-*/

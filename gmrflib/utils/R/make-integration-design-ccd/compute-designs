@@ -1,0 +1,54 @@
+#! /bin/bash
+
+set -u
+
+points="ccd.dat"
+dims="ccd.dim"
+tmp=$(mktemp)
+
+test -f $points && rm $points
+test -f $dims && rm $dims
+
+dim_from=1
+dim_to=52 ## next one is 69
+
+echo $dim_from $dim_to > $dims
+
+for dim in $(seq $dim_from $dim_to); do
+    
+    java -jar ./rf_cubed.jar $dim | awk 'NR>1 {$1="";print}' | sort -g > $tmp
+    rows=$(wc -l < $tmp)
+    
+    if [ $dim -gt 1 ]; then
+	nrows=$[ $rows + 2* $dim + 1 ]
+    else
+	nrows=$[ $rows + 1 ]
+    fi
+    #alpha=$(echo $rows | awk '{print $1^0.25}')
+    #alpha=$(echo $dim | awk '{print $1^0.5}')
+    alpha=1
+    
+    echo $dim $nrows >> $dims
+    echo $dim $rows $nrows
+    
+    {
+	echo $alpha $dim | awk '{alpha=$1;n=$2;
+	for(j=1;j<=n;j++) printf " %d", 0;
+	printf "\n";
+	if (n > 1){
+		for(i=1;i<=n;i++){
+		    for(j=1;j<i;j++) printf " 0";
+		    printf " %1d", alpha;
+		    for(j=i+1;j<=n;j++) printf " 0";
+		    printf "\n";
+		    for(j=1;j<i;j++) printf " 0";
+		    printf " %1d", -alpha;
+		    for(j=i+1;j<=n;j++) printf " 0";
+		    printf "\n";
+		    }}}' 
+	cat $tmp 
+    } >> $points
+    
+    
+done
+

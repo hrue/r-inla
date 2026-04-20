@@ -10,9 +10,23 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+set.seed(123)
 library(INLA)
+inla.setOption(num.threads="1:1")
+inla.setOption(smtp="taucs")
+inla.setOption(inla.mode="classic")
+if (file.exists("myinit.R")) source("myinit.R")
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
+knitr::opts_chunk$set(fig.path="figures/conditional-sampling/")
 ```
+
+Details of this vignette requires the classic-mode, but it is possible
+to make it work for the new compact-mode. Please contact
+\texttt{help@r-inla.org} if that is required.
+```{r}
+inla.setOption(inla.mode="classic")
+```
+
 This short note describe how to do conditional sampling from a fitted
 model, where we want to condition on new events. An easy example which
 motivated this note, is the following.

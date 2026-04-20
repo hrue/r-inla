@@ -1,80 +1,41 @@
-
-/* optimize.h
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
-
-/*!
-  \file optimize.h
-  \brief Typedefs and defines for \ref optimize.c 
-*/
-
 #ifndef __GMRFLib_OPTIMIZE_H__
-#define __GMRFLib_OPTIMIZE_H__
+#       define __GMRFLib_OPTIMIZE_H__
 
-#include <math.h>
-#include <strings.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-#include <stdlib.h>
+#       include <math.h>
+#       include <strings.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
 
 /*!
   \brief Use a conjugate gradiant method for optimisation
 */
-#define GMRFLib_OPTTYPE_CG     0
+#       define GMRFLib_OPTTYPE_CG     0
 
 /*!
   \brief Use a Newton-Raphson method for optimisation
 */
-#define GMRFLib_OPTTYPE_NR     1
+#       define GMRFLib_OPTTYPE_NR     1
 
 /*!
   \brief Use a  two-step  conjugate gradiant method for optimisation
 */
-#define GMRFLib_OPTTYPE_SAFECG 2
+#       define GMRFLib_OPTTYPE_SAFECG 2
 
 /*!
   \brief Use a two-step Newton-Raphson method for optimisation
 */
-#define GMRFLib_OPTTYPE_SAFENR 3
+#       define GMRFLib_OPTTYPE_SAFENR 3
 
 /*!
 
@@ -157,16 +118,17 @@ __BEGIN_DECLS
 
   \sa GMRFLib_blockupdate
 */
-typedef int GMRFLib_logl_tp(double *logll, double *x_i, int m, int idx, double *x_vec, double *y_cdf, void *logl_arg);
+typedef int GMRFLib_logl_tp(int thread_id, int *cache_idx, double *logll, double *x_i, int m, int idx, double *x_vec, double *y_cdf,
+			    void *logl_arg);
 
 /*!
   \brief The value to return to tell that exact derivaties are provided.
 
   \sa GMRFLib_logl_tp
 */
-#define GMRFLib_LOGL_COMPUTE_DERIVATIES (135792467)
-#define GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF (135792468)
-#define GMRFLib_LOGL_COMPUTE_CDF (135792469)
+//#define GMRFLib_LOGL_COMPUTE_DERIVATIES (135792467)
+//#define GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF (135792468)
+#       define GMRFLib_LOGL_COMPUTE_CDF (135792469)
 
 /*!
   \struct GMRFLib_optimize_param_tp optimize.h
@@ -260,40 +222,7 @@ typedef struct {
 	double nr_step_factor;
 } GMRFLib_optimize_param_tp;
 
-typedef struct {
-	int *map;
-
-	double *mode;
-	double *b;
-	double *d;
-	double *x_vec;
-	GMRFLib_graph_tp *sub_graph;			       /* the subgraph */
-	GMRFLib_Qfunc_tp *sub_Qfunc;			       /* the Qfunc */
-	GMRFLib_Qfunc_arg_tp *sub_Qfunc_arg;		       /* ant its arguments */
-
-	GMRFLib_constr_tp *sub_constr;			       /* stochastic constraint */
-
-	GMRFLib_logl_tp *loglFunc;
-	void *loglFunc_arg;
-
-	GMRFLib_optimize_param_tp *optpar;
-} GMRFLib_optimize_problem_tp;
-
 int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar);
-int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store);
-int GMRFLib_optimize(double *mode, double *b, double *c, double *mean,
-		     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-		     char *fixed_value, GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar);
-int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
-			   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-			   char *fixed_value, GMRFLib_constr_tp * constr,
-			   double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar, GMRFLib_store_tp * store);
-int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_tp * store);
-int GMRFLib_Qadjust(double *dir, double *odir, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-
-int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir);
-double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_problem_tp * opt_problem);
-int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_tp * store);
 
 __END_DECLS
 #endif

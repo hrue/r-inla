@@ -1,23 +1,17 @@
-SHELL = /bin/bash
-
 default:;
-	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing"
+	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing md5"
 
 all:;
-	$(MAKE) build-configs update-inla update-R update-r-inla.org update-build-yourself
+	$(MAKE) build-configs update-inla update-R update-r-inla.org update-build-yourself md5
 
 build-configs :;
 	./make-builds
 
 update-inla :;
-	-tilix --title="laptop-g"  -e "make -C /home/hrue/p/inla/builds/my-laptop-g update"
-	-tilix --title="laptop-O2" -e "make -C /home/hrue/p/inla/builds/my-laptop-O2 update"
-	-tilix --title="mac64"     -e "ssh -x -t $$INLA_MAC   export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
-	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
-	-tilix --title="$$INLA_LINUX static"    -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build.static update"
-	-tilix --title="$$INLA_LINUX windows32" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows32 update"
-	-tilix --title="$$INLA_LINUX windows64" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update"
-	-tilix --title="$$INLA_LINUX windows experimental" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/my-windows update"
+	-tilix --title="mac64"     -e "ssh -p $$INLA_MAC_PORT -x -t $$INLA_MAC         export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update || sleep 30"
+	-tilix --title="mac_arm64" -e "ssh -p $$INLA_MAC_ARM64_PORT -x -t $$INLA_MAC_ARM64   export INLA_TAG=$$INLA_TAG\; make -C builds/arm64   update || sleep 30"
+	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update || sleep 30"
+	-tilix --title="$$INLA_WINDOWS windows64" -e "ssh -p $$INLA_WINDOWS_PORT -x -t $$INLA_WINDOWS export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update || sleep 30"
 	@echo -en "\n\nType YES to proceeed: "
 	@read ans && test $$ans == "YES" || exit 1
 	@echo -e "Proceed with the build...\n\n"
@@ -36,7 +30,10 @@ update-build-yourself :;
 
 www :;
 	$(MAKE) update-r-inla.org
+	~/p/inla/r-inla/utils/R/versions
 	-rsync -auv --delete www/. ~/www/www.inla/. 
+
+md5 :; ./www/make-md5
 
 Rinla-local :;
 	make update-inla
@@ -67,6 +64,6 @@ Rinla-testing-Ronly :;
 	make www
 	-do-rsync-www
 
-.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install Rinla-local Rinla-local-Ronly
+.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install Rinla-local Rinla-local-Ronly md5
 
 

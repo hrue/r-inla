@@ -1,57 +1,52 @@
-#!/bin/bash
-D=$(dirname "$1")
-D=${D/%bin/lib}
+#!/usr/bin/env bash
 
-Afun () {
-    {
-	for f in "$@"; do
-	    for fz in $(otool -l "$f" | grep .dylib | awk '{print $2}'); do
-		for ff in "$fz" "$D/$fz"; do
-		    if [ -f "$ff" ]; then
-			for fff in $(otool -l "$ff" | grep .dylib | awk '{print $2}'); do
-			    if [ -f "$fff" ]; then
-				echo "$fff"
-			    fi
-			    if [ -f "$D/$fff" ]; then
-				echo "$D/$fff"
-			    fi
-			done
-		    fi
-		done
-	    done
+dir=$( { uname -a | grep -q x86_64; } && echo build64 || echo arm64 )
+prelib="libgomp.dylib"
+lib1=$HOME/builds/$dir/local/lib
+lib2=/opt/local/lib
+lib3=$(echo /opt/arm/armpl_*flang*/lib | head -n1)
+lib4=/opt/local/lib/libgcc
+LIBS="$lib1 $lib2 $lib3 $lib4"
+
+findLIBS () {
+    for f in "$@"; do
+	found=0
+	for d in $LIBS; do
+	    if [ -f "$d/$f" ]; then
+		echo "$d/$f"; 
+		found=1
+	    fi
 	done
-    } | sort | uniq | \
-	grep -v /usr/lib/system | \
-	grep -v /usr/lib/libSystem | \
-	##grep -v libX11. | \
-	grep -v /usr/lib/libicucore.A.dylib | \
-	grep -v /usr/lib/libbz2.1.0.dylib | \
-	grep -v /usr/lib/libiconv.2.dylib | \
-	grep -v /usr/lib/libz.1.dylib | \
-	awk '/libgcc_s/{print; gsub("gcc_s", "gcc_s_x86_64"); print; next};{print}'
-}
-
-Xfun () {
-    for lib in "$@"; do
-	case "$lib" in
-	    /opt/*) 
-		test -f "$lib" && otool -l $lib | grep .dylib | grep /opt
-		;;
-	    /System/Library/Frameworks/Accelerate.framework/*)
-		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
-		;;
-	    *)
-		echo $lib | grep -v ^/usr/lib | grep -v ^/Library/Frameworks/R.framework
-		;;
-	esac
+	if [ $found -ne 1 ]; then
+	    echo "Not found [$f] in [$LIBS]" 1>&2
+	    exit 1
+	fi
     done
+    
 }
 
-A=$(Afun "$@")
-A=$(Xfun $A)
-A=$(Xfun $A)
-A=$(Xfun $A)
-A=$(Xfun $A)
+process () {
+    {
+	for d in "$@"; do
+	    if [ -f "$d" ]; then
+		for dd in $(otool -L "$d" | awk '/^\t/ {print $1}'); do
+		    case "$dd" in 
+			/System/*) ;;
+			/usr/lib/*) ;;
+			/opt/*) echo $dd;;
+			/Library/*) echo $dd;;
+			/usr/local/*) findLIBS $(basename "$dd");;
+			@rpath/*.dylib*) findLIBS ${dd#@rpath/};;
+			[a-zA-Z]*.dylib*) findLIBS "$dd";;
+			*) echo "This should not happen d=[$d] dd=[$dd]" 1>&2; exit 1;;
+		    esac
+		done
+	    fi
+	done
+    } | sort | uniq
+}
 
-echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : | sort | uniq
-
+{
+    process $(process $(process $(process "$@")))
+    process $(findLIBS $prelib)
+} | sort | uniq

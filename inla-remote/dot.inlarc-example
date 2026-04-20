@@ -18,6 +18,3 @@
 
 ### Port number
 #Port=22
-
-### PARDISO license file (if required)
-#PardisoLicenseFile="$HOME/sys/licenses/pardiso.lic"

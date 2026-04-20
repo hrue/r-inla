@@ -1,22 +1,16 @@
 ## keep track of updates needed to be done
 
 all:; \
-	## update the TAGS-file and the man-files that are generated
-	## automatically 
-	-make -C rinla/R 
-	## update the doc extracted from the R-files
+	make tags
+	-make -C rinla/R
 	-make -C r-inla.org/doc
-	## update the TAGS-file
-	-make -C gmrflib TAGS
-	## update the TAGS-file
-	-make -C inlaprog src/TAGS
-	##
 	-make doc-links
+	./bin/compress
 
 
 ## The following finds all .tex files in
 ##   r-inla.org/doc/{prior,latent,likelihood}
-## and adds links in rinla/inst/doc/... to the corresponding .pdf files
+## and adds links in rinla/inst/documentation/... to the corresponding .pdf files
 ## In the past it redirected to
 ##   ../../../../../../google-code/inla/
 ## Now it redirects to
@@ -25,11 +19,11 @@ all:; \
 doc-links:
 	@echo "Building documentation links from r-inla.org to rinla."
 	@for dir in prior latent likelihood link; do \
+	  rm rinla/inst/documentation/$$dir/*.pdf ; \
 	  find "r-inla.org/doc/$$dir" -name \*.tex | \
-		sed "s!r-inla.org/doc/\(.*\)\.tex!ln -sf ../../../../r-inla.org/doc/\1.pdf rinla/inst/doc/\1.pdf!" | sh -e ;\
-	  hg status r-inla.org/doc/$$dir/*.tex | cat;\
-	done
-	hg status rinla/inst/doc/ | cat
+	        grep -v "old-stuff" | \
+		sed "s!r-inla.org/doc/\(.*\)\.tex!ln -sf ../../../../r-inla.org/doc/\1.pdf rinla/inst/documentation/\1.pdf!" | sh -e ;\
+	done; 
 	@echo "Documentation link building finished."
 
 ## Build a INLA-package without the binaries
@@ -44,5 +38,7 @@ INLA-package-check:
 	@echo Checking $(FILENAME)
 	$(R) --vanilla CMD check --no-examples $(FILENAME)
 
+tags:; gtags; ## htags --line-number=5
+
 ##
-.PHONY: doc-links INLA-package all INLA-package-check
+.PHONY: doc-links INLA-package all INLA-package-check tags

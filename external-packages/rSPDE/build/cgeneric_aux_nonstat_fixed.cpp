@@ -1,0 +1,1 @@
+../rSPDE/src/cgeneric_aux_nonstat_fixed.cpp

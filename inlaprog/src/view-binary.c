@@ -1,15 +1,17 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#if 0
 int main(int argc, char **argv)
 {
 	double x;
-#if defined(WINDOWS)
+#       if defined(_WIN32)
 	/*
 	 * We cannot read from STDIN in binary format, so therefore we use the first argument 
 	 */
 	if (argc > 1) {
-		FILE *fp;
+		FILE *fp = NULL;
 		int i;
 
 		for (i = 1; i < argc; i++) {
@@ -24,10 +26,11 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Usage: %s BINARYFILE [BINARYFILE2..]\n", argv[0]);
 		exit(0);
 	}
-#else
+#       else
 	while (fread(&x, sizeof(double), 1, stdin) == 1) {
 		printf("%g\n", x);
 	}
-#endif
+#       endif
 	return 0;
 }
+#endif

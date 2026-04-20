@@ -1,0 +1,9 @@
+CFLAGS = $(FLAGS) $(INC) -O3 -mtune=generic -fopenmp  -fpic -I. -DINLA_EXTERNAL_PACKAGE
+LDFLAGS = $(LIB)
+TARGET = libINLAtools.so
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+
+$(TARGET) : $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp $(LIBLTDL) -lm
+
+clean :; rm -f $(TARGET) $(OBJ)

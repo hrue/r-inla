@@ -2,62 +2,203 @@ Package: INLA
 Type: Package
 Title: Full Bayesian Analysis of Latent Gaussian Models using Integrated Nested Laplace Approximations
 Authors@R: c(
-    person("Havard", "Rue", email = "hrue@r-inla.org", role = c("cre", "aut")),
+    person("Havard", "Rue", email = "hrue@r-inla.org", role = c("cre","aut")),
     person("Finn", "Lindgren", email = "finn.lindgren@gmail.com", role = "aut"),
-    person("Daniel", "Simpson", email = "dp.simpson@gmail.com", role = "aut"),
-    person("Sara", "Martino", email = "saramartino0@gmail.com", role = "aut"),
-    person("Elias", "Teixeira Krainski", email = "elias.krainski@math.ntnu.no", role = "aut"), 
-    person("Haakon", "Bakka", email = "bakka@r-inla.org", role = "aut"),
-    person("Andrea", "Riebler", email = "andrea.riebler@math.ntnu.no", role = "aut"),
-    person("Geir-Arne", "Fuglstad", email = "geirarne.fulgstad@gmail.com", role = "aut"),
-    person("Martin", "Modrak", email = "modrak.m@email.cz", role = "ctb"),
+    person("Elias", "Teixeira Krainski", email = "elias@r-inla.org", role = "aut"), 
+    person("Sara", "Martino", email = "saramartino0@gmail.com", role = "ctb"),
+    person("Haakon", "Bakka", email = "bakka@r-inla.org", role = "ctb"),
+    person("Daniel", "Simpson", email = "dp.simpson@gmail.com", role = "ctb"),
+    person("Andrea", "Riebler", email = "andrea.riebler@math.ntnu.no", role = "ctb"),
+    person("Geir-Arne", "Fuglstad", email = "geirarne.fulgstad@gmail.com", role = "ctb"),
     person("Cristian", "Chiuchiolo", email = "cristian.chiuchiolo@kaust.edu.sa", role = "ctb"))
 Description: Full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion. It is a front-end to the inla-program.
+Additional_repositories: http://inlabru-org.r-universe.dev/
 Depends:
-    R (>= 3.2),
-    Matrix,
-    sp,
-    parallel,
-    foreach
-Suggests:
-    Deriv,
-    devtools,
-    doParallel,
-    dplyr,
-    fields,
-    graph,
-    gridExtra,
-    HKprocess,
-    knitr,
-    markdown,
-    MatrixModels,
-    matrixStats,
-    mvtnorm,
-    numDeriv,
-    orthopolynom,
-    pixmap,
-    rgdal,
-    rgeos,
-    rgl,
-    Rgraphviz,
-    rmarkdown,
-    sn,
-    splancs,
-    spdep
+    R (>= 3.5),
+    Matrix (>= 1.3-0)
 Imports:
     graphics,
     grDevices,
+    fmesher (>= 0.5.0),
+    lifecycle,
     methods,
-    shiny,
+    parallel,
+    rlang,
     splines,
     stats,
-    utils
+    utils,
+    withr,
+    MatrixModels
+Suggests:
+    compositions,
+    Deriv,
+    Ecdat,
+    Rgraphviz,
+    deldir,
+    devtools,
+    doParallel,
+    dplyr,
+    evd,
+    fastGHQuad,
+    fields,
+    ggplot2,
+    ggpubr,
+    gsl,
+    graph,
+    gridExtra,
+    knitr,
+    markdown,
+    MASS,
+    matrixStats,
+    mlogit,
+    mvtnorm,
+    numDeriv,
+    pixmap,
+    rgl,
+    rmarkdown,
+    runjags,
+    sf,
+    shiny,
+    sn,
+    sp (>= 1.6-0),
+    spdep,
+    splancs,
+    terra,
+    tidyterra,
+    testthat,
+    tools,
+    INLAspacetime
 VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
-License: GPL (>= 2)
-Version: 99.99.9999
-Date: 9999-99-99
-RoxygenNote: 7.1.0
+License: MIT + file LICENSE
+Version: 25.07.11.9000
+RoxygenNote: 7.3.3
 Encoding: UTF-8
 StagedInstall: no
+Collate: 
+    '00000.R'
+    'INLA-package.R'
+    'agaussian.R'
+    'ar.R'
+    'barrier.R'
+    'binary.R'
+    'binary.install.R'
+    'cgeneric.R'
+    'changelog.R'
+    'cloglike.R'
+    'collect.results.R'
+    'compare.results.R'
+    'control.R'
+    'coxph.R'
+    'cpo.R'
+    'create.data.file.R'
+    'cut.R'
+    'debug.graph.R'
+    'dev.new.R'
+    'display.matrix.R'
+    'doc.R'
+    'dryrun.R'
+    'expand.dataframe.R'
+    'export-class.R'
+    'external-package.R'
+    'f.R'
+    'fgn.R'
+    'finn.R'
+    'fmesher-io.R'
+    'fmesher-transition.R'
+    'fmesher.R'
+    'graph.convert.R'
+    'graph.matrix.R'
+    'group.R'
+    'group.cv.R'
+    'hyper.R'
+    'hyperpar.R'
+    'idx.R'
+    'iidkd.R'
+    'inla.R'
+    'inla.call.R'
+    'inlaEnv.R'
+    'interpret.formula.R'
+    'jmarginal.R'
+    'jp.R'
+    'knmodels.R'
+    'knmodels.sample.R'
+    'lattice2node.R'
+    'lincomb.R'
+    'link-functions.R'
+    'list-models.R'
+    'load.R'
+    'marginal.R'
+    'mdata.R'
+    'merge.R'
+    'mesh.R'
+    'mesh.components.R'
+    'meshassessment.R'
+    'meshbuilder.R'
+    'model-wrapper.R'
+    'models-generate.R'
+    'models.R'
+    'models_documentation.R'
+    'nmix.lambda.fitted.R'
+    'obsolete.R'
+    'options.R'
+    'os.R'
+    'over_sp_mesh.R'
+    'pardiso.R'
+    'pc-alphaw.R'
+    'pc-ar.R'
+    'pc-bym.R'
+    'pc-cor0.R'
+    'pc-cor1.R'
+    'pc-cormat.R'
+    'pc-gamma.R'
+    'pc-gammacount.R'
+    'pc-gev.R'
+    'pc-multvar.R'
+    'pc-prec.R'
+    'pc-prw2-range.R'
+    'pc-sn.R'
+    'pc-t.R'
+    'pc-vm0.R'
+    'pc-vminf.R'
+    'pin.R'
+    'plot.R'
+    'posterior.sample.R'
+    'print.R'
+    'priors.used.R'
+    'prune.R'
+    'q.R'
+    'qinv.R'
+    'qreordering.R'
+    'qsample.R'
+    'qsolve.R'
+    'quantile-regression.R'
+    'read.graph.R'
+    'remote.R'
+    'reorderings.R'
+    'rerun.R'
+    'residuals.R'
+    'rgeneric.R'
+    'rprior.R'
+    'sampler.R'
+    'sandbox.R'
+    'scale.model.R'
+    'scopy.define.R'
+    'scopy.summary.R'
+    'sections.R'
+    'set.default.arguments.R'
+    'sm.R'
+    'spde.common.R'
+    'spde1.R'
+    'spde2.R'
+    'spde3.R'
+    'spmesh.R'
+    'stack.R'
+    'startup.R'
+    'summary.R'
+    'surv.R'
+    'upgrade.R'
+    'utils.R'
+    'version.R'
+Roxygen: list(markdown = TRUE)

@@ -1,0 +1,85 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Prior for the intercept in the skew-normal link}
+
+\subsection*{Parametrisation}
+The skew-normal link parameterise the intercept implicitely through
+the quantile level $q$ as a function of the skewness, which for zero
+skewness equals the normal intercept in the probit link,
+\begin{equation}
+    \mu = \Phi^{-1}(q).
+\end{equation}
+Further the quantile level $q$ is represented by 
+\begin{equation}
+    q = \frac{\exp(\theta)}{1+\exp(\theta)}
+\end{equation}
+for the (internal) hyperparameter $\theta$. The
+\texttt{linksnintercept} prior is the implied prior for $\theta$ when
+$\mu$ is Normal with a given mean and precision.
+
+Note that zero precision is interpreted that the Normal density is
+uniform with unit density.
+
+\subsection*{Specification}
+\begin{center}
+    \texttt{..., prior="linksnintercept", param=c(<mean>, <precision>),...}
+\end{center}
+
+\subsection*{Example}
+
+This example just shows that the implied prior for the intercept is
+the same for probit and snlink.
+
+\begin{verbatim}
+n = 200
+Ntrials = 200
+x = rnorm(n, sd = 0.5)
+eta = x
+skew <- 0.0
+prob = inla.link.invsn(eta, skew = skew, intercept = 0.75)
+y = rbinom(n, size = Ntrials,  prob = prob)
+
+r = inla(y ~ 1 + x,
+         family = "binomial",
+         data = data.frame(y, x),
+         Ntrials = Ntrials,
+         control.fixed = list(remove.names = "(Intercept)",
+                              prec = 1), 
+         control.family = list(
+             control.link = list(
+                 model = "sn",
+                 hyper = list(
+                     skew = list(initial = 0,
+                                 fixed = TRUE),
+                     intercept = list(param = c(0, 1))))))
+
+rr = inla(y ~ 1 + x,
+         family = "binomial",
+         data = data.frame(y, x),
+         Ntrials = Ntrials,
+         control.fixed = list(prec = 1, prec.intercept = 1), 
+         control.family = list(
+             control.link = list(
+                 model = "probit")), 
+         verbose = TRUE)
+
+r$mlik - rr$mlik
+\end{verbatim}
+
+
+\subsection*{Notes}
+
+This is the default prior for the intercept in the skew-normal link. 
+
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

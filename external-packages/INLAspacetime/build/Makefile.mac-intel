@@ -1,0 +1,11 @@
+CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic -I.
+LDFLAGS = -framework Accelerate 
+TARGET = libINLAspacetime.so
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
+
+$(TARGET) : $(OBJ)
+	  $(CC) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -Wl,-force_load,$(LIBGOMP) -lm
+
+clean :; rm -f $(TARGET) $(OBJ)
+

@@ -15,6 +15,10 @@ The Type 1 generic model implements the following precision matrix
 where $\mathbf{C}$ is the structure matrix. The parameter
 $\lambda_{max}$ is the maximum eigenvalue of $\mathbf{C}$, which
 allows $\beta$ to be in the range $\beta\in[0,1)$
+
+\textbf{Note that $\lambda_{max}$ is computed unless given, which can be very
+time consuming for a large dimension.}
+
 \subsection*{Hyperparameters}
 
 The two parameters of the generic1 model are represented as
@@ -30,7 +34,7 @@ The generic1 model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="generic1",Cmatrix = <Cmat>, hyper = <hyper>)
 \end{verbatim}
-where {\tt <Cmat>} can be given in two different ways:
+{\tt <Cmat>} can be given in two different ways:
 \begin{itemize}
 \item a dense matrix or a sparse-matrix defined be
     \texttt{Matrix::sparseMatrix()}.

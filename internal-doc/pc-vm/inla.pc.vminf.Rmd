@@ -1,0 +1,406 @@
+---
+title: "inla.pc.vminf"
+author: "Xiang Ye"
+date: "2025-03-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(INLA)
+source("inla.pc.vminf.R")
+```
+
+
+# inla.pc.dvminf
+
+$0 \leq \kappa \leq 10$:
+
+```{r}
+k <- seq(0,10,0.01)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+$0 \leq \kappa \leq 350$:
+
+```{r}
+k <- seq(0,350,0.01)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+$350 < \kappa \leq 700$:
+
+```{r}
+k <- seq(351.01,700,0.01)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+$\kappa > 700$:
+
+```{r}
+k <- seq(700.01,2000,0.01)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+
+
+Around $\kappa=350$:
+
+```{r}
+k <- seq(300,400,0.1)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+Around $\kappa=700$:
+
+```{r}
+k <- seq(600,800,0.1)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+For $\kappa$ too large:
+
+```{r}
+k <- c(1e+308,2e+308,1e+309,1e+400)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+dens
+dens.log
+```
+
+
+**Entire domain:**
+
+```{r}
+k <- seq(0,1000,0.01)
+dens <- inla.pc.dvminf(k, lambda=1)
+dens.log <- inla.pc.dvminf(k,lambda=1,log=TRUE)
+par(mfrow=c(1,2))
+plot(k,dens,type="l")
+plot(k,dens.log,type="l")
+```
+
+
+
+
+# inla.pc.pvminf
+
+$0 \leq \kappa \leq 700$:
+
+```{r}
+q.low <- seq(0,700,0.1)
+q.high <- seq(700.1,1500,0.1)
+prob.low <- inla.pc.pvminf(q.low, lambda=1)
+prob.high <- inla.pc.pvminf(q.high, lambda=1)
+prob.low.log <- inla.pc.pvminf(q.low, lambda=1,log=TRUE)
+prob.high.log <- inla.pc.pvminf(q.high, lambda=1,log=TRUE)
+par(mfrow=c(1,4))
+plot(q.low,prob.low,type="l")
+plot(q.high,prob.high,type="l")
+plot(q.low,prob.low.log,type="l")
+plot(q.high,prob.high.log,type="l")
+```
+
+For $\kappa$ too large:
+
+```{r}
+q <- c(1e+308,2e+308,1e+309,1e+400)
+prob <- inla.pc.pvminf(q, lambda=1)
+prob.log <- inla.pc.pvminf(q,lambda=1,log=TRUE)
+prob
+prob.log
+prob==1
+```
+
+
+**Entire domain:**
+
+```{r}
+q.700 <- seq(600,800,0.01)
+q <- seq(0,1000,0.1)
+prob.700 <- inla.pc.pvminf(q.700, lambda=1)
+prob <- inla.pc.pvminf(q, lambda=1)
+par(mfrow=c(1,2))
+plot(q.700,prob.700,type="l")
+plot(q,prob,type="l")
+
+```
+
+
+# inla.pc.qvminf
+
+**boundary values:**
+
+```{r}
+print(inla.pc.qvminf(0,lambda=1))
+print(inla.pc.qvminf(1,lambda=1))
+```
+**small $\lambda$**:
+
+```{r}
+p <- seq(0,0.999,0.001)
+quant.1 <- inla.pc.qvminf(p,lambda=1)
+quant.10 <- inla.pc.qvminf(p,lambda=10)
+quant.01 <- inla.pc.qvminf(p,lambda=0.1)
+par(mfrow=c(1,3))
+plot(p,quant.1,type="l")
+plot(p,quant.10,type="l")
+plot(p,quant.01,type="l")
+```
+
+```{r}
+p <- seq(0.99,0.999,0.00001)
+quant.1 <- inla.pc.qvminf(p,lambda=1)
+quant.10 <- inla.pc.qvminf(p,lambda=10)
+quant.01 <- inla.pc.qvminf(p,lambda=0.1)
+par(mfrow=c(1,3))
+plot(p,quant.1,type="l")
+plot(p,quant.10,type="l")
+plot(p,quant.01,type="l")
+```
+
+
+**large $\lambda$ with default len (2048L) and len=10000L**:
+
+```{r}
+p <- seq(0,0.999,0.001)
+quant.2048L <- inla.pc.qvminf(p,lambda = 100)
+quant.4096L <- inla.pc.qvminf(p,lambda = 100, len = 10000L)
+par(mfrow=c(1,2))
+plot(p,quant.2048L,type="l")
+plot(p,quant.4096L,type="l")
+# Both have warnings
+```
+
+
+# inla.pc.rvminf
+
+```{r}
+n <- 3000
+```
+
+```{r}
+set.seed(1314)
+ks.1 <- inla.pc.rvminf(n,lambda=1)
+ks.10 <- inla.pc.rvminf(n,lambda=10)
+ks.100 <- inla.pc.rvminf(n,lambda=100)
+ks.1000 <- inla.pc.rvminf(n,lambda=1000)
+par(mfrow=c(1,4))
+hist(ks.1)
+hist(ks.10)
+hist(ks.100)
+hist(ks.1000)
+```
+
+
+Log-scale:
+
+
+
+
+```{r}
+set.seed(520)
+ks.10 <- inla.pc.rvminf(n,lambda=10)
+log.k <- seq(0.01,25,0.01)
+dens.10 <- inla.pc.dvminf(log.k,lambda=10)/(exp(log.k))
+par(mfrow=c(1,2))
+hist(log(ks.10))
+plot(log.k, dens.10, type='l')
+```
+
+```{r}
+set.seed(520)
+ks.50 <- inla.pc.rvminf(n,lambda=50)
+log.k <- seq(0.01,25,0.01)
+dens.50 <- inla.pc.dvminf(log.k,lambda=50)/(exp(log.k))
+par(mfrow=c(1,2))
+hist(log(ks.50))
+plot(log.k, dens.50, type='l')
+```
+
+```{r}
+set.seed(520)
+ks.100 <- inla.pc.rvminf(n,lambda=100)
+log.k <- seq(0.01,25,0.01)
+dens.100 <- inla.pc.dvminf(log.k,lambda=100)/(exp(log.k))
+par(mfrow=c(1,2))
+hist(log(ks.100))
+plot(log.k, dens.100, type='l')
+```
+
+```{r}
+set.seed(520)
+ks.300 <- inla.pc.rvminf(n,lambda=300)
+log.k <- seq(0.01,25,0.01)
+dens.300 <- inla.pc.dvminf(log.k,lambda=300)/(exp(log.k))
+par(mfrow=c(1,2))
+hist(log(ks.300))
+plot(log.k, dens.300, type='l')
+```
+
+```{r}
+set.seed(520)
+ks.1000 <- inla.pc.rvminf(n,lambda=1000)
+log.k <- seq(0.01,60,0.01)
+dens.1000 <- inla.pc.dvminf(log.k,lambda=1000)/(exp(log.k))
+par(mfrow=c(1,2))
+hist(log(ks.1000))
+plot(log.k, dens.1000, type='l')
+```
+
+
+
+
+
+
+
+
+# additional:
+
+
+
+```{r}
+par(mfrow=c(1,2))
+k <- seq(0,1000,0.1)
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=10),lambda=10),col="red")
+abline(a=0,b=1)
+k <- seq(600,800,0.1)
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=10),lambda=10),col="red")
+abline(a=0,b=1)
+```
+
+
+$\lambda=1$:
+
+```{r}
+par(mfrow=c(1,2))
+k <- seq(0,1e+25,1e+22)
+res <- inla.pc.qvminf(inla.pc.pvminf(k,lambda=1),lambda=1)
+plot(k,res,col="red")
+abline(a=0,b=1)
+
+k <- seq(0,1e+26,1e+23)
+res <- inla.pc.qvminf(inla.pc.pvminf(k,lambda=1),lambda=1)
+plot(k,res,col="red")
+abline(a=0,b=1)
+```
+
+```{r}
+par(mfrow=c(1,2))
+k <- seq(0,1e+27,1e+24)
+res <- inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=1,log=TRUE)),lambda=1)
+plot(k,res,col="red")
+abline(a=0,b=1)
+
+k <- seq(0,1e+28,1e+25)
+res <- inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=1,log=TRUE)),lambda=1)
+plot(k,res,col="red")
+abline(a=0,b=1)
+```
+
+
+$\lambda=0.1$:
+
+```{r}
+par(mfrow=c(1,3))
+k <- seq(0,1e+24,1e+21)
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=0.1),lambda=0.1),col="red")
+abline(a=0,b=1)
+
+k <- seq(0,1e+25,1e+22)
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=0.1),lambda=0.1),col="red")
+abline(a=0,b=1)
+
+k <- seq(0,1e+26,1e+24)
+plot(k,inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=0.1,log=TRUE)),lambda=0.1),col="red")
+abline(a=0,b=1)
+```
+
+$\lambda=10$:
+
+```{r}
+par(mfrow=c(1,2))
+k <- seq(0,1e+28,1e+25)
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=10),lambda=10),col="red")
+abline(a=0,b=1)
+
+k <- seq(0,1e+29,1e+26)
+plot(k,inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=10,log=TRUE)),lambda=10),col="red")
+abline(a=0,b=1)
+```
+
+
+$\lambda=100$:
+
+```{r}
+k <- seq(0,1000,1)
+par(mfrow=c(1,2))
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=100),lambda=100),col="red")
+abline(a=0,b=1)
+plot(k,inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=100,log=TRUE)),lambda=100),col="red")
+abline(a=0,b=1)
+```
+```{r}
+k <- seq(0,10,0.1)
+par(mfrow=c(1,2))
+plot(k,inla.pc.qvminf(inla.pc.pvminf(k,lambda=100),lambda=100),col="red")
+abline(a=0,b=1)
+plot(k,inla.pc.qvminf(exp(inla.pc.pvminf(k,lambda=100,log=TRUE)),lambda=100),col="red")
+abline(a=0,b=1)
+```
+
+
+reason for the issues of without exp(log()) when $\kappa$ is small:
+
+```{r}
+k <- seq(3,5,0.02)
+inla.pc.pvminf(k,lambda=100)
+```
+
+```{r}
+print("inla.pc.qvminf(1.110223e-16,lambda=100) returns:")
+inla.pc.qvminf(1.110223e-16,lambda=100)
+print("But:")
+print("inla.pc.pvminf(4.039938,lambda=100)=")
+inla.pc.pvminf(4.039938,lambda=100)
+print("inla.pc.pvminf(4,lambda=100)=")
+inla.pc.pvminf(4,lambda=100)
+print("inla.pc.pvminf(3.91,lambda=100)=")
+inla.pc.pvminf(3.91,lambda=100)
+print("And, inla.pc.pvminf(3.9,lambda=100)=")
+inla.pc.pvminf(3.9,lambda=100)
+print("The value is too small that R regards it as 0.")
+```

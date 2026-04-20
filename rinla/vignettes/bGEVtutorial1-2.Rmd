@@ -2,10 +2,13 @@
 title: "Blended GEV: a tutorial using R-INLA"
 subtitle: "Version 1.2"
 author: \normalfont{Daniela Castro-Camilo {\small{$\bullet$}} daniela.castrocamilo@glasgow.ac.uk}
-output:
-  pdf_document:
-    toc: false
-    number_sections: true
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Blended GEV: a tutorial using R-INLA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+  - \usepackage{xcolor}
 ---
 \def\F{\text{F}}
 \def\G{\text{G}}
@@ -13,11 +16,15 @@ output:
 ```{r setup, include=FALSE}
 set.seed(123)
 library(knitr)
-knitr::opts_chunk$set(echo = TRUE, results = 'show', fig.keep = 'high', fig.align = 'center', fig.pos = 'h')
+knitr::opts_chunk$set(echo = TRUE, results = 'show', 
+	fig.keep = 'high', fig.align = 'center', fig.pos = 'h')
+knitr::opts_chunk$set(fig.path="figures/bgev/")
 
 library(INLA)
 inla.setOption(smtp="taucs")
-inla.setOption(num.threads=1)
+inla.setOption(num.threads="1:1")
+inla.setOption(inla.mode="experimental")
+if (file.exists("myinit.R")) source("myinit.R")
 ```
 
 
@@ -209,11 +216,11 @@ $\alpha-$quantile, $q_\alpha$. The model we want to fit is
 
 ## Data simulation{#sec:datasim1}
 
-We start by generating $n=300$ samples from \eqref{eq:sim.model1}
+We start by generating $n=1000$ samples from \eqref{eq:sim.model1}
 
 ```{r}
-n = 300
-x = rnorm(n) # we generate values for x from a N(0,1) dist.
+n = 1000
+x = rnorm(n, sd=0.5) # we generate values for x from a N(0,0.5^2) dist.
 eta.x = 1 + 0.4*x
 ```
 
@@ -311,7 +318,7 @@ hyper.tail = list(initial = tail.intern,
 ```
 
 \textbf{Note:} if we have reasons to believe that $\xi=0$ (Gumbel
-case), then a good initial value is $\infty$ (in the internal
+case), then a good initial value is $-\infty$ (in the internal
 parametrisation). We can generalise the prior specification for the
 tail to allow $\xi>0$ or $\xi=0$ as follows
 
@@ -348,7 +355,6 @@ control.bgev = list(q.location = p.alpha,
                     # the Beta(s1, s2) mixing distribution parameters. 
                     # Hard-coded for the moment: s1=s2=5
                     beta.ab = 5)
-
 ```
 
 ## INLA fit{#sec:fit1}
@@ -395,9 +401,10 @@ r1 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
+	     control.fixed = list(prec=1000),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted fixed effects and hyperparameters can be
@@ -437,10 +444,10 @@ s_\beta &= \exp(0.1 + 0.3\texttt{x}_{2})\nonumber\\
 
 ## Data simulation{#sec:datasim2}
 
-As before, we start by generating $n=300$ samples from \eqref{eq:sim.model2}
+As before, we start by generating $n=1000$ samples from \eqref{eq:sim.model2}
 
 ```{r}
-n = 300
+n = 1000
 x1 = rnorm(n)
 eta.x = 1 + 0.4*x1
 ```
@@ -448,9 +455,9 @@ eta.x = 1 + 0.4*x1
 The spread and tail parameter can be simulated as follows
 
 ```{r}
-x2 = rnorm(n)
+x2 = rnorm(n, sd= 0.2)
 s.x = exp(0.1 + 0.3*x2)
-x3 = runif(n,-0.5,2)
+x3 = runif(n,-0.25,1)
 t.x = 0.1 + 0.2*x3
 tail.intern = map.tail(t.x, tail.interval, inverse=TRUE) # internal xi
 ```
@@ -522,10 +529,10 @@ r2 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
+	     control.fixed = list(prec=1000),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
-
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted fixed effects and hyperparameters can be
@@ -570,24 +577,23 @@ There are many ways we can simulate dara to fit \eqref{eq:sim.model3}.
 One alternative is
 
 ```{r, eval = T}
-n = 300
-x1 = rnorm(n)
+n = 1000
+x = rnorm(n)
 z1 = seq(0, 6, length.out = n)
 z2 = 1:n
 p = 2 # AR order
 pacf = runif(p)
 phi = inla.ar.pacf2phi(pacf)
 eta.x = 1 + 0.4*x + sin(z1) + c(scale(arima.sim(n, model = list(ar = phi))))
-
 ```
 
 The spread and tail parameter are simulated as before:
 
 ```{r}
-x2 = rnorm(n)
-x4 = rnorm(n)
+x2 = rnorm(n, sd = 0.2)
+x4 = rnorm(n, sd = 0.2)
 s.x = exp(0.1 + 0.3*x2 + x4)
-x3 = runif(n,-0.5,2)
+x3 = runif(n,-0.2, 0.2)
 t.x = 0.1 + 0.2*x3
 tail.intern = map.tail(t.x, tail.interval, inverse=TRUE) # internal xi
 ```
@@ -631,8 +637,15 @@ spread.xx = x4
 tail.x = x3
 # With this change of variable it is easier to keep track of the effect 
 # of the covariates in each parameter, but it is not needed.
-formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ 1 + intercept + x + 
-          f(z1, model = "rw1") + f(z2, model = 'ar', order = 2)
+formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ -1 + intercept + x + 
+	f(z1, model = "rw1", scale.model=TRUE, constr=TRUE,
+		hyper = list(prec = list(prior = "pc.prec", 
+		param = c(0.1, 0.01)))) +
+    f(z2, model = 'ar', order = 1, 
+		   hyper=list(prec=list(prior="pc.prec", constr=TRUE,
+		                        param=c(0.1,0.01)),
+                      pacf1=list(param=c(0.5,0.8),
+                      pacf2=list(param=c(0.5,0.8)))))
 data.bgev = data.frame(y = y, intercept = 1, x = x, z1 = z1, z2 = z2,
                        spread.x = spread.x, spread.xx = spread.xx, tail.x = tail.x)
 r3 = inla(formula,
@@ -641,9 +654,12 @@ r3 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
+	     control.fixed = list(prec=1000,prec.intercept=1000),
          control.compute = list(cpo = TRUE),
-         control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
+         control.inla = list(int.strategy = "eb",
+	                         cmin=0,
+	                         b.strategy="keep"),
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted effects and hyperparameters can be obtained as

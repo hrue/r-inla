@@ -11,7 +11,7 @@ LD      = $(FC)
 
 PROGS = example-blockupdate example-blockupdate-with-error-control \
 	example-graph1 example-graph2 example-sample \
-	example-wa example-rw example-geo example-qinv example-sphere \
+	example-wa example-rw example-qinv example-sphere \
 	example-rng example-error-handler example-graph-edit example-bitmap \
 	example-auxvar example-approx-1 example-approx-2 example-approx-3 \
 	example-hgmrfm-1 example-hgmrfm-2 example-blockupdate-2 example-matern2d
@@ -20,10 +20,10 @@ PROGS = example-blockupdate example-blockupdate-with-error-control \
 
 EXTLIBS = $(LEXTLIBS) -lgsl -ltaucs -lmetis -llapack -lblas -lgsl -lgslcblas -lz -lm
 
-EXAMPLES_MANUAL = ../example_doxygen_geo.txt ../example_doxygen_block_1.txt \
+EXAMPLES_MANUAL = ../example_doxygen_block_1.txt \
 		../example_doxygen_graph_1.txt ../example_doxygen_graph_4.txt \
 		../example_doxygen_rw_1.txt ../example_doxygen_wa_1.txt \
-		../example_doxygen_sphere.txt	../example_doxygen_rng.txt \
+		../example_doxygen_rng.txt \
 		../example_doxygen_error_handler.txt ../example_doxygen_problem_1.txt \
 		../example_doxygen_graph_edit.txt ../example_doxygen_bitmap.txt ../example_auxvar.txt \
 		../example_doxygen_approx_1.txt ../example_doxygen_approx_2.txt ../example_doxygen_approx_3.txt \
@@ -45,9 +45,6 @@ examples-manual: $(EXAMPLES_MANUAL)
 ../example_doxygen_rng.txt : example-rng.c
 	expand $< > $@
 
-../example_doxygen_geo.txt : example-geo.c
-	expand $< > $@
-
 ../example_doxygen_block_1.txt : example-blockupdate.c
 	expand $< > $@
 
@@ -61,9 +58,6 @@ examples-manual: $(EXAMPLES_MANUAL)
 	expand $< > $@
 
 ../example_doxygen_wa_1.txt : example-wa.c
-	expand $< > $@
-
-../example_doxygen_sphere.txt : example-sphere.c
 	expand $< > $@
 
 ../example_doxygen_error_handler.txt : example-error-handler.c
@@ -130,13 +124,7 @@ example-wa : example-wa.o
 example-rw : example-rw.o
 	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
 
-example-geo : example-geo.o
-	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib  -l$(GMRFLibNAME)-geo -l$(GMRFLibNAME) $(EXTLIBS)
-
 example-qinv : example-qinv.o
-	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
-
-example-sphere : example-sphere.o
 	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
 
 example-approx-1 : example-approx-1.o

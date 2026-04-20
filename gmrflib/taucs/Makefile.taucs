@@ -1,0 +1,93 @@
+AR        = ar cr
+RANLIB    = ranlib
+RM        = rm -rf
+
+default: all
+
+DIRSRC=src/
+DIREXTSRC=external/
+DIRLIB=lib/
+DIROBJ=obj/
+
+INCS = $(DIRSRC)taucs.h $(DIRSRC)taucs_private.h
+EXEEXT= 
+PATHSEP=/
+DEFFLG=-D
+
+STDINCS = -I$(DIRSRC) -I$(DIRBLD) -I$(DIREXTSRC) $(OSTYPE_INCS) $(OSTYPE_VARIANT_INCS)
+STDDEFS = $(OSTYPE_DEFS) $(OSTYPE_VARIANT_DEFS)
+
+FILES = \
+	config/*.mk \
+	$(DIREXTSRC)*.h \
+	$(DIREXTSRC)*.c \
+	$(DIREXTSRC)*.f \
+	$(DIRSRC)*.c \
+	$(DIRSRC)*.h 
+
+$(DIROBJ)taucs_sn_llt.o: $(DIRSRC)taucs_sn_llt.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_sn_llt.c -o $(DIROBJ)taucs_sn_llt.o
+$(DIROBJ)taucs_sn_llt_D.o: $(DIRSRC)taucs_sn_llt.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_sn_llt.c -o $(DIROBJ)taucs_sn_llt_D.o
+$(DIROBJ)taucs_ccs_base.o: $(DIRSRC)taucs_ccs_base.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_base.c -o $(DIROBJ)taucs_ccs_base.o
+$(DIROBJ)taucs_ccs_base_D.o: $(DIRSRC)taucs_ccs_base.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_base.c -o $(DIROBJ)taucs_ccs_base_D.o
+$(DIROBJ)taucs_ccs_order.o: $(DIRSRC)taucs_ccs_order.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_order.c -o $(DIROBJ)taucs_ccs_order.o
+$(DIROBJ)taucs_ccs_solve_llt.o: $(DIRSRC)taucs_ccs_solve_llt.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_GENERAL $(DIRSRC)taucs_ccs_solve_llt.c -o $(DIROBJ)taucs_ccs_solve_llt.o
+$(DIROBJ)taucs_ccs_solve_llt_D.o: $(DIRSRC)taucs_ccs_solve_llt.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) -DTAUCS_CORE_DOUBLE $(DIRSRC)taucs_ccs_solve_llt.c -o $(DIROBJ)taucs_ccs_solve_llt_D.o
+$(DIROBJ)readhb.o: $(DIREXTSRC)readhb.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)readhb.f -o $(DIROBJ)readhb.o
+$(DIROBJ)amdatr.o: $(DIREXTSRC)amdatr.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdatr.f -o $(DIROBJ)amdatr.o
+$(DIROBJ)amdbar.o: $(DIREXTSRC)amdbar.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdbar.f -o $(DIROBJ)amdbar.o
+$(DIROBJ)amdNEW.o: $(DIREXTSRC)amdNEW.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdNEW.f -o $(DIROBJ)amdNEW.o
+$(DIROBJ)amdbarNEW.o: $(DIREXTSRC)amdbarNEW.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdbarNEW.f -o $(DIROBJ)amdbarNEW.o
+$(DIROBJ)amdexa.o: $(DIREXTSRC)amdexa.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdexa.f -o $(DIROBJ)amdexa.o
+$(DIROBJ)amdhaf.o: $(DIREXTSRC)amdhaf.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdhaf.f -o $(DIROBJ)amdhaf.o
+$(DIROBJ)amdhat.o: $(DIREXTSRC)amdhat.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdhat.f -o $(DIROBJ)amdhat.o
+$(DIROBJ)amdpre.o: $(DIREXTSRC)amdpre.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdpre.f -o $(DIROBJ)amdpre.o
+$(DIROBJ)amdtru.o: $(DIREXTSRC)amdtru.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)amdtru.f -o $(DIROBJ)amdtru.o
+$(DIROBJ)genmmd.o: $(DIREXTSRC)genmmd.f $(STDDEPS)
+	$(FC) -c $(FFLAGS) $(DIREXTSRC)genmmd.f -o $(DIROBJ)genmmd.o
+$(DIROBJ)colamd.o: $(DIREXTSRC)colamd.c $(INCS) $(STDDEPS)
+	$(CC) -c $(CFLAGS) $(STDDEFS) $(STDINCS) $(DIREXTSRC)colamd.c -o $(DIROBJ)colamd.o
+
+libtaucs_content = \
+  $(DIROBJ)taucs_sn_llt.o \
+  $(DIROBJ)taucs_sn_llt_D.o \
+  $(DIROBJ)taucs_ccs_base.o \
+  $(DIROBJ)taucs_ccs_base_D.o \
+  $(DIROBJ)taucs_ccs_order.o \
+  $(DIROBJ)taucs_ccs_solve_llt.o \
+  $(DIROBJ)taucs_ccs_solve_llt_D.o \
+  $(DIROBJ)readhb.o \
+  $(DIROBJ)amdatr.o \
+  $(DIROBJ)amdbar.o \
+  $(DIROBJ)amdbarNEW.o \
+  $(DIROBJ)amdNEW.o \
+  $(DIROBJ)amdexa.o \
+  $(DIROBJ)amdhaf.o \
+  $(DIROBJ)amdhat.o \
+  $(DIROBJ)amdpre.o \
+  $(DIROBJ)amdtru.o \
+  $(DIROBJ)genmmd.o \
+  $(DIROBJ)colamd.o 
+
+all: $(libtaucs_content)
+
+clean :; $(RM) $(DIROBJ)*.o
+.PHONY: clean all
+
+

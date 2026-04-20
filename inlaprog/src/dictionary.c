@@ -1,22 +1,6 @@
-
-/**
-   @file	dictionary.c
-   @author	N. Devillard
-   @date	Aug 2000
-   @version	$Revision: 1.30 $
-   @brief	Implements a dictionary for string variables.
-
-   This module implements a simple dictionary object, i.e. a list of string/string associations.
-   This object is useful to store e.g.  informations retrieved from a
-   configuration file (ini files).  */
-
-
-/*
-	$Id: dictionary.c,v 1.30 2009/03/30 16:47:04 hrue Exp $
-	$Author: hrue $
-	$Date: 2009/03/30 16:47:04 $
-	$Revision: 1.30 $
-*/
+#include <assert.h>
+#include <stddef.h>
+#include <omp.h>
 
 #include "dictionary.h"
 #include "iniparser.h"
@@ -44,7 +28,7 @@ static void *mem_double(void *ptr, int size)
 	void *newptr = NULL;
 
 	newptr = calloc((size_t) (2 * size), 1);
-	memcpy(newptr, ptr, (size_t) size);
+	Memcpy(newptr, ptr, (size_t) size);
 	free(ptr);
 	return newptr;
 }
@@ -120,7 +104,7 @@ dictionary *dictionary_new(int size)
 
   Deallocate a dictionary object and all memory associated to it.
  */
-void dictionary_del(dictionary * d)
+void dictionary_del(dictionary *d)
 {
 	int i;
 
@@ -154,7 +138,7 @@ void dictionary_del(dictionary * d)
   dictionary. The returned character pointer points to data internal to the
   dictionary object, you should not try to free it or modify it.
  */
-char *dictionary_get(dictionary * d, char *key, char *def)
+char *dictionary_get(dictionary *d, char *key, char *def)
 {
 	int i, *ip;
 
@@ -178,7 +162,7 @@ char *dictionary_get(dictionary * d, char *key, char *def)
   This function locates a key in a dictionary using dictionary_get,
   and returns the first char of the found string.
  */
-char dictionary_getchar(dictionary * d, char *key, char def)
+char dictionary_getchar(dictionary *d, char *key, char def)
 {
 	char *v = NULL;
 
@@ -200,7 +184,7 @@ char dictionary_getchar(dictionary * d, char *key, char def)
   and applies atoi on it to return an int. If the value cannot be found
   in the dictionary, the default is returned.
  */
-int dictionary_getint(dictionary * d, char *key, int def)
+int dictionary_getint(dictionary *d, char *key, int def)
 {
 	char *v = NULL;
 
@@ -222,7 +206,7 @@ int dictionary_getint(dictionary * d, char *key, int def)
   and applies atof on it to return a double. If the value cannot be found
   in the dictionary, the default is returned.
  */
-double dictionary_getdouble(dictionary * d, char *key, double def)
+double dictionary_getdouble(dictionary *d, char *key, double def)
 {
 	char *v = NULL;
 
@@ -255,7 +239,7 @@ double dictionary_getdouble(dictionary * d, char *key, double def)
   dictionary. It is not possible (in this implementation) to have a key in
   the dictionary without value.
  */
-void dictionary_set(dictionary * d, char *key, char *val)
+void dictionary_set(dictionary *d, char *key, char *val)
 {
 	int i = 0, *ip = NULL;
 
@@ -282,7 +266,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		 */
 		if (d->val[i] != NULL)
 			free(d->val[i]);
-		d->val[i] = val ? strdup(val) : NULL;
+		d->val[i] = val ? Strdup(val) : NULL;
 		map_stri_set(&(d->strihash), d->val[i], 0);
 	} else {
 		/*
@@ -327,8 +311,8 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		/*
 		 * Copy key 
 		 */
-		d->key[i] = strdup(key);
-		d->val[i] = val ? strdup(val) : NULL;
+		d->key[i] = Strdup(key);
+		d->val[i] = val ? Strdup(val) : NULL;
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);
@@ -354,7 +338,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
   This function deletes a key in a dictionary. Nothing is done if the
   key cannot be found.
  */
-void dictionary_unset(dictionary * d, char *key)
+void dictionary_unset(dictionary *d, char *key)
 {
 	int i, *ip;
 
@@ -393,7 +377,7 @@ void dictionary_unset(dictionary * d, char *key)
   This helper function calls dictionary_set() with the provided integer
   converted to a string using %d.
  */
-void dictionary_setint(dictionary * d, char *key, int val)
+void dictionary_setint(dictionary *d, char *key, int val)
 {
 	char sval[MAXVALSZ];
 
@@ -411,7 +395,7 @@ void dictionary_setint(dictionary * d, char *key, int val)
   This helper function calls dictionary_set() with the provided double
   converted to a string using %g.
  */
-void dictionary_setdouble(dictionary * d, char *key, double val)
+void dictionary_setdouble(dictionary *d, char *key, double val)
 {
 	char sval[MAXVALSZ];
 
@@ -429,7 +413,7 @@ void dictionary_setdouble(dictionary * d, char *key, double val)
   as @c [Key]=[Value], one per line. It is Ok to provide stdout or stderr as
   output file pointers.
  */
-void dictionary_dump(dictionary * d, FILE * out)
+void dictionary_dump(dictionary *d, FILE *out)
 {
 	int i;
 
@@ -446,7 +430,7 @@ void dictionary_dump(dictionary * d, FILE * out)
 	}
 	return;
 }
-char *dictionary_replace_variables(dictionary * d, char *str)
+char *dictionary_replace_variables(dictionary *d, char *str)
 {
 	/*
 	 * variable-replacement! added by hrue@math.ntnu.no 
@@ -457,7 +441,8 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 	}
 
 	char *first = NULL, *last = NULL, *newstr = NULL, *envvar = NULL, *var = NULL, *newvar = NULL;
-	int c, debug = 0;
+	int c;
+	const int debug = 0;
 	size_t len;
 	int i;
 
@@ -482,6 +467,7 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 	}
 
 	var = (char *) calloc(len + 1, sizeof(char));
+	assert(var);
 	var[0] = INIPARSER_SEP;
 	strncpy(var + 1, first + 1, len);
 	var[len] = '\0';
@@ -531,7 +517,7 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 
 	return str;
 }
-int dictionary_dump_unused(dictionary * d, FILE * out)
+int dictionary_dump_unused(dictionary *d, FILE *out)
 {
 	/*
 	 * dump unused entries, added by hrue@math.ntnu.no
@@ -562,7 +548,7 @@ int dictionary_dump_unused(dictionary * d, FILE * out)
 
 /* Example code */
 #ifdef TESTDIC
-#define NVALS 20000
+#       define NVALS 20000
 int main(int argc, char *argv[])
 {
 	dictionary *d = NULL;

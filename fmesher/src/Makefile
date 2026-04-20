@@ -10,7 +10,8 @@ CC = gcc
 CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe
+FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe -Wall -Wextra \
+  -Wsign-compare -Wundef -Wimplicit-fallthrough -fdiagnostics-color -Wshadow=compatible-local
 LD = $(CXX)
 INSTALL = install
 RSYNC = rsync
@@ -20,7 +21,8 @@ SED = sed
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
-EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+#EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib
 EXTLIBS2 = 
 EXTLIBS3 = 
 
@@ -53,13 +55,22 @@ ifeq ($(OS_TYPE), Windows)
   OS_LDFLAGS=
 endif
 
-# Deactivate X if specifically asked for:
-ifneq ($(FMESHER_USE_X), 1)
-  OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
+# Deactivate X if not specifically asked for:
+ifeq ($(FMESHER_USE_X), 1)
+  OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_X
+else
+  ifeq ($(FMESHER_WITH_X), 1)
+    OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_X
+  else
+    OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
+  endif
 endif
 ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
+
+# Activate GSL, only needed for spherical harmonics, which can be computed with the R gsl package instead
+# OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_GSL
 
 ################################################################################
 #
@@ -71,24 +82,18 @@ RM    = rm -f
 RMR   = rm -rf
 RMDIR = rmdir
 
-# Only try to update the hgstamp if hg is available.
-# Should also check if we are in a repository.
-# To use existing HG file, use "make HG= target"
-# Would be prettier and more robust with a mercurial update hook.
-HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
-
+GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 INCL    = -I$(PREFIX)/include
 ##LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
 LDFLAGSXX = $(FLAGS) $(OS_LDFLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
-CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
-CXXFLAGS  = -std=c++98 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
+CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
+CXXFLAGS  = -std=c++14 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
 FMESHER_TEST2 = treetest
-OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o locator.o trees.o
+OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o locator.o trees.o fmesher_helpers.o
 all: $(FMESHER)
 
 
@@ -127,7 +132,7 @@ cmdline:
 	gengetopt --file-name=cmdline --conf-parser --unamed-opts=PREFIX \
 		--long-help --func-name=cmdline < cmdline.ggo
 
-tags :; etags --output=TAGS *.c *.h *.cc *.hh *.tcc
+tags :; etags --output=TAGS *.c *.h *.cc *.h *.tcc
 
 clean:; -$(RM) $(OBJ) $(FMESHER).o $(FMESHER_TEST).o $(FMESHER_TEST2).o $(FMESHER) $(FMESHER_TEST) $(FMESHER_TEST2)
 clean-deps:
@@ -137,17 +142,18 @@ depend: $(dir $(DEPDIR))dependencies.d
 $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c) $(wildcard *.cc)
 	-$(RM) $(dir $(DEPDIR))dependencies.d
 	touch $(dir $(DEPDIR))dependencies.d
-	for file in *.c *.h *.cc *.hh *.tcc ; do \
+	for file in *.c *.h *.cc *.h *.tcc ; do \
 	  if [ -n "`grep CMDLINE_VERSION $$file`" ]; then \
 	    echo $$file | \
-	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: gitstamp/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi ; \
 	done
 
-hgstamp: dummytarget
+gitstamp: dummytarget
 	[ -f $@ ] || touch $@
-	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
+	echo '$(GITCOMMIT)' | cmp -s $@ - || echo '$(GITCOMMIT)' > $@
+
 dummytarget: ;
 
 .PHONY: depend clean clean-deps uninstall install tags dummytarget cmdline

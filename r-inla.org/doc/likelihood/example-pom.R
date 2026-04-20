@@ -14,7 +14,7 @@ rpom = function(alpha, eta)
     return (y)
 }
 
-n = 300
+n = 3000
 nsim = 1E5
 x = rnorm(n, sd = 0.3)
 

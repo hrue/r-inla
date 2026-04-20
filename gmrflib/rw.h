@@ -1,59 +1,19 @@
-
-/* rw.h
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
-
-/*!
-  \file rw.h
-  \brief Typedefs used to define RW1, RW2, CRW1 and CRW2 models.
-*/
-
 #ifndef __GMRFLib_RW_H__
-#define __GMRFLib_RW_H__
+#       define __GMRFLib_RW_H__
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-#include <stdlib.h>
+#       include <stdlib.h>
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-
 
 /*!
   \struct GMRFLib_rwdef_tp rw.h
@@ -86,27 +46,6 @@ __BEGIN_DECLS
 	 */
 	int cyclic;
 
-	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
-
-	/**
-	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
-	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
-	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
-	 */
 	double **log_prec_omp;
 
 	/*
@@ -121,17 +60,17 @@ __BEGIN_DECLS
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], ..., z[n-1].
 */
-#define GMRFLib_CRW_LAYOUT_SIMPLE 0
+#       define GMRFLib_CRW_LAYOUT_SIMPLE 0
 
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], z'[0], z[1], z'[1]....
 */
-#define GMRFLib_CRW_LAYOUT_PAIRS  1
+#       define GMRFLib_CRW_LAYOUT_PAIRS  1
 
 /*!
   \brief Define the layout for the CRW2 model: Layout z[0], ..., z[n-1], z'[0], ..., z'[n-1]
 */
-#define GMRFLib_CRW_LAYOUT_BLOCK  2
+#       define GMRFLib_CRW_LAYOUT_BLOCK  2
 
 /*!
   \struct GMRFLib_crwdef_tp rw.h
@@ -160,21 +99,6 @@ typedef struct {
 	 * \brief Use a dense representation to allow for 'si'. (EXPERT Option)
 	 */
 	int si;
-
-	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
 
 	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
@@ -229,18 +153,16 @@ typedef struct {
 	 */
 	double *scale0;
 
-	/* 
+	/*
 	 * scale the prec: for any order. 
 	 */
 	double *prec_scale;
 } GMRFLib_crwdef_tp;
 
-
 typedef enum {
 	GMRFLib_BVALUE_DEFAULT = 0,			       /* do not change this */
 	GMRFLib_BVALUE_ZERO = 1
 } GMRFLib_rw2d_bvalue_tp;
-
 
 /*!
   \struct GMRFLib_rw2ddef_tp rw.h
@@ -250,7 +172,7 @@ typedef enum {
   presicion matrix.  \ref GMRFLib_make_rw2d_graph() can be used to create the appropirate graph. Currently only order=2 is
   supported, however, it does incorporate correct boundary conditions for the non-cyclic case.
 
-  \sa \ref GMRFLib_rw2d(), \ref GMRFLib_make_lattice_graph()
+  \sa \ref GMRFLib_rw2d(), \ref GMRFLib_graph_mk_lattice()
 */
 typedef struct {
 
@@ -277,41 +199,20 @@ typedef struct {
 	 */
 	int bvalue;
 
-	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
-
-	/**
-	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
-	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
-	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
-	 */
 	double **log_prec_omp;
-
 	double *prec_scale;
 } GMRFLib_rw2ddef_tp;
 
-double GMRFLib_rw(int node, int nnode, void *rwdef);
-double GMRFLib_crw(int node, int nnode, void *crwdef);
-double GMRFLib_rw2d(int node, int nnode, void *rw2ddef);
+double GMRFLib_rw0(int thread_id, int node, int nnode, double *values, void *def);
+double GMRFLib_rw(int thread_id, int node, int nnode, double *values, void *rwdef);
+double GMRFLib_crw(int thread_id, int node, int nnode, double *values, void *crwdef);
+double GMRFLib_rw2d(int thread_id, int node, int nnode, double *values, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
-int GMRFLib_crw_scale(void *def);
-int GMRFLib_rw_scale(void *def);
-int GMRFLib_rw2d_scale(void *def);
+int GMRFLib_crw_scale(int thread_id, void *def);
+int GMRFLib_rw_scale(int thread_id, void *def);
+int GMRFLib_rw2d_scale(int thread_id, void *def);
 
 __END_DECLS
 #endif

@@ -615,8 +615,6 @@ INPUT                  = doxygen_introduction.txt \
                          approx-inference.h \
                          graph-edit.c \
                          graph-edit.h \
-                         auxvar.c \
-                         auxvar.h \
                          design.c \
                          design.h \
                          version.c \

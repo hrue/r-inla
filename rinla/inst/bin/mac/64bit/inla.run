@@ -1,23 +1,29 @@
 #!/bin/bash
 
-myreadlink () {
-    (
-	TARGET_FILE=$1
-	cd `dirname $TARGET_FILE`
-	TARGET_FILE=`basename $TARGET_FILE`
-	while [ -L "$TARGET_FILE" ]
-	do
-	    TARGET_FILE=`readlink $TARGET_FILE`
-	    cd `dirname $TARGET_FILE`
-	    TARGET_FILE=`basename $TARGET_FILE`
-	done
-	PHYS_DIR=`pwd -P`
-	RESULT=$PHYS_DIR/$TARGET_FILE
-	echo $RESULT
-    )
-}
+if readlink -f / 2>/dev/null >/dev/null; then
+    myreadlink () {
+	readlink "$@"
+    }
+else
+    myreadlink () {
+	(
+	    shift 1
+	    tfile=$1
+	    cd $(dirname "$tfile")
+	    tfile=$(basename "$tfile")
+	    while [ -L "$tfile" ]
+	    do
+		tfile=$(myreadlink -f "$tfile")
+		cd $(dirname "$tfile")
+		tfile=$(basename "$tfile")
+	    done
+	    pdir=$(pwd -P)
+	    echo "$pdir/$tfile"
+	)
+    }
+fi
 
-cmd=$(myreadlink "$0")
+cmd=$(myreadlink -f "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}
@@ -34,21 +40,74 @@ fi
 
 ## this is the system path for libPng.dylib needed by grDevices.so
 ## when loadlib libR.dylib using rgeneric.
-pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
-pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
+pathA="/System/Library/Frameworks/ImageIO.framework/Versions/Current/Resources"
+pathB="/System/Library/Frameworks/OpenGL.framework/Versions/Current/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
-if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
-    PDIR="$DIR/../../pardiso/libpardiso/mac"
-else
-    PDIR="$DIR/../../pardiso/libnopardiso/mac"
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export DYLD_INSERT_LIBRARIES="${INLA_MALLOC_LIB}:$DYLD_INSERT_LIBRARIES"
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.dylib*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc*.dylib)
+			if [ -n "$DYLD_INSERT_LIBRARIES" ]; then
+			    export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+			else
+			    export DYLD_INSERT_LIBRARIES="$f"
+			fi
+			;;
+		esac
+	    done
+	done
+    fi
+    case "$DYLD_INSERT_LIBRARIES" in
+	*libjemalloc*.dylib) 
+	    ;;
+	*libmimalloc*.dylib) 
+	    ;;
+    esac
 fi
 
-export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export PARDISOLICMESSAGE=1
+export DYLD_LIBRARY_PATH="/usr/lib:$DIR/first:$DIR:/opt/local/lib:/opt/homebrew/lib:$LIBPNGPATH:/usr/lib:$DYLD_LIBRARY_PATH"
+
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    export OMP_DISPLAY_ENV=true
+    echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-    otool -L "$DIR/$prog"
-    export DYLD_PRINT_LIBRARIES=YES
+    
+    ##export DYLD_PRINT_OPTS="1"
+    ##export DYLD_PRINT_ENV="1"
+    export DYLD_PRINT_LIBRARIES="1"
+    ##export DYLD_PRINT_LIBRARIES_POST_LAUNCH="1"
+    ##export DYLD_PRINT_APIS="1"
+    ##export DYLD_PRINT_BINDINGS="1"
+    ##export DYLD_PRINT_INITIALIZERS="1"
+    ##export DYLD_PRINT_REBASINGS="1"
+    ##export DYLD_PRINT_SEGMENTS="1"
+    ##export DYLD_PRINT_STATISTICS="1"
+    ##export DYLD_PRINT_DOFS="1"
+    ##export DYLD_PRINT_RPATHS="1"
+
+    p="/usr/bin/sw_vers"
+    test -x $p && $p
+
+    for arg in "$@"; do
+	if [ -r "$arg" ]; then
+	    echo -e "\n*** FILE $arg:"
+	    grep ^### "$arg" 
+	    echo -e "*** END OF FILE $arg:\n"
+	fi
+    done
+
+fi
+
+if [ ! -z ${INLA_DEBUG+x} ]; then
+    set | grep -E '^(OMP_|VECLIB_)' | while read v; do echo "*** $0 *** $v"; done
+    echo " *** $0 *** exec $DIR/$prog $@"
 fi
 
 exec "$DIR/$prog" "$@"
+

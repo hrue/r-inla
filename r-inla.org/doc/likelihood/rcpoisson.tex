@@ -1,0 +1,82 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Randomly Censored Poisson (Experimental)}
+
+\subsection*{Parametrisation}
+
+The Poisson distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
+value.
+
+The randomly-censored Poisson allow the observations to have a known
+or unknown censoring: \texttt{event}$=1$ its observed as is, with
+\texttt{event}$=0$ its right censored, so the likelihood is
+\begin{displaymath}
+    \text{Prob}(Y \ge y) = \sum_{y' \ge y} \frac{\lambda^{y'}}{y'!}\exp(-\lambda),
+\end{displaymath}
+and for \texttt{event} $\not=0,1$ (after rounding from double to int)
+then its randomly censored where
+\begin{displaymath}
+    \text{Prob}(\text{event} = 1) = p(\cdot)
+\end{displaymath}
+and 
+\begin{displaymath}
+    \text{Prob}(\text{event} = 0) = 1-p(\cdot)
+\end{displaymath}
+where $p(\cdot)$ depends on covariates
+\begin{displaymath}
+    \text{logit}(p(\cdot)) = \text{offset} + \sum_{i=1} \beta_i x_i
+\end{displaymath}
+
+
+\subsection*{Link-function}
+
+The mean $\lambda$ is linked to the linear predictor by
+\begin{displaymath}
+    \lambda(\eta) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
+
+\subsection*{Hyperparameters}
+
+$\beta_1, \beta_2, \ldots$ if in use. Maximum $10$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="rcpoisson"}
+\item Data are given as an \texttt{inla.mdata}-object, with format
+    \begin{displaymath}
+        \text{inla.mdata}(y, E, \text{event}, \text{offset}, x_1,
+        x_2, \ldots)
+    \end{displaymath}
+    where maximum $10$ covariates can be given. Each argument is a
+    vector. Note that the four first columns are required, and the
+    covariates can be omitted if there are none.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/rcpoisson.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+\verbatiminput{example-rcpoisson.R}
+
+\subsection*{Notes}
+
+\end{document}
+% LocalWords:  np Hyperparameters Ntrials poisson
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

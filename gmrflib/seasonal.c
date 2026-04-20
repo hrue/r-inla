@@ -1,68 +1,19 @@
-
-/* seasonal.c
- * 
- * Copyright (C) 2007 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: seasonal.c,v 1.13 2008/10/26 03:21:48 hrue Exp $ */
-
-#include <time.h>
-#include <strings.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
 #include <stdlib.h>
+#include <strings.h>
+#include <time.h>
+
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
-/*!
- *  \file seasonal.c
- *  \brief This file contains support for a seasonal component in a time-series model.
- */
-
-
-/*!
- * \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for the seasonal component
- * defined in \c def.
-
- \param[in] node First node
- \param[in] nnode Second node
- \param[in] def The definition of the seasonal component
-
- \sa \ref GMRFLib_seasonaldef_tp, \ref GMRFLib_make_seasonal_graph
- */
-
-double GMRFLib_seasonal(int node, int nnode, void *def)
+double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
+	if (nnode < 0) {
+		return NAN;
+	}
+
 	int imax, imin, diff;
 	double prec, val = 0.0;
 	GMRFLib_seasonaldef_tp *sdef = (GMRFLib_seasonaldef_tp *) def;
@@ -98,10 +49,12 @@ double GMRFLib_seasonal(int node, int nnode, void *def)
 	prec *= (sdef->prec_scale ? sdef->prec_scale[0] : 1.0);
 
 	return val * prec;
-};
+}
 
-
-int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 {
 	GMRFLib_seasonaldef_tp *sdef = Calloc(1, GMRFLib_seasonaldef_tp);
 
@@ -142,8 +95,11 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	constr->e_vector = Calloc(nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(n, double), eps = GMRFLib_eps(.75);
-	GMRFLib_problem_tp *problem;
+	double *c = Calloc(n, double), eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
+	GMRFLib_problem_tp *problem = NULL;
+
+	// this is not yet implemented
+	assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 
 	for (i = 0; i < n; i++) {
 		c[i] = eps;
@@ -151,10 +107,12 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	GMRFLib_smtp_tp local_smtp = GMRFLib_SMTP_TAUCS;
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph,
-					      GMRFLib_seasonal, (void *) sdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr, NULL,
+					 &local_smtp);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < n; i++) {
@@ -178,7 +136,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < n; i++) {
@@ -190,24 +148,15 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	Free(c);
 	Free(sdef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
-
-/*!
-  \brief Make the graph suitable to the seasonal model defined in \c def.
-
-  \param[out] graph  The graph for the seasonal model.
-
-  \param[in] def The definition of the seasonal model
-
-  \sa GMRFLib_seasonal(), GMRFLib_seasonaldef_tp
-*/
-int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def)
+int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp **graph, GMRFLib_seasonaldef_tp *def)
 {
-	GMRFLib_make_linear_graph(graph, def->n, def->s - 1, def->cyclic);
+	GMRFLib_graph_mk_linear(graph, def->n, def->s - 1, def->cyclic);
 	return GMRFLib_SUCCESS;
 }

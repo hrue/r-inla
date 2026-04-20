@@ -1,8 +1,4 @@
 
-/* 
-   Made minor changes to adapt it to GMRFLib. April/2007/HRue
-*/
-
 /*
  * Copyright (c) 2005 Steven G. Johnson
  *
@@ -70,26 +66,28 @@
 		    reqAbsError, double reqRelError, double *val, double *err);
 */
 
-#include <stddef.h>
+#include <assert.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
+#include <omp.h>
+#include <stddef.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
-/*
-  CHANGE/HRue: added these two lines
-*/
-#include "GMRFLib/GMRFLib.h"
-#ifndef HGVERSION
-#define HGVERSION
+// hrue
+// see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
+#ifdef __GNUC__
+#       define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#       define UNUSED(x) UNUSED_ ## x
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: integrator.c,v 1.10 2009/09/05 07:52:14 hrue Exp $ */
+#ifdef __GNUC__
+#       define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#       define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+#include "GMRFLib/GMRFLib.h"
 
 /***************************************************************************/
 
@@ -110,7 +108,7 @@ typedef struct {
 	double vol;					       /* cache volume = product of widths */
 } hypercube;
 
-static double compute_vol(const hypercube * h)
+static double compute_vol(const hypercube *h)
 {
 	unsigned i;
 	double vol = 1;
@@ -120,6 +118,9 @@ static double compute_vol(const hypercube * h)
 	return vol;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube(unsigned dim, const double *center, const double *halfwidth)
 {
 	unsigned i;
@@ -134,7 +135,11 @@ static hypercube make_hypercube(unsigned dim, const double *center, const double
 	h.vol = compute_vol(&h);
 	return h;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static hypercube make_hypercube_range(unsigned dim, const double *xmin, const double *xmax)
 {
 	hypercube h = make_hypercube(dim, xmin, xmax);
@@ -147,8 +152,9 @@ static hypercube make_hypercube_range(unsigned dim, const double *xmin, const do
 	h.vol = compute_vol(&h);
 	return h;
 }
+#pragma GCC diagnostic pop
 
-static void destroy_hypercube(hypercube * h)
+static void destroy_hypercube(hypercube *h)
 {
 	free(h->data);
 	h->dim = 0;
@@ -160,21 +166,23 @@ typedef struct {
 	unsigned splitDim;
 } region;
 
-static region make_region(const hypercube * h)
+static region make_region(const hypercube *h)
 {
 	region R;
 
 	R.h = make_hypercube(h->dim, h->data, h->data + h->dim);
 	R.splitDim = 0;
+	R.ee.err = 0;
+	R.ee.val = 0.0;
 	return R;
 }
 
-static void destroy_region(region * R)
+static void destroy_region(region *R)
 {
 	destroy_hypercube(&R->h);
 }
 
-static void cut_region(region * R, region * R2)
+static void cut_region(region *R, region *R2)
 {
 	unsigned d = R->splitDim, dim = R->h.dim;
 
@@ -189,18 +197,18 @@ static void cut_region(region * R, region * R2)
 typedef struct rule_s {
 	unsigned dim;					       /* the dimensionality */
 	unsigned num_points;				       /* number of evaluation points */
-	unsigned (*evalError) (struct rule_s * r, integrand f, void *fdata, const hypercube * h, esterr * ee);
-	void (*destroy) (struct rule_s * r);
+	unsigned (*evalError)(struct rule_s * r, integrand f, void *fdata, const hypercube * h, esterr * ee);
+	void (*destroy)(struct rule_s * r);
 } rule;
 
-static void destroy_rule(rule * r)
+static void destroy_rule(rule *r)
 {
 	if (r->destroy)
 		r->destroy(r);
 	free(r);
 }
 
-static region eval_region(region R, integrand f, void *fdata, rule * r)
+static region eval_region(region R, integrand f, void *fdata, rule *r)
 {
 	R.splitDim = r->evalError(r, f, fdata, &R.h, &R.ee);
 	return R;
@@ -264,6 +272,9 @@ static unsigned ls0(unsigned n)
  *  A Gray-code ordering is used to minimize the number of coordinate updates
  *  in p.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
 {
 	double sum = 0;
@@ -297,6 +308,7 @@ static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const
 	}
 	return sum;
 }
+#pragma GCC diagnostic pop
 
 static double evalRR0_0fs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
 {
@@ -401,14 +413,17 @@ static int isqr(int x)
 	return x * x;
 }
 
-static void destroy_rule75genzmalik(rule * r_)
+static void destroy_rule75genzmalik(rule *r_)
 {
 	rule75genzmalik *r = (rule75genzmalik *) r_;
 
 	free(r->p);
 }
 
-static unsigned rule75genzmalik_evalError(rule * r_, integrand f, void *fdata, const hypercube * h, esterr * ee)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*
 	 * lambda2 = sqrt(9/70), lambda4 = sqrt(9/10), lambda5 = sqrt(9/19) 
@@ -464,6 +479,7 @@ static unsigned rule75genzmalik_evalError(rule * r_, integrand f, void *fdata, c
 
 	return dimDiffMax;
 }
+#pragma GCC diagnostic pop
 
 static rule *make_rule75genzmalik(unsigned dim)
 {
@@ -481,6 +497,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 		return 0;
 
 	r = (rule75genzmalik *) malloc(sizeof(rule75genzmalik));
+	assert(r);
 	r->parent.dim = dim;
 
 	r->weight1 = (real(12824 - 9120 * to_int(dim) + 400 * isqr(to_int(dim)))
@@ -492,6 +509,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 	r->weightE3 = real(265 - 100 * to_int(dim)) / real(1458);
 
 	r->p = (double *) malloc(sizeof(double) * dim * 3);
+	assert(r->p);
 	r->widthLambda = r->p + dim;
 	r->widthLambda2 = r->p + 2 * dim;
 
@@ -509,7 +527,10 @@ static rule *make_rule75genzmalik(unsigned dim)
 /* 1d 15-point Gaussian quadrature rule, based on qk15.c and qk.c in
    GNU GSL (which in turn is based on QUADPACK). */
 
-static unsigned rule15gauss_evalError(rule * r, integrand f, void *fdata, const hypercube * h, esterr * ee)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*
 	 * Gauss quadrature weights and kronrod quadrature abscissae and weights as evaluated with 80 decimal digit arithmetic by L. W.
@@ -546,6 +567,7 @@ static unsigned rule15gauss_evalError(rule * r, integrand f, void *fdata, const 
 		0.209482141084727828012999174891714
 	};
 
+	assert(h->data);
 	const double center = h->data[0];
 	const double halfwidth = h->data[1];
 	double fv1[7], fv2[7];
@@ -612,6 +634,7 @@ static unsigned rule15gauss_evalError(rule * r, integrand f, void *fdata, const 
 
 	return 0;					       /* no choice but to divide 0th dimension */
 }
+#pragma GCC diagnostic pop
 
 static rule *make_rule15gauss(unsigned dim)
 {
@@ -620,6 +643,7 @@ static rule *make_rule15gauss(unsigned dim)
 	if (dim != 1)
 		return 0;				       /* this rule is only for 1d integrals */
 	r = (rule *) malloc(sizeof(rule));
+	assert(r);
 	r->dim = dim;
 	r->num_points = 15;
 	r->evalError = rule15gauss_evalError;
@@ -643,7 +667,7 @@ typedef struct {
 	esterr ee;
 } heap;
 
-static void heap_resize(heap * h, unsigned nalloc)
+static void heap_resize(heap *h, unsigned nalloc)
 {
 	h->nalloc = nalloc;
 	h->items = (heap_item *) realloc(h->items, sizeof(heap_item) * nalloc);
@@ -662,16 +686,18 @@ static heap heap_alloc(unsigned nalloc)
 }
 
 /* note that heap_free does not deallocate anything referenced by the items */
-static void heap_free(heap * h)
+static void heap_free(heap *h)
 {
 	h->n = 0;
 	heap_resize(h, 0);
 }
 
-static void heap_push(heap * h, heap_item hi)
+static void heap_push(heap *h, heap_item hi)
 {
 	int insert;
 
+	assert(h);
+	assert(h->items);
 	h->ee.val += hi.ee.val;
 	h->ee.err += hi.ee.err;
 	insert = h->n;
@@ -689,7 +715,7 @@ static void heap_push(heap * h, heap_item hi)
 	h->items[insert] = hi;
 }
 
-static heap_item heap_pop(heap * h)
+static heap_item heap_pop(heap *h)
 {
 	heap_item ret;
 	int i, n, child;
@@ -727,8 +753,8 @@ static heap_item heap_pop(heap * h)
 
 /* adaptive integration, analogous to adaptintegrator.cpp in HIntLib */
 
-static int ruleadapt_integrate(rule * r, integrand f, void *fdata, const hypercube * h, unsigned maxEval, double reqAbsError, double reqRelError,
-			       esterr * ee)
+static int ruleadapt_integrate(rule *r, integrand f, void *fdata, const hypercube *h, unsigned maxEval, double reqAbsError, double reqRelError,
+			       esterr *ee)
 {
 	unsigned maxIter;				       /* maximum number of adaptive subdivisions */
 	heap regions;
@@ -1006,7 +1032,9 @@ int main(int argc, char **argv)
 	fdata = which_integrand == 6 ? (1.0 + sqrt(10.0)) / 9.0 : 0.1;
 
 	xmin = (double *) malloc(dim * sizeof(double));
+	assert(xmin);
 	xmax = (double *) malloc(dim * sizeof(double));
+	assert(xmax);
 	for (i = 0; i < dim; ++i) {
 		xmin[i] = 0;
 		xmax[i] = 1 + (which_integrand >= 2 ? 0 : 0.4 * sin(i));

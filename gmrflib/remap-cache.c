@@ -1,0 +1,185 @@
+#include <stdio.h>
+#include <omp.h>
+
+#include "GMRFLib/GMRFLib.h"
+
+static map_strvp *remap_store = NULL;
+static int remap_store_use = 1;
+static int remap_store_must_init = 1;
+static int remap_store_debug = 0;
+
+int GMRFLib_remap_init_store(void)
+{
+	if (remap_store_use) {
+#pragma omp critical (Name_925d0d4cc0c47ce7c7e2c91447db58147e515e4b)
+		if (remap_store_must_init) {
+			if (remap_store_debug) {
+				printf("\tremap_store: init storage\n");
+			}
+			remap_store = Calloc(1, map_strvp);
+			map_strvp_init_hint(remap_store, 64);
+			remap_store->alwaysdefault = 1;
+			remap_store_must_init = 0;
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs)
+{
+	GMRFLib_SHA_TP c;
+	unsigned char *md = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	GMRFLib_SHA_Init(&c);
+	GMRFLib_SHA_IUPDATE(remap, n, c);
+	GMRFLib_SHA_IUPDATE(&n, 1, c);
+	GMRFLib_SHA_IUPDATE(&nrhs, 1, c);
+	int numa_node = -1;
+	GMRFLib_numa_get(NULL, &numa_node);
+	GMRFLib_SHA_IUPDATE(&numa_node, 1, c);
+	GMRFLib_SHA_Final(md, &c);
+	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
+
+	return (md);
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+GMRFLib_remap_tp *GMRFLib_remap_get(int *remap, int n, int nrhs)
+{
+	if (!remap_store_use) {
+		return NULL;
+	}
+	GMRFLib_remap_tp *r = NULL;
+
+#pragma omp critical (Name_71dc250ae8a03e0bd798461c633f37625101e6b8)
+	{
+		unsigned char *sha = GMRFLib_remap_sha(remap, n, nrhs);
+		void **p = map_strvp_ptr(remap_store, (char *) sha);
+
+		if (remap_store_debug) {
+
+			unsigned char *sh = GMRFLib_prettify_sha(Strdup_sha(sha));
+			if (p) {
+				printf("[%1d]{%s} remap_store: remap in store\n", omp_get_thread_num(), sh);
+			} else {
+				printf("[%1d]{%s} remap_store: add remap into store\n", omp_get_thread_num(), sh);
+			}
+			Free(sh);
+		}
+
+		if (p) {
+			// all good, we have it from before
+			Free(sha);
+			r = *((GMRFLib_remap_tp **) p);
+			r->count++;
+		} else {
+			int numa_node = -1;
+			GMRFLib_numa_get(NULL, &numa_node);
+			int *re = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int) + GMRFLib_memory_alignment, numa_node);
+			int *re1 = (int *) GMRFLib_numa_alloc_onnode(n * nrhs * sizeof(int) + GMRFLib_memory_alignment, numa_node);
+			int *re2 = aCalloc(n * nrhs, int);
+
+			// ensure alignment
+			int *re_free = re;
+			int *re1_free = re1;
+			if (GMRFLib_memory_alignment_enabled) {
+				int ok = 0;
+				for (size_t k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+					if (GMRFLib_is_aligned(re + k)) {
+						re = re + k;
+						ok = 1;
+						break;
+					}
+				}
+				if (!ok)
+					FIXME("Memory alignment failed");
+				ok = 0;
+				for (size_t k = 0; k < GMRFLib_memory_alignment / sizeof(int); k++) {
+					if (GMRFLib_is_aligned(re1 + k)) {
+						re1 = re1 + k;
+						ok = 1;
+						break;
+					}
+				}
+				if (!ok)
+					FIXME("Memory alignment failed");
+			}
+			// two step mapping
+			for (int j = 0; j < nrhs; j++) {
+				int offset = j * n;
+#pragma omp simd
+				for (int i = 0; i < n; i++) {
+					re1[offset + i] = remap[i] + offset;
+					re2[offset + i] = i * nrhs + j;
+				}
+			}
+			for (int k = 0; k < n * nrhs; k++) {
+				re[k] = re2[re1[k]];
+			}
+			// this is the inverse of 're'
+			for (int k = 0; k < n * nrhs; k++) {
+				re1[re[k]] = k;
+			}
+
+			r = Calloc(1, GMRFLib_remap_tp);
+			r->sha = sha;
+			r->n = n;
+			r->nrhs = nrhs;
+			r->numa_node = numa_node;
+			r->count = 1;
+			r->remap_free = re_free;
+			r->remap_inv_free = re1_free;
+			r->remap = re;
+			r->remap_inv = re1;
+
+			map_strvp_set(remap_store, (char *) r->sha, (void *) r);
+			Free(re2);
+		}
+	}
+	return r;
+}
+#pragma GCC diagnostic pop
+
+void GMRFLib_remap_print(FILE *fp)
+{
+	// write out the cache
+	if (remap_store_use) {
+		double tsiz = 0.0;
+		fprintf(fp, "\nContents of remap_store: \n");
+		int k = 0;
+		map_strvp_storage *ptr = NULL;
+		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
+			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
+			if (r && r->remap) {
+				int nn = r->n * r->nrhs;
+				fprintf(fp, "\tSlot[%2.2d] n[%1d] rhs[%1d] numa.node[%1d] count[%1d] remap[%1d %1d %1d...]\n",
+					k, r->n, r->nrhs, r->numa_node, r->count, r->remap[0], r->remap[IMIN(nn - 1, 1)],
+					r->remap[IMIN(nn - 1, 2)]);
+				tsiz += (r->n * r->nrhs + 2) * sizeof(int);
+			}
+			k++;
+		}
+		fprintf(fp, "\tTotal size[%.2fMb]\n", tsiz / SQR(1024.0));
+	}
+}
+
+void GMRFLib_remap_reset(void)
+{
+	if (remap_store_use) {
+		map_strvp_storage *ptr = NULL;
+		for (ptr = NULL; (ptr = map_strvp_nextptr(remap_store, ptr)) != NULL;) {
+			GMRFLib_remap_tp *r = ((GMRFLib_remap_tp *) ptr->value);
+			if (r && r->remap) {
+				GMRFLib_numa_free((void *) r->remap_free, r->n * r->nrhs * sizeof(int));
+				GMRFLib_numa_free((void *) r->remap_inv_free, r->n * r->nrhs * sizeof(int));
+				Free(r->sha);
+				Free(r);
+			}
+		}
+		Free(remap_store);
+		remap_store = NULL;
+		remap_store_must_init = 1;
+	}
+}

@@ -1,105 +1,24 @@
-
-/* io.c
- * 
- * Copyright (C) 2005-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-/*!
-  \file io.c
-  \brief Functions for input and output
-*/
-
+#include <fcntl.h>
+#include <omp.h>
 #include <stdarg.h>
-#include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: io.c,v 1.53 2009/05/23 06:16:16 hrue Exp $ */
-
-int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
-{
-	/*
-	 * parts of this code is copied from the manual page of snprintf. 
-	 */
-
-	int n, size = 128 + 1;
-	char *p;
-	va_list ap;
-
-	GMRFLib_ASSERT(ptr, GMRFLib_EINVARG);
-	GMRFLib_ASSERT(fmt, GMRFLib_EINVARG);
-
-	p = Calloc(size, char);
-
-	while (1) {
-		/*
-		 * Try to print in the allocated space. 
-		 */
-		va_start(ap, fmt);
-		n = vsnprintf(p, (unsigned int) size, fmt, ap);
-		va_end(ap);
-
-		/*
-		 * if that worked, return the string, 
-		 */
-		if (n > -1 && n < size) {
-			*ptr = p;
-			return GMRFLib_SUCCESS;
-		}
-
-		/*
-		 * ...else try again with more space 
-		 */
-		if (n > -1) {
-			size = n + 1;
-		} else {
-			size *= 2;
-		}
-		p = Realloc(p, size, char);
-	}
-
-	return GMRFLib_SUCCESS;
-}
 int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find)
 {
 	/*
 	 * find readable file looking for files in GMRFLib_path. if must_find, then error if the file is not found (unless
 	 * filename == NULL). this function return a malloc'ed string int *ptr with the filename (path included) to the file. 
 	 */
+
+	const char *GMRFLib_path = "GMRFLib_path DOES NOT WORK with g++, fix later if needed...";
 
 	int found = 0;
 	char *path = NULL, *p = NULL, *pp = NULL, *fnm = NULL, *strtok_ptr = NULL;
@@ -115,7 +34,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 			GMRFLib_EWRAP0(GMRFLib_sprintf(&pp, "%s:%s", p, GMRFLib_path));
 			p = pp;
 		} else {
-			p = GMRFLib_strdup(GMRFLib_path);      /* use default if it does not exists */
+			p = Strdup(GMRFLib_path);	       /* use default if it does not exists */
 		}
 
 		path = p;
@@ -142,14 +61,15 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 
 	return (found ? GMRFLib_SUCCESS : GMRFLib_EOPENFILE);
 }
-int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
+
+int GMRFLib_io_open(GMRFLib_io_tp **io, const char *filename, const char *mode)
 {
 	GMRFLib_ASSERT(filename, GMRFLib_EPARAMETER);
 	GMRFLib_ASSERT(io, GMRFLib_EPARAMETER);
 
 	*io = Calloc(1, GMRFLib_io_tp);
-	(*io)->filename = GMRFLib_strdup(filename);
-	(*io)->mode = GMRFLib_strdup(mode);
+	(*io)->filename = Strdup(filename);
+	(*io)->mode = Strdup(mode);
 	(*io)->strtok_ptr = NULL;
 	(*io)->lines_read = 0;
 	(*io)->tokens_read = 0;
@@ -163,7 +83,8 @@ int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
 		return GMRFLib_SUCCESS;
 	}
 }
-int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
+
+int GMRFLib_io_seek(GMRFLib_io_tp *io, size_t offset, int whence)
 {
 	/*
 	 * whence is one of SEEK_SET and SEEK_CURRENT. SEEK_END is not supported. 
@@ -171,7 +92,8 @@ int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
 
 	return ((int) gzseek(io->fp, (z_off_t) offset, whence));
 }
-int GMRFLib_io_close(GMRFLib_io_tp * io)
+
+int GMRFLib_io_close(GMRFLib_io_tp *io)
 {
 	if (io) {
 		if (io->fp) {
@@ -184,21 +106,29 @@ int GMRFLib_io_close(GMRFLib_io_tp * io)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
+
+int GMRFLib_io_error(GMRFLib_io_tp *io, int error)
 {
 	char *msg = NULL;
 	int ecode;
 
 	switch (error) {
 	case GMRFLib_IO_ERR_OPEN:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to open file[%s] with mode[%s]", io->filename, io->mode));
 		ecode = GMRFLib_EOPENFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_NOLINE:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read line[%1d] in file[%s]", io->lines_read + 1, io->filename));
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_READLINE:
+	{
 		if (io->tokens_read) {
 			GMRFLib_EWRAP0(GMRFLib_sprintf
 				       (&msg, "Fail to read from or get, line[%1d] token[%1d] in file[%s]", io->lines_read, io->tokens_read,
@@ -207,15 +137,22 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 			GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read from or get, line[%1d] in file[%s]", io->lines_read, io->filename));
 		}
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_READBYTES:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read more after [%1d] bytes are read in file[%s]", io->bytes_read, io->filename));
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_WRITEBYTES:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf
 			       (&msg, "Fail to write more after [%1d] bytes are written to file[%s]", io->bytes_written, io->filename));
 		ecode = GMRFLib_EWRITE;
+	}
 		break;
 
 	default:
@@ -227,6 +164,7 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 
 	return ecode;
 }
+
 int GMRFLib_io_strip_blanks(char *line)
 {
 	char *ptr = NULL;
@@ -258,7 +196,8 @@ int GMRFLib_io_strip_blanks(char *line)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
+
+int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp *io)
 {
 	char *line = NULL;
 	int maxlen = 4096, read_ok;
@@ -286,7 +225,7 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 				return GMRFLib_SUCCESS;
 			}
 
-			if ((int) strlen(line) == maxlen - 1) {
+			if (line && (int) strlen(line) == maxlen - 1) {
 				/*
 				 * line is to short, increase length and reread line 
 				 */
@@ -321,14 +260,24 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
+
+int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp *io)
 {
 	char *tok = NULL;
-	static char *line = NULL;
-#pragma omp threadprivate(line)
+	static char **lline = NULL;
+
+	if (!lline) {
+#pragma omp critical (Name_3b7615ac7634fdd9cdf10e63dde5835b04b9da62)
+		if (!lline) {
+			char **tmp = Calloc(GMRFLib_CACHE_LEN(), char *);
+			lline = tmp;
+		}
+	}
+	int idx = 0;
+	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (io == NULL) {				       /* special: reset strtok */
-		Free(line);
+		Free(lline[idx]);
 		return GMRFLib_SUCCESS;
 	}
 
@@ -348,11 +297,11 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 	/*
 	 * no token. read next line and extract the first token 
 	 */
-	Free(line);
+	Free(lline[idx]);
 
-	GMRFLib_EWRAP0(GMRFLib_io_nextline(&line, io));
-	if (line) {
-		tok = GMRFLib_strtok_r(line, GMRFLib_IO_SEP, &(io->strtok_ptr));
+	GMRFLib_io_nextline(&(lline[idx]), io);
+	if (lline[idx]) {
+		tok = GMRFLib_strtok_r(lline[idx], GMRFLib_IO_SEP, &(io->strtok_ptr));
 		io->tokens_read++;
 		*ptr = tok;
 		return GMRFLib_SUCCESS;
@@ -363,7 +312,8 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
+
+int GMRFLib_io_read_next(GMRFLib_io_tp *io, void *ptr, const char *fmt)
 {
 	/*
 	 * read next int/double etc, signalling an error if not successful 
@@ -387,7 +337,8 @@ int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
+
+int GMRFLib_io_read(GMRFLib_io_tp *io, void *buf, size_t len)
 {
 	/*
 	 * binary: read the next LEN bytes into BUF 
@@ -404,7 +355,8 @@ int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len)
+
+int GMRFLib_io_write(GMRFLib_io_tp *io, const void *buf, size_t len)
 {
 	/*
 	 * binary: write LEN bytes in BUF to file 
@@ -421,3 +373,23 @@ int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+#if 0
+intmax_t GMRFLib_io_file_size(const char *filename)
+{
+	// this function is pretty slow. I don't know what is happening
+	if (!filename) {
+		return (0);
+	}
+
+	struct stat buffer;
+	int status;
+
+	status = stat(filename, &buffer);
+	if (status == 0) {
+		return (buffer.st_size);
+	} else {
+		return (0);
+	}
+}
+#endif

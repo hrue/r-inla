@@ -76,7 +76,7 @@ assigned to $\log\tau$.
 The {\tt rw2d} model is specified insiede the {\tt f()} function as:
 \begin{verbatim}
 f(<whatever>,model="rw2d",
-  nrow=<n.of rows>,ncol=<n.of columns>,
+  nrow=<n.of rows>,ncol=<n.of columns>, bvalue=<bvalue>,
   hyper= <hyper>, scale.model = FALSE)
 \end{verbatim}
 
@@ -85,6 +85,12 @@ scaled to have an average variance (the diagonal of the generalized
 inverse) equal to 1. This makes prior spesification much
 easier. Default is \verb|FALSE| so that the model is not scaled.
 
+The argument \verb|bvalue| defines how the boundary is handled. If
+\verb|bvalue=0| (default) then precision matrix is created like we are
+condition on $0$'s outside the region. This model is proper. If
+\verb|bvalue=1| then only points inside the region is considered, and
+non-standard stencils are used near the boundary. This model is
+improper.
 
 
 \subsubsection*{Hyperparameter spesification and default values}

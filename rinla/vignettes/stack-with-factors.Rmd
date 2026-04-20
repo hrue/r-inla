@@ -1,19 +1,23 @@
 ---
-title: "Avoiding trouble with factors in _inla.stack()_"
+title: "Avoiding trouble with factors in inla.stack"
 author: "Elias T. Krainski `(elias@r-inla.org)`"
 date: "Aug 7th 2017"
 output: rmarkdown::pdf_document
 bibliography: spde-tutorial.bib
 vignette: >
-  %\VignetteIndexEntry{stack-with-factors}
+  %\VignetteIndexEntry{Avoiding trouble with factors in inla.stack}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---
 
 ```{r setup, include=FALSE}
-set.seed(1)
 knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(fig.path="figures/stack-with-factors/")
+set.seed(123)
 library(INLA)
+inla.setOption(num.threads="1:1")
+inla.setOption(smtp="taucs")
+if (file.exists("myinit.R")) source("myinit.R")
 ```
 
 ## Introduction

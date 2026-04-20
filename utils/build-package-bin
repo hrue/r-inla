@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-d=$(dirname $0)
-exec "$d/build.package" -d "$2/RINLA" -b "$1/linux" -s "64"

@@ -1,40 +1,11 @@
-
-/* ar.c
- * 
- * Copyright (C) 2012 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = HGVERSION;
+#include <assert.h>
+#include <math.h>
+#include <omp.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-
 #include "ar.h"
 #include "inla.h"
 
@@ -52,17 +23,19 @@ static const char RCSId[] = HGVERSION;
 		printf("\n");						\
 	}
 
-
 /* 
    functions for the AR(p) model; the pacf2phi and phi2pacf are taken from R's arima.c
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_pacf2phi(int p, double *pacf, double *phi)
 {
 	/*
 	 * From arima.c 
 	 */
 	int j, k;
-	double a, *work;
+	double a, *work = NULL;
 
 	assert(p > 0);
 	work = Calloc(p, double);
@@ -87,7 +60,11 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int ar_phi2pacf(int p, double *phi, double *pacf)
 {
 	/*
@@ -95,7 +72,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	 */
 
 	int j, k;
-	double a, *work;
+	double a, *work = NULL;
 
 	assert(p > 0);
 	work = Calloc(p, double);
@@ -120,6 +97,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 {
@@ -128,8 +106,9 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	 * for the first p components
 	 */
 
-	size_t i, j, lag, lag_idx, pdim, debug = 0;
-	double *phi;
+	size_t i, j, lag, lag_idx, pdim;
+	const int debug = 0;
+	double *phi = NULL;
 
 	assert(p > 0);
 	pdim = (size_t) p;
@@ -158,7 +137,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("A\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, A, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, A, NULL);
 	}
 
 	int s;
@@ -183,7 +162,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("Sigma\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, Sigma, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, Sigma, NULL);
 	}
 
 	gsl_linalg_LU_decomp(Sigma, perm, &s);
@@ -216,7 +195,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	return GMRFLib_SUCCESS;
 }
 
-double ar_map_pacf(double arg, map_arg_tp typ, void *param)
+double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the PACF
@@ -249,26 +228,31 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double Qfunc_ar(int i, int j, void *arg)
+double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
+	if (j < 0) {
+		return NAN;
+	}
+
 	ar_def_tp *def = (ar_def_tp *) arg;
 
 	if (IABS(i - j) > def->p) {
 		return 0.0;
 	}
 	if (def->p == 0) {
-		return exp(def->log_prec[GMRFLib_thread_id][0]);
+		return exp(def->log_prec[thread_id][0]);
 	}
 
-	int debug = 0, ii, jj, eq, dimQ, id;
+	const int debug = 0;
+	int eq, dimQ, id = 0;
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
-	eq = 1;
+	GMRFLib_CACHE_SET_IDX(id);
 
-	for (ii = 0; ii < def->p && eq; ii++) {
-		if (def->pacf_intern[ii][GMRFLib_thread_id][0] != def->hold_pacf_intern[id][ii]) {
+	eq = 1;
+	for (int ii = 0; ii < def->p && eq; ii++) {
+		if (def->pacf_intern[ii][thread_id][0] != def->hold_pacf_intern[id][ii]) {
 			eq = 0;
 		}
 	}
@@ -277,7 +261,7 @@ double Qfunc_ar(int i, int j, void *arg)
 		/*
 		 * use what we already have
 		 */
-		int node, nnode;
+		int ii, jj, node, nnode;
 		double Qmarg_contrib = 0.0, val;
 
 		node = IMIN(i, j);
@@ -294,30 +278,32 @@ double Qfunc_ar(int i, int j, void *arg)
 			ii = def->p;
 			jj = def->p + (nnode - node);
 		}
-		assert(LEGAL(ii, dimQ));
-		assert(LEGAL(jj, dimQ));
+		// assert(LEGAL(ii, dimQ));
+		// assert(LEGAL(jj, dimQ));
 
-		val = exp(def->log_prec[GMRFLib_thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
+		val = exp(def->log_prec[thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
 		return (val);
 	} else {
 		/*
 		 * Build the Qmatrix 
 		 */
-		int k;
-		double *phi, *pacf, *L, *Q, *Qmarg, prec;
+		double *phi = NULL, *pacf = NULL, *L = NULL, *Q = NULL, *Qmarg = NULL, prec;
 
-		phi = Calloc(def->p, double);
-		pacf = Calloc(def->p, double);
-		L = Calloc(ISQR(dimQ), double);
+		Calloc_init(2 * def->p + ISQR(dimQ), 3);
+		phi = Calloc_get(def->p);
+		pacf = Calloc_get(def->p);
+		L = Calloc_get(ISQR(dimQ));
+
 		Q = Calloc(ISQR(dimQ), double);
 		Qmarg = Calloc(ISQR(def->p), double);
 
-		for (ii = 0; ii < def->p; ii++) {
-			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		for (int ii = 0; ii < def->p; ii++) {
+			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][thread_id][0], MAP_FORWARD, NULL);
 		}
 		ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
 		PMATRIX(Qmarg, def->p, def->p, "Qmarg");
 		PMATRIX(&prec, 1, 1, "Prec");
+
 		ar_pacf2phi(def->p, pacf, phi);
 
 		PMATRIX(pacf, def->p, 1, "pacf");
@@ -326,10 +312,11 @@ double Qfunc_ar(int i, int j, void *arg)
 		/*
 		 * make L, where Lx = z ~ N(0,I) 
 		 */
-		for (ii = def->p; ii < dimQ; ii++) {
-			L[ii + ii * dimQ] = 1.0;
-			for (jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
-				L[ii + jj * dimQ] = -phi[k];
+		for (int ii = def->p; ii < dimQ; ii++) {
+			double *Lii = L + ii;
+			Lii[ii * dimQ] = 1.0;
+			for (int jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
+				Lii[jj * dimQ] = -phi[k];
 			}
 		}
 		PMATRIX(L, dimQ, dimQ, "Matrix L");
@@ -337,49 +324,44 @@ double Qfunc_ar(int i, int j, void *arg)
 		/*
 		 * Q = L' L 
 		 */
-		for (ii = 0; ii < dimQ; ii++) {
-			for (jj = 0; jj < dimQ; jj++) {
-				double tmp = 0.0;
-				for (k = 0; k < dimQ; k++) {
-					tmp += L[k + ii * dimQ] * L[k + jj * dimQ];
-				}
-				Q[ii + jj * dimQ] = tmp;
+		for (int ii = 0; ii < dimQ; ii++) {
+			double *Lii = L + ii * dimQ;
+			for (int jj = 0; jj < dimQ; jj++) {
+				double *Ljj = L + jj * dimQ;
+				Q[ii + jj * dimQ] = GMRFLib_ddot(dimQ, Lii, Ljj);
 			}
 		}
 		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L");
 
-		for (ii = 0; ii < ISQR(dimQ); ii++) {
-			Q[ii] /= prec;
-		}
+		GMRFLib_dscale(ISQR(dimQ), 1.0 / prec, Q);
+
 		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L normalised");
 
+		Calloc_free();
 		Free(def->hold_Qmarg[id]);
 		Free(def->hold_Q[id]);
 		def->hold_Qmarg[id] = Qmarg;
 		def->hold_Q[id] = Q;
 
-		for (ii = 0; ii < def->p; ii++) {
-			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][GMRFLib_thread_id][0];
+		for (int ii = 0; ii < def->p; ii++) {
+			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][thread_id][0];
 		}
 
-		Free(phi);
-		Free(pacf);
-		Free(L);
-
-		return Qfunc_ar(i, j, arg);		       /* recursive call */
+		return Qfunc_ar(thread_id, i, j, NULL, arg);   /* recursive call */
 	}
-	assert(0 == 1);
 
 	return 0.0;
 }
+
 int ar_test1()
 {
 	if (1) {
-		GMRFLib_graph_tp *g;
+		GMRFLib_graph_tp *g = NULL;
 		ar_def_tp def;
 		double pacf[2] = { 0.5, 0.25 };
 
 		int i, j, k;
+		int thread_id = 0;
 
 		def.n = 10;
 		def.p = 2;
@@ -394,33 +376,32 @@ int ar_test1()
 		/*
 		 * easier if the storage is setup here 
 		 */
-		def.hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+		def.hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN(), double *);
+		def.hold_Q = Calloc(GMRFLib_CACHE_LEN(), double *);
+		def.hold_Qmarg = Calloc(GMRFLib_CACHE_LEN(), double *);
+		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			def.hold_pacf_intern[i] = Calloc(def.p, double);
 			for (j = 0; j < def.p; j++) {
 				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
 			}
 		}
 
-		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
-		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
+		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
+		GMRFLib_printf_Qfunc(thread_id, stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++)
-					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, &def));
+					fprintf(fp, "%.12g\n", Qfunc_ar(thread_id, i, j, NULL, &def));
 			fclose(fp);
 		}
 
 		double val = 0.0;
-#pragma omp parallel for private(k, i, j)
 		for (k = 0; k < 1000; k++) {
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++) {
-					val += Qfunc_ar(i, j, &def);
+					val += Qfunc_ar(thread_id, i, j, NULL, &def);
 				}
 		}
 		P(val);
@@ -431,7 +412,7 @@ int ar_test1()
 	if (0) {
 #define PMAX 10
 		int p, i, j;
-		double *pacf, *pacf2, *phi;
+		double *pacf = NULL, *pacf2 = NULL, *phi = NULL;
 
 		pacf = Calloc(PMAX, double);
 		pacf2 = Calloc(PMAX, double);
@@ -455,7 +436,6 @@ int ar_test1()
 			 * and its inverse 
 			 */
 			ar_phi2pacf(p, phi, pacf2);
-
 
 			printf("Result for p = %d\n", p);
 			for (i = 0; i < p; i++) {

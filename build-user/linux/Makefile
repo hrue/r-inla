@@ -31,7 +31,7 @@ FLAGS_COMMON = \
 ## You probably don't need to edit anything below this line
 
 FLAGS_INLA = $(FLAGS_COMMON) -std=gnu99 -fopenmp
-FLAGS_FMESHER = $(FLAGS_COMMON) -std=c++11
+FLAGS_FMESHER = $(FLAGS_COMMON) -std=c++14
 
 ## For Debian or Ubuntu package installation in lib-install:
 APT=aptitude

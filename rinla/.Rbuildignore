@@ -4,9 +4,17 @@
 ^NAMESPACE\.init$
 ^NAMESPACE\.backup$
 ^NAMESPACE\.new$
+^NAMESPACE\.roxygen$
+^NAMESPACE\.ours$
 ^DESCRIPTION\.backup$
 ^DESCRIPTION\.new$
 ^R/Makefile$
 ^R/make-man-pages$
 ^R/make-man-pages\.timestamp$
 ^R/TAGS$
+^TAGS$
+^doc$
+^Meta$
+^misc$
+^\.lintr$
+^\.styler\.R$

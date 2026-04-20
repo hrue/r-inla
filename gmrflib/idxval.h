@@ -1,0 +1,182 @@
+#ifndef __GMRFLib_IDXVAL_H__
+#       define __GMRFLib_IDXVAL_H__
+
+#       include <stdlib.h>
+#       include <stddef.h>
+#       include <math.h>
+
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
+
+__BEGIN_DECLS
+//
+#       include "GMRFLib/hashP.h"
+#       include "GMRFLib/GMRFLibP.h"
+#       if defined(INLA_WITH_ARMPL)
+#              include "armpl_sparse.h"
+#       endif
+#       define GMRFLib_DOT_GROUP_NLIM 16
+//
+    typedef struct {
+	int n;
+	int n_alloc;
+	int *idx;
+} GMRFLib_idx_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	char **str;
+} GMRFLib_str_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	int **idx;
+} GMRFLib_idx2_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	double *val;
+} GMRFLib_val_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	void **ptr;
+} GMRFLib_ptr_tp;
+
+typedef enum {
+	IDXVAL_UNKNOWN = 0,				       /* do not change */
+	IDXVAL_SERIAL,
+	IDXVAL_SERIAL_ARMPL,
+	IDXVAL_GROUP,
+	IDXVAL_GROUP_ARMPL
+} GMRFLib_idxval_preference_tp;
+
+typedef double GMRFLib_dot_product_tp(void *__restrict, void *__restrict);
+
+typedef struct {
+	int n;
+	int n_alloc;
+	int iaddto;
+	int g_n;					       /* number of groups with sequential indices */
+	int g_n_mem;
+	int *idx;
+	int *g_len;					       /* their length */
+	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
+	int **g_idx;					       /* indexing */
+	double **g_val;
+	double *val;
+	void **g_mem;
+#       if defined(INLA_WITH_ARMPL)
+	armpl_spvec_t spvec;
+	armpl_spvec_t spvec_g;
+#       endif
+	GMRFLib_idxval_preference_tp preference;
+	GMRFLib_dot_product_tp *dot_product_func;
+} GMRFLib_idxval_tp;
+
+typedef struct {
+	int submat_id;
+	int submat_row;
+	int submat_col;
+} GMRFLib_idxsubmat_data_tp;
+
+typedef struct {
+	int n;
+	int n_alloc;
+	GMRFLib_idxsubmat_data_tp **data;
+} GMRFLib_idxsubmat_cell_tp;
+
+typedef struct {
+	int n;
+	int *col;
+	unsigned char need_solve;
+	int n_alloc;
+	GMRFLib_idxsubmat_cell_tp **data;
+} GMRFLib_idxsubmat_vector_tp;
+
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
+GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len);
+GMRFLib_idxsubmat_cell_tp **GMRFLib_idxsubmat_cell_ncreate(int n);
+GMRFLib_idxsubmat_cell_tp **GMRFLib_idxsubmat_cell_ncreate_x(int n, int len);
+GMRFLib_idxsubmat_vector_tp **GMRFLib_idxsubmat_vector_ncreate(int n);
+GMRFLib_idxsubmat_vector_tp **GMRFLib_idxsubmat_vector_ncreate_x(int n, int len);
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len, int num_threads);
+GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp * sel, int size);
+GMRFLib_val_tp **GMRFLib_val_ncreate(int n);
+int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1);
+int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
+int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len);
+int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold);
+int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n);
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, const char *msg);
+int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
+int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx);
+int GMRFLib_idx_create(GMRFLib_idx_tp ** hold);
+int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len);
+int GMRFLib_idx_find(int id, GMRFLib_idx_tp * h);
+int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_nadd(GMRFLib_idx_tp ** hold, int n, int *idx);
+int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n);
+int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt);
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt);
+int GMRFLib_idx_overlap(GMRFLib_idx_tp * idx1, GMRFLib_idx_tp * idx2);
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, const char *msg);
+int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_sort(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_split_free(GMRFLib_ptr_tp * ptr);
+int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold);
+int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
+int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
+int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
+int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
+int GMRFLib_idxval_find(int *id, double *val, GMRFLib_idxval_tp * h);
+int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
+int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
+int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare, int accumulate);
+int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x_ran, int prepare, int accumulate);
+int GMRFLib_idxval_overlap(GMRFLib_idxval_tp * idx1, GMRFLib_idxval_tp * idx2);
+int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt);
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
+int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
+int GMRFLib_ptr_add(GMRFLib_ptr_tp ** hold, void *ptr);
+int GMRFLib_ptr_create(GMRFLib_ptr_tp ** hold);
+int GMRFLib_ptr_create_x(GMRFLib_ptr_tp ** hold, int len);
+int GMRFLib_ptr_free(GMRFLib_ptr_tp * hold);
+int GMRFLib_ptr_nprune(GMRFLib_ptr_tp ** a, int n);
+int GMRFLib_ptr_printf(FILE * fp, GMRFLib_ptr_tp * hold, const char *msg);
+int GMRFLib_ptr_prune(GMRFLib_ptr_tp * hold);
+int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s);
+int GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
+int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match);
+int GMRFLib_str_prune(GMRFLib_str_tp * hold);
+int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val);
+int GMRFLib_val_create(GMRFLib_val_tp ** hold);
+int GMRFLib_val_free(GMRFLib_val_tp * hold);
+int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
+int GMRFLib_val_prune(GMRFLib_val_tp * hold);
+
+
+GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp * h);
+GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp * h);
+
+__END_DECLS
+#endif

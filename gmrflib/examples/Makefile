@@ -11,8 +11,8 @@ LD      = $(CC)
 PROGS = example-blockupdate \
 	example-blockupdate-with-error-control \
 	example-graph1 example-graph2 example-sample \
-	example-wa example-rw example-geo example-qinv \
-	example-sphere example-rng example-error-handler example-graph-edit \
+	example-wa example-rw example-qinv \
+	example-rng example-error-handler example-graph-edit \
 	example-bitmap example-auxvar example-approx-1 example-approx-2 example-approx-3 \
 	example-hgmrfm-1 example-hgmrfm-2 example-matern2d
 PROGS_MANUAL = $(PROGS) example-blockupdate-2
@@ -58,13 +58,7 @@ example-wa : example-wa.o
 example-rw : example-rw.o
 	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
 
-example-geo : example-geo.o
-	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME)-geo -l$(GMRFLibNAME) $(EXTLIBS)
-
 example-qinv : example-qinv.o
-	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
-
-example-sphere : example-sphere.o
 	$(LD) $(FLAGS) -o $@ $< -L$(PREFIX)/lib -l$(GMRFLibNAME) $(EXTLIBS)
 
 example-error-handler : example-error-handler.o

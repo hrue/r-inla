@@ -1,54 +1,10 @@
-
-/* globals.c
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-
-/*!
-  \file globals.c
-  \brief Set values of global variables.
-*/
-
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: globals.c,v 1.43 2010/02/15 08:26:37 hrue Exp $ */
-
 #define __GMRFLib_DONT_DEFINE_GLOBALS
 #include <limits.h>
 #include <time.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
+#include <omp.h>
+
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #undef __GMRFLib_DONT_DEFINE_GLOBALS
 
 /*!
@@ -58,7 +14,7 @@
   preprendend by an environment variable \c GMRFLib_PATH. The initial value is set to the \c PREFIX
   variable in the installation.
 */
-const char GMRFLib_path[] = GMRFLib_PATH;
+const char GMRFLib_path[] = "PATH NOT IN USE";
 
 /*!
   \brief Define the sparse solver for the sparse-matrix computations.
@@ -98,64 +54,10 @@ GMRFLib_smtp_tp GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 */
 GMRFLib_reorder_tp GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 
-/*! 
-  \brief Set the blas level in the Lapack routines using the band solver.
-
-  When \c GMRFLib_smtp is set to #GMRFLib_SMTP_BAND, then there is an additional option of chosing
-  the blas level for the routines used.  The two options are
-  - level 2 (#BLAS_LEVEL2),  and
-  - level 3 (#BLAS_LEVEL3)
-  
-  Use level 2 for smaller problems and level 3 for larger problems. Default is #BLAS_LEVEL3.
-
-  \remark For larger problems you may want to use the TAUCS library instead.
- */
-int GMRFLib_blas_level = BLAS_LEVEL3;
-
-/*!
-  \brief Use internal lookup-tables or not.
-
-  GMRFLib use in the file wa.c internal lookup-tables to speed up the calculations (default).  This
-  feature can be turned off by setting \c GMRFLib_use_wa_table_lookup() to \c #GMRFLib_FALSE.\n\n
-*/
-int GMRFLib_use_wa_table_lookup = GMRFLib_TRUE;
-
-/*! 
-  \brief Verify graph after reading.
-
-  GMRFLib can automatically verify a graph after reading it from file. By default this feature is
-  off, but can be turned on setting \c GMRFLib_verify_graph_read_from_disc() to \c #GMRFLib_TRUE \n\n
-*/
 int GMRFLib_verify_graph_read_from_disc = GMRFLib_FALSE;
 
-/*!
-  \brief Collect timing statistics
-
-  GMRFLib collects by default various internal statistics of the CPU demanding functions.  This
-  statistics can be extracted using the functions \c GMRFLib_timer_full_report() or
-  \c GMRFLib_timer_report(). This feature can be turned off by setting 
-  \c GMRFLib_collect_timer_statistics()
-  to \c #GMRFLib_FALSE. \n\n
-*/
-int GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-
-/*!
-  \brief The CPU timing function
-
-  Writing a function that (correctly) returns the used CPU time from a fixed reference, is often OS dependent. You may override
-  the GMRFLib's implementation by letting \c GMRFLib_cpu() point to your function. \n\n
-*/
-GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
-
-/* 
-   default uniform(0,1) generator and support utilities. these routines are defined in random.c. make the rng_ptr threadprivate,
-   so each thread has its own copy.
- */
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
 #pragma omp threadprivate(GMRFLib_rng_ptr)
-
-unsigned long int GMRFLib_rng_seed;			       /* this holds a copy of the last seed */
-#pragma omp threadprivate(GMRFLib_rng_seed)
 
 GMRFLib_uniform_tp *GMRFLib_uniform = GMRFLib_rng_uniform;
 GMRFLib_uniform_init_tp *GMRFLib_uniform_init = GMRFLib_rng_init;
@@ -187,55 +89,14 @@ int GMRFLib_ai_INLA_userfunc3_n = 0;
 int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
-/* 
-   use faster integration than GSL?
- */
-int GMRFLib_faster_integration = GMRFLib_TRUE;
 
-/* 
-   number of subdivisions of the faster integration
- */
-int GMRFLib_faster_integration_np = 80;
-
-/* 
-   OpenMP spesifics
- */
-int GMRFLib_thread_id = 0;
-#pragma omp threadprivate(GMRFLib_thread_id)
-
-
-/*
-  Signal USR2: Stop optimiser and present results
-*/
-int GMRFLib_request_optimiser_to_stop = GMRFLib_FALSE;
-
-/* 
-   Maximum dimension of bitmap-files, or unlimited if <= 0
- */
 int GMRFLib_bitmap_max_dimension = -1;
-
-/* 
-   Swap bitmap-file ?
- */
 int GMRFLib_bitmap_swap = 0;
 
 /* 
    Holds the thread strategy
  */
 GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
-
-
-/* 
-   Holds the MemInfo flag
- */
-int GMRFLib_meminfo_thread_id = 0;
-#pragma omp threadprivate(GMRFLib_meminfo_thread_id)
-
-/* 
-   INLA catch error...
- */
-int GMRFLib_catch_error_for_inla = GMRFLib_FALSE;
-
 
 /* 
    define global nodes = {factor, degree}. factor: a node is defined to be global if nneig(i) >= (n-1) *factor degree :node is define to be global if nneig(i) >=
@@ -248,18 +109,43 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
  */
 GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
 
-
-/* 
-   internal use only; for debugging
- */
-int GMRFLib_debug_code = 0;
-
-/* 
-   tell the pardiso-interface that we're in a thread-safe area
- */
-int GMRFLib_pardiso_thread_safe = 1;
-
 /* 
    tell if we have a working pardiso library, -1, is for 'not checked yet'
  */
 int GMRFLib_pardiso_ok = -1;
+
+int GMRFLib_faster_constr = 1;
+
+int GMRFLib_inla_mode = 0;
+
+// add stability to AQ^-1A^T
+double GMRFLib_aqat_m_diag_add = 0.0;
+
+int GMRFLib_Qx_strategy = 0;				       // 0 = serial, 1 = parallel
+int GMRFLib_preopt_predictor_strategy = 0;		       // 0 = !data_rich, 1 = data_rich
+
+double GMRFLib_weight_prob = 0.975;			       // for pruning weights for densities
+double GMRFLib_weight_prob_one = 0.999;			       // for pruning weights otherwise
+double **GMRFLib_dot_product_optim_report = NULL;
+int GMRFLib_sort2_id_cut_off = 50;
+int GMRFLib_sort2_dd_cut_off = 70;
+int GMRFLib_internal_opt = 1;
+int GMRFLib_save_memory = 0;
+
+int GMRFLib_write_state = 0;
+int GMRFLib_gaussian_data = 0;
+int GMRFLib_testit_mode = 0;
+int GMRFLib_testit_debug = 0;
+int GMRFLib_opt_solve = 0;
+int GMRFLib_opt_storage = 0;
+int GMRFLib_opt_num_threads = 0;
+int GMRFLib_intern_flag = 0;
+int GMRFLib_cachelinesize = 64;
+int GMRFLib_model_idx = 0;
+int GMRFLib_model_n = 1;
+int GMRFLib_force_stiles = 0;
+double GMRFLib_overall_cpu[8] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
+char *GMRFLib_tmpdir = NULL;
+
+int GMRFLib_turn_off_gsl_error_handler = 1;

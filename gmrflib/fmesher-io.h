@@ -1,43 +1,15 @@
-
-/* fmesher-io.h
- * 
- * Copyright (C) 2010-2011 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
 #ifndef __FMESHER_IO_H__
-#define __FMESHER_IO_H__
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       define __FMESHER_IO_H__
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
+
 __BEGIN_DECLS
 
 /* 
@@ -53,7 +25,6 @@ __BEGIN_DECLS
 	int elems;					       /* number of elements */
 	int *i;
 	int *j;
-
 
 	/*
 	 * these are only defined if the matrix is sparse 
@@ -83,7 +54,6 @@ __BEGIN_DECLS
 	long int tell;					       /* the position where this matrix ended */
 } GMRFLib_matrix_tp;
 
-
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);
 GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M);
@@ -93,8 +63,10 @@ int GMRFLib_file_exists(const char *filename, const char *mode);
 int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence);
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M);
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence);
-int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M);
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M, int num_threads);
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M);
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M, int sort);
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp ** M, GMRFLib_idxval_tp ** idxval, int nrow, int ncol, int num_threads);
 
 __END_DECLS
 #endif

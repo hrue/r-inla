@@ -1,81 +1,36 @@
 #!/bin/bash
 set -u
 
-epoch=$(date +%s)
-VERSION=$INLA_VERSION
+INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{print $2}')
+rm INLA*tar.gz INLA*tgz INLA*zip || true
 
-rm INLA*tar.gz INLA*tgz INLA*zip
-
-bdate=$(date -d @$epoch +%Y%m%d%H%M)
-date=$(date -d @$epoch)
+date=$(date)
 D=r-inla/rinla/R
 DD=INLA/R
 RVersion=$(R --vanilla --version | grep '^R version' | awk '{print $3}' | awk -F. '{print $1 "." $2}')
-
-##(cd $D; hg update; )
-##hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
-##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
-hg=$INLA_TAG
-inlahg=$INLA_TAG
-
-echo "epoch=$epoch"
-echo "date=$date"
-echo "bdate=$bdate"
-echo "inlahg=$inlahg"
-echo "hg=$hg"
-
-## update these lines in the function with the updated hgid's and build-date
-tt=.tt
-test -f $tt && rm -rf $tt
+RRVersion="$RVersion"
 
 ## We need to remove these as we change them
 for f in INLA/NAMESPACE INLA/DESCRIPTION; do
     test -f $f && rm -f $f
 done
 
-rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
-if [ -d $D/../inst/bin/linux/64bit/first ]; then
-    rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
-fi
+## make man-pages, compile doc-pdf's and run roxygen
+make -C $D/../.. -B
+
+## sync with 'L' and then fix those dirs we need to fix afterwards
+rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/.
+rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
 ./updateBin
 
-if false; then
-    ## move stdc++  into first/
-    if [ -d $DD/../inst/bin/linux/64bit/first ]; then
-	f=$(echo $DD/../inst/bin/linux/64bit/libstdc++.so*)
-	if [ -f "$f" ]; then
-	    mv -v -f "$f" $DD/../inst/bin/linux/64bit/first
-	fi
-    fi
-fi
-
-## make man-pages and run roxygen
-( cd $D; ./make-man-pages; )
-
-
-rm -f $tt 2>/dev/null
-cat $D/version.R | \
-    awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
-         /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
-         /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
-         /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
-        /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
-	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
-cp $tt $D/version.R
-mv -f $tt $DD/version.R
-
-echo "bdate: $bdate"
-cat $D/version.R
-cat $DD/version.R
-
 ## Modify the DESCRIPTION file
+tt=$(mktemp)
 desc="INLA/DESCRIPTION"
 {
-    egrep -v '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
-    echo "Version: $VERSION"
-    echo "Date: $(date '+%Y-%m-%d') ($hg)"
+    grep -v -E '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
+    echo "Version: $INLA_VERSION"
 } > $tt && mv -f $tt $desc
- 
+
 ~hrue/bin/fix-permissions INLA
 
 mf="INLA.pdf"
@@ -86,49 +41,124 @@ test -d $md || mkdir $md
 cp $mf $md/$mf
 
 SRC=INLA-source.tgz
-tar cvfzh INLA-source.tgz INLA
+tar cvfz INLA-source.tgz INLA
 
 
-## If required, build with ``--no-build-vignettes''
 if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
     echo '*** Build OK'
 else
-    if R --vanilla CMD build --keep-empty-dirs --no-build-vignettes --resave-data --log INLA; then
+    if R --vanilla CMD build --keep-empty-dirs --resave-data --no-build-vignettes --log INLA; then
 	echo '*** Build without rebuilding vignettes OK'
     else
 	exit 1
     fi
 fi
 
-INLA=$(echo INLA_*.tar.gz)
-tgzINLA=${INLA%%.tar.gz}.tgz
-mv $INLA $tgzINLA 
-
+gzINLA=$(echo INLA_*.tar.gz)
+tgzINLA=${gzINLA%%.tar.gz}.tgz
+tgzINLAarm64=${gzINLA%%.tar.gz}arm64.tgz
 zipINLA=${tgzINLA%%.tgz}.zip
+cp -v $gzINLA $tgzINLA
+cp -v $gzINLA $tgzINLAarm64
 
 DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
 test -d $DD || mkdir -p $DD
-##export R_ENABLE_JIT=3
+export R_ENABLE_JIT=3
 export R_COMPILE_PKGS=1
-R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
+R CMD INSTALL --use-vanilla --library=$DD $gzINLA || exit 1
 
 ~/bin/fix-permissions $DD
 
 ( cd $DD; zip -v -r $zipINLA INLA; )
-
 mv -f $DD/$zipINLA .
 
-ls -l INLA*gz INLA*zip
+( cd $DD; tar cvfz $gzINLA INLA; )
+mv -f $DD/$gzINLA .
+
+ls -l $tgzINLA $tgzINLAarm64 $gzINLA $zipINLA
+
+##
+## remove binaries not needed
+## tgzINLA is for MAC
+## tgzINLAarm64 is for MAC arm64
+## gzINLA is for Linux
+## zipINLA is for Windows
+##
+TDIR=INLA-TMP
+test -d $TDIR && rm -rf $TDIR
+mkdir $TDIR
+
+(
+    echo " *** Make Mac binary"
+    cd $TDIR
+    tar xfz ../$tgzINLA
+    for d in INLA/{,inst/}bin/{linux,windows,mac.arm64}/{32,64}bit; do
+	echo "    -> $d"
+	test -d $d && rm -rf $d;
+    done
+    rm -f ../$tgzINLA
+    tar cfz ../$tgzINLA INLA
+    rm -rf INLA
+)
+
+(
+    echo " *** Make Mac binary ARM64"
+    cd $TDIR
+    tar xfz ../$tgzINLAarm64
+    for d in INLA/{,inst/}bin/{mac,linux,windows}/{32,64}bit; do
+	echo "    -> $d"
+	test -d $d && rm -rf $d;
+    done
+    rm -f ../$tgzINLAarm64
+    tar cfz ../$tgzINLAarm64 INLA
+    rm -rf INLA
+)
+
+(
+    echo " *** Make Linux binary"
+    cd $TDIR
+    tar xfz ../$gzINLA
+    for d in INLA/{,inst/}bin/{mac,mac.arm64,windows}/{32,64}bit; do
+	echo "    -> $d"
+	test -d $d && rm -rf $d;
+    done
+    rm -f ../$gzINLA
+    tar cfz ../$gzINLA INLA
+    rm -rf INLA
+)
+
+(
+    echo " *** Make Windows binary"
+    cd $TDIR
+    unzip -q ../$zipINLA
+    for d in INLA/{,inst/}bin/{linux,mac,mac.arm64}/{32,64}bit; do
+	echo "    -> $d"
+	test -d $d && rm -rf $d;
+    done
+    rm -f ../$zipINLA
+    zip -r -q ../$zipINLA INLA
+    rm -rf INLA
+)
+rm -rf $TDIR
+
 www=../www
 wwwR=../www/R
-old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
-	scp -v $f $INLA_MAC:$ff
-	ssh $INLA_MAC /usr/local/bin/R CMD INSTALL --build  $ff
-	scp -v $INLA_MAC:$ff $f
+	scp -P $INLA_MAC_PORT $f $INLA_MAC:$ff
+	ssh -p $INLA_MAC_PORT -x $INLA_MAC bin/R CMD INSTALL --build  $ff
+	scp -P $INLA_MAC_PORT $INLA_MAC:$ff $f 
+    done
+}
+
+convert_to_mac_arm64_binary () {
+    for f in "$@"; do
+	ff=$(basename $f)
+	scp -P $INLA_MAC_ARM64_PORT $f $INLA_MAC_ARM64:$ff
+	ssh -p $INLA_MAC_ARM64_PORT -x $INLA_MAC_ARM64 bin/R CMD INSTALL --build  $ff
+	scp -P $INLA_MAC_ARM64_PORT $INLA_MAC_ARM64:$ff $f
     done
 }
 
@@ -141,21 +171,26 @@ updateBinaryPackages () {
 	)
     done
 }
-    
+
 
 if [ $# -ge 1 -a "$1" == "1" ]; then
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
-	
+
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
-	cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
+	updateBinaryPackages $d
+
+	d=$wwwR/$prefix/bin/macosx/arm64/contrib/$RRVersion
+	cp -v $tgzINLAarm64 $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
-	cp -v $zipINLA $d/INLA_$VERSION.zip
+	cp -v $zipINLA $d/INLA_$INLA_VERSION.zip
 	updateBinaryPackages $d
     done
 fi
@@ -163,16 +198,21 @@ fi
 if [ $# -ge 1 -a "$1" == "2" ]; then
     for prefix in testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
-	
+
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
-	cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
+	updateBinaryPackages $d
+
+	d=$wwwR/$prefix/bin/macosx/arm64/contrib/$RRVersion
+	cp -v $tgzINLAarm64 $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
-	cp -v $zipINLA $d/INLA_$VERSION.zip
+	cp -v $zipINLA $d/INLA_$INLA_VERSION.zip
 	updateBinaryPackages $d
     done
 fi
@@ -186,6 +226,7 @@ fi
     echo 'givemeINLA(testing=FALSE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA.R
+
 {
     cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' | grep -v ^#
     cat $D/os.R | grep -v ^#
@@ -196,5 +237,8 @@ fi
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
-rm -f $tgzINLA 
-rm -f $zipINLA 
+rm -f $tgzINLA
+rm -f $tgzINLAarm64
+rm -f $gzINLA
+rm -f $zipINLA
+rm -f $SRC

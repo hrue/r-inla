@@ -1,81 +1,63 @@
-
-/* inla.h
- * 
- * Copyright (C) 2007-2020 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
 #ifndef __INLA_H__
-#define __INLA_H__
+#       define __INLA_H__
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-#include "iniparser.h"
-#include "dictionary.h"
-#include "strlib.h"
-#include "ar.h"
-#include "fgn.h"
-#include "stochvol.h"
-#include "quantile-regression.h"
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
-#define INLA_FAIL  1
-#define INLA_OK    0
-#define FIFO_GET "inla-mcmc-fifo-get"
-#define FIFO_PUT "inla-mcmc-fifo-put"
-#define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
-#define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
+#       if !defined(_GNU_SOURCE)
+#              define _GNU_SOURCE
+#       endif
+//
+#       include "iniparser.h"
+#       include "dictionary.h"
+#       include "strlib.h"
+#       include "ar.h"
+#       include "fgn.h"
+#       include "stochvol.h"
+#       include "quantile-regression.h"
+#       include "cgeneric.h"
+#       include "prw2.h"
+#       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
+#       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
+#       define LOG_p(_x) log1p((_x) - 1.0)
+#       define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
+#       define LOG2PI 1.8378770664093453391
+#       define INLA_FAIL  1
+#       define INLA_OK    0
+// just to have a big and small number to use
+#       define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
+#       define INLA_REAL_SMALL FLT_EPSILON
+#       define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
+#       define INLA_SPECIAL_NUMBER (1048576.0)		       // 2^20
+#       define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
 
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *
  * YES, CHANGE IT MANUALLY!
  */
-#define INLA_WEIBULL_ALPHA_SCALE 0.10
+#       define INLA_WEIBULL_ALPHA_SCALE 0.1
+#       define INLA_GOMPERTZ_ALPHA_SCALE 0.1
 
 /*
  * The scaling of the critical 'precision' parameter. If this value change, it must also be changed in models.R 
  *
  * YES, CHANGE IT MANUALLY!
  */
-#define INLA_QKUMAR_PREC_SCALE 0.10
-
-/* 
- * The maximum skewness parameter in the LINK_SN, where this is the 1/3-root of 'aa' as in the term Phi(aa*x). 3.2 gives aa =
- * 3.2^3 = 32.768. This constant also appears in the 'to.theta' and 'from.theta' functions in inla.models()$link$sn$hyper$theta
- */
-#define LINK_SN_AMAX (3.2)
+#       define INLA_QKUMAR_PREC_SCALE 0.10
+#       define INLA_WISHARTK_KMAX (24)
+#       define INLA_WISHARTK_KMIN  (2)
+#       define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
+#       define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
+#       define INLA_LP_SCALE_MAX 100
 
 /* 
  *
@@ -109,7 +91,6 @@ __BEGIN_DECLS
 
 typedef enum {
 	INLA_MODE_DEFAULT = 0,
-	INLA_MODE_MCMC,
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
 	INLA_MODE_QSOLVE,
@@ -120,6 +101,8 @@ typedef enum {
 	INLA_MODE_R,
 	INLA_MODE_FGN,
 	INLA_MODE_PARDISO,
+	INLA_MODE_OPENMP,
+	INLA_MODE_DRYRUN,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -147,19 +130,352 @@ typedef enum {
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
 
+/* 
+   this is needed so we can identify each component in the model
+ */
+typedef enum {
+	INVALID_COMPONENT = 0,
+	L_GAUSSIAN = 1,					       /* likelihood-models */
+	L_LOGISTIC,
+	L_SKEWNORMAL,
+	L_GEV,
+	L_T,
+	L_TSTRATA,
+	L_POISSON,
+	L_GPOISSON,
+	L_BINOMIAL,
+	L_CBINOMIAL,					       /* clumped binomial */
+	L_ZEROINFLATEDBINOMIAL0,
+	L_ZEROINFLATEDBINOMIAL1,
+	L_ZEROINFLATEDBINOMIAL2,
+	L_ZEROINFLATEDBETABINOMIAL0,
+	L_ZEROINFLATEDBETABINOMIAL1,
+	L_ZEROINFLATEDBETABINOMIAL2,
+	L_GAMMA,
+	L_BETA,
+	L_BETABINOMIAL,
+	L_NBINOMIAL,
+	L_ZEROINFLATEDNBINOMIAL0,
+	L_ZEROINFLATEDNBINOMIAL1,
+	L_ZEROINFLATEDNBINOMIAL2,
+	L_ZEROINFLATEDNBINOMIAL1STRATA2,
+	L_ZEROINFLATEDNBINOMIAL1STRATA3,
+	L_STOCHVOL,
+	L_STOCHVOL_T,
+	L_STOCHVOL_NIG,
+	L_LOGPERIODOGRAM,
+	L_EXPONENTIAL,
+	L_EXPONENTIALSURV,
+	L_WEIBULL,
+	L_WEIBULLSURV,
+	L_LOGNORMAL,
+	L_LOGNORMALSURV,
+	L_ZEROINFLATEDPOISSON0,
+	L_ZEROINFLATEDPOISSON1,
+	L_ZEROINFLATEDPOISSON2,
+	L_ZERO_N_INFLATEDBINOMIAL2,
+	L_ZERO_N_INFLATEDBINOMIAL3,
+	L_LOGGAMMA_FRAILTY,
+	L_IID_GAMMA,
+	L_IID_LOGITBETA,
+	L_CIRCULAR_NORMAL,
+	L_WRAPPED_CAUCHY,
+	L_TEST_BINOMIAL_1__REMOVED,
+	L_SIMPLEX,
+	L_GAMMACOUNT,
+	L_SKEWNORMAL2____NO_LONGER_IN_USE,
+	L_QKUMAR,
+	L_QCONTPOISSON,					       /* DISABLED in models.R */
+	L_CENPOISSON,					       /* cencored poisson */
+	L_NMIX,
+	L_NMIXNB,
+	L_GP,
+	L_CONTPOISSON,					       /* DISABLED in models.R */
+	L_LOGLOGISTIC,
+	L_LOGLOGISTICSURV,
+	L_QLOGLOGISTIC,
+	L_QLOGLOGISTICSURV,
+	L_POM,
+	L_BGEV,
+	L_NBINOMIAL2,
+	L_GAMMASURV,
+	L_BETABINOMIALNA,
+	L_XPOISSON,
+	L_DGP,
+	L_XBINOMIAL,
+	L_ZEROINFLATEDCENPOISSON0,
+	L_ZEROINFLATEDCENPOISSON1,
+	L_POISSON_SPECIAL1,
+	L_GAMMAJW,
+	L_GAMMAJWSURV,
+	L_TWEEDIE,
+	L_FMRI,
+	L_FMRISURV,
+	L_AGAUSSIAN,					       /* likelihood-models */
+	L_GOMPERTZ,
+	L_GOMPERTZSURV,
+	L_STOCHVOL_SN,
+	L_CENPOISSON2,					       /* cencored poisson (version 2) */
+	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
+	L_GAUSSIANJW,
+	L_0POISSON,
+	L_0POISSONS,
+	L_0BINOMIAL,
+	L_0BINOMIALS,
+	L_BELL,
+	L_NZPOISSON,
+	L_STDGAUSSIAN,
+	L_GGAUSSIAN,
+	L_GGAUSSIANS,
+	L_FL,
+	L_RCPOISSON,
+	L_TPOISSON,
+	L_STOCHVOL_LN,
+	L_NPOISSON,
+	L_MGAMMA,
+	L_MGAMMASURV,
+	L_BC_GAUSSIAN,
+	L_OCCUPANCY,
+	L_SEM,
+	L_EXPPOWER,
+	L_BINOMIALMIX,
+	L_EGP,
+	L_OBETA,
+	L_DGOMPERTZSURV,
+	L_VM,
+	L_C_LOGLIKE,
+	L_GAMMASV,
+	L_1POISSON,
+	L_1POISSONS,
+	L_NVM,
+	L_LAVM,
+	L_GAMMACOUNTMEAN,
+	F_RW2D = 1000,					       /* f-models */
+	F_BESAG,
+	F_BESAG2,					       /* the [a*x, x/a] model */
+	F_BESAGPROPER,
+	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
+	F_SEASONAL,
+	F_IID,
+	F_2DIID,
+	F_IID1D,
+	F_IID2D,
+	F_IID3D,
+	F_IID4D,
+	F_IID5D,
+	F_RW1,
+	F_RW2,
+	F_CRW2,
+	F_AR1,
+	F_AR,
+	F_OU,
+	F_Z,
+	F_BYM,
+	F_BYM2,
+	F_GENERIC0,
+	F_GENERIC1,
+	F_GENERIC2,
+	F_MATERN2D,
+	F_SPDE,
+	F_SPDE2,
+	F_COPY,
+	F_MEC,
+	F_MEB,
+	F_R_GENERIC________DISABLED,
+	F_SLM,
+	F_CLINEAR,					       /* constrained fixed effect */
+	F_SIGM,
+	F_REVSIGM,
+	F_RW2DIID,
+	F_SPDE3,
+	F_GENERIC3,
+	F_LOG1EXP,
+	F_LOGDIST,
+	F_R_GENERIC,
+	F_FGN,
+	F_FGN2,
+	F_AR1C,
+	F_DMATERN,
+	F_INTSLOPE,
+	F_IIDKD,
+	F_C_GENERIC,
+	F_PRW2,
+	F_SCOPY,
+	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
+	P_BETACORRELATION,
+	P_DIRICHLET,
+	P_EXPRESSION,
+	P_FLAT,
+	P_GAMMA,
+	P_GAUSSIAN,
+	P_INVALID,
+	P_JEFFREYS_T_DF,
+	P_LOGFLAT,
+	P_LOGGAMMA,
+	P_LOGIFLAT,
+	P_LOGITBETA,
+	P_MINUSLOGSQRTRUNCGAUSSIAN,
+	P_MVGAUSSIAN,
+	P_MVNORM,
+	P_NONE,
+	P_PC_ALPHAW,
+	P_PC_AR,
+	P_PC_COR0,
+	P_PC_COR1,
+	P_PC_DOF,
+	P_PC_FGN_H,
+	P_PC_GAMMA,
+	P_PC_GAMMACOUNT,
+	P_PC_MATERN,
+	P_PC_MGAMMA,
+	P_PC_PREC,
+	P_PC_RANGE,
+	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
+	P_PC_GEVTAIL,
+	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
+	P_TABLE,
+	P_WISHART1D,
+	P_WISHART2D,
+	P_WISHART3D,
+	P_WISHART4D,
+	P_WISHART5D,
+	P_PC_SN,
+	P_SN_INTERCEPT,
+	P_WISHARTK_2D,
+	P_WISHARTK_3D,
+	P_WISHARTK_4D,
+	P_WISHARTK_5D,
+	P_WISHARTK_6D,
+	P_WISHARTK_7D,
+	P_WISHARTK_8D,
+	P_WISHARTK_9D,
+	P_WISHARTK_10D,
+	P_WISHARTK_11D,
+	P_WISHARTK_12D,
+	P_WISHARTK_13D,
+	P_WISHARTK_14D,
+	P_WISHARTK_15D,
+	P_WISHARTK_16D,
+	P_WISHARTK_17D,
+	P_WISHARTK_18D,
+	P_WISHARTK_19D,
+	P_WISHARTK_20D,
+	P_WISHARTK_21D,
+	P_WISHARTK_22D,
+	P_WISHARTK_23D,
+	P_WISHARTK_24D,
+	P_LAPLACE,
+	P_RPRIOR,
+	P_PC_EGPTAIL,
+	P_PC_RANGE_PRW2,
+	G_EXCHANGEABLE = 3000,				       /* group models */
+	G_EXCHANGEABLE_POS,
+	G_AR1,
+	G_RW1,
+	G_RW2,
+	G_AR,
+	G_BESAG,
+	G_IID,
+	MIX_GAUSSIAN = 4000,				       /* mix-models */
+	MIX_LOGGAMMA,
+	MIX_MLOGGAMMA,
+	LINK_IDENTITY = 5000,				       /* link-models */
+	LINK_LOG,
+	LINK_NEGLOG,
+	LINK_PROBIT,
+	LINK_CLOGLOG,
+	LINK_LOGIT,
+	LINK_TAN,
+	LINK_TEST1,
+	LINK_SPECIAL1,
+	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
+	LINK_LOGOFFSET,
+	LINK_SSLOGIT,
+	LINK_LOGLOG,
+	LINK_CAUCHIT,
+	LINK_LOGITOFFSET,
+	LINK_INVERSE,
+	LINK_QPOISSON,
+	LINK_QBINOMIAL,
+	LINK_QWEIBULL,
+	LINK_QGAMMA,
+	LINK_ROBIT,
+	LINK_SN,
+	LINK_LOGa,
+	LINK_POWER_LOGIT,
+	LINK_CCLOGLOG,
+	LINK_GEVIT,
+	LINK_CGEVIT,
+	LINK_QEXPPOWER,
+	LINK_CIRCULAR,
+	LINK_TANPI
+} inla_component_tp;
+
+typedef enum {
+	POM_CDF_DEFAULT = 1,
+	POM_CDF_LOGIT = 1,
+	POM_CDF_PROBIT = 2
+} inla_pom_cdf_tp;
+
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
-typedef double link_func_tp(double arg, map_arg_tp typ, void *param, double *cov);
+typedef double link_func_tp(int thread_id, double arg, map_arg_tp typ, void *param, double *cov);
 
 typedef struct {
 	const char *name;
 	map_func_tp *func;
 } map_table_tp;
 
-
 typedef struct {
 	size_t len;
 	char *contents;
 } inla_file_contents_tp;
+
+/* 
+   priors are defined using this template. return log(pi(precision, parameters....))
+ */
+typedef double inla_priorfunc_tp(double *param, double *parameters);
+
+typedef struct {
+	inla_component_tp id;				       /* prior Id */
+	char *hyperid;					       /* hyperpar Id */
+	char *name;					       /* name of prior */
+	char *rprior;					       /* name of rprior */
+	double *parameters;				       /* the parameters */
+	char *to_theta;					       /* R-code */
+	char *from_theta;				       /* R-code */
+	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
+	char *expression;				       /* an alternative expression/table */
+} Prior_tp;
+
+typedef struct {
+	double y;
+	double w;
+} inla_llik_data_gaussian_tp;
+
+typedef struct {
+	double y;
+	double E;
+	double normc;
+} inla_llik_data_poisson_tp;
+
+typedef struct {
+	double y;
+	double E;
+	double S;
+	double cache[2];
+} inla_llik_data_nbinomial_tp;
+
+typedef struct {
+	double y;
+	double nb;
+	double normc;
+} inla_llik_data_binomial_tp;
+
+typedef struct {
+	int y;
+	int nb;
+	double normc;
+} inla_llik_data_betabinomial_tp;
 
 typedef struct {
 	double *d;					       /* the d-array */
@@ -173,12 +489,27 @@ typedef struct {
 	/*
 	 * y ~ Poisson(E*exp(x)) 
 	 */
+	inla_llik_data_poisson_tp **data_poisson;
+
 	double *E;
+	double *cen_low;				       /* cenpoisson2 */
+	double *cen_high;				       /* cenpoisson2 */
 
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
+	inla_llik_data_binomial_tp **data_binomial;
 	double *nb;
+	double *p_scale;
+
+	/*
+	 * nbinomial
+	 */
+	inla_llik_data_nbinomial_tp **data_nbinomial;
+	double *S;
+
+	// betabinomial
+	inla_llik_data_betabinomial_tp **data_betabinomial;
 
 	/*
 	 * y ~ BinomialRE()
@@ -207,18 +538,34 @@ typedef struct {
 	 */
 	double ***pom_theta;
 	int pom_nclasses;
+	inla_pom_cdf_tp pom_cdf;
+	int pom_fast_probit;
 
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
+
+	inla_llik_data_gaussian_tp **data_gaussian;
+
 	double **log_prec_gaussian;
 	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
+	double **log_power;				       /* for the generalized gaussian */
+
+	double **bc_lambda;
+	double *bc_scale;
+	double *bc_mean;
 
 	/*
-	 *  Beta
+	 *  Beta/oBeta
 	 */
-	double *weight_beta;
+	double **beta_precision_intern;
+	double *beta_weight;
+	double **obeta_precision_intern;
+	double beta_censor_value;
+	double *obeta_weight;
+	double **obeta_offset_loc;
+	double **obeta_offset_width;
 
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
@@ -247,11 +594,15 @@ typedef struct {
 	double *weight_tstrata;				       /* weight_t */
 	double *strata_tstrata;				       /* strata_t (type int) */
 
-
 	/*
 	 * stocvol
 	 */
 	double **log_offset_prec;
+
+	/*
+	 * stocvol ln
+	 */
+	double **stochvolln_c;
 
 	/*
 	 * stochvol_t: y ~ Student-t_dof (x) with Variance=1. dof_intern_svt = log(dof - 2).
@@ -268,13 +619,17 @@ typedef struct {
 	/*
 	 * survival: event is 1 is y is the failure time or 0 if its right sensored 
 	 */
-	double **alpha_intern;				       /* For the Weibull, PS and loglogistic */
+	double **alpha_intern;				       /* For the Weibull, PS, loglogistic and gompertz */
 	double *truncation;				       /* for survival */
 	double *event;					       /* one of inla_surv_event_tp */
 	double *lower;					       /* for survival */
 	double *upper;					       /* for survival */
-	// dobule *time == y
+	// double *time == y
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
+
+	int cure_ncov;
+	double *cure_cov;
+	double ***cure_beta;
 
 	/*
 	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
@@ -305,24 +660,11 @@ typedef struct {
 	double *betabinomialnb_scale;
 
 	/*
-	 * the precision parameter for the beta, \phi = exp(theta)
-	 */
-	double **beta_precision_intern;
-
-	/*
 	 * Skew-Normal
 	 */
-	double **shape_skew_normal;
-	double shape_max_skew_normal;			       /* maximum value for |shape| allowed */
-	double **log_prec_skew_normal;
-	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
-
-	/*
-	 * Skew-Normal2
-	 */
-	double **logit_skewness_skew_normal2;
-	double **log_prec_skew_normal2;
-	double *weight_skew_normal2;			       /* weights for the skew_normal2: Variance = 1/(weight*prec) */
+	double **sn_skew;
+	double **sn_lprec;
+	double *sn_scale;				       /* Variance = 1/(scale*prec) */
 
 	/*
 	 * GEV 
@@ -403,6 +745,10 @@ typedef struct {
 	double **gamma_log_prec;
 	double *gamma_scale;				       /* the scalings 's' */
 
+	// gammasv
+	double **gammasv_log_prec;
+	double *gammasv_scale;				       /* the scalings 's' */
+
 	/*
 	 * MIX ~ Normal(x, 1/prec)
 	 */
@@ -414,9 +760,12 @@ typedef struct {
 	double **mix_log_prec_loggamma;
 
 	/*
-	 * Gammacount; parameter alpha
+	 * Gammacount{,2}; parameter alpha
 	 */
 	double **gammacount_log_alpha;
+
+	double **gammacountmean_log_alpha;
+	double *gammacountmean_T;
 
 	/*
 	 * The qKumar likelihood
@@ -430,6 +779,11 @@ typedef struct {
 	GMRFLib_spline_tp **qcontpoisson_func;
 
 	/*
+	 * Aggregated Gaussian  
+	 */
+	double **agaussian;
+
+	/*
 	 * For both modelx nmix and nmixnb
 	 */
 	int nmix_m;
@@ -438,12 +792,118 @@ typedef struct {
 	double ***nmix_beta;				       /* vector of betas */
 	double **nmix_log_overdispersion;		       /* only for model nmixnb */
 
+	int occ_nbeta;
+	int occ_ny_max;
+	int *occ_yzero;
+	int *occ_ny;
+	int **occ_y;
+	double **occ_x;
+	double ***occ_beta;
+
 	/*
 	 * generalized Pareto
 	 */
 	double **gp_intern_tail;			       /* log(xi) parameter */
 	double *gp_tail_interval;
 
+	/*
+	 * Tweedie 
+	 */
+	double **tweedie_p_intern;
+	double **tweedie_phi_intern;
+	double *tweedie_w;
+
+	/*
+	 * fmri 
+	 */
+	double **fmri_lprec;
+	double **fmri_ldof;
+	double *fmri_scale;
+
+	/*
+	 * gaussianjw  
+	 */
+	double ***gjw_beta;
+	double *gjw_n;
+	double *gjw_df;
+	double *gjw_var;
+
+	link_func_tp *link_simple_invlinkfunc;		       /* the link-function for the simple part of the 0inflated models */
+	char *link_simple_name;
+
+	int poisson0_nbeta;
+	double ***poisson0_beta;
+	double **poisson0_x;
+	double *poisson0_E;
+
+	int poisson1_nbeta;
+	double ***poisson1_beta;
+	double **poisson1_x;
+	double *poisson1_E;
+
+	int binomial0_nbeta;
+	double ***binomial0_beta;
+	double **binomial0_x;
+	double *binomial0_Ntrials;
+
+	/*
+	 * this cover both ggassuian and ggassuianS 
+	 */
+	int ggaussian_nbeta;
+	double ***ggaussian_beta;
+	double **ggaussian_x;
+	double *ggaussian_scale;			       // only ggaussian
+	double *ggaussian_offset;			       // only ggaussianS
+
+	// 
+	double **fl_c;
+
+
+	// rcpoisson
+	double *rcp_E;
+	double *rcp_event;
+	double *rcp_offset;
+	double **rcp_x;
+	double ***rcp_beta;
+	int rcp_nbeta;
+
+	// tpoisson
+	double *tp_E;
+	double *tp_event;
+	double *tp_offset;
+	double **tp_x;
+	double ***tp_beta;
+	int tp_nbeta;
+
+	// sem
+	int sem_dim;
+	int sem_idx;
+	double *sem_A;
+	char **sem_B;
+	double ***sem_B_ptr;
+	map_func_tp **sem_B_map;
+	void **sem_B_map_arg;
+	void *sem_cache;
+
+	// binomial mix
+	int binmix_m;
+	double **binmix_dat;				       // z1..z_{2m+3}, w1, w2, ntrial
+	double ***binmix_beta;
+
+	double **egp_intern_tail;			       /* xi */
+	double **egp_intern_shape;			       /* kappa */
+	double *egp_tail_interval;			       /* interval for the 'xi' */
+
+	// vm
+	double **vm_lprec;
+	double *vm_scale;
+
+	double ***cloglike_theta;
+	inla_cloglike_func_tp *cloglike_func;
+	inla_cgeneric_data_tp *cloglike_data;
+	double **cloglike_Y;
+	int cloglike_nY;
+	int cloglike_debug;
 } Data_tp;
 
 typedef struct {
@@ -462,205 +922,16 @@ typedef struct {
 	double **specificity_intern;
 	double **prob_intern;
 	double **dof_intern;
-	double **sn_alpha;
+	double **sn_skew;
+	double **sn_intercept;
 	double *scale;
+	double **power_intern;
+	double **intercept_intern;
+	double **bgev_tail;
+	double **bgev_intercept;
+	double *bgev_tail_interval;
+	double **log_power;
 } Link_param_tp;
-
-/* 
-   this is needed so we can identify each component in the model
- */
-typedef enum {
-	INVALID_COMPONENT = 0,
-	L_GAUSSIAN = 1,					       /* likelihood-models */
-	L_LOGISTIC,
-	L_SKEWNORMAL,
-	L_GEV,
-	L_T,
-	L_TSTRATA,
-	L_POISSON,
-	L_GPOISSON,
-	L_BINOMIAL,
-	L_CBINOMIAL,					       /* clumped binomial */
-	L_ZEROINFLATEDBINOMIAL0,
-	L_ZEROINFLATEDBINOMIAL1,
-	L_ZEROINFLATEDBINOMIAL2,
-	L_ZEROINFLATEDBETABINOMIAL0,
-	L_ZEROINFLATEDBETABINOMIAL1,
-	L_ZEROINFLATEDBETABINOMIAL2,
-	L_GAMMA,
-	L_BETA,
-	L_BETABINOMIAL,
-	L_NBINOMIAL,
-	L_ZEROINFLATEDNBINOMIAL0,
-	L_ZEROINFLATEDNBINOMIAL1,
-	L_ZEROINFLATEDNBINOMIAL2,
-	L_ZEROINFLATEDNBINOMIAL1STRATA2,
-	L_ZEROINFLATEDNBINOMIAL1STRATA3,
-	L_STOCHVOL,
-	L_STOCHVOL_T,
-	L_STOCHVOL_NIG,
-	L_LOGPERIODOGRAM,
-	L_EXPONENTIAL,
-	L_EXPONENTIALSURV,
-	L_WEIBULL,
-	L_WEIBULLSURV,
-	L_LOGNORMAL,
-	L_LOGNORMALSURV,
-	L_ZEROINFLATEDPOISSON0,
-	L_ZEROINFLATEDPOISSON1,
-	L_ZEROINFLATEDPOISSON2,
-	L_ZERO_N_INFLATEDBINOMIAL2,
-	L_ZERO_N_INFLATEDBINOMIAL3,
-	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
-	L_LOGGAMMA_FRAILTY,
-	L_IID_GAMMA,
-	L_IID_LOGITBETA,
-	L_CIRCULAR_NORMAL,
-	L_WRAPPED_CAUCHY,
-	REMOVED___L_TEST_BINOMIAL_1,
-	L_SIMPLEX,
-	L_GAMMACOUNT,
-	L_SKEWNORMAL2,
-	L_QKUMAR,
-	L_QCONTPOISSON,					       /* DISABLED in models.R */
-	L_CENPOISSON,					       /* cencored poisson */
-	L_NMIX,
-	L_NMIXNB,
-	L_GP,
-	L_CONTPOISSON,					       /* DISABLED in models.R */
-	L_LOGLOGISTIC,
-	L_LOGLOGISTICSURV,
-	L_QLOGLOGISTIC,
-	L_QLOGLOGISTICSURV,
-	L_POM,
-	L_BGEV,
-	L_NBINOMIAL2,
-	L_GAMMASURV,
-	L_BETABINOMIALNA,
-	L_XPOISSON,
-	L_DGP,
-	L_XBINOMIAL,
-	F_RW2D = 1000,					       /* f-models */
-	F_BESAG,
-	F_BESAG2,					       /* the [a*x, x/a] model */
-	F_BESAGPROPER,
-	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
-	F_SEASONAL,
-	F_IID,
-	F_2DIID,
-	F_IID1D,
-	F_IID2D,
-	F_IID3D,
-	F_IID4D,
-	F_IID5D,
-	F_RW1,
-	F_RW2,
-	F_CRW2,
-	F_AR1,
-	F_AR,
-	F_OU,
-	F_Z,
-	F_BYM,
-	F_BYM2,
-	F_GENERIC0,
-	F_GENERIC1,
-	F_GENERIC2,
-	F_MATERN2D,
-	F_SPDE,
-	F_SPDE2,
-	F_COPY,
-	F_MEC,
-	F_MEB,
-	F_R_GENERIC________DISABLED,
-	F_SLM,
-	F_CLINEAR,					       /* constrained fixed effect */
-	F_SIGM,
-	F_REVSIGM,
-	F_RW2DIID,
-	F_SPDE3,
-	F_GENERIC3,
-	F_LOG1EXP,
-	F_LOGDIST,
-	F_R_GENERIC,
-	F_FGN,
-	F_FGN2,
-	F_AR1C,
-	F_DMATERN,
-	F_INTSLOPE,
-	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
-	P_BETACORRELATION,
-	P_DIRICHLET,
-	P_EXPRESSION,
-	P_FLAT,
-	P_GAMMA,
-	P_GAUSSIAN,
-	P_INVALID,
-	P_JEFFREYS_T_DF,
-	P_LOGFLAT,
-	P_LOGGAMMA,
-	P_LOGIFLAT,
-	P_LOGITBETA,
-	P_MINUSLOGSQRTRUNCGAUSSIAN,
-	P_MVGAUSSIAN,
-	P_MVNORM,
-	P_NONE,
-	P_PC_ALPHAW,
-	P_PC_AR,
-	P_PC_COR0,
-	P_PC_COR1,
-	P_PC_DOF,
-	P_PC_FGN_H,
-	P_PC_GAMMA,
-	P_PC_GAMMACOUNT,
-	P_PC_MATERN,
-	P_PC_MGAMMA,
-	P_PC_PREC,
-	P_PC_RANGE,
-	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
-	P_PC_GEVTAIL,
-	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
-	P_TABLE,
-	P_WISHART1D,
-	P_WISHART2D,
-	P_WISHART3D,
-	P_WISHART4D,
-	P_WISHART5D,
-	P_PC_SN,
-	G_EXCHANGEABLE = 3000,				       /* group models */
-	G_EXCHANGEABLE_POS,
-	G_AR1,
-	G_RW1,
-	G_RW2,
-	G_AR,
-	G_BESAG,
-	G_IID,
-	MIX_GAUSSIAN = 4000,				       /* mix-models */
-	MIX_LOGGAMMA,
-	MIX_MLOGGAMMA,
-	LINK_IDENTITY = 5000,				       /* link-models */
-	LINK_LOG,
-	LINK_NEGLOG,
-	LINK_PROBIT,
-	LINK_CLOGLOG,
-	LINK_LOGIT,
-	LINK_TAN,
-	LINK_TEST1,
-	LINK_SPECIAL1,
-	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
-	LINK_LOGOFFSET,
-	LINK_SSLOGIT,
-	LINK_LOGLOG,
-	LINK_CAUCHIT,
-	LINK_LOGITOFFSET,
-	LINK_INVERSE,
-	LINK_QPOISSON,
-	LINK_QBINOMIAL,
-	LINK_QWEIBULL,
-	LINK_QGAMMA,
-	LINK_ROBIT,
-	LINK_SN,
-	LINK_LOGa
-} inla_component_tp;
 
 typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
@@ -673,29 +944,13 @@ typedef struct {
 } inla_loga_table_tp;
 
 /* 
-   priors are defined using this template. return log(pi(precision, parameters....))
- */
-typedef double inla_priorfunc_tp(double *param, double *parameters);
-
-typedef struct {
-	inla_component_tp id;				       /* prior Id */
-	char *hyperid;					       /* hyperpar Id */
-	char *name;					       /* name of prior */
-	double *parameters;				       /* the parameters */
-	char *to_theta;					       /* R-code */
-	char *from_theta;				       /* R-code */
-	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
-	char *expression;				       /* an alternative expression/table */
-} Prior_tp;
-
-/* 
    This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
  */
-#define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior? \
-			      ((p_).priorfunc ?				\
-			       (p_).priorfunc(arg_, (p_).parameters)  : \
+#       define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior ?		       \
+			      ((p_).priorfunc ?			       \
+			       (p_).priorfunc(arg_, (p_).parameters) :	\
 			       inla_eval((p_).expression, arg_, theta, ntheta)) \
-			      : 0.0)
+			       : 0.0)
 
 typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *tab;
@@ -722,20 +977,24 @@ typedef struct {
 } File_tp;
 
 typedef struct {
+	int gcpo;					       /* output GCPO */
 	int cpo;					       /* output CPO */
 	int po;						       /* output PO */
 	int dic;					       /* output DIC */
 	int summary;					       /* output marginal summaries (mean, stdev, etc) */
 	int return_marginals;				       /* output detailed marginal density (even though they are computed) */
+	int return_marginals_predictor;			       /* output detailed marginal density (even though they are computed) */
 	int hyperparameters;				       /* compute also the marginal for the hyperparameters */
 	int kld;					       /* output the (symmetric) kld between marginals */
 	int mlik;					       /* compute the marginal likelihood? */
 	int q;						       /* output image of the Q-matrix */
 	int graph;					       /* output the graph */
 	int config;					       /* output the configurations */
+	int config_lite;				       /* output-lite the configurations */
+	int internal_opt;				       /* do internal optimisation? default TRUE */
+	int save_memory;				       /* save memory? default FALSE */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
-	int gdensity;
 	int mode;
 	double *quantiles;
 	double *cdf;
@@ -749,7 +1008,7 @@ typedef enum {
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
 
-#define MIX_INT_EPS  (1.0E-6)				       /* defines the cut-off for the integration weights */
+#       define MIX_INT_EPS  (1.0E-6)			       /* defines the cut-off for the integration weights */
 
 typedef struct {
 	char *data_likelihood;
@@ -759,6 +1018,7 @@ typedef struct {
 	File_tp data_file;
 	File_tp weight_file;
 	File_tp attr_file;
+	File_tp lp_scale_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
@@ -774,6 +1034,12 @@ typedef struct {
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
+
+	double ***lp_scale_beta;
+	int *lp_scale;					       /* index vector */
+	int *lp_scale_in_use;
+	int *lp_scale_nfixed;
+	Prior_tp *lp_scale_nprior;
 
 	/*
 	 * the link model
@@ -805,7 +1071,6 @@ typedef struct {
 	int mix_ntheta;
 } Data_section_tp;
 
-
 typedef struct {
 	int n;
 	int dim;
@@ -835,7 +1100,6 @@ typedef struct {
 	double **hold_Qmarg;				       /* dim = p */
 } ar_def_tp;
 
-
 typedef struct {
 	double precision;
 	double **beta;
@@ -846,6 +1110,36 @@ typedef struct {
 	map_func_tp *map_beta;
 	void *map_beta_arg;
 } inla_copy_arg_tp;
+
+typedef struct {
+	double *betas;
+	double *betas_tmp;
+	GMRFLib_spline_tp *splinefun;
+} inla_scopy_cache_tp;
+
+typedef struct {
+	int nbeta;
+	int rankdef;
+	double *loc_beta;
+	double *cov_beta;
+	double ***betas;
+	double precision;
+	double loc_len;
+	double loc_mid;
+
+	GMRFLib_rwdef_tp *rwdef;
+	GMRFLib_graph_tp *graph_prior;
+	GMRFLib_Qfunc_tp *Qfunc_prior;
+	void *Qfunc_arg_prior;
+
+	GMRFLib_graph_tp *graph;
+	GMRFLib_Qfunc_tp *Qfunc;
+	void *Qfunc_arg;
+	GMRFLib_matrix_tp *W;
+
+	inla_scopy_cache_tp **cache00;
+	inla_scopy_cache_tp **cache01;
+} inla_scopy_arg_tp;
 
 typedef struct {
 	int ntheta;
@@ -861,14 +1155,15 @@ typedef struct {
 	char *model;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 
-
 struct inla_tp_struct {
 	/*
 	 * General stuff 
 	 */
 	int verbose;
-	int strategy;
+	GMRFLib_openmp_strategy_tp strategy;
 	char *smtp;
+
+	GMRFLib_preopt_tp *preopt;
 
 	/*
 	 * parameters for global_nodes
@@ -878,13 +1173,12 @@ struct inla_tp_struct {
 	/*
 	 * reuse the mode-stuff 
 	 */
-	unsigned char *sha1_hash;
-	unsigned char *sha1_hash_file;
+	int mode_restart;
+	int mode_fixed;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
+	int mode_use_mode;
+
 	int ntheta_file;
 	int theta_counter_file;
-	int reuse_mode;
-	int reuse_mode_but_restart;
-	int fixed_mode;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
 	double *theta_file;
 	double *x_file;
 	int nx_file;
@@ -927,6 +1221,7 @@ struct inla_tp_struct {
 	int predictor_compute;
 	int predictor_fixed;
 	int predictor_user_scale;
+	int predictor_vb_correct;
 	link_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
 	void **predictor_invlinkfunc_arg;		       /* these are rebuilt */
 	GMRFLib_matrix_tp **predictor_invlinkfunc_covariates;
@@ -935,8 +1230,9 @@ struct inla_tp_struct {
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
 
-	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
-	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+	char *predictor_A_fnm;				       /* filename for the Amatrix */
+	char *predictor_Aext_fnm;			       /* extension: filename for the extended Amatrix */
+	double predictor_Aext_precision;		       /* extension: precision for the extended Amatrix */
 	char *Apredictor_tag;				       /* the tag */
 
 	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */
@@ -947,7 +1243,7 @@ struct inla_tp_struct {
 	int ds;						       /* current data-section (when reading) */
 	int nds;					       /* number of data-sections in total */
 	int data_ntheta_all;
-	int gaussian_data;				       /* corresponds to ai_par->gaussian_data */
+	int *fl;					       /* to flag 'fl' likelihood */
 	double *d;
 	void **loglikelihood_arg;
 	Data_section_tp *data_sections;
@@ -1010,10 +1306,12 @@ struct inla_tp_struct {
 	Output_tp **f_output;
 	inla_file_contents_tp **f_id_names;
 	int *f_correct;					       /* correct or not? */
-	int *f_vb_correct;				       /* correct or not? */
+	GMRFLib_idx_tp **f_vb_correct;			       /* correct or not? */
 
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interactions */
 	void ***ff_Qfunc_arg;
+
+	GMRFLib_matrix_tp **f_Alocal;
 
 	/*
 	 * type Linear
@@ -1031,15 +1329,18 @@ struct inla_tp_struct {
 	 * linear combinations 
 	 */
 	int nlc;					       /* number of linear combinations */
-	int lc_derived_only;				       /* use only the derived lincombs ? */
 	int lc_derived_correlation_matrix;		       /* compute correlations ? */
 	char **lc_tag;					       /* the tags */
-	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	double *lc_order;
 	Output_tp **lc_output;
 	GMRFLib_lc_tp **lc_lc;
 	double *lc_derived_c;				       /* optional: correlation for the lincombs (derived) */
+
+	/*
+	 * global constraint (before its merged with the model-constr) ...[0] is A, ...[1] is e, both vectors 'n x 1' 
+	 */
+	GMRFLib_matrix_tp **global_constr;
 
 	/*
 	 * The final model 
@@ -1073,15 +1374,15 @@ struct inla_tp_struct {
 	 * results 
 	 */
 	GMRFLib_density_tp **density;
-	GMRFLib_density_tp **gdensity;
 	GMRFLib_density_tp **density_transform;
 	GMRFLib_density_tp **density_hyper;
 	GMRFLib_density_tp **density_lin;
+	GMRFLib_gcpo_tp *gcpo;
+	GMRFLib_gcpo_param_tp *gcpo_param;
 	GMRFLib_ai_cpo_tp *cpo;
 	GMRFLib_ai_po_tp *po;
 	GMRFLib_ai_dic_tp *dic;
 	GMRFLib_ai_marginal_likelihood_tp mlik;
-	GMRFLib_ai_neffp_tp neffp;
 
 	/*
 	 * index-table 
@@ -1102,9 +1403,12 @@ struct inla_tp_struct {
 	 * if at use
 	 */
 	inla_update_tp *update;
+
+	// experimental mode only
+	int compute_initial_values;
+
+	dictionary *ini;
 };
-
-
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
@@ -1141,7 +1445,6 @@ typedef struct {
 	double **logit_phi;
 	GMRFLib_rw2ddef_tp *rw2ddef;
 } inla_rw2diid_Qfunc_arg_tp;
-
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
@@ -1196,7 +1499,6 @@ typedef struct {
 	double logdet_Qbeta;
 } inla_ar1c_arg_tp;
 
-
 typedef struct {
 	/*
 	 * 2D iid random effects. The coding is (x0,y0,x1,y1,...,xn-1,yn-1), so the total length is N=2*n. For the 2DIIDWISHART the coding is (x,y).
@@ -1250,7 +1552,6 @@ typedef struct {
 	gsl_matrix *Q;
 } inla_wishart_hold_tp;
 
-
 typedef struct {
 	/*
 	 * iid random effects with a Wishart prior The coding is (x0,x1,..., y0,y1,....,z0,z1,...), so the total length is N=dim*n.
@@ -1263,6 +1564,23 @@ typedef struct {
 
 	inla_wishart_hold_tp **hold;
 } inla_iid_wishart_arg_tp;
+
+typedef struct {
+	double *vec;
+	gsl_matrix *L;
+	gsl_matrix *Q;
+} inla_wishartk_hold_tp;
+
+typedef struct {
+	int n;						       /* n=k*m */
+	int N;
+	int dim;					       /* dim = order */
+	int ntheta;					       /* k*(k+1)/2 */
+	double ***theta;
+	double **vec;
+
+	inla_wishartk_hold_tp **hold;
+} inla_iid_wishartk_arg_tp;
 
 typedef struct {
 	int n;
@@ -1306,7 +1624,6 @@ typedef struct {
 	int n;						       /* size of the original problem */
 } inla_replicate_tp;
 
-
 /* 
    constrained fixed effect
  */
@@ -1316,7 +1633,6 @@ typedef struct {
 	double *x;
 	double precision;
 } inla_clinear_tp;
-
 
 /* 
    sigmodial and reverse sigmodial and log1exp
@@ -1376,12 +1692,40 @@ typedef struct {
 	int ntheta;
 	int n;
 	int mu_zero;					       /* often mu is zero, allow for fast return */
+	int reset_cache;
+	int *ilist;
+	int *jlist;
+	int len_list;
 	double ***theta;
 	double **param;
+	GMRFLib_graph_tp *graph;
 	GMRFLib_tabulate_Qfunc_tp **Q;
 	double **mu;
 	double **mu_param;
 } inla_rgeneric_tp;
+
+typedef struct {
+	int Id;
+	int debug;
+	char *shlib;					       /* file to load containing the model definition */
+	char *model;					       /* the name of the model definition */
+	char *secname;
+	int ntheta;
+	int n;
+	int mu_zero;					       /* often mu is zero, allow for fast return */
+	int reset_cache;
+	int *ilist;
+	int *jlist;
+	int len_list;
+	inla_cgeneric_data_tp *data;
+	double ***theta;
+	double **param;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp **Q;
+	double **mu;
+	double **mu_param;
+	inla_cgeneric_func_tp *model_func;
+} inla_cgeneric_tp;
 
 typedef struct {
 	int n;						       /* size of graph */
@@ -1426,138 +1770,250 @@ typedef enum {
 	INTSLOPE_Z = 2
 } inla_intslope_column_tp;
 
+typedef struct {
+	double xi;
+	double omega;
+	double intercept;
+	double alpha;
+} inla_sn_arg_tp;
 
+#       define R_GENERIC_Q "Q"
+#       define R_GENERIC_GRAPH "graph"
+#       define R_GENERIC_MU "mu"
+#       define R_GENERIC_INITIAL "initial"
+#       define R_GENERIC_LOG_NORM_CONST "log.norm.const"
+#       define R_GENERIC_LOG_PRIOR "log.prior"
+#       define R_GENERIC_QUIT "quit"
 
-#define R_GENERIC_Q "Q"
-#define R_GENERIC_GRAPH "graph"
-#define R_GENERIC_MU "mu"
-#define R_GENERIC_INITIAL "initial"
-#define R_GENERIC_LOG_NORM_CONST "log.norm.const"
-#define R_GENERIC_LOG_PRIOR "log.prior"
-#define R_GENERIC_QUIT "quit"
+#       define R_GENERIC_MODEL ".inla.rgeneric.model"
+#       define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
+#       define R_JP_MODEL ".inla.jp.model"
 
-#define R_GENERIC_MODEL ".inla.rgeneric.model"
-#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
-#define R_JP_MODEL ".inla.jp.model"
-
-#define INLA_LITTLE_ENDIAN 1
-#define INLA_BIG_ENDIAN    2
-
-/* 
-   binary write macros
- */
-#define DW(a) {double da = (a); fwrite(&da, sizeof(double), (size_t)1, fp); }
-#define D2W(a, b) {DW(a); DW(b);}
-#define D3W(a, b, c) {D2W(a, b); DW(c);}
-#define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
-#define IW(a) {double d = (double)(a); DW(d);}		       /* OOPS: write ints as double! */
-#define I2W(a, b) {IW(a); IW(b);}
-#define I3W(a, b, c) {IW(a); IW(b); IW(c);}
-#define I4W(a, b, c, d) {I2W(a, b); I2W(c, d);}
-#define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
-#define IDW(a, b)  {IW(a); DW(b);}
-#define ID2W(a, b, c)  {IW(a); D2W(b, c);}
-
+#       define INLA_LITTLE_ENDIAN 1
+#       define INLA_BIG_ENDIAN    2
 
 /* 
-   functions
+   binary write macros. Faster to cache and write in bulk. See example number 63
+
+   First variant is not thread safe, second one is
  */
+#       define Dinit_core(n_, filename_) size_t _d_store_len = n_; \
+	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
+	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
+
+#       define Dinit(filename_)   Dinit_core(8388608L, filename_)
+#       define Dinit_s(filename_) Dinit_core(8192L, filename_)
+#       define Dwrite()							\
+	if (_d_n >= _d_store_len) {					\
+		fwrite((void*)_d_store, sizeof(double), _d_n, _fp);	\
+		_d_n = 0;						\
+	}
+#       define Dclose()							\
+	{								\
+		if (_fp) {						\
+			if (_d_n) {					\
+				fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
+			}						\
+			fclose(_fp);					\
+		}							\
+		_fp = NULL;						\
+		_d_n = 0;						\
+		Free(_d_store);						\
+	}
+#       define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
+#       define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
+#       define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
+#       define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
+#       define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
+
+// thread-safe: with these, one have to KNOW... no dynamic writing, just filling in the array
+#       define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 0L, double); \
+	FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
+
+#       define D1W_r(idx_, off_, a_)				\
+	{						\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		_d_store[iidx_] = a_;			\
+	}
+#       define D2W_r(idx_, off_, a_, b_)			\
+	{						\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		_d_store[iidx_ + 0] = a_;		\
+		_d_store[iidx_ + 1]= b_;		\
+	}
+#       define D3W_r(idx_, off_, a_, b_, c_)			\
+	{						\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		_d_store[iidx_ + 0] = a_;		\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+	}
+#       define D4W_r(idx_, off_, a_, b_, c_, d_)		\
+	{						\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		_d_store[iidx_ + 0] = a_;		\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+		_d_store[iidx_ + 3]= d_;		\
+	}
+#       define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
+	{						\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		_d_store[iidx_ + 0] = a_;		\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+		_d_store[iidx_ + 3]= d_;		\
+		_d_store[iidx_ + 4]= e_;		\
+	}
+#       define Dclose_r()							\
+	if (_fp) {							\
+		fwrite((void*)_d_store, sizeof(double), _d_store_len * _d_g, _fp); \
+		fclose(_fp);						\
+		_fp = NULL;						\
+		_d_store_len = _d_g = 0;				\
+		Free(_d_store);						\
+	}
+
+// same as defined in sections.R function 'no_var'
+#       define SEM_NO_VAR "<NO:VAR>"
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
+char *inla_make_tag2(const char *string, int ds, const char *estr);
+char *inla_read_lineno(int lineno, const char *filename);
 const char *inla_string_join(const char *a, const char *b);
-double Qfunc_2diid(int i, int j, void *arg);
-double Qfunc_2diid_wishart(int i, int j, void *arg);
-double Qfunc_ar(int i, int j, void *arg);
-double Qfunc_ar1(int i, int j, void *arg);
-double Qfunc_ar1c(int i, int j, void *arg);
-double Qfunc_besag(int i, int j, void *arg);
-double Qfunc_besag2(int i, int j, void *arg);
-double Qfunc_besagproper(int i, int j, void *arg);
-double Qfunc_besagproper2(int i, int j, void *arg);
-double Qfunc_bym(int i, int j, void *arg);
-double Qfunc_bym2(int i, int j, void *arg);
-double Qfunc_clinear(int i, int j, void *arg);
-double Qfunc_copy_part00(int i, int j, void *arg);
-double Qfunc_copy_part01(int i, int j, void *arg);
-double Qfunc_copy_part11(int i, int j, void *arg);
-double Qfunc_dmatern(int i, int j, void *arg);
-double Qfunc_generic1(int i, int j, void *arg);
-double Qfunc_generic2(int i, int j, void *arg);
-double Qfunc_generic3(int i, int j, void *arg);
-double Qfunc_group(int i, int j, void *arg);
-double Qfunc_iid2d(int i, int j, void *arg);
-double Qfunc_iid_wishart(int node, int nnode, void *arg);
-double Qfunc_log1exp(int i, int j, void *arg);
-double Qfunc_logdist(int i, int j, void *arg);
-double Qfunc_mec(int i, int j, void *arg);
-double Qfunc_ou(int i, int j, void *arg);
-double Qfunc_replicate(int i, int j, void *arg);
-double Qfunc_rgeneric(int i, int j, void *arg);
-double Qfunc_rw2diid(int i, int j, void *arg);
-double Qfunc_sigm(int i, int j, void *arg);
-double Qfunc_slm(int i, int j, void *arg);
-double Qfunc_z(int i, int j, void *arg);
+double GMRFLib_logsum(double lA, double lB);
+double Qfunc_2diid(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_2diid_wishart(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_ar(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_ar1(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_ar1c(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_besag(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_besag2(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_besagproper(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_besagproper2(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_bym(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_bym2(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_clinear(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_copy_part00(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_copy_part01(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_copy_part11(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_dmatern(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_generic1(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_generic2(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_generic3(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_group(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_iid2d(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *values, void *arg);
+double Qfunc_log1exp(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_logdist(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_mec(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_ou(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_replicate(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_rw2diid(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part00(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part01(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part11(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_sigm(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_slm(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_z(int thread_id, int i, int j, double *values, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double eval_log_contpoisson(double y, double lambda);
-double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
-double extra(double *theta, int ntheta, void *argument);
+double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_stiles_setup_tp * setup);
 double iid_mfunc(int idx, void *arg);
-double inla_Phi(double x);
-double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
+double inla_cdf_normal(double x);
+double inla_cdf_normal_fast(double x);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
-double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
-double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
+double inla_compute_saturated_loglik(int thread_id, int *lcache_idx, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
+double inla_compute_saturated_loglik_core(int thread_id, int *lcache_idx, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_dmatern_cf(double dist, double range, double nu);
-double inla_log_Phi(double x);
-double inla_log_Phi_fast(double x);
-double inla_sn_Phi(double x, double xi, double omega, double alpha);
+double inla_dnchisq(double x, double df, double ncp);
+double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
+double inla_interpolate_mode(double *x, double *y);
+double inla_lgamma_fast(double x);
+double inla_logcdf_normal(double x);
+double inla_logcdf_normal_fast(double x);
+double inla_logitcdf_normal(double x);
+double inla_negative_binomial_interval(double size, double mu, int y_from, int y_to);
+double inla_poisson_interval(double lambda, int y_from, int y_to);
+double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
-double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
-double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
-double link_identity(double x, map_arg_tp typ, void *param, double *cov);
-double link_inverse(double x, map_arg_tp typ, void *param, double *cov);
-double link_log(double x, map_arg_tp typ, void *param, double *cov);
-double link_loga(double x, map_arg_tp typ, void *param, double *cov);
-double link_logit(double x, map_arg_tp typ, void *param, double *cov);
-double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov);
-double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
-double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
-double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
-double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov);
-double link_probit(double x, map_arg_tp typ, void *param, double *cov);
-double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
-double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
-double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
-double link_robit(double x, map_arg_tp typ, void *param, double *cov);
-double link_sn(double x, map_arg_tp typ, void *param, double *cov);
-double link_special1(double x, map_arg_tp typ, void *param, double *cov);
-double link_special2(double x, map_arg_tp typ, void *param, double *cov);
-double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
-double link_tan(double x, map_arg_tp typ, void *param, double *cov);
-double link_test1(double x, map_arg_tp typ, void *param, double *cov);
-double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
+double link_bgev(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_circular(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_log_1m_invccloglog(double x);
+double link_log_1m_invcloglog(double x);
+double link_log_invccloglog(double x);
+double link_log_invcloglog(double x);
+double link_loga(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_logit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_logitoffset(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_loglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_logoffset(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_neglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_power_logit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_probit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_robit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_sn(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_special1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_special2(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_tan(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_tan_pi(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_this_should_not_happen(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
+void link_log_invccloglog2(double x, double *r1, double *r2);
+void link_log_invcloglog2(double x, double *r1, double *r2);
+
+// define macros for some of the forward calls, but it seems like the compiler figure this out itself
+#       define map_dof_forward(a1_, a2_, a3_) (2.0 + exp(a1_))
+#       define map_exp_forward(a1_, a2_, a3_) exp(a1_)
+#       define map_identity_forward(a1_, a2_, a3_) (a1_)
+#       define map_inverse_forward(a1_, a2_, a3_) (1.0/(a1_))
+#       define map_negexp_forward(a1_, a2_, a3_) exp(-(a1_))
+#       define map_precision_forward(a1_, a2_, a3_) exp(a1_)
+#       define map_probability_forward(a1_, a2_, a3_) (1.0 / (1.0 + exp(-(a1_))))
+#       define map_rho_forward(a1_, a2_, a3_) (2.0 / (1.0 + exp(-(a1_))) - 1.0)
+
+double inla_boxcox(double y, double mean, double lambda);
+double inla_boxcox_core(double y, double lambda);
+double inla_ipow(double x, int k);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
-double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
-double map_dof5(double arg, map_arg_tp typ, void *param);
+double map_one_plus_exp(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
 double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
+double map_one(double arg, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
+double map_invccloglog(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
@@ -1565,23 +2021,27 @@ double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
-double map_invtan(double arg, map_arg_tp typ, void *param);
+double map_invtan_pi(double x, map_arg_tp typ, void *UNUSED(param));
 double map_negexp(double arg, map_arg_tp typ, void *param);
-double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
+double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
-double mfunc_ar1(int i, void *arg);
-double mfunc_clinear(int i, void *arg);
-double mfunc_log1exp(int i, void *arg);
-double mfunc_logdist(int i, void *arg);
-double mfunc_mec(int i, void *arg);
-double mfunc_revsigm(int i, void *arg);
-double mfunc_sigm(int i, void *arg);
+
+double mfunc_ar1(int thread_id, int i, void *arg);
+double mfunc_cgeneric(int thread_id, int i, void *arg);
+double mfunc_clinear(int thread_id, int i, void *arg);
+double mfunc_log1exp(int thread_id, int i, void *arg);
+double mfunc_logdist(int thread_id, int i, void *arg);
+double mfunc_mec(int thread_id, int i, void *arg);
+double mfunc_revsigm(int thread_id, int i, void *arg);
+double mfunc_rgeneric(int thread_id, int i, void *arg);
+double mfunc_sigm(int thread_id, int i, void *arg);
+
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
@@ -1591,6 +2051,8 @@ double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
 double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
+double priorfunc_laplace(double *x, double *parameters);
+double priorfunc_linksnintercept(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);
 double priorfunc_logiflat(double *x, double *parameters);
@@ -1603,10 +2065,11 @@ double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_pc_cor0(double *x, double *parameters);
 double priorfunc_pc_cor1(double *x, double *parameters);
 double priorfunc_pc_dof(double *x, double *parameters);
+double priorfunc_pc_egptail(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
-double priorfunc_pc_matern(double *x, double *parameters);
 double priorfunc_pc_gevtail(double *x, double *parameters);
+double priorfunc_pc_matern(double *x, double *parameters);
 double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
@@ -1623,10 +2086,35 @@ double priorfunc_wishart3d(double *x, double *parameters);
 double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
-double rgeneric_mfunc(int idx, void *arg);
+double priorfunc_wishartk_10d(double *x, double *parameters);
+double priorfunc_wishartk_11d(double *x, double *parameters);
+double priorfunc_wishartk_12d(double *x, double *parameters);
+double priorfunc_wishartk_13d(double *x, double *parameters);
+double priorfunc_wishartk_14d(double *x, double *parameters);
+double priorfunc_wishartk_15d(double *x, double *parameters);
+double priorfunc_wishartk_16d(double *x, double *parameters);
+double priorfunc_wishartk_17d(double *x, double *parameters);
+double priorfunc_wishartk_18d(double *x, double *parameters);
+double priorfunc_wishartk_19d(double *x, double *parameters);
+double priorfunc_wishartk_20d(double *x, double *parameters);
+double priorfunc_wishartk_21d(double *x, double *parameters);
+double priorfunc_wishartk_22d(double *x, double *parameters);
+double priorfunc_wishartk_23d(double *x, double *parameters);
+double priorfunc_wishartk_24d(double *x, double *parameters);
+double priorfunc_wishartk_2d(double *x, double *parameters);
+double priorfunc_wishartk_3d(double *x, double *parameters);
+double priorfunc_wishartk_4d(double *x, double *parameters);
+double priorfunc_wishartk_5d(double *x, double *parameters);
+double priorfunc_wishartk_6d(double *x, double *parameters);
+double priorfunc_wishartk_7d(double *x, double *parameters);
+double priorfunc_wishartk_8d(double *x, double *parameters);
+double priorfunc_wishartk_9d(double *x, double *parameters);
+double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
+
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
-inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
+inla_tp *inla_build(const char *dict_filename, int verbose);
+
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
@@ -1635,14 +2123,19 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
-int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
+int inla_INLA_preopt_experimental(inla_tp * mb);
+int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
+int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
-int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
+int inla_add_scopyof(inla_tp * mb);
+int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
+int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
 int inla_divisible(int n, int by);
 int inla_endian(void);
+
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val);
 int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2);
@@ -1653,6 +2146,7 @@ int inla_error_general(const char *msg);
 int inla_error_general2(const char *msg, const char *msg2);
 int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field);
 int inla_error_open_file(const char *msg);
+
 int inla_fgn(char *H_arg, char *outfile);
 int inla_finn(const char *filename);
 int inla_iid3d_adjust(double *rho);
@@ -1677,32 +2171,34 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
+int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg);
 int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * arg);
 int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg);
 int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
-int inla_mix_int_quadrature_gaussian(double **x, double **w, int *n, void *arg);
-int inla_mix_int_quadrature_loggamma(double **x, double **w, int *n, void *arg);
-int inla_mix_int_quadrature_mloggamma(double **x, double **w, int *n, void *arg);
-int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg);
-int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg);
-int inla_mix_int_simpson_mloggamma(double **x, double **w, int *n, void *arg);
+int inla_mix_int_quadrature_gaussian(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
+int inla_mix_int_quadrature_loggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
+int inla_mix_int_quadrature_mloggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
+int inla_mix_int_simpson_gaussian(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
+int inla_mix_int_simpson_loggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
+int inla_mix_int_simpson_mloggamma(int thread_id, int *lcache_idx, double **x, double **w, int *n, void *arg);
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
+void inla_remove_dir(char *dirname);
+
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep,
-		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
-		       const char *tag, const char *modelname, int verbose);
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep, Output_tp * output, const char *sdir,
+		       int return_marginals, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc, const char *tag,
+		       const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, GMRFLib_gcpo_param_tp * param, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
-int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
-int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
+int inla_output_gitid(const char *dir);
 int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_hgid(const char *dir);
 int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
 int inla_output_linkfunctions(const char *dir, inla_tp * mb);
@@ -1712,24 +2208,29 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
-int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+
+int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out);
+int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
-int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
-int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
-int inla_print_sha1(FILE * fp, unsigned char *md);
+int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_stiles(inla_tp * mb, dictionary * ini, int sec);
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec);
+
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile,
 		 const char *mufile, const char *constr_file, const char *meanfile, const char *selectionfile, int verbose);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
+
 int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_all);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose,
 			   double default_value);
@@ -1749,6 +2250,7 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
+int inla_read_priorN_scopy(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior, void *args);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
@@ -1768,158 +2270,265 @@ int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * pr
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
-int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
+
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
 int inla_sread(void *x, int nx, const char *str, int code);
 int inla_sread_colon_ints(int *i, int *j, const char *str);
+int inla_sread_colon_ints3(int *i, int *j, int *k, const char *str);
 int inla_sread_doubles(double *x, int nx, const char *str);
 int inla_sread_doubles_q(double **x, int *nx, const char *str);
 int inla_sread_ints(int *x, int nx, const char *str);
 int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
+int inla_sread_str_int(char **tag, int *i, const char *str);
+int inla_sread_str_str(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
+int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
-int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
-int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
-int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+
+int loglikelihood_0binomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_0binomialS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_0poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_0poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_1poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_1poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_agaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_agaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_bcgaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_bell(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_bell(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_beta(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_betabinomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_betabinomialna(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_bgev(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_binomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_binomialmix(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_cbinomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_cenpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_cenpoisson2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_cloglike(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_circular_normal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				  void *arg);
+int loglikelihood_contpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_dgompertz(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_dgompertzsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_dgp(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_egp(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_exp(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_exppower(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_expsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_fmri(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_fmrisurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammasv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammacount(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammajw(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gammasurvjw(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gaussianjw(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			     void *arg);
+int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			       GMRFLib_logl_tp * loglfun);
+int loglikelihood_gev(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_ggaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_ggaussianS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gompertz(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gompertzsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gp(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_iid_gamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_iid_logitbeta(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_inla(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_loggamma_frailty(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg);
+int loglikelihood_logistic(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_loglogistic(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_loglogisticsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				  void *arg);
+int loglikelihood_lognormal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_lognormalsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_logperiodogram(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *));
+int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_nbinomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_negative_binomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				    void *arg);
+int loglikelihood_nmix(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_nmixnb(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_npoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_nzpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_occupancy(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			    double *y_cdf, void *arg);
+int loglikelihood_obeta(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+			double *y_cdf, void *arg);
+int loglikelihood_poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_poisson_special1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg);
+int loglikelihood_pom(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_qcontpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_qkumar(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_qloglogistic(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_qloglogisticsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+				   void *arg);
+int loglikelihood_rcpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg);
+int loglikelihood_simplex(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_skew_normal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_stdgaussian(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			      void *arg);
+int loglikelihood_sem(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg);
+int loglikelihood_stochvol(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_stochvol_nig(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_stochvol_sn(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_stochvol_t(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_t(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_testit(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_testit1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_testit2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_testit3(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_tpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg);
+int loglikelihood_tstrata(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_lavm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_vm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_nvm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_tweedie(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_weibull(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_wrapped_cauchy(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_xbinomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg);
+int loglikelihood_zero_n_inflated_binomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					    void *arg);
+int loglikelihood_zero_n_inflated_binomial3(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					    void *arg);
+int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					     void *arg);
+int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					     void *arg);
+int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					     void *arg);
+int loglikelihood_zeroinflated_binomial0(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					 void *arg);
+int loglikelihood_zeroinflated_binomial1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					 void *arg);
+int loglikelihood_zeroinflated_binomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					 void *arg);
+int loglikelihood_zeroinflated_cenpoisson0(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					   void *arg);
+int loglikelihood_zeroinflated_cenpoisson1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					   void *arg);
+int loglikelihood_zeroinflated_negative_binomial0(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_negative_binomial1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec,
+							  double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec,
+							  double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec,
+						  double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_poisson0(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg);
+int loglikelihood_zeroinflated_poisson1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg);
+int loglikelihood_zeroinflated_poisson2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+					void *arg);
+
+double dgompertz_helper(double y, double a);
+int inla_tp_free(inla_tp * mb);
+int inla_reset(void);
+int inla_testit_timer(void);
 int my_dir_exists(const char *dirname);
 int my_file_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
-unsigned char *inla_fp_sha1(FILE * fp);
-unsigned char *inla_inifile_sha1(const char *filename);
+unsigned long long getTotalSystemMemory();
 void inla_signal(int sig);
-int inla_testit_timer(void);
 
+double testit_Qfunc(int thread_id, int i, int j, double *values, void *arg);
+
+// defined in cores.c
+int UTIL_countPhysicalCores(void);
+int UTIL_countCores(int);
+int UTIL_countLogicalCores(void);
+
+int gsl_bfgs4_test1(size_t);
+int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
+
+GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
 /* 
 ***
 */
 
-
 typedef struct {
-	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	inla_mode_tp mode;				       /* which mode to run in */
 	double log_prec_initial;			       /* inititial value for log-precisions */
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */
-	int reorder;					       /* reorder strategy: -1 for optimize */
+	GMRFLib_reorder_tp reorder;			       /* reorder strategy: -1 for optimize */
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
-
-#define HYPER_NEW2(name_, initial_, n_)  {				\
-		int i_, j_;						\
+#       define HYPER_NEW2(name_, initial_, n_)  \
+	if (1) {							\
 		name_ = Calloc(n_, double **);				\
-		for(j_=0; j_ < n_; j_++){				\
-			name_[j_] = Calloc(GMRFLib_MAX_THREADS, double *); \
-			for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) { \
+		for(int j_=0; j_ < n_; j_++){				\
+			name_[j_] = Calloc(GMRFLib_MAX_THREADS(), double *); \
+			for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) { \
 				name_[j_][i_] = Calloc(1, double);	\
 				name_[j_][i_][0] = initial_;		\
 			}						\
 		}							\
 	}								\
 
-#define HYPER_NEW(name_, initial_)  {					\
-		int i_;							\
-		name_ = Calloc(GMRFLib_MAX_THREADS, double *);	\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+#       define HYPER_NEW(name_, initial_)					\
+	if (1) {							\
+		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_] = Calloc(1, double);			\
 			name_[i_][0] = initial_;			\
 		}							\
 	}
 
-#define HYPER_INIT(name_, initial_) {					\
-		int i_;							\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+#       define HYPER_FREE(name_)						\
+	if (1) {							\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
+			Free(name_[i_]);				\
+		}							\
+		Free(name_);						\
+	}
+
+#       define HYPER_INIT(name_, initial_)		\
+	if (1) {				\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_][0] = initial_;			\
 		}							\
 	}
 
-#define WISHART_DIM(idx) (mb->f_id[idx] == F_IID1D ? 1 :		\
+#       define WISHART_DIM(idx) (mb->f_id[idx] == F_IID1D ? 1 :		\
 			  (mb->f_id[idx] == F_IID2D ? 2 :		\
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
+// needs inla_tp definition
+#       include "param-constr.h"
 
 __END_DECLS
 #endif

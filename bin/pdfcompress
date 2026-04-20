@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+alevel="screen ebook prepress printer default"
+level=default
+overwrite=0
+verbose=0
+v=""
+
+siz () {
+    ls -s "$1" | awk '{print $1}'
+}
+
+OPTIND=1 OPTERR=1
+while getopts L:Ohv arg; do
+    case "$arg" in
+        L) level="$OPTARG";;
+	O) overwrite=1;;
+	v) verbose=1; v="v";;
+        h) echo "Usage: $prog [-L($alevel)] [-O(overwrite)] [-v(erbose)] file.pdf [file.pdf..]"; exit 0;;
+        *) exit 1;;
+    esac
+done
+
+for f in "$@"; do
+    if [ -f "$f" ]; then
+	ff=$(basename $f .pdf)
+	for level in $(echo $level); do
+	    nfile="$ff-$level.pdf"
+	    gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/$level -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$nfile" "$f"
+	    if [ $verbose -eq 1 ]; then 
+		ls -l "$nfile"
+	    fi
+	    if [ $overwrite -eq 1 ]; then
+		if [ $(siz "$nfile") -lt $(siz "$f") ]; then
+		    mv -f$v "$nfile" "$f"
+		else 
+		    rm -f "$nfile"
+		fi
+	    fi
+	done
+    fi
+done
+

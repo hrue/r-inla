@@ -1,0 +1,107 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The ordered Beta-distribution}
+
+\subsection*{Parametrisation}
+
+Let us first summarize the Beta-distribution. It has the following density
+\begin{displaymath}
+    p(y) = \frac{1}{B(a, b)} y^{a-1}(1-y)^{b-1}, \qquad 0 < y < 1,
+    \quad a>0, \quad b > 0
+\end{displaymath}
+where $B(a, b)$
+is the Beta-function 
+\begin{displaymath}
+    B(a, b) = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}
+\end{displaymath}
+and $\Gamma(x)$ is the Gamma-function.
+The (re-)parameterisation used is
+\begin{displaymath}
+    \mu = \frac{a}{a+b}, \qquad 0 < \mu < 1
+\end{displaymath}
+and
+\begin{displaymath}
+    \phi = a + b, \qquad \phi > 0,
+\end{displaymath}
+as it makes
+\begin{displaymath}
+    \text{E}(y) = \mu \quad\text{and}\quad \text{Var}(y) = \frac{\mu(1-\mu)}{1+\phi}.
+\end{displaymath}
+The parameter $\phi$ is know as the \emph{precision parameter}, since
+for fixed $\mu$, the larger $\phi$ the smaller the variance of $y$.
+The parameters $\{a, b\}$ are given as $\{\mu, \phi\}$ as follows,
+\begin{displaymath}
+    a = \mu \phi \quad\text{and}\quad  b = -\mu \phi + \phi.
+\end{displaymath}
+The \textbf{ordered Beta}-likelihood (reference
+here\footnote{\texttt{https://doi.org/10.1017/pan.2022.20}}) is a
+modification which include a derived model for $y=0$ and $y=1$. Let
+$\mu = g(\eta)$, where $\eta$ is the linear predictor (see below) and
+$g()$ is the inverse link-function, then
+\begin{displaymath}
+    p_o(y) = \left\{\begin{array}{ll}
+      1-g(\eta - k_1) & \text{for } y=0\\
+      (g(\eta-k_1) - g(\eta-k_2)) p(y) & \text{for } 0 < y < 1\\
+      g(\eta - k_2) & \text{for } y=1
+        \end{array}\right.
+\end{displaymath}
+with two offset-parameters $(k_1, k_2)$ where $k_1 < k_2$.
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the mean $\mu$ using a
+default logit-link
+\begin{displaymath}
+    \mu = \frac{1}{1+\exp(-\eta)}.
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter are the precision parameter $\phi$, which is
+represented as
+\begin{displaymath}
+    \phi = s_i \exp(\theta_1)
+\end{displaymath}
+where $s = (s_i) > 0$ is a fixed scaling. The offset parameters are expressed as
+\begin{displaymath}
+    k_1 = \theta_1 - \exp(\theta_2), \qquad
+    k_2 = \theta_1 + \exp(\theta_2)
+\end{displaymath}
+The prior is defined on $(\theta_1, \theta_2, \theta_3)$.
+
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="obeta"}
+\item Required argument: $y$
+\item Optional argument: $s$ (argument \texttt{scale}, default all 1, $s>0$)
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/obeta.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-obeta.R}
+
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

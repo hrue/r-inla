@@ -1,54 +1,18 @@
-
-/* fmesher-io.c
- * 
- * Copyright (C) 2010-2011 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
+#include <omp.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
 
 int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
 	}
@@ -69,6 +33,9 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
@@ -77,6 +44,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 #define ERROR(msg)							\
 	{								\
+		if (fp) fclose(fp);					\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, (GMRFLib_matrix_tp *)NULL);	\
 		exit(EXIT_FAILURE);					\
@@ -91,8 +59,8 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		position = ftell(fp);					\
 		nread = fread((void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nread != (size_t) n) {				\
-			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
+			char *m = NULL;					\
+			GMRFLib_sprintf(&m, "Failed to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
 			ERROR(m);					\
 		}							\
@@ -102,7 +70,8 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	char *msg = NULL;
 	int *header = NULL;
 	int len_header = 0;
-	int verbose = 0, debug = 0, i, j, k;
+	int verbose = 0, i, j, k;
+	const int debug = 0;
 	GMRFLib_matrix_tp *M = NULL;
 
 	if (debug) {
@@ -110,11 +79,12 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	fp = fopen(filename, "rb");
+	assert(fp);
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
 	}
 	if (!fp) {
-		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
+		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
 		ERROR(msg);
 	}
 	if (verbose) {
@@ -310,7 +280,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			}
 		}
 
-		GMRFLib_matrix_add_graph_and_hash(M);
+		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
 
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
@@ -369,7 +339,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	/*
 	 * add fileinfo 
 	 */
-	M->filename = GMRFLib_strdup(filename);
+	M->filename = Strdup(filename);
 	M->offset = offset;
 	M->whence = whence;
 	M->tell = ftell(fp);
@@ -377,7 +347,9 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
-int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence)
+#pragma GCC diagnostic pop
+
+int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence)
 {
 	/*
 	 * write fmesher-file at (offset,whence).
@@ -385,6 +357,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 
 #define ERROR(msg)							\
 	{								\
+		if (fp) fclose(fp);					\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, !GMRFLib_SUCCESS);	\
 		exit(EXIT_FAILURE);					\
@@ -397,8 +370,8 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 									\
 		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nwrite != (size_t) n) {				\
-			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
+			char *m = NULL;					\
+			GMRFLib_sprintf(&m, "Failed to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
 			ERROR(m);					\
 		}							\
@@ -417,13 +390,15 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
+		assert(fp);
 		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
+		assert(fp);
 	}
 	if (!fp) {
-		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
+		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
 		ERROR(msg);
 	}
 	if (verbose) {
@@ -482,7 +457,8 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 #undef WRITE
 	return (0);
 }
-int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
+
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 {
 	/*
 	 * add further info if this is a sparse matrix: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the
@@ -492,22 +468,27 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, j, k;
+	if (nt <= 0) {
+		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+	}
+
+	int nhold = 0, *hold = NULL, offset = 0;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
 
 	g->n = M->nrow;
 	g->nbs = Calloc(g->n, int *);
 	g->nnbs = Calloc(g->n, int);
 
-	for (k = 0; k < M->elems; k++) {
+	for (int k = 0; k < M->elems; k++) {
 		if (M->i[k] != M->j[k]) {
 			g->nnbs[M->i[k]]++;
 		}
 	}
-	int nhold = M->elems;
-	int *hold = Calloc(nhold, int), offset = 0;
 
-	for (k = 0; k < M->nrow; k++) {
+	nhold = M->elems;
+	hold = Calloc(nhold, int);
+	offset = 0;
+	for (int k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
 			g->nbs[k] = NULL;
 		} else {
@@ -517,65 +498,106 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	}
 	assert(offset <= nhold);
 
-	for (k = 0; k < M->nrow; k++) {
-		g->nnbs[k] = 0;				       /* will use this array for counting and build it again */
-	}
-
-	for (k = 0; k < M->elems; k++) {
+	GMRFLib_ifill(M->nrow, 0, g->nnbs);		       // will use this array for counting and build it again 
+	for (int k = 0; k < M->elems; k++) {
 		if (M->i[k] != M->j[k]) {
-			i = M->i[k];
-			j = M->j[k];
+			int i = M->i[k];
+			int j = M->j[k];
 			g->nbs[i][g->nnbs[i]] = j;
 			g->nnbs[i]++;
 		}
 	}
 
-	GMRFLib_prepare_graph(g);
+	GMRFLib_graph_prepare(g);
 	M->graph = g;
 
 	/*
 	 * build the has table for quick retrival of values. use row or column indexed hash-table?
 	 */
-	if (M->nrow >= M->ncol) {
+	if (M->nrow >= M->ncol || 1) {
+		// FORCE THIS TO HAPPEN
 		M->htable_column_order = 0;
 	} else {
 		M->htable_column_order = 1;
 	}
+
 	if (M->htable_column_order) {
-		/*
-		 *   need to count, as we cannot use g->nnbs
-		 */
+
+		FIXME("THIS CODE NEEDS TO BE VERIFIED. The serial version is ok,  but the OMP one needs to be checked.");
+		assert(0 == 1);
+
+		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
-		for (k = 0; k < M->elems; k++) {
+		for (int k = 0; k < M->elems; k++) {
 			if (M->i[k] != M->j[k]) {
 				nnbs_r[M->j[k]]++;
 			}
 		}
 
 		M->htable = Calloc(M->ncol, map_id *);
-		for (k = 0; k < M->ncol; k++) {
+#pragma omp parallel for num_threads(nt)
+		for (int k = 0; k < M->ncol; k++) {
 			M->htable[k] = Calloc(1, map_id);
 			map_id_init_hint(M->htable[k], nnbs_r[k] + 1);
 		}
-		for (k = 0; k < M->elems; k++) {
-			map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
-		}
 		Free(nnbs_r);
+
+		if (nt == 1) {
+			for (int k = 0; k < M->elems; k++) {
+				map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
+			}
+		} else {
+			int lim[nt + 1];
+			lim[0] = 0;
+			for (int k = 1; k < nt + 1; k++) {
+				lim[k] = (M->ncol * k) / nt;
+			}
+#pragma omp parallel for num_threads(nt)
+			for (int kk = 0; kk < nt; kk++) {
+				int cut_low = lim[kk];
+				int cut_high = lim[kk + 1];
+				for (int k = 0; k < M->elems; k++) {
+					if (cut_low <= M->j[k] && M->j[k] < cut_high) {
+						map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
+					}
+				}
+			}
+		}
 	} else {
 		M->htable = Calloc(M->nrow, map_id *);
-		for (k = 0; k < M->nrow; k++) {
+#pragma omp parallel for num_threads(nt)
+		for (int k = 0; k < M->nrow; k++) {
 			M->htable[k] = Calloc(1, map_id);
 			map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
 		}
-		for (k = 0; k < M->elems; k++) {
-			map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+
+		if (nt == 1) {
+			for (int k = 0; k < M->elems; k++) {
+				map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+			}
+		} else {
+			int lim[nt + 1];
+			lim[0] = 0;
+			for (int k = 1; k < nt + 1; k++) {
+				lim[k] = (M->nrow * k) / nt;
+			}
+#pragma omp parallel for num_threads(nt)
+			for (int kk = 0; kk < nt; kk++) {
+				int cut_low = lim[kk];
+				int cut_high = lim[kk + 1];
+				for (int k = 0; k < M->elems; k++) {
+					if (cut_low <= M->i[k] && M->i[k] < cut_high) {
+						map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+					}
+				}
+			}
 		}
 	}
 
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
+double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * return the diagonal of the matrix as a new and alloced double vector. 
@@ -607,7 +629,8 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 	}
 	return diag;
 }
-double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
+
+double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 {
 	/*
 	 * get element (i,j) of matrix. 
@@ -618,7 +641,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 		assert(LEGAL(j, M->ncol));
 	}
 	if (M->i) {
-		double *d;
+		double *d = NULL;
 		if (M->htable_column_order) {
 			d = map_id_ptr(M->htable[j], i);
 		} else {
@@ -630,7 +653,11 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 		return (M->A ? M->A[idx] : (double) M->iA[idx]);
 	}
 }
-int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 {
 	/*
 	 * fill the i-th row in 'values'. THIS IS SLOW FOR SPARSE, FAST FOR DENSE!!
@@ -638,19 +665,37 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	int j;
 
+	Memset(values, 0, M->ncol * sizeof(double));
 	if (M->i) {
 		/*
 		 * sparse-matrix 
 		 */
+		double *d = NULL;
 
-		for (j = 0; j < M->ncol; j++) {
-			double *d;
-			if (M->htable_column_order) {
+		if (M->htable_column_order) {
+
+			FIXME("column order should not be used");
+			assert(0 == 1);
+
+			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
-			} else {
-				d = map_id_ptr(M->htable[i], j);
+				values[j] = (d ? *d : 0.0);
 			}
-			values[j] = (d ? *d : 0.0);
+		} else {
+			if (0) {
+				// old and very slow
+				for (j = 0; j < M->ncol; j++) {
+					d = map_id_ptr(M->htable[i], j);
+					values[j] = (d ? *d : 0.0);
+				}
+			} else {
+				// much better
+				map_id_storage *ptr = NULL;
+				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
+					j = ptr->key;
+					values[j] = ptr->value;
+				}
+			}
 		}
 	} else {
 		int idx = i;
@@ -669,7 +714,41 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
+#pragma GCC diagnostic pop
+
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp *M, int sort)
+{
+	/*
+	 * store values in 'row', must be NULL on entry. 
+	 */
+
+	if (*row) {
+		(*row)->n = 0;
+	}
+	if (M->i) {
+		if (M->htable_column_order) {
+			FIXME("column order should not be used");
+			assert(0 == 1);
+		} else {
+			map_id_storage *ptr = NULL;
+			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
+				GMRFLib_idxval_add(row, ptr->key, ptr->value);
+			}
+			if (sort) {
+				if (!GMRFLib_is_sorted_iinc((*row)->n, (*row)->idx)) {
+					GMRFLib_idxval_sort(*row);
+				}
+			}
+		}
+	} else {
+		FIXME("NOT IMPLEMENTED");
+		assert(0 == 1);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_matrix_free(GMRFLib_matrix_tp *M)
 {
 	if (M) {
 		Free(M->i);
@@ -680,7 +759,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 		Free(M->iA);
 		Free(M->filename);
 
-		GMRFLib_free_graph(M->graph);
+		GMRFLib_graph_free(M->graph);
 		if (M->htable) {
 			int k;
 			if (M->htable_column_order) {
@@ -705,6 +784,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 	}
 	return (0);
 }
+
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 {
 	/*
@@ -718,11 +798,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		M->ncol = 1;
 		M->A = Calloc(n, double);
 
-		int i;
-		for (i = 0; i < n; i++) {
-			M->A[i] = 1.0;
-		}
-
+		GMRFLib_dfill(n, 1.0, M->A);
 		M->filename = NULL;
 		M->offset = 0L;
 		M->whence = SEEK_SET;
@@ -733,6 +809,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		return NULL;
 	}
 }
+
 int GMRFLib_file_exists(const char *filename, const char *mode)
 {
 	/*
@@ -747,7 +824,8 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 		return !GMRFLib_SUCCESS;
 	}
 }
-GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
+
+GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * return a transpose of the matrix as a new matrix 
@@ -764,13 +842,13 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		 * sparse 
 		 */
 		N->i = Calloc(M->elems, int);
-		memcpy(N->i, M->j, M->elems * sizeof(int));
+		Memcpy(N->i, M->j, M->elems * sizeof(int));
 
 		N->j = Calloc(M->elems, int);
-		memcpy(N->j, M->i, M->elems * sizeof(int));
+		Memcpy(N->j, M->i, M->elems * sizeof(int));
 
 		N->values = Calloc(M->elems, double);
-		memcpy(N->values, M->values, M->elems * sizeof(double));
+		Memcpy(N->values, M->values, M->elems * sizeof(double));
 	} else {
 		int i, j, idx, idx_transpose;
 
@@ -796,9 +874,9 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		}
 	}
 
-	GMRFLib_matrix_add_graph_and_hash(N);
+	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
 
-	N->filename = GMRFLib_strdup(M->filename);
+	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
 	N->whence = M->whence;
 	N->tell = M->tell;
@@ -806,11 +884,61 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 	return N;
 }
 
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol, int nt)
+{
+	if (nt <= 0) {
+		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+	}
+
+	int nelm = 0;
+	for (int i = 0; i < nrow; i++) {
+		nelm += idxval[i]->n;
+	}
+	*M = Calloc(1, GMRFLib_matrix_tp);
+	(*M)->nrow = nrow;
+	(*M)->ncol = ncol;
+	(*M)->elems = nelm;
+	(*M)->i = Calloc(nelm, int);
+	(*M)->j = Calloc(nelm, int);
+	(*M)->values = Calloc(nelm, double);
+
+	if (nt == 1) {
+		for (int i = 0, k = 0; i < nrow; i++) {
+			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
+				int j = idxval[i]->idx[jj];
+				(*M)->i[k] = i;
+				(*M)->j[k] = j;
+				(*M)->values[k] = idxval[i]->val[jj];
+			}
+		}
+	} else {
+		int *kk = Calloc(nrow, int);
+		for (int i = 1; i < nrow; i++) {
+			kk[i] = kk[i - 1] + idxval[i - 1]->n;
+		}
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < nrow; i++) {
+			int k = kk[i];
+			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
+				int j = idxval[i]->idx[jj];
+				(*M)->i[k] = i;
+				(*M)->j[k] = j;
+				(*M)->values[k] = idxval[i]->val[jj];
+			}
+		}
+		Free(kk);
+	}
+
+	GMRFLib_matrix_add_graph_and_hash(*M, nt);
+
+	return GMRFLib_SUCCESS;
+}
+
 #ifdef TESTME
 int main(int argc, char **argv)
 {
 	int i;
-	GMRFLib_matrix_tp *M;
+	GMRFLib_matrix_tp *M = NULL;
 
 	for (i = 1; i < argc; i++) {
 		printf("\n\n\n\n *** Check file %s\n\n\n", argv[i]);

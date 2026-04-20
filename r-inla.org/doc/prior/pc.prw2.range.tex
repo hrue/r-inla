@@ -1,0 +1,120 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{hyperref}
+\begin{document}
+
+\section*{PC prior for the range in PRW2}
+
+This is the PC prior for the (log-)range for the PRW2 latent model,
+and is only ment for that model.
+
+\subsection*{Parametrization}
+
+This is the prior for the range for the PRW2 model
+\begin{displaymath}
+    x_t = 2\gamma x_{t-1} - \gamma^{2} x_{t-2} + \epsilon_t, \qquad
+    |\gamma| < 1
+\end{displaymath}
+where $\epsilon_t$ is iid zero mean Gaussian noise. This process is
+made stationary with unit variance, and the range, the 'distance' or
+'time' to small correlation, is set to be
+\begin{displaymath}
+    \rho = \exp\left( - \frac{\sqrt{12} h}{r} \right)
+\end{displaymath}
+where $h$ is (typical) distance or time, `step-size', between the
+knots, here $h=1$. The correlation function of the process is found to
+be
+\begin{displaymath}
+    \rho(h) = \left(1  + h \frac{1-\gamma^{2}}{1+\gamma^{2}}\right)\gamma^{h},
+    \qquad h=0, 1, 2, \ldots
+\end{displaymath}
+The PC prior is derived using the limiting case,
+$\gamma\rightarrow 1^{-}$, as the base model. The distance if found to
+be
+\begin{displaymath}
+    d(\gamma) = \sqrt{2\text{KLD}} = \sqrt{3 - 4\rho(1) + \rho(2)} + o(1)
+\end{displaymath}
+In distance scale, the PC-prior is exponential with rate $\lambda$,
+\begin{displaymath}
+    \pi(d) = \lambda \exp(-\lambda d), \qquad \lambda > 0.
+\end{displaymath}
+The calibration of $\lambda$, is done so that
+\begin{displaymath}
+    \text{Prob}(r < r_0) = \alpha, \quad r_0 > 0, \; 0 < \alpha < 1
+\end{displaymath}
+for given $r_0$ and $\alpha$. This prior is also applied to PRW2 for
+irregular locations derived from the corresponding limiting process in
+continous time.
+
+\subsection*{Specification}
+
+This prior is specified as follows, as
+\begin{verbatim}
+    hyper = list(range = list(prior = "pc.prw2.range",
+                              param = c(r0, alpha, h, lambda)))}
+\end{verbatim}
+where \texttt{r0}$=r_0$, \texttt{alpha}$=\alpha$, \texttt{h}$=h$ (the
+step-size), \texttt{lambda}$=\lambda$ (the step-size).
+
+Let the locations where the PRW2 process defined is in variable
+\texttt{loc}, then the default value used for $r_0$, if initially
+$r_0$ is set to $r_0 \le 0$, is
+\begin{verbatim}
+    r0 <- diff(range(loc)) / 4
+\end{verbatim}
+The default value used for $\alpha$, if initially $\alpha$ is set to
+$\alpha \le 0$, is $\alpha = 0.5$. This means the median for default
+prior for the range, is one quarter of the length for which the PRW2
+model is defined.
+
+The 'step-size' $h$ is a typical distance between the locations where
+process is defined and is $h=1$ in the definition above. 
+The default value for this parameter, if initially $h$ is set to $h\le 0$,
+is
+\begin{verbatim}
+    h <- diff(range(loc)) / (length(loc) - 1)
+\end{verbatim}
+Note that this does not always make sense.
+
+The $\lambda$ parameter is computed from the calibration as defined
+above, if initially $\lambda$ is set to $\lambda \le 0$. If
+$\lambda > 0$, then this value of $\lambda$ is used without computing
+the calibration, and the values of $r_0$ and $\alpha$ are silently
+ignored.
+
+Note that $r_0$ and $h$ is in real scale, ie in the scale of
+\texttt{loc}.
+
+Default values are \texttt{param = c(0, 0, 0, 0)}.
+
+\subsection*{Example}
+
+\begin{verbatim}
+param <- c(10, 0.5, 1, 0)
+r <- exp(seq(-3, 4, by = 0.01))
+lty <- 1
+plot(r, inla.prw2.drange(r, param), ylim=c(0, 0.1), type = "l", lty = lty)
+for (h in 1/2^(0:20)) {
+    param[3] <- h
+    lty <- lty+1
+    lines(r, inla.prw2.drange(r, param), lty = lty)
+}
+\end{verbatim}
+
+\subsection*{Notes}
+
+The details for this prior is available in the PhD thesis with link
+\url{http://hdl.handle.net/10754/707346}
+
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

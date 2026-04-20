@@ -1,92 +1,23 @@
-
-/* problem-setup.h
- * 
- * Copyright (C) 2001-2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- *
- */
-
-/*!
-  \file problem-setup.h
-  \brief Typedefs and defines for \ref problem-setup.c
-*/
 #ifndef __GMRFLib_PROBLEM_SETUP_H__
-#define __GMRFLib_PROBLEM_SETUP_H__
+#       define __GMRFLib_PROBLEM_SETUP_H__
 
-#if !defined(__FreeBSD__)
-#include <strings.h>
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <math.h>
+#       include <strings.h>
+#       include <stdlib.h>
+#       include <math.h>
 
-#include "GMRFLib/hashP.h"
+#       include "GMRFLib/hashP.h"
 
-#undef __BEGIN_DECLS
-#undef __END_DECLS
-#ifdef __cplusplus
-#define __BEGIN_DECLS extern "C" {
-#define __END_DECLS }
-#else
-#define __BEGIN_DECLS					       /* empty */
-#define __END_DECLS					       /* empty */
-#endif
+#       undef __BEGIN_DECLS
+#       undef __END_DECLS
+#       ifdef __cplusplus
+#              define __BEGIN_DECLS extern "C" {
+#              define __END_DECLS }
+#       else
+#              define __BEGIN_DECLS			       /* empty */
+#              define __END_DECLS			       /* empty */
+#       endif
 
 __BEGIN_DECLS
-
-/*!
-  \brief Define a \c new problem. No previous information is avilable or used
-*/
-#define GMRFLib_NEW_PROBLEM   0x0000
-
-/*!
-  \brief Keep the \c mean
-*/
-#define GMRFLib_KEEP_mean     0x0001
-
-/*!
-  \brief Keep the \c graph (or \c subgraph)
-*/
-#define GMRFLib_KEEP_graph    0x0002
-
-/*!
-  \brief Keep the Cholesky factorisation
-*/
-#define GMRFLib_KEEP_chol     0x0004
-
-/*!
-  \brief Keep the constraint
-*/
-#define GMRFLib_KEEP_constr   0x0008
-
-/*
-  Update the constraint with one extra. WARNING: THIS IS FOR INTERNAL USE ONLY AND NOT DOCUMENTED, as very very special
-  conditions apply...
-*/
-#define GMRFLib_UPDATE_constr 0x0010
 
 /*! 
   \struct GMRFLib_constr__intern_tp problem-setup.h
@@ -95,26 +26,6 @@ __BEGIN_DECLS
   log of the determinant (\c logdet}) of the covariance matrix \f$ \mbox{\boldmath
   $\Sigma$}_{\epsilon}\f$
 */
-
-/*
- */
-    typedef struct {
-
-	/**
-	 *  \brief = chol(errcov_*) 
-	 */
-	double *chol;
-
-	/**
-	 *  \brief = log(det(errcov_*)) 
-	 */
-	double *logdet;
-
-	/**
-	 *  \brief = the zero/non-zero pattern of inv(errcov_*) 
-	 */
-	char *Qpattern;
-} GMRFLib_constr__intern_tp;
 
 /*! 
   \struct GMRFLib_constr_tp problem-setup.h
@@ -146,13 +57,17 @@ __BEGIN_DECLS
 
   Two other operations on constraints are available:
   - To print the contents of the \c GMRFLib_constr_tp -object, call 
-  \c GMRFLib_print_constr().
+  \c GMRFLib_printf_constr().
   - To evaluate the expressions 
   \f$ \mbox{\boldmath $Ax-e$} \f$ and \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath
   $Q$}(\mbox{\boldmath $Ax-e$}) \f$ for a given value of the GMRF <em>\b x</em>, call \c
   GMRFLib_eval_constr().
 */
-typedef struct {
+    typedef struct {
+
+	unsigned char *sha;
+	unsigned char is_scaled;
+	unsigned char is_prepared;
 
 	/**
 	 *  \brief Number of constaints, can be 0. 
@@ -175,65 +90,22 @@ typedef struct {
 	 */
 	double *e_vector;
 
-	/**
-	 *  \brief If non-NULL, a diagonal non-singular error cov-matrix
-	 * 
-	 * If <tt>!=NULL</tt>, the covariance matrix \f$ \mbox{\boldmath $\Sigma$}_{\epsilon} \f$ of the error \f$
-	 * \mbox{\boldmath $\epsilon$} \f$ is assumed to be diagonal, and \a errcov_diagonal is a length \c nc -array
-	 * containing the diagonal elements.\n\n 
-	 */
-	double *errcov_diagonal;
+	// for each i, 'jfirst' is the index of the first non-zero A[i,].
+	// 'jlen' is the length from the first non-zero to the last non-zero, like j.last-j.first+1
+	int *jfirst;
+	int *jlen;
 
-	/**
-	 *  \brief If non-NULL, a general positive definite error cov-matrix
-	 * 
-	 * If <tt>!=NULL</tt>, \a errcov_general specifies a general positive definite covariance matrix \f$ \mbox{\boldmath
-	 * $\Sigma$}_{\epsilon} \f$ of the error \f$ \mbox{\boldmath $\epsilon$} \f$. If both \a errcov_general and \a
-	 * errcov_diagonal are <tt>!NULL</tt>, the matrix is assumed to be diagonal, and \a errcov_diagonal is used. \n\n 
-	 */
-	double *errcov_general;
 
-	/**
-	 *  \brief For internal use only 
-	 */
-	GMRFLib_constr__intern_tp *intern;
+	GMRFLib_idxval_tp **idxval;
+
 } GMRFLib_constr_tp;
 
 typedef struct {
 	void *user_Qfunc_args;
 	GMRFLib_Qfunc_tp *user_Qfunc;
-	int *map;					       /* Mapping to the real-world */
 	double *diagonal_adds;
+	GMRFLib_graph_tp *graph;
 } GMRFLib_Qfunc_arg_tp;
-
-/* 
-   options for Qinv
-*/
-
-/*!
-  \brief Store all values computed
-*/
-#define GMRFLib_QINV_ALL         0x0000
-
-/*!
-  \brief Store only marginal values and covariances for neigbours
-*/
-#define GMRFLib_QINV_NEIGB       0x0001
-
-/*!
-  \brief Store only marginal variances
-*/
-#define GMRFLib_QINV_DIAG        0x0002
-
-/*!
-  \brief Disable check for ``complete'' L.
-*/
-#define GMRFLib_QINV_NO_CHECK    0x0004
-
-/*!
-  \brief Check once only for a ``complete'' L
-*/
-#define GMRFLib_QINV_CHECK_ONCE  0x0008
 
 typedef struct {
 
@@ -249,7 +121,7 @@ typedef struct {
 	/**
 	 *  \brief The mapping used to lookup values in \a Qinv 
 	 */
-	map_ii *mapping;
+	int *mapping;
 } GMRFLib_Qinv_tp;
 
 /*! 
@@ -283,7 +155,9 @@ typedef struct {
   See \ref ex_problem-setup
 */
 
-typedef struct {
+struct GMRFLib_problem_struct {
+
+	GMRFLib_stiles_idx_tp *stiles_idx;
 
 	/**
 	 *  \brief The sample (full graph)
@@ -332,15 +206,6 @@ typedef struct {
 	 * for internal use only; the length of sample, mean and mean_constr. 
 	 */
 	int n;
-
-	/**
-	 *  \brief Mapping to the real-world
-	 * 
-	 * The mapping between the elements of \a sub_sample, \a sub_mean, \a sub_mean_constr and \a sub_graph, and the real
-	 * world. The correspondence is defined by \f$ \mbox{\small\tt sub\_sample}[i] \leftrightarrow \mbox{\small\tt sample}
-	 * [\mbox{\small\tt map}[i]] \f$, and similar with the other quantities. \n\n 
-	 */
-	int *map;
 
 	/**
 	 *  \brief The log-density of sub_sample, corresponding to the elements of <em>\b x</em> that are not fixed. 
@@ -452,24 +317,25 @@ typedef struct {
 	 *  \brief The (structural) inverse of Q 
 	 */
 	GMRFLib_Qinv_tp *sub_inverse;
-} GMRFLib_problem_tp;
+};
+
 
 /*!
   \brief To flag that the proposal was accepted
 */
-#define GMRFLib_STORE_ACCEPT (1)
+#       define GMRFLib_STORE_ACCEPT (1)
 
 /*!
   \brief To flag that the proposal was rejected
 */
-#define GMRFLib_STORE_REJECT (2)
+#       define GMRFLib_STORE_REJECT (2)
 
 /*!
   \struct GMRFLib_store_tp problem-setup.h
   \brief The structure to store intermediate calculations
 */
 typedef struct GMRFLib_store_struct GMRFLib_store_tp;	       /* used recursively */
-							       
+
 struct GMRFLib_store_struct {
 	GMRFLib_smtp_tp smtp;				       /* sparse matrix type */
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
@@ -479,8 +345,9 @@ struct GMRFLib_store_struct {
 	GMRFLib_graph_tp *sub_graph;
 
 	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
+	GMRFLib_taucs_cache_tp *TAUCS_cache;
 	GMRFLib_pardiso_store_tp *PARDISO_fact;
-	
+
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */
 
@@ -491,15 +358,22 @@ struct GMRFLib_store_struct {
 	double *new_logdens;				       /* new log-density */
 	GMRFLib_problem_tp *problem_old2new;		       /* stored problem */
 	GMRFLib_problem_tp *problem_new2old;		       /* stored problem */
-
 };
 
-#define STOCHASTIC_CONSTR(constr) ((constr) && ((constr)->errcov_diagonal || (constr)->errcov_general))
-
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, void *arguments);
-int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
+double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j);
+double GMRFLib_Qfunc_generic(int thread_id, int i, int j, double *values, void *arg);
+double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double *values, void *arguments);
+int GMRFLib_Qinv(GMRFLib_problem_tp * problem);
+int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem, int idx, GMRFLib_stiles_idx_tp * stiles_idx);
+int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp * problem, GMRFLib_stiles_idx_tp * stiles_idx);
+int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_eval_constr0_many(int m, double *value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const);
 int GMRFLib_fact_info_report(FILE * fp, GMRFLib_sm_fact_tp * sm_fact);
@@ -508,26 +382,27 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr);
 int GMRFLib_free_problem(GMRFLib_problem_tp * problem);
 int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
-int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, GMRFLib_graph_tp * graph,
-			 GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constraint, unsigned int keep);
-int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value,
-			       GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store);
+int GMRFLib_init_constr_store_logdet(void);
+int GMRFLib_init_constr_store(void);
+int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint,
+			 GMRFLib_stiles_idx_tp * stiles_idx, GMRFLib_smtp_tp * local_smtp);
+int GMRFLib_init_problem_store(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
+			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store, GMRFLib_stiles_idx_tp * stiles_idx,
+			       GMRFLib_smtp_tp * local_smtp);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
-int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
-int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);
-int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add, char *mask,
-			  GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
+int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add,
+			  char *mask, GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
 int GMRFLib_sample(GMRFLib_problem_tp * problem);
-
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-double GMRFLib_Qfunc_generic(int i, int j, void *arg);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp *gn);
-GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
-GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
+int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
+int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
+int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr);
+int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp * constr);
 
 __END_DECLS
 #endif

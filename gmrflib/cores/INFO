@@ -1,0 +1,6 @@
+- These files are copied from
+      https://github.com/facebook/zstd
+  to use their functions to count the number of Cores
+- Unused code (partly) removed
+- Minor modifications made, to avoid to many dependencies
+

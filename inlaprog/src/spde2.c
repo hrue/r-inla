@@ -1,148 +1,482 @@
-
-/* spde2.c
- * 
- * Copyright (C) 2011  Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * The author's contact information:
- *
- *        Haavard Rue
- *        CEMSE Division
- *        King Abdullah University of Science and Technology
- *        Thuwal 23955-6900, Saudi Arabia
- *        Email: haavard.rue@kaust.edu.sa
- *        Office: +966 (0)12 808 0640
- *
- */
-#ifndef HGVERSION
-#define HGVERSION
-#endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <omp.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #include "spde2.h"
 
-
 extern G_tp G;						       /* import some global parametes from inla */
 
-double inla_spde2_Qfunction(int i, int j, void *arg)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc)
+{
+	if (nc == 3) {
+		double t0 = theta[0], t1 = theta[1], t2 = theta[2];
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2;
+		double d1 = vals[3] * t0 + vals[4] * t1 + vals[5] * t2;
+		double d2 = vals[6] * t0 + vals[7] * t1 + vals[8] * t2;
+		d[0] = exp(d0);
+		d[1] = exp(d1);
+		d[2] = d2;
+		return;
+	} else if (nc == 4) {
+		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3];
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3;
+		double d1 = vals[4] * t0 + vals[5] * t1 + vals[6] * t2 + vals[7] * t3;
+		double d2 = vals[8] * t0 + vals[9] * t1 + vals[10] * t2 + vals[11] * t3;
+		d[0] = exp(d0);
+		d[1] = exp(d1);
+		d[2] = d2;
+		return;
+	} else if (nc == 5) {
+		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3], t4 = theta[4];
+		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3 + vals[4] * t4;
+		double d1 = vals[5] * t0 + vals[6] * t1 + vals[7] * t2 + vals[8] * t3 + vals[9] * t4;
+		double d2 = vals[10] * t0 + vals[11] * t1 + vals[12] * t2 + vals[13] * t3 + vals[14] * t4;
+		d[0] = exp(d0);
+		d[1] = exp(d1);
+		d[2] = d2;
+		return;
+	} else {
+		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+		int nc2 = 2 * nc;
+		for (int k = 0; k < nc; k++) {
+			double t = theta[k];
+			d0 += vals[k] * t;
+			d1 += vals[k + nc] * t;
+			d2 += vals[k + nc2] * t;
+		}
+		d[0] = exp(d0);
+		d[1] = exp(d1);
+		d[2] = d2;
+		return;
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void apply_single_transform(int transform, double *d2)
+{
+	switch (transform) {
+	case SPDE2_TRANSFORM_LOG:
+		*d2 = 2.0 * exp(*d2) - 1.0;
+		break;
+
+	case SPDE2_TRANSFORM_LOGIT:
+		*d2 = cos(M_PI / (1.0 + exp(-*d2)));
+		break;
+
+	default:
+		break;
+	}
+}
+#pragma GCC diagnostic pop
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id)
+{
+	theta[0] = 1.0;
+	for (int k = 1; k < nc; k++) {
+		theta[k] = model_theta[k - 1][thread_id][0];
+	}
+}
+#pragma GCC diagnostic pop
+
+void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n)
+{
+	int m = nc;
+	int lda = nc;
+	int inc = 1;
+	double alpha = 1.0;
+	double beta = 0.0;
+	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void apply_exponentials(double *__restrict dij, int nb)
+{
+	for (int i = 0; i <= nb; i++) {
+		int idx = i * 3;
+		dij[idx] = exp(dij[idx]);
+		dij[idx + 1] = exp(dij[idx + 1]);
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
+{
+	switch (transform) {
+	case SPDE2_TRANSFORM_LOG:
+#pragma omp simd
+		for (int i = 0; i <= nb; i++) {
+			int off = 2 + i * 3;
+			dij[off] = 2.0 * exp(dij[off]) - 1.0;
+		}
+		break;
+
+	case SPDE2_TRANSFORM_LOGIT:
+#pragma omp simd
+		for (int i = 0; i <= nb; i++) {
+			int off = 2 + i * 3;
+			dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
+{
+	double d_i0 = dij[0];
+	double d_i1 = dij[1];
+	double d_i2 = dij[2];
+
+#pragma omp simd
+	for (int kk = 0; kk <= nb; kk++) {
+		int v_off = kk * 4;
+		int d_off = kk * 3;
+
+		double d_j0 = dij[d_off];
+		double d_j1 = dij[d_off + 1];
+		double d_j2 = dij[d_off + 2];
+
+		double v0 = v[v_off];
+		double v1 = v[v_off + 1];
+		double v2 = v[v_off + 2];
+		double v3 = v[v_off + 3];
+
+		double inner = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
+		values[kk] = d_i0 * d_j0 * inner;
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
-	int k, kk;
+	int nc = model->B[0]->ncol;
+	int lim2 = 64;
+	double d_storage[6] = { 0 };
+	double *__restrict d_i = d_storage;
+	double *__restrict d_j = d_storage + 3;
 
-	/*
-	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
-	 */
-	double *row_i = Calloc(2 * model->B[0]->ncol, double);
-	double *row_j = &row_i[model->B[0]->ncol];
+	double theta[nc <= lim2 ? nc : 1];
+	double *theta_ptr = (nc <= lim2 ? theta : Malloc(nc, double));
 
-	for (k = 0; k < 3; k++) {
-		if (i == j) {
-			/*
-			 * some savings for i == j 
-			 */
-			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-			phi_i[k] = row_i[0];
-			for (kk = 1; kk < model->B[k]->ncol; kk++) {
-				/*
-				 * '-1' is the correction for the first intercept column in B 
-				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-			}
-			phi_j[k] = phi_i[k];		       /* they are equal in this case */
-		} else {
-			/*
-			 * i != j 
-			 */
-			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-			GMRFLib_matrix_get_row(row_j, j, model->B[k]);
-			phi_i[k] = row_i[0];
-			phi_j[k] = row_j[0];
-			for (kk = 1; kk < model->B[k]->ncol; kk++) {
-				/*
-				 * '-1' is the correction for the first intercept column in B 
-				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-				phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-			}
-		}
+	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
+
+	double *__restrict vals_i = model->row_V[ii];
+	compute_d_values_opt(d_i, vals_i, theta_ptr, nc);
+	apply_single_transform(model->transform, &d_i[2]);
+
+	if (ii == jj) {
+		// Diagonal case - optimized
+		double *__restrict v = model->row_v[ii];
+		double d_i0_sq = d_i[0] * d_i[0];
+		double d_i1_sq = d_i[1] * d_i[1];
+		double d_i2_d_i1 = d_i[2] * d_i[1];
+		double value = d_i0_sq * (d_i1_sq * v[0] + d_i2_d_i1 * (v[1] + v[2]) + v[3]);
+		if (nc > lim2)
+			free(theta_ptr);
+		return value;
 	}
-	Free(row_i);
+	// Off-diagonal case
+	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc);
+	apply_single_transform(model->transform, &d_j[2]);
 
-	for (k = 0; k < 2; k++) {
-		d_i[k] = exp(phi_i[k]);
-		d_j[k] = exp(phi_j[k]);
-	}
+	double *__restrict v = vals_j_p->v;
+	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
-	/*
-	 * change this later on, need an option here for various 'link' functions. some savings possible for i==j.
-	 */
-	if (i == j) {
-		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			break;
-		case SPDE2_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			break;
-		default:
-			assert(0 == 1);
-		}
-		d_j[2] = d_i[2];
-	} else {
-		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
-			break;
-		case SPDE2_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
-			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			d_j[2] = phi_j[2];
-			break;
-		default:
-			assert(0 == 1);
-		}
-	}
-
-	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
-				   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
-				   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
+	if (nc > lim2)
+		free(theta_ptr);
 
 	return value;
 }
+#pragma GCC diagnostic pop
 
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
 {
-	int i, debug = 0;
+	if (jj >= 0) {
+		return inla_spde2_Qfunction_ij_opt(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+	int nb = model->graph->lnnbs[ii];
+
+	double *__restrict V = model->row_V[ii];
+	double *__restrict v = model->row_v[ii];
+
+	const int lim1 = 128;
+	const int lim2 = 64;
+	int dij_size = (1 + nb) * 3;
+	int max_stack_size = lim1;			       // Conservative limit
+	double stack_arrays[lim2 + lim1];		       // theta + dij on stack
+	double *theta, *dij;
+
+	if (nc <= lim2 && dij_size <= max_stack_size) {
+		// Use stack for small arrays
+		theta = stack_arrays;
+		dij = stack_arrays + nc;
+	} else {
+		// Use heap for large arrays
+		theta = Malloc(nc + dij_size, double);
+		dij = theta + nc;
+	}
+
+	build_theta_vector(theta, nc, model->theta, thread_id);
+	perform_matrix_vector_mult(V, theta, dij, nc, dij_size);
+	apply_exponentials(dij, nb);
+	if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+		apply_transform_vectorized(model->transform, dij, nb);
+	}
+	compute_diagonal_values(dij, v, values, nb);
+
+	if (nc > lim2 || dij_size > max_stack_size) {
+		free(theta);
+	}
+
+	return 0.0;
+}
+#pragma GCC diagnostic pop
+
+double inla_spde2_Qfunction__ORIG(int thread_id, int ii, int jj, double *values, void *arg)
+{
+	if (jj < 0) {
+		inla_spde2_tp *model = (inla_spde2_tp *) arg;
+		int nc = model->B[0]->ncol;
+
+		int nb = model->graph->lnnbs[ii];
+		double *V = model->row_V[ii];
+		double *v = model->row_v[ii];
+		double theta[nc];
+
+		theta[0] = 1.0;
+		for (int k = 1; k < nc; k++) {
+			theta[k] = model->theta[k - 1][thread_id][0];
+		}
+
+		// dij = V %*% theta
+		int m = nc;
+		int lda = nc;
+		int n = (1 + nb) * 3;
+		int inc = 1;
+		double alpha = 1.0;
+		double beta = 0.0;
+		double dij[(1 + nb) * 3];
+		dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
+
+		GMRFLib_exp_inc(1 + nb, dij, 3, dij);
+		GMRFLib_exp_inc(1 + nb, dij + 1, 3, dij + 1);
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_LOG:
+			{
+				for (int kk = 0, off = 2; kk < 1 + nb; kk++, off += 3) {
+					dij[off] = 2.0 * exp(dij[off]) - 1.0;
+				}
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				for (int kk = 0, off = 2; kk < 1 + nb; kk++, off += 3) {
+					dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
+				}
+			}
+				break;
+
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *d_i = dij;
+		double *vv = v;
+		double *d_j = dij;
+
+		// for (int kk = 0; kk < 1 + nb; kk++, vv += 4, d_j += 3) 
+		// values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
+		for (int kk = 0; kk < 1 + nb; kk++) {
+			values[kk] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * vv[0] + d_i[2] * d_i[1] * vv[1] + d_j[1] * d_j[2] * vv[2] + vv[3]);
+			vv += 4;
+			d_j += 3;
+		}
+
+		return 0.0;
+	} else {
+		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
+	}
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	// do not use directly. need ``if (jj < 0)'' code
+
+	int use_ddot_lim = 16;
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol, nc2 = 2 * nc;
+	double d_i[6] = { 0, 0, 0, 0, 0, 0 };
+	double *d_j = d_i + 3;
+	double *vals_i = model->row_V[ii];
+
+	double theta[nc];
+	theta[0] = 1.0;
+	for (int k = 1; k < nc; k++) {
+		theta[k] = model->theta[k - 1][thread_id][0];
+	}
+
+	if (nc < use_ddot_lim) {
+		double d0 = 0.0;
+		double d1 = 0.0;
+		double d2 = 0.0;
+#pragma omp simd reduction(+: d0, d1, d2)
+		for (int k = 0; k < nc; k++) {
+			d0 += vals_i[k] * theta[k];
+			d1 += vals_i[k + nc] * theta[k];
+			d2 += vals_i[k + nc2] * theta[k];
+		}
+		d_i[0] = exp(d0);
+		d_i[1] = exp(d1);
+		d_i[2] = d2;
+	} else {
+		int m = nc;
+		int lda = nc;
+		int n = 3;
+		int inc = 1;
+		double alpha = 1.0;
+		double beta = 0.0;
+		dgemv_("T", &m, &n, &alpha, vals_i, &lda, theta, &inc, &beta, d_i, &inc, F_ONE);
+		d_i[0] = exp(d_i[0]);
+		d_i[1] = exp(d_i[1]);
+	}
+
+	if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+		switch (model->transform) {
+		case SPDE2_TRANSFORM_LOG:
+			d_i[2] = 2 * exp(d_i[2]) - 1.0;
+			break;
+
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI / (1.0 + exp(-d_i[2])));
+			break;
+
+		case SPDE2_TRANSFORM_IDENTITY:
+			break;
+
+		default:
+			assert(0 == 1);
+		}
+	}
+
+	if (ii == jj) {
+		double *v = model->row_v[ii];
+		double value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+		return value;
+	}
+
+	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+	double *vals_j = vals_j_p->V;
+
+	if (nc < use_ddot_lim) {
+		double d0 = 0.0;
+		double d1 = 0.0;
+		double d2 = 0.0;
+#pragma omp simd reduction(+: d0, d1, d2)
+		for (int k = 0; k < nc; k++) {
+			d0 += vals_j[k] * theta[k];
+			d1 += vals_j[k + nc] * theta[k];
+			d2 += vals_j[k + nc2] * theta[k];
+		}
+		d_j[0] = exp(d0);
+		d_j[1] = exp(d1);
+		d_j[2] = d2;
+	} else {
+		int m = nc;
+		int lda = nc;
+		int n = 3;
+		int inc = 1;
+		double alpha = 1.0;
+		double beta = 0.0;
+		dgemv_("T", &m, &n, &alpha, vals_j, &lda, theta, &inc, &beta, d_j, &inc, F_ONE);
+		d_j[0] = exp(d_j[0]);
+		d_j[1] = exp(d_j[1]);
+	}
+
+	if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+		switch (model->transform) {
+		case SPDE2_TRANSFORM_LOG:
+			d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+			break;
+
+		case SPDE2_TRANSFORM_LOGIT:
+			d_j[2] = cos(M_PI / (1.0 + exp(-d_j[2])));
+			break;
+
+		case SPDE2_TRANSFORM_IDENTITY:
+			break;
+
+		default:
+			assert(0 == 1);
+		}
+	}
+
+	double *v = vals_j_p->v;
+	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+
+	return value;
+}
+#pragma GCC diagnostic pop
+
+int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const char *prefix, const char *transform)
+{
+	int i;
+	const int debug = 0;
 	inla_spde2_tp *model = NULL;
 	char *fnm = NULL;
 
@@ -238,6 +572,58 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
 	*smodel = model;
 
+	model->row_V = Calloc(model->n, double *);
+	model->row_v = Calloc(model->n, double *);
+	GMRFLib_vmatrix_init(&(model->Vmatrix), model->n, model->graph);
+	int nc = model->B[0]->ncol;
+
+	for (i = 0; i < model->n; i++) {
+		int j = i;
+
+		int nb = model->graph->lnnbs[i];
+		int msize = 3 * nc;
+		int vsize = 4;
+		double *V = Calloc((1 + nb) * msize, double);
+		double *v = Calloc((1 + nb) * vsize, double);
+
+		model->row_V[i] = V;
+		model->row_v[i] = v;
+
+		GMRFLib_matrix_get_row(V + 0 * nc, i, model->B[0]);
+		GMRFLib_matrix_get_row(V + 1 * nc, i, model->B[1]);
+		GMRFLib_matrix_get_row(V + 2 * nc, i, model->B[2]);
+
+		v[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+		v[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+		v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+		v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+		spde2_vV_tp *vV = Calloc(1, spde2_vV_tp);
+		vV->v = v;
+		vV->V = V;
+		map_ivp_set(&(model->Vmatrix->vmat[i]), i, (void *) vV);
+
+		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
+			j = model->graph->lnbs[i][jj];
+
+			V += msize;
+			GMRFLib_matrix_get_row(V + 0 * nc, j, model->B[0]);
+			GMRFLib_matrix_get_row(V + 1 * nc, j, model->B[1]);
+			GMRFLib_matrix_get_row(V + 2 * nc, j, model->B[2]);
+
+			v += vsize;
+			v[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+			v[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+			v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+			v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+			vV = Calloc(1, spde2_vV_tp);
+			vV->v = v;
+			vV->V = V;
+			map_ivp_set(&(model->Vmatrix->vmat[i]), j, (void *) vV);
+		}
+	}
+
 	return INLA_OK;
 }
 
@@ -264,7 +650,8 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		return NULL;
 	}
 
-	int use_new_version = 1, i, ii, jj, debug = 0, k, kk, *idx_map = NULL, nhyper_new = 0;
+	int use_new_version = 1, i, ii, jj, k, kk, *idx_map = NULL, nhyper_new = 0;
+	const int debug = 0;
 	double *theta_new = NULL, *covmat_new = NULL, *stdev_corr_pos_new = NULL, *stdev_corr_neg_new = NULL;
 	gsl_vector *sqrt_eigen_values_new = NULL;
 	gsl_matrix *eigen_vectors_new = NULL;
@@ -314,6 +701,10 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			gsl_vector_set(sqrt_eigen_values_new, k, gsl_vector_get(a->sqrt_eigen_values, idx_map[k]));
 		} else {
 			theta_new[k] = model->fixed_values[kk];
+			if (ISNAN(theta_new[k])) {
+				// otherwise other things will break
+				theta_new[k] = 0.0;
+			}
 			stdev_corr_pos_new[k] = 1.0;
 			stdev_corr_neg_new[k] = 1.0;
 			gsl_vector_set(sqrt_eigen_values_new, k, 0.0);
@@ -382,9 +773,9 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			 * insert it into a larger vector to get the the full 'row' 
 			 */
 			GMRFLib_matrix_get_row(row_spde2, i, model->BLC);
-			memset(row, 0, (nhyper_new + 1) * sizeof(double));
+			Memset(row, 0, (nhyper_new + 1) * sizeof(double));
 			row[0] = row_spde2[0];
-			memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
+			Memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
 
 			/*
 			 * Sigma * a, a = row
@@ -428,7 +819,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			double *x = Calloc(nhyper_new, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
-			memcpy(xxx, xx, npoints * sizeof(double));
+			Memcpy(xxx, xx, npoints * sizeof(double));
 			xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 			xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
 
@@ -443,7 +834,8 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 						       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 			} else {
 				// return a point-mass
-				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON);
+				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON,
+							      GMRFLib_TRUE);
 			}
 			Free(Sigma_a);
 			Free(x);
@@ -469,7 +861,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 				}
 			}
 			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean,
-						      (var > 0 ? sqrt(var) : DBL_EPSILON));
+						      (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE);
 		}
 	}
 

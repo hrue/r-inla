@@ -1,0 +1,11 @@
+CFLAGS = -framework Accelerate $(FLAGS) $(INC) -O3 -mtune=native -fopenmp  -fpic -I.
+LDFLAGS = -framework Accelerate $(LIB)
+TARGET = libgraphpcor.so
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+LIBGOMP := $(shell $(CCPLAIN)  --print-file-name=libgomp.a)
+
+$(TARGET) : $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -Wl,-force_load,$(LIBGOMP),$(LIBLTDL) -lm
+
+ clean :; rm -f $(TARGET) $(OBJ)
+

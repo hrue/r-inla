@@ -1,33 +1,3 @@
-
-/* example-blockupdate-with-error-control.c
- * 
- * Copyright (C) 2008 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
- *
- * The author's contact information:
- *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
- *
- */
-
 #include <assert.h>
 #include <stddef.h>
 #include <time.h>
@@ -97,7 +67,7 @@ int read_graph_and_data(void)
 	FILE *fp;
 	char *fnm;
 
-	fnm = GMRFLib_strdup(GRAPH);
+	fnm = Strdup(GRAPH);
 	GMRFLib_read_graph(&G.graph, fnm);
 	G.y = Calloc(G.graph->n, double);
 	G.E = Calloc(G.graph->n, double);
@@ -244,7 +214,7 @@ int main(int argc, char **argv)
 	/*
 	 * start sampling, just go on forever 
 	 */
-	timeref = GMRFLib_cpu();
+	timeref = GMRFLib_timer();
 	while (++counter) {
 		/*
 		 * propose a new value for kappa 
@@ -310,7 +280,8 @@ int main(int argc, char **argv)
 		 * that's it ! 
 		 */
 		eprob += exp(DMIN(0.0, lacc));
-		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter, 1. / ((GMRFLib_cpu() - timeref) / counter), kappa);
+		printf("lacc= %.4f  E(accept_prob)= %.4f iter/src= %.4f  kappa= %.4f\n", lacc, eprob / counter,
+		       1. / ((GMRFLib_timer() - timeref) / counter), kappa);
 	}
 	return 0;
 }

@@ -1,33 +1,3 @@
-
-/* example-bitmap.c
- * 
- * Copyright (C) 2006 Havard Rue
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
- *
- * The author's contact information:
- *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
- *
- */
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -70,7 +40,7 @@ int main(int argc, char **argv)
 	GMRFLib_make_crw_graph(&graph, crwdef);
 	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, NULL, GMRFLib_NEW_PROBLEM);
 
-	char *fnm = GMRFLib_strdup("example");
+	char *fnm = Strdup("example");
 
 	GMRFLib_bitmap_problem(fnm, problem);
 

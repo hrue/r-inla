@@ -1,0 +1,69 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Thinned Poisson (Experimental)}
+
+\subsection*{Parametrisation}
+
+The Poisson distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
+value.
+
+The thinned Poisson allow the observations to have a known or unknown
+thinning: \texttt{event}$=1$ its observed as is. With
+\texttt{event}$=0$ (or $\not=1$) its thinned, so the likelihood is
+Poisson with mean $p(\cdot) \lambda$ where
+\begin{displaymath}
+    \text{logit}(p(\cdot)) = \text{offset} + \sum_{i=1} \beta_i x_i
+\end{displaymath}
+
+\subsection*{Link-function}
+
+The mean $\lambda$ is linked to the linear predictor by
+\begin{displaymath}
+    \lambda(\eta) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
+
+\subsection*{Hyperparameters}
+
+$\beta_1, \beta_2, \ldots$ if in use. Maximum $10$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="tpoisson"}
+\item Data are given as an \texttt{inla.mdata}-object, with format
+    \begin{displaymath}
+        \text{inla.mdata}(y, E, \text{event}, \text{offset}, x_1,
+        x_2, \ldots)
+    \end{displaymath}
+    where maximum $10$ covariates can be given. Each argument is a
+    vector. Note that the four first columns are required, and the
+    covariates can be omitted if there are none.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/tpoisson.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+\verbatiminput{example-tpoisson.R}
+
+\subsection*{Notes}
+
+\end{document}
+% LocalWords:  np Hyperparameters Ntrials poisson
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

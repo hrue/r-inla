@@ -1,0 +1,82 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The modal-Gamma-distribution}
+
+\subsection*{Parametrisation}
+
+The modal-Gamma-distribution has the following density
+\begin{displaymath}
+    \pi(y) = \frac{b^{a}}{\Gamma(a)} y^{a-1} \exp(-by), \qquad a>1,
+    \quad b>0, \quad y >0.
+\end{displaymath}
+where the mode $m=(a-1)/b$ is the target of the regression model
+instead of the mean or quantile. \textbf{Note the constraint $a>1$}.
+
+With precision
+\begin{displaymath}
+    \tau = (s\phi) / m^{2}
+\end{displaymath}
+for fixed scaling $s$ and precision parameter $\phi$, this complete
+the spesification. The mapping back to the $(a,b)$-parameterisation is
+then $\phi'=s\phi$,
+$\delta = \left(\sqrt{\phi'(\phi'+4)} + \phi'\right)/2$, then
+\begin{displaymath}
+    a = 1 + \delta \quad\text{and}\quad b=\delta / m
+\end{displaymath}
+
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the mode $m$ using a
+default log-link
+\begin{displaymath}
+    m = \exp(\eta)
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the precision parameter $\phi$, which is
+represented as
+\begin{displaymath}
+    \phi = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="mgamma"} for regression models and
+    \texttt{family="mgamma.surv"} for survival models.
+\item Required arguments: for \texttt{mgamma.surv}, $y$ (to be given in
+    a format by using $\texttt{inla.surv()}$), and for \texttt{mgamma},
+    $y$ and $s$ (default value 1).
+\end{itemize}
+The scalings $s$ is \textbf{not} used for \texttt{family="mgamma.surv"}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/mgamma.tex}
+\input{../hyper/likelihood/mgammasurv.tex}
+
+
+\subsection*{Example}
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-mgamma.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
