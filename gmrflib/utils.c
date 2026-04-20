@@ -138,9 +138,15 @@ char *GMRFLib_vec2char(double *x, int len)
 	for (int i = 0; i < len; i++) {
 		int written = snprintf(str + offset, estimated_size - offset,
 				       (i < len - 1 ? "%.8g," : "%.8g"), x[i]);
+		if (written < 0) {
+			return NULL;
+		}
 		if (written >= (int) (estimated_size - offset)) {
 			estimated_size *= 2;
 			str = Realloc(str, estimated_size, char);
+		}
+		if (written < 0) {
+			return NULL;
 		}
 		offset += written;
 	}
@@ -214,7 +220,6 @@ char *GMRFLib_rindex(const char *p, int ch)
 			save = pp;
 		}
 	}
-	abort();
 	return NULL;
 }
 
@@ -223,9 +228,7 @@ int GMRFLib_which(double val, double *array, int len)
 	/*
 	 * return the first index in array such that array[idx] == val, and -1 if not there 
 	 */
-	int i;
-
-	for (i = 0; i < len; i++) {
+	for (int i = 0; i < len; i++) {
 		if (ISEQUAL(val, array[i])) {
 			return i;
 		}
@@ -257,8 +260,6 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 		}
 		return -1;
 	}
-
-	return -1;
 }
 
 int GMRFLib_find_value(double *array, int len, int direction, double value)
@@ -279,8 +280,6 @@ int GMRFLib_find_value(double *array, int len, int direction, double value)
 		}
 		return -1;
 	}
-
-	return -1;
 }
 
 int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue)
@@ -301,8 +300,6 @@ int GMRFLib_find_ivalue(int *iarray, int len, int direction, int ivalue)
 		}
 		return -1;
 	}
-
-	return -1;
 }
 
 double GMRFLib_eps(double power)
@@ -339,8 +336,7 @@ int GMRFLib_icmp(const void *a, const void *b)
 {
 	const int *ia = (const int *) a;
 	const int *ib = (const int *) b;
-
-	return (*ia - *ib);
+	return (*ia > *ib ? 1 : (*ia < *ib ? -1 : 0));
 }
 
 int GMRFLib_icmp_r(const void *a, const void *b)
@@ -363,33 +359,24 @@ int GMRFLib_dcmp_r(const void *a, const void *b)
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
-
 	da = (const double *) a;
 	db = (const double *) b;
 
-	/*
-	 * sort on ABS() 
-	 */
+	// sort on ABS() 
 	if (ABS(*da) > ABS(*db)) {
 		return 1;
 	}
 	if (ABS(*da) < ABS(*db)) {
 		return -1;
 	}
-
-	/*
-	 * if they're equal, sort on sign 
-	 */
+	// if they're equal, sort on sign 
 	if ((*da) > (*db)) {
 		return 1;
 	}
 	if ((*da) < (*db)) {
 		return -1;
 	}
-
-	/*
-	 * identical 
-	 */
+	// identical 
 	return 0;
 }
 
@@ -401,9 +388,7 @@ int GMRFLib_dcmp_abs_r(const void *a, const void *b)
 
 double GMRFLib_log_apbex(double a, double b)
 {
-	/*
-	 * evaluate log(a + exp(b))
-	 */
+	// evaluate log(a + exp(b))
 	return (b + log1p(a / exp(b)));
 }
 
@@ -425,8 +410,12 @@ int GMRFLib_unique_relative(int *n, double *x, double eps)
 	 * ties are defined if relative error between x_i and x_j <= eps, roughly, by using the routine gsl_fcmp()
 	 * 
 	 */
-	int i = 0, j = 0, jj = 0;
 
+	if (*n <= 1){
+		return GMRFLib_SUCCESS;
+	}
+
+	int i = 0, j = 0, jj = 0;
 	while (jj < *n) {
 		while (jj + 1 < *n && gsl_fcmp(x[jj + 1], x[j], eps) == 0) {
 			jj++;
@@ -449,6 +438,10 @@ int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps)
 	 * ties are defined if relative error between x_i and x_j <= eps, roughly, by using the routine gsl_fcmp()
 	 * 
 	 */
+
+	if (*n <= 1){
+		return GMRFLib_SUCCESS;
+	}
 
 	if (!y) {
 		return GMRFLib_unique_relative(n, x, eps);
@@ -475,6 +468,10 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 {
 	// assume x is sorted, remove ties and change *n accordingly. use the median in each bin.
 	// ties are defined if |x_i and x_j| <= eps
+
+	if (*n <= 1){
+		return GMRFLib_SUCCESS;
+	}
 
 	int ties = 0;
 	for (int k = 0; k < *n - 1; k++) {
@@ -832,7 +829,9 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 {
-	if (!vec || vec->size == 0) {
+	if (!vec) {
+		*out = NULL;
+	} else if (vec->size == 0) {
 		*out = NULL;
 	} else {
 		*out = Malloc(vec->size, double);
@@ -2132,22 +2131,6 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 }
 #pragma GCC diagnostic pop
 
-#if 0
-int GMRFLib_is_sorted_iinc(int n, int *a)
-{
-	// increasing int's
-	SOURCE_INCLUDE(<);
-}
-#endif
-
-#if 0
-int GMRFLib_is_sorted_dinc(int n, double *a)
-{
-	// increasing double's
-	SOURCE_INCLUDE(<);
-}
-#endif
-
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing int's
@@ -2227,7 +2210,7 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
 	if (!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
