@@ -353,18 +353,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate_x(N, nf + nbeta, num_threads);
-	if (0) {
-		// OLD code
-		for (int i = 0; i < npred; i++) {
-			elm = A_idxval[i];
-			for (int k = 0; k < A_idxval[i]->n; k++) {
-				GMRFLib_idxval_add(&(At_idxval[elm->idx[k]]), i, elm->val[k]);
-				assert(elm->idx[k] < N);
-			}
-		}
-	}
-
-	if (1) {
+	{
 		int lim[num_threads + 1];
 		lim[0] = 0;
 		for (int k = 1; k < num_threads + 1; k++) {
@@ -376,7 +365,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			int cut_high = lim[kk + 1];
 			for (int i = 0; i < npred; i++) {
 				GMRFLib_idxval_tp *eelm = A_idxval[i];
-				if (!(eelm->idx[eelm->n - 1] < cut_low || cut_high <= eelm->idx[0])) {
+				if (eelm->n > 0 && (!(eelm->idx[eelm->n - 1] < cut_low || cut_high <= eelm->idx[0]))) {
 					for (int k = 0; k < A_idxval[i]->n; k++) {
 						int e = eelm->idx[k];
 						if (cut_low <= e && e < cut_high) {
@@ -926,7 +915,9 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		// value = GMRFLib_dot_product(elm, lc);
 		value = GMRFLib_sparse_ddot_(elm, lc);
 	} else {
-		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], (unsigned int) a->like_graph->lnnbs[node]);
+		int kk = GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], (unsigned int) a->like_graph->lnnbs[node]);
+		assert(kk >= 0);
+		int k = 1 + kk;
 		elm = a->AtA_idxval[node][k];
 		value = GMRFLib_sparse_ddot_(elm, lc);
 	}
@@ -1174,16 +1165,20 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					for (int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
 						double lat = latent[i];	\
-						for (int k = 0; k < At->n; k++) { \
-							pred_offset[At->idx[k]] += lat * At->val[k]; \
+						if (At) {		\
+							for (int k = 0; k < At->n; k++) { \
+								pred_offset[At->idx[k]] += lat * At->val[k]; \
+							}		\
 						}			\
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i]; \
 						double lat = latent[i];	\
-						for (int k = 0; k < pAAt->n; k++) { \
-							pred[pAAt->idx[k]] += lat * pAAt->val[k]; \
+						if (pAAt) {		\
+							for (int k = 0; k < pAAt->n; k++) { \
+								pred[pAAt->idx[k]] += lat * pAAt->val[k]; \
+							}		\
 						}			\
 					}				\
 				}					\
@@ -1197,8 +1192,10 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			for (int i = 0; i < preopt->n; i++) {
 				GMRFLib_idxval_tp *At = preopt->At_idxval[i];
 				double lat = latent[i];
-				for (int k = 0; k < At->n; k++) {
-					pred_offset[At->idx[k]] += lat * At->val[k];
+				if (At) {
+					for (int k = 0; k < At->n; k++) {
+						pred_offset[At->idx[k]] += lat * At->val[k];
+					}
 				}
 			}
 		}
