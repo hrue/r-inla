@@ -7,7 +7,7 @@
 \method{plot}{inla.mesh}(
   x,
   col = "white",
-  t.sub = 1:nrow(x$graph$tv),
+  t.sub = seq_len(nrow(x$graph$tv)),
   add = FALSE,
   lwd = 1,
   xlim = range(x$loc[, 1]),

@@ -1193,7 +1193,7 @@ inla.parse.Bmatrix.test <- function() {
         cat("step.len = ", inla.spec$step.len, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$stencil)) {
-        if (!(inla.spec$stencil %in% c(5, 7)) {
+        if (!(inla.spec$stencil %in% c(5, 7))) {
             inla.spec$stencil <- 5
         }
         cat("stencil = ", inla.spec$stencil, "\n", sep = " ", file = file, append = TRUE)
