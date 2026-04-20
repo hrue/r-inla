@@ -384,7 +384,7 @@ NULL
     }
     stopifnot(inherits(model, "inla.rgeneric.f"))
 
-    debug <- ifelse(is.null(model$debug) || !model$debug, FALSE, TRUE)
+    debug <- !(is.null(model$debug) || !model$debug)
     if (is.character(model.orig)) {
         debug.cat("Enter with cmd=", cmd, ", model=", model.orig, "theta=", theta)
     } else {

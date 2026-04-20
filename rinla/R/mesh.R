@@ -287,7 +287,7 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
 #' @export
 plot.inla.mesh <- function(x,
                            col = "white",
-                           t.sub = 1:nrow(x$graph$tv),
+                           t.sub = seq_len(nrow(x$graph$tv)),
                            add = FALSE,
                            lwd = 1,
                            xlim = range(x$loc[, 1]),
@@ -987,7 +987,7 @@ inla.mesh.query <- function(mesh, ...) {
     return(result)
   }
 
-  for (query.idx in 1:length(queries)) {
+  for (query.idx in seq_along(queries)) {
     query <- names(queries)[query.idx]
     param <- queries[[query.idx]]
     answer <- NULL
@@ -1165,7 +1165,7 @@ print.summary.inla.mesh <- function(x, ...) {
     } else {
       y <- x
     }
-    for (k in 1:nrow(x)) {
+    for (k in seq_len(nrow(x))) {
       if (!is.na(y[k, 4L])) {
         y[k, 1L] <- y[k, 1L] + y[k, 4L]
       }
@@ -1396,7 +1396,7 @@ inla.parse.queries <- function(...) {
 
   ## All nameless entries must be strings with query names.  Replace
   ## empty names with those names, and set those entries to NULL.
-  for (query.idx in 1:length(queries)) {
+  for (query.idx in seq_along(queries)) {
     if (q.names[[query.idx]] == "") {
       if (is.character(queries[[query.idx]])) {
         names(queries)[query.idx] <- queries[[query.idx]]

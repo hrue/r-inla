@@ -53,7 +53,7 @@
 
     ## Names of the variables associated with structured effects
     rand.effs <- names(model$marginals.hyperpar)
-    for (i in 1:length(rand.effs)) {
+    for (i in seq_along(rand.effs)) {
         cmd <- paste("prec.marg.",i,"<-model$marginals.hyperpar$'",rand.effs[i],"'",sep="")
         eval(parse(text=cmd)) # marginal distribution of the precision, tau
         ## Simulation from the posterior marginal distribution for sigma = 1/sqrt(tau)
@@ -65,7 +65,7 @@
 
     ## Outputs of the function
     mat <- matrix(NA, nsamples, length(rand.effs))
-    for (i in 1:length(rand.effs)) {
+    for (i in seq_along(rand.effs)) {
         cmd <- paste("mat[,i] <- sigma.",i,sep="")
         eval(parse(text=cmd)) 
     }
@@ -73,8 +73,8 @@
     colnames(mat) <- names2
 
     tab <- matrix(NA,length(rand.effs),4)
-    for (i in 1:length(rand.effs)) {
-        tab[i,] <- c(mean(mat[,i]),sd(mat[,i]),quantile(mat[,i],.025),quantile(mat[,i],.975))
+    for (i in seq_along(rand.effs)) {
+        tab[i,] <- c(mean(mat[,i]),sd(mat[,i]),quantile(mat[,i],0.025),quantile(mat[,i],0.975))
     }
     rownames(tab) <- names2
     colnames(tab) <- c("mean","sd","2.5%","97.5%")

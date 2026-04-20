@@ -220,7 +220,7 @@ NULL
 #' @rdname link-functions
 #' @export
 `inla.link.invqpoisson` <- function(x, inverse = FALSE, quantile = 0.5) {
-    stopifnot(inverse == FALSE)
+    stopifnot(!inverse)
     return (qgamma(1.0 - quantile, shape = exp(x)+1.0, rate=1))
 }
 
@@ -264,7 +264,7 @@ NULL
         X <- cbind(x = x, xi = xi, omega = omega, alpha = a)
         ret <- numeric(nrow(X))
         if (!inverse) {
-            for (i in 1:nrow(X)) {
+            for (i in seq_len(nrow(X))) {
                 ret[i] <- sn::qsn(X[i, "x"],
                     xi = X[i, "xi"],
                     omega = X[i, "omega"], alpha = X[i, "alpha"]
@@ -272,7 +272,7 @@ NULL
                     intcept
             }
         } else {
-            for (i in 1:nrow(X)) {
+            for (i in seq_len(nrow(X))) {
                 ret[i] <- sn::psn(X[i, "x"] + intcept,
                     xi = X[i, "xi"],
                     omega = X[i, "omega"], alpha = X[i, "alpha"]

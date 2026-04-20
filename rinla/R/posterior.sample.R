@@ -465,10 +465,10 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         num.threads <- inla.parse.num.threads(num.threads)
     }
 
-    if (use.improved.mean == FALSE) {
+    if (!use.improved.mean) {
         skew.corr <- FALSE
     }
-    if (skew.corr == TRUE && !exists("sn.cache", envir = inla.get.inlaEnv())) {
+    if (skew.corr && !exists("sn.cache", envir = inla.get.inlaEnv())) {
         ## function call for creating a local object in INLA environment
         inla.create.sn.cache()
     }
@@ -572,7 +572,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
             theta <- cs$config[[k]]$theta
             log.J <- 0.0
             if (!is.null(theta) && !intern) {
-                for (j in 1:length(theta)) {
+                for (j in seq_along(theta)) {
                     theta[j] <- do.call(result$misc$from.theta[[j]],
                         args = list(theta[j])
                     )
@@ -581,7 +581,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
 
                 if (TRUE) {
                     ## new fancy code using the automatic differentiation feature in R
-                    for (i in 1:length(theta)) {
+                    for (i in seq_along(theta)) {
                         arg.val <- formals(result$misc$from.theta[[i]])
                         arg <- names(arg.val)
                         if (length(arg) == 1L) {
@@ -626,7 +626,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                 } else {
                     ## old code using numerical differentiation
                     h <- .Machine$double.eps^0.25
-                    for (i in 1:length(theta)) {
+                    for (i in seq_along(theta)) {
                         theta.1 <- do.call(result$misc$from.theta[[i]],
                             args = list(cs$config[[k]]$theta[i] - h)
                         )
@@ -699,7 +699,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                     fast.qsn <- speed.fsn(s = s.new, x = x.val.not, skew = skew.val.not, fun.splines = skew.splines)
                     sample.corr <- xx$sample
                     sample.store <- sigma.th.not * fast.qsn + mean.SN.not
-                    sample.corr[zero.not, ] <- sample.store[1:nrow(sample.store), ]
+                    sample.corr[zero.not, ] <- sample.store[seq_len(nrow(sample.store)), ]
                     C.th <- xx$logdens + sum(log(dsn.new)) - sum(log(dnorm(qnorm(psn.new))))
                 }
             }
@@ -842,14 +842,14 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
             theta <- cs$config[[k]]$theta
             log.J <- 0.0
             if (!is.null(theta) && !intern) {
-                for (j in 1:length(theta)) {
+                for (j in seq_along(theta)) {
                     theta[j] <- do.call(result$misc$from.theta[[j]], args = list(theta[j]))
                 }
                 names(theta) <- inla.transform.names(result, names(theta))
 
                 if (TRUE) {
                     ## new fancy code using the automatic differentiation feature in R
-                    for (i in 1:length(theta)) {
+                    for (i in seq_along(theta)) {
                         arg.val <- formals(result$misc$from.theta[[i]])
                         arg <- names(arg.val)
                         if (length(arg) == 1L) {
@@ -879,7 +879,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                 } else {
                     ## old code using numerical differentiation
                     h <- .Machine$double.eps^0.25
-                    for (i in 1:length(theta)) {
+                    for (i in seq_along(theta)) {
                         theta.1 <- do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] - h))
                         theta.2 <- do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] + h))
                         log.J <- log.J - log(abs((theta.2 - theta.1) / (2.0 * h))) ## Yes, it's a minus...
@@ -1014,7 +1014,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         nm <- names(ret[[1]])
         ret <- matrix(unlist(ret), ncol = ns)
         colnames(ret) <- paste0("sample:", 1:ns)
-        rownames(ret) <- if (!is.null(nm)) nm else paste0("fun[", 1:nrow(ret), "]")
+        rownames(ret) <- if (!is.null(nm)) nm else paste0("fun[", seq_len(nrow(ret)), "]")
     }
 
     return(ret)

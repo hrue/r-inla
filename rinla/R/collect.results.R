@@ -262,7 +262,7 @@
         print(paste("collect misc from", d))
     }
 
-    if (is.na(d.info) || (d.info == FALSE)) {
+    if (is.na(d.info) || (!d.info)) {
         return(NULL)
     }
 
@@ -1747,7 +1747,7 @@
                 names(rr) <- paste0("Predictor.", inla.num(1L:n))
             }
             names.rr <- names(rr)
-            for (i in 1L:length(rr)) {
+            for (i in seq_along(rr)) {
                 colnames(rr[[i]]) <- c("x", "y")
             }
         }
@@ -1828,7 +1828,7 @@
                     names(rr) <- paste0("fitted.Predictor.", inla.num(1L:n))
                 }
                 names.rr <- names(rr)
-                for (i in 1L:length(rr)) {
+                for (i in seq_along(rr)) {
                     colnames(rr[[i]]) <- c("x", "y")
                     }
             }

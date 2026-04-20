@@ -186,7 +186,7 @@
     from.dir <- paste0(pa, "/64bit")
     to.dir <- paste0(pa, "/64bit-", random.num)
     ret <- file.rename(from.dir, to.dir)
-    if (ret == TRUE) {
+    if (ret) {
         ##
     } else {
         my.restore()

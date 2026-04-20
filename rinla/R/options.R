@@ -166,7 +166,7 @@ NULL
                         valid.options,
                         nomatch = NA_integer_,
                         duplicates.ok = FALSE)
-    if (any(is.na(match.opt))) {
+    if (anyNA(match.opt)) {
         warning(
             paste0("Unknown or ambiguous INLA option '",
                    option[is.na(match.opt)],

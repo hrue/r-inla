@@ -124,7 +124,7 @@
         stop("'Time' variable is not numeric")
     }
     nn <- length(time)
-    if (any(is.na(time))) {
+    if (anyNA(time)) {
         ## fixup the rest of the argument if some of 'time' is NA; in
         ## this case just fill in some dummy values so the rest of the
         ## routine still goes through
@@ -150,7 +150,7 @@
         }
     }
     if (!missing(truncation)) {
-        if (any(is.na(truncation))) {
+        if (anyNA(truncation)) {
             stop("Non valid values for 'truncation")
         }
         if (any(truncation < 0)) {
@@ -161,7 +161,7 @@
     if (missing(event)) {
         event <- rep(1, nn)
         warning("'event' is missing: assuming all are observed failures")
-    } else if (any(is.na(event))) {
+    } else if (anyNA(event)) {
         ## if some of the element in event are missing assume that
         ## they're observed failures (give a warning)
         event[is.na(event)] <- 1
@@ -344,7 +344,7 @@
     stop("'Time' variable is not numeric")
   }
   nn <- length(time)
-  if (any(is.na(time))) {
+  if (anyNA(time)) {
     idx <- is.na(time)
     if (!missing(event)) {
       event[idx] <- 1
@@ -365,7 +365,7 @@
     }
   }
   if (!missing(truncation)) {
-    if (any(is.na(truncation))) {
+    if (anyNA(truncation)) {
       stop("Non valid values for 'truncation")
     }
     if (any(truncation < 0)) {
@@ -376,7 +376,7 @@
     event <- rep(1, nn)
     warning("'event' is missing: assuming all are observed failures")
   }
-  else if (any(is.na(event))) {
+  else if (anyNA(event)) {
     event[is.na(event)] <- 1
     warning("Some elements in `event' are NA: set them to observed failures.")
   }

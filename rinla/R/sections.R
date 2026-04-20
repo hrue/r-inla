@@ -261,7 +261,7 @@ inla.parse.Bmatrix.test <- function() {
             stop(paste("cenpoisson.I: Must be a vector of length 2.", length(interval)))
         }
         interval <- sort(pmax(0, interval))
-        stopifnot(all(is.infinite(interval) == FALSE))
+        stopifnot(!any(is.infinite(interval)))
         cat("cenpoisson.I = ", interval[1], " ", interval[2], "\n", sep = "", file = file, append = TRUE)
     }
 
@@ -1051,9 +1051,9 @@ inla.parse.Bmatrix.test <- function() {
         ## convert from R to C
         random.spec$vb.correct <- random.spec$vb.correct - 1
         stopifnot(all(random.spec$vb.correct >= 0))
-    } else if (as.logical(random.spec$vb.correct) == TRUE) {
+    } else if (as.logical(random.spec$vb.correct)) {
         random.spec$vb.correct <- -1L ## code for ``make the default choice''
-    } else if (as.logical(random.spec$vb.correct) == FALSE) {
+    } else if (!as.logical(random.spec$vb.correct)) {
         random.spec$vb.correct <- -2L ## code for disable
     }
 
@@ -1301,7 +1301,7 @@ inla.parse.Bmatrix.test <- function() {
 
     ud <- inla.spec$use.directions
     if (is.null(ud)) ud <- FALSE
-    ud.val <- if (is.logical(ud) && (ud == FALSE)) FALSE else TRUE
+    ud.val <- if (is.logical(ud) && (!ud)) FALSE else TRUE
     inla.write.boolean.field("use.directions", ud.val, file)
     if (ud.val && is.matrix(ud)) {
         file.directions <- inla.tempfile(tmpdir = data.dir)
@@ -1975,7 +1975,7 @@ inla.parse.Bmatrix.test <- function() {
         numlen <- inla.numlen(length(lincomb))
         prev.secnames <- c()
 
-        for (i in 1:length(lincomb)) {
+        for (i in seq_along(lincomb)) {
             nam <- names(lincomb[i])
             if (is.null(nam) || is.na(nam)) {
                 secname <- paste("lincomb.", inla.num(i, width = numlen), sep = "")
@@ -2006,7 +2006,7 @@ inla.parse.Bmatrix.test <- function() {
             ## number of entries
             writeBin(as.integer(length(lc)), fp.binary)
 
-            for (j in 1:length(lc)) {
+            for (j in seq_along(lc)) {
                 lc.j.name <- as.character(names(lc[[j]]))
                 lc.j <- lc[[j]][[1]]
 

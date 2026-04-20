@@ -1457,7 +1457,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
             if (all.hyper$random[[i]]$hyper[[j]]$prior == "mvnorm") {
                 ## replace this one, and the p-following ones, with its marginals
                 m <- get.mvnorm.marginals(all.hyper$random[[i]]$hyper[[j]]$param)
-                for (k in 1:length(m$mean)) {
+                for (k in seq_along(m$mean)) {
                     kk <- j + k - 1
                     all.hyper$random[[i]]$hyper[[kk]]$prior <- "normal"
                     all.hyper$random[[i]]$hyper[[kk]]$param <- c(m$mean[k], m$prec[k])

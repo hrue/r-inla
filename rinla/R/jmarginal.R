@@ -164,7 +164,7 @@
 
     var <- "inla.jmarginal.eval.warning.given"
     if (!(exists(var, envir = inla.get.inlaEnv()) &&
-          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
+          get(var, envir = inla.get.inlaEnv()))) {
         warning("Function 'inla.rjmarginal.eval()' is experimental.")
         assign(var, TRUE, envir = inla.get.inlaEnv())
     }
@@ -197,8 +197,8 @@
 
     ret <- apply(samples$samples, 2, my.fun, .fun = fun, .contents = contents, ...)
     ret <- matrix(ret, ncol = ncol(samples$samples))
-    colnames(ret) <- paste0("sample:", 1:ncol(ret))
-    rownames(ret) <- paste0("fun[", 1:nrow(ret), "]")
+    colnames(ret) <- paste0("sample:", seq_len(ncol(ret)))
+    rownames(ret) <- paste0("fun[", seq_len(nrow(ret)), "]")
 
     return(ret)
 }
@@ -278,7 +278,7 @@
     }
 
     if (is.null(rownames(A))) {
-        names.sel <- sapply(1:nrow(A), function(x) paste0("Lin:", x))
+        names.sel <- sapply(seq_len(nrow(A)), function(x) paste0("Lin:", x))
     } else {
         names.sel <- rownames(A)
     }
@@ -295,7 +295,7 @@
     S.tjoint <- A %*% S %*% t(A)
     m2.tjoint <- diag(S.tjoint) + mu.tjoint^2
     m3.tjoint <- skew.tjoint <- c()
-    for (lc in 1:nrow(A)) {
+    for (lc in seq_len(nrow(A))) {
         x <- A[lc, ]
         lc.ind <- which(x != 0 & !is.na(x))
         coef <- A[lc, lc.ind]

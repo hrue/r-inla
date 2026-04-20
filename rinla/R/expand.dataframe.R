@@ -46,7 +46,7 @@
     res <- data.frame(
         y..coxph = new.data$y,
         E..coxph = new.data$E,
-        expand..coxph = rep(1:nrow(dataframe), expand.df),
+        expand..coxph = rep(seq_len(nrow(dataframe)), expand.df),
         baseline.hazard = cutpoints[new.data$baseline.hazard],
         baseline.hazard.idx = new.data$baseline.hazard,
         baseline.hazard.time = cutpoints[new.data$baseline.hazard],
@@ -71,7 +71,7 @@
         end <- as.numeric(cut(time, cutpoints, include.lowest = TRUE))
         ds <- diff(cutpoints)
 
-        res <- lapply(1L:length(time),
+        res <- lapply(seq_along(time),
                       function(i) ({
                           if (is.na(start[i])) {
                               if (end[i] > 1.0) {
@@ -116,7 +116,7 @@
         end <- as.numeric(cut(time, cutpoints, include.lowest = TRUE))
         ds <- diff(cutpoints)
 
-        for (i in 1L:length(time)) {
+        for (i in seq_along(time)) {
             if (is.na(start[i])) {
                 if (end[i] > 1.0) {
                     dc <- cbind(
@@ -180,7 +180,7 @@
     subject <- response$subject
     jj <- unique(response$subject)
     subject.first.line <- numeric(length(jj))
-    for (i in 1L:length(jj)) {
+    for (i in seq_along(jj)) {
         rows <- which(subject == i)
         sem <- dataframe[rows, ]
         if (mode(apply(sem, 2L, unique)) == "list") {
@@ -210,7 +210,7 @@
         new.dataframe <- NULL
     }
     res <- data.frame(y..coxph = new.data$y, E..coxph = new.data$E,
-                      expand..coxph = rep(1:nrow(dataframe.copy), expand.df), baseline.hazard = cutpoints[new.data$baseline.hazard],
+                      expand..coxph = rep(seq_len(nrow(dataframe.copy)), expand.df), baseline.hazard = cutpoints[new.data$baseline.hazard],
                       baseline.hazard.idx = new.data$baseline.hazard, baseline.hazard.time = cutpoints[new.data$baseline.hazard],
                       baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
                       subject = new.data$indicator, new.dataframe)

@@ -41,7 +41,7 @@
 
     r <- s[n + (1L:n)] + 1L
     ir <- r
-    ir[r] <- 1:length(r)
+    ir[r] <- seq_along(r)
 
     return(list(sample = s[1L:n], reordering = r, ireordering = ir))
 }

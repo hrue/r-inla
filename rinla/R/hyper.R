@@ -179,7 +179,7 @@ inla.set.hyper <- function(
 
             ## special case. if attribute is set to 'read only' then refuse to change value
             read.only <- attr(hyper.new[[idx.new]][[key]], "inla.read.only")
-            if (!is.null(read.only) && read.only == TRUE) {
+            if (!is.null(read.only) && read.only) {
                 if (!is.null(h[[key]]) && h[[key]] != hyper.new[[idx.new]][[key]]) {
                       stop(paste("Setting hyperparameter `", name,
                           "'. Key `", key, "' = '", hyper.new[[idx.new]][[key]],
@@ -262,7 +262,7 @@ inla.set.hyper <- function(
                 }
             }
 
-            test.val <- (!is.null(h) && !is.null(h[[key]]) && (length(h[[key]]) == 0 || any(!(is.na(h[[key]])))))
+            test.val <- (!is.null(h) && !is.null(h[[key]]) && (length(h[[key]]) == 0 || !all((is.na(h[[key]])))))
 
             if (debug) {
                 cat(paste("*** test.val =", test.val), "\n")

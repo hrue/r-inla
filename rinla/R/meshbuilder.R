@@ -422,7 +422,7 @@ meshbuilder.app <- function() {
                             function(k) {
                                 loc1 <- loc[k, ]
                                 loc2 <- loc[k + 1, ]
-                                if (any(is.na(loc1)) || any(is.na(loc2))) {
+                                if (anyNA(loc1) || anyNA(loc2)) {
                                     NULL
                                 } else {
                                     n <- ceiling(sum((loc2 - loc1)^2)^0.5 / delta) + 1
@@ -1733,7 +1733,7 @@ meshbuilder.app <- function() {
                     ))
                 }
                 A <- fmesher::fm_basis(mesh(), clicks$meshplot.loc)
-                if (!(sum(A) > 0)) {
+                if (sum(A) <= 0) {
                     A <- NULL
                 }
             }
@@ -1753,7 +1753,7 @@ meshbuilder.app <- function() {
                     ))
                 }
                 A <- fmesher::fm_basis(fine(), clicks$meshplot.loc)
-                if (!(sum(A) > 0)) {
+                if (sum(A) <= 0) {
                     A <- NULL
                 }
             }

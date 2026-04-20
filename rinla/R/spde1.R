@@ -290,7 +290,7 @@ inla.spde1.query <- function(spde, ...) {
           return(result)
       }
 
-    for (query.idx in 1:length(queries)) {
+    for (query.idx in seq_along(queries)) {
         query <- names(queries)[query.idx]
         param <- queries[[query.idx]]
         answer <- NULL

@@ -55,7 +55,7 @@
     rt <- attr(tf, "specials")$f
     vtab <- attr(tf, "factors")
     if (length(rt) > 0) {
-        for (i in 1:length(rt)) {
+        for (i in seq_along(rt)) {
             ind <- (1:nt)[as.logical(vtab[rt[i], ])]
             rt[i] <- ind
         }
@@ -97,10 +97,10 @@
         ## check that we are not using the same covariate more than
         ## one time.
         all.terms <- c()
-        for (i in 1:length(random.spec)) {
+        for (i in seq_along(random.spec)) {
             all.terms <- c(all.terms, random.spec[[i]]$term)
         }
-        for (i in 1:length(random.spec)) {
+        for (i in seq_along(random.spec)) {
             if (sum(random.spec[[i]]$term == all.terms) > 1) {
                 ## duplicate names!
                 stop(inla.paste(c(
@@ -124,7 +124,7 @@
     ## number of covariate which have weights attached!
     n.weights <- 0
     if (length(random.spec) > 0) {
-          for (i in 1:length(random.spec)) {
+          for (i in seq_along(random.spec)) {
               ff1 <- paste(random.spec[[i]]$term, collapse = "+")
 
               if (!is.null(random.spec[[i]]$weights)) {

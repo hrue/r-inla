@@ -426,7 +426,7 @@
                             name = "log precision",
                             short.name = "prec",
                             prior = "pc.prec",
-                            param = c(1, .01),
+                            param = c(1, 0.01),
                             initial = 4,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -850,7 +850,7 @@
                             name = "log phi",
                             short.name = "phi",
                             prior = "normal",
-                            param = c(0, .2),
+                            param = c(0, 0.2),
                             initial = -1,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -7911,7 +7911,7 @@
                             name = "log precision",
                             short.name = "prec",
                             prior = "pc.prec",
-                            param = c(1, .01),
+                            param = c(1, 0.01),
                             initial = 4,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -17971,7 +17971,7 @@
         }
 
         ret <- c()
-        for (i in 1L:length(m)) {
+        for (i in seq_along(m)) {
             if (is.element(m[i], ms)) {
                 ret[i] <- TRUE
             } else {

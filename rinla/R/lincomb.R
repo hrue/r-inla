@@ -29,7 +29,7 @@
 
     f.arg <- list()
     f.arg[[length(arg)]] <- list
-    for (k in 1:length(arg)) {
+    for (k in seq_along(arg)) {
         var <- names(arg)[k]
         if (var != "") {
             value <- eval(arg[[k]], envir = parent.frame(), enclos = environment(list(...)))
@@ -76,7 +76,7 @@
     values <- list()
     is.m <- numeric(length(arg))
     n <- -1
-    for (k in 1:length(arg)) {
+    for (k in seq_along(arg)) {
         if (names(arg)[k] != "") {
             values[[k]] <- eval(arg[[k]], envir = parent.frame(), enclos = environment(list(...)))
             if (is.matrix(values[[k]]) || is(values[[k]], "Matrix")) {
@@ -116,7 +116,7 @@
                 ## preallocate
                 f.arg <- list()
                 f.arg[[length(arg)]] <- list
-                for (k in 1:length(arg)) {
+                for (k in seq_along(arg)) {
                     if (names(arg)[k] != "") {
                         var <- names(arg)[k]
                         if (is.m[k]) {
@@ -152,7 +152,7 @@
 
         for (idx in 1:n) {
             f.arg <- list()
-            for (k in 1:length(arg)) {
+            for (k in seq_along(arg)) {
                 if (names(arg)[k] != "") {
                     var <- names(arg)[k]
                     if (is.m[k]) {
@@ -192,7 +192,7 @@
     if (is.null(colnames(A))) {
         colnames(A) <-
             paste(name.prefix,
-                inla.num(1:ncol(A), width = inla.numlen(ncol(A))),
+                inla.num(seq_len(ncol(A)), width = inla.numlen(ncol(A))),
                 sep = ""
             )
     } else {
@@ -211,7 +211,7 @@
         result <- sapply(tmp.result, function(x) c(x))
     } else {
         ## and this is the slow one
-        for (icol in 1:ncol(A)) {
+        for (icol in seq_len(ncol(A))) {
             ## extract each column and give it its name or 'column001' if
             ## its NULL.
             x <- list(A[, icol])

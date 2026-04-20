@@ -178,7 +178,7 @@ inla.matern.cov <- function(nu, kappa, x, d = 1, corr = FALSE, norm.corr = FALSE
                 covariance <- y * 0
                 covariance[ok] <-
                     2^(1 - nu) / gamma(nu) * (y[ok])^nu * besselK(y[ok], nu)
-                if (any(!ok)) {
+                if (!all(ok)) {
                     scale <- 2^(1 - nu) / gamma(nu)
                     ## corr = scale y^nu K_nu(y)
                     ## = 1 - b y^(2 nu) + o(y^(2 nu), 0 < \nu < 1
@@ -202,7 +202,7 @@ inla.matern.cov <- function(nu, kappa, x, d = 1, corr = FALSE, norm.corr = FALSE
             covariance[ok] <-
                 2^(1 - nu) / gamma(nu + d / 2) / (4 * pi)^(d / 2) / kappa^(2 * nu) *
                     (y[ok])^nu * besselK(y[ok], nu)
-            if (any(!ok)) {
+            if (!all(ok)) {
                 if (nu > 0) { ## Regular Matern case
                     vari <- gamma(nu) / gamma(nu + d / 2) / (4 * pi)^(d / 2) / kappa^(2 * nu)
                     scale <- 2^(1 - nu) / gamma(nu)
@@ -725,7 +725,7 @@ inla.spde.make.block.A <-
 
         rescale <- match.arg(rescale)
 
-        if (!(rescale == "none")) {
+        if (rescale != "none") {
             if (rescale == "count") {
                 ## Count the non-zero rows within each block
                 sums <- (sparseMatrix(

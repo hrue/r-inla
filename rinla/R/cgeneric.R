@@ -122,7 +122,7 @@
     unlink(tfile)
     
     ## cleanup the output
-    for(i in 1:length(res)) {
+    for(i in seq_along(res)) {
         res[i] <- gsub("\t", "", res[i])
         res[i] <- gsub("[ ]+", " ", res[i])
     }

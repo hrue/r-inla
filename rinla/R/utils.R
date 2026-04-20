@@ -42,7 +42,7 @@
     re.to <- "|S|"
     old.string <- inla.trim(string)
     ## special characters, need to do something
-    while (TRUE) {
+    repeat {
         string <- gsub(re, re.to, old.string)
         if (string == old.string) break
         old.string <- string
@@ -68,14 +68,14 @@
     ## compare two strings
     if (length(s) == 1L && length(ss) > 1L) {
         ans <- NULL
-        for (i in 1L:length(ss)) {
+        for (i in seq_along(ss)) {
             ans <- c(ans, inla.strncmp(s, ss[i]))
         }
         return(ans)
     } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(s, 1L, nchar(ss)) == ss)
+        return(startsWith(s, ss))
     }
 }
 
@@ -88,14 +88,14 @@
     ## compare two strings, ignore case
     if (length(s) == 1L && length(ss) > 1L) {
         ans <- NULL
-        for (i in 1L:length(ss)) {
+        for (i in seq_along(ss)) {
             ans <- c(ans, inla.strncasecmp(s, ss[i]))
         }
         return(ans)
     } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(tolower(s), 1L, nchar(ss)) == tolower(ss))
+        return(startsWith(tolower(s), tolower(ss)))
     }
 }
 
@@ -588,7 +588,7 @@
 
     stopifnot(is.matrix(A))
     a <- NULL
-    for (i in 1L:nrow(A)) {
+    for (i in seq_len(nrow(A))) {
         b <- list(as.list(A[i, ]))
         names(b) <- rownames(A)[i]
         a <- c(a, b)

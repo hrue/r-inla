@@ -38,7 +38,7 @@ inla.pc.cor1.lambda <- function(u, alpha, lambda) {
     if (missing(lambda)) {
         stopifnot(!missing(u) && !missing(alpha))
         alpha.min <- sqrt((1 - u) / 2)
-        if (!(alpha > alpha.min)) {
+        if (alpha <= alpha.min) {
               stop(paste("inla.pc.cor1.lambda: alpha >", alpha.min))
           }
         fun <- function(lam, u, alpha) {

@@ -75,7 +75,7 @@ ctrl_check <- function(x, the_type, default = NULL) {
             )))
     }
     
-    if (any(!(x_names %in% def_names))) {
+    if (!all((x_names %in% def_names))) {
         warning(paste0("Control name(s) ", paste0(
                                                "'",
                                                x_names[!(x_names %in% def_names)],

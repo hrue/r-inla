@@ -60,7 +60,7 @@
         unlink(g.file)
     }
 
-    for (i in 1:length(s)) {
+    for (i in seq_along(s)) {
         ## the output contains this code, as there may be some other output before this
         if (as.character(s[i]) == "QREORDERING") {
               break
@@ -73,7 +73,7 @@
     s <- as.numeric(s[-c(1L, 2L)])
     r <- s + 1L
     ir <- r
-    ir[r] <- 1L:length(r)
+    ir[r] <- seq_along(r)
 
     return(list(name = nm, code = code, reordering = r, ireordering = ir))
 }

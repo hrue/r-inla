@@ -42,7 +42,7 @@
 #' @rdname residuals
 #' @export inla.ks.plot
 inla.ks.plot <- function(x, y, diff = TRUE, ...) {
-    if (any(is.na(x))) {
+    if (anyNA(x)) {
         x <- x[!is.na(x)]
     }
     test <- ks.test(x, y, ...)

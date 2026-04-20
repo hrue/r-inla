@@ -100,7 +100,7 @@ NULL
     n <- graph$n
 
     do.visit <- function(idxs, k) {
-        while(TRUE) {
+        repeat {
             idxs.visit <- c()
             if (length(idxs) > 0) {
                 for (idx in idxs) {
@@ -134,7 +134,7 @@ NULL
 
     ## build a factor for the means, with one level for each connected component with size
     ## larger than one
-    for (ii in which(sapply(cc$nodes, length) == 1)) {
+    for (ii in which(lengths(cc$nodes) == 1)) {
         s[cc$nodes[[ii]]] <- NA
     }
     cc$mean <- factor(s, exclude = NA)
@@ -230,7 +230,7 @@ NULL
         ## how many elements this file contains from looking at the
         ## size. so we got to try to read to many simply...
         n.try <- 2^12
-        while (TRUE) {
+        repeat {
             fp <- gzfile(filename, "rb")
             s <- as.integer(readBin(fp, integer(), n = n.try))
             close(fp)
@@ -337,7 +337,7 @@ NULL
                         return(row$j)
                     })
                 )
-                g$nnbs <- sapply(g$nbs, length)
+                g$nnbs <- lengths(g$nbs)
             } else {
                 ## keep old version...
                 for (i in 1L:n) {

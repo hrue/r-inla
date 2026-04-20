@@ -6,7 +6,7 @@ inla.bym.constr.internal <- function(Q, adjust.for.con.comp = TRUE) {
 
     n <- dim(Q)[1]
     g <- inla.read.graph(Q)
-    cc.n <- sapply(g$cc$nodes, length)
+    cc.n <- lengths(g$cc$nodes)
     cc.n1 <- sum(cc.n == 1L)
     cc.n2 <- sum(cc.n >= 2L)
 
@@ -45,7 +45,7 @@ inla.sparse.det.bym <- function(Q,
     ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
     ## constructed below.
 
-    stopifnot(adjust.for.con.comp == TRUE)
+    stopifnot(adjust.for.con.comp)
     Q <- inla.as.sparse(Q)
     n <- dim(Q)[1]
     res <- NULL
@@ -123,8 +123,8 @@ inla.pc.bym.phi <- function(graph,
     my.debug <- function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ..., "\n")
 
     ## I must assume this!!!
-    stopifnot(scale.model == TRUE)
-    stopifnot(adjust.for.con.comp == TRUE)
+    stopifnot(scale.model)
+    stopifnot(adjust.for.con.comp)
     res <- NULL
 
     if (missing(eigenvalues) && missing(marginal.variances)) {
@@ -377,7 +377,7 @@ inla.pc.rw2diid.phi <- function(
         3888, 4000, 4050, 4096
     )
 
-    for (k in 1:length(size)) {
+    for (k in seq_along(size)) {
         size[k] <- good.size[min(which(size[k] <= good.size))]
     }
 

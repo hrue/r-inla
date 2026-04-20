@@ -23,7 +23,7 @@
     sections <- names(inla.models())
     m <- inla.models()
 
-    for (sec in 1:length(m)) {
+    for (sec in seq_along(m)) {
         if (missing(section) || sections[sec] == section) {
             if (verbose) {
                 cat(paste("Search in section:", sections[sec], "\n"))
