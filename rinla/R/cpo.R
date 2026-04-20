@@ -65,7 +65,7 @@
     if (!force) {
         idx.fail <- which(result$cpo$failure > 0)
     } else {
-        idx.fail <- 1:length(result$cpo$failure)
+        idx.fail <- seq_along(result$cpo$failure)
     }
 
     result.new <- result

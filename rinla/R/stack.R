@@ -7,7 +7,7 @@ rbind.inla.data.stack.info <- function(...) {
     
     ncol <- c()
     names <- list()
-    for (k in 1:length(names.tmp)) {
+    for (k in seq_along(names.tmp)) {
         name <- names(names.tmp)[k]
         if (!is.null(names[[name]])) {
             if (!identical(
@@ -31,8 +31,8 @@ rbind.inla.data.stack.info <- function(...) {
     
     offset <- 0
     index <- list()
-    for (k in 1:length(l)) {
-        for (j in 1:length(l[[k]]$index)) {
+    for (k in seq_along(l)) {
+        for (j in seq_along(l[[k]]$index)) {
             if (is.null(index[[names(l[[k]]$index)[j]]])) {
                 index[[names(l[[k]]$index)[j]]] <- l[[k]]$index[[j]] + offset
             } else {
@@ -210,7 +210,7 @@ inla.stack.remove.unused <- function(stack) {
     }
     index.new[remove] <- index.new[index.new[remove]]
     
-    for (k in 1:length(stack$effects$index)) {
+    for (k in seq_along(stack$effects$index)) {
         stack$effects$index[[k]] <- index.new[stack$effects$index[[k]]]
     }
     
@@ -262,7 +262,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
     index.new <- rep(as.integer(NA), stack$effects$nrow)
     
     if (length(jj.dupl) > 0) {
-        for (k in 1:length(jj.dupl)) {
+        for (k in seq_along(jj.dupl)) {
             i <- ii[jj.dupl[k]]
             j <- ii[(jj.dupl[k] + 1):kk.dupl[k]]
             
@@ -277,7 +277,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
     }
     index.new[remove] <- index.new[index.new[remove]]
     
-    for (k in 1:length(stack$effects$index)) {
+    for (k in seq_along(stack$effects$index)) {
         stack$effects$index[[k]] <- index.new[stack$effects$index[[k]]]
     }
     

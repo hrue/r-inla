@@ -181,7 +181,7 @@ NULL
         r <- inla.collect.results(output, file.log = paste(output, "/results.files/Logfile.txt", sep = ""))
         rr <- c(r, ret)
         class(rr) <- class(r)
-        if (!is.null(ret) && ret$.args$keep == TRUE && !is.null(ret$.args$working.directory)) {
+        if (!is.null(ret) && ret$.args$keep && !is.null(ret$.args$working.directory)) {
             ## copy the files to the target directory
             d.fnm <- paste(ret$.args$working.directory, "/results.files", sep = "")
             inla.dir.create(d.fnm)
@@ -190,7 +190,7 @@ NULL
         } else {
             try(unlink(output, recursive = TRUE), silent = TRUE)
         }
-        if (!is.null(ret) && ret$.args$keep == FALSE && is.null(ret$.args$working.directory)) {
+        if (!is.null(ret) && !ret$.args$keep && is.null(ret$.args$working.directory)) {
             try(unlink(ret$misc$inla.dir, recursive = TRUE), silent = TRUE)
         }
         return(rr)

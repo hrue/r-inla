@@ -36,9 +36,9 @@
             ))
         )
     }
-    names(y.obj) <- paste("Y", 1:length(y.obj), sep = "")
+    names(y.obj) <- paste("Y", seq_along(y.obj), sep = "")
     if (length(x.obj) > 0) {
-        names(x.obj) <- paste("X", 1:length(x.obj), sep = "")
+        names(x.obj) <- paste("X", seq_along(x.obj), sep = "")
         obj <- c(y.obj, x.obj)
     } else {
         obj <- y.obj

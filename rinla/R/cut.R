@@ -160,7 +160,7 @@ inla.cut <- function(result, split.by, mc.cores = NULL, debug = FALSE) {
                 curr.data <- data.lik[, -respIdx]
                 curr.data[is.na(curr.data)] <- 0
                 ## curr.data: change any factors to numeric:
-                for (kk in 1:ncol(curr.data)) {
+                for (kk in seq_len(ncol(curr.data))) {
                     if (is.factor(curr.data[, kk])) {
                         curr.data[, kk] <- as.numeric(as.character(curr.data[, kk]))
                     }

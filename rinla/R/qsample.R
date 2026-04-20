@@ -100,8 +100,8 @@
                            constr,
                            reordering = INLA::inla.reorderings(),
                            seed = 0L,
-                           logdens = ifelse(missing(sample), FALSE, TRUE),
-                           compute.mean = ifelse(missing(sample), FALSE, TRUE),
+                           logdens = !(missing(sample)),
+                           compute.mean = !(missing(sample)),
                            num.threads = NULL, 
                            selection = NULL,
                            verbose = inla.getOption("verbose"),
@@ -188,7 +188,7 @@
         inla.write.fmesher.file(selection - 1, filename = selection.file)
     } else {
         ## make the code easier below
-        selection <- 1:nrow(Q)
+        selection <- seq_len(nrow(Q))
     }
 
     envir <- inla.get.inlaEnv()
@@ -214,7 +214,6 @@
                 Q.file, x.file, as.integer(n), rng.file,
                 sample.file, b.file, mu.file, constr.file, cmean.file, selection.file
             ))
-            browser()
         }
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qsample",

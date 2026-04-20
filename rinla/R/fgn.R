@@ -72,7 +72,7 @@
             ACF[i, ] <- a
         }
         ACF[, 1] <- 1.0 ## just to make sure
-        colnames(ACF) <- paste0("acf", (1:ncol(ACF)) - 1)
+        colnames(ACF) <- paste0("acf", (seq_len(ncol(ACF))) - 1)
         return(cbind(H = H, ACF))
     } else {
         return(res)

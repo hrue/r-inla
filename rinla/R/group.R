@@ -84,7 +84,7 @@
         return(NULL)
     }
 
-    if (any(is.na(x))) {
+    if (anyNA(x)) {
         idx.ok <- !is.na(x)
         x[idx.ok] <- inla.group.core(x[idx.ok], n, method, idx.only)
         return(x)
@@ -99,7 +99,7 @@
         return(NULL)
     }
 
-    if (any(is.na(x))) {
+    if (anyNA(x)) {
         idx.ok <- !is.na(x)
         x[idx.ok] <- inla.group.dist(x[idx.ok], dist.min, dist.min.rel)
         return(x)

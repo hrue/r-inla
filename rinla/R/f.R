@@ -463,18 +463,8 @@
     ## so, this lead to an obscure error later on...
     ##
     ## we first collect all arguments of type `name = value'
-    if (TRUE) {
-        ## New code
-        args.eq <- names(match.call(expand.dots = TRUE))
-        args.eq <- args.eq[args.eq != ""]
-    } else {
-        args.eq <- c()
-        for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots = TRUE))), ","))) {
-            if (length(grep("=", arg)) > 0) {
-                args.eq <- c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
-            }
-        }
-    }
+    args.eq <- names(match.call(expand.dots = TRUE))
+    args.eq <- args.eq[args.eq != ""]
 
     ## then we compare these with the legal ones in f(), and
     ## flag an error its not among the legal ones.
@@ -539,7 +529,7 @@
             stopifnot(length(Cmatrix) > 0L)
             ## check each matrix
             Cdim <- numeric(length(Cmatrix))
-            for (i in 1:length(Cmatrix)) {
+            for (i in seq_along(Cmatrix)) {
                 Cmatrix[[i]] <- inla.sparse.check(Cmatrix[[i]], must.be.squared = TRUE)
                 Cdim[i] <- inla.sparse.dim(Cmatrix[[i]])[1L]
             }
@@ -633,7 +623,7 @@
         if (is.null(n)) {
             n <- sum(dim(Z))
         }
-        if (!is.null(constr) && constr == TRUE) {
+        if (!is.null(constr) && constr) {
             ## let constr=TRUE be defined as sum(z)=0 only.
             constr <- FALSE
             zn <- dim(Z)[1L]
@@ -702,7 +692,7 @@
         }
         stopifnot(is.matrix(locations))
         stopifnot(nrow(locations) > 1)
-        stopifnot(!any(is.na(locations)))
+        stopifnot(!anyNA(locations))
         n <- nrow(locations)
     } else {
         stopifnot(missing(locations) || is.null(locations))
@@ -902,7 +892,7 @@
     if (inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
         ## this is a somewhat complicated case
         g <- inla.read.graph(graph)
-        cc.n <- sapply(g$cc$nodes, length)
+        cc.n <- lengths(g$cc$nodes)
         cc.n1 <- sum(cc.n == 1L)
         cc.n2 <- sum(cc.n >= 2L)
 
@@ -950,7 +940,7 @@
                     }
 
                     k <- 1L
-                    for (i in 1L:length(cc.n)) {
+                    for (i in seq_along(cc.n)) {
                         if (cc.n[i] >= 2L) {
                             AA[k, offset + g$cc$nodes[[i]]] <- 1
                             k <- k + 1L

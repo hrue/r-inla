@@ -100,7 +100,7 @@ NULL
     n <- graph$n
 
     do.visit <- function(idxs, k) {
-        while(TRUE) {
+        repeat {
             idxs.visit <- c()
             if (length(idxs) > 0) {
                 for (idx in idxs) {
@@ -134,7 +134,7 @@ NULL
 
     ## build a factor for the means, with one level for each connected component with size
     ## larger than one
-    for (ii in which(sapply(cc$nodes, length) == 1)) {
+    for (ii in which(lengths(cc$nodes) == 1)) {
         s[cc$nodes[[ii]]] <- NA
     }
     cc$mean <- factor(s, exclude = NA)
@@ -150,7 +150,8 @@ NULL
 
 #' @rdname read.graph
 #' @export
-`inla.read.graph` <- function(..., size.only = FALSE) {
+`inla.read.graph` <- function(..., size.only = FALSE)
+{
     ## graph is either a filename, a graph-object, a (sparse) matrix,
     ## or a list of integers or strings defining the graph.
 
@@ -230,7 +231,7 @@ NULL
         ## how many elements this file contains from looking at the
         ## size. so we got to try to read to many simply...
         n.try <- 2^12
-        while (TRUE) {
+        repeat {
             fp <- gzfile(filename, "rb")
             s <- as.integer(readBin(fp, integer(), n = n.try))
             close(fp)
@@ -299,62 +300,27 @@ NULL
         n <- dim(Q)[1]
         g <- list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = NA)
 
-        if (TRUE) {
-            diag(Q) <- 1
-            Q <- inla.as.sparse(Q) ## to avoid possible duplicates
-            ord <- order(Q@i)
-            Q@i <- Q@i[ord]
-            Q@j <- Q@j[ord]
-            Q@x <- Q@x[ord]
-            hash.len <- table(Q@i)
-            hash.idx <- c(1L, 1L + cumsum(hash.len))
-            stopifnot(length(hash.len) == ncol(Q))
+        diag(Q) <- 1
+        Q <- inla.as.sparse(Q) ## to avoid possible duplicates
+        ord <- order(Q@i)
+        Q@i <- Q@i[ord]
+        Q@j <- Q@j[ord]
+        Q@x <- Q@x[ord]
+        hash.len <- table(Q@i)
+        hash.idx <- c(1L, 1L + cumsum(hash.len))
+        stopifnot(length(hash.len) == ncol(Q))
 
-            for (i in 1L:n) {
-                if (hash.len[i] > 1L) {
-                    idx <- hash.idx[i]:(hash.idx[i] + hash.len[i] - 1L)
-                    j <- Q@j[idx] + 1L
-                    x <- Q@x[idx]
-                    j <- j[(x != 0.0) & (j != i)]
-                } else {
-                    j <- NULL
-                }
-                g$nbs[[i]] <- j
-                g$nnbs[i] <- length(j)
-            }
-        } else {
-            if (TRUE) {
-                ## new improved version, using apply. DO NOT PASS 'Q' as argument,  slower...
-                g$nbs <- lapply(
-                    1L:n,
-                    inla.cmpfun(function(i) {
-                        ## inline: row = inla.sparse.get(Q, row = i)
-                        idx <- which(Q@i == i - 1L)
-                        row <- list(i = i, j = Q@j[idx] + 1L, values = Q@x[idx])
-                        if (length(row$j) > 0) {
-                            row$j <- row$j[(row$values != 0.0) & (row$j != i)]
-                        }
-                        return(row$j)
-                    })
-                )
-                g$nnbs <- sapply(g$nbs, length)
+        for (i in 1L:n) {
+            if (hash.len[i] > 1L) {
+                idx <- hash.idx[i]:(hash.idx[i] + hash.len[i] - 1L)
+                j <- Q@j[idx] + 1L
+                x <- Q@x[idx]
+                j <- j[(x != 0.0) & (j != i)]
             } else {
-                ## keep old version...
-                for (i in 1L:n) {
-                    row <- inla.sparse.get(Q, row = i)
-                    nb <- length(row$j)
-                    if (nb > 0) {
-                        ## setting elements of a sparse-matrix to 0 does not
-                        ## necessarily remove that entry.
-                        row$j <- row$j[(row$values != 0.0) & (row$j != i)]
-                        nb <- length(row$j)
-                    }
-                    g$nnbs[i] <- nb
-                    if (g$nnbs[i] > 0L) {
-                        g$nbs[[i]] <- row$j
-                    }
-                }
+                j <- NULL
             }
+            g$nbs[[i]] <- j
+            g$nnbs[i] <- length(j)
         }
         class(g) <- "inla.graph"
         if (length(g$nbs) < g$n) {
@@ -363,10 +329,6 @@ NULL
         g <- inla.add.graph.cc(g)
         return(g)
     }
-
-    ##
-    ## code starts here, really...
-    ##
 
     args <- list(...)
     graph <- args[[1L]]
@@ -410,9 +372,6 @@ NULL
     } else {
         return(inla.matrix2graph.internal(..., size.only = size.only))
     }
-
-    stopifnot(FALSE)
-    return(NULL)
 }
 
 #' @rdname read.graph

@@ -14933,7 +14933,7 @@
 #'             \item{name = }{\verb{offset location}}
 #'             \item{short.name = }{\verb{loc}}
 #'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
-#'             \item{output.name = }{\verb{offset location-parameter for the obeta observations}}
+#'             \item{output.name.intern = }{\verb{intern offset location-parameter for the obeta observations}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{normal}}
@@ -14948,7 +14948,7 @@
 #'             \item{name = }{\verb{offset width}}
 #'             \item{short.name = }{\verb{width}}
 #'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
-#'             \item{output.name = }{\verb{offset width-parameter for the obeta observations}}
+#'             \item{output.name.intern = }{\verb{intern offset width-parameter for the obeta observations}}
 #'             \item{initial = }{\verb{0}}
 #'             \item{fixed = }{\verb{FALSE}}
 #'             \item{prior = }{\verb{loggamma}}

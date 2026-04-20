@@ -46,7 +46,7 @@
     res <- data.frame(
         y..coxph = new.data$y,
         E..coxph = new.data$E,
-        expand..coxph = rep(1:nrow(dataframe), expand.df),
+        expand..coxph = rep(seq_len(nrow(dataframe)), expand.df),
         baseline.hazard = cutpoints[new.data$baseline.hazard],
         baseline.hazard.idx = new.data$baseline.hazard,
         baseline.hazard.time = cutpoints[new.data$baseline.hazard],
@@ -61,96 +61,49 @@
 
 `inla.get.poisson.data.1` <- function(time, truncation, event, cutpoints)
 {
-    if (TRUE) {
-        ##
-        ## this is the new code of (Jan 21st, 2021) that runs better
-        ##
-        data.new <- numeric(0L)
-        nn <- length(event)
-        start <- as.numeric(cut(truncation, cutpoints, include.lowest = FALSE))
-        end <- as.numeric(cut(time, cutpoints, include.lowest = TRUE))
-        ds <- diff(cutpoints)
+    ##
+    ## this is the new code of (Jan 21st, 2021) that runs better
+    ##
+    data.new <- numeric(0L)
+    nn <- length(event)
+    start <- as.numeric(cut(truncation, cutpoints, include.lowest = FALSE))
+    end <- as.numeric(cut(time, cutpoints, include.lowest = TRUE))
+    ds <- diff(cutpoints)
 
-        res <- lapply(1L:length(time),
-                      function(i) ({
-                          if (is.na(start[i])) {
-                              if (end[i] > 1.0) {
-                                  dc <- cbind(ds[1L:(end[i] - 1L)],
-                                              rep(0L, (end[i] - 1L)),
-                                              rep(i, (end[i] - 1L)),
-                                              c(1L:(end[i] - 1L))
-                                              )
-                              } else {
-                                  dc <- numeric(0L)
+    res <- lapply(seq_along(time),
+                  function(i) ({
+                      if (is.na(start[i])) {
+                          if (end[i] > 1.0) {
+                              dc <- cbind(ds[1L:(end[i] - 1L)],
+                                          rep(0L, (end[i] - 1L)),
+                                          rep(i, (end[i] - 1L)),
+                                          c(1L:(end[i] - 1L))
+                                          )
+                          } else {
+                              dc <- numeric(0L)
+                          }
+                          dc <- rbind(dc, cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i]))
+                      }
+                      else {
+                          if (start[i] < end[i]) {
+                              dc <- cbind((cutpoints[start[i] + 1L] - truncation[i]), 0L, i, start[i])
+                              if (end[i] > (start[i] + 1L)) {
+                                  dc <- rbind(dc,
+                                              cbind(ds[(start[i] + 1L):(end[i] - 1L)],
+                                                    rep(0L, (end[i] - start[i] - 1L)),
+                                                    rep(i, (end[i] - start[i] - 1L)),
+                                                    c((start[i] + 2L):(end[i]) - 1L)))
                               }
                               dc <- rbind(dc, cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i]))
+                          } else if (start[i] == end[i]) {
+                              dc <- cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i])
+                          } else {
+                              stop("Truncation cannot be greater than time")
                           }
-                          else {
-                              if (start[i] < end[i]) {
-                                  dc <- cbind((cutpoints[start[i] + 1L] - truncation[i]), 0L, i, start[i])
-                                  if (end[i] > (start[i] + 1L)) {
-                                      dc <- rbind(dc,
-                                                  cbind(ds[(start[i] + 1L):(end[i] - 1L)],
-                                                        rep(0L, (end[i] - start[i] - 1L)),
-                                                        rep(i, (end[i] - start[i] - 1L)),
-                                                        c((start[i] + 2L):(end[i]) - 1L)))
-                                  }
-                                  dc <- rbind(dc, cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i]))
-                              } else if (start[i] == end[i]) {
-                                  dc <- cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i])
-                              } else {
-                                  stop("Truncation cannot be greater than time")
-                              }
-                          }
-                          return(t(dc))
-                      }))
-        data.new <- matrix(unlist(res), ncol = 4, byrow = TRUE)
-        ##
-    } else {
-        ##
-        ## this is the old code that is slow for huge ammount of data
-        ##
-        data.new <- numeric(0L)
-        nn <- length(event)
-        start <- as.numeric(cut(truncation, cutpoints, include.lowest = FALSE))
-        end <- as.numeric(cut(time, cutpoints, include.lowest = TRUE))
-        ds <- diff(cutpoints)
-
-        for (i in 1L:length(time)) {
-            if (is.na(start[i])) {
-                if (end[i] > 1.0) {
-                    dc <- cbind(
-                        ds[1L:(end[i] - 1L)], rep(0L, (end[i] - 1L)), rep(i, (end[i] - 1L)),
-                        c(1L:(end[i] - 1L))
-                    )
-                } else {
-                    dc <- numeric(0L)
-                }
-                dc <- rbind(dc, cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i]))
-                data.new <- rbind(data.new, dc)
-            }
-            else {
-                if (start[i] < end[i]) {
-                    dc <- cbind((cutpoints[start[i] + 1L] - truncation[i]), 0L, i, start[i])
-                    if (end[i] > (start[i] + 1L)) {
-                        dc <- rbind(dc, cbind(
-                                            ds[(start[i] + 1L):(end[i] - 1L)], rep(0L, (end[i] - start[i] - 1L)),
-                                            rep(i, (end[i] - start[i] - 1L)),
-                                            c((start[i] + 2L):(end[i]) - 1L)
-                                        ))
-                    }
-                    dc <- rbind(dc, cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i]))
-                    data.new <- rbind(data.new, dc)
-                } else if (start[i] == end[i]) {
-                    dc <- cbind(time[i] - (cutpoints[end[i]]), event[i], i, end[i])
-                    data.new <- rbind(data.new, dc)
-                } else {
-                    stop("Truncation cannot be greater than time")
-                }
-            }
-        }
-    }
-
+                      }
+                      return(t(dc))
+                  }))
+    data.new <- matrix(unlist(res), ncol = 4, byrow = TRUE)
     data.new <- data.frame(
         E = data.new[, 1L],
         y = data.new[, 2L],
@@ -180,7 +133,7 @@
     subject <- response$subject
     jj <- unique(response$subject)
     subject.first.line <- numeric(length(jj))
-    for (i in 1L:length(jj)) {
+    for (i in seq_along(jj)) {
         rows <- which(subject == i)
         sem <- dataframe[rows, ]
         if (mode(apply(sem, 2L, unique)) == "list") {
@@ -210,7 +163,7 @@
         new.dataframe <- NULL
     }
     res <- data.frame(y..coxph = new.data$y, E..coxph = new.data$E,
-                      expand..coxph = rep(1:nrow(dataframe.copy), expand.df), baseline.hazard = cutpoints[new.data$baseline.hazard],
+                      expand..coxph = rep(seq_len(nrow(dataframe.copy)), expand.df), baseline.hazard = cutpoints[new.data$baseline.hazard],
                       baseline.hazard.idx = new.data$baseline.hazard, baseline.hazard.time = cutpoints[new.data$baseline.hazard],
                       baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
                       subject = new.data$indicator, new.dataframe)

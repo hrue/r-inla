@@ -156,7 +156,8 @@
     nst <- length(unique(spacetime))
     if (!is.null(mcall$control.st$graph)) {
         graph <- eval(mcall$control.st$graph, envir = envir)
-        .no.of.s <- nrow(graph <- inla.graph2matrix(graph))
+        graph <- inla.graph2matrix(graph)
+        .no.of.s <- nrow(graph)
         R.s <- inla.scale.model(Diagonal(.no.of.s, colSums(graph)) - graph,
             constr = list(A = matrix(1, 1, .no.of.s), e = 0)
         )
@@ -193,19 +194,20 @@
     assign('.no.of.t', .no.of.t,
            envir=environment(formula))
 
-##     cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
-    if (TRUE) { ## working in progress: identify need of constraints from the formula
+    ## cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
+    {
+        ## working in progress: identify need of constraints from the formula
         etemp <- inla.interpret.formula(formula, data, debug = FALSE)
-##        print(str(etemp))
+        ##        print(str(etemp))
         rterms <- attr(terms(etemp[[1]]), "term.labels")
         if(length(rterms)>0) {
             r.size <- sapply(rterms, function(x)
                 length(unique(eval(mcall$data, envir = envir)[[x]])))
-  ##          print(r.size)
+            ##          print(r.size)
             r.size.r <- sapply(etemp$random.spec, function(x)
             (!is.null(x$rankdef)) |
             (x$model %in% c("rw1", "rw2", "besag", 'bym', 'bym2'))) * r.size
-    ##          print(r.size.r)
+            ##          print(r.size.r)
             j.s <- which(r.size.r == .no.of.s)
             j.t <- which(r.size.r == .no.of.t)
             if (length(j.s) > 1) {
@@ -218,7 +220,7 @@
         lc2.on <- any(rterms == sname)
         lc3.on <- any(rterms == tname)
 	if(progress) {
-		cat('r.size.r =', r.size.r, '\n')
+            cat('r.size.r =', r.size.r, '\n')
 	}
     }
     ## cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')

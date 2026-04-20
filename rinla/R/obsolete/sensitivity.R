@@ -212,7 +212,7 @@ inla.sens <- function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL,
                 if (calcPriorSens) {
                     barplot(priorSens[[length(res) + 1]]$val,
                         add = TRUE,
-                        col = rgb(1, 0, 0, alpha = .20),
+                        col = rgb(1, 0, 0, alpha = 0.20),
                         space = 2,
                         cex.axis = cex.axis
                     )
@@ -244,7 +244,7 @@ inla.sens <- function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL,
             if (calcPriorSens) {
                 barplot(priorSens[[length(res) + 1]]$val,
                     add = TRUE,
-                    col = rgb(1, 0, 0, alpha = .20),
+                    col = rgb(1, 0, 0, alpha = 0.20),
                     space = 2,
                     cex.axis = cex.axis
                 )
@@ -270,7 +270,7 @@ inla.sens.distance <- function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, ext
     ## Iterate through \theta values
     yO <- vector(mode = "numeric", length = nGrid)
     yR <- yO
-    for (idxT in 1:length(muMarg)) {
+    for (idxT in seq_along(muMarg)) {
         ## Use precomputed table of standard robust distribution
         xx <- (xs - muMarg[idxT]) / sdMarg[idxT]
         yy <- exp(spline(x = robMarg$x, y = robMarg$y, xout = xx)$y) / sdMarg[idxT]
@@ -301,7 +301,7 @@ inla.sens.distance.skew <- function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid
     ## Iterate through \theta values
     yO <- vector(mode = "numeric", length = nGrid)
     yR <- yO
-    for (idxT in 1:length(muMarg)) {
+    for (idxT in seq_along(muMarg)) {
         ## Extract parameters of skew normal marginal
         mu <- muMarg[idxT]
         sig <- sdMarg[idxT]

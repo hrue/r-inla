@@ -426,7 +426,7 @@
                             name = "log precision",
                             short.name = "prec",
                             prior = "pc.prec",
-                            param = c(1, .01),
+                            param = c(1, 0.01),
                             initial = 4,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -850,7 +850,7 @@
                             name = "log phi",
                             short.name = "phi",
                             prior = "normal",
-                            param = c(0, .2),
+                            param = c(0, 0.2),
                             initial = -1,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -7911,7 +7911,7 @@
                             name = "log precision",
                             short.name = "prec",
                             prior = "pc.prec",
-                            param = c(1, .01),
+                            param = c(1, 0.01),
                             initial = 4,
                             fixed = FALSE,
                             to.theta = function(x) log(x),
@@ -12364,7 +12364,7 @@
                             name = "offset location",
                             short.name = "loc",
                             output.name = "offset location-parameter for the obeta observations",
-                            output.name = "intern offset location-parameter for the obeta observations",
+                            output.name.intern = "intern offset location-parameter for the obeta observations",
                             initial = 0,
                             fixed = FALSE,
                             prior = "normal",
@@ -12377,7 +12377,7 @@
                             name = "offset width",
                             short.name = "width",
                             output.name = "offset width-parameter for the obeta observations",
-                            output.name = "intern offset width-parameter for the obeta observations",
+                            output.name.intern = "intern offset width-parameter for the obeta observations",
                             initial = 0,
                             fixed = FALSE,
                             prior = "loggamma",
@@ -17948,8 +17948,6 @@
 
         return(models)
     }
-
-    stop("This should not happen")
 }
 
 `inla.is.model` <- function(model, section = NULL,
@@ -17971,7 +17969,7 @@
         }
 
         ret <- c()
-        for (i in 1L:length(m)) {
+        for (i in seq_along(m)) {
             if (is.element(m[i], ms)) {
                 ret[i] <- TRUE
             } else {

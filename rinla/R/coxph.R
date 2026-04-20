@@ -115,7 +115,7 @@
         }
     }
 
-    len.y.surv <- max(sapply(y.surv, length))
+    len.y.surv <- max(lengths(y.surv))
     data.f <- inla.fix.data(data, len.y.surv, revert = FALSE)
     data.l <- inla.fix.data(data, len.y.surv, revert = TRUE)
     data.f <- try(as.data.frame(data.f), silent = TRUE)

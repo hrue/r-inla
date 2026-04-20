@@ -174,7 +174,7 @@ inla.nmix.lambda.fitted <- function(result, sample.size = 1000,
         fitted.posteriors <- exp(fitted.posteriors)
     }
     fitted.meds <- round(apply(fitted.posteriors, 1, median), 4)
-    fitted.means <- round(apply(fitted.posteriors, 1, mean), 4)
+    fitted.means <- round(rowMeans(fitted.posteriors), 4)
     fitted.sds <- round(apply(fitted.posteriors, 1, sd), 4)
     fitted.q025 <- round(apply(fitted.posteriors, 1, quantile, probs = 0.025), 4)
     fitted.q500 <- round(apply(fitted.posteriors, 1, quantile, probs = 0.500), 4)
@@ -195,7 +195,7 @@ inla.nmix.lambda.fitted <- function(result, sample.size = 1000,
     fitted.posteriors <- cbind(index, fitted.posteriors)
 
     ## Create returned object
-    if (return.posteriors == TRUE) {
+    if (return.posteriors) {
         out <- list(
             fitted.summary = fitted.summary,
             fitted.posteriors = fitted.posteriors

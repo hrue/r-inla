@@ -166,7 +166,7 @@ NULL
                         valid.options,
                         nomatch = NA_integer_,
                         duplicates.ok = FALSE)
-    if (any(is.na(match.opt))) {
+    if (anyNA(match.opt)) {
         warning(
             paste0("Unknown or ambiguous INLA option '",
                    option[is.na(match.opt)],
@@ -299,10 +299,6 @@ option, value) {
             avail <- dir(paste0(dirname(inla.call.builtin()),"/malloc"), full.names = TRUE)
             idx <- grep(paste0("lib", arg, "malloc"), avail)
             if (length(idx) == 0 || length(idx) > 1) {
-                if (FALSE) {
-                    warning(paste0("Value for option 'malloc.lib, ", arg, ", is not availble. ",
-                                   "Use malloc.lib='default'"))
-                }
                 inla.setOption.core("malloc.lib", "default")
             }
         }

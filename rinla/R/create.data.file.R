@@ -114,7 +114,7 @@
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
         
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale', are not allowed"))
         }
     } else if (inla.one.of(family, c("sem"))) {
@@ -127,7 +127,7 @@
         response <- cbind(ind, y.orig[, 2], y.orig[, 3], y.orig[, 1])
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'mean' are not allowed"))
         }
     } else if (inla.one.of(family, c("tstrata"))) {
@@ -145,7 +145,7 @@
             strata <- rep(strata, n.data)
         }
 
-        stopifnot(all(!is.na(strata)))
+        stopifnot(!anyNA(strata))
         stopifnot(all(as.integer(strata) == strata))
         stopifnot(all(strata > 0L))
         if (length(scale) != n.data || length(strata) != n.data) {
@@ -160,7 +160,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'strata', are not allowed"))
         }
 
@@ -198,7 +198,7 @@
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'E' are not allowed"))
         }
 
@@ -225,7 +225,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'E' or 'scale', are not allowed"))
         }
 
@@ -248,7 +248,7 @@
             strata <- rep(strata, n.data)
         }
 
-        stopifnot(all(!is.na(strata)))
+        stopifnot(!anyNA(strata))
         stopifnot(all(strata %in% 1:10))
 
         response <- cbind(ind, E, strata - 1L, y.orig)
@@ -264,7 +264,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'strata', are not allowed"))
         }
 
@@ -287,7 +287,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop("NA's in argument 'Ntrials' or 'scale',  are not allowed")
         }
 
@@ -314,7 +314,7 @@
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop("NA's in argument 'Ntrials' are not allowed")
         }
 
@@ -341,7 +341,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'Ntrials' or 'scale', are not allowed"))
         }
 
@@ -353,7 +353,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'Ntrials' are not allowed"))
         }
 
@@ -402,7 +402,7 @@
             y.orig$time[idx]
         )
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in truncation/event/lower/upper/time is not allowed"))
         }
 
@@ -466,7 +466,7 @@
         stopifnot(ncol(response) == 2 + 9)
         ## remove entries with NA's in c_i's
         col.y <- 2:10
-        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) any(is.na(x)))
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) anyNA(x))
         response <- response[!na.y, , drop = FALSE]
         col.y <- 2:11
         col.idx <- 1
@@ -475,7 +475,7 @@
         response <- cbind(idx, Y)
     } else if (inla.one.of(family, c("rcpoisson", "tpoisson"))) {
         response <- cbind(IDX = ind, y.orig)
-        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
+        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) anyNA(x))
         response <- response[!na.y, , drop = FALSE]
         idx <- response[, 1, drop = FALSE]
         Y <- response[, 2, drop = FALSE]
@@ -486,8 +486,8 @@
         response <- cbind(idx, E, event, offset, X, Y)
     } else if (inla.one.of(family, c("gammacountmean"))) {
         response <- cbind(IDX = ind, y.orig)
-        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) any(is.na(x)))
-        na.TT <- apply(response[, 3, drop = FALSE], 1, function(x) any(is.na(x)))
+        na.y <- apply(response[, 2, drop = FALSE], 1, function(x) anyNA(x))
+        na.TT <- apply(response[, 3, drop = FALSE], 1, function(x) anyNA(x))
         na.y <- na.y | na.TT
         response <- response[!na.y, , drop = FALSE]
         idx <- response[, 1, drop = FALSE]
@@ -520,7 +520,7 @@
         ## format: IDX, E, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in arguments 'E', 'LOW', 'HIGH', are not allowed"))
         }
 
@@ -559,7 +559,7 @@
         ## format: IDX, E, S, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, S = response$S, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in arguments 'E', 'S', 'LOW', 'HIGH', are not allowed"))
         }
 
@@ -579,7 +579,7 @@
         ## format: IDX, N, DF, VAR, Y
         response <- cbind(IDX = response$IDX, N = response$Y3, DF = response$Y4, VAR = response$Y2, Y = response$Y1)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in arguments 'N', 'DF', 'VAR', are not allowed"))
         }
 
@@ -589,7 +589,7 @@
         na.dat <- is.na(response[, 2L])
         response <- response[!na.dat,, drop = FALSE]
         ncovariates <- ncol(response) - 3
-        if (!(ncovariates >= 0)) {
+        if (ncovariates < 0) {
             my.stop(paste0("family=", family, ". Number of covariates in simple model is ",  ncovariates,
                            ". Maybe you forgot to add the 's' argument?"))
         }
@@ -607,7 +607,7 @@
         ## format: IDX, SCALE, X1, ...XN, Y
         response <- cbind(IDX = response$IDX, SCALE = response$SCALE, X, Y = response$Y)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 's', are not allowed"))
         }
 
@@ -617,7 +617,7 @@
         na.dat <- is.na(response[, 2L])
         response <- response[!na.dat,, drop = FALSE]
         ncovariates <- ncol(response) - 3
-        if (!(ncovariates >= 0)) {
+        if (ncovariates < 0) {
             my.stop(paste0("family=", family, ". Number of covariates in simple model is ",  ncovariates,
                            ". Maybe you forgot to add the 'offset' argument?"))
         }
@@ -635,7 +635,7 @@
         ## format: IDX, OFFSET, X1, ...XN, Y
         response <- cbind(IDX = response$IDX, OFFSET = response$OFFSET, X, Y = response$Y)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in argument 'OFFSET', are not allowed"))
         }
 
@@ -660,7 +660,7 @@
         ## format: IDX, E/Ntrials, X1, ...XN, Y
         response <- cbind(IDX = response$IDX, EorNtrials = response$EorNtrials, X, Y = response$Y)
 
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in arguments 'E/Ntrials', are not allowed"))
         }
 
@@ -685,8 +685,8 @@
         ZZ[is.na(ZZ)] <- 0
 
         YY.names <- c("IDX", "Y", "Ntrials")
-        ZZ.names <- paste0("Z", 1:ncol(ZZ))
-        WW.names <- paste0("W", 1:ncol(WW))
+        ZZ.names <- paste0("Z", seq_len(ncol(ZZ)))
+        WW.names <- paste0("W", seq_len(ncol(WW)))
         
         colnames(YY) <- YY.names
         colnames(ZZ) <- ZZ.names
@@ -708,7 +708,7 @@
         stopifnot(ny + m == ncol(y.orig))
 
         response <- cbind(IDX = ind, y.orig)
-        idx.all.na <- which(apply(y.orig[,  1:ny, drop = FALSE], 1, function(x) all(is.na(x))) == TRUE)
+        idx.all.na <- which(apply(y.orig[,  1:ny, drop = FALSE], 1, function(x) all(is.na(x))))
         if (length(idx.all.na) > 0) {
             response <- response[-idx.all.na,, drop = FALSE]
         }
@@ -726,7 +726,7 @@
         stopifnot(ny > 0)
 
         response <- cbind(IDX = ind, y.orig)
-        idx.all.na <- which(apply(y.orig[,  1:ny, drop = FALSE], 1, function(x) all(is.na(x))) == TRUE)
+        idx.all.na <- which(apply(y.orig[,  1:ny, drop = FALSE], 1, function(x) all(is.na(x))))
         if (length(idx.all.na) > 0) {
             response <- response[-idx.all.na,, drop = FALSE]
         }
@@ -767,7 +767,7 @@
         X[is.na(X)] <- 0
 
         response <- cbind(idx, scale, X, Y)
-        if (any(is.na(response))) {
+        if (anyNA(response)) {
             my.stop(paste0("family:", family, ". NA's in arguments 'scale', are not allowed"))
         }
 

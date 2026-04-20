@@ -34,7 +34,7 @@
     cat("* File [", graph.file, "] consists of ", length(xx), " lines.\n", sep = "")
 
     ## remove lines starting with '#'
-    for (i in 1:length(xx)) {
+    for (i in seq_along(xx)) {
         xx[i] <- gsub("[ \t]+", " ", xx[i])
         xx[i] <- gsub("#.*$", "", xx[i]) #
         if (length(grep("^[ \t]*$", xx[i])) > 0) {

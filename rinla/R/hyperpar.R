@@ -98,7 +98,7 @@
     ## replace this into inla.call="remote"
     result.tmp$.args$inla.call <- sub("inla.submit", "inla.remote", result.tmp$.args$inla.call)
 
-    result.tmp$.args$keep <- T
+    result.tmp$.args$keep <- TRUE
     ## call itself
     result.tmp <- inla.rerun(result.tmp, plain = TRUE)
 

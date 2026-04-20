@@ -248,7 +248,7 @@
     }
 
     Omega.SP.list <- list()
-    for (j in 1:length(Omega)) {
+    for (j in seq_along(Omega)) {
         poly.list <- list()
         for (tri in Omega[[j]]) {
             px <- mesh$graph$tv[tri, ]
@@ -291,7 +291,7 @@
 #' @rdname inla.barrier
 `inla.barrier.q` <- function(fem, ranges, sigma = 1, envir = NULL) {
     if (is.null(ranges)) stop("ranges cannot be NULL")
-    if (any(is.na(ranges))) stop("No range can be NA")
+    if (anyNA(ranges)) stop("No range can be NA")
 
     xi <- length(ranges)
     if (xi != length(fem$D)) {

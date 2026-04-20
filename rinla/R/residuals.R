@@ -42,18 +42,18 @@
 #' @rdname residuals
 #' @export inla.ks.plot
 inla.ks.plot <- function(x, y, diff = TRUE, ...) {
-    if (any(is.na(x))) {
+    if (anyNA(x)) {
         x <- x[!is.na(x)]
     }
     test <- ks.test(x, y, ...)
     n <- length(x)
     Fn <- ((1:n) - 0.5) / n
-    F <- y(sort(x))
-    empirical.diff <- (Fn - F) * sqrt(n)
-    T <- max(abs(empirical.diff))
+    FF <- y(sort(x))
+    empirical.diff <- (Fn - FF) * sqrt(n)
+    TT <- max(abs(empirical.diff))
     if (diff) {
-        ylim <- c(-1, 1) * max(1, T)
-        plot(F, empirical.diff,
+        ylim <- c(-1, 1) * max(1, TT)
+        plot(FF, empirical.diff,
             type = "l",
             xlim = c(0, 1),
             ylim = ylim,
@@ -64,9 +64,9 @@ inla.ks.plot <- function(x, y, diff = TRUE, ...) {
         lines(c(0, 1), c(0, 0), type = "l")
         lines(Fn, 2 * sqrt(Fn * (1 - Fn)), type = "l")
         lines(Fn, -2 * sqrt(Fn * (1 - Fn)), type = "l")
-        lines(c(0, 1, NA, 0, 1), c(T, T, NA, -T, -T), type = "l")
+        lines(c(0, 1, NA, 0, 1), c(TT, TT, NA, -TT, -TT), type = "l")
     } else {
-        plot(F, Fn,
+        plot(FF, Fn,
             type = "l",
             xlim = c(0, 1),
             ylim = c(0, 1),
@@ -77,7 +77,7 @@ inla.ks.plot <- function(x, y, diff = TRUE, ...) {
         lines(c(0, 1), c(0, 1), type = "l")
         lines(Fn, Fn + 2 * sqrt(Fn * (1 - Fn) / n), type = "l")
         lines(Fn, Fn - 2 * sqrt(Fn * (1 - Fn) / n), type = "l")
-        lines(c(0, 1, NA, 0, 1), c(0, 1, NA, 0, 1) + c(T, T, NA, -T, -T) / sqrt(n), type = "l")
+        lines(c(0, 1, NA, 0, 1), c(0, 1, NA, 0, 1) + c(TT, TT, NA, -TT, -TT) / sqrt(n), type = "l")
     }
     invisible(test)
 }

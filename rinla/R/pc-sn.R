@@ -265,7 +265,3 @@ inla.pc.sn.test2 <- function() {
     print(fun(0.43, 0.123))
     print(fun(0.823, -0.123))
 }
-
-if (FALSE) {
-    inla.get.inlaEnv <- function(...) inla.get.inlaEnv(...)
-}

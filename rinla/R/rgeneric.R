@@ -62,68 +62,62 @@ NULL
     }
 
     graph <- function() {
-        if (TRUE) {
-            ## we can also use this easy solution, if we know that Q[i, j] is not 0 by
-            ## accident... this require that 'theta' is set; see 'theta = initial()' below.
-            G <- Q()
-        } else {
-            ## return the graph of the model. the values of Q is only interpreted as zero or
-            ## non-zero. return a sparse.matrix
-            if (FALSE) {
-                ## slow and easy: dense-matrices
-                G <- toeplitz(c(1, 1, rep(0, n - 2L)))
-                G <- INLA::inla.as.sparse(G)
-            } else {
-                ## faster. we only need to define the upper-triangular of G
-                i <- c(
-                    ## diagonal
-                    1L, n, 2L:(n - 1L),
-                    ## off-diagonal
-                    1L:(n - 1L)
-                )
-                j <- c(
-                    ## diagonal
-                    1L, n, 2L:(n - 1L),
-                    ## off-diagonal
-                    2L:n
-                )
-                x <- 1 ## meaning that all are 1
-                G <- sparseMatrix(i = i, j = j, x = x, repr = "T")
-            }
-        }
+        ## we can also use this easy solution, if we know that Q[i, j] is not 0 by
+        ## accident... this require that 'theta' is set; see 'theta = initial()' below.
+        ## G <- Q()
+
+        ## return the graph of the model. the values of Q is only interpreted as zero or
+        ## non-zero. return a sparse.matrix
+
+        ## slow and easy: dense-matrices
+        ## G <- toeplitz(c(1, 1, rep(0, n - 2L)))
+        ## G <- INLA::inla.as.sparse(G)
+
+        ## faster. we only need to define the upper-triangular of G
+        i <- c(
+            ## diagonal
+            1L, n, 2L:(n - 1L),
+            ## off-diagonal
+            1L:(n - 1L)
+        )
+        j <- c(
+            ## diagonal
+            1L, n, 2L:(n - 1L),
+            ## off-diagonal
+            2L:n
+        )
+        x <- 1 ## meaning that all are 1
+        G <- sparseMatrix(i = i, j = j, x = x, repr = "T")
         return(G)
     }
 
     Q <- function() {
         ## returns the precision matrix for given parameters
         param <- interpret.theta()
-        if (FALSE) {
-            ## slow and easy: dense-matrices
-            Q <- param$prec / (1 - param$rho^2) * toeplitz(c(1 + param$rho^2, -param$rho, rep(0, n - 2L)))
-            Q[1, 1] <- Q[n, n] <- param$prec / (1 - param$rho^2)
-            Q <- inla.as.sparse(Q)
-        } else {
-            ## faster. we only need to define the upper-triangular Q!
-            i <- c(
-                ## diagonal
-                1L, n, 2L:(n - 1L),
+        ## slow and easy: dense-matrices
+        ## Q <- param$prec / (1 - param$rho^2) * toeplitz(c(1 + param$rho^2, -param$rho, rep(0, n - 2L)))
+        ## Q[1, 1] <- Q[n, n] <- param$prec / (1 - param$rho^2)
+        ## Q <- inla.as.sparse(Q)
+        ## faster. we only need to define the upper-triangular Q!
+        i <- c(
+            ## diagonal
+            1L, n, 2L:(n - 1L),
+            ## off-diagonal
+            1L:(n - 1L)
+        )
+        j <- c(
+            ## diagonal
+            1L, n, 2L:(n - 1L),
+            ## off-diagonal
+            2L:n
+        )
+        x <- param$prec / (1 - param$rho^2) *
+            c( ## diagonal
+                1L, 1L, rep(1 + param$rho^2, n - 2L),
                 ## off-diagonal
-                1L:(n - 1L)
+                rep(-param$rho, n - 1L)
             )
-            j <- c(
-                ## diagonal
-                1L, n, 2L:(n - 1L),
-                ## off-diagonal
-                2L:n
-            )
-            x <- param$prec / (1 - param$rho^2) *
-                c( ## diagonal
-                    1L, 1L, rep(1 + param$rho^2, n - 2L),
-                    ## off-diagonal
-                    rep(-param$rho, n - 1L)
-                )
-            Q <- sparseMatrix(i = i, j = j, x = x, repr = "T")
-        }
+        Q <- sparseMatrix(i = i, j = j, x = x, repr = "T")
         return(Q)
     }
 
@@ -384,7 +378,7 @@ NULL
     }
     stopifnot(inherits(model, "inla.rgeneric.f"))
 
-    debug <- ifelse(is.null(model$debug) || !model$debug, FALSE, TRUE)
+    debug <- !(is.null(model$debug) || !model$debug)
     if (is.character(model.orig)) {
         debug.cat("Enter with cmd=", cmd, ", model=", model.orig, "theta=", theta)
     } else {

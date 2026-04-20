@@ -23,7 +23,7 @@
         }
         if (result) {
             ## check that the version is at least the one use to build the binaries.
-            s <- system("sw_vers -productVersion", intern = T)
+            s <- system("sw_vers -productVersion", intern = TRUE)
             vers <- as.integer(strsplit(s, ".", fixed = TRUE)[[1]])
             ver <- vers[1] + vers[2] / 10
             s.req <- 10.15 ## @@@HARDCODED@@@

@@ -26,7 +26,6 @@ inla.extract.Q <- function(what, result) {
     diag(Q) <- conf$config[[k]]$Qprior.diag
     d <- diag(Q)
     log.prec <- inla.models()$predictor$predictor$hyper$theta$initial
-    browser()
     for (i in i.start:(i.start + i.len - 1L)) {
         Q[i, i] <- Q[i, i] - sum(Q[1:p.len, i]^2 / (d[1:p.len] - exp(log.prec)))
     }

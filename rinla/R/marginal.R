@@ -115,7 +115,7 @@ NULL
     eps <- .Machine[["double.eps"]] * 1000.0
     ## marginal = spline(marginal)
     if (is.matrix(marginal)) {
-        if (any(is.na(marginal[, 2L]))) {
+        if (anyNA(marginal[, 2L])) {
             idx <- which(is.na(marginal[, 2L]))
 
 
@@ -126,7 +126,7 @@ NULL
         ## i = c(diff(marginal[, 1L]) > eps, TRUE)
         ## m = list(x=marginal[i, 1L], y=marginal[i, 2L])
     } else {
-        if (any(is.na(marginal[["y"]]))) {
+        if (anyNA(marginal[["y"]])) {
             idx <- which(is.na(marginal[["y"]]))
             marginal[["x"]] <- marginal[["x"]][-idx]
             marginal[["y"]] <- marginal[["y"]][-idx]
@@ -442,11 +442,6 @@ NULL
         ret <- cbind(x = xx, y = log.dens)
     } else {
         ret <- list(x = xx, y = log.dens)
-    }
-
-    if (FALSE) {
-        class(ret) <- "inla.marginal"
-        attr(ret, "inla.tag") <- paste(attr(marginal, "inla.tag"), "transformed")
     }
 
     return(ret)

@@ -289,7 +289,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 
 	LL->up_blocks = (double **) Calloc(n_sn, double *);
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * (LL->sn_size)[i], double);
+		DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * LL->sn_size[i], double);
 	}
 
 #undef DUPLICATE
@@ -527,12 +527,10 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		simple = (graph->nnbs[i] > 0 ? 0 : 1);
 	}
 	if (simple) {
-		int *imap = NULL;
-		if (graph->n >= 0)
-			imap = Malloc(graph->n, int);
-
-		for (i = 0; i < graph->n; i++) {
-			imap[i] = i;
+		int *imap = Malloc(graph->n, int);
+#pragma omp simd
+		for (int ii = 0; ii < graph->n; ii++) {
+			imap[ii] = ii;
 		}
 		*remap = imap;
 		return GMRFLib_SUCCESS;
@@ -1245,8 +1243,8 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L, GMRFLib_graph_tp *UNUSED(graph), int *remap, int idx)
 {
 	/*
-	 * this is special version of the GMRFLib_solve_llt_sparse_matrix_TAUCS()-routine, where we KNOW that x is 0 exect for a 1 at index
-	 * `idx'. return the solution in x. this is requried as this the main task for _ai for large problems.
+	 * this is special version of the GMRFLib_solve_llt_sparse_matrix_TAUCS()-routine, where we KNOW that x is 0 except for a 1 at index
+	 * `idx'. return the solution in x. this is required as this the main task for _ai for large problems.
 	 */
 
 	static double **wwork = NULL;
@@ -1329,7 +1327,6 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 {
 	double ret = 0.0;
-#if 1
 	int n = L->n;
 	int N = 64;
 	int limit = n & ~(N - 1);
@@ -1348,11 +1345,6 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 	for (int i = limit; i < n; i++) {
 		ret += log(v[L->colptr[i]]);
 	}
-#else
-	for (int i = 0; i < L->n; i++) {
-		ret += log(L->values[L->colptr[i]]);
-	}
-#endif
 	*logdet = 2.0 * ret;
 
 	return GMRFLib_SUCCESS;

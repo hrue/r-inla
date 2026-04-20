@@ -42,7 +42,7 @@
     re.to <- "|S|"
     old.string <- inla.trim(string)
     ## special characters, need to do something
-    while (TRUE) {
+    repeat {
         string <- gsub(re, re.to, old.string)
         if (string == old.string) break
         old.string <- string
@@ -52,10 +52,6 @@
 
 `inla.nameunfix` <- function(string) {
     ## makes a nice printable version of STRING whic is a `name'
-    if (FALSE) {
-        string <- gsub("[ .]+", " ", string)
-        string <- gsub("([0-9]) ([0-9])", "\\1.\\2", string)
-    }
     return(string)
 }
 
@@ -68,14 +64,14 @@
     ## compare two strings
     if (length(s) == 1L && length(ss) > 1L) {
         ans <- NULL
-        for (i in 1L:length(ss)) {
+        for (i in seq_along(ss)) {
             ans <- c(ans, inla.strncmp(s, ss[i]))
         }
         return(ans)
     } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(s, 1L, nchar(ss)) == ss)
+        return(startsWith(s, ss))
     }
 }
 
@@ -88,14 +84,14 @@
     ## compare two strings, ignore case
     if (length(s) == 1L && length(ss) > 1L) {
         ans <- NULL
-        for (i in 1L:length(ss)) {
+        for (i in seq_along(ss)) {
             ans <- c(ans, inla.strncasecmp(s, ss[i]))
         }
         return(ans)
     } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(tolower(s), 1L, nchar(ss)) == tolower(ss))
+        return(startsWith(tolower(s), tolower(ss)))
     }
 }
 
@@ -357,10 +353,8 @@
 `inla.as.list.of.lists` <- function(a) {
     if (is.matrix(a) || is.data.frame(a) || length(dim(a)) == 2L) {
         return(as.list(as.data.frame(as.matrix(a))))
-    } else if (inla.is.list.of.lists(a) || TRUE) {
-        return(a)
     } else {
-        stop("Argument if of unknown type; do not know what to do...")
+        return(a)
     }
 }
 
@@ -386,33 +380,15 @@
     ## x[2L], x[3L])'' so it can be evaluated using
     ## inla.eval()
 
-    if (is.numeric(x)) {
-        return(as.character(enquote(as.numeric(x)))[2L])
-    } else {
-        return(as.character(enquote(x))[2L])
-    }
-
     ## example:
     ## > x=1:3
     ## > inla.2list(x)
     ## [1] "c(1, 2, 3)"
 
-    if (is.null(x)) {
-          return(NULL)
-    }
-
-    if (!is.character(x)) {
-        return(paste("c(", paste(x, collapse = ","), ")"))
+    if (is.numeric(x)) {
+        return(as.character(enquote(as.numeric(x)))[2L])
     } else {
-        if (length(x) == 0L) {
-              return("numeric(0)")
-          }
-        s <- inla.paste(as.character(x))
-        s <- gsub("^[ ]+", "", s)
-        s <- gsub("[ ]+$", "", s)
-        s <- gsub("c[ ]*[(][ ]*", "", s)
-        s <- gsub("[ ]*[)][ ]*", "", s)
-        return(paste("c(", gsub("[, ]+", ",", s, ")"), ")", sep = ""))
+        return(as.character(enquote(x))[2L])
     }
 }
 
@@ -588,7 +564,7 @@
 
     stopifnot(is.matrix(A))
     a <- NULL
-    for (i in 1L:nrow(A)) {
+    for (i in seq_len(nrow(A))) {
         b <- list(as.list(A[i, ]))
         names(b) <- rownames(A)[i]
         a <- c(a, b)
@@ -1045,7 +1021,6 @@
 
 `inla.dynload.workaround` <- function() {
     stop("This function is replaced by: inla.binary.install()")
-    return(invisible())
 }
 
 `inla.matern.cf` <- function(dist, range = 1.0, nu = 0.5) {

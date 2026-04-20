@@ -54,9 +54,10 @@ prw2.calibrate.lambda <- function(param) {
     if (is.nan(param[4]) || param[4] <= 0) {
         ## find lambda so that Prob(range > range0) = alpha
         fun.opt2 <- function(log.lambda,  range0, alpha, hsize) {
-            F <- prw2.F(range0, exp(log.lambda), hsize)
-            return ((log(F/(1.0 - F)) - log(alpha / (1.0 - alpha)))^2)
+            FF <- prw2.F(range0, exp(log.lambda), hsize)
+            return ((log(FF/(1.0 - FF)) - log(alpha / (1.0 - alpha)))^2)
         }
+
         param[4] <- exp(optim(0, gr = NULL, fun.opt2, method = "BFGS",
                               range0 = param[1], alpha = param[2], hsize = param[3])$par)
     }
@@ -98,24 +99,24 @@ prw2.get.values <- function(param,  eps = 1e-6) {
 
 prw2.rF <- function(param) {
     r <- prw2.get.values(param)
-    F <- inla.prw2.prange(r, param)
+    FF <- inla.prw2.prange(r, param)
 
-    idx <- which(is.finite(F))
+    idx <- which(is.finite(FF))
     r <- r[idx]
-    F <- F[idx]
+    FF <- FF[idx]
 
-    small <- (1.0 + F == F)
+    small <- (1.0 + FF == FF)
     r <- r[!small]
-    F <- F[!small]
+    FF <- FF[!small]
 
-    not.dup <- !duplicated(F)
+    not.dup <- !duplicated(FF)
     r <- r[not.dup]
-    F <- F[not.dup]
+    FF <- FF[not.dup]
     
     eps <- 1e-12
-    F <- (F - F[1] + eps) / (F[length(F)] - F[1] + 2*eps)
+    FF <- (FF - FF[1] + eps) / (FF[length(FF)] - FF[1] + 2*eps)
 
-    return (list(r = r, F = F))
+    return (list(r = r, F = FF))
 }
 
 #' @export

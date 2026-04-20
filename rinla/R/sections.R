@@ -248,7 +248,7 @@ inla.parse.Bmatrix.test <- function() {
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
         "\n",
         file = file, append = TRUE
-    )
+        )
 
     if (inla.one.of(family, c("cenpoisson", "zeroinflatedcenpoisson0", "zeroinflatedcenpoisson1"))) {
         if (is.null(control$cenpoisson.I)) {
@@ -261,7 +261,7 @@ inla.parse.Bmatrix.test <- function() {
             stop(paste("cenpoisson.I: Must be a vector of length 2.", length(interval)))
         }
         interval <- sort(pmax(0, interval))
-        stopifnot(all(is.infinite(interval) == FALSE))
+        stopifnot(!any(is.infinite(interval)))
         cat("cenpoisson.I = ", interval[1], " ", interval[2], "\n", sep = "", file = file, append = TRUE)
     }
 
@@ -273,25 +273,23 @@ inla.parse.Bmatrix.test <- function() {
         cat("beta.censor.value = ", c.val, "\n", sep = "", file = file, append = TRUE)
     }
 
-    if (TRUE) {
-        if (!is.null(control$quantile)) {
-              stop("control.family=list(quantile=...) is disabled. Use control.family=list(control.link=list(quantile=...)) instead")
-          }
-        quantile <- control$control.link$quantile
-        if (is.numeric(quantile)) {
-            if ((quantile <= 0.0) || (quantile >= 1.0)) {
-                stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
-            }
-        } else {
-            quantile <- -1 ## so we get an error if used.
-        }
-        cat("quantile = ", quantile, "\n", sep = "", file = file, append = TRUE)
+    if (!is.null(control$quantile)) {
+        stop("control.family=list(quantile=...) is disabled. Use control.family=list(control.link=list(quantile=...)) instead")
     }
+    quantile <- control$control.link$quantile
+    if (is.numeric(quantile)) {
+        if ((quantile <= 0.0) || (quantile >= 1.0)) {
+            stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
+        }
+    } else {
+        quantile <- -1 ## so we get an error if used.
+    }
+    cat("quantile = ", quantile, "\n", sep = "", file = file, append = TRUE)
 
     if (inla.one.of(family, "gev")) {
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep = "", file = file, append = TRUE
-        )
+            )
     }
 
     if (inla.one.of(family, "bgev")) {
@@ -302,7 +300,7 @@ inla.parse.Bmatrix.test <- function() {
             cat("bgev.", nms[i], " = ", paste(as.numeric(c.bgev[[i]]), collapse = " "),
                 "\n",
                 sep = "", file = file, append = TRUE
-            )
+                )
         }
     }
 
@@ -347,8 +345,8 @@ inla.parse.Bmatrix.test <- function() {
         ## for these models, the argument 'variant' is required
         if ( ## general
             is.null(variant) ||
-                ## model-specific
-                (inla.one.of(lmod, c("logoffset")) && all(variant != c(0, 1)))) {
+            ## model-specific
+            (inla.one.of(lmod, c("logoffset")) && all(variant != c(0, 1)))) {
             stop(paste("For link-model:", lmod, ", the argument variant must be 0 or 1,  not", variant))
         }
         cat("link.variant = ", variant, "\n", file = file, append = TRUE)
@@ -361,8 +359,8 @@ inla.parse.Bmatrix.test <- function() {
     a <- control$control.link$a
     if (inla.one.of(lmod, c("loga"))) {
         if (is.null(a) || !is.numeric(a) || (a <= 0 || a > 1)) {
-              stop(paste("For link-model:", lmod, ", the argument 'a' must be given, and 0 < a <= 1"))
-          }
+            stop(paste("For link-model:", lmod, ", the argument 'a' must be given, and 0 < a <= 1"))
+        }
         cat("link.a = ", a, "\n", file = file, append = TRUE)
     }
 
@@ -488,7 +486,7 @@ inla.parse.Bmatrix.test <- function() {
         file.data <- gsub(data.dir, "$inladatadir", file.data, fixed = TRUE)
         cat("cloglike.data =", file.data, "\n", file = file, append = TRUE)
     }
-        
+    
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
@@ -563,17 +561,6 @@ inla.parse.Bmatrix.test <- function() {
     }
     if (inla.one.of(random.spec$model, c("besag", "bym", "bym2", "besag2"))) {
         cat("adjust.for.con.comp = ", as.numeric(random.spec$adjust.for.con.comp), "\n", sep = " ", file = file, append = TRUE)
-    }
-
-    if (FALSE) {
-        ## this is only for the mvnorm prior,  which we do not use anymore (hrue/16/02/2015)
-        if (inla.one.of(random.spec$model, "ar")) {
-            ## set a default prior for order > 1 if the param is given only for p=1
-            par <- random.spec$hyper$theta2$param
-            if (length(par) == 2L && random.spec$order > 1L) {
-                random.spec$hyper$theta2$param <- c(rep(par[1], random.spec$order), par[2] * diag(random.spec$order))
-            }
-        }
     }
 
     ## possible adaptive priors
@@ -1051,9 +1038,9 @@ inla.parse.Bmatrix.test <- function() {
         ## convert from R to C
         random.spec$vb.correct <- random.spec$vb.correct - 1
         stopifnot(all(random.spec$vb.correct >= 0))
-    } else if (as.logical(random.spec$vb.correct) == TRUE) {
+    } else if (as.logical(random.spec$vb.correct)) {
         random.spec$vb.correct <- -1L ## code for ``make the default choice''
-    } else if (as.logical(random.spec$vb.correct) == FALSE) {
+    } else if (!as.logical(random.spec$vb.correct)) {
         random.spec$vb.correct <- -2L ## code for disable
     }
 
@@ -1206,7 +1193,9 @@ inla.parse.Bmatrix.test <- function() {
         cat("step.len = ", inla.spec$step.len, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$stencil)) {
-        stopifnot(inla.spec$stencil %in% c(5, 7))
+        if (!(inla.spec$stencil %in% c(5, 7))) {
+            inla.spec$stencil <- 5
+        }
         cat("stencil = ", inla.spec$stencil, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$diagonal) && inla.spec$diagonal >= 0.0) {
@@ -1301,7 +1290,7 @@ inla.parse.Bmatrix.test <- function() {
 
     ud <- inla.spec$use.directions
     if (is.null(ud)) ud <- FALSE
-    ud.val <- if (is.logical(ud) && (ud == FALSE)) FALSE else TRUE
+    ud.val <- if (is.logical(ud) && (!ud)) FALSE else TRUE
     inla.write.boolean.field("use.directions", ud.val, file)
     if (ud.val && is.matrix(ud)) {
         file.directions <- inla.tempfile(tmpdir = data.dir)
@@ -1975,7 +1964,7 @@ inla.parse.Bmatrix.test <- function() {
         numlen <- inla.numlen(length(lincomb))
         prev.secnames <- c()
 
-        for (i in 1:length(lincomb)) {
+        for (i in seq_along(lincomb)) {
             nam <- names(lincomb[i])
             if (is.null(nam) || is.na(nam)) {
                 secname <- paste("lincomb.", inla.num(i, width = numlen), sep = "")
@@ -2006,7 +1995,7 @@ inla.parse.Bmatrix.test <- function() {
             ## number of entries
             writeBin(as.integer(length(lc)), fp.binary)
 
-            for (j in 1:length(lc)) {
+            for (j in seq_along(lc)) {
                 lc.j.name <- as.character(names(lc[[j]]))
                 lc.j <- lc[[j]][[1]]
 

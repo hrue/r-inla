@@ -29,7 +29,7 @@
 
     f.arg <- list()
     f.arg[[length(arg)]] <- list
-    for (k in 1:length(arg)) {
+    for (k in seq_along(arg)) {
         var <- names(arg)[k]
         if (var != "") {
             value <- eval(arg[[k]], envir = parent.frame(), enclos = environment(list(...)))
@@ -66,9 +66,9 @@
     ## we might need to expand arguments?
     if (all(is.null(names(arg)))) {
         arg <- eval(parse(text = arg[2]),
-            envir = parent.frame(),
-            enclos = environment(list(...))
-        )
+                    envir = parent.frame(),
+                    enclos = environment(list(...))
+                    )
     }
 
     ## check that all 'rows' has the same lengths. store the evalued
@@ -76,7 +76,7 @@
     values <- list()
     is.m <- numeric(length(arg))
     n <- -1
-    for (k in 1:length(arg)) {
+    for (k in seq_along(arg)) {
         if (names(arg)[k] != "") {
             values[[k]] <- eval(arg[[k]], envir = parent.frame(), enclos = environment(list(...)))
             if (is.matrix(values[[k]]) || is(values[[k]], "Matrix")) {
@@ -104,76 +104,45 @@
     lc <- list()
     lc[[n]] <- list
 
-    if (TRUE) {
-
-        ## this is the fast version, which is kind of ugly, therefore
-        ## the ``slow'' code is below. we simply pass all additional
-        ## arguments in the reminder of lapply. There is obviously
-        ## something in the memory management of R that I don't
-        ## understand....
-        lc <- lapply(1:n,
-            function(idx, ...) {
-                ## preallocate
-                f.arg <- list()
-                f.arg[[length(arg)]] <- list
-                for (k in 1:length(arg)) {
-                    if (names(arg)[k] != "") {
-                        var <- names(arg)[k]
-                        if (is.m[k]) {
-                            if (is(values[[k]], "dgTMatrix")) {
-                                row <- inla.sparse.get(values[[k]], row = idx)
-                                ff.arg <- list(list(idx = row$j, weight = row$values))
-                            } else {
-                                value <- values[[k]][idx, ]
-                                ii <- which(!is.na(value) & (value != 0))
-                                ff.arg <- list(list(idx = ii, weight = value[ii]))
-                            }
-                        } else {
-                            ff.arg <- list(list(weight = values[[k]][idx]))
-                        }
-                        names(ff.arg) <- var
-                        f.arg[[k]] <- ff.arg
-                    }
-                }
-                ## the first might or might not be relevant
-                if (is.null(f.arg[[1]][[1]])) {
-                      f.arg[[1]] <- NULL
-                  }
-
-                return(f.arg)
-            },
-            arg = arg, is.m = is.m, values = values
-        )
-        names(lc) <- name
-    } else {
-
-        ## this is the slow version for which the lapply-version is
-        ## buildt upon.
-
-        for (idx in 1:n) {
-            f.arg <- list()
-            for (k in 1:length(arg)) {
-                if (names(arg)[k] != "") {
-                    var <- names(arg)[k]
-                    if (is.m[k]) {
+    ## this is the fast version, which is kind of ugly, therefore
+    ## the ``slow'' code is below. we simply pass all additional
+    ## arguments in the reminder of lapply. There is obviously
+    ## something in the memory management of R that I don't
+    ## understand....
+    lc <- lapply(1:n,
+                 function(idx, ...) {
+        ## preallocate
+        f.arg <- list()
+        f.arg[[length(arg)]] <- list
+        for (k in seq_along(arg)) {
+            if (names(arg)[k] != "") {
+                var <- names(arg)[k]
+                if (is.m[k]) {
+                    if (is(values[[k]], "dgTMatrix")) {
+                        row <- inla.sparse.get(values[[k]], row = idx)
+                        ff.arg <- list(list(idx = row$j, weight = row$values))
+                    } else {
                         value <- values[[k]][idx, ]
                         ii <- which(!is.na(value) & (value != 0))
                         ff.arg <- list(list(idx = ii, weight = value[ii]))
-                    } else {
-                        ff.arg <- list(list(weight = values[[k]][idx]))
                     }
-                    names(ff.arg) <- var
-                    f.arg <- c(f.arg, ff.arg)
+                } else {
+                    ff.arg <- list(list(weight = values[[k]][idx]))
                 }
-                if (is.null(f.arg[[1]][[1]])) {
-                      f.arg[[1]] <- NULL
-                  }
+                names(ff.arg) <- var
+                f.arg[[k]] <- ff.arg
             }
-            lc[[idx]] <- f.arg
-            names(lc)[idx] <- name[idx]
         }
-    }
+        ## the first might or might not be relevant
+        if (is.null(f.arg[[1]][[1]])) {
+            f.arg[[1]] <- NULL
+        }
 
+        return(f.arg)
+    },
+    arg = arg, is.m = is.m, values = values
+    )
+    names(lc) <- name
     return(lc)
 }
 
@@ -192,7 +161,7 @@
     if (is.null(colnames(A))) {
         colnames(A) <-
             paste(name.prefix,
-                inla.num(1:ncol(A), width = inla.numlen(ncol(A))),
+                inla.num(seq_len(ncol(A)), width = inla.numlen(ncol(A))),
                 sep = ""
             )
     } else {
@@ -205,21 +174,8 @@
         }
     }
 
-    if (TRUE) {
-        ## this is the fast version
-        tmp.result <- apply(A, 2, function(x) list(x))
-        result <- sapply(tmp.result, function(x) c(x))
-    } else {
-        ## and this is the slow one
-        for (icol in 1:ncol(A)) {
-            ## extract each column and give it its name or 'column001' if
-            ## its NULL.
-            x <- list(A[, icol])
-            name <- colnames(A)[icol]
-            names(x) <- name
-            result <- c(result, x)
-        }
-    }
+    tmp.result <- apply(A, 2, function(x) list(x))
+    result <- sapply(tmp.result, function(x) c(x))
 
     return(result)
 }

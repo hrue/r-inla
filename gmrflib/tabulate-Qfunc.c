@@ -129,8 +129,6 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 			arg->values[i] = work + i;
 		}
 
-		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-//#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
 			map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 			map_id_set(arg->values[i], i, (*Qfunc) (thread_id, i, i, NULL, Qfunc_arg));	/* diagonal */
@@ -162,7 +160,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 */
 
 	const int debug = 0;
-	int i, j, ii, jj, k, ntriples, err, imin = INT_MAX, jmin = INT_MAX, off = 0, sparse = 0;
+	int i, j, ii, jj, k, ntriples, err, imin = INT_MAX, jmin = INT_MAX, sparse = 0;
 	double value;
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
@@ -265,8 +263,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 		GMRFLib_EWRAP0(GMRFLib_io_close(io));
 
 		GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-		off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-
 		ntriples = 0;
 		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 		while (1) {
@@ -280,7 +276,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 				 */
 				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-				GMRFLib_ged_add(ged, i - off, j - off);
+				GMRFLib_ged_add(ged, i, j);
 
 				if (debug)
 					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
@@ -350,8 +346,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 				j = M->j[k];
 				value = M->values[k];
 				if (i <= j) {
-					i = i - off;
-					j = j - off;
 					ii = IMIN(i, j);
 					jj = IMAX(i, j);
 					map_id_set(arg->values[ii], jj, value);
@@ -367,8 +361,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 				value = M->A[k + 2 * M->nrow];
 
 				if (i <= j) {
-					i = i - off;
-					j = j - off;
 					ii = IMIN(i, j);
 					jj = IMAX(i, j);
 					map_id_set(arg->values[ii], jj, value);
@@ -387,8 +379,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
 
 			if (i <= j) {
-				i = i - off;
-				j = j - off;
 				ii = IMIN(i, j);
 				jj = IMAX(i, j);
 				map_id_set(arg->values[ii], jj, value);
@@ -419,22 +409,11 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 */
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-	const int off = 0;
 	/*
 	 * step 1. build the graph 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
-
-#if 0
-	int i, imin = INT_MAX, jmin = INT_MAX, off;
-	for (i = 0; i < ntriples; i++) {
-		imin = IMIN(imin, ilist[i]);
-		jmin = IMIN(jmin, jlist[i]);
-	}
-	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-#endif
 
 	/*
 	 * to fix the dimension, possibly padding with zero's 
@@ -445,7 +424,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	}
 
 	for (int i = 0; i < ntriples; i++) {
-		GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
+		GMRFLib_ged_add(ged, ilist[i], jlist[i]);
 	}
 
 	GMRFLib_ged_build(graph, ged);
@@ -491,8 +470,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 
 	for (int i = 0; i < ntriples; i++) {
 		if (ilist[i] <= jlist[i]) {
-			int ii = ilist[i] - off;
-			int jj = jlist[i] - off;
+			int ii = ilist[i];
+			int jj = jlist[i];
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
@@ -517,18 +496,6 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	 */
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-	const int off = 0;
-#if 0
-	int imin = INT_MAX, jmin = INT_MAX, off;
-	for (int i = 0; i < ntriples; i++) {
-		imin = IMIN(imin, ilist[i]);
-		jmin = IMIN(jmin, jlist[i]);
-	}
-	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-	assert(off == 0);
-#endif
-
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
@@ -562,8 +529,8 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 
 	for (int i = 0; i < ntriples; i++) {
 		if (ilist[i] <= jlist[i]) {
-			int ii = ilist[i] - off;
-			int jj = jlist[i] - off;
+			int ii = ilist[i];
+			int jj = jlist[i];
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}

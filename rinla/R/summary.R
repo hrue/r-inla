@@ -166,16 +166,6 @@
         return (invisible())
     }
 
-    if (FALSE) {
-        form <- strwrap(inla.formula2character(x$call))
-        if (!is.null(x$call)) {
-            cat("\nCall:\n")
-            for (i in seq_along(form)) {
-                cat("  ", form[i], "\n")
-            }
-        }
-    }
-    
     if (inla.is.element("cpu.used", x)) {
         cat("Time used:\n", "  ", x$cpu.used, "\n")
     }
@@ -209,7 +199,7 @@
     if (inla.is.element("random.names", x)) {
         cat("Random effects:\n")
         cat("  Name\t ", "Model\n ")
-        for (i in 1:length(x$random.names)) {
+        for (i in seq_along(x$random.names)) {
             cat("  ", paste0(inla.nameunfix(x$random.names[i]), " ", x$random.model[i], "\n"))
         }
         cat("\n")

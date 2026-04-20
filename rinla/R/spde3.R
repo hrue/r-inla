@@ -686,7 +686,7 @@ inla.spde3.iheat <-
         fem.space <- fmesher::fm_fem(mesh.space, order = 2)
         fem.time <- fmesher::fm_fem(mesh.time, order = 2)
         # Not needed from fmesher 0.7.0.9001:
-        fem <- fmesher_fem_cc_compat(mesh.space, fem, space)
+        fem <- fmesher_fem_cc_compat(mesh.space, fem.space)
         fem <- fmesher_fem_cc_compat(mesh.time, fem.time)
 
         ## TODO: the rest

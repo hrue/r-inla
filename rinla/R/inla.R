@@ -485,7 +485,7 @@
         }
 
         i.remove <- c()
-        for (i in 1:length(data)) {
+        for (i in seq_along(data)) {
             ## these are the objects which we want to remove:
             ## inla.model.object.classes()
             if (any(inherits(data[[i]], inla.model.object.classes()))) {
@@ -684,7 +684,7 @@
             ny <- max(vapply(y...orig, NROW, 1L))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
-            ny <- max(sapply(y...orig, length))
+            ny <- max(lengths(y...orig))
         } else {
             if (length(dim(y...orig)) == 2) {
                 ## some matrix type, could be a sparse matrix
@@ -726,14 +726,6 @@
         }
     }
 
-    if (FALSE) {
-        if (n.family != 1) {
-            stop(paste("length(family) are", n.family, "but the response has only one column!"))
-        }
-
-        y...fake <- c(y...orig)
-        y...fake[is.na(y...fake)] <- Inf ## otherwise model.matrix() fails below
-    }
     if (debug) {
         cat("n.family", n.family, "\n")
     }
@@ -835,7 +827,7 @@
         ## as NA's in factors are not set to zero in
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
         ## otherwise signal an error.
-        if (any(is.na(gp$model.matrix))) {
+        if (anyNA(gp$model.matrix)) {
             if (inla.one.of(cont.fixed$expand.factor.strategy, "inla")) {
                 gp$model.matrix[is.na(gp$model.matrix)] <- 0
             } else {
@@ -1207,7 +1199,7 @@
     if (!is.null(gp$offset)) {
         ## there can be more offsets
         offset.formula <- 0
-        for (i in 1:length(gp$offset)) {
+        for (i in seq_along(gp$offset)) {
             offset.formula <- offset.formula +
                 as.vector(eval(parse(text = gp$offset[i]), envir = data, enclos = .parent.frame))
         }
@@ -1257,7 +1249,7 @@
 
         if (MPredictor > 0) {
             if (is.list(yy)) {
-                stopifnot(max(sapply(yy, length)) == MPredictor)
+                stopifnot(max(lengths(yy)) == MPredictor)
             } else if (inla.is.matrix(yy)) {
                 stopifnot(dim(yy)[1L] == MPredictor)
             } else {
@@ -1391,7 +1383,7 @@
                 ## shortcut
                 cont.predictor$link <- rep(cont.predictor$link, NPredictor)
             }
-            if (!(length(cont.predictor$link) == NPredictor)) {
+            if (length(cont.predictor$link) != NPredictor) {
                 stop(paste("Length of argument 'control.predictor$link' is wrong: length(link)=", length(control.predictor$link),
                            ". Length must be equal to ",
                            "length(eta)=", NPredictor, ".",
@@ -1616,7 +1608,7 @@
                         if (!all(is.element(replicate, 1:nrep) | is.na(replicate))) {
                             stop(paste("Error in the values of `replicate'; not in [1,...,", nrep, "]", sep = ""))
                         }
-                        if (any(is.na(replicate[!is.na(xx)]))) {
+                        if (anyNA(replicate[!is.na(xx)])) {
                             stop(paste("There are one or more NA's in 'replicate' where 'idx' in f(idx,...) is not NA: idx = \'",
                                        gp$random.spec[[r]]$term, "\'",
                                        sep = ""
@@ -1637,7 +1629,7 @@
                         if (!all(is.element(group, 1:ngroup) | is.na(group))) {
                             stop(paste("Error in the values of `group'; not in [1,...,", ngroup, "]", sep = ""))
                         }
-                        if (any(is.na(group[!is.na(xx)]))) {
+                        if (anyNA(group[!is.na(xx)])) {
                             stop(paste("There are one or more NA's in 'group' where 'idx' in f(idx,...) is not NA: idx = \'",
                                        gp$random.spec[[r]]$term, "\'",
                                        sep = ""
@@ -1744,7 +1736,7 @@
                         }
 
                         gp$random.spec[[r]]$id.names <- levels(gp$random.spec[[r]]$values)
-                        location[[r]] <- 1L:length(levels(gp$random.spec[[r]]$values))
+                        location[[r]] <- seq_along(levels(gp$random.spec[[r]]$values))
 
                         ## let us first check if there are levels in
                         ## xx that is not present in values. this
@@ -1774,12 +1766,12 @@
                     ## values are not given. then 'values' depends on the type of the covariate.
                     if (is.factor(xx)) {
                         gp$random.spec[[r]]$id.names <- levels(xx)
-                        location[[r]] <- 1L:length(levels(xx))
+                        location[[r]] <- seq_along(levels(xx))
                         xx <- as.numeric(xx)
                     } else if (is.character(xx)) {
                         xx.factor <- as.factor(xx)
                         gp$random.spec[[r]]$id.names <- levels(xx.factor)
-                        location[[r]] <- 1L:length(levels(xx.factor))
+                        location[[r]] <- seq_along(levels(xx.factor))
                         xx <- as.numeric(xx.factor)
                     } else if (is.numeric(xx)) {
                         gp$random.spec[[r]]$id.names <- NULL
@@ -2720,7 +2712,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     } else {
         return(data)
     }
-    stop("Should not happen.")
 }
 
 `inla.expand.factors` <- function(data, exclude.names = c())

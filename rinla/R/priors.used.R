@@ -52,7 +52,7 @@
 
     h4cat <- function(h4, pre = NULL, name = "theta") {
         nh <- 0
-        if (h4$fixed == FALSE) {
+        if (!h4$fixed) {
             nh <- 1
             cat("\t\t",
                 if (!is.null(pre)) paste0(pre, ".") else "",
@@ -68,11 +68,6 @@
                                          p2char(h4$param), "]", "\n",
                 sep = ""
             )
-            if (FALSE) {
-                if (h4$prior %in% "mvnorm") {
-                      mvnorm.prior.print(h4$param)
-                  }
-            }
         }
         return (nh)
     }

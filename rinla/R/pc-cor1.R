@@ -38,12 +38,12 @@ inla.pc.cor1.lambda <- function(u, alpha, lambda) {
     if (missing(lambda)) {
         stopifnot(!missing(u) && !missing(alpha))
         alpha.min <- sqrt((1 - u) / 2)
-        if (!(alpha > alpha.min)) {
+        if (alpha <= alpha.min) {
               stop(paste("inla.pc.cor1.lambda: alpha >", alpha.min))
           }
         fun <- function(lam, u, alpha) {
-            F <- (1 - exp(-lam * sqrt(1 - u))) / (1 - exp(-lam * sqrt(2)))
-            return((F - alpha)^2)
+            FF <- (1 - exp(-lam * sqrt(1 - u))) / (1 - exp(-lam * sqrt(2)))
+            return((FF - alpha)^2)
         }
         lambdas <- unique(c(seq(0.0000001, 10, length.out = 100),
                             seq(10, 100, length.out = 10)))

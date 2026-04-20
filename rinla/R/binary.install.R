@@ -146,12 +146,13 @@
 
     show("Download file, please wait...")
     to.file <- paste0(pa, "/64bit-download-", random.num, ".tgz")
-    ret <- download.file(map.filename(fnm), to.file, quiet = TRUE)
+    ret <- download.file(map.filename(fnm), to.file, quiet = TRUE, mode = "wb")
     
     if (md5.check) {
         fnm.md5 <- gsub("/64bit.tgz", "/md5sum.txt", fnm)
         md5.file <- paste0(pa, "/64bit-download-md5sum-", random.num, ".txt")
-        ret.md5 <- try(download.file(map.filename(fnm.md5), md5.file, quiet = TRUE),  silent = TRUE)
+        ret.md5 <- try(download.file(
+            map.filename(fnm.md5), md5.file, quiet = TRUE, mode = "wb"),  silent = TRUE)
         if (!inherits(ret.md5, "try-error")) {
             md5.checksum <- scan(file=md5.file, what=character(), n=1, quiet = TRUE)
             if (md5.checksum == tools::md5sum(to.file)) {
@@ -186,7 +187,7 @@
     from.dir <- paste0(pa, "/64bit")
     to.dir <- paste0(pa, "/64bit-", random.num)
     ret <- file.rename(from.dir, to.dir)
-    if (ret == TRUE) {
+    if (ret) {
         ##
     } else {
         my.restore()
