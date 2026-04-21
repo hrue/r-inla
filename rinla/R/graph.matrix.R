@@ -10,6 +10,7 @@
 #' @param reordering A possible reordering. Typical the one obtained from a
 #' `inla`-call, `result$misc$reordering`, or the result of
 #' `inla.qreordering`.
+#' @param add Add to existing plot instead of creating a new one
 #' @param ... Additional arguments to `inla.read.graph()`
 #' @return `inla.graph2matrix` returns a sparse symmetric matrix where the
 #' non-zero pattern is defined by the `graph`.  The `inla.spy`
@@ -70,7 +71,7 @@
 
 #' @rdname graph.matrix
 #' @export
-`inla.spy` <- function(graph, ..., reordering = NULL) {
+`inla.spy` <- function(graph, ..., reordering = NULL, add = FALSE) {
     ## add this test here, as otherwise, this can be very inefficient
     ## for large matrices. this is because we convert it into a graph
     ## and then back to a matrix.
@@ -90,7 +91,9 @@
     d <- dim(M)
     xx <- c(0, d[2]+1, d[2]+1, 0, 0)
     yy <- c(0, 0, d[1]+1, d[1]+1, 0)
-    plot(xx, yy, type = "l", bty = "L",
-         xlim = c(0, d[2]+1), ylim = c(0, d[1]+1), lwd = 2, asp = 1)
+    if (!add) {
+        plot(xx, yy, type = "l", bty = "L",
+             xlim = c(0, d[2]+1), ylim = c(0, d[1]+1), lwd = 2, asp = 1)
+    }
     points(1L+M@j, d[1] - M@i, pch = 19, ...)
 }
