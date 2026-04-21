@@ -131,7 +131,7 @@ cases.
   set.seed(12345)
   x = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1:1")
   set.seed(12345)
-  xx = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1.1")
+  xx = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1:1")
   all.equal(x, xx)
 
  set.seed(1234)

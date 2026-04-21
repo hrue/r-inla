@@ -21,7 +21,7 @@ current values, otherwise, \code{option} must be one (or a vector of several) of
 \item{inla.arg}{Additional arguments to \code{inla.call}}
 
 \item{num.threads}{Character string with the number of threads to use as
-\code{A:B}, see \code{?inla}}
+\code{A:B:C}, see \code{?inla}}
 
 \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
 (\code{default}) or \code{pardiso}}
@@ -117,9 +117,8 @@ Set and get global options for INLA
 \examples{
 
  ## set number of threads
- inla.setOption("num.threads", "4:1")
- ## alternative format
- inla.setOption(num.threads="4:1")
+ inla.setOption("num.threads", "4:1:1")
+ inla.setOption(num.threads="4:1:2")
  ## check it
  inla.getOption("num.threads")
 

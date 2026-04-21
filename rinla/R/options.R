@@ -15,7 +15,7 @@
 #' \item{inla.arg}{Additional arguments to `inla.call`}
 #' 
 #' \item{num.threads}{Character string with the number of threads to use as
-#' `A:B`, see `?inla`}
+#' `A:B:C`, see `?inla`}
 #' 
 #' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`
 #' (`default`) or `pardiso`}
@@ -105,9 +105,8 @@
 #' @examples
 #' 
 #'  ## set number of threads
-#'  inla.setOption("num.threads", "4:1")
-#'  ## alternative format
-#'  inla.setOption(num.threads="4:1")
+#'  inla.setOption("num.threads", "4:1:1")
+#'  inla.setOption(num.threads="4:1:2")
 #'  ## check it
 #'  inla.getOption("num.threads")
 #' 
@@ -117,10 +116,11 @@ NULL
 
 `inla.getOption.default` <- function() {
     ## this function is not exported. it need to be separate, to avoid infinite recursion
+    nt = max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE)))
     return(
         list(
             inla.arg = NULL,
-            num.threads = paste0(max(1, min(16, parallel::detectCores(all.tests = TRUE, logical = FALSE))), ":1"),
+            num.threads = paste0(nt, ":1"), 
             smtp = "default",
             safe = TRUE, 
             keep = FALSE,
@@ -241,12 +241,11 @@ NULL
     ## and
     ## inla.setOption(keep=TRUE)
     ## and
-    ## inla.setOption(keep=TRUE, num.threads=10)
+    ## inla.setOption(keep=TRUE, num.threads="10:1")
 
     valid.opt <- inla.validOptions()
 
-    `inla.setOption.core` <- function(
-option, value) {
+    `inla.setOption.core` <- function(option, value) {
         envir <- inla.get.inlaEnv()
         option <- inla.matchOption(option, valid.opt, several.ok = FALSE)
         if (length(option) == 0L) {

@@ -7340,7 +7340,11 @@ int main(int argc, char **argv)
 					ntt[1] = 1;
 				}
 				if (ntt[2] <= 0) {
-					ntt[2] = IMIN(GMRFLib_MAX_THREADS(), 2 * ntt[1]);
+					if (ntt[0] == 1 && ntt[1] == 1) {
+						ntt[2] = 1;
+					} else {
+						ntt[2] = IMIN(ntt[0], 2 * ntt[1]);
+					}
 				}
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], ntt[2], GMRFLib_openmp->max_threads);
