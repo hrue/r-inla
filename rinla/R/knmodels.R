@@ -57,14 +57,16 @@
 #' 
 #' ### define space domain as a grid
 #' grid <- sp::SpatialGrid(sp::GridTopology(c(0,0), c(1, 1), c(4, 5)))
-#' (n <- nrow(xy <- sp::coordinates(grid)))
+#' xy <- sp::coordinates(grid)
+#' n <- nrow(xy)
+#' print(n)
 #' 
 #' ### build a spatial neighborhood list
 #' jj <- lapply(1:n, function(i)
 #'     which(sqrt((xy[i,1]-xy[,1])^2 + (xy[i,2]-xy[,2])^2)==1))
 #' 
 #' ### build the spatial adjacency matrix
-#' graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
+#' graph <- sparseMatrix(rep(1:n, lengths(jj)),
 #'                       unlist(jj), x=1, dims=c(n, n))
 #' 
 #' ### some random data at 10 time point

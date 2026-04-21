@@ -178,8 +178,9 @@ for normal usage.)}
 \item{num.threads}{Maximum number of threads the \code{inla}-program will
 use, or as 'A:B' or 'A:B:C' defining the number threads in the outer (A) and inner (B)
 layer for nested parallelism, and with 'C>1',  with C threads at selected places which
-otherwise would run serial.
-#' @param keep A boolean variable indicating that the working files (ini file,
+otherwise would run serial.}
+
+\item{keep}{A boolean variable indicating that the working files (ini file,
 data files and results files) should be kept. If TRUE and no
 \code{working.directory} is specified, the model-files are stored in the
 current directory called "inla.model" or "inla.model-NUMBER".}

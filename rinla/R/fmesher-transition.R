@@ -86,14 +86,17 @@ testthat_is_testing <- function() {
 testthat_is_snapshot <- function() {
     identical(Sys.getenv("TESTTHAT_IS_SNAPSHOT"), "true")
 }
+# jarl-ignore unused_function: Only used in tests
 testthat_is_checking <- function() 
 {
     identical(Sys.getenv("TESTTHAT_IS_CHECKING"), "true")
 }
+# jarl-ignore unused_function: Only used in tests
 testthat_is_parallel <- function() 
 {
     identical(Sys.getenv("TESTTHAT_IS_PARALLEL"), "true")
 }
+# jarl-ignore unused_function: Only used in tests
 testthat_testing_package <- function() 
 {
     Sys.getenv("TESTTHAT_PKG")

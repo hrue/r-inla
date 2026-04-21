@@ -935,7 +935,7 @@ inla.spde2.matern <- function(mesh,
                         i = rep(seq_along(mesh$fun_spaces),
                                 vapply(
                                     mesh$fun_spaces,
-                                    \(x) fmesher::fm_dof(x),1L)
+                                    function(x) fmesher::fm_dof(x),1L)
                         ),
                         j = seq_len(fmesher::fm_dof(mesh)),
                         x = 1,
@@ -1405,119 +1405,116 @@ inla.spde2.iheat <- function(mesh.space,
     # Not needed from fmesher 0.7.0.9001:
     fem.space <- fmesher_fem_cc_compat(mesh.space, fem.space)
     fem.time <- fmesher_fem_cc_compat(mesh.time, fem.time)
-
+    
     ## TODO: the rest
-    if (FALSE) {
-        if (alpha == 2) {
-            B.phi0 <- param$B.tau
-            B.phi1 <- 2 * param$B.kappa
-            M0 <- fem$cc
-            M1 <- fem$g1
-            M2 <- fem$g2
-        } else if (alpha == 1) {
-            B.phi0 <- param$B.tau
-            B.phi1 <- param$B.kappa
-            M0 <- fem$cc
-            M1 <- fem$g1 * 0
-            M2 <- fem$g1
-        } else if (!param$is.stationary) {
-            stop("Non-stationary Matern with fractional alpha is not implemented.")
-        } else if ((alpha < 2) && (alpha > 1)) {
-            if (fractional.method == "parsimonious") {
-                lambda <- alpha - floor(alpha)
-                b <- matrix(c(1, 0, 0, 1, 1, 0, 1, 2, 1), 3, 3) %*%
-                    solve(
-                        matrix(1 / (c(4:2, 3:1, 2:0) + lambda), 3, 3),
-                        1 / (c(4:2) + lambda - alpha)
-                    )
-            } else if (fractional.method == "null") {
-                b <- c(1, alpha, alpha * (alpha - 1) / 2)
-            } else {
-                stop(paste("Unknown fractional.method '", fractional.method,
-                    "'.",
-                    sep = ""
-                ))
-            }
-            B.phi0 <- param$B.tau + (alpha - 2) * param$B.kappa
-            B.phi1 <- 2 * param$B.kappa
-            M0 <- fem$cc * b[1]
-            M1 <- fem$g1 * b[2] / 2
-            M2 <- fem$g2 * b[3]
-        } else if ((alpha < 1) && (alpha > 0)) {
-            if (fractional.method == "parsimonious") {
-                lambda <- alpha - floor(alpha)
-                b <- matrix(c(1, 0, 1, 1), 2, 2) %*%
-                    solve(
-                        matrix(1 / (c(2:1, 1:0) + lambda), 2, 2),
-                        1 / (c(2:1) + lambda - alpha)
-                    )
-            } else if (fractional.method == "null") {
-                b <- c(1, alpha)
-            } else {
-                stop(paste("Unknown fractional.method '", fractional.method,
-                    "'.",
-                    sep = ""
-                ))
-            }
-            B.phi0 <- param$B.tau + (alpha - 1) * param$B.kappa
-            B.phi1 <- param$B.kappa
-            M0 <- fem$cc * b[1]
-            M1 <- fem$g1 * 0
-            M2 <- fem$g1 * b[2]
+    warning("inla.spde2.iheat not fully implemented")
+    if (alpha == 2) {
+        B.phi0 <- param$B.tau
+        B.phi1 <- 2 * param$B.kappa
+        M0 <- fem$cc
+        M1 <- fem$g1
+        M2 <- fem$g2
+    } else if (alpha == 1) {
+        B.phi0 <- param$B.tau
+        B.phi1 <- param$B.kappa
+        M0 <- fem$cc
+        M1 <- fem$g1 * 0
+        M2 <- fem$g1
+    } else if (!param$is.stationary) {
+        stop("Non-stationary Matern with fractional alpha is not implemented.")
+    } else if ((alpha < 2) && (alpha > 1)) {
+        if (fractional.method == "parsimonious") {
+            lambda <- alpha - floor(alpha)
+            b <- matrix(c(1, 0, 0, 1, 1, 0, 1, 2, 1), 3, 3) %*%
+                solve(
+                    matrix(1 / (c(4:2, 3:1, 2:0) + lambda), 3, 3),
+                    1 / (c(4:2) + lambda - alpha)
+                )
+        } else if (fractional.method == "null") {
+            b <- c(1, alpha, alpha * (alpha - 1) / 2)
         } else {
-            stop(paste("Unsupported alpha value (", alpha,
-                "). Supported values are 0 < alpha <= 2",
-                sep = ""
+            stop(paste("Unknown fractional.method '", fractional.method,
+                       "'.",
+                       sep = ""
             ))
         }
-
-        spde <-
-            inla.spde2.generic(
-                M0 = M0, M1 = M1, M2 = M2,
-                B0 = B.phi0, B1 = B.phi1, B2 = 1,
-                theta.mu = param$theta.prior.mean,
-                theta.Q = param$theta.prior.prec,
-                transform = "identity",
-                BLC = param$BLC
-            )
-        spde$model <- "matern"
-        spde$BLC <- param$BLC
-
-        if (constr || !is.null(extraconstr.int)) {
-            if (constr) {
-                A.constr <- matrix(colSums(fem$c1), 1, n.spde)
-                e.constr <- 0
-            } else {
-                A.constr <- matrix(numeric(0), 0, n.spde)
-                e.constr <- c()
-            }
-            if (!is.null(extraconstr.int)) {
-                A.constr <-
-                    rbind(
-                        A.constr,
-                        matrix(
-                            extraconstr.int$A %*% fem$c1,
-                            nrow(extraconstr.int$A), n.spde
-                        )
-                    )
-                e.constr <- c(e.constr, extraconstr.int$e)
-            }
-            if (!is.null(extraconstr)) {
-                A.constr <- rbind(A.constr, extraconstr$A)
-                e.constr <- c(e.constr, extraconstr$e)
-            }
-
-            spde$f$constr <- FALSE
-            spde$f$extraconstr <- list(A = A.constr, e = e.constr)
-        } else if (!is.null(extraconstr)) {
-            spde$f$constr <- FALSE
-            spde$f$extraconstr <- extraconstr
+        B.phi0 <- param$B.tau + (alpha - 2) * param$B.kappa
+        B.phi1 <- 2 * param$B.kappa
+        M0 <- fem$cc * b[1]
+        M1 <- fem$g1 * b[2] / 2
+        M2 <- fem$g2 * b[3]
+    } else if ((alpha < 1) && (alpha > 0)) {
+        if (fractional.method == "parsimonious") {
+            lambda <- alpha - floor(alpha)
+            b <- matrix(c(1, 0, 1, 1), 2, 2) %*%
+                solve(
+                    matrix(1 / (c(2:1, 1:0) + lambda), 2, 2),
+                    1 / (c(2:1) + lambda - alpha)
+                )
+        } else if (fractional.method == "null") {
+            b <- c(1, alpha)
+        } else {
+            stop(paste("Unknown fractional.method '", fractional.method,
+                       "'.",
+                       sep = ""
+            ))
         }
-
-        return(invisible(spde))
+        B.phi0 <- param$B.tau + (alpha - 1) * param$B.kappa
+        B.phi1 <- param$B.kappa
+        M0 <- fem$cc * b[1]
+        M1 <- fem$g1 * 0
+        M2 <- fem$g1 * b[2]
+    } else {
+        stop(paste("Unsupported alpha value (", alpha,
+                   "). Supported values are 0 < alpha <= 2",
+                   sep = ""
+        ))
     }
-
-    invisible(NULL)
+    
+    spde <-
+        inla.spde2.generic(
+            M0 = M0, M1 = M1, M2 = M2,
+            B0 = B.phi0, B1 = B.phi1, B2 = 1,
+            theta.mu = param$theta.prior.mean,
+            theta.Q = param$theta.prior.prec,
+            transform = "identity",
+            BLC = param$BLC
+        )
+    spde$model <- "matern"
+    spde$BLC <- param$BLC
+    
+    if (constr || !is.null(extraconstr.int)) {
+        if (constr) {
+            A.constr <- matrix(colSums(fem$c1), 1, n.spde)
+            e.constr <- 0
+        } else {
+            A.constr <- matrix(numeric(0), 0, n.spde)
+            e.constr <- c()
+        }
+        if (!is.null(extraconstr.int)) {
+            A.constr <-
+                rbind(
+                    A.constr,
+                    matrix(
+                        extraconstr.int$A %*% fem$c1,
+                        nrow(extraconstr.int$A), n.spde
+                    )
+                )
+            e.constr <- c(e.constr, extraconstr.int$e)
+        }
+        if (!is.null(extraconstr)) {
+            A.constr <- rbind(A.constr, extraconstr$A)
+            e.constr <- c(e.constr, extraconstr$e)
+        }
+        
+        spde$f$constr <- FALSE
+        spde$f$extraconstr <- list(A = A.constr, e = e.constr)
+    } else if (!is.null(extraconstr)) {
+        spde$f$constr <- FALSE
+        spde$f$extraconstr <- extraconstr
+    }
+    
+    return(invisible(spde))
 }
 
 
@@ -1534,10 +1531,10 @@ inla.spde2.iheat <- function(mesh.space,
 #' the internal spde2 model representation
 inla.spde2.theta2phi0 <- function(spde, theta) {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
-
+    
     if (spde$n.theta > 0) {
         return(exp(spde$param.inla$B0[, 1, drop = TRUE] +
-            spde$param.inla$B0[, -1, drop = FALSE] %*% theta))
+                       spde$param.inla$B0[, -1, drop = FALSE] %*% theta))
     } else {
         return(exp(spde$param.inla$B0[, 1, drop = TRUE]))
     }
