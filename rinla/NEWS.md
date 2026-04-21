@@ -1,3 +1,7 @@
+# INLA 25.04.21-1
+* Fix issues with 'seed != 0' in sampling functions
+* Minor code cleanup
+
 # INLA 25.04.21
 * New likelihood: 'gammacountmean'
 * Code cleanup and improvements
