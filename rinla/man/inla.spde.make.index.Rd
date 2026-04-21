@@ -32,7 +32,7 @@ mesh <- fmesher::fm_mesh_2d_inla(loc.domain = loc, max.edge = c(0.1, 0.5))
 spde <- inla.spde2.matern(mesh)
 index <- inla.spde.make.index("spatial", spde$n.spde, n.repl = 2)
 spatial.A <- inla.spde.make.A(mesh, loc,
-    index = rep(1:nrow(loc), 2),
+    index = rep(seq_len(nrow(loc)), 2),
     repl = rep(1:2, each = nrow(loc))
 )
 y <- 10 + rnorm(100 * 2)

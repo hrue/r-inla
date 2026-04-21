@@ -1,6 +1,5 @@
 ## NOT-YET-Export:
 
-
 inla.bym.constr.internal <- function(Q, adjust.for.con.comp = TRUE) {
     ## return the rankdef and the constr for the BYM model given in Q
 
@@ -26,7 +25,6 @@ inla.bym.constr.internal <- function(Q, adjust.for.con.comp = TRUE) {
     }
 
     return(list(
-        rankdef = nrow(constr$A),
         constr = constr,
         rankdef = rankdef,
         cc.n = cc.n,

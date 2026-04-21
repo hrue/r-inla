@@ -95,7 +95,7 @@
 #'   set.seed(12345)
 #'   x = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1:1")
 #'   set.seed(12345)
-#'   xx = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1.1")
+#'   xx = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1:1")
 #'   all.equal(x, xx)
 #' 
 #'  set.seed(1234)
@@ -376,7 +376,8 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                                   intern = FALSE,
                                   use.improved.mean = TRUE, skew.corr = TRUE,
                                   add.names = TRUE, seed = 0L, num.threads = NULL,
-                                  parallel.configs = TRUE, verbose = FALSE) {
+                                  parallel.configs = TRUE, verbose = FALSE)
+{
     ## New inla.posterior.sample with skewness correction. contributed by CC.
 
     stopifnot(!missing(result) && inherits(result, "inla"))
@@ -453,13 +454,13 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         num.threads.user <- inla.parse.num.threads(num.threads)
         num.threads <- inla.parse.num.threads("1:1")
         if (num.threads != num.threads.user) {
-            warning("Since 'seed!=0', parallel model is disabled and serial model is selected, num.threads='1:1'")
+            ## warning("Since 'seed!=0', parallel model is disabled and serial model is selected, num.threads='1:1'")
         }
         ## Since parallel.configs aren't used on winows anyway, warning about
         ## overriding it on other systems is overkill and doesn't really help.
-        # if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
-        # warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
-        # }
+        ## if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
+        ## warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
+        ## }
         parallel.configs <- FALSE
     } else {
         num.threads <- inla.parse.num.threads(num.threads)
@@ -516,35 +517,35 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         if (nt[2] == 0) {
             nt[2] <- max(1, ncores %/% nt[1])
         }
-        # In parallel mode, each thread needs it's own random sequence,
-        # so seed must be 0; seed != 0 is handled above to prevent parallel
-        # runs with nonzero seed.
+        ## In parallel mode, each thread needs it's own random sequence,
+        ## so seed must be 0; seed != 0 is handled above to prevent parallel
+        ## runs with nonzero seed.
         xx.list <- parallel::mclapply(1:cs$nconfig,
-            (function(k) {
-                if (n.idx[k] > 0) {
-                    xx <- inla.qsample(
-                        n = n.idx[k],
-                        Q = cs$config[[k]]$Q,
-                        mu = inla.ifelse(
-                            use.improved.mean,
-                            cs$config[[k]]$improved.mean,
-                            cs$config[[k]]$mean
-                        ),
-                        constr = cs$constr,
-                        logdens = TRUE,
-                        seed = 0L,
-                        num.threads = paste0(nt[2], ":1"),
-                        selection = sel.map,
-                        verbose = verbose
-                    )
-                    return(xx)
-                } else {
-                    return(NA)
-                }
-            }),
-            mc.cores = nt[1],
-            mc.preschedule = TRUE
-        )
+                             (function(k) {
+                                 if (n.idx[k] > 0) {
+                                     xx <- inla.qsample(
+                                         n = n.idx[k],
+                                         Q = cs$config[[k]]$Q,
+                                         mu = inla.ifelse(
+                                             use.improved.mean,
+                                             cs$config[[k]]$improved.mean,
+                                             cs$config[[k]]$mean
+                                         ),
+                                         constr = cs$constr,
+                                         logdens = TRUE,
+                                         seed = 0L,
+                                         num.threads = paste0(nt[2], ":1"),
+                                         selection = sel.map,
+                                         verbose = verbose
+                                     )
+                                     return(xx)
+                                 } else {
+                                     return(NA)
+                                 }
+                             }),
+                             mc.cores = nt[1],
+                             mc.preschedule = TRUE
+                             )
     } else {
         xx.list <- NULL
     }
@@ -761,6 +762,8 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                                          num.threads = NULL, verbose = FALSE) {
     ## this is the original version, before the skewness correction. keep it here for completeness.
 
+    num.threads.split <- function(x) unlist(strsplit(x, ":"))
+
     stopifnot(!missing(result) && inherits(result, "inla"))
     if (is.null(result$misc$configs)) {
         stop("You need an inla-object computed with option 'control.compute=list(config = TRUE)'.")
@@ -772,8 +775,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }
-    num.threads <- max(num.threads, 1L)
-    if (num.threads > 1L && seed != 0L) {
+    if (max(num.threads.split(num.threads), 1L) > 1L && seed != 0L) {
         stop("num.threads > 1L require seed = 0L")
     }
 

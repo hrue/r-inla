@@ -115,13 +115,7 @@
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }
-    if (seed != 0L) {
-        num.threads.user <- inla.parse.num.threads(num.threads)
-        num.threads <- inla.parse.num.threads("1:1")
-        if (num.threads != num.threads.user) {
-            warning("Since 'seed!=0', parallel model is disabled and serial model is selected")
-        }
-    } else {
+    if (seed == 0) {
         num.threads <- inla.parse.num.threads(num.threads)
     }
 

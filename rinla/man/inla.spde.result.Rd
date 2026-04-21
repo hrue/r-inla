@@ -65,7 +65,7 @@ mesh <- fmesher::fm_mesh_2d_inla(loc.domain = loc, max.edge = c(0.1, 0.5))
 spde <- inla.spde2.matern(mesh)
 index <- inla.spde.make.index("spatial", mesh$n, n.repl = 2)
 spatial.A <- inla.spde.make.A(mesh, loc,
-    index = rep(1:nrow(loc), 2),
+    index = rep(seq_len(nrow(loc)), 2),
     repl = rep(1:2, each = nrow(loc))
 )
 ## Toy example with no spatial correlation (range=zero)

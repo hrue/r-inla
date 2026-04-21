@@ -32,7 +32,7 @@ prediction ellipse for Brownian bridge.
 
 theta <- seq(0, 2 * pi, length.out = 1000)
 loc <- cbind(cos(theta), sin(theta))
-idx <- inla.simplify.curve(loc = loc, idx = 1:nrow(loc), eps = 0.01)
+idx <- inla.simplify.curve(loc = loc, idx = seq_len(nrow(loc)), eps = 0.01)
 print(c(nrow(loc), length(idx)))
 plot(loc, type = "l")
 lines(loc[idx, ], col = "red")

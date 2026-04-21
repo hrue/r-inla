@@ -370,21 +370,21 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
 #' @examples
 #' \dontrun{
 #' ## Display help for each supported inla.spde2 model:
-#' for (model in inla.spde2.models()) {
-#'     print(help(paste("inla.spde2.", model, sep = "")))
+#' for (model1 in inla.spde2.models()) {
+#'     print(help(paste("inla.spde2.", model1, sep = "")))
 #' }
 #'
 #' ## Display help for each supported inla.spde* model:
 #' models <- inla.spde.models()
 #' for (type in names(models)) {
-#'    for (model in models[[type]]) {
-#'        print(help(paste("inla.", type, ".", model, sep = "")))
+#'    for (model2 in models[[type]]) {
+#'        print(help(paste("inla.", type, ".", model2, sep = "")))
 #'    }
 #' }
 #'
 #' ## Display help for each supported inla.spde* model (equivalent to above):
-#' for (model in inla.spde.models(function.names = TRUE)) {
-#'     print(help(model))
+#' for (model3 in inla.spde.models(function.names = TRUE)) {
+#'     print(help(model3))
 #' }
 #' }
 #' @export inla.spde.models
@@ -528,7 +528,7 @@ inla.spde.precision <- function(...) {
 #' spde <- inla.spde2.matern(mesh)
 #' index <- inla.spde.make.index("spatial", mesh$n, n.repl = 2)
 #' spatial.A <- inla.spde.make.A(mesh, loc,
-#'     index = rep(1:nrow(loc), 2),
+#'     index = rep(seq_len(nrow(loc)), 2),
 #'     repl = rep(1:2, each = nrow(loc))
 #' )
 #' ## Toy example with no spatial correlation (range=zero)
@@ -587,7 +587,7 @@ inla.spde.result <- function(...) {
 #' spde <- inla.spde2.matern(mesh)
 #' index <- inla.spde.make.index("spatial", spde$n.spde, n.repl = 2)
 #' spatial.A <- inla.spde.make.A(mesh, loc,
-#'     index = rep(1:nrow(loc), 2),
+#'     index = rep(seq_len(nrow(loc)), 2),
 #'     repl = rep(1:2, each = nrow(loc))
 #' )
 #' y <- 10 + rnorm(100 * 2)

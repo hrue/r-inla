@@ -13,7 +13,7 @@ inla.matrix2graph(graph, ...)
 
 inla.graph2matrix(graph, ...)
 
-inla.spy(graph, ..., reordering = NULL)
+inla.spy(graph, ..., reordering = NULL, add = FALSE)
 }
 \arguments{
 \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a
@@ -25,6 +25,8 @@ numbers defining the graph.}
 \item{reordering}{A possible reordering. Typical the one obtained from a
 \code{inla}-call, \code{result$misc$reordering}, or the result of
 \code{inla.qreordering}.}
+
+\item{add}{Add to existing plot instead of creating a new one}
 }
 \value{
 \code{inla.graph2matrix} returns a sparse symmetric matrix where the
