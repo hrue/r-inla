@@ -6938,8 +6938,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 			double b = beta;
 			double mu = a / b;
 			double scale = TRUNCATE(mu, 0.1, 1.0 / 0.1);
-
-			double p = (y0 ? 1.0 : G(T / scale, y * alpha, beta / scale)) - G(T / scale, (y + 1) * alpha, beta / scale);
+			double p = (y0 ? 1.0 : G(T / scale, y * alpha, beta * scale)) - G(T / scale, (y + 1) * alpha, beta * scale);
 			p = DMAX(p, DBL_EPSILON);
 			logll[i] = LOG_p(p);
 		}
