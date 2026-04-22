@@ -6374,6 +6374,61 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 201:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double tref[4] = { 0};
+
+		const int off = 16;
+		double *x = Malloc(n+off, double);
+		double *y = Malloc(n+off, double);
+
+		for (int i = 0; i < m; i++) {
+			for (int k = 0; k < n+off; k++) {
+				x[k] = 2.0 * (GMRFLib_uniform() - 0.5);
+				y[k] = 2.0 * (GMRFLib_uniform() - 0.5);
+			}
+
+			double s0 = 0.0, s1 = 0.0, s2 = 1.0, s3 = 1.0;
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd reduction(+: s0)
+			for (int k = 0; k < n; k++) {
+				s0 += x[k] + x[k+1] + x[k+2] + x[k+3] + x[k+4] + x[k+5] + x[k+6] + x[k+7];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+#pragma omp simd reduction(+: s1)
+			for (int k = 0; k < n; k++) {
+				s1 += ((x[k] + x[k+1]) + (x[k+2] + x[k+3])) + ((x[k+4] + x[k+5]) + (x[k+6] + x[k+7]));
+			}
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+#pragma omp simd reduction(+: s2)
+			for (int k = 0; k < n; k++) {
+				s2 += x[k] * x[k+1] * x[k+2] * x[k+3] * x[k+4] * x[k+5] * x[k+6] * x[k+7];
+			}
+			tref[2] += GMRFLib_timer();
+
+			tref[3] -= GMRFLib_timer();
+#pragma omp simd reduction(+: s3)
+			for (int k = 0; k < n; k++) {
+				s3 += ((x[k] * x[k+1]) * (x[k+2] * x[k+3])) * ((x[k+4] * x[k+5]) * (x[k+6] * x[k+7]));
+			}
+			tref[3] += GMRFLib_timer();
+
+			assert(ABS(s0-s1) < FLT_EPSILON);
+			assert(ABS(s2-s3) < FLT_EPSILON);
+		}
+		P2(tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P2(tref[2] / (tref[2] + tref[3]), tref[3] / (tref[2] + tref[3]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
