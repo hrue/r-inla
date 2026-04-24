@@ -766,6 +766,7 @@ typedef struct {
 
 	double **gammacountmean_log_alpha;
 	double *gammacountmean_T;
+	double *gammacountmean_E;
 
 	/*
 	 * The qKumar likelihood

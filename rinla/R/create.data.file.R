@@ -488,12 +488,17 @@
         response <- cbind(IDX = ind, y.orig)
         na.y <- apply(response[, 2, drop = FALSE], 1, function(x) anyNA(x))
         na.TT <- apply(response[, 3, drop = FALSE], 1, function(x) anyNA(x))
-        na.y <- na.y | na.TT
+        if (ncol(response) == 3) {
+            response <- cbind(response, E = 1)
+        }
+        na.E <- apply(response[, 4, drop = FALSE], 1, function(x) anyNA(x))
+        na.y <- na.y | na.TT | na.E
         response <- response[!na.y, , drop = FALSE]
         idx <- response[, 1, drop = FALSE]
         Y <- response[, 2, drop = FALSE]
         TT <- response[, 3, drop = FALSE]
-        response <- cbind(idx, TT, Y)
+        E <- response[, 4, drop = FALSE]
+        response <- cbind(idx, TT, E, Y)
     } else if (inla.one.of(family, c("cenpoisson2"))) {
         if (is.null(E)) {
             E <- rep(1, n.data)

@@ -192,8 +192,9 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_GAMMACOUNTMEAN:
 	{
-		idiv = 3;
+		idiv = 4;
 		a[0] = ds->data_observations.gammacountmean_T = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.gammacountmean_E = Calloc(mb->predictor_ndata, double);
 	}
 		break;
 
@@ -6923,6 +6924,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 	double y = ds->data_observations.y[idx];
 	double alpha = map_exp_forward(ds->data_observations.gammacountmean_log_alpha[thread_id][0], MAP_FORWARD, NULL);
 	double T = ds->data_observations.gammacountmean_T[idx];
+	double E = ds->data_observations.gammacountmean_E[idx];
 	double tt = 1.0 / (2.0 * T);
 
 	LINK_INIT;
@@ -6930,7 +6932,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 	if (m > 0) {
 		bool y0 = (ISZERO(y) ? 1 : 0);
 		for (int i = 0; i < m; i++) {
-			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double lambda = E * PREDICTOR_INVERSE_LINK(x[i], off);
 			double beta = alpha * lambda + tt;
 
 			// scale the comptuations
@@ -6945,7 +6947,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (int i = 0; i < -m; i++) {
-			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double lambda = E * PREDICTOR_INVERSE_LINK(x[i], off);
 			double beta = alpha * lambda + tt;
 			logll[i] = G(T, (y + 1.0) * alpha, beta);
 		}
