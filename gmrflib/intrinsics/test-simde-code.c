@@ -1,8 +1,10 @@
-#include <math.h>
 #include <assert.h>
+#include <math.h>
+#include <stdalign.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #define SIMDE_ENABLE_NATIVE_ALIASES
@@ -247,7 +249,7 @@ int test_zero_small(int n, double eps, double *x)
 #endif
 
 	for (int i = 0; i < n; i++) {
-		if (fabs(xx[i]) < eps)
+		if (fabs(xx[i]) <= eps)
 			xx[i] = 0.0;
 	}
 
