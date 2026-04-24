@@ -13,9 +13,10 @@
 	}
 	if (i < n) {
 		int rem = n - i;
-		if (rem >= 8) {
+		while (rem >= 8) {
 			simde_mm512_storeu_pd(&y[i], simde_mm512_mul_pd(simde_mm512_loadu_pd(&x[i]), va));
 			i += 8;
+			rem -= 8;
 		}
 		if (rem > 0) {
 			simde__mmask8 mask = (simde__mmask8) ((1ULL << rem) - 1);

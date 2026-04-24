@@ -9,7 +9,7 @@
 		simde_mm_storeu_pd(&x[i], simde_mm_andnot_pd(mask, v));
 	}
 	for (; i < n; i++) {
-		if (fabs(x[i]) < eps)
+		if (fabs(x[i]) <= eps)
 			x[i] = 0;
 	}
 }
