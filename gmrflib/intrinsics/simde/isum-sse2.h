@@ -11,8 +11,10 @@
 			sum1 = simde_mm_add_epi32(sum1, data1);
 		}
 		sum0 = simde_mm_add_epi32(sum0, sum1);
-		r = (simde_mm_extract_epi32(sum0, 0) + simde_mm_extract_epi32(sum0, 1)) +
-		    (simde_mm_extract_epi32(sum0, 2) + simde_mm_extract_epi32(sum0, 3));
+		simde__m128i t1 = simde_mm_shuffle_epi32(sum0, 0x1B);
+		sum0 = simde_mm_add_epi32(sum0, t1);
+		sum0 = simde_mm_add_epi32(sum0, simde_mm_shuffle_epi32(sum0, 0x01));
+		r = simde_mm_cvtsi128_si32(sum0);
 	}
 	for (int i = limit; i < n; i++) {
 		r += x[i];

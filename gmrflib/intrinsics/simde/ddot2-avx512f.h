@@ -9,10 +9,10 @@
 	simde__m512d sum_xz = simde_mm512_setzero_pd();
 	sum_xz = simde_mm512_fmadd_pd(vx0, simde_mm512_loadu_pd(&z[0]), sum_xz);
 	sum_xz = simde_mm512_fmadd_pd(vx1, simde_mm512_loadu_pd(&z[8]), sum_xz);
-	double alignas(64) temp_xy[8];
-	double alignas(64) temp_xz[8];
-	simde_mm512_storeu_pd(temp_xy, sum_xy);
-	simde_mm512_storeu_pd(temp_xz, sum_xz);
+	alignas(64) double temp_xy[8];
+	alignas(64) double temp_xz[8];
+	simde_mm512_store_pd(temp_xy, sum_xy);
+	simde_mm512_store_pd(temp_xz, sum_xz);
 	double t_xy = 0, t_xz = 0;
 	for (int i = 0; i < 8; i++) {
 		t_xy += temp_xy[i];

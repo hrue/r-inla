@@ -32,7 +32,7 @@
 	sum_xz = simde_mm_add_pd(sum_xz, simde_mm_mul_pd(vx7, simde_mm_loadu_pd(&z[14])));
 
 #define REDUCE_SSE(r_, v_) {						\
-		simde__m128d shuffled = simde_mm_unpackhi_pd(v_, v_);	\
+		simde__m128d shuffled = simde_mm_shuffle_pd(v_, v_, 1);	\
 		simde__m128d res = simde_mm_add_pd(v_, shuffled);	\
 		r_ = simde_mm_cvtsd_f64(res);				\
 	}
