@@ -1,8 +1,12 @@
-# INLA 25.04.21-1
+# INLA 26.04.25
+* Updated family 'gammacountmean'
+* SIMDE cleanup and fixes
+
+# INLA 26.04.21-1
 * Fix issues with 'seed != 0' in sampling functions
 * Minor code cleanup
 
-# INLA 25.04.21
+# INLA 26.04.21
 * New likelihood: 'gammacountmean'
 * Code cleanup and improvements
 

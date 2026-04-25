@@ -33,7 +33,7 @@
 		simde__m128d low = simde_mm256_castpd256_pd128(v_);		\
 		simde__m128d high = simde_mm256_extractf128_pd(v_, 1);		\
 		simde__m128d combined = simde_mm_add_pd(low, high);		\
-		simde__m128d shuffled = simde_mm_unpackhi_pd(combined, combined);	\
+		simde__m128d shuffled = simde_mm_shuffle_pd(combined, combined, 1);	\
 		r_ = simde_mm_cvtsd_f64(simde_mm_add_pd(combined, shuffled));	\
 	}
 

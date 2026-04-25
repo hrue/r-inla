@@ -37,15 +37,16 @@ $\lambda = {\texttt E}[Y]/T$ via
 and the Gamma rate parameter $\beta$ is related to $\lambda$ through
 the mean-parametrized renewal link
 \begin{displaymath}
-    \beta = \alpha \lambda + \frac{1}{2T}.
+    \beta = \alpha E \lambda + \frac{1}{2T}.
 \end{displaymath}
 This formulation accommodates unequal observation windows $T_i$ and
-provides direct interpretation of $\exp(\eta_j)$ as the multiplicative
-change in event rate per unit time.
+provides direct interpretation of $E\exp(\eta_j)$ as the
+multiplicative change in event rate per unit time. Here, $E$ typically
+is (population or at-risk size, and default equal to 1 if not given.
 
 \subsection*{Hyperparameter}
 
-The dispersion parameter $\alpha > 0$ is modeled as
+The dispersion parameter $\alpha > 0$ is represented
 \begin{displaymath}
     \alpha = \exp(\theta),
 \end{displaymath}
@@ -56,7 +57,9 @@ with a prior defined on the log-scale parameter $\theta$.
 \begin{itemize}
 \item \texttt{family = "gammacountmean"}
 \item Required arguments: response $y$ and exposure time $T$, provided as\\
-    \texttt{inla.mdata(y, T)} (see example).
+    \texttt{inla.mdata(y, T)} or 
+    \texttt{inla.mdata(y, T, E)} (see example).
+\item If $E$ is not given, then $E=1$.
 \end{itemize}
 
 \subsubsection*{Hyperparameter specification and default values}

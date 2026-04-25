@@ -1,6 +1,6 @@
 {
-	double alignas(32) total_sum = r0;
-	double alignas(32) temp[4];
+	alignas(32) double total_sum = r0;
+	alignas(32) double temp[4];
 	int i = 0;
 	if (n >= 16) {
 		simde__m256d sum0 = simde_mm256_setzero_pd();
@@ -17,7 +17,7 @@
 		simde__m256d sum23 = simde_mm256_add_pd(sum2, sum3);
 		simde__m256d final_sum_reg = simde_mm256_add_pd(sum01, sum23);
 		simde_mm256_store_pd(temp, final_sum_reg);
-		total_sum += (temp[0] + temp[1]) + (temp[2] + temp[3]);
+		total_sum += temp[0] + temp[1] + temp[2] + temp[3];
 	}
 	if (n - i >= 4) {
 		simde__m256d rem_sum = simde_mm256_setzero_pd();
@@ -25,7 +25,7 @@
 			rem_sum = simde_mm256_add_pd(rem_sum, simde_mm256_loadu_pd(&x[i]));
 		}
 		simde_mm256_store_pd(temp, rem_sum);
-		total_sum += (temp[0] + temp[1]) + (temp[2] + temp[3]);
+		total_sum += temp[0] + temp[1] + temp[2] + temp[3];
 	}
 	if (n - i >= 2) {
 		simde__m128d sse_sum = simde_mm_loadu_pd(&x[i]);

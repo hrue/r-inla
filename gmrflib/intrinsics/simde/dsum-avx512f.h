@@ -1,6 +1,6 @@
 {
-	double alignas(64) total_sum = r0;
-	double alignas(64) res[2];
+	alignas(64) double total_sum = r0;
+	alignas(64) double res[2];
 	int i = 0;
 	if (n >= 32) {
 		simde__m512d sum0 = simde_mm512_setzero_pd();

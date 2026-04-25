@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+if lscpu|grep -q avx512f; then
+    echo "TEST AVX512F"
+    gcc -mavx512f -O3 -DTEST_AVX512F -I/usr/include -o a.out test-simde-code.c
+    for i in {1..100}; do 
+	echo -n "n=$i "; ./a.out $i >/dev/null || { echo FAIL; break; }
+    done
+    echo; echo
+fi
+
+if lscpu|grep -q avx2; then
+    echo "TEST AVX2"
+    gcc -mavx2 -O3 -DTEST_AVX2 -I/usr/include -o a.out test-simde-code.c
+    for i in {1..100}; do 
+	echo -n "n=$i "; ./a.out $i >/dev/null || { echo FAIL; break; }
+    done
+    echo; echo
+fi
+
+if lscpu|grep -q sse2; then
+    echo "TEST SSE2"
+    gcc -msse2 -O3 -DTEST_SSE2 -I/usr/include -o a.out test-simde-code.c
+    for i in {1..100}; do 
+	echo -n "n=$i "; ./a.out $i >/dev/null || { echo FAIL; break; }
+    done
+    echo; echo
+fi

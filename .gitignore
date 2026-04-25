@@ -108,3 +108,5 @@ r-inla.org/*/*/*.blg
 r-inla.org/doc/likelihood/example-gengaussian.R
 
 r-inla.org/doc/likelihood/gengaussian.tex
+
+gmrflib/intrinsics/test_simde_code

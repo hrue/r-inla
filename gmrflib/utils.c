@@ -2396,7 +2396,7 @@ void GMRFLib_zero_small(int n, double eps, double *x)
 #else
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {
-		if (ABS(x[i]) < eps) {
+		if (ABS(x[i]) <= eps) {
 			x[i] = 0.0;
 		}
 	}
