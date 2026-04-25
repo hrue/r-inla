@@ -4,10 +4,20 @@
 \alias{inla.rw1o1diid}
 \title{1D First-order random walk plus iid noise (BYM2-style parameterisation)}
 \usage{
-inla.rw1o1diid(n)
+inla.rw1o1diid(
+  n,
+  prior.tau = list(u = 1, alpha = 0.01),
+  prior.phi = list(u = 0.5, alpha = 0.5)
+)
 }
 \arguments{
 \item{n}{Integer. Length of the chain. Must be \verb{>= 3}.}
+
+\item{prior.tau}{Named list with entries \code{u} and \code{alpha} for the PC prior
+on the precision \code{tau}. Default \code{list(u = 1, alpha = 0.01)}.}
+
+\item{prior.phi}{Named list with entries \code{u} and \code{alpha} for the PC prior
+on the mixing parameter \code{phi}. Default \code{list(u = 0.5, alpha = 0.5)}.}
 }
 \value{
 An object of class \code{"inla.model.class"} suitable for passing as
@@ -28,13 +38,30 @@ Internally this is implemented as the existing \code{bym2} model on the linear
 chain graph \code{1 - 2 - 3 - ... - n}, whose graph Laplacian coincides with
 the RW1 structure matrix. All \code{bym2} machinery (PC prior on \code{phi}, hyper
 overrides, posterior tooling) applies unchanged.
+
+Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
+\code{\link[=inla.pc.dprec]{inla.pc.dprec()}} prior, parameterised by \verb{(u, alpha)} such that
+\code{P(1/sqrt(tau) > u) = alpha}. The PC prior on \code{phi} is the adaptive prior
+computed by \code{bym2} from the chain-graph Laplacian (see
+\code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}), parameterised by \verb{(u, alpha)} such that
+\code{P(phi < u) = alpha}.
 }
 \examples{
 \dontrun{
   n <- 100
   time <- 1:n
   y <- cumsum(rnorm(n, sd = 0.3)) + rnorm(n, sd = 1)
+
+  ## defaults: PC prior on tau with (u, alpha) = (1, 0.01)
+  ## and on phi with (u, alpha) = (0.5, 0.5)
   r <- inla(y ~ f(time, model = inla.rw1o1diid(n)) - 1,
+            data = data.frame(y, time))
+
+  ## custom priors
+  r <- inla(y ~ f(time,
+                  model = inla.rw1o1diid(n,
+                      prior.tau = list(u = 2,   alpha = 0.05),
+                      prior.phi = list(u = 0.7, alpha = 0.3))) - 1,
             data = data.frame(y, time))
 }
 }
