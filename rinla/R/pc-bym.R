@@ -43,6 +43,7 @@ inla.sparse.det.bym <- function(Q,
     ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
     ## constructed below.
 
+    adjust.for.con.comp <- as.logical(adjust.for.con.comp)
     stopifnot(adjust.for.con.comp)
     Q <- inla.as.sparse(Q)
     n <- dim(Q)[1]
@@ -119,6 +120,9 @@ inla.pc.bym.phi <- function(graph,
                             eps = sqrt(.Machine$double.eps),
                             debug = FALSE) {
     my.debug <- function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ..., "\n")
+
+    scale.model <- as.logical(scale.model)
+    adjust.for.con.comp <- as.logical(adjust.for.con.comp)
 
     ## I must assume this!!!
     stopifnot(scale.model)
