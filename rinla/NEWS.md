@@ -1,3 +1,6 @@
+# INLA 26.04.26
+* Merge PR #120 fixing a regression
+
 # INLA 26.04.25
 * Updated family 'gammacountmean'
 * SIMDE cleanup and fixes
