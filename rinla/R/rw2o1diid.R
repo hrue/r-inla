@@ -1,0 +1,169 @@
+#' 1D Second-order random walk plus iid noise (BYM2-style parameterisation)
+#'
+#' Convenience constructor for a 1D second-order random walk mixed with iid
+#' noise, using the BYM2-style `(tau, phi)` parameterisation. The latent
+#' field has precision
+#' \deqn{Q(\tau, \phi) = \tau \, \bigl( \phi \, R + (1-\phi)\, I \bigr),}
+#' where `R` is the RW2 structure matrix scaled to generalised variance one
+#' and `I` is the identity. The `tau` parameter controls the total marginal
+#' precision and `phi` in `(0, 1)` controls the fraction of variance
+#' attributable to the structured RW2 component.
+#'
+#' Implemented via [`inla.rgeneric.define()`] because the RW2 precision
+#' matrix is not a graph Laplacian (the `[1,-4,6,-4,1]` stencil has positive
+#' off-diagonal entries at distance 2), and so cannot be expressed through
+#' the existing `bym2` model.
+#'
+#' Both hyperparameters use PC priors. The PC prior on `tau` is the standard
+#' [`inla.pc.dprec()`] prior, parameterised by `(u, alpha)` such that
+#' `P(1/sqrt(tau) > u) = alpha`. The PC prior on `phi` is computed from the
+#' eigenvalues of the scaled RW2 structure matrix using the same KLD-based
+#' derivation as `bym2` (see [`inla.pc.bym.phi()`]), parameterised by
+#' `(u, alpha)` such that `P(phi < u) = alpha`.
+#'
+#' @param n Integer. Length of the chain. Must be `>= 5` (the minimum size
+#'     for which RW2 is well-defined).
+#' @param prior.tau Named list with entries `u` and `alpha` for the PC prior
+#'     on the precision `tau`. Default `list(u = 1, alpha = 0.01)`.
+#' @param prior.phi Named list with entries `u` and `alpha` for the PC prior
+#'     on the mixing parameter `phi`. Default `list(u = 0.5, alpha = 0.5)`,
+#'     matching the `bym2` default.
+#' @param debug Logical. Passed to [`inla.rgeneric.define()`].
+#' @return An `"inla.rgeneric"` object suitable for passing as the `model`
+#'     argument to [`f()`].
+#' @author Antonio Vargas
+#' @seealso [`f()`], [`inla.rgeneric.define()`], `inla.doc("bym2")`
+#' @examples
+#' \dontrun{
+#'   n <- 100
+#'   time <- 1:n
+#'   y <- cumsum(cumsum(rnorm(n, sd = 0.05))) + rnorm(n, sd = 0.5)
+#'   r <- inla(y ~ f(time, model = inla.rw2o1diid(n)) - 1,
+#'             data = data.frame(y, time))
+#' }
+#' @rdname rw2o1diid
+#' @export
+`inla.rw2o1diid` <- function(
+  n,
+  prior.tau = list(u = 1, alpha = 0.01),
+  prior.phi = list(u = 0.5, alpha = 0.5),
+  debug = FALSE
+) {
+  stopifnot(is.numeric(n), length(n) == 1, n >= 5)
+  n <- as.integer(n)
+  stopifnot(is.list(prior.tau), all(c("u", "alpha") %in% names(prior.tau)))
+  stopifnot(is.list(prior.phi), all(c("u", "alpha") %in% names(prior.phi)))
+
+  R_scaled <- inla.rw(n, order = 2, scale.model = TRUE, sparse = TRUE)
+  R_dense <- as.matrix(R_scaled)
+  eig_R <- pmax(0, eigen(R_dense, symmetric = TRUE, only.values = TRUE)$values)
+  marg_var <- diag(inla.ginv(R_dense, rankdef = 2))
+
+  prior_phi_table <- inla.pc.bym.phi(
+    eigenvalues = eig_R,
+    marginal.variances = marg_var,
+    rankdef = 2,
+    u = prior.phi$u,
+    alpha = prior.phi$alpha,
+    scale.model = TRUE,
+    return.as.table = TRUE,
+    adjust.for.con.comp = TRUE
+  )
+  parsed <- as.numeric(strsplit(
+    sub("^table:\\s*", "", prior_phi_table),
+    "\\s+"
+  )[[1]])
+  parsed <- parsed[!is.na(parsed)]
+  stopifnot(length(parsed) %% 2 == 0)
+  half <- length(parsed) %/% 2
+  phi_intern_grid <- parsed[seq_len(half)]
+  log_prior_phi_intern <- parsed[half + seq_len(half)]
+  ord <- order(phi_intern_grid)
+  phi_intern_grid <- phi_intern_grid[ord]
+  log_prior_phi_intern <- log_prior_phi_intern[ord]
+
+  rmodel <- inla.rgeneric.define(
+    model = inla.rw2o1diid.model,
+    debug = debug,
+    n = n,
+    R_scaled = R_scaled,
+    eig_R = eig_R,
+    phi_intern_grid = phi_intern_grid,
+    log_prior_phi_intern = log_prior_phi_intern,
+    prior_u_tau = prior.tau$u,
+    prior_alpha_tau = prior.tau$alpha
+  )
+  return(rmodel)
+}
+
+#' @rdname rw2o1diid
+#' @export
+`inla.rw2o1diid.model` <- function(
+  cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+  theta = NULL
+) {
+  envir <- parent.env(environment())
+
+  interpret.theta <- function() {
+    list(
+      tau = exp(theta[1]),
+      phi = exp(theta[2]) / (1 + exp(theta[2]))
+    )
+  }
+
+  graph <- function() {
+    return(R_scaled + Matrix::Diagonal(n))
+  }
+
+  Q <- function() {
+    param <- interpret.theta()
+    return(
+      param$tau * (param$phi * R_scaled + (1 - param$phi) * Matrix::Diagonal(n))
+    )
+  }
+
+  mu <- function() {
+    return(numeric(0))
+  }
+
+  log.norm.const <- function() {
+    param <- interpret.theta()
+    eig_Q <- param$tau * (param$phi * eig_R + (1 - param$phi))
+    return(0.5 * sum(log(eig_Q)) - 0.5 * n * log(2 * pi))
+  }
+
+  log.prior <- function() {
+    param <- interpret.theta()
+
+    log_prior_tau <- INLA::inla.pc.dprec(
+      param$tau,
+      u = prior_u_tau,
+      alpha = prior_alpha_tau,
+      log = TRUE
+    ) +
+      theta[1]
+
+    log_prior_phi <- stats::approx(
+      phi_intern_grid,
+      log_prior_phi_intern,
+      xout = theta[2],
+      rule = 2
+    )$y
+
+    return(log_prior_tau + log_prior_phi)
+  }
+
+  initial <- function() {
+    return(c(4, 0))
+  }
+
+  quit <- function() {
+    return(invisible())
+  }
+
+  if (!length(theta)) {
+    theta <- initial()
+  }
+  val <- do.call(match.arg(cmd), args = list())
+  return(val)
+}
