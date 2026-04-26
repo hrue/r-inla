@@ -9,11 +9,6 @@
 #' precision and `phi` in `(0, 1)` controls the fraction of variance
 #' attributable to the structured RW2 component.
 #'
-#' Implemented via [`inla.rgeneric.define()`] because the RW2 precision
-#' matrix is not a graph Laplacian (the `[1,-4,6,-4,1]` stencil has positive
-#' off-diagonal entries at distance 2), and so cannot be expressed through
-#' the existing `bym2` model.
-#'
 #' Both hyperparameters use PC priors. The PC prior on `tau` is the standard
 #' [`inla.pc.dprec()`] prior, parameterised by `(u, alpha)` such that
 #' `P(1/sqrt(tau) > u) = alpha`. The PC prior on `phi` is computed from the

@@ -45,11 +45,6 @@ precision and \code{phi} in \verb{(0, 1)} controls the fraction of variance
 attributable to the structured RW2 component.
 }
 \details{
-Implemented via \code{\link[=inla.rgeneric.define]{inla.rgeneric.define()}} because the RW2 precision
-matrix is not a graph Laplacian (the \verb{[1,-4,6,-4,1]} stencil has positive
-off-diagonal entries at distance 2), and so cannot be expressed through
-the existing \code{bym2} model.
-
 Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
 \code{\link[=inla.pc.dprec]{inla.pc.dprec()}} prior, parameterised by \verb{(u, alpha)} such that
 \code{P(1/sqrt(tau) > u) = alpha}. The PC prior on \code{phi} is computed from the
