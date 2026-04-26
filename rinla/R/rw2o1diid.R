@@ -102,8 +102,6 @@
   cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
   theta = NULL
 ) {
-  envir <- parent.env(environment())
-
   interpret.theta <- function() {
     list(
       tau = exp(theta[1]),
