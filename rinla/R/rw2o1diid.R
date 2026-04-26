@@ -90,7 +90,8 @@
     prior_u_tau = prior.tau$u,
     prior_alpha_tau = prior.tau$alpha
   )
-  return(rmodel)
+
+  rmodel
 }
 
 #' @rdname rw2o1diid
@@ -107,24 +108,22 @@
   }
 
   graph <- function() {
-    return(R_scaled + Matrix::Diagonal(n))
+    R_scaled + Matrix::Diagonal(n)
   }
 
   Q <- function() {
     param <- interpret.theta()
-    return(
-      param$tau * (param$phi * R_scaled + (1 - param$phi) * Matrix::Diagonal(n))
-    )
+    param$tau * (param$phi * R_scaled + (1 - param$phi) * Matrix::Diagonal(n))
   }
 
   mu <- function() {
-    return(numeric(0))
+    numeric(0)
   }
 
   log.norm.const <- function() {
     param <- interpret.theta()
     eig_Q <- param$tau * (param$phi * eig_R + (1 - param$phi))
-    return(0.5 * sum(log(eig_Q)) - 0.5 * n * log(2 * pi))
+    0.5 * sum(log(eig_Q)) - 0.5 * n * log(2 * pi)
   }
 
   log.prior <- function() {
@@ -146,20 +145,20 @@
       log(param$phi) +
       log1p(-param$phi)
 
-    return(log_prior_tau + log_prior_phi)
+    log_prior_tau + log_prior_phi
   }
 
   initial <- function() {
-    return(c(4, 0))
+    c(4, 0)
   }
 
   quit <- function() {
-    return(invisible())
+    invisible()
   }
 
   if (!length(theta)) {
     theta <- initial()
   }
-  val <- do.call(match.arg(cmd), args = list())
-  return(val)
+
+  do.call(match.arg(cmd), args = list())
 }
