@@ -26,8 +26,8 @@
 #' @param debug Logical. Passed to [`inla.rgeneric.define()`].
 #' @return A model-specification object that can be passed as the `model`
 #'     argument to [`f()`].
-#' @author Antonio Vargas
 #' @seealso [`f()`], [`inla.rgeneric.define()`], `inla.doc("bym2")`
+#' @author Antonio R. Vargas
 #' @examples
 #' \dontrun{
 #'   n <- 100
