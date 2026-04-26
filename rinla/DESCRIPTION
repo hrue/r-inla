@@ -118,6 +118,7 @@ Collate:
     'iidkd.R'
     'inla.R'
     'inla.call.R'
+    'inla.stiles.R'
     'inlaEnv.R'
     'interpret.formula.R'
     'jmarginal.R'
