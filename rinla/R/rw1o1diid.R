@@ -34,19 +34,27 @@
 #' \dontrun{
 #'   n <- 100
 #'   time <- 1:n
-#'   y <- cumsum(rnorm(n, sd = 0.3)) + rnorm(n, sd = 1)
+#'   x <- cumsum(rnorm(n, sd = 0.3)) + rnorm(n, sd = 1)
 #'
 #'   ## defaults: PC prior on tau with (u, alpha) = (1, 0.01)
 #'   ## and on phi with (u, alpha) = (0.5, 0.5)
-#'   r <- inla(y ~ f(time, model = inla.rw1o1diid(n)) - 1,
-#'             data = data.frame(y, time))
+#'   r <- inla(
+#'     y ~ f(time, model = inla.rw1o1diid(n)) - 1,
+#'     data = data.frame(y, time)
+#'   )
 #'
 #'   ## custom priors
-#'   r <- inla(y ~ f(time,
-#'                   model = inla.rw1o1diid(n,
-#'                       prior.tau = list(u = 2,   alpha = 0.05),
-#'                       prior.phi = list(u = 0.7, alpha = 0.3))) - 1,
-#'             data = data.frame(y, time))
+#'   r <- inla(
+#'     y ~ f(
+#'       time,
+#'       model = inla.rw1o1diid(
+#'         n,
+#'         prior.tau = list(u = 2, alpha = 0.05),
+#'         prior.phi = list(u = 0.7, alpha = 0.3)
+#'       )
+#'     ) - 1,
+#'     data = data.frame(y, time)
+#'   )
 #' }
 #' @rdname rw1o1diid
 #' @export
