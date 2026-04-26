@@ -105,7 +105,7 @@
   interpret.theta <- function() {
     list(
       tau = exp(theta[1]),
-      phi = exp(theta[2]) / (1 + exp(theta[2]))
+      phi = plogis(theta[2])
     )
   }
 
