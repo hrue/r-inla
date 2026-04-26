@@ -54,33 +54,31 @@
   stopifnot(is.list(prior.tau), all(c("u", "alpha") %in% names(prior.tau)))
   stopifnot(is.list(prior.phi), all(c("u", "alpha") %in% names(prior.phi)))
 
+  ####
+  # Build the phi PC log-prior
+
+  # Calculate variance components of the random walk
   R_scaled <- inla.rw(n, order = 2, scale.model = TRUE, sparse = TRUE)
   R_dense <- as.matrix(R_scaled)
   eig_R <- pmax(0, eigen(R_dense, symmetric = TRUE, only.values = TRUE)$values)
   marg_var <- diag(inla.ginv(R_dense, rankdef = 2))
 
-  prior_phi_table <- inla.pc.bym.phi(
-    eigenvalues = eig_R,
-    marginal.variances = marg_var,
-    rankdef = 2,
-    u = prior.phi$u,
-    alpha = prior.phi$alpha,
-    scale.model = TRUE,
-    return.as.table = TRUE,
-    adjust.for.con.comp = TRUE
-  )
-  parsed <- as.numeric(strsplit(
-    sub("^table:\\s*", "", prior_phi_table),
-    "\\s+"
-  )[[1]])
-  parsed <- parsed[!is.na(parsed)]
-  stopifnot(length(parsed) %% 2 == 0)
-  half <- length(parsed) %/% 2
-  phi_intern_grid <- parsed[seq_len(half)]
-  log_prior_phi_intern <- parsed[half + seq_len(half)]
-  ord <- order(phi_intern_grid)
-  phi_intern_grid <- phi_intern_grid[ord]
-  log_prior_phi_intern <- log_prior_phi_intern[ord]
+  # - inla.pc.bym.phi() with return.as.table = FALSE returns a cubic-spline
+  #   closure giving log-density on the external phi scale
+  # - local() trims the captured environment to just the splinefun
+  prior_phi_fn <- local({
+    f <- inla.pc.bym.phi(
+      eigenvalues = eig_R,
+      marginal.variances = marg_var,
+      rankdef = 2, # 2nd order RW has nullity 2
+      u = prior.phi$u,
+      alpha = prior.phi$alpha,
+      scale.model = TRUE,
+      return.as.table = FALSE,
+      adjust.for.con.comp = TRUE
+    )
+    function(phi) f(phi)
+  })
 
   rmodel <- inla.rgeneric.define(
     model = inla.rw2o1diid.model,
@@ -88,8 +86,7 @@
     n = n,
     R_scaled = R_scaled,
     eig_R = eig_R,
-    phi_intern_grid = phi_intern_grid,
-    log_prior_phi_intern = log_prior_phi_intern,
+    prior_phi_fn = prior_phi_fn,
     prior_u_tau = prior.tau$u,
     prior_alpha_tau = prior.tau$alpha
   )
@@ -133,6 +130,8 @@
   log.prior <- function() {
     param <- interpret.theta()
 
+    # inla.pc.dprec returns log-density wrt tau (external scale) so we need to
+    # add the Jacobian theta[1] = log(tau)
     log_prior_tau <- INLA::inla.pc.dprec(
       param$tau,
       u = prior_u_tau,
@@ -141,12 +140,11 @@
     ) +
       theta[1]
 
-    log_prior_phi <- stats::approx(
-      phi_intern_grid,
-      log_prior_phi_intern,
-      xout = theta[2],
-      rule = 2
-    )$y
+    # prior_phi_fn returns log-density wrt phi (external scale) so we need to
+    # add the Jacobian log(phi) + log(1 - phi)
+    log_prior_phi <- prior_phi_fn(param$phi) +
+      log(param$phi) +
+      log1p(-param$phi)
 
     return(log_prior_tau + log_prior_phi)
   }
