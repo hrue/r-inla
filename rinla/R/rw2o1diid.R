@@ -231,9 +231,9 @@
 
   hp_names <- names(result$marginals.hyperpar)
   find_one <- function(prefix) {
-    pat <- paste0("^", prefix, " for ", name, "$")
-    hits <- grep(pat, hp_names, ignore.case = TRUE, value = TRUE)
-    if (length(hits) != 1) NULL else hits
+    target <- tolower(paste0(prefix, " for ", name))
+    hit <- hp_names[tolower(hp_names) == target]
+    if (length(hit) != 1) NULL else hit
   }
   key_tau <- find_one("log precision")
   key_phi <- find_one("logit phi")
