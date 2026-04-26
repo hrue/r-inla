@@ -1,4 +1,4 @@
-#' sTiles helpers: streaming spy plots and graph<->mtx I/O
+#' sTiles utils: streaming spy plots and graph<->mtx I/O
 #'
 #' Streaming sparsity-pattern plots and conversions between INLA graph
 #' files and MatrixMarket `.mtx` files. The spy plots stream the input
@@ -17,8 +17,9 @@
 #' Use `diagonal = "one"` for unit diagonals, or `diagonal = "none"` to
 #' omit the diagonal entirely.
 #'
-#' @aliases inla.stiles.spy.mtx inla.stiles.spy.graph
-#'   inla.stiles.graph2mtx inla.stiles.mtx2graph
+#' @aliases inla.stiles.spy.mtx inla.stiles.spy.graph inla.stiles.graph2mtx
+#' inla.stiles.mtx2graph
+#' 
 #' @param file        For `inla.stiles.spy.mtx`: path to a `.mtx` file.
 #'                    For `inla.stiles.spy.graph`: path to an INLA graph file.
 #' @param graph_file  Path to an INLA graph file (ASCII).
@@ -50,7 +51,7 @@
 #' inla.stiles.graph2mtx("inla_graph_animal1", "animal.mtx")
 #' inla.stiles.mtx2graph("animal.mtx",         "animal.graph")
 #' }
-#' @name inla.stiles
+#' @name stiles.utils
 NULL
 
 # ---- internal helpers (not exported) ----------------------------------
