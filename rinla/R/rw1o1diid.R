@@ -58,12 +58,7 @@
   prior.tau = list(u = 1, alpha = 0.01),
   prior.phi = list(u = 0.5, alpha = 0.5)
 ) {
-  if (!is.numeric(n) || length(n) != 1) {
-    stop("'n' must be a single numeric value.")
-  }
-  if (n < 3) {
-    stop("'n' must be at least 3.")
-  }
+  stopifnot(is.numeric(n), length(n) == 1, n >= 3)
   stopifnot(is.list(prior.tau), all(c("u", "alpha") %in% names(prior.tau)))
   stopifnot(is.list(prior.phi), all(c("u", "alpha") %in% names(prior.phi)))
   n <- as.integer(n)

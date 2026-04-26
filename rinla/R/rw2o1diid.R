@@ -63,9 +63,9 @@
   debug = FALSE
 ) {
   stopifnot(is.numeric(n), length(n) == 1, n >= 5)
-  n <- as.integer(n)
   stopifnot(is.list(prior.tau), all(c("u", "alpha") %in% names(prior.tau)))
   stopifnot(is.list(prior.phi), all(c("u", "alpha") %in% names(prior.phi)))
+  n <- as.integer(n)
 
   ####
   # Build the phi PC log-prior
