@@ -24,7 +24,7 @@
 #'     on the mixing parameter `phi`. Default `list(u = 0.5, alpha = 0.5)`,
 #'     matching the `bym2` default.
 #' @param debug Logical. Passed to [`inla.rgeneric.define()`].
-#' @return An `"inla.rgeneric"` object suitable for passing as the `model`
+#' @return A model-specification object that can be passed as the `model`
 #'     argument to [`f()`].
 #' @author Antonio Vargas
 #' @seealso [`f()`], [`inla.rgeneric.define()`], `inla.doc("bym2")`

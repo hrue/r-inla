@@ -31,7 +31,7 @@ matching the \code{bym2} default.}
 \item{debug}{Logical. Passed to \code{\link[=inla.rgeneric.define]{inla.rgeneric.define()}}.}
 }
 \value{
-An \code{"inla.rgeneric"} object suitable for passing as the \code{model}
+A model-specification object that can be passed as the \code{model}
 argument to \code{\link[=f]{f()}}.
 }
 \description{

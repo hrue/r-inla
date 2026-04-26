@@ -20,8 +20,8 @@ on the precision \code{tau}. Default \code{list(u = 1, alpha = 0.01)}.}
 on the mixing parameter \code{phi}. Default \code{list(u = 0.5, alpha = 0.5)}.}
 }
 \value{
-An object of class \code{"inla.model.class"} suitable for passing as
-the \code{model} argument to \code{\link[=f]{f()}}.
+A model-specification object that can be passed as the \code{model}
+argument to \code{\link[=f]{f()}}.
 }
 \description{
 Convenience constructor for a 1D first-order random walk mixed with iid

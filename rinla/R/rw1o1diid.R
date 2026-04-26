@@ -21,8 +21,8 @@
 #'     on the precision `tau`. Default `list(u = 1, alpha = 0.01)`.
 #' @param prior.phi Named list with entries `u` and `alpha` for the PC prior
 #'     on the mixing parameter `phi`. Default `list(u = 0.5, alpha = 0.5)`.
-#' @return An object of class `"inla.model.class"` suitable for passing as
-#'     the `model` argument to [`f()`].
+#' @return A model-specification object that can be passed as the `model`
+#'     argument to [`f()`].
 #' @author Antonio Vargas
 #' @seealso [`f()`], `inla.doc("bym2")`
 #' @examples
