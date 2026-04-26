@@ -16,6 +16,14 @@
 #' derivation as `bym2` (see [`inla.pc.bym.phi()`]), parameterised by
 #' `(u, alpha)` such that `P(phi < u) = alpha`.
 #'
+#' Because this model is implemented as an rgeneric, INLA reports the
+#' hyperparameter marginals on the internal scale: `theta_1 = log(tau)`
+#' (named `"log precision for <label>"`) and `theta_2 = logit(phi)`
+#' (named `"logit phi for <label>"`), where `<label>` is the is the variable
+#' name passed as the first argument to f() (e.g. "time" for f(time, ...)).
+#' To obtain marginals for `tau` and `phi` on the user scale, use
+#' [`inla.rw2o1diid.hyperpar()`].
+#'
 #' @param n Integer. Length of the chain. Must be `>= 5` (the minimum size
 #'     for which RW2 is well-defined).
 #' @param prior.tau Named list with entries `u` and `alpha` for the PC prior
@@ -26,8 +34,9 @@
 #' @param debug Logical. Passed to [`inla.rgeneric.define()`].
 #' @return A model-specification object that can be passed as the `model`
 #'     argument to [`f()`].
-#' @seealso [`f()`], [`inla.rgeneric.define()`], `inla.doc("bym2")`
 #' @author Antonio R. Vargas
+#' @seealso [`f()`], [`inla.rw2o1diid.hyperpar()`],
+#'     [`inla.rgeneric.define()`], `inla.doc("bym2")`
 #' @examples
 #' \dontrun{
 #'   n <- 100
@@ -53,6 +62,11 @@
 #'     ) - 1,
 #'     data = data.frame(y, time)
 #'   )
+#'
+#'   ## user-scale tau and phi marginals
+#'   hp <- inla.rw2o1diid.hyperpar(r, "time")
+#'   inla.zmarginal(hp$tau)
+#'   inla.zmarginal(hp$phi)
 #' }
 #' @rdname rw2o1diid
 #' @export
@@ -102,6 +116,14 @@
     prior_phi_fn = prior_phi_fn,
     prior_u_tau = prior.tau$u,
     prior_alpha_tau = prior.tau$alpha
+  )
+
+  # Internal-scale names for the hyperparameter output. INLA appends
+  # " for <label>" (where <label> is the f() term name) and capitalises
+  # the first letter, so these render as e.g. "log precision for time".
+  rmodel$f$hyper <- list(
+    theta1 = list(name = "log precision"),
+    theta2 = list(name = "logit phi")
   )
 
   rmodel
@@ -174,4 +196,56 @@
   }
 
   do.call(match.arg(cmd), args = list())
+}
+
+#' Extract user-scale hyperparameter marginals for an `inla.rw2o1diid` term
+#'
+#' INLA reports `inla.rw2o1diid` hyperparameter marginals on the internal
+#' (rgeneric) scale: `theta_1 = log(tau)` and `theta_2 = logit(phi)`. This
+#' helper transforms them back to the user scale via [`inla.tmarginal()`],
+#' returning marginals for `tau` (the total marginal precision) and `phi`
+#' (the structured-variance fraction).
+#'
+#' @param result An `"inla"` object returned by [`inla()`].
+#' @param name Character. The label of the `f()` term that used
+#'     `inla.rw2o1diid()`, i.e. the first argument to `f()`. For
+#'     `f(time, model = inla.rw2o1diid(n))` this is `"time"`.
+#' @return A named list with elements `tau` and `phi`, each an
+#'     `inla.marginal` object suitable for [`inla.zmarginal()`],
+#'     [`inla.qmarginal()`], etc.
+#' @author Antonio R. Vargas
+#' @seealso [`inla.rw2o1diid()`], [`inla.tmarginal()`], [`inla.zmarginal()`]
+#' @examples
+#' \dontrun{
+#'   r <- inla(
+#'     y ~ f(time, model = inla.rw2o1diid(n)) - 1,
+#'     data = data.frame(y, time)
+#'   )
+#'   hp <- inla.rw2o1diid.hyperpar(r, "time")
+#'   inla.zmarginal(hp$tau)
+#'   inla.zmarginal(hp$phi)
+#' }
+#' @export
+`inla.rw2o1diid.hyperpar` <- function(result, name) {
+  stopifnot(inherits(result, "inla"), is.character(name), length(name) == 1)
+
+  hp_names <- names(result$marginals.hyperpar)
+  find_one <- function(prefix) {
+    pat <- paste0("^", prefix, " for ", name, "$")
+    hits <- grep(pat, hp_names, ignore.case = TRUE, value = TRUE)
+    if (length(hits) != 1) NULL else hits
+  }
+  key_tau <- find_one("log precision")
+  key_phi <- find_one("logit phi")
+  if (is.null(key_tau) || is.null(key_phi)) {
+    stop(sprintf(
+      "Could not find rw2o1diid hyperparameter marginals for term '%s'. Available names: %s",
+      name,
+      paste(shQuote(hp_names), collapse = ", ")
+    ))
+  }
+  list(
+    tau = inla.tmarginal(exp, result$marginals.hyperpar[[key_tau]]),
+    phi = inla.tmarginal(plogis, result$marginals.hyperpar[[key_phi]])
+  )
 }
