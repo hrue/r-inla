@@ -78,7 +78,7 @@
 
   # - inla.pc.bym.phi() with return.as.table = FALSE returns a cubic-spline
   #   closure giving log-density on the external phi scale
-  # - local() trims the captured environment to just the splinefun
+  # - local() trims the captured environment to just the spline fun
   prior_phi_fn <- local({
     f <- inla.pc.bym.phi(
       eigenvalues = eig_R,
