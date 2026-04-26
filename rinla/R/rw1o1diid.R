@@ -29,7 +29,7 @@
 #' @return An object of class `"inla.model.class"` suitable for passing as
 #'     the `model` argument to [`f()`].
 #' @author Antonio Vargas
-#' @seealso inla.doc("bym2")
+#' @seealso [`f()`], `inla.doc("bym2")`
 #' @examples
 #' \dontrun{
 #'   n <- 100
@@ -65,6 +65,7 @@
   stopifnot(is.list(prior.phi), all(c("u", "alpha") %in% names(prior.phi)))
   n <- as.integer(n)
 
+  # Construct linear chain graph
   i_idx <- c(seq_len(n - 1), seq.int(2, n))
   j_idx <- c(seq.int(2, n), seq_len(n - 1))
   graph <- Matrix::sparseMatrix(i = i_idx, j = j_idx, x = 1, dims = c(n, n))
@@ -84,5 +85,6 @@
     )
   )
   class(ret) <- "inla.model.class"
-  return(ret)
+
+  ret
 }
