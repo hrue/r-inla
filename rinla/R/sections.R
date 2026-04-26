@@ -578,7 +578,7 @@ inla.parse.Bmatrix.test <- function() {
                     alpha = random.spec$hyper$theta2$param[2L],
                     scale.model = TRUE,
                     return.as.table = TRUE,
-                    adjust.for.con.comp = as.numeric(random.spec$adjust.for.con.comp)
+                    adjust.for.con.comp = random.spec$adjust.for.con.comp
                 )
                 random.spec$hyper$theta2$param <- numeric(0)
             } else if (inla.one.of(random.spec$model, "rw2diid")) {
