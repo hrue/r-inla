@@ -9,11 +9,6 @@
 #' `(0, 1)` controls the fraction of variance attributable to the structured
 #' RW1 component.
 #'
-#' Internally this is implemented as the existing `bym2` model on the linear
-#' chain graph `1 - 2 - 3 - ... - n`, whose graph Laplacian coincides with
-#' the RW1 structure matrix. All `bym2` machinery (PC prior on `phi`, hyper
-#' overrides, posterior tooling) applies unchanged.
-#'
 #' Both hyperparameters use PC priors. The PC prior on `tau` is the standard
 #' [`inla.pc.dprec()`] prior, parameterised by `(u, alpha)` such that
 #' `P(1/sqrt(tau) > u) = alpha`. The PC prior on `phi` is the adaptive prior

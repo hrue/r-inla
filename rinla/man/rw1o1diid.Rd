@@ -34,11 +34,6 @@ The \code{tau} parameter controls the total marginal precision and \code{phi} in
 RW1 component.
 }
 \details{
-Internally this is implemented as the existing \code{bym2} model on the linear
-chain graph \code{1 - 2 - 3 - ... - n}, whose graph Laplacian coincides with
-the RW1 structure matrix. All \code{bym2} machinery (PC prior on \code{phi}, hyper
-overrides, posterior tooling) applies unchanged.
-
 Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
 \code{\link[=inla.pc.dprec]{inla.pc.dprec()}} prior, parameterised by \verb{(u, alpha)} such that
 \code{P(1/sqrt(tau) > u) = alpha}. The PC prior on \code{phi} is the adaptive prior
