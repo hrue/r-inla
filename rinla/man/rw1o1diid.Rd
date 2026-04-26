@@ -72,5 +72,5 @@ computed by \code{bym2} from the chain-graph Laplacian (see
 \code{\link[=f]{f()}}, \code{inla.doc("bym2")}
 }
 \author{
-Antonio Vargas
+Antonio R. Vargas
 }

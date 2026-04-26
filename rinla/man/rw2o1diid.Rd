@@ -51,6 +51,14 @@ Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
 eigenvalues of the scaled RW2 structure matrix using the same KLD-based
 derivation as \code{bym2} (see \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}), parameterised by
 \verb{(u, alpha)} such that \code{P(phi < u) = alpha}.
+
+Because this model is implemented as an rgeneric, INLA reports the
+hyperparameter marginals on the internal scale: \code{theta_1 = log(tau)}
+(named \code{"log precision for <label>"}) and \code{theta_2 = logit(phi)}
+(named \code{"logit phi for <label>"}), where \verb{<label>} is the is the variable
+name passed as the first argument to f() (e.g. "time" for f(time, ...)).
+To obtain marginals for \code{tau} and \code{phi} on the user scale, use
+\code{\link[=inla.rw2o1diid.hyperpar]{inla.rw2o1diid.hyperpar()}}.
 }
 \examples{
 \dontrun{
@@ -77,11 +85,17 @@ derivation as \code{bym2} (see \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}
     ) - 1,
     data = data.frame(y, time)
   )
+
+  ## user-scale tau and phi marginals
+  hp <- inla.rw2o1diid.hyperpar(r, "time")
+  inla.zmarginal(hp$tau)
+  inla.zmarginal(hp$phi)
 }
 }
 \seealso{
-\code{\link[=f]{f()}}, \code{\link[=inla.rgeneric.define]{inla.rgeneric.define()}}, \code{inla.doc("bym2")}
+\code{\link[=f]{f()}}, \code{\link[=inla.rw2o1diid.hyperpar]{inla.rw2o1diid.hyperpar()}},
+\code{\link[=inla.rgeneric.define]{inla.rgeneric.define()}}, \code{inla.doc("bym2")}
 }
 \author{
-Antonio Vargas
+Antonio R. Vargas
 }
