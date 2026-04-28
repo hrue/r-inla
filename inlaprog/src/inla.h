@@ -2470,6 +2470,9 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
+void inla_cgeneric_mapper_list(FILE *fp);
+inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
+
 /* 
 ***
 */
