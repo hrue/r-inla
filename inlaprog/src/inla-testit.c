@@ -5988,7 +5988,9 @@ int testit(int argc, char **argv)
 				yy[i] = x[map[i]];
 			}
 			tref_simple[0] += GMRFLib_timer();
-			assert(y[0] == yy[0]);
+			for (int i = 0; i < n; i++) {
+				assert(y[i] == yy[i]);
+			}
 
 			tref[1] -= GMRFLib_timer();
 			GMRFLib_unpack(n, x, y, map);
@@ -5999,7 +6001,9 @@ int testit(int argc, char **argv)
 				yy[map[i]] = x[i];
 			}
 			tref_simple[1] += GMRFLib_timer();
-			assert(yy[0] == y[0]);
+			for (int i = 0; i < n; i++) {
+				assert(y[i] == yy[i]);
+			}
 		}
 		printf("pack             %.6f\n", tref[0]);
 		printf("pack (simple)    %.6f\n", tref_simple[0]);
