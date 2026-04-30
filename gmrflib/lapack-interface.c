@@ -1670,8 +1670,9 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
+	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
 	if (n == 16) {
 #if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
