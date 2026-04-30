@@ -6,7 +6,6 @@ for p in *; do
 	echo -e "\n\tProcess package [$p]\n"
 	(
 	    cd $p
-	    make clean
 	    make download
 	    find . -name cgeneric.h | while read f; do  mv -vf "$f" "$f"-disabled; done
 	    make build "$@"
