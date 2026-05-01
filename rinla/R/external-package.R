@@ -24,6 +24,9 @@
         stop("Unknown OS")
     }
 
-    fnm <- normalizePath(paste0(fnm, "/external/", package, "/lib", package, ".so"))
-    return (if (file.exists(fnm)) fnm else NULL)
+    return (normalizePath(paste0(fnm, "/external/", package, "/lib", package, ".so"), mustWork = FALSE))
+
+    ## Old code:
+    ## fnm <- normalizePath(paste0(fnm, "/external/", package, "/lib", package, ".so"))
+    ## return (if (file.exists(fnm)) fnm else NULL)
 }
