@@ -1883,9 +1883,9 @@ __attribute__((optimize("O3")))
 void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__restrict y)
 {
 	// y[] = a[ia[]]
-#if defined(INLA_WITH_MKL)
+#if 0 && defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
-#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#elif 0 && defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 #       include "intrinsics/simde/pack-avx512f.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
@@ -1905,7 +1905,7 @@ __attribute__((optimize("O3")))
 void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__restrict iy)
 {
 	// y[iy[]] = a[]
-#if defined(INLA_WITH_MKL)
+#if 0 && defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
 #pragma omp simd
