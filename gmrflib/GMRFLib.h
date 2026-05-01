@@ -35,7 +35,9 @@
 
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
+# if !defined(_WIN32)
 #              define SIMDE_ENABLE_NATIVE_ALIASES
+#endif
 #              define SIMDE_FAST_MATH
 #              if !defined(_OPENMP)
 #                     define SIMDE_ENABLE_OPENMP
