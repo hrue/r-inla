@@ -1844,7 +1844,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.gammacountmean_E[i] < 0 || ds->data_observations.gammacountmean_T[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.gammacountmean_E[i] < 0 || ds->data_observations.gammacountmean_T[i] < 0.0
+				    || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gammacountmean data[%1d] (T,E,y) = (%g, %g, %g) is void\n", secname, i,
 							ds->data_observations.gammacountmean_T[i], ds->data_observations.gammacountmean_E[i],
 							ds->data_observations.y[i]);
@@ -13660,7 +13661,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			}
 			lt_dlerror();
 		}
-		
+
 		if (cgeneric_q) {
 			// this is a hack for `inla.cgeneric.q`. write out info and then exit.
 

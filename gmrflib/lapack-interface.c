@@ -1890,7 +1890,7 @@ void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__res
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/pack-avx2.h"
 #else
-#pragma omp simd
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -1908,7 +1908,7 @@ void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__re
 #if 0 && defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
-#pragma omp simd
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
