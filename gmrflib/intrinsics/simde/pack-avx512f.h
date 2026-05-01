@@ -1,14 +1,14 @@
 {
 	int i = 0;
-	for (; i + 7 < n; i += 8) {
-		simde__m256i v_ia = simde_mm256_loadu_si256((constsimde__m256i*)&ia[i]);
-		simde__m512d v_a = simde_mm512_i32gather_pd(a, v_ia, 8);
-		simde_mm512_storeu_pd(&y[i], v_a);
+	for (; i <= n - 16; i += 16) {
+		simde__m256i v_idx0 = simde_mm256_loadu_si256((const simde__m256i*)&idx[i]);
+		simde__m256i v_idx1 = simde_mm256_loadu_si256((const simde__m256i*)&idx[i + 8]);
+		simde__m512d v_val0 = simde_mm512_i32gather_pd(v_idx0, x, 8);
+		simde__m512d v_val1 = simde_mm512_i32gather_pd(v_idx1, x, 8);
+		simde_mm512_storeu_pd(&y[i], v_val0);
+		simde_mm512_storeu_pd(&y[i + 8], v_val1);
 	}
-	if (i < n) {
-		simde__mmask8 mask = (simde__mmask8)((1 << (n - i)) - 1);
-		simde__m256i v_ia = simde_mm256_maskz_loadu_epi32(0, mask, &ia[i]);
-		simde__m512d v_a = simde_mm512_mask_i32gather_pd(simde_mm512_setzero_pd(), mask, v_ia, a, 8);
-		simde_mm512_mask_storeu_pd(&y[i], mask, v_a);
+	for (; i < n; i++) {
+		y[i] = x[idx[i]];
 	}
 }
