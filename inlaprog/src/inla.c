@@ -7194,8 +7194,15 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:W")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:WC")) != -1) {
 		switch (opt) {
+		case 'C': 
+		{
+			printf("List of built-in models for 'cgeneric': \n");
+			inla_cgeneric_mapper_list(NULL);
+		}
+		break;
+		
 		case 'W':
 		{
 			disable_output = 1;
