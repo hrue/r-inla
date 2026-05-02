@@ -2,6 +2,11 @@ AR        = ar cr
 RANLIB    = ranlib
 RM        = rm -rf
 
+FFLAGS := $(subst -flax-vector-conversions,,$(FFLAGS))
+FFLAGS := $(subst -Wsign-compare,,$(FFLAGS))
+FFLAGS := $(subst -Wundef,,$(FFLAGS))
+FFLAGS := $(FFLAGS) -Wno-function-elimination -Wno-missing-include-dirs -Wno-unused-label -Wno-conversion -Wno-compare-reals -Wno-unused-dummy-argument
+
 default: all
 
 DIRSRC=src/

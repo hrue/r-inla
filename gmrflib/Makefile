@@ -40,6 +40,11 @@ INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
 LIBTAUCS = taucs/libtaucs.a
 
+FFLAGS := $(subst -flax-vector-conversions,,$(FFLAGS))
+FFLAGS := $(subst -Wsign-compare,,$(FFLAGS))
+FFLAGS := $(subst -Wundef,,$(FFLAGS))
+FFLAGS := $(FFLAGS) -Wno-function-elimination -Wno-missing-include-dirs -Wno-unused-label -Wno-conversion -Wno-compare-reals -Wno-unused-dummy-argument
+
 RM    = rm -f
 RMR   = rm -rf
 RMDIR = rmdir
