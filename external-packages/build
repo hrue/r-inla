@@ -2,7 +2,7 @@
 set -vx
 
 for p in *; do
-    if [ -d "$p" ]; then
+    if [ -d "$p" -a -f "$p/Makefile" ]; then
 	echo -e "\n\tProcess package [$p]\n"
 	(
 	    cd $p
