@@ -68,6 +68,15 @@ eigenvalues of the scaled RW2 structure matrix using the same KLD-based
 derivation as \code{bym2} (see \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}), parameterised by
 \verb{(u, alpha)} such that \code{P(phi < u) = alpha}.
 
+Note that \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}} derives the PC prior on \code{phi} from the
+KLD geometry of BYM2's \emph{variance-mixture} model, whereas our model is a
+\emph{precision-mixture} (see above). The two KLD curves agree at \code{phi = 0}
+and approximately at \code{phi = 1} but differ in the interior, so the
+\verb{(u, alpha)} calibration \code{P(phi < u) = alpha} is only approximate under
+our parameterisation. A self-consistent prior would require re-deriving
+and re-tabulating the KLD-based spline for the precision-mixture KLD;
+the BYM2 prior is used here as a sensible close-enough option.
+
 Because this model is implemented as an rgeneric, INLA reports the
 hyperparameter marginals on the internal scale under generic names:
 \code{"Theta1 for <label>"} is \code{log(tau)} and \code{"Theta2 for <label>"} is

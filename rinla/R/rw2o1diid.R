@@ -32,6 +32,15 @@
 #' derivation as `bym2` (see [`inla.pc.bym.phi()`]), parameterised by
 #' `(u, alpha)` such that `P(phi < u) = alpha`.
 #'
+#' Note that [`inla.pc.bym.phi()`] derives the PC prior on `phi` from the
+#' KLD geometry of BYM2's *variance-mixture* model, whereas our model is a
+#' *precision-mixture* (see above). The two KLD curves agree at `phi = 0`
+#' and approximately at `phi = 1` but differ in the interior, so the
+#' `(u, alpha)` calibration `P(phi < u) = alpha` is only approximate under
+#' our parameterisation. A self-consistent prior would require re-deriving
+#' and re-tabulating the KLD-based spline for the precision-mixture KLD;
+#' the BYM2 prior is used here as a sensible close-enough option.
+#'
 #' Because this model is implemented as an rgeneric, INLA reports the
 #' hyperparameter marginals on the internal scale under generic names:
 #' `"Theta1 for <label>"` is `log(tau)` and `"Theta2 for <label>"` is
