@@ -12,7 +12,21 @@
 #' @export inla.external.lib
 `inla.external.lib` <- function(package) {
     package <- as.character(substitute(package))
-    fnm <- normalizePath(paste0(dirname(inla.call.builtin()), "/external/",
-                                package, "/lib", package, ".so"))
-    return (if (file.exists(fnm)) fnm else NULL)
+    if (inla.os("mac")) {
+        fnm <- system.file(paste0("bin/mac/", inla.os.32or64bit(), "bit"), package = "INLA")
+    } else if (inla.os("mac.arm64")) {
+        fnm <- system.file(paste0("bin/mac.arm64/", inla.os.32or64bit(), "bit"), package = "INLA")
+    } else if (inla.os("linux")) {
+        fnm <- system.file(paste0("bin/linux/", inla.os.32or64bit(), "bit"), package = "INLA")
+    } else if (inla.os("windows")) {
+        fnm <- system.file(paste0("bin/windows/", inla.os.32or64bit(), "bit"), package = "INLA")
+    } else {
+        stop("Unknown OS")
+    }
+
+    return (normalizePath(paste0(fnm, "/external/", package, "/lib", package, ".so"), mustWork = FALSE))
+
+    ## Old code:
+    ## fnm <- normalizePath(paste0(fnm, "/external/", package, "/lib", package, ".so"))
+    ## return (if (file.exists(fnm)) fnm else NULL)
 }

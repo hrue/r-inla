@@ -2357,8 +2357,8 @@ int loglikelihood_logperiodogram(int thread_id, int *lcache_idx, double *logll, 
 int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *));
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *));
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2469,6 +2469,9 @@ int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
+
+void inla_cgeneric_mapper_list(FILE * fp);
+inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
 
 /* 
 ***

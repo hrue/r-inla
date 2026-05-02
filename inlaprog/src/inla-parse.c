@@ -1844,7 +1844,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.gammacountmean_E[i] < 0 || ds->data_observations.gammacountmean_T[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.gammacountmean_E[i] < 0 || ds->data_observations.gammacountmean_T[i] < 0.0
+				    || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gammacountmean data[%1d] (T,E,y) = (%g, %g, %g) is void\n", secname, i,
 							ds->data_observations.gammacountmean_T[i], ds->data_observations.gammacountmean_E[i],
 							ds->data_observations.y[i]);
@@ -13636,23 +13637,30 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			lt_dlerror();
 		}
 
-		handle = lt_dlopen(cgeneric_shlib);
-		if (!handle) {
-			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
-			inla_error_general(msg);
-			assert(0 != 1);
-			exit(1);
-		}
-		lt_dlerror();
+		model_func = inla_cgeneric_mapper(cgeneric_model);
+		if (model_func) {
+			if (mb->verbose) {
+				printf("\t\tModel [%s] is built-in, ignore [%s]\n", cgeneric_model, cgeneric_shlib);
+			}
+		} else {
+			handle = lt_dlopen(cgeneric_shlib);
+			if (!handle) {
+				GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			lt_dlerror();
 
-		model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
-		if ((emsg = lt_dlerror())) {
-			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
-			inla_error_general(msg);
-			assert(0 != 1);
-			exit(1);
+			model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
+			if ((emsg = lt_dlerror())) {
+				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			lt_dlerror();
 		}
-		lt_dlerror();
 
 		if (cgeneric_q) {
 			// this is a hack for `inla.cgeneric.q`. write out info and then exit.
