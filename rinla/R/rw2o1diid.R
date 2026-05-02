@@ -1,13 +1,29 @@
 #' 1D Second-order random walk plus iid noise (BYM2-style parameterisation)
 #'
 #' Convenience constructor for a 1D second-order random walk mixed with iid
-#' noise, using the BYM2-style `(tau, phi)` parameterisation. The latent
+#' noise, using a BYM2-style `(tau, phi)` parameterisation. The latent
 #' field has precision
 #' \deqn{Q(\tau, \phi) = \tau \, \bigl( \phi \, R + (1-\phi)\, I \bigr),}
-#' where `R` is the RW2 structure matrix scaled to generalised variance one
-#' and `I` is the identity. The `tau` parameter controls the total marginal
-#' precision and `phi` in `(0, 1)` controls the fraction of variance
-#' attributable to the structured RW2 component.
+#' where `R` is the RW2 structure matrix scaled so that the geometric mean
+#' of the diagonal of its (Moore-Penrose) pseudoinverse is one, and `I` is
+#' the identity. The `tau` parameter controls the overall precision of the
+#' field and `phi` in `(0, 1)` controls the relative weight of the
+#' structured RW2 component vs. the iid component.
+#'
+#' Note that this is a *precision-mixture* parameterisation, which is not
+#' exactly equivalent to BYM2's *variance-mixture* parameterisation. BYM2
+#' constructs the field as
+#' \deqn{b = \tau^{-1/2}\bigl(\sqrt{\phi}\, u + \sqrt{1-\phi}\, v\bigr),}
+#' so that the marginal variance of `b` is exactly `(1/tau)` and `phi` is
+#' exactly the fraction of marginal variance contributed by the structured
+#' component `u`. The two parameterisations agree at `phi = 0` and (under
+#' the scaling above) approximately at `phi = 1`, but differ in the
+#' interior: under our `Q`, the marginal variance of the field is only
+#' approximately `1/tau`, and `phi` is only approximately the
+#' structured-variance fraction. The precision-mixture form is used here
+#' because it admits a single n-dimensional latent representation suitable
+#' for `rgeneric`, whereas the variance-mixture form requires a 2n latent
+#' space (which is what `bym2` uses internally).
 #'
 #' Both hyperparameters use PC priors. The PC prior on `tau` is the standard
 #' [`inla.pc.dprec()`] prior, parameterised by `(u, alpha)` such that

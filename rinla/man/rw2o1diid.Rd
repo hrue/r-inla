@@ -36,15 +36,31 @@ argument to \code{\link[=f]{f()}}.
 }
 \description{
 Convenience constructor for a 1D second-order random walk mixed with iid
-noise, using the BYM2-style \verb{(tau, phi)} parameterisation. The latent
+noise, using a BYM2-style \verb{(tau, phi)} parameterisation. The latent
 field has precision
 \deqn{Q(\tau, \phi) = \tau \, \bigl( \phi \, R + (1-\phi)\, I \bigr),}
-where \code{R} is the RW2 structure matrix scaled to generalised variance one
-and \code{I} is the identity. The \code{tau} parameter controls the total marginal
-precision and \code{phi} in \verb{(0, 1)} controls the fraction of variance
-attributable to the structured RW2 component.
+where \code{R} is the RW2 structure matrix scaled so that the geometric mean
+of the diagonal of its (Moore-Penrose) pseudoinverse is one, and \code{I} is
+the identity. The \code{tau} parameter controls the overall precision of the
+field and \code{phi} in \verb{(0, 1)} controls the relative weight of the
+structured RW2 component vs. the iid component.
 }
 \details{
+Note that this is a \emph{precision-mixture} parameterisation, which is not
+exactly equivalent to BYM2's \emph{variance-mixture} parameterisation. BYM2
+constructs the field as
+\deqn{b = \tau^{-1/2}\bigl(\sqrt{\phi}\, u + \sqrt{1-\phi}\, v\bigr),}
+so that the marginal variance of \code{b} is exactly \code{(1/tau)} and \code{phi} is
+exactly the fraction of marginal variance contributed by the structured
+component \code{u}. The two parameterisations agree at \code{phi = 0} and (under
+the scaling above) approximately at \code{phi = 1}, but differ in the
+interior: under our \code{Q}, the marginal variance of the field is only
+approximately \code{1/tau}, and \code{phi} is only approximately the
+structured-variance fraction. The precision-mixture form is used here
+because it admits a single n-dimensional latent representation suitable
+for \code{rgeneric}, whereas the variance-mixture form requires a 2n latent
+space (which is what \code{bym2} uses internally).
+
 Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
 \code{\link[=inla.pc.dprec]{inla.pc.dprec()}} prior, parameterised by \verb{(u, alpha)} such that
 \code{P(1/sqrt(tau) > u) = alpha}. The PC prior on \code{phi} is computed from the
