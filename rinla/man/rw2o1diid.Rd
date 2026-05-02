@@ -53,12 +53,11 @@ derivation as \code{bym2} (see \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}
 \verb{(u, alpha)} such that \code{P(phi < u) = alpha}.
 
 Because this model is implemented as an rgeneric, INLA reports the
-hyperparameter marginals on the internal scale: \code{theta_1 = log(tau)}
-(named \code{"log precision for <label>"}) and \code{theta_2 = logit(phi)}
-(named \code{"logit phi for <label>"}), where \verb{<label>} is the is the variable
-name passed as the first argument to f() (e.g. "time" for f(time, ...)).
-To obtain marginals for \code{tau} and \code{phi} on the user scale, use
-\code{\link[=inla.rw2o1diid.hyperpar]{inla.rw2o1diid.hyperpar()}}.
+hyperparameter marginals on the internal scale under generic names:
+\code{"Theta1 for <label>"} is \code{log(tau)} and \code{"Theta2 for <label>"} is
+\code{logit(phi)}, where \verb{<label>} is the variable name passed as the first
+argument to f() (e.g. "time" for f(time, ...)). To obtain marginals
+for \code{tau} and \code{phi} on the user scale, use \code{\link[=inla.rw2o1diid.hyperpar]{inla.rw2o1diid.hyperpar()}}.
 }
 \examples{
 \dontrun{

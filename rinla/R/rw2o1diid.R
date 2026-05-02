@@ -17,12 +17,11 @@
 #' `(u, alpha)` such that `P(phi < u) = alpha`.
 #'
 #' Because this model is implemented as an rgeneric, INLA reports the
-#' hyperparameter marginals on the internal scale: `theta_1 = log(tau)`
-#' (named `"log precision for <label>"`) and `theta_2 = logit(phi)`
-#' (named `"logit phi for <label>"`), where `<label>` is the is the variable
-#' name passed as the first argument to f() (e.g. "time" for f(time, ...)).
-#' To obtain marginals for `tau` and `phi` on the user scale, use
-#' [`inla.rw2o1diid.hyperpar()`].
+#' hyperparameter marginals on the internal scale under generic names:
+#' `"Theta1 for <label>"` is `log(tau)` and `"Theta2 for <label>"` is
+#' `logit(phi)`, where `<label>` is the variable name passed as the first
+#' argument to f() (e.g. "time" for f(time, ...)). To obtain marginals
+#' for `tau` and `phi` on the user scale, use [`inla.rw2o1diid.hyperpar()`].
 #'
 #' @param n Integer. Length of the chain. Must be `>= 5` (the minimum size
 #'     for which RW2 is well-defined).
@@ -107,7 +106,7 @@
     function(phi) f(phi)
   })
 
-  rmodel <- inla.rgeneric.define(
+  inla.rgeneric.define(
     model = inla.rw2o1diid.model,
     debug = debug,
     n = n,
@@ -117,16 +116,6 @@
     prior_u_tau = prior.tau$u,
     prior_alpha_tau = prior.tau$alpha
   )
-
-  # Internal-scale names for the hyperparameter output. INLA appends
-  # " for <label>" (where <label> is the f() term name) and capitalises
-  # the first letter, so these render as e.g. "log precision for time".
-  rmodel$f$hyper <- list(
-    theta1 = list(name = "log precision"),
-    theta2 = list(name = "logit phi")
-  )
-
-  rmodel
 }
 
 #' @rdname rw2o1diid
@@ -201,8 +190,9 @@
 #' Extract user-scale hyperparameter marginals for an `inla.rw2o1diid` term
 #'
 #' INLA reports `inla.rw2o1diid` hyperparameter marginals on the internal
-#' (rgeneric) scale: `theta_1 = log(tau)` and `theta_2 = logit(phi)`. This
-#' helper transforms them back to the user scale via [`inla.tmarginal()`],
+#' (rgeneric) scale under generic names: `"Theta1 for <label>"` is
+#' `log(tau)` and `"Theta2 for <label>"` is `logit(phi)`. This helper
+#' transforms them back to the user scale via [`inla.tmarginal()`],
 #' returning marginals for `tau` (the total marginal precision) and `phi`
 #' (the structured-variance fraction).
 #'
@@ -235,8 +225,8 @@
     hit <- hp_names[tolower(hp_names) == target]
     if (length(hit) != 1) NULL else hit
   }
-  key_tau <- find_one("log precision")
-  key_phi <- find_one("logit phi")
+  key_tau <- find_one("Theta1")
+  key_phi <- find_one("Theta2")
   if (is.null(key_tau) || is.null(key_phi)) {
     stop(sprintf(
       "Could not find rw2o1diid hyperparameter marginals for term '%s'. Available names: %s",

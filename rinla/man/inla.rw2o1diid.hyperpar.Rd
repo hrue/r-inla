@@ -20,8 +20,9 @@ A named list with elements \code{tau} and \code{phi}, each an
 }
 \description{
 INLA reports \code{inla.rw2o1diid} hyperparameter marginals on the internal
-(rgeneric) scale: \code{theta_1 = log(tau)} and \code{theta_2 = logit(phi)}. This
-helper transforms them back to the user scale via \code{\link[=inla.tmarginal]{inla.tmarginal()}},
+(rgeneric) scale under generic names: \code{"Theta1 for <label>"} is
+\code{log(tau)} and \code{"Theta2 for <label>"} is \code{logit(phi)}. This helper
+transforms them back to the user scale via \code{\link[=inla.tmarginal]{inla.tmarginal()}},
 returning marginals for \code{tau} (the total marginal precision) and \code{phi}
 (the structured-variance fraction).
 }
