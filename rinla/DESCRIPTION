@@ -198,6 +198,7 @@ Collate:
     'spmesh.R'
     'stack.R'
     'startup.R'
+    'stiles.utils.R'
     'summary.R'
     'surv.R'
     'upgrade.R'

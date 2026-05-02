@@ -262,7 +262,7 @@ int inla_output(inla_tp *mb)
 
 	if (mb->nf) {
 		int div = IMIN(GMRFLib_MAX_THREADS(), IMIN(4, mb->nf));
-		GMRFLib_openmp_implement_strategy_special(div, GMRFLib_MAX_THREADS() / div);
+		GMRFLib_openmp_implement_strategy_special(div, IMAX(1, GMRFLib_MAX_THREADS() / div));
 #pragma omp parallel for num_threads(div)
 		for (int ii = 0; ii < mb->nf; ii++) {
 			int offset = offsets[ii + 1];
@@ -334,9 +334,9 @@ int inla_output(inla_tp *mb)
 
 	if (div <= GMRFLib_MAX_THREADS()) {
 		div = IMAX(1, div / 2);
-		GMRFLib_openmp_implement_strategy_special(div, GMRFLib_MAX_THREADS() / div);
+		GMRFLib_openmp_implement_strategy_special(div, IMAX(1, GMRFLib_MAX_THREADS() / div));
 	} else {
-		GMRFLib_openmp_implement_strategy_special(GMRFLib_MAX_THREADS() / 4, 4);
+		GMRFLib_openmp_implement_strategy_special(IMAX(1, GMRFLib_MAX_THREADS() / 4), 4);
 	}
 
 #pragma omp parallel for num_threads(div)

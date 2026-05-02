@@ -1,3 +1,8 @@
+FFLAGS := $(subst -flax-vector-conversions,,$(FFLAGS))
+FFLAGS := $(subst -Wsign-compare,,$(FFLAGS))
+FFLAGS := $(subst -Wundef,,$(FFLAGS))
+FFLAGS := $(FFLAGS) -Wno-function-elimination -Wno-missing-include-dirs -Wno-unused-label -Wno-conversion -Wno-compare-reals -Wno-unused-dummy-argument
+
 OBJ = amd/src/amd_1.o \
     amd/src/amd_2.o \
     amd/src/amd_aat.o \

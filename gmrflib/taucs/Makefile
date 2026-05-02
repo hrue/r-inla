@@ -6,6 +6,11 @@ AR = ar
 RANLIB = ranlib
 LIBNAME = libtaucs.a
 
+FFLAGS := $(subst -flax-vector-conversions,,$(FFLAGS))
+FFLAGS := $(subst -Wsign-compare,,$(FFLAGS))
+FFLAGS := $(subst -Wundef,,$(FFLAGS))
+FFLAGS := $(FFLAGS) -Wno-function-elimination -Wno-missing-include-dirs -Wno-unused-label -Wno-conversion -Wno-compare-reals -Wno-unused-dummy-argument
+
 LIBOBJ = obj/amdatr.o obj/amdbarNEW.o obj/amdbar.o obj/amdexa.o \
 	obj/amdhaf.o obj/amdhat.o obj/amdNEW.o obj/amdpre.o obj/amdtru.o \
 	obj/colamd.o obj/genmmd.o obj/readhb.o obj/taucs_ccs_base_D.o \

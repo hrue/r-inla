@@ -1670,8 +1670,9 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_ddot2(double *a, double *b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
 {
+	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
 	if (n == 16) {
 #if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
@@ -1879,12 +1880,17 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *a, int *ia, double *y)
+void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__restrict y)
 {
 	// y[] = a[ia[]]
-#if defined(INLA_WITH_MKL)
+#if 0 && defined(INLA_WITH_MKL)
 	vdPackV(n, a, ia, y);
+#elif 0 && defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+#       include "intrinsics/simde/pack-avx512f.h"
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#       include "intrinsics/simde/pack-avx2.h"
 #else
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -1896,12 +1902,13 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_unpack(int n, double *a, double *y, int *iy)
+void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__restrict iy)
 {
 	// y[iy[]] = a[]
-#if defined(INLA_WITH_MKL)
+#if 0 && defined(INLA_WITH_MKL)
 	vdUnpackV(n, a, y, iy);
 #else
+#       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}

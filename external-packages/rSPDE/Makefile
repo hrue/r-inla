@@ -1,3 +1,4 @@
 download :; git clone --branch inla --single-branch git@github.com:davidbolin/rSPDE.git
-clean :; rm -rf rSPDE; make -C build clean
-
+build :;  make -C rSPDE/src -f ../../../Makefile.generic CC="$(CC)" CXX="$(CXX)" FC="$(FC)" FLAGS="$(FLAGS)" INC="$(INC)"
+clean :; rm -rf rSPDE
+.PHONY: download build clean

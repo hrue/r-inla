@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+h="cgeneric-table.h"
+hh="cgeneric-defs.h"
+test -f "$h" && rm -f "$h"
+test -f "$hh" && rm -f "$hh"
+{
+    for f in $(find . -name FUNCTIONS); do
+	if [ -f "$f" ]; then 
+	    echo Process $f >&2 
+	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		sort | uniq | tr -d ';' | \
+		awk '/^[ \t]*#/ {next}
+    	    { print "{ \"" $1 "\", (inla_cgeneric_func_tp *) " $1 " }," }'
+	fi
+    done
+} | sort | uniq > $h
+
+{
+    for f in $(find . -name FUNCTIONS); do
+	if [ -f "$f"
+	   ]; then 
+	    echo Process $f >&2 
+	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		sort | uniq | tr -d ';' | \
+		awk '/^[ \t]*#/ {next}
+    	    { print "inla_cgeneric_func_tp " $1 ";" }'
+	fi
+    done
+} | sort | uniq > $hh
