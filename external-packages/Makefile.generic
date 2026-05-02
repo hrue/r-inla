@@ -1,5 +1,5 @@
-CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic $(INC)
-CXXFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  -fpic $(INC)
+CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  $(INC)
+CXXFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp  $(INC)
 OBJC = $(patsubst %.c,%.o,$(wildcard *.c))
 OBJCXX = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 all : $(OBJC) $(OBJCXX)
