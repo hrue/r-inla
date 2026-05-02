@@ -41,7 +41,7 @@
 #' \dontrun{
 #'   n <- 100
 #'   time <- 1:n
-#'   x <- cumsum(rnorm(n, sd = 0.3)) + rnorm(n, sd = 1)
+#'   y <- cumsum(rnorm(n, sd = 0.3)) + rnorm(n, sd = 1)
 #'
 #'   ## defaults: PC prior on tau with (u, alpha) = (1, 0.01)
 #'   ## and on phi with (u, alpha) = (0.5, 0.5)
