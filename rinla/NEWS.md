@@ -1,3 +1,8 @@
+# INLA 26.05.02
+* External packages are now built-in (due to Mac 'new features')
+* Fixed a regression in SIMDe
+* Code cleanup
+
 # INLA 26.04.26
 * Merge PR #120 fixing a regression
 
