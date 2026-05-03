@@ -131,7 +131,7 @@
     function(phi) f(phi)
   })
 
-  inla.rgeneric.define(
+  rmodel <- inla.rgeneric.define(
     model = inla.rw2o1diid.model,
     debug = debug,
     n = n,
@@ -141,6 +141,17 @@
     prior_u_tau = prior.tau$u,
     prior_alpha_tau = prior.tau$alpha
   )
+
+  # Sum-to-zero constraint on the latent field. This matches what bym2 and
+  # the built-in rw2 do: the constant null mode of R is constrained out
+  # (otherwise tau's interpretation as overall precision drifts as phi -> 1
+  # because the constant null direction inflates the marginal variance).
+  rmodel$f$extraconstr <- list(
+    A = matrix(1, nrow = 1, ncol = n),
+    e = 0
+  )
+
+  rmodel
 }
 
 #' @rdname rw2o1diid
