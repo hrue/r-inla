@@ -7285,13 +7285,34 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restri
 			double ly = LOG_p(y);
 			double l1my = LOG_1mp(y);
 			for (int i = 0; i < m; i++) {
+				// need to protect it, as otherwise it can go nuts
 				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
-				double a = mu * phi;
-				double b = -mu * phi + phi;
-				double llbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
-				logll[i] = log(low - high) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+				double diff = DMAX(FLT_EPSILON, low - high);
+				double a = DMAX(FLT_EPSILON, mu * phi);
+				double b = DMAX(FLT_EPSILON, -mu * phi + phi);
+				double llbeta = ((DMIN(a, b) < FLT_EPSILON) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
+				logll[i] = log(diff) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+#if 0
+				if (ISNAN(logll[i]) || ISINF(logll[i])) {
+					P(i);
+					P(k1);
+					P(k2);
+					P(phi);
+					P(x[i]);
+					P(logll[i]);
+					P(ly);
+					P(l1my);
+					P(mu);
+					P(low);
+					P(high);
+					P(low - high);
+					P(a);
+					P(b);
+					P(llbeta);
+				}
+#endif
 			}
 		}
 	} else {
