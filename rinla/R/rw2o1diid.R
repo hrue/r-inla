@@ -28,18 +28,9 @@
 #' Both hyperparameters use PC priors. The PC prior on `tau` is the standard
 #' [`inla.pc.dprec()`] prior, parameterised by `(u, alpha)` such that
 #' `P(1/sqrt(tau) > u) = alpha`. The PC prior on `phi` is computed from the
-#' eigenvalues of the scaled RW2 structure matrix using the same KLD-based
-#' derivation as `bym2` (see [`inla.pc.bym.phi()`]), parameterised by
-#' `(u, alpha)` such that `P(phi < u) = alpha`.
-#'
-#' Note that [`inla.pc.bym.phi()`] derives the PC prior on `phi` from the
-#' KLD geometry of BYM2's *variance-mixture* model, whereas our model is a
-#' *precision-mixture* (see above). The two KLD curves agree at `phi = 0`
-#' and approximately at `phi = 1` but differ in the interior, so the
-#' `(u, alpha)` calibration `P(phi < u) = alpha` is only approximate under
-#' our parameterisation. A self-consistent prior would require re-deriving
-#' and re-tabulating the KLD-based spline for the precision-mixture KLD;
-#' the BYM2 prior is used here as a sensible close-enough option.
+#' KLD between the precision-mixture flexible model and the iid base model
+#' (see [`inla.pc.rw2o1diid.phi()`]), parameterised by `(u, alpha)` such
+#' that `P(phi < u) = alpha`.
 #'
 #' Because this model is implemented as an rgeneric, INLA reports the
 #' hyperparameter marginals on the internal scale under generic names:
@@ -108,25 +99,18 @@
   ####
   # Build the phi PC log-prior
 
-  # Calculate variance components of the random walk
   R_scaled <- inla.rw(n, order = 2, scale.model = TRUE, sparse = TRUE)
-  R_dense <- as.matrix(R_scaled)
-  eig_R <- pmax(0, eigen(R_dense, symmetric = TRUE, only.values = TRUE)$values)
-  marg_var <- diag(inla.ginv(R_dense, rankdef = 2))
+  eig_R <- pmax(
+    0,
+    eigen(as.matrix(R_scaled), symmetric = TRUE, only.values = TRUE)$values
+  )
 
-  # - inla.pc.bym.phi() with return.as.table = FALSE returns a cubic-spline
-  #   closure giving log-density on the external phi scale
-  # - local() trims the captured environment to just the spline fun
+  # local() trims the captured environment to just the spline fun
   prior_phi_fn <- local({
-    f <- inla.pc.bym.phi(
+    f <- inla.pc.rw2o1diid.phi(
       eigenvalues = eig_R,
-      marginal.variances = marg_var,
-      rankdef = 2, # 2nd order RW has nullity 2
       u = prior.phi$u,
-      alpha = prior.phi$alpha,
-      scale.model = TRUE,
-      return.as.table = FALSE,
-      adjust.for.con.comp = TRUE
+      alpha = prior.phi$alpha
     )
     function(phi) f(phi)
   })
@@ -274,4 +258,137 @@
     tau = inla.tmarginal(exp, result$marginals.hyperpar[[key_tau]]),
     phi = inla.tmarginal(plogis, result$marginals.hyperpar[[key_phi]])
   )
+}
+
+#' PC prior on phi for the rw2o1diid (precision-mixture) model
+#'
+#' Builds the penalised-complexity prior on the mixing parameter `phi` of an
+#' `inla.rw2o1diid` term. The flexible model has covariance
+#' \deqn{\Sigma(\phi) = \tau^{-1}\bigl(\phi R + (1-\phi) I\bigr)^{-1}}
+#' and the base model is `phi = 0` (pure iid with covariance `tau^{-1} I`).
+#' With `tau` held fixed, the Gaussian KLD between flexible and base reduces
+#' to
+#' \deqn{2\,\mathrm{KLD}(\phi) = \sum_i \frac{1}{\phi\lambda_i + (1-\phi)} - n + \sum_i \log\bigl(\phi\lambda_i + (1-\phi)\bigr),}
+#' where the `lambda_i` are the eigenvalues of `R` (including any zeros from
+#' the null space). The PC distance is `dist(phi) = sqrt(2*KLD(phi))`, and
+#' the prior on distance is `Exp(lambda)` with `lambda` chosen so that
+#' `P(phi < u) = alpha`.
+#'
+#' This is the precision-mixture analogue of [`inla.pc.bym.phi()`], which
+#' derives the PC prior from BYM2's *variance-mixture* KLD. The two priors
+#' agree at `phi = 0` and approximately at `phi = 1`, but differ in the
+#' interior.
+#'
+#' @param eigenvalues Numeric vector of eigenvalues of the (scaled) RW2
+#'     structure matrix `R`, including any zeros from the null space.
+#' @param u,alpha Calibration parameters for the PC prior on `phi`, such
+#'     that `P(phi < u) = alpha`. Both must lie strictly in `(0, 1)`.
+#' @param return.as.table Currently unused; retained for parity with
+#'     [`inla.pc.bym.phi()`]. The function always returns a closure.
+#' @return A function of one argument `phi` returning the log-density of the
+#'     PC prior on `phi`, evaluated on `(0, 1)`.
+#' @seealso [`inla.rw2o1diid()`], [`inla.pc.bym.phi()`]
+`inla.pc.rw2o1diid.phi` <- function(
+  eigenvalues,
+  u,
+  alpha,
+  return.as.table = FALSE
+) {
+  stopifnot(alpha > 0, alpha < 1, u > 0, u < 1)
+
+  eigenvalues_minus_1 <- pmax(0, eigenvalues) - 1
+
+  # Algebraically equivalent to sum(1/w) - n + sum(log(w)) with
+  # w = phi*eig + (1-phi), but avoids the cancellation between sum(1/w) and n
+  # at small phi (and the log1p form is more accurate there too).
+  twice_kld <- function(phi) {
+    v <- phi * eigenvalues_minus_1
+    sum(-v / (1 + v)) + sum(log1p(v))
+  }
+
+  # Evaluate distance dist(phi) = sqrt(2*KLD) on a coarse logit-phi grid, then
+  # build a spline of log(dist) vs logit(phi) so we can resample/differentiate.
+  logit_phi_grid <- seq(-25, 25, length.out = 1000)
+  phi_grid <- plogis(logit_phi_grid)
+  dist_grid <- vapply(
+    phi_grid,
+    function(phi) {
+      val <- twice_kld(phi)
+      if (val >= 0) sqrt(val) else NA_real_
+    },
+    numeric(1)
+  )
+
+  good_idx <- !is.na(dist_grid)
+  dist_grid <- dist_grid[good_idx]
+  logit_phi_grid <- logit_phi_grid[good_idx]
+
+  log_dist_spline <- splinefun(logit_phi_grid, log(dist_grid))
+  dist_at_logit_phi <- function(logit_phi, deriv = 0) {
+    if (deriv == 0) {
+      exp(log_dist_spline(logit_phi))
+    } else if (deriv == 1) {
+      exp(log_dist_spline(logit_phi)) *
+        log_dist_spline(logit_phi, deriv = 1)
+    } else {
+      stop("deriv must be 0 or 1")
+    }
+  }
+  dist_at_phi <- function(phi) dist_at_logit_phi(qlogis(phi))
+
+  logit_phi_dense <- seq(
+    min(logit_phi_grid),
+    max(logit_phi_grid),
+    length.out = 10000
+  )
+  phi_dense <- plogis(logit_phi_dense)
+  dist_dense <- dist_at_phi(phi_dense)
+
+  # P(phi < u) = P(dist < dist(u)) = 1 - exp(-lambda * dist(u)) = alpha,
+  # so lambda = -log(1 - alpha) / dist(u).
+  lambda <- -log(1 - alpha) / dist_at_phi(u)
+
+  # log p(logit_phi) = log p(dist) + log|d(dist)/d(logit_phi)|
+  log_jacobian_logit <- log(abs(dist_at_logit_phi(logit_phi_dense, deriv = 1)))
+  log_prior_logit <- log(lambda) - lambda * dist_dense + log_jacobian_logit
+
+  # Renormalise so that the prior integrates to 1 over logit(phi).
+  trapezoid_weights <- (c(0, diff(logit_phi_dense)) +
+    c(diff(logit_phi_dense), 0)) /
+    2
+  norm_const <- sum(exp(log_prior_logit) * trapezoid_weights)
+  log_prior_logit <- log_prior_logit - log(norm_const)
+
+  # https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+  log1pexp <- function(x) {
+    x_bins <- .bincode(x, c(-Inf, -37, 18, 33.3, Inf))
+
+    x_in_bin <- which(x_bins == 1)
+    if (length(x_in_bin) > 0) {
+      x[x_in_bin] <- exp(x[x_in_bin])
+    }
+
+    x_in_bin <- which(x_bins == 2)
+    if (length(x_in_bin) > 0) {
+      x[x_in_bin] <- log1p(exp(x[x_in_bin]))
+    }
+
+    x_in_bin <- which(x_bins == 3)
+    if (length(x_in_bin) > 0) {
+      x[x_in_bin] <- x[x_in_bin] + exp(-x[x_in_bin])
+    }
+
+    x
+  }
+
+  # Convert log prior to phi scale via Jacobian:
+  #   log p(phi) = log p(logit_phi) - log(phi*(1-phi))
+  #              = log p(logit_phi) + logit_phi + 2*log(1 + exp(-logit_phi))
+  log_prior_phi_spline <- splinefun(
+    logit_phi_dense,
+    log_prior_logit + logit_phi_dense + 2 * log1pexp(-logit_phi_dense)
+  )
+  log_prior_phi <- function(phi) log_prior_phi_spline(qlogis(phi))
+
+  log_prior_phi
 }

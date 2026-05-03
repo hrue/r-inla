@@ -64,18 +64,9 @@ space (which is what \code{bym2} uses internally).
 Both hyperparameters use PC priors. The PC prior on \code{tau} is the standard
 \code{\link[=inla.pc.dprec]{inla.pc.dprec()}} prior, parameterised by \verb{(u, alpha)} such that
 \code{P(1/sqrt(tau) > u) = alpha}. The PC prior on \code{phi} is computed from the
-eigenvalues of the scaled RW2 structure matrix using the same KLD-based
-derivation as \code{bym2} (see \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}), parameterised by
-\verb{(u, alpha)} such that \code{P(phi < u) = alpha}.
-
-Note that \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}} derives the PC prior on \code{phi} from the
-KLD geometry of BYM2's \emph{variance-mixture} model, whereas our model is a
-\emph{precision-mixture} (see above). The two KLD curves agree at \code{phi = 0}
-and approximately at \code{phi = 1} but differ in the interior, so the
-\verb{(u, alpha)} calibration \code{P(phi < u) = alpha} is only approximate under
-our parameterisation. A self-consistent prior would require re-deriving
-and re-tabulating the KLD-based spline for the precision-mixture KLD;
-the BYM2 prior is used here as a sensible close-enough option.
+KLD between the precision-mixture flexible model and the iid base model
+(see \code{\link[=inla.pc.rw2o1diid.phi]{inla.pc.rw2o1diid.phi()}}), parameterised by \verb{(u, alpha)} such
+that \code{P(phi < u) = alpha}.
 
 Because this model is implemented as an rgeneric, INLA reports the
 hyperparameter marginals on the internal scale under generic names:
