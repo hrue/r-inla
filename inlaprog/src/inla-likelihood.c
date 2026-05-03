@@ -7292,7 +7292,7 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restri
 				double diff = DMAX(FLT_EPSILON, low - high);
 				double a = DMAX(FLT_EPSILON, mu * phi);
 				double b = DMAX(FLT_EPSILON, -mu * phi + phi);
-				double llbeta = ((DMIN(a, b) < FLT_EPSILON) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
+				double llbeta = ((DMIN(a, b) <= FLT_EPSILON) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
 				logll[i] = log(diff) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 #if 0
 				if (ISNAN(logll[i]) || ISINF(logll[i])) {
