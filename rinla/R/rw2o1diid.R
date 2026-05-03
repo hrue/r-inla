@@ -308,7 +308,7 @@
 
   # Evaluate distance dist(phi) = sqrt(2*KLD) on a coarse logit-phi grid, then
   # build a spline of log(dist) vs logit(phi) so we can resample/differentiate.
-  logit_phi_grid <- seq(-25, 25, length.out = 1000)
+  logit_phi_grid <- seq(-30, 30, length.out = 1000)
   phi_grid <- plogis(logit_phi_grid)
   dist_grid <- vapply(
     phi_grid,
