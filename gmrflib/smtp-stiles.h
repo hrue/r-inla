@@ -107,8 +107,5 @@ void GMRFLib_stiles_unbind_group(int in_group);
 #       define GMRFLib_stiles_print_idx(a1_, a2_) GMRFLib_stiles_print_idx_(a1_, a2_ , __FILE__, __LINE__)
 
 
-// this function is not defined in 'stiles.h'
-int get_auto_tile_size(void);
-
 __END_DECLS
 #endif

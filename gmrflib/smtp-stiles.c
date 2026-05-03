@@ -794,7 +794,7 @@ GMRFLib_stiles_ctl_tp *GMRFLib_stiles_get_ctl(void)
 
 int GMRFLib_stiles_get_tile_size(void)
 {
-	return (ctl && ctl->param[1] > 0 ? ctl->param[1] : sTiles_get_auto_tile_size(0));
+	return (ctl && ctl->param[1] > 0 ? ctl->param[1] : sTiles_get_auto_tile_size());
 }
 
 int GMRFLib_stiles_get_block_size(void)
