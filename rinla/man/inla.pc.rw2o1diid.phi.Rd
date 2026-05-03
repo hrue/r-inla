@@ -42,3 +42,6 @@ interior.
 \seealso{
 \code{\link[=inla.rw2o1diid]{inla.rw2o1diid()}}, \code{\link[=inla.pc.bym.phi]{inla.pc.bym.phi()}}
 }
+\author{
+Antonio R. Vargas
+}

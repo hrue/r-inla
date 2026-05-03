@@ -287,6 +287,7 @@
 #'     [`inla.pc.bym.phi()`]. The function always returns a closure.
 #' @return A function of one argument `phi` returning the log-density of the
 #'     PC prior on `phi`, evaluated on `(0, 1)`.
+#' @author Antonio R. Vargas
 #' @seealso [`inla.rw2o1diid()`], [`inla.pc.bym.phi()`]
 `inla.pc.rw2o1diid.phi` <- function(
   eigenvalues,
