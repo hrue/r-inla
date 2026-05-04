@@ -887,7 +887,13 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph,
 				    GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
-	// if (nrhs > 1) P(nrhs);
+#if 0
+#define LIM 1000	
+	static double tref[LIM] = {0.0};
+	static int trefc[LIM] = {0};
+	if (nrhs < LIM) 
+		tref[nrhs] += -GMRFLib_timer();
+#endif
 
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
@@ -1011,6 +1017,15 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	}
 	GMRFLib_LEAVE_FUNCTION;
 
+#if 0
+	if (nrhs < LIM) {
+		tref[nrhs] += GMRFLib_timer();
+		trefc[nrhs]++;
+		printf("nrhs %d tref %g trefc %d tref/nrhs/trefc %g\n", nrhs, tref[nrhs], trefc[nrhs],
+		       tref[nrhs] / nrhs/trefc[nrhs]);
+	}
+#undef LIM	
+#endif	
 	return GMRFLib_SUCCESS;
 }
 
