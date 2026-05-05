@@ -28,11 +28,11 @@ __BEGIN_DECLS
 /* 
  */
 #       if __GNUC__ > 7
-typedef size_t fortran_charlen_t;
+#define FORTRAN_CHARLEN_T size_t
 #       else
-typedef int fortran_charlen_t;
+#define FORTRAN_CHARLEN_T int
 #       endif
-#       define F_ONE ((fortran_charlen_t)1)
+#       define F_ONE ((FORTRAN_CHARLEN_T)1)
 
 // see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
 #       ifdef __GNUC__
