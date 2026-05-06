@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+cfile=$(mktemp)
+cat > $cfile.c << 'EOF'
+#include <assert.h>
+void MKLMPI_Get_wrappers(void) {
+     assert(0==1 && "FIXME (Haavard Rue <hrue@r-inla.org>)");
+}
+EOF
+gcc -c -fpic $cfile.c -o $cfile.o
+
+MKL=/opt/intel/oneapi/mkl/latest/lib/intel64
+LIB=./libmkl-sequential-selection.so
+gcc -shared -o $LIB \
+    $cfile.o \
+    -Wl,--version-script=blas-sequential.map \
+    -Wl,--gc-sections \
+    -Wl,--whole-archive \
+    $MKL/libmkl_gf_lp64.a $MKL/libmkl_core.a $MKL/libmkl_sequential.a \
+    -Wl,--no-whole-archive
+
+for f in $cfile.c $cfile.o; do 
+    test -f $f && rm -f $f
+done
+ls -l  $LIB

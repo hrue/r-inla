@@ -20111,7 +20111,8 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 	}
 
-	GMRFLib_openmp->blas_num_threads_force = iniparser_getint(ini, inla_string_join(secname, "BLAS.NUM.THREADS"), 0);
+	GMRFLib_openmp->blas_num_threads_force = IMAX(0, iniparser_getint(ini, inla_string_join(secname, "BLAS.NUM.THREADS"),
+									  GMRFLib_openmp->blas_num_threads_force));
 	if (mb->verbose) {
 		printf("\t\t\tblas.num.threads=[%1d (%s)]\n", GMRFLib_openmp->blas_num_threads_force,
 		       (GMRFLib_openmp->blas_num_threads_force > 0 ? "fixed" : "adaptive"));
