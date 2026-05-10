@@ -83,7 +83,7 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 		abort();				       /* no reason to abort if ok */
 	}
 
-	return GMRFLib_SUCCESS;
+	return errorno;
 }
 
 int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg)

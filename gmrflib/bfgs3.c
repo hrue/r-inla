@@ -48,13 +48,10 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 		}
 	}
 
-	gsl_set_error_handler_off();
 	int err = bfgs3_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 	if (err == GSL_EMAXITER) {
 		assert(!err);
 	}
-	if (!GMRFLib_turn_off_gsl_error_handler)
-		gsl_set_error_handler(NULL);
 
 	gsl_vector *xx = gsl_vector_alloc(order);
 	gsl_vector_set(xx, 0, 1.0);

@@ -7163,8 +7163,10 @@ int main(int argc, char **argv)
 	GMRFLib_gaussian_data = 1;
 	GMRFLib_opt_solve = 0;
 	GMRFLib_opt_num_threads = 0;
-	GMRFLib_turn_off_gsl_error_handler = 1;
 
+	GMRFLib_set_error_handler(NULL);
+	gsl_set_error_handler_off();
+	
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */

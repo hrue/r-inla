@@ -202,9 +202,7 @@ typedef enum {
 #       define GMRFLib_EWRAP_GSL__intern(func_call, leave)			\
 	if (1){								\
 		int rrretval;						\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); \
 		rrretval = func_call;					\
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler); \
 		if (rrretval != GSL_SUCCESS){				\
 			char *msg;					\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library returned error-code [%1d]", rrretval), leave); \
@@ -215,9 +213,7 @@ typedef enum {
 	}
 #       define GMRFLib_EWRAP_GSL_PTR__intern(func_call, leave)			\
 	if (1){								\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); \
 		void *retval_ptr = (void *)(func_call);			\
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler); \
 		if (retval_ptr == NULL){				\
 			char *msg;					\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library call returned NULL-pointer"), leave); \
