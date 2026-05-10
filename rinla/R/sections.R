@@ -1849,6 +1849,16 @@ inla.parse.Bmatrix.test <- function() {
     stopifnot(length(ma) == 1 && any(ma == c(0, 16, 32, 64)))
     cat("memory.alignment =", ma, "\n", file = file, append = TRUE)
 
+    bnt <- 0
+    if (is.null(args$blas.num.threads)) {
+        bnt <- inla.getOption("blas.num.threads")
+        if (is.null(bnt))
+            bnt <- 0
+    } else {
+        bnt <- args$blas.num.threads
+    }
+    cat("blas.num.threads =", max(0, as.integer(bnt)), "\n", file = file, append = TRUE)
+    
     gconstr <- args$globalconstr
     if (!is.null(gconstr) && !is.null(gconstr$A)) {
 

@@ -24,7 +24,7 @@ int sTiles_create(void **obj, int num_call_groups, const int *calls_per_group, c
 int sTiles_create_expert(void **obj, int num_call_groups, const int *calls_per_group, const int *cores_per_group, const int *factor_type_per_group,
 			 const bool *get_inverse, const int *rhs, const int *arrowhead_size, const int *arrowhead_size_per_group,
 			 const int *user_params);
-int sTiles_get_auto_tile_size(int);
+int sTiles_get_auto_tile_size(void);
 int sTiles_get_control_param(int index);
 int sTiles_init(void **obj);
 int sTiles_init_group(int group_index, void **obj);

@@ -33,20 +33,18 @@ __BEGIN_DECLS
 #       define TAUCS_CONFIG_ORDERING
 #       define TAUCS_CONFIG_LLT
 #       if __GNUC__ > 7
-typedef size_t fortran_charlen_t;
+#              define FORTRAN_CHARLEN_T size_t
 #       else
-typedef int fortran_charlen_t;
+#              define FORTRAN_CHARLEN_T int
 #       endif
 #       if !defined(F_ONE)
-#              define F_ONE (fortran_charlen_t)1
+#              define F_ONE (FORTRAN_CHARLEN_T)1
 #       endif
-
 #       ifdef __GNUC__
 #              define POSSIBLY_UNUSED_FUNCTION(x) __attribute__((__unused__)) x
 #       else
 #              define POSSIBLY_UNUSED_FUNCTION(x) x
 #       endif
-
 #       pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IMAX) (int a, int b) {
 	return ((a) > (b) ? (a) : (b));
@@ -209,13 +207,13 @@ extern int genmmd_(int *, int *, int *, int *, int *, int *, int *, int *, int *
 #       include <math.h>
 #       include <float.h>
 
-extern int taucs_potrf(char *, int *, double *, int *, int *, fortran_charlen_t);
+extern int taucs_potrf(char *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
 extern int taucs_trsm(char *, char *, char *, char *,
 		      int *, int *, double *, double *, int *, double *, int *,
-		      fortran_charlen_t, fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
+		      FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 extern int taucs_gemm(char *, char *, int *, int *, int *,
-		      double *, double *, int *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
-extern int taucs_herk(char *, char *, int *, int *, double *, double *, int *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
+		      double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
+extern int taucs_herk(char *, char *, int *, int *, double *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 
 double taucs_blas_name(dnrm2) (int *, double *, int *);
 

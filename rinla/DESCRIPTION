@@ -73,7 +73,6 @@ BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
 Version: 25.07.11.9000
-RoxygenNote: 7.3.3
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
@@ -203,3 +202,4 @@ Collate:
     'utils.R'
     'version.R'
 Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

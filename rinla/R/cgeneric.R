@@ -2,9 +2,9 @@
 #' 
 #' A framework for defining latent models in C
 #' 
-#' 
 #' @aliases cgeneric cgeneric.define cgeneric.q inla.cgeneric.define
-#' inla.cgeneric.q
+#' @aliases inla.cgeneric.q
+#' 
 #' @param model The name of the model function
 #' @param cmodel The name of a cgeneric model-object (output from
 #' `inla.cgeneric.define`

@@ -36,24 +36,20 @@ __BEGIN_DECLS
 #       define GMRFLib_gsl_integration_wrapper_qag(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
 	if (1) {							\
 		int ssstatus;						\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); /* turn off the error-handler */ \
 		do							\
 		{							\
 			ssstatus = gsl_integration_qag(a0, a1, a2, a3, a4, a5, GSL_INTEG_GAUSS41, a6, a7, a8); \
 			if (ssstatus) eps *= 10.0;			\
 		} while(ssstatus == GSL_ETOL || ssstatus == GSL_ELOSS || ssstatus == GSL_EROUND); \
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler);	  /*  turn it on again */ \
 	}
 #       define GMRFLib_gsl_integration_wrapper_qags(a0, a1, a2, a3, a4, a5, a6, a7, a8) \
 	if (1) {							\
 		int ssstatus;						\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); /* turn off the error-handler */ \
 		do							\
 		{							\
 			ssstatus = gsl_integration_qags(a0, a1, a2, a3, a4, a5, a6, a7, a8); \
 			if (ssstatus) eps *= 10.0;			\
 		} while(ssstatus == GSL_ETOL || ssstatus == GSL_ELOSS || ssstatus == GSL_EROUND); \
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler);	  /*  turn it on again */ \
 	}
 #       define GMRFLib_gsl_integration_wrapper(My_F, My_lower, My_upper, My_epsrel, My_epsabs, My_result, My_error) \
 	if (1) {							\

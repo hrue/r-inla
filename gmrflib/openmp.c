@@ -16,10 +16,7 @@ int GMRFLib_get_blas_num_threads(void)
 
 int GMRFLib_set_blas_num_threads(int threads)
 {
-	if (threads < 1) {
-		return GMRFLib_SUCCESS;
-	}
-	blas_num_threads = threads;
+	blas_num_threads = IMAX(1, threads);
 #if defined(INLA_WITH_MKL)
 	void MKL_Set_Num_Threads(int);
 	MKL_Set_Num_Threads(threads);

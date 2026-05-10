@@ -272,7 +272,13 @@
              #' @param memory.alignment Memory alignment for alloc (Linux and Mac
              #' only). One of -1 (no alignment correction done),  0 (chose automatically),
              #' 16, 32 or 64 bytes (EXPERIMENTAL OPTION)
-             memory.alignment = -1
+             memory.alignment = -1,
+
+             #' @param blas.num.threads Allow setting a fixed value for the number of threads
+             #' for BLAS functions, most often 1. If set to 0, then it will be determined
+             #' adaptively. If set to 'NULL' then its value it will be determined by
+             #' 'inla.getOption("blas.num.threads")' (which defaults to 0).
+             blas.num.threads = NULL
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -vx
 
+DD=""
 for p in *; do
     if [ -d "$p" -a -f "$p/Makefile" ]; then
 	echo -e "\n\tProcess package [$p]\n"
+	DD="$p $DD"
 	(
 	    cd $p
 	    make download "$@"
@@ -14,3 +16,14 @@ for p in *; do
 done
 
 ./update-cgeneric
+
+for D in $DD; do 
+    (
+	cd $D
+	L=lib$D.a
+	find . -name \*.o | while read f; do ar crvs $L "$f"; done
+	mv -v -f $L ..
+    )
+done
+
+

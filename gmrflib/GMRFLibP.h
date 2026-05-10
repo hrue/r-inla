@@ -28,29 +28,25 @@ __BEGIN_DECLS
 /* 
  */
 #       if __GNUC__ > 7
-typedef size_t fortran_charlen_t;
+#              define FORTRAN_CHARLEN_T size_t
 #       else
-typedef int fortran_charlen_t;
+#              define FORTRAN_CHARLEN_T int
 #       endif
-#       define F_ONE ((fortran_charlen_t)1)
-
+#       define F_ONE ((FORTRAN_CHARLEN_T)1)
 // see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
 #       ifdef __GNUC__
 #              define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #       else
 #              define UNUSED(x) UNUSED_ ## x
 #       endif
-
 #       if defined(NDEBUG)
 #              error The code assume that NDEBUG is *NOT* defined
 #       endif
-
 #       ifdef __GNUC__
 #              define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
 #       else
 #              define POSSIBLY_UNUSED(x) x
 #       endif
-
 #       if 1
 #              define aligned_double alignas(64) double
 #              define aligned_int    alignas(64) int
@@ -58,7 +54,6 @@ typedef int fortran_charlen_t;
 #              define aligned_double double
 #              define aligned_int    int
 #       endif
-
 #       pragma omp declare simd
 static double POSSIBLY_UNUSED(SQR) (double x) {
 	return (x * x);
@@ -202,9 +197,7 @@ typedef enum {
 #       define GMRFLib_EWRAP_GSL__intern(func_call, leave)			\
 	if (1){								\
 		int rrretval;						\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); \
 		rrretval = func_call;					\
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler); \
 		if (rrretval != GSL_SUCCESS){				\
 			char *msg;					\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library returned error-code [%1d]", rrretval), leave); \
@@ -215,9 +208,7 @@ typedef enum {
 	}
 #       define GMRFLib_EWRAP_GSL_PTR__intern(func_call, leave)			\
 	if (1){								\
-		gsl_error_handler_t *ehandler = gsl_set_error_handler_off(); \
 		void *retval_ptr = (void *)(func_call);			\
-		if (!GMRFLib_turn_off_gsl_error_handler) gsl_set_error_handler(ehandler); \
 		if (retval_ptr == NULL){				\
 			char *msg;					\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library call returned NULL-pointer"), leave); \

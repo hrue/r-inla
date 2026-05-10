@@ -1,3 +1,7 @@
+# INLA 25.05.10
+* Interal code refactoring
+* Various code maintainance
+
 # INLA 26.05.02
 * External packages are now built-in (due to Mac 'new features')
 * Fixed a regression in SIMDe
@@ -15,7 +19,7 @@
 * Minor code cleanup
 
 # INLA 26.04.21
-* New likelihood: 'gammacountmean'
+* New likelihood: 'gammacountmea n'
 * Code cleanup and improvements
 
 # INLA 26.03.19

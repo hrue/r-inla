@@ -6171,9 +6171,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -6880,28 +6880,22 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double alpha = map_exp_forward(ds->data_observations.gammacount_log_alpha[thread_id][0], MAP_FORWARD, NULL);
-	double beta, mu, p, logp;
 
 	LINK_INIT;
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
-			beta = alpha * mu;
-			p = _G(y * alpha, beta) - _G((y + 1.0) * alpha, beta);
-			logp = LOG_p(p);
-			// this can go in over/underflow...
-			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GSL_DBL_EPSILON) + PENALTY * SQR(x[i] + off);
-			} else {
-				logll[i] = logp;
-			}
+			double mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * mu;
+			double p = _G(y * alpha, beta) - _G((y + 1.0) * alpha, beta);
+			p = TRUNCATE(p, FLT_EPSILON, 1.0 - FLT_EPSILON);
+			logll[i] = LOG_p(p);
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0; i < -m; i++) {
-			mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
-			beta = alpha * mu;
+			double mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * mu;
 			logll[i] = _G((y + 1.0) * alpha, beta);
 		}
 	}
@@ -6941,7 +6935,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 			double mu = a / b;
 			double scale = TRUNCATE(mu, 0.1, 1.0 / 0.1);
 			double p = (y0 ? 1.0 : G(T / scale, y * alpha, beta * scale)) - G(T / scale, (y + 1) * alpha, beta * scale);
-			p = DMAX(p, DBL_EPSILON);
+			p = TRUNCATE(p, FLT_EPSILON, 1.0 - FLT_EPSILON);
 			logll[i] = LOG_p(p);
 		}
 	} else {
@@ -7285,13 +7279,34 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *__restri
 			double ly = LOG_p(y);
 			double l1my = LOG_1mp(y);
 			for (int i = 0; i < m; i++) {
+				// need to protect it, as otherwise it can go nuts
 				double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 				double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
 				double high = PREDICTOR_INVERSE_LINK(x[i] - k2, off);
-				double a = mu * phi;
-				double b = -mu * phi + phi;
-				double llbeta = ((DMIN(a, b) < INLA_REAL_SMALL) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
-				logll[i] = log(low - high) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+				double diff = DMAX(FLT_EPSILON, low - high);
+				double a = DMAX(FLT_EPSILON, mu * phi);
+				double b = DMAX(FLT_EPSILON, -mu * phi + phi);
+				double llbeta = ((DMIN(a, b) <= FLT_EPSILON) ? -log(DMIN(a, b)) : MATHLIB_FUN(lbeta) (a, b));
+				logll[i] = log(diff) - llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
+#if 0
+				if (ISNAN(logll[i]) || ISINF(logll[i])) {
+					P(i);
+					P(k1);
+					P(k2);
+					P(phi);
+					P(x[i]);
+					P(logll[i]);
+					P(ly);
+					P(l1my);
+					P(mu);
+					P(low);
+					P(high);
+					P(low - high);
+					P(a);
+					P(b);
+					P(llbeta);
+				}
+#endif
 			}
 		}
 	} else {

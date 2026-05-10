@@ -43,7 +43,7 @@ extern "C" {
 	int sTiles_create(void **, int, const int *, const int *, const int *, const bool *) EMPTY_FUNCTION_ERROR;
 	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *,
 				 const int *) EMPTY_FUNCTION_ERROR;
-	int sTiles_get_auto_tile_size(int) EMPTY_FUNCTION_RETURN(32);
+	int sTiles_get_auto_tile_size(void) EMPTY_FUNCTION_RETURN(32);
 	int sTiles_get_control_param(int) EMPTY_FUNCTION_RETURN(-1);
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_init(void **) EMPTY_FUNCTION_ERROR;

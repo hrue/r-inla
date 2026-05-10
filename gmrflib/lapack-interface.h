@@ -100,29 +100,9 @@ int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_isum(int n, int *ix);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
-int daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
-int dchdc_(double *, int *, int *, double *, int *, int *, int *, double *);
-int dcopy_(int *n, double *x, int *incx, double *y, int *incy);
-int dgemm_(const char *, const char *, int *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *,
-	   fortran_charlen_t, fortran_charlen_t);
-int dgemv_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, fortran_charlen_t);
-int dgemv_failsafe_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, fortran_charlen_t);
-int dpbtf2_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
-int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
-int dpotf2_(const char *, int *, double *, int *, int *, fortran_charlen_t);
-int dpotrf_(const char *, int *, double *, int *, int *, fortran_charlen_t);
-int dpotri_(const char *, int *, double *, int *, int *, fortran_charlen_t);
-int dpotrs_(const char *, int *, int *, double *, int *, double *, int *, int *, fortran_charlen_t);
-int dscal_(int *n, double *a, double *x, int *incx);
-int dscal_(int *n, double *alpha, double *x, int *inc);
-int dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, fortran_charlen_t, fortran_charlen_t,
-	   fortran_charlen_t);
-int dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, fortran_charlen_t, fortran_charlen_t,
-	   fortran_charlen_t);
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta,
 		       gsl_matrix * C, int nt);
 int idamax_(int *, double *, int *);
-void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
 void GMRFLib_bfill(int n, bool a, bool *x);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
@@ -141,8 +121,28 @@ void GMRFLib_powx(int n, double *x, double a, double *y);
 void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__restrict iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
 		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
-void daxpyi_(int *, double *, double *, int *, double *);
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
+void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
+void daxpyi_(int *, double *, double *, int *, double *);
+void dchdc_(double *, int *, int *, double *, int *, int *, int *, double *);
+void dcopy_(int *n, double *x, int *incx, double *y, int *incy);
+void dgemm_(const char *, const char *, int *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *,
+	    FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
+void dgemv_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T);
+void dgemv_failsafe_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T);
+void dpbtf2_(const char *, int *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dpbtrf_(const char *, int *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dpotf2_(const char *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dpotrf_(const char *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dpotri_(const char *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dpotrs_(const char *, int *, int *, double *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
+void dscal_(int *n, double *a, double *x, int *incx);
+void dscal_(int *n, double *alpha, double *x, int *inc);
+void dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
+	    FORTRAN_CHARLEN_T);
+void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
+	    FORTRAN_CHARLEN_T);
+void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
 
 __END_DECLS
 #endif

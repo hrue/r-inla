@@ -692,16 +692,12 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	}
 
 	int err;
-	gsl_set_error_handler_off();
-
 	err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_cauchy, X, yy, c, cov);
 
-	if (!GMRFLib_turn_off_gsl_error_handler)
-		gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
 		int iidx = 0;
 		GMRFLib_min_value(y, nn, &iidx);
