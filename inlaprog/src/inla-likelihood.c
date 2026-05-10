@@ -6880,28 +6880,22 @@ int loglikelihood_gammacount(int thread_id, int *UNUSED(lcache_idx), double *__r
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double alpha = map_exp_forward(ds->data_observations.gammacount_log_alpha[thread_id][0], MAP_FORWARD, NULL);
-	double beta, mu, p, logp;
 
 	LINK_INIT;
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
-			beta = alpha * mu;
-			p = _G(y * alpha, beta) - _G((y + 1.0) * alpha, beta);
-			logp = LOG_p(p);
-			// this can go in over/underflow...
-			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GSL_DBL_EPSILON) + PENALTY * SQR(x[i] + off);
-			} else {
-				logll[i] = logp;
-			}
+			double mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * mu;
+			double p = _G(y * alpha, beta) - _G((y + 1.0) * alpha, beta);
+			p = TRUNCATE(p, FLT_EPSILON, 1.0 - FLT_EPSILON);
+			logll[i] = LOG_p(p);
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0; i < -m; i++) {
-			mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
-			beta = alpha * mu;
+			double mu = E * PREDICTOR_INVERSE_LINK(x[i], off);
+			double beta = alpha * mu;
 			logll[i] = _G((y + 1.0) * alpha, beta);
 		}
 	}
@@ -6941,7 +6935,7 @@ int loglikelihood_gammacountmean(int thread_id, int *UNUSED(lcache_idx), double 
 			double mu = a / b;
 			double scale = TRUNCATE(mu, 0.1, 1.0 / 0.1);
 			double p = (y0 ? 1.0 : G(T / scale, y * alpha, beta * scale)) - G(T / scale, (y + 1) * alpha, beta * scale);
-			p = DMAX(p, DBL_EPSILON);
+			p = TRUNCATE(p, FLT_EPSILON, 1.0 - FLT_EPSILON);
 			logll[i] = LOG_p(p);
 		}
 	} else {
