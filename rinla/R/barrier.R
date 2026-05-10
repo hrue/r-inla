@@ -5,9 +5,9 @@
 #' This model is described in the ArXiv preprint arXiv:1608.03787.  For
 #' examples, see <https://haakonbakkagit.github.io/btopic128.html>
 #'
-#' @aliases inla.barrier barrier inla.barrier.pcmatern barrier.pcmatern
-#' inla.barrier.polygon barrier.polygon inla.barrier.q barrier.q
-#' inla.barrier.fem barrier.fem
+#' @aliases inla.barrier barrier inla.barrier.pcmatern barrier.pcmatern inla.barrier.polygon
+#' @aliases barrier.polygon inla.barrier.q barrier.q inla.barrier.fem barrier.fem
+#' 
 #' @param mesh The mesh to build the model on, from inla.mesh.2d
 #' @param barrier.triangles The numerical ids of the triangles that make up the
 #' barrier area

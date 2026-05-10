@@ -1,9 +1,7 @@
 ## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 
-
 #' @importFrom fmesher fm_transform
-
 
 #' @title Constraint segments for inla.mesh
 #'
@@ -1249,8 +1247,9 @@ print.summary.inla.mesh <- function(x, ...) {
 #' to `inla.mesh.project(inla.mesh.projector(mesh, loc), field)`.
 #'
 #' @aliases inla.mesh.project inla.mesh.projector inla.mesh.projector.inla.mesh
-#' inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.projector
-#' inla.mesh.project.inla.mesh.1d inla.mesh.projector.inla.mesh.1d
+#' @aliases inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.projector
+#' @aliases inla.mesh.project.inla.mesh.1d inla.mesh.projector.inla.mesh.1d
+#' 
 #' @param \dots Arguments passed on to [fmesher::fm_evaluate()] and
 #' [fmesher::fm_evaluator()].
 #' @return For `inla.mesh.project(mesh, ...)`, a list with projection
@@ -1730,8 +1729,8 @@ inla.mesh.1d.fem <- function(mesh) {
 #'
 #'
 #' @aliases inla.diameter inla.diameter.default inla.diameter.inla.mesh
-#' inla.diameter.inla.mesh.segment inla.diameter.inla.mesh.lattice
-#' inla.diameter.inla.mesh.1d
+#' @aliases inla.diameter.inla.mesh.segment inla.diameter.inla.mesh.lattice
+#' @aliases inla.diameter.inla.mesh.1d
 #' @param x A point set as an \eqn{n\times d}{n x d} matrix, or an
 #' fmesher::fm_mesh_2d()] related object.
 #' @param \dots Additional parameters passed on to [fmesher::fm_diameter()].

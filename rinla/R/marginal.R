@@ -12,10 +12,11 @@
 #' 
 #' @rdname marginal
 #' @name marginal
-#' @aliases inla.marginal marginal pmarginal inla.pmarginal qmarginal
-#' inla.qmarginal dmarginal inla.dmarginal rmarginal inla.rmarginal
-#' inla.hpdmarginal hpdmarginal inla.emarginal emarginal inla.smarginal
-#' smarginal inla.tmarginal inla.mmarginal mmarginal inla.zmarginal zmarginal
+#' @aliases inla.marginal marginal pmarginal inla.pmarginal qmarginal inla.qmarginal dmarginal
+#' @aliases inla.dmarginal rmarginal inla.rmarginal inla.hpdmarginal hpdmarginal inla.emarginal
+#' @aliases emarginal inla.smarginal smarginal inla.tmarginal inla.mmarginal mmarginal
+#' @aliases inla.zmarginal zmarginal
+#' 
 #' @param marginal A marginal object from either `inla` or
 #' `inla.hyperpar()`, which is either `list(x=c(), y=c())` with
 #' density values `y` at locations `x`, or a `matrix(,n,2)` for
