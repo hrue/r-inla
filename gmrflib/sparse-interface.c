@@ -888,10 +888,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				    GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
 #if 0
-#define LIM 1000	
-	static double tref[LIM] = {0.0};
-	static int trefc[LIM] = {0};
-	if (nrhs < LIM) 
+#       define LIM 1000
+	static double tref[LIM] = { 0.0 };
+	static int trefc[LIM] = { 0 };
+	if (nrhs < LIM)
 		tref[nrhs] += -GMRFLib_timer();
 #endif
 
@@ -1021,11 +1021,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	if (nrhs < LIM) {
 		tref[nrhs] += GMRFLib_timer();
 		trefc[nrhs]++;
-		printf("nrhs %d tref %g trefc %d tref/nrhs/trefc %g\n", nrhs, tref[nrhs], trefc[nrhs],
-		       tref[nrhs] / nrhs/trefc[nrhs]);
+		printf("nrhs %d tref %g trefc %d tref/nrhs/trefc %g\n", nrhs, tref[nrhs], trefc[nrhs], tref[nrhs] / nrhs / trefc[nrhs]);
 	}
-#undef LIM	
-#endif	
+#       undef LIM
+#endif
 	return GMRFLib_SUCCESS;
 }
 

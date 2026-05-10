@@ -340,7 +340,7 @@ void GMRFLib_stiles_print(FILE *fp)
 #pragma omp critical (Name_4c8dac87b14702b8de3511c972d6b27af33cc04c)
 	{
 		fprintf(fp, "\n\ncontent of 'store' (computed in %.3fs):\n", store->wtime);
-		fprintf(fp, "\tngroup[%1d] verbose[%1d] ng[%1d] ng2[%1d] ngt[%1d]\n", store->n_in_group, (ctl ? ctl->verbose : 0), 
+		fprintf(fp, "\tngroup[%1d] verbose[%1d] ng[%1d] ng2[%1d] ngt[%1d]\n", store->n_in_group, (ctl ? ctl->verbose : 0),
 			store->ng, store->ng2, store->ngt);
 		fprintf(fp, "\tnt_outer[%1d] nt_inner[%1d] nt_special[%1d] block.size[%1d]\n", store->nt_outer, store->nt_inner, store->nt_special,
 			GMRFLib_stiles_get_block_size());

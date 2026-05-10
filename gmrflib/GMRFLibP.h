@@ -28,29 +28,25 @@ __BEGIN_DECLS
 /* 
  */
 #       if __GNUC__ > 7
-#define FORTRAN_CHARLEN_T size_t
+#              define FORTRAN_CHARLEN_T size_t
 #       else
-#define FORTRAN_CHARLEN_T int
+#              define FORTRAN_CHARLEN_T int
 #       endif
 #       define F_ONE ((FORTRAN_CHARLEN_T)1)
-
 // see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
 #       ifdef __GNUC__
 #              define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #       else
 #              define UNUSED(x) UNUSED_ ## x
 #       endif
-
 #       if defined(NDEBUG)
 #              error The code assume that NDEBUG is *NOT* defined
 #       endif
-
 #       ifdef __GNUC__
 #              define POSSIBLY_UNUSED(x) __attribute__((__unused__)) x
 #       else
 #              define POSSIBLY_UNUSED(x) x
 #       endif
-
 #       if 1
 #              define aligned_double alignas(64) double
 #              define aligned_int    alignas(64) int
@@ -58,7 +54,6 @@ __BEGIN_DECLS
 #              define aligned_double double
 #              define aligned_int    int
 #       endif
-
 #       pragma omp declare simd
 static double POSSIBLY_UNUSED(SQR) (double x) {
 	return (x * x);
