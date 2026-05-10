@@ -4,9 +4,10 @@
 #' returned using argument `selection` in `inla`.
 #' 
 #' 
-#' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal
-#' joint.marginal.eval rjmarginal rjmarginal.eval inla.rjmarginal
-#' inla.rjmarginal.eval inla.tjmarginal tjmarginal inla.1djmarginal 1djmarginal
+#' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal joint.marginal.eval
+#' @aliases rjmarginal rjmarginal.eval inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal
+#' @aliases tjmarginal inla.1djmarginal 1djmarginal
+#' 
 #' @param n The number of samples
 #' @param jmarginal A marginal object given either by a `inla` object or
 #' `result$selection`
