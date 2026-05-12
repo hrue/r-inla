@@ -11,12 +11,18 @@
 #' to parameterisations `<B>`, where both `<A>` and `<B>` are
 #' one of `theta`, `r` and `R`, and `p` and `dim`.
 #' 
-#' @aliases inla.pc.cormat inla.pc.cormat.dim2p cormat.dim2p
-#' inla.pc.cormat.p2dim cormat.p2dim inla.pc.cormat.theta2R cormat.theta2R
-#' inla.pc.cormat.R2theta cormat.R2theta inla.pc.cormat.r2R cormat.r2R
-#' inla.pc.cormat.R2r cormat.R2r inla.pc.cormat.r2theta cormat.r2theta
-#' inla.pc.cormat.theta2r cormat.theta2r inla.pc.cormat.permute cormat.permute
-#' inla.pc.cormat.rtheta cormat.rtheta inla.pc.cormat.dtheta cormat.dtheta
+#' @aliases inla.pc.cormat
+#' @aliases inla.pc.cormat.dim2p cormat.dim2p
+#' @aliases inla.pc.cormat.p2dim cormat.p2dim
+#' @aliases inla.pc.cormat.theta2R cormat.theta2R
+#' @aliases inla.pc.cormat.R2theta cormat.R2theta
+#' @aliases inla.pc.cormat.r2R cormat.r2R
+#' @aliases inla.pc.cormat.R2r cormat.R2r
+#' @aliases inla.pc.cormat.r2theta cormat.r2theta
+#' @aliases inla.pc.cormat.theta2r cormat.theta2r
+#' @aliases inla.pc.cormat.permute cormat.permute
+#' @aliases inla.pc.cormat.rtheta cormat.rtheta
+#' @aliases inla.pc.cormat.dtheta cormat.dtheta
 #' @param dim The dimension of `theta`, the parameterisatin of the
 #' correlation matrix
 #' @param p The dimension the correlation matrix

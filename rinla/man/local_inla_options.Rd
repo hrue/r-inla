@@ -24,7 +24,7 @@ otherwise \code{FALSE}.
 }
 \description{
 Locally sets INLA options with \code{\link[=inla.setOption]{inla.setOption()}} and restores
-when the calling function terminates, like \code{\link[withr:with_options]{withr::local_options()}} does for
+when the calling function terminates, like \code{\link[withr:local_options]{withr::local_options()}} does for
 global R options.
 }
 \examples{

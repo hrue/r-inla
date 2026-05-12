@@ -29,7 +29,7 @@ object}
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_CRS_sp]{fmesher::fm_CRS()}}
+\code{\link[fmesher:fm_CRS]{fmesher::fm_CRS()}}
 
 Creates either a CRS object or an inla.CRS object, describing a coordinate
 reference system.
@@ -37,7 +37,7 @@ reference system.
 \section{Functions}{
 \itemize{
 \item \code{inla.wkt_predef()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs]{fmesher::fm_wkt_predef()}}
+\code{\link[fmesher:fm_wkt_predef]{fmesher::fm_wkt_predef()}}
 
 }}
 \examples{
@@ -58,7 +58,7 @@ names(inla.wkt_predef())
 }
 }
 \seealso{
-\code{\link[fmesher:fm_crs]{fmesher::fm_crs()}}, \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}},
+\code{\link[fmesher:fm_crs]{fmesher::fm_crs()}}, \code{\link[fmesher:fm_wkt]{fmesher::fm_wkt()}},
 \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}
 }
 \author{

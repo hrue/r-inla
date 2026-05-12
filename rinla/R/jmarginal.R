@@ -4,8 +4,10 @@
 #' returned using argument `selection` in `inla`.
 #' 
 #' 
-#' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal joint.marginal.eval
-#' @aliases rjmarginal rjmarginal.eval inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal
+#' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal
+#' @aliases joint.marginal.eval
+#' @aliases rjmarginal rjmarginal.eval inla.rjmarginal inla.rjmarginal.eval
+#' @aliases inla.tjmarginal
 #' @aliases tjmarginal inla.1djmarginal 1djmarginal
 #' 
 #' @param n The number of samples

@@ -6,7 +6,8 @@
 #' The statement `Prob(range > r0) = alpha` is used to determine
 #' `lambda` unless `lambda` is given.  
 #' 
-#' @aliases inla.pc.prw2.drange inla.pc.prw2.rrange inla.pc.prw2.qrange inla.pc.prw2.prange
+#' @aliases inla.pc.prw2.drange inla.pc.prw2.rrange inla.pc.prw2.qrange
+#' @aliases inla.pc.prw2.prange
 #' @param n Number of observations
 #' @param param Vector of parameters (see 'inla.doc("pc.prw2.range")')
 #' @param p Vector of probabilities

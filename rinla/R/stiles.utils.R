@@ -1,5 +1,6 @@
-#' sTiles utils: streaming spy plots and graph<->mtx I/O
+#' @title sTiles utils: streaming spy plots and graph<->mtx I/O
 #'
+#' @description
 #' Streaming sparsity-pattern plots and conversions between INLA graph
 #' files and MatrixMarket `.mtx` files. The spy plots stream the input
 #' file (never loading the full matrix), bin entries into a `GRID x GRID`
@@ -18,7 +19,7 @@
 #' omit the diagonal entirely.
 #'
 #' @aliases inla.stiles.spy.mtx inla.stiles.spy.graph inla.stiles.graph2mtx
-#' inla.stiles.mtx2graph
+#' @aliases inla.stiles.mtx2graph
 #' 
 #' @param file        For `inla.stiles.spy.mtx`: path to a `.mtx` file.
 #'                    For `inla.stiles.spy.graph`: path to an INLA graph file.
@@ -154,7 +155,7 @@ NULL
 
 # ---- public API -------------------------------------------------------
 
-#' @rdname inla.stiles
+#' @rdname stiles.utils
 #' @export
 `inla.stiles.spy.mtx` <- function(file, out = NULL, GRID = 1000L,
                                   text = FALSE, colorbar = FALSE,
@@ -189,7 +190,7 @@ NULL
     invisible(out)
 }
 
-#' @rdname inla.stiles
+#' @rdname stiles.utils
 #' @export
 `inla.stiles.spy.graph` <- function(file, out = NULL, GRID = 1000L,
                                     text = FALSE, colorbar = FALSE,
@@ -239,7 +240,7 @@ NULL
     invisible(out)
 }
 
-#' @rdname inla.stiles
+#' @rdname stiles.utils
 #' @export
 `inla.stiles.graph2mtx` <- function(graph_file, mtx_file,
                                     diagonal = c("degree", "one", "none"),
@@ -287,7 +288,7 @@ NULL
     invisible(mtx_file)
 }
 
-#' @rdname inla.stiles
+#' @rdname stiles.utils
 #' @export
 `inla.stiles.mtx2graph` <- function(mtx_file, graph_file,
                                     base = 0L, CHUNK = 2000000L) {

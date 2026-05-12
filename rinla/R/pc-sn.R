@@ -10,7 +10,7 @@
 #' skewness range from -0.99527... to 0.99527....  ca.
 #' 
 #' @aliases inla.pc.sn pc.sn pc.rsn inla.pc.rsn pc.dsn inla.pc.dsn pc.psn
-#' inla.pc.psn pc.qsn inla.pc.qsn
+#' @aliases inla.pc.psn pc.qsn inla.pc.qsn
 #' @param n number of observations
 #' @param lambda the rate parameter in the PC prior
 #' @param skew vector of evaluation points

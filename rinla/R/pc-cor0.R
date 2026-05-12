@@ -9,7 +9,7 @@
 #' given, or `u` AND `alpha`. The density is symmetric around zero.
 #' 
 #' @aliases inla.pc.cor0 pc.cor0 pc.rcor0 inla.pc.rcor0 pc.dcor0 inla.pc.dcor0
-#' pc.pcor0 inla.pc.pcor0 pc.qcor0 inla.pc.qcor0
+#' @aliases pc.pcor0 inla.pc.pcor0 pc.qcor0 inla.pc.qcor0
 #' @param n Number of observations
 #' @param u The upper limit (see Details)
 #' @param alpha The probability going above the upper limit (see Details)

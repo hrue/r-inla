@@ -8,14 +8,20 @@
 #' If `os` is not given, chose `os` interactively among available
 #' builds.
 #' @param path character. The install path. If `NULL` the path is derived
-#' from `INLA` package
+#' from the installed `INLA` package
 #' @param verbose Logical. Verbose output if `TRUE`
 #' @param md5.check Logical. If `TRUE`, stop if md5-checksum-file is not
 #' present or md5-checksum fail. If `FALSE`, ignore md5-checksum check.
 #' @param secure.http Logical. Use secure http (ie `https://`) or
 #' `http://`
-#' @return Return `TRUE` if installation was sucessful and `FALSE` if
-#' not.
+#' @param list.only Logical. If `TRUE`, only return character vector of
+#'   available builds and exit. Default is `FALSE`.
+#' @param version character. The version of INLA binaries to install. If `NULL`
+#'   (default) then the version matching the currently installed INLA package
+#'   is used.
+#' @return By default, return `TRUE` if installation was successful and `FALSE`
+#'   if not. If `list.only = TRUE` return character vector of available builds
+#'   (invisibly).
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
@@ -23,6 +29,7 @@
 #'      inla.binary.install()
 #'      inla.binary.install(os = "CentOS Linux-7")
 #'      inla.binary.install(os = "CentOS Linux-7",  path = "~/local/bin/inla.binary")
+#'      inla.binary.install(list.only = TRUE)
 #'    }
 #'  
 #' @rdname binary.install
@@ -57,7 +64,9 @@
                                   path = NULL, 
                                   verbose = TRUE,
                                   md5.check = TRUE,
-                                  secure.http = TRUE)
+                                  secure.http = TRUE,
+                                  list.only = FALSE,
+                                  version = NULL)
 {
     show <- function(...) {
         if (verbose) {
@@ -73,7 +82,11 @@
     random.num <- gsub("\\.", "", as.character(abs(rnorm(1))))
     os <- if (missing(os)) NULL else match.arg(os)
     stopifnot(inla.os.type() == "linux")
-    version <- paste("Version_", inla.version("version"), sep = "")
+    
+    if (is.null(version)) {
+        version <- inla.version("version")
+    }
+    version <- paste("Version_", version, sep = "")
     show("Looking for ", version, " and os=", if (!is.null(os)) os else "'<choose interactively>'")
 
     address <- paste0("http", if (secure.http) "s", "://inla.r-inla-download.org/Linux-builds")
@@ -83,7 +96,7 @@
     close(fp)
     ff <- ff[grep(version, ff)]
 
-    if (is.null(os)) {
+    if (is.null(os) || list.only) {
         ## filter on this one
         aa <- "aarch64"
         if (inla.one.of(R.version$arch, aa)) {
@@ -94,12 +107,22 @@
             }
         }
         nf <- length(ff)
-
+        if (nf == 0) {
+            cat("  Sorry, no alternative binary builds available for ", version)
+            if (list.only) {
+                return(invisible(character(0)))
+            }
+            return (invisible(FALSE))
+        }
+        
         cat("  Available alternatives:\n")
         for (i in seq_len(nf)) {
             cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")
         }
-        cat("  ", "Chose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
+        if (list.only) {
+            return(invisible(ff))
+        }
+        cat("  ", "Choose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
         ans <- scan(file = "", what = integer(), n = 1, quiet = TRUE)
         if (length(ans) == 0) {
             return (invisible(FALSE))
@@ -119,10 +142,13 @@
     show("Install file [", fnm, "]")
     external.path <- FALSE
     if (is.null(path)) {
-        pa <- searchpaths()
-        pa <- pa[grep("/INLA$", pa)]
-        if (length(pa) == 0) {
-            stop("I cannot find '/INLA' in the searchpath(), so please retry after doing library('INLA')")
+        pa <- system.file(package = "INLA")
+        if (!nzchar(pa)) {
+            stop(paste0(
+                "I cannot find the INLA package via ",
+                'system.file(package = "INLA")',
+                ". Please retry after installing."
+            ))
         }
         stopifnot(file.info(pa)$isdir)
         show("INLA is installed in [", pa, "]")

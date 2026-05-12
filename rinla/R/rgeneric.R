@@ -4,8 +4,8 @@
 #' 
 #' 
 #' @aliases rgeneric rgeneric.define inla.rgeneric.define rgeneric.ar1.model
-#' inla.rgeneric.ar1.model rgeneric.iid.model inla.rgeneric.iid.model
-#' rgeneric.wrapper inla.rgeneric.wrapper rgeneric.q inla.rgeneric.q
+#' @aliases inla.rgeneric.ar1.model rgeneric.iid.model inla.rgeneric.iid.model
+#' @aliases rgeneric.wrapper inla.rgeneric.wrapper rgeneric.q inla.rgeneric.q
 #' @param model The definition of the model; see `inla.rgeneric.ar1.model`
 #' @param rmodel The rgeneric model-object, the output of
 #' `inla.rgeneric.define`

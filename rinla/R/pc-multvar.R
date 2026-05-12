@@ -7,11 +7,14 @@
 #' type.
 #' 
 #' @aliases pc.multvar inla.pc.multvar inla.pc.multvar.simplex
-#' inla.pc.multvar.simplex.d inla.pc.multvar.simplex.r inla.pc.multvar.sphere
-#' inla.pc.multvar.sphere.d inla.pc.multvar.sphere.r inla.pc.multvar.h.default
-#' pc.multvar pc.multvar.simplex pc.multvar.simplex.d pc.multvar.simplex.r
-#' pc.multvar.sphere pc.multvar.sphere.d pc.multvar.sphere.r
-#' pc.multvar.h.default
+#' @aliases inla.pc.multvar.simplex.d inla.pc.multvar.simplex.r
+#' @aliases inla.pc.multvar.sphere
+#' @aliases inla.pc.multvar.sphere.d inla.pc.multvar.sphere.r
+#' @aliases inla.pc.multvar.h.default
+#' @aliases pc.multvar pc.multvar.simplex pc.multvar.simplex.d
+#' @aliases pc.multvar.simplex.r
+#' @aliases pc.multvar.sphere pc.multvar.sphere.d pc.multvar.sphere.r
+#' @aliases pc.multvar.h.default
 #' @param x Samples to evaluate. If input is a matrix then each row is a
 #' sample. If input is a vector then this is the sample.
 #' @param inverse Compute the inverse of the h()-function.

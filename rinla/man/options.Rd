@@ -23,6 +23,11 @@ current values, otherwise, \code{option} must be one (or a vector of several) of
 \item{num.threads}{Character string with the number of threads to use as
 \code{A:B:C}, see \code{?inla}}
 
+\item{blas.num.threads}{If set to integer '> 0',  then this fix the number of threads for blas
+functions. If set to 0,  the the number of threads will be determined adapatively. This value
+is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' provides the
+default value for 'control.expert$blas.num.threads'. }
+
 \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
 (\code{default}) or \code{pardiso}}
 

@@ -40,7 +40,7 @@ Calculates coordinate mappings for \code{inla.mesh} projections.
 \section{Functions}{
 \itemize{
 \item \code{inla.mesh.map.lim()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
-Use \code{\link[fmesher:fm_mesh_2d_map]{fmesher::fm_mesh_2d_map_lim()}}
+Use \code{\link[fmesher:fm_mesh_2d_map_lim]{fmesher::fm_mesh_2d_map_lim()}}
 instead.
 
 Projection extent limit calculations

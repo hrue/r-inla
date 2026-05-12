@@ -8,7 +8,8 @@
 #' likelihood, where `xi=0` is the base model.
 #' 
 #' @aliases inla.pc.gevtail pc.gevtail pc.rgevtail inla.pc.rgevtail pc.dgevtail
-#' inla.pc.dgevtail pc.pgevtail inla.pc.pgevtail pc.qgevtail inla.pc.qgevtail
+#' @aliases inla.pc.dgevtail pc.pgevtail inla.pc.pgevtail pc.qgevtail
+#' @aliases inla.pc.qgevtail
 #' @param n Number of observations
 #' @param lambda The rate parameter in the PC-prior
 #' @param xi Vector of evaluation points, where `1>xi>0`.

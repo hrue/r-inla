@@ -7,7 +7,7 @@
 #' `a=0` is the base model.
 #' 
 #' @aliases inla.pc.gamma pc.gamma pc.rgamma inla.pc.rgamma pc.dgamma
-#' inla.pc.dgamma pc.pgamma inla.pc.pgamma pc.qgamma inla.pc.qgamma
+#' @aliases inla.pc.dgamma pc.pgamma inla.pc.pgamma pc.qgamma inla.pc.qgamma
 #' @param n Number of observations
 #' @param lambda The rate parameter (see Details)
 #' @param x Evaluation points

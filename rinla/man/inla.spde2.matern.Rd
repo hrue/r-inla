@@ -181,7 +181,7 @@ plot(result.field$marginals.range.nominal[[1]])
 
 }
 \seealso{
-\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}},
+\code{\link[fmesher:fm_mesh_2d_inla]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d_inla]{fmesher::fm_rcdt_2d_inla()}},
 \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}},
 \code{\link[=inla.spde2.pcmatern]{inla.spde2.pcmatern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }

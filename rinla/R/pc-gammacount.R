@@ -8,8 +8,8 @@
 #' base model.
 #' 
 #' @aliases inla.pc.gammacount pc.gammacount pc.rgammacount inla.pc.rgammacount
-#' pc.dgammacount inla.pc.dgammacount pc.pgammacount inla.pc.pgammacount
-#' pc.qgammacount inla.pc.qgammacount
+#' @aliases pc.dgammacount inla.pc.dgammacount pc.pgammacount
+#' @aliases inla.pc.pgammacount pc.qgammacount inla.pc.qgammacount
 #' @param n Number of observations
 #' @param lambda The rate parameter (see Details)
 #' @param x Evaluation points

@@ -1,5 +1,5 @@
-#' @noRd
-rbind.inla.data.stack.info <- function(...) {
+# @noRd
+rbind_inla.data.stack.info <- function(...) {
     l <- list(...)
     names(l) <- NULL
     names.tmp <- do.call(c, lapply(l, function(x) x$names))
@@ -349,8 +349,8 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
 #' \eqn{x^{k,l}} is replaced by an `NA` vector.
 #'
 #' @aliases inla.stack inla.stack.remove.unused inla.stack.compress
-#' inla.stack.sum inla.stack.join inla.stack.index inla.stack.LHS
-#' inla.stack.RHS inla.stack.data inla.stack.A
+#' @aliases inla.stack.sum inla.stack.join inla.stack.index inla.stack.LHS
+#' @aliases inla.stack.RHS inla.stack.data inla.stack.A
 #' @param stack A `inla.data.stack` object, created by a call to
 #' `inla.stack`, `inla.stack.sum`, or `inla.stack.join`.
 #' @param remove.unused If `TRUE`, compress the model by removing rows of
@@ -796,7 +796,7 @@ inla.stack.sum <- function(data, A, effects, responses = NULL,
         n.A.strict = TRUE
         )
     
-    effects <- do.call(rbind.inla.data.stack.info, eff)
+    effects <- do.call(rbind_inla.data.stack.info, eff)
     
     A.matrix <- do.call(cbind, A)
     A.nrow <- nrow(A.matrix)
@@ -939,11 +939,11 @@ inla.stack.join <- function(..., compress = TRUE, remove.unused = TRUE, multi.fa
     }
     
     data <- do.call(
-        rbind.inla.data.stack.info,
+        rbind_inla.data.stack.info,
         lapply(S.input, function(x) x$data)
     )
     effects <- do.call(
-        rbind.inla.data.stack.info,
+        rbind_inla.data.stack.info,
         lapply(S.input, function(x) x$effects)
     )
     ## The .bdiag form of bdiag takes a list as input.

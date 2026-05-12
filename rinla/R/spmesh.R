@@ -3,7 +3,7 @@
 #' Detect whether PROJ6 is available for INLA. Deprecated and always returns `TRUE`.
 #'
 #' @aliases inla.has_PROJ6 inla.not_for_PROJ6 inla.not_for_PROJ4
-#' inla.fallback_PROJ6 inla.requires_PROJ6
+#' @aliases inla.fallback_PROJ6 inla.requires_PROJ6
 #' @details `inla.has_PROJ6` is called to check if PROJ6&GDAL3 are available.
 #' @return For `inla.has_PROJ6`, always returns `TRUE`. Previously: logical; `TRUE` if PROJ6 is available,
 #' `FALSE` otherwise
@@ -174,10 +174,11 @@ inla.sp_get_crs <- function(x) {
 #'
 #'
 #' @aliases inla.wkt_is_geocent inla.crs_is_geocent
-#' inla.wkt_get_ellipsoid_radius inla.crs_get_ellipsoid_radius
-#' inla.wkt_set_ellipsoid_radius inla.crs_set_ellipsoid_radius
-#' inla.wkt_unit_params crs_wkt inla.wkt_get_lengthunit inla.wkt_set_lengthunit
-#' inla.crs_get_wkt inla.crs_get_lengthunit inla.crs_set_lengthunit
+#' @aliases inla.wkt_get_ellipsoid_radius inla.crs_get_ellipsoid_radius
+#' @aliases inla.wkt_set_ellipsoid_radius inla.crs_set_ellipsoid_radius
+#' @aliases inla.wkt_unit_params crs_wkt inla.wkt_get_lengthunit
+#' @aliases inla.wkt_set_lengthunit
+#' @aliases inla.crs_get_wkt inla.crs_get_lengthunit inla.crs_set_lengthunit
 #' @param wkt A WKT2 character string
 #' @param crs A `sp::CRS` or `inla.CRS` object
 #' @param unit character, name of a unit. Supported names are "metre",
@@ -416,7 +417,7 @@ inla.wkt_predef <- function() {
 #'
 #'
 #' @aliases inla.as.wkt_tree.wkt inla.as.wkt.wkt_tree inla.wkt_tree_get_item
-#' inla.wkt_tree_set_item
+#' @aliases inla.wkt_tree_set_item
 #' @param x A WKT2 string, or a `wkt_tree` list structure
 #' @param \dots Unused
 #' @param item character vector with item labels identifying a parameter item
@@ -495,7 +496,7 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' or [fmesher::fm_wkt()] for WKT2 representations.
 #'
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
-#' inla.as.CRSargs.list
+#' @aliases inla.as.CRSargs.list
 #' @param x An `sp::CRS` or `inla.CRS` object (for
 #' `inla.CRSargs` and `inla.as.list.CRS`), a character string (for
 #' `inla.as.list.CRSargs`), or a list (for `inla.as.CRS.list` and

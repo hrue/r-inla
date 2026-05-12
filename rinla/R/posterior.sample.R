@@ -20,7 +20,7 @@
 #' cases.
 #' 
 #' @aliases inla.posterior.sample posterior.sample inla.posterior.sample.eval
-#' posterior.sample.eval
+#' @aliases posterior.sample.eval
 #' @param n Number of samples.
 #' @param result The inla-object, ie the output from an `inla`-call.  The
 #' `inla`-object must be created with

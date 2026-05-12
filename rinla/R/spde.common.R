@@ -29,7 +29,7 @@ inla.dBind <- function(...) {
 #'
 #'
 #' @aliases inla.extract.el inla.extract.el.data.frame inla.extract.el.list
-#' inla.extract.el.matrix
+#' @aliases inla.extract.el.matrix
 #' @param M A container object.
 #' @param match A regex defining the matching criterion.
 #' @param by.row If `TRUE`, extract data by row, otherwise by column.
@@ -419,7 +419,7 @@ inla.spde.models <- function(function.names = FALSE) {
 #'
 #'
 #' @aliases inla.spde.sample inla.spde.sample.default
-#' inla.spde.sample.inla.spde
+#' @aliases inla.spde.sample.inla.spde
 #' @param precision A precision matrix.
 #' @param seed The seed for the pseudo-random generator.
 #' @param spde An `inla.spde` object.
@@ -463,7 +463,7 @@ inla.spde.sample.inla.spde <-
 #'  values based on an `inla.spde` model object.
 #'
 #' @aliases inla.spde.precision inla.spde1.precision inla.spde2.precision
-#' inla.spde.precision.inla.spde1 inla.spde.precision.inla.spde2
+#' @aliases inla.spde.precision.inla.spde1 inla.spde.precision.inla.spde2
 #' @param spde An `inla.spde` object.
 #' @param theta The parameter vector.
 #' @param phi0 Internal parameter for a generic model.  Expert option only.
@@ -490,7 +490,7 @@ inla.spde.precision <- function(...) {
 #'
 #'
 #' @aliases inla.spde.result inla.spde.result.inla.spde1
-#' inla.spde.result.inla.spde2 inla.spde1.result inla.spde2.result
+#' @aliases inla.spde.result.inla.spde2 inla.spde1.result inla.spde2.result
 #' @param inla An `inla` object obtained from a call to [inla()]
 #' @param name A character string with the name of the SPDE effect in the inla
 #' formula.

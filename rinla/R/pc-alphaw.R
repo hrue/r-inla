@@ -8,7 +8,8 @@
 #' likelihood, where `alpha=1` is the base model.
 #' 
 #' @aliases inla.pc.alphaw pc.alphaw pc.ralphaw inla.pc.ralphaw pc.dalphaw
-#' inla.pc.dalphaw pc.palphaw inla.pc.palphaw pc.qalphaw inla.pc.qalphaw
+#' @aliases inla.pc.dalphaw pc.palphaw inla.pc.palphaw pc.qalphaw
+#' @aliases inla.pc.qalphaw
 #' @param n Number of observations
 #' @param lambda The rate parameter in the PC-prior
 #' @param alpha Vector of evaluation points, where `alpha>0`.
