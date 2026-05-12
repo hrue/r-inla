@@ -14,6 +14,7 @@ typedef struct {
 void inla_cgeneric_mapper_list(FILE *fp)
 {
 	inla_func_mapper_elm_tp table[] = {
+#if defined(INLA_WITH_EXTERNAL_PACKAGES)
 #if __has_include("cgeneric-table.h")
 #       include "cgeneric-table.h"
 #elif __has_include("../external-packages/cgeneric-table.h")
@@ -24,6 +25,7 @@ void inla_cgeneric_mapper_list(FILE *fp)
 #       include "../../../external-packages/cgeneric-table.h"
 #else
 #       error "Cannot find file 'cgeneric-table.h'"
+#endif
 #endif
 		{ (char *) NULL, (inla_cgeneric_func_tp *) NULL }
 	};
@@ -40,6 +42,7 @@ void inla_cgeneric_mapper_list(FILE *fp)
 inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name)
 {
 	inla_func_mapper_elm_tp table[] = {
+#if defined(INLA_WITH_EXTERNAL_PACKAGES)
 #if __has_include("cgeneric-table.h")
 #       include "cgeneric-table.h"
 #elif __has_include("../external-packages/cgeneric-table.h")
@@ -50,6 +53,7 @@ inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name)
 #       include "../../../external-packages/cgeneric-table.h"
 #else
 #       error "Cannot find file 'cgeneric-table.h'"
+#endif
 #endif
 		{ (char *) NULL, (inla_cgeneric_func_tp *) NULL }
 	};
