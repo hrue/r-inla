@@ -2470,6 +2470,19 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
+#if defined(INLA_WITH_EXTERNAL_PACKAGES)
+#if __has_include("cgeneric-defs.h")
+#       include "cgeneric-defs.h"
+#elif __has_include("../external-packages/cgeneric-defs.h")
+#       include "../external-packages/cgeneric-defs.h"
+#elif __has_include("../../external-packages/cgeneric-defs.h")
+#       include "../../external-packages/cgeneric-defs.h"
+#elif __has_include("../../../external-packages/cgeneric-defs.h")
+#       include "../../../external-packages/cgeneric-defs.h"
+#else
+#       error "Cannot find file 'cgeneric-defs.h'"
+#endif
+#endif
 void inla_cgeneric_mapper_list(FILE * fp);
 inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
 

@@ -13,11 +13,12 @@
 
 //
 
+#       include <omp.h>
+
 __BEGIN_DECLS
 #       include <assert.h>
 #       include <math.h>
 #       include <stdio.h>
-#       include <omp.h>
 #       include <stdio.h>
 
 /* 
