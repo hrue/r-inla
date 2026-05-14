@@ -7,7 +7,7 @@
 #include "../../external-packages/cgeneric-defs.h"
 
 typedef struct {
-	char *name;
+	const char *name;
 	inla_cgeneric_func_tp *func;
 } inla_func_mapper_elm_tp;
 
@@ -27,7 +27,7 @@ void inla_cgeneric_mapper_list(FILE *fp)
 #       error "Cannot find file 'cgeneric-table.h'"
 #endif
 #endif
-		{ (char *) NULL, (inla_cgeneric_func_tp *) NULL }
+		{ (const char *) NULL, (inla_cgeneric_func_tp *) NULL }
 	};
 
 	if (!fp)
@@ -55,7 +55,7 @@ inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name)
 #       error "Cannot find file 'cgeneric-table.h'"
 #endif
 #endif
-		{ (char *) NULL, (inla_cgeneric_func_tp *) NULL }
+		{ (const char *) NULL, (inla_cgeneric_func_tp *) NULL }
 	};
 
 	int i = 0;

@@ -1002,6 +1002,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 	} else if (sm_fact->smtp == GMRFLib_SMTP_STILES) {
+		printf("Call stiles solve llt with nrhs %d\n", nrhs);
 		GMRFLib_stiles_idx_tp s_idx = { 0, -1, nrhs };
 		if (stiles_idx) {
 			s_idx.in_group = stiles_idx->in_group;

@@ -572,7 +572,17 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 		fflush(stdout);						\
 		assert(store->chol_done[llidx.in_group][llidx.within_group]); \
 	}								\
-	sTiles_packing(llidx.in_group, llidx.within_group, &(store->obj))
+	if (1) {							\
+		static double tref_ = 0.0;				\
+		static double trefc_ = 0.0;				\
+		tref_ += -GMRFLib_timer();				\
+		sTiles_packing(llidx.in_group, llidx.within_group, &(store->obj)); \
+		tref_ += GMRFLib_timer();				\
+		trefc_++;						\
+		P(tref_);						\
+		P(1.0E6 * tref_ / trefc_);				\
+	}
+	
 
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {

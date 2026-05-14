@@ -7,13 +7,13 @@
 #       pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 #endif
 
-#define malloc(a_) malloc_intern(a_)
-#define calloc(a_, b_) calloc_intern(a_, b_)
-#define realloc(a_, b_) realloc_intern(a_, b_)
-
 #include "GMRFLib/alloc.h"
 #include "GMRFLib/fsort.h"
 #include "GMRFLib/fsort/fluxsort.h"
+
+#define malloc(a_) malloc_intern(a_)
+#define calloc(a_, b_) calloc_intern(a_, b_)
+#define realloc(a_, b_) realloc_intern(a_, b_)
 
 void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *))
 {

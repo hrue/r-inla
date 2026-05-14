@@ -19801,7 +19801,10 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ifill(len, -1, param);
 	}
 	GMRFLib_stiles_set_ctl(verbose, block_size, len, param);
-	GMRFLib_stiles_print_ctl_param(stdout, "\t\t");
+	char *tmp = NULL;
+	GMRFLib_sprintf(&tmp, "\t\t");
+	GMRFLib_stiles_print_ctl_param(stdout, tmp);
+	Free(tmp);
 	return INLA_OK;
 }
 

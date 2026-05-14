@@ -5843,43 +5843,43 @@ int testit(int argc, char **argv)
 
 			GMRFLib_numa_free(x[0], (n + 100) * sizeof(double));
 			GMRFLib_numa_free(x[1], (n + 100) * sizeof(double));
-			x[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
-			x[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+			x[0] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			x[1] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
 
 			GMRFLib_numa_free(y[0], (n + 100) * sizeof(double));
 			GMRFLib_numa_free(y[1], (n + 100) * sizeof(double));
-			y[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
-			y[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+			y[0] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			y[1] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
 
 			GMRFLib_numa_free(xx[0], (n + 100) * sizeof(double));
 			GMRFLib_numa_free(xx[1], (n + 100) * sizeof(double));
-			xx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
-			xx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+			xx[0] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			xx[1] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
 
 			GMRFLib_numa_free(yy[0], (n + 100) * sizeof(double));
 			GMRFLib_numa_free(yy[1], (n + 100) * sizeof(double));
-			yy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
-			yy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
+			yy[0] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 0);
+			yy[1] = (double *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(double), 1);
 
 			GMRFLib_numa_free(ix[0], (n + 100) * sizeof(int));
 			GMRFLib_numa_free(ix[1], (n + 100) * sizeof(int));
-			ix[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
-			ix[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+			ix[0] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			ix[1] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
 
 			GMRFLib_numa_free(iy[0], (n + 100) * sizeof(int));
 			GMRFLib_numa_free(iy[1], (n + 100) * sizeof(int));
-			iy[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
-			iy[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+			iy[0] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			iy[1] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
 
 			GMRFLib_numa_free(idx[0], (n + 100) * sizeof(int));
 			GMRFLib_numa_free(idx[1], (n + 100) * sizeof(int));
-			idx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
-			idx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+			idx[0] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idx[1] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
 
 			GMRFLib_numa_free(idxx[0], (n + 100) * sizeof(int));
 			GMRFLib_numa_free(idxx[1], (n + 100) * sizeof(int));
-			idxx[0] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
-			idxx[1] = GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
+			idxx[0] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 0);
+			idxx[1] = (int *) GMRFLib_numa_alloc_onnode((n + 100) * sizeof(int), 1);
 
 			for (int k = 0; k < 1; k++) {
 				for (int i = 0; i < n; i++) {
