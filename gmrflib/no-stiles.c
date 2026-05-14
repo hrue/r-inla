@@ -48,12 +48,14 @@ extern "C" {
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_init(void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_init_group(int, void **) EMPTY_FUNCTION_ERROR;
+	int sTiles_packing(int, int, void**) EMPTY_FUNCTION_NO_ERROR;
 	int sTiles_selinv(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_L(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LLT(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LLT_rescale(int, int, void **, double *, int, int, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LT(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_unbind(int, int, void **) EMPTY_FUNCTION_ERROR;
+	int sTiles_unpacking(int, int, void**) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_expert_user(void) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_freeGroup(int) EMPTY_FUNCTION_ERROR;
 	void sTiles_map_group_call_to_group_call(void **, int, int, int, int) EMPTY_FUNCTION_ERROR;
@@ -75,7 +77,8 @@ extern "C" {
 	void sTiles_set_tile_type_mode(int UNUSED(tile_type)) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_turn_off_rescale(int, void *) EMPTY_FUNCTION_ERROR;
 	void sTiles_turn_on_rescale(int, void *) EMPTY_FUNCTION_ERROR;
-
+	
+	
 #       ifdef __cplusplus
 }
 #       endif
