@@ -250,6 +250,8 @@ typedef enum {
 	L_NVM,
 	L_LAVM,
 	L_GAMMACOUNTMEAN,
+	L_0NBINOMIAL,
+	L_0NBINOMIALS,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -846,6 +848,12 @@ typedef struct {
 	double ***binomial0_beta;
 	double **binomial0_x;
 	double *binomial0_Ntrials;
+
+	int nbinomial0_nbeta;
+	double ***nbinomial0_beta;
+	double **nbinomial0_x;
+	double *nbinomial0_E;
+	double *nbinomial0_S;
 
 	/*
 	 * this cover both ggassuian and ggassuianS 
@@ -2293,6 +2301,10 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 
 int loglikelihood_0binomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0binomialS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_0nbinomial(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			     double *y_cdf, void *arg);
+int loglikelihood_0nbinomialS(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+			      double *y_cdf, void *arg);
 int loglikelihood_0poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_1poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2357,8 +2369,8 @@ int loglikelihood_logperiodogram(int thread_id, int *lcache_idx, double *logll, 
 int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *));
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *));
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2470,19 +2482,19 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
-#if defined(INLA_WITH_EXTERNAL_PACKAGES)
-#if __has_include("cgeneric-defs.h")
-#       include "cgeneric-defs.h"
-#elif __has_include("../external-packages/cgeneric-defs.h")
-#       include "../external-packages/cgeneric-defs.h"
-#elif __has_include("../../external-packages/cgeneric-defs.h")
-#       include "../../external-packages/cgeneric-defs.h"
-#elif __has_include("../../../external-packages/cgeneric-defs.h")
-#       include "../../../external-packages/cgeneric-defs.h"
-#else
-#       error "Cannot find file 'cgeneric-defs.h'"
-#endif
-#endif
+#       if defined(INLA_WITH_EXTERNAL_PACKAGES)
+#              if __has_include("cgeneric-defs.h")
+#                     include "cgeneric-defs.h"
+#              elif __has_include("../external-packages/cgeneric-defs.h")
+#                     include "../external-packages/cgeneric-defs.h"
+#              elif __has_include("../../external-packages/cgeneric-defs.h")
+#                     include "../../external-packages/cgeneric-defs.h"
+#              elif __has_include("../../../external-packages/cgeneric-defs.h")
+#                     include "../../../external-packages/cgeneric-defs.h"
+#              else
+#                     error "Cannot find file 'cgeneric-defs.h'"
+#              endif
+#       endif
 void inla_cgeneric_mapper_list(FILE * fp);
 inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
 

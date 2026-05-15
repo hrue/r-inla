@@ -582,7 +582,7 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 		P(tref_);						\
 		P(1.0E6 * tref_ / trefc_);				\
 	}
-	
+
 
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {

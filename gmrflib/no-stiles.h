@@ -28,7 +28,7 @@ int sTiles_get_auto_tile_size(void);
 int sTiles_get_control_param(int index);
 int sTiles_init(void **obj);
 int sTiles_init_group(int group_index, void **obj);
-int sTiles_packing(int group_index, int call_index, void** obj);
+int sTiles_packing(int group_index, int call_index, void **obj);
 int sTiles_return_tile_size();
 int sTiles_selinv(int group_index, int call_index, void **obj);
 int sTiles_solve_L(int group_index, int call_index, void **obj, double *B, int nrhs);
@@ -36,7 +36,7 @@ int sTiles_solve_LLT(int group_index, int call_index, void **obj, double *B, int
 int sTiles_solve_LLT_rescale(int, int, void **, double *, int, int, int);
 int sTiles_solve_LT(int group_index, int call_index, void **obj, double *B, int nrhs);
 int sTiles_unbind(int group_index, int call_index, void **obj);
-int sTiles_unpacking(int group_index, int call_index, void** obj);
+int sTiles_unpacking(int group_index, int call_index, void **obj);
 void sTiles_expert_user(void);
 void sTiles_freeGroup(int group_ID);
 void sTiles_map_group_call_to_group_call(void **obj, int group_index1, int call_index1, int group_index2, int call_index2);

@@ -9,11 +9,11 @@
 
 \subsection*{Parametrisation}
 
-This is a new implementation (Nov'22) of zero-inflated Poisson and
-Binomial likelihood, where we will allow for a linear predictor in
-both the zero-inflattion and in the mean, but one of them needs to
-consists of fixed effects only. This means the setup will be
-somewhat different that for other likelihood models. 
+This is a new implementation (Nov'22) of zero-inflated Poisson,
+Binomial and negative Binomial likelihood, where we will allow for a
+linear predictor in both the zero-inflattion and in the mean, but one
+of them needs to consists of fixed effects only. This means the setup
+will be somewhat different that for other likelihood models.
 
 \subsubsection*{Details}
 
@@ -22,10 +22,11 @@ The zero-inflated likelihood $f_0(y|\ldots)$ is defined as
     f_0(y | \eta_1, \eta_2) = p(\eta_1) 1_{[y=0]} +
     (1-p(\eta_1)) f(y | \eta_2)
 \end{displaymath}
-where $f(y|\ldots)$ is either Poisson or Binomial. We allow for two
-linear predictors in the model, but one needs to be ``simple'' (i.e.\
-only consists of fixed effects). The other is general and defined via
-the formula. Normally, the zero-inflation probability is simpler (\texttt{family="0..."})
+where $f(y|\ldots)$ is either Poisson, Binomial or negative Binomial.
+We allow for two linear predictors in the model, but one needs to be
+``simple'' (i.e.\ only consists of fixed effects). The other is
+general and defined via the formula. Normally, the zero-inflation
+probability is simpler (\texttt{family="0..."})
 \begin{displaymath}
     \eta_1 = \text{simple} \qquad \eta_2 = \text{formula}
 \end{displaymath}
@@ -36,7 +37,7 @@ but they can also be swapped (\texttt{family="0...S"})
 
 \subsection*{Link-function}
 
-This is similar to Poisson and Binomial.
+This is similar to Poisson, Binomial and negative Binomial.
 
 The link-function for the 'simple'-model must be given by argument
 \texttt{link.simple} in the \texttt{control.family}-argument. Only
@@ -68,11 +69,15 @@ positive'' Poisson $f(y | y > 0)$. These ones are named
 \item \texttt{family="0poissonS"}
 \item \texttt{family="0binomial"}
 \item \texttt{family="0binomialS"}
+\item \texttt{family="0nbinomial"}
+\item \texttt{family="0nbinomialS"}
 \item \texttt{family="1poisson"}
 \item \texttt{family="1poissonS"}
-\item Required arguments: As for the Poisson and Binomial (but how
-    these arguments are given, will differ). Optional argument
-    \texttt{link.simple}.
+\item Required arguments: As for the Poisson, Binomial and negative
+    Binomial (but how these arguments are given, will differ).
+    Optional argument \texttt{link.simple}.
+
+    For negative Binomial, only variant 0 and 1 are supported.
 \end{itemize}
 
 \clearpage
@@ -89,6 +94,12 @@ positive'' Poisson $f(y | y > 0)$. These ones are named
 \paragraph{0poisson}
 {\small \input{../hyper/likelihood/0binomialS.tex}}
 \clearpage
+\paragraph{0binomial}
+{\small \input{../hyper/likelihood/0nbinomial.tex}}
+\clearpage
+\paragraph{0poisson}
+{\small \input{../hyper/likelihood/0nbinomialS.tex}}
+\clearpage
 \paragraph{1poisson}
 {\small \input{../hyper/likelihood/1poisson.tex}}
 \clearpage
@@ -101,12 +112,16 @@ positive'' Poisson $f(y | y > 0)$. These ones are named
 {\small \verbatiminput{example-0inflated-poisson.R}}
 
 \clearpage
-\subsection*{Example: Binomial}
+\subsection*{Example: 0Binomial}
 {\small \verbatiminput{example-0inflated-binomial.R}}
 
 \clearpage
 \subsection*{Example: 1Poisson}
 {\small \verbatiminput{example-1inflated-poisson.R}}
+
+\clearpage
+\subsection*{Example: 0nBinomial}
+{\small \verbatiminput{example-0inflated-nbinomial.R}}
 
 
 \end{document}
