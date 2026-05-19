@@ -24,6 +24,7 @@ extern "C" {
 
 	static const char *sTiles_VERSION_STRING = "No sTiles version";
 
+
 	const char *sTiles_get_version(void) EMPTY_FUNCTION_RETURN(sTiles_VERSION_STRING);
 	double sTiles_GetGroupMemoryUsage(int) EMPTY_FUNCTION_ERROR;
 	double sTiles_GetGroupsMemoryUsage(void) EMPTY_FUNCTION_ERROR;
@@ -32,6 +33,7 @@ extern "C" {
 	double sTiles_get_logdet(int, int, void **) EMPTY_FUNCTION_ERROR;
 	double sTiles_get_selinv_elm(int, int, int, int, void **) EMPTY_FUNCTION_ERROR;
 	double sTiles_get_selinv_timing(int, int, void **) EMPTY_FUNCTION_ERROR;
+	double* sTiles_get_L_values(int, int, void**) EMPTY_FUNCTION_ERROR;
 	int *sTiles_return_iperm_vec(int, void **) EMPTY_FUNCTION_ERROR;
 	int *sTiles_return_perm_vec(int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_assign_graph(int, void **, int, int, int *, int *) EMPTY_FUNCTION_ERROR;
@@ -41,8 +43,7 @@ extern "C" {
 	int sTiles_chol(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_clear_selinv(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_create(void **, int, const int *, const int *, const int *, const bool *) EMPTY_FUNCTION_ERROR;
-	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *,
-				 const int *) EMPTY_FUNCTION_ERROR;
+	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *, const int *) EMPTY_FUNCTION_ERROR;
 	int sTiles_get_auto_tile_size(void) EMPTY_FUNCTION_RETURN(32);
 	int sTiles_get_control_param(int) EMPTY_FUNCTION_RETURN(-1);
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION_ERROR;
@@ -56,6 +57,7 @@ extern "C" {
 	int sTiles_solve_LT(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_unbind(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_unpacking(int, int, void **) EMPTY_FUNCTION_NO_ERROR;
+	long long sTiles_get_pack_cache_threshold_bytes(void) EMPTY_FUNCTION_RETURN(-1);
 	void sTiles_expert_user(void) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_freeGroup(int) EMPTY_FUNCTION_ERROR;
 	void sTiles_map_group_call_to_group_call(void **, int, int, int, int) EMPTY_FUNCTION_ERROR;
@@ -69,6 +71,7 @@ extern "C" {
 	void sTiles_set_correction_mode(int UNUSED(correction_mode)) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_log_level(int) EMPTY_FUNCTION_ERROR;
 	void sTiles_set_ordering_mode(int UNUSED(reordering)) EMPTY_FUNCTION_NO_ERROR;
+	void sTiles_set_pack_cache_threshold_bytes(long long) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_rescale_cores(const int *, int) EMPTY_FUNCTION_ERROR;
 	void sTiles_set_tile_ordering_min_dim(int UNUSED(min_dim)) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_tile_ordering_mode(int UNUSED(reordering)) EMPTY_FUNCTION_NO_ERROR;
@@ -77,7 +80,6 @@ extern "C" {
 	void sTiles_set_tile_type_mode(int UNUSED(tile_type)) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_turn_off_rescale(int, void *) EMPTY_FUNCTION_ERROR;
 	void sTiles_turn_on_rescale(int, void *) EMPTY_FUNCTION_ERROR;
-
 
 #       ifdef __cplusplus
 }
