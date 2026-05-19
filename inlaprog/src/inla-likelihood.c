@@ -7905,6 +7905,10 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restric
 		SAFEGUARD1(value_[i_]);					\
 	}
 
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int ncov = ds->data_observations.cure_ncov;
 	double pcure = 0.0, l_1mpcure = NAN;
