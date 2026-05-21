@@ -33,7 +33,7 @@ extern "C" {
 	double sTiles_get_logdet(int, int, void **) EMPTY_FUNCTION_ERROR;
 	double sTiles_get_selinv_elm(int, int, int, int, void **) EMPTY_FUNCTION_ERROR;
 	double sTiles_get_selinv_timing(int, int, void **) EMPTY_FUNCTION_ERROR;
-	double* sTiles_get_L_values(int, int, void**) EMPTY_FUNCTION_ERROR;
+	double *sTiles_get_L_values(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int *sTiles_return_iperm_vec(int, void **) EMPTY_FUNCTION_ERROR;
 	int *sTiles_return_perm_vec(int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_assign_graph(int, void **, int, int, int *, int *) EMPTY_FUNCTION_ERROR;
@@ -43,7 +43,8 @@ extern "C" {
 	int sTiles_chol(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_clear_selinv(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_create(void **, int, const int *, const int *, const int *, const bool *) EMPTY_FUNCTION_ERROR;
-	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *, const int *) EMPTY_FUNCTION_ERROR;
+	int sTiles_create_expert(void **, int, const int *, const int *, const int *, const bool *, const int *, const int *, const int *,
+				 const int *) EMPTY_FUNCTION_ERROR;
 	int sTiles_get_auto_tile_size(void) EMPTY_FUNCTION_RETURN(32);
 	int sTiles_get_control_param(int) EMPTY_FUNCTION_RETURN(-1);
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION_ERROR;

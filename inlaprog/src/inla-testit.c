@@ -6440,30 +6440,30 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = {0};
-		for(int j = 0; j < m; j++) {
+		double tref[2] = { 0 };
+		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
 
 			tref[0] -= GMRFLib_timer();
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				x += i;
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp parallel for reduction(+: xx) num_threads(1)
-			for(int i = 0; i < n; i++) {
+#       pragma omp parallel for reduction(+: xx) num_threads(1)
+			for (int i = 0; i < n; i++) {
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
-			assert(ABS(x-xx)/sqrt(n) < FLT_EPSILON);
+			assert(ABS(x - xx) / sqrt(n) < FLT_EPSILON);
 		}
 		double s = tref[0] + tref[1];
-		printf("plain %.3f omp %.3f\n", tref[0] / s,  tref[1] / s);
+		printf("plain %.3f omp %.3f\n", tref[0] / s, tref[1] / s);
 	}
-	break;
-			
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
