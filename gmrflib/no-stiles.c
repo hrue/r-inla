@@ -50,14 +50,14 @@ extern "C" {
 	int sTiles_get_num_calls(void *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_init(void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_init_group(int, void **) EMPTY_FUNCTION_ERROR;
-	int sTiles_packing(int, int, void **) EMPTY_FUNCTION_NO_ERROR;
+	int sTiles_packing(int, int, void **) EMPTY_FUNCTION_RETURN(-1);
 	int sTiles_selinv(int, int, void **) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_L(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LLT(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LLT_rescale(int, int, void **, double *, int, int, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_solve_LT(int, int, void **, double *, int) EMPTY_FUNCTION_ERROR;
 	int sTiles_unbind(int, int, void **) EMPTY_FUNCTION_ERROR;
-	int sTiles_unpacking(int, int, void **) EMPTY_FUNCTION_NO_ERROR;
+	int sTiles_unpacking(int, int, void **) EMPTY_FUNCTION_RETURN(-1);
 	long long sTiles_get_pack_cache_threshold_bytes(void) EMPTY_FUNCTION_RETURN(-1);
 	void sTiles_expert_user(void) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_freeGroup(int) EMPTY_FUNCTION_ERROR;
