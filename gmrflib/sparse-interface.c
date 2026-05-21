@@ -1015,7 +1015,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 		static double tref = 0.0;
 		static double trefc = 0.0;
 		static double trefc_min = 0;
-		if (trefc_min >= 25 && nrhs == 1) 
+		if (trefc_min >= 25 && nrhs == 1)
 			tref += -GMRFLib_timer();
 #endif
 		GMRFLib_stiles_solve_LLT(&s_idx, rhs);

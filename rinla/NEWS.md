@@ -1,4 +1,9 @@
-# INLA 25.05.10
+# INLA 26.05.21
+* New 0nbinomial(S) likelihood
+* Fixed regression for group-cv and likelihoods not returning CDFs.
+* Cleanup 'inla.binary.install()'
+
+# INLA 26.05.10
 * Interal code refactoring
 * Various code maintainance
 

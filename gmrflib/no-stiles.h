@@ -13,7 +13,7 @@ double sTiles_GetGroupMemoryUsage(int group_ID);
 double sTiles_GetGroupsMemoryUsage();
 double sTiles_get_logdet(int group_index, int call_index, void **obj);
 double sTiles_get_selinv_elm(int group_index, int call_index, int irow, int icol, void **obj);
-double* sTiles_get_L_values(int, int, void**);
+double *sTiles_get_L_values(int, int, void **);
 int *sTiles_return_iperm_vec(int group_index, void **obj);
 int *sTiles_return_perm_vec(int group_index, void **obj);
 int sTiles_assign_graph(int group_index, void **stile, int N, int NNZ, int *row_indices, int *col_indices);
@@ -21,8 +21,11 @@ int sTiles_assign_values(int group_index, int call_index, void **obj, double *x)
 int sTiles_bind(int group_index, int call_index, void **obj);
 int sTiles_chol(int group_index, int call_index, void **obj);
 int sTiles_clear_selinv(int group_index, int call_index, void **obj);
-int sTiles_create(void **obj, int num_call_groups, const int *calls_per_group, const int *cores_per_group, const int *factor_type_per_group, const bool *get_inverse);
-int sTiles_create_expert(void **obj, int num_call_groups, const int *calls_per_group, const int *cores_per_group, const int *factor_type_per_group, const bool *get_inverse, const int *rhs, const int *arrowhead_size, const int *arrowhead_size_per_group, const int *user_params);
+int sTiles_create(void **obj, int num_call_groups, const int *calls_per_group, const int *cores_per_group, const int *factor_type_per_group,
+		  const bool *get_inverse);
+int sTiles_create_expert(void **obj, int num_call_groups, const int *calls_per_group, const int *cores_per_group, const int *factor_type_per_group,
+			 const bool *get_inverse, const int *rhs, const int *arrowhead_size, const int *arrowhead_size_per_group,
+			 const int *user_params);
 int sTiles_get_auto_tile_size(void);
 int sTiles_get_control_param(int index);
 int sTiles_init(void **obj);
