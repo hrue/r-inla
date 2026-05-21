@@ -55,16 +55,6 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 		}
 	}
 
-#if 0
-#       pragma omp parallel for collapse(2) num_threads(num_threads) if (num_threads > 1)
-	for (int ii = 0; ii < n; ii += block_n) {
-		for (int jj = ii; jj < n; jj += block_n) {
-			// 
-			// 
-		}
-	}
-#endif
-
 #pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
@@ -1570,38 +1560,21 @@ __attribute__((optimize("O3")))
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
-	if (n <= 32) {
-		int limit = n & ~3;
-		for (int i = 0; i < limit; i += 4) {
-			y[i] = a * x[i] + b;
-			y[i + 1] = a * x[i + 1] + b;
-			y[i + 2] = a * x[i + 2] + b;
-			y[i + 3] = a * x[i + 3] + b;
-		}
-		for (int i = limit; i < n; i++) {
-			y[i] = a * x[i] + b;
-		}
-	} else {
-		GMRFLib_dfill(n, b, y);
-		GMRFLib_daxpy(n, a, x, y);
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = a * x[i] + b;
 	}
+	// GMRFLib_dfill(n, b, y);
+	// GMRFLib_daxpy(n, a, x, y);
 }
 #pragma GCC diagnostic pop
 
-// y = a * x + y
 #define DAXPY_CORE(cutoff_)				\
-	if (n < cutoff_) {				\
-		int limit = n & ~3;			\
+	if (n <= cutoff_) {				\
 		_Pragma("omp simd")			\
-		for (int i = 0; i < limit; i += 4) {	\
-			y[i] += a * x[i];		\
-			y[i+1] += a * x[i+1];		\
-			y[i+2] += a * x[i+2];		\
-			y[i+3] += a * x[i+3];		\
-		}					\
-		for (int i = limit; i < n; i++) {	\
-			y[i] += a * x[i];		\
-		}					\
+			for (int i = 0; i < n; i++) {	\
+				y[i] += a * x[i];	\
+			}				\
 	} else {					\
 		int inc = 1;				\
 		daxpy_(&n, &a, x, &inc, y, &inc);	\
@@ -1613,9 +1586,8 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-//      int inc = 1;
-//      daxpy_(&n, &a, x, &inc, y, &inc);
-	DAXPY_CORE(64);
+	// y = a * x + y
+	DAXPY_CORE(24);
 }
 #pragma GCC diagnostic pop
 
@@ -1630,25 +1602,14 @@ void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
 #pragma GCC diagnostic pop
 #undef DAXPY_CORE
 
-//              _Pragma("omp simd reduction(+: sum0,sum1,sum2,sum3)")
-
 #define DDOT_CORE(cutoff_)						\
-	if (n < cutoff_) {						\
-		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
-		double *xx = x, *yy = y;				\
-		int limit = n & ~3;					\
-			for (int i = 0; i < limit; i += 4) {		\
-			sum0 += xx[0] * yy[0];				\
-			sum1 += xx[1] * yy[1];				\
-			sum2 += xx[2] * yy[2];				\
-			sum3 += xx[3] * yy[3];				\
-			xx += 4;					\
-			yy += 4;					\
-		}							\
-		for (int i = limit; i < n; i++) {			\
-			sum0 += x[i] * y[i];				\
-		}							\
-		return (sum0 + sum1) + (sum2 + sum3);			\
+	if (n <= cutoff_) {						\
+		double res = 0.0;					\
+		_Pragma("omp simd reduction(+: res)")			\
+			for (int i = 0; i < n; i++) {			\
+				res += x[i] * y[i];			\
+			}						\
+		return res;						\
 	} else {							\
 		int one = 1;						\
 		return ddot_(&n, x, &one, y, &one);			\
@@ -1660,9 +1621,7 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-//      int one = 1;
-//      return ddot_(&n, x, &one, y, &one);
-	DDOT_CORE(32);
+	DDOT_CORE(320);
 }
 #pragma GCC diagnostic pop
 
@@ -1682,33 +1641,24 @@ void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__
 #elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/ddot2-sse2.h"
 #else
-		int limit = n & ~1;
 		double aa = 0.0, bb = 0.0;
-		for (int i = 0; i < limit; i += 2) {
-			aa += x[i] * y[i] + x[i + 1] * y[i + 1];
-			bb += x[i] * z[i] + x[i + 1] * z[i + 1];
-		}
-		if (limit < n) {
-			int n1 = n - 1;
-			aa += x[n1] * y[n1];
-			bb += x[n1] * z[n1];
+#pragma omp simd reduction(+: aa, bb)
+		for (int i = 0; i < n; i++) {
+			aa += x[i] * y[i]; 
+			bb += x[i] * z[i]; 
 		}
 		*a = aa;
 		*b = bb;
 #endif
 	} else {
-		int limit = n & ~1;
 		double aa = 0.0, bb = 0.0;
-		for (int i = 0; i < limit; i += 2) {
-			aa += x[i] * y[i] + x[i + 1] * y[i + 1];
-			bb += x[i] * z[i] + x[i + 1] * z[i + 1];
-		}
-		if (limit < n) {
-			int n1 = n - 1;
-			aa += x[n1] * y[n1];
-			bb += x[n1] * z[n1];
+#pragma omp simd reduction(+: aa, bb)
+		for (int i = 0; i < n; i++) {
+			aa += x[i] * y[i]; 
+			bb += x[i] * z[i]; 
 		}
 		*a = aa;
+		*b = bb;
 	}
 }
 #pragma GCC diagnostic pop
@@ -1800,36 +1750,20 @@ int GMRFLib_isum(int n, int *x)
 #undef SUM_CORE_PLAIN
 #pragma GCC diagnostic pop
 
-#define SPARSE_DSUM()					\
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
-	int m = n & ~7;					\
-	int *iidx = idx;				\
-	for (int i = 0; i < m; i += 8) {		\
-		s0 += a[iidx[0]];			\
-		s1 += a[iidx[1]];			\
-		s2 += a[iidx[2]];			\
-		s3 += a[iidx[3]];			\
-		s0 += a[iidx[4]];			\
-		s1 += a[iidx[5]];			\
-		s2 += a[iidx[6]];			\
-		s3 += a[iidx[7]];			\
-		iidx += 8;				\
-	}						\
-	for (int i = m; i < n; i++) {			\
-		s0 += a[idx[i]];			\
-	}						\
-	return (s0 + s1) + (s2 + s3)
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-	SPARSE_DSUM();
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for(int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
 }
 #pragma GCC diagnostic pop
-#undef SPARSE_DSUM
 
 #define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\
