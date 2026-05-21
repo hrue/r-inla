@@ -4,6 +4,8 @@
 #' `inla` performs a full Bayesian analysis of additive models using
 #' Integrated Nested Laplace approximation
 #' 
+#' @name inla
+#' @aliases inla
 #' @param formula A `inla` formula like `y ~1 + z + f(ind,
 #' model="iid")` + f(ind2, weights, model="ar1") This is much like the formula
 #' for a `glm` except that smooth or spatial terms can be added to the

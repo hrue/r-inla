@@ -442,7 +442,10 @@ inla.mesh.map <- function(loc,
 #' @seealso [inla.mesh()]
 #' @examples
 #'
-#' lattice <- inla.mesh.lattice(seq(0, 1, length.out = 17), seq(0, 1, length.out = 10))
+#' lattice <- inla.mesh.lattice(
+#'   seq(0, 1, length.out = 17),
+#'   seq(0, 1, length.out = 10)
+#' )
 #'
 #' ## Use the lattice "as-is", without refinement:
 #' mesh <- inla.mesh.create(lattice = lattice, boundary = lattice$segm)

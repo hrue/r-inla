@@ -14,7 +14,8 @@ control.expert(
   opt.solve = FALSE,
   opt.storage = FALSE,
   opt.num.threads = TRUE,
-  memory.alignment = -1
+  memory.alignment = -1,
+  blas.num.threads = NULL
 )
 
 inla.set.control.expert.default(...)
@@ -49,6 +50,11 @@ critical places to optimize wall-clock time}
 only). One of -1 (no alignment correction done),  0 (chose automatically),
 16, 32 or 64 bytes (EXPERIMENTAL OPTION)}
 
+\item{blas.num.threads}{Allow setting a fixed value for the number of threads
+for BLAS functions, most often 1. If set to 0, then it will be determined
+adaptively. If set to 'NULL' then its value it will be determined by
+'inla.getOption("blas.num.threads")' (which defaults to 0).}
+
 \item{...}{Named arguments passed on to the main function}
 }
 \description{
@@ -58,29 +64,29 @@ returns a list of the default control arguments, unless overridden by
 specific input arguments.
 }
 \seealso{
-Other control: 
-\code{\link{control.bgev}()},
-\code{\link{control.compute}()},
-\code{\link{control.family}()},
-\code{\link{control.fixed}()},
-\code{\link{control.gcpo}()},
-\code{\link{control.group}()},
-\code{\link{control.hazard}()},
-\code{\link{control.inla}()},
-\code{\link{control.lincomb}()},
-\code{\link{control.link}()},
-\code{\link{control.lp.scale}()},
-\code{\link{control.mix}()},
-\code{\link{control.mode}()},
-\code{\link{control.numa}()},
-\code{\link{control.pardiso}()},
-\code{\link{control.pom}()},
-\code{\link{control.predictor}()},
-\code{\link{control.scopy}()},
-\code{\link{control.sem}()},
-\code{\link{control.stiles}()},
-\code{\link{control.taucs}()},
-\code{\link{control.update}()},
-\code{\link{control.vb}()}
+Other control:
+\code{\link[=control.bgev]{control.bgev()}},
+\code{\link[=control.compute]{control.compute()}},
+\code{\link[=control.family]{control.family()}},
+\code{\link[=control.fixed]{control.fixed()}},
+\code{\link[=control.gcpo]{control.gcpo()}},
+\code{\link[=control.group]{control.group()}},
+\code{\link[=control.hazard]{control.hazard()}},
+\code{\link[=control.inla]{control.inla()}},
+\code{\link[=control.lincomb]{control.lincomb()}},
+\code{\link[=control.link]{control.link()}},
+\code{\link[=control.lp.scale]{control.lp.scale()}},
+\code{\link[=control.mix]{control.mix()}},
+\code{\link[=control.mode]{control.mode()}},
+\code{\link[=control.numa]{control.numa()}},
+\code{\link[=control.pardiso]{control.pardiso()}},
+\code{\link[=control.pom]{control.pom()}},
+\code{\link[=control.predictor]{control.predictor()}},
+\code{\link[=control.scopy]{control.scopy()}},
+\code{\link[=control.sem]{control.sem()}},
+\code{\link[=control.stiles]{control.stiles()}},
+\code{\link[=control.taucs]{control.taucs()}},
+\code{\link[=control.update]{control.update()}},
+\code{\link[=control.vb]{control.vb()}}
 }
 \concept{control}

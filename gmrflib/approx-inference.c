@@ -4345,7 +4345,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				xp[i] = loc_mean + loc_sd * xx[i];	\
 			}						\
 			loglFunc(thread_id, &cache_idx, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg); \
-			loglFunc(thread_id, &cache_idx, pit, xp, -np, node, lpred_mean, NULL, loglFunc_arg); \
+			if (loglFunc(thread_id, &cache_idx, pit, xp, 0, node, lpred_mean, NULL, loglFunc_arg) ==  GMRFLib_LOGL_COMPUTE_CDF) { \
+				loglFunc(thread_id, &cache_idx, pit, xp, -np, node, lpred_mean, NULL, loglFunc_arg); \
+			} else {					\
+				GMRFLib_dfill(np, NAN, pit);		\
+			}						\
 									\
 			double d_tmp = d[node];				\
 			double val = 0.0;				\

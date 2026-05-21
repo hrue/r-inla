@@ -16,7 +16,9 @@ inla.binary.install(
   path = NULL,
   verbose = TRUE,
   md5.check = TRUE,
-  secure.http = TRUE
+  secure.http = TRUE,
+  list.only = FALSE,
+  version = NULL
 )
 }
 \arguments{
@@ -25,7 +27,7 @@ If \code{os} is not given, chose \code{os} interactively among available
 builds.}
 
 \item{path}{character. The install path. If \code{NULL} the path is derived
-from \code{INLA} package}
+from the installed \code{INLA} package}
 
 \item{verbose}{Logical. Verbose output if \code{TRUE}}
 
@@ -34,10 +36,18 @@ present or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
 
 \item{secure.http}{Logical. Use secure http (ie \verb{https://}) or
 \verb{http://}}
+
+\item{list.only}{Logical. If \code{TRUE}, only return character vector of
+available builds and exit. Default is \code{FALSE}.}
+
+\item{version}{character. The version of INLA binaries to install. If \code{NULL}
+(default) then the version matching the currently installed INLA package
+is used.}
 }
 \value{
-Return \code{TRUE} if installation was sucessful and \code{FALSE} if
-not.
+By default, return \code{TRUE} if installation was successful and \code{FALSE}
+if not. If \code{list.only = TRUE} return character vector of available builds
+(invisibly).
 }
 \description{
 Install a new binary for \code{os} unless \code{missing(os)}, for which the
@@ -49,6 +59,7 @@ Install a new binary for \code{os} unless \code{missing(os)}, for which the
      inla.binary.install()
      inla.binary.install(os = "CentOS Linux-7")
      inla.binary.install(os = "CentOS Linux-7",  path = "~/local/bin/inla.binary")
+     inla.binary.install(list.only = TRUE)
    }
  
 }

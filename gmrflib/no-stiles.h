@@ -7,11 +7,13 @@
 
 //...
 
+const char *sTiles_get_version(void);
 double *sTiles_get_selinv_row(int group_index, int call_index, int node, int *node_neighbors, int size, void **obj);
 double sTiles_GetGroupMemoryUsage(int group_ID);
 double sTiles_GetGroupsMemoryUsage();
 double sTiles_get_logdet(int group_index, int call_index, void **obj);
 double sTiles_get_selinv_elm(int group_index, int call_index, int irow, int icol, void **obj);
+double *sTiles_get_L_values(int, int, void **);
 int *sTiles_return_iperm_vec(int group_index, void **obj);
 int *sTiles_return_perm_vec(int group_index, void **obj);
 int sTiles_assign_graph(int group_index, void **stile, int N, int NNZ, int *row_indices, int *col_indices);
@@ -28,6 +30,7 @@ int sTiles_get_auto_tile_size(void);
 int sTiles_get_control_param(int index);
 int sTiles_init(void **obj);
 int sTiles_init_group(int group_index, void **obj);
+int sTiles_packing(int group_index, int call_index, void **obj);
 int sTiles_return_tile_size();
 int sTiles_selinv(int group_index, int call_index, void **obj);
 int sTiles_solve_L(int group_index, int call_index, void **obj, double *B, int nrhs);
@@ -35,6 +38,8 @@ int sTiles_solve_LLT(int group_index, int call_index, void **obj, double *B, int
 int sTiles_solve_LLT_rescale(int, int, void **, double *, int, int, int);
 int sTiles_solve_LT(int group_index, int call_index, void **obj, double *B, int nrhs);
 int sTiles_unbind(int group_index, int call_index, void **obj);
+int sTiles_unpacking(int group_index, int call_index, void **obj);
+long long sTiles_get_pack_cache_threshold_bytes(void);
 void sTiles_expert_user(void);
 void sTiles_freeGroup(int group_ID);
 void sTiles_map_group_call_to_group_call(void **obj, int group_index1, int call_index1, int group_index2, int call_index2);
@@ -43,6 +48,7 @@ void sTiles_quit();
 void sTiles_set_control_param(int index, int value);
 void sTiles_set_correction_mode(int correction_mode);
 void sTiles_set_ordering_mode(int reordering);
+void sTiles_set_pack_cache_threshold_bytes(long long bytes);
 void sTiles_set_rescale_cores(const int *rescale_list, int num_counts);
 void sTiles_set_tile_ordering_min_dim(int min_dim);
 void sTiles_set_tile_ordering_mode(int reordering);
@@ -51,7 +57,5 @@ void sTiles_set_tile_size(int tile_size);
 void sTiles_set_tile_type_mode(int tile_type);
 void sTiles_turn_off_rescale(int, void *);
 void sTiles_turn_on_rescale(int, void *);
-
-const char *sTiles_get_version(void);
 
 #endif

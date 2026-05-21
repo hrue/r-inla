@@ -18,3 +18,5 @@
 ^misc$
 ^\.lintr$
 ^\.styler\.R$
+^\.positai$
+^\.claude$

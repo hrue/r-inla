@@ -12588,6 +12588,340 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model '0nbinomial'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated nBinomial}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default log}}
+#'               \item{link.simple = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56421}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56422}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56423}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56424}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56425}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56426}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56427}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56428}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56429}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56430}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0nbinomial observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0nbinomial observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
+#'       \item{Model '0nbinomialS'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{\verb{New 0-inflated nBinomialS}}
+#'               \item{survival = }{\verb{FALSE}}
+#'               \item{discrete = }{\verb{TRUE}}
+#'               \item{link = }{\verb{default logit cauchit probit cloglog ccloglog}}
+#'               \item{link.simple = }{\verb{default log}}
+#'               \item{pdf = }{\verb{0inflated}}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 10.
+#'          \describe{
+#'           \item{Hyperparameter 'theta1'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56441}}
+#'             \item{name = }{\verb{beta1}}
+#'             \item{short.name = }{\verb{beta1}}
+#'             \item{output.name = }{\verb{beta1 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta1 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{-4}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{-4 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta2'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56442}}
+#'             \item{name = }{\verb{beta2}}
+#'             \item{short.name = }{\verb{beta2}}
+#'             \item{output.name = }{\verb{beta2 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta2 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta3'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56443}}
+#'             \item{name = }{\verb{beta3}}
+#'             \item{short.name = }{\verb{beta3}}
+#'             \item{output.name = }{\verb{beta3 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta3 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta4'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56444}}
+#'             \item{name = }{\verb{beta4}}
+#'             \item{short.name = }{\verb{beta4}}
+#'             \item{output.name = }{\verb{beta4 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta4 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta5'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56445}}
+#'             \item{name = }{\verb{beta5}}
+#'             \item{short.name = }{\verb{beta5}}
+#'             \item{output.name = }{\verb{beta5 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta5 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta6'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56446}}
+#'             \item{name = }{\verb{beta6}}
+#'             \item{short.name = }{\verb{beta6}}
+#'             \item{output.name = }{\verb{beta6 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta6 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta7'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56447}}
+#'             \item{name = }{\verb{beta7}}
+#'             \item{short.name = }{\verb{beta7}}
+#'             \item{output.name = }{\verb{beta7 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta7 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta8'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56448}}
+#'             \item{name = }{\verb{beta8}}
+#'             \item{short.name = }{\verb{beta8}}
+#'             \item{output.name = }{\verb{beta8 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta8 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta9'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56449}}
+#'             \item{name = }{\verb{beta9}}
+#'             \item{short.name = }{\verb{beta9}}
+#'             \item{output.name = }{\verb{beta9 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta9 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'           \item{Hyperparameter 'theta10'}{
+#'              \describe{
+#'             \item{hyperid = }{\verb{56450}}
+#'             \item{name = }{\verb{beta10}}
+#'             \item{short.name = }{\verb{beta10}}
+#'             \item{output.name = }{\verb{beta10 for 0nbinomialS observations}}
+#'             \item{output.name.intern = }{\verb{beta10 for 0nbinomialS observations}}
+#'             \item{initial = }{\verb{0}}
+#'             \item{fixed = }{\verb{FALSE}}
+#'             \item{prior = }{\verb{normal}}
+#'             \item{param = }{\verb{0 10}}
+#'             \item{to.theta = }{\verb{function(x) x}}
+#'             \item{from.theta = }{\verb{function(x) x}}
+#'             }
+#'           }
+#'          }
+#'        }
 #'       \item{Model 'binomialmix'.}{
 #'          \describe{
 #'           \item{Properties:}{

@@ -9,7 +9,7 @@
 #' given, or `u` AND `alpha`.
 #' 
 #' @aliases inla.pc.cor1 pc.cor1 pc.rcor1 inla.pc.rcor1 pc.dcor1 inla.pc.dcor1
-#' pc.pcor1 inla.pc.pcor1 pc.qcor1 inla.pc.qcor1
+#' @aliases pc.pcor1 inla.pc.pcor1 pc.qcor1 inla.pc.qcor1
 #' @param n Number of observations
 #' @param u The upper limit (see Details)
 #' @param alpha The probability going above the upper limit (see Details)

@@ -10,11 +10,15 @@
 #              define __BEGIN_DECLS			       /* empty */
 #              define __END_DECLS			       /* empty */
 #       endif
+
+//
+
+#       include <omp.h>
+
 __BEGIN_DECLS
 #       include <assert.h>
 #       include <math.h>
 #       include <stdio.h>
-#       include <omp.h>
 #       include <stdio.h>
 
 /* 

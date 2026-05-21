@@ -8,7 +8,7 @@
 #' given, or `u` AND `alpha`.
 #' 
 #' @aliases inla.pc.prec pc.prec pc.rprec inla.pc.rprec pc.dprec inla.pc.dprec
-#' pc.pprec inla.pc.pprec pc.qprec inla.pc.qprec
+#' @aliases pc.pprec inla.pc.pprec pc.qprec inla.pc.qprec
 #' @param n Number of observations
 #' @param u The upper limit (see Details)
 #' @param alpha The probability going above the upper limit (see Details)

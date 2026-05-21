@@ -8,8 +8,10 @@
 #' nrow, ncol)` can be used instead of `inla.matrix2vector` and
 #' `inla.vector2matrix`.
 #' 
-#' @aliases lattice2node inla.lattice2node node2lattice inla.node2lattice node2lattice.mapping
-#' @aliases inla.node2lattice.mapping lattice2node.mapping inla.lattice2node.mapping
+#' @aliases lattice2node inla.lattice2node node2lattice inla.node2lattice
+#' @aliases node2lattice.mapping
+#' @aliases inla.node2lattice.mapping lattice2node.mapping
+#' @aliases inla.lattice2node.mapping
 #' @aliases matrix2vector vector2matrix inla.matrix2vector inla.vector2matrix
 #' 
 #' @param nrow Number of rows in the lattice.

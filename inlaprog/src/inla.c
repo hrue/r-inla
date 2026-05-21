@@ -102,6 +102,7 @@
 #define POISSON0_MAXTHETA (10L)
 #define POISSON1_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
+#define NBINOMIAL0_MAXTHETA (10L)
 #define GGAUSSIAN_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 #define SCOPY_MAXTHETA (15L)
@@ -2095,6 +2096,26 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
+			case L_0NBINOMIAL:
+			case L_0NBINOMIALS:
+			{
+				if (!ds->data_nfixed[0]) {
+					double log_size = theta[count];
+					val += PRIOR_EVAL(ds->data_nprior[0], &log_size);
+					count++;
+				}
+				int nbeta = ds->data_observations.nbinomial0_nbeta;
+				int off = 1;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[off + k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[off + k], &b);
 						count++;
 					}
 				}
@@ -5747,7 +5768,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 	}
 
 	if (!(mb->mode_fixed)) {
-		assert((count == mb->ntheta) && (count == ntheta));	/* check... */
+		if (!((count == mb->ntheta) && (count == ntheta))) {
+			P(count);
+			P(mb->ntheta);
+			P(ntheta);
+			assert((count == mb->ntheta) && (count == ntheta));
+		}
 	}
 #undef _SET_GROUP_RHO
 #undef _NOT_FIXED

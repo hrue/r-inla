@@ -99,7 +99,7 @@ altered length units.
 Note that the length unit for the ellipsoid radius is unchanged.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}} and related
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_wkt]{fmesher::fm_wkt()}} and related
 methods.
 
 Get and set CRS object or WKT string properties.
@@ -107,22 +107,22 @@ Get and set CRS object or WKT string properties.
 \section{Functions}{
 \itemize{
 \item \code{inla.wkt_is_geocent()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt_is_geocent()}}
+\code{\link[fmesher:fm_wkt_is_geocent]{fmesher::fm_wkt_is_geocent()}}
 
 \item \code{inla.crs_is_geocent()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_crs_is_geocent()}}
+\code{\link[fmesher:fm_crs_is_geocent]{fmesher::fm_crs_is_geocent()}}
 
 \item \code{inla.wkt_get_ellipsoid_radius()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_ellipsoid_radius()}}
+\code{\link[fmesher:fm_ellipsoid_radius]{fmesher::fm_ellipsoid_radius()}}
 
 \item \code{inla.crs_get_ellipsoid_radius()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_ellipsoid_radius()}}
+\code{\link[fmesher:fm_ellipsoid_radius]{fmesher::fm_ellipsoid_radius()}}
 
 \item \code{inla.wkt_set_ellipsoid_radius()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt_set_ellipsoid_radius()}}
+\code{\link[fmesher:fm_wkt_set_ellipsoid_radius]{fmesher::fm_wkt_set_ellipsoid_radius()}}
 
 \item \code{inla.crs_set_ellipsoid_radius()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[fmesher:fm_crs_wkt]{fmesher::fm_ellipsoid_radius<-()}}
+\code{\link[fmesher:fm_ellipsoid_radius<-]{fmesher::fm_ellipsoid_radius<-()}}
 
 }}
 \examples{
@@ -141,8 +141,6 @@ inla.crs_get_lengthunit(c2)
 }
 }
 \seealso{
-\code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}}
-
 \code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}}
 }
 \author{

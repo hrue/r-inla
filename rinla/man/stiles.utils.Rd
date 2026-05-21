@@ -7,13 +7,40 @@
 \alias{inla.stiles.graph2mtx}
 \alias{inla.stiles.mtx2graph}
 \title{sTiles utils: streaming spy plots and graph<->mtx I/O}
+\usage{
+inla.stiles.spy.mtx(
+  file,
+  out = NULL,
+  GRID = 1000L,
+  text = FALSE,
+  colorbar = FALSE,
+  palette = "grey",
+  CHUNK = 2000000L
+)
+
+inla.stiles.spy.graph(
+  file,
+  out = NULL,
+  GRID = 1000L,
+  text = FALSE,
+  colorbar = FALSE,
+  palette = "grey",
+  CHUNK = 100000L,
+  base = NULL
+)
+
+inla.stiles.graph2mtx(
+  graph_file,
+  mtx_file,
+  diagonal = c("degree", "one", "none"),
+  base = NULL
+)
+
+inla.stiles.mtx2graph(mtx_file, graph_file, base = 0L, CHUNK = 2000000L)
+}
 \arguments{
 \item{file}{For \code{inla.stiles.spy.mtx}: path to a \code{.mtx} file.
 For \code{inla.stiles.spy.graph}: path to an INLA graph file.}
-
-\item{graph_file}{Path to an INLA graph file (ASCII).}
-
-\item{mtx_file}{Path to a MatrixMarket \code{.mtx} file.}
 
 \item{out}{Output PNG path. Defaults to the input path with
 extension replaced by \code{.png}.}
@@ -27,13 +54,17 @@ extension replaced by \code{.png}.}
 \item{palette}{Colour palette: \code{"grey"} (default), \code{"gray"}, \code{"binary"},
 \code{"viridis"}, or any name accepted by \code{hcl.colors()}.}
 
-\item{diagonal}{Diagonal value for \code{inla.stiles.graph2mtx}:
-\code{"degree"} (default), \code{"one"}, or \code{"none"}.}
+\item{CHUNK}{Lines read per streaming chunk. Tune for very large files.}
 
 \item{base}{Index base for INLA graph files. \code{NULL} (default)
 auto-detects by peeking at the first data row.}
 
-\item{CHUNK}{Lines read per streaming chunk. Tune for very large files.}
+\item{graph_file}{Path to an INLA graph file (ASCII).}
+
+\item{mtx_file}{Path to a MatrixMarket \code{.mtx} file.}
+
+\item{diagonal}{Diagonal value for \code{inla.stiles.graph2mtx}:
+\code{"degree"} (default), \code{"one"}, or \code{"none"}.}
 }
 \value{
 The output file path (invisibly).
@@ -44,8 +75,7 @@ files and MatrixMarket \code{.mtx} files. The spy plots stream the input
 file (never loading the full matrix), bin entries into a \verb{GRID x GRID}
 grid, and render a log-density image. This makes them usable on
 matrices that would otherwise exhaust memory if read into a \code{Matrix}.
-}
-\details{
+
 INLA graph files are autodetected as 0-based or 1-based by inspecting
 the first data row; override with \code{base = 0L} or \code{base = 1L}.
 MatrixMarket files use the standard 1-based coordinate convention.

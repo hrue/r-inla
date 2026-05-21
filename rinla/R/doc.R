@@ -23,6 +23,7 @@
     sections <- names(inla.models())
     m <- inla.models()
 
+    shown.doc <- c()
     for (sec in seq_along(m)) {
         if (missing(section) || sections[sec] == section) {
             if (verbose) {
@@ -46,10 +47,13 @@
                                 cat(paste("\t\t", " ", "filename.full : ", filename.full, sep = "", "\n"))
                             }
                             if (file.exists(filename.full)) {
-                                RShowDoc(
-                                    paste("documentation/", sections[[sec]], "/", pdf, sep = ""),
-                                    "pdf", "INLA"
-                                )
+                                if (!(filename.full %in% shown.doc)) {
+                                    RShowDoc(
+                                        paste("documentation/", sections[[sec]], "/", pdf, sep = ""),
+                                        "pdf", "INLA"
+                                    )
+                                    shown.doc <- c(shown.doc, filename.full)
+                                }
                             }
                         }
                     }

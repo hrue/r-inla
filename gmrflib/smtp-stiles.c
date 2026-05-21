@@ -571,7 +571,9 @@ int GMRFLib_stiles_build(GMRFLib_stiles_idx_tp *stiles_idx, int thread_id, GMRFL
 		       store->chol_done[llidx.in_group][llidx.within_group]); \
 		fflush(stdout);						\
 		assert(store->chol_done[llidx.in_group][llidx.within_group]); \
-	}
+	}								\
+	sTiles_packing(llidx.in_group, llidx.within_group, &(store->obj))
+
 
 int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 {
@@ -584,7 +586,6 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 		llidx.in_group = 0;
 		llidx.within_group = 0;
 	}
-
 	CHOL_DONE_CHECK(LLT);
 
 #if 0

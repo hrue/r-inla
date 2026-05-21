@@ -644,7 +644,8 @@
             my.stop(paste0("family:", family, ". NA's in argument 'OFFSET', are not allowed"))
         }
 
-    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS", "1poisson", "1poissonS"))) {
+    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS",
+                                     "1poisson", "1poissonS", "0nbinomial", "0nbinomialS"))) {
 
         response <- cbind(ind, y.orig)
         na.dat <- is.na(response[, 2L])

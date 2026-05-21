@@ -22,7 +22,7 @@
 #' 
 #' @name inla.qstat
 #' @aliases inla.qstat inla.q inla.qget inla.qdel inla.qnuke inla.qlog
-#' summary.inla.q print.inla.q
+#' @aliases summary.inla.q print.inla.q
 #' @param id The job-id which is the output from `inla` when the job is
 #' submitted, the job-number or job-name. For `inla.qstat`, `id` is
 #' optional and if omitted all the jobs will be listed.

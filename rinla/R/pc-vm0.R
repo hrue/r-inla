@@ -12,7 +12,7 @@
 #'     large or very close to zero.
 #' 
 #' @aliases inla.pc.vm0 pc.vm0 pc.rvm0 inla.pc.rvm0 pc.dvm0 
-#' inla.pc.dvm0 pc.pvm0 inla.pc.pvm0 pc.qvm0 inla.pc.qvm0
+#' @aliases inla.pc.dvm0 pc.pvm0 inla.pc.pvm0 pc.qvm0 inla.pc.qvm0
 #' @param n Number of observations
 #' @param u The upper limit (0 < u < 2*pi). The small values of u indicate a 
 #' high concentration to a point mass, whilst large values of u mean that the 

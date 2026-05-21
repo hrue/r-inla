@@ -20,7 +20,7 @@ inla.spde2.pcmatern(
 \arguments{
 \item{mesh}{The mesh to build the model on, as an \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d()}}
 object, or other \code{fmesher} mesh supporting \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}},
-\code{\link[fmesher:fm_manifold]{fmesher::fm_manifold_dim()}} and \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}}, such as
+\code{\link[fmesher:fm_manifold_dim]{fmesher::fm_manifold_dim()}} and \code{\link[fmesher:fm_dof]{fmesher::fm_dof()}}, such as
 \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_mesh_3d]{fmesher::fm_mesh_3d()}}, or
 \code{\link[fmesher:fm_collect]{fmesher::fm_collect()}}.}
 
@@ -241,7 +241,7 @@ Penalising model component complexity: A principled, practical approach to
 constructing priors. arXiv:1403.4630
 }
 \seealso{
-\code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}},
+\code{\link[fmesher:fm_mesh_2d_inla]{fmesher::fm_mesh_2d_inla()}}, \code{\link[fmesher:fm_rcdt_2d_inla]{fmesher::fm_rcdt_2d_inla()}},
 \code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}, \code{\link[fmesher:fm_basis]{fmesher::fm_basis()}},
 \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }

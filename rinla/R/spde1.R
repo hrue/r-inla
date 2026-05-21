@@ -30,7 +30,7 @@ NULL
 #' Matrix of basis functions for \eqn{\log\tau(u)}{log tau(u)} }
 #'
 #' @aliases inla.spde1.create inla.spde1.matern
-#' inla.spde1.imatern inla.spde1.matern.osc inla.spde1
+#' @aliases inla.spde1.imatern inla.spde1.matern.osc inla.spde1
 #' @param mesh The mesh to build the model on, as an [inla.mesh()]
 #' object.
 #' @param model The name of the model.

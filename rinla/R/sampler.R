@@ -6,7 +6,7 @@
 #' 
 #' 
 #' @aliases inla.hyperpar.sample inla.hyperpar.sampler hyperpar.sample
-#' hyperpar.sampler
+#' @aliases hyperpar.sampler
 #' @param n Integer. Number of samples required.
 #' @param result An `inla`-object, f.ex the output from an
 #' `inla`-call.

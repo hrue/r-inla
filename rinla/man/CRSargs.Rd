@@ -38,8 +38,8 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
-'r lifecycle::badge("deprecated")` in favour of \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_proj4string()}},
-or \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}} for WKT2 representations.
+'r lifecycle::badge("deprecated")` in favour of \code{\link[fmesher:fm_proj4string]{fmesher::fm_proj4string()}},
+or \code{\link[fmesher:fm_wkt]{fmesher::fm_wkt()}} for WKT2 representations.
 }
 \details{
 \itemize{

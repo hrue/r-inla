@@ -78,7 +78,7 @@ An \code{inla.mesh} object.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} since \verb{23.08.18}.
-Use \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}} instead.
+Use \code{\link[fmesher:fm_mesh_2d_inla]{fmesher::fm_mesh_2d_inla()}} instead.
 
 Create a triangle mesh based on initial point locations, specified or
 automatic boundaries, and mesh quality parameters.

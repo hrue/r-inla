@@ -4,7 +4,7 @@
 #' 
 #' 
 #' @aliases read.graph write.graph inla.read.graph inla.write.graph inla.graph
-#' summary.inla.graph plot.inla.graph print.inla.graph.summary
+#' @aliases summary.inla.graph plot.inla.graph print.inla.graph.summary
 #' @param filename The filename of the graph.
 #' @param graph An `inla.graph`-object, a (sparse) symmetric matrix, a
 #' filename containing the graph, a list or collection of characters and/or

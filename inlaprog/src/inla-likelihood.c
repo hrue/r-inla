@@ -621,6 +621,21 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_0NBINOMIAL:
+	case L_0NBINOMIALS:
+	{
+		assert(ncol_data_all <= 3 + NBINOMIAL0_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.nbinomial0_nbeta = na - 1;
+		ds->data_observations.nbinomial0_x = Calloc(na, double *);
+		a[0] = ds->data_observations.nbinomial0_E = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.nbinomial0_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	case L_BINOMIALMIX:
 	{
 		assert(ncol_data_all <= BINOMIALMIX_NBETA + 7);
@@ -3057,9 +3072,6 @@ int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *__res
 
 	double prob_intern = 0.0;
 	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
-		if (0)
-			printf("idx %d i %d beta %g x %g\n", idx, i, ds->data_observations.poisson0_beta[i][thread_id][0],
-			       ds->data_observations.poisson0_x[i][idx]);
 		prob_intern += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
 	}
 	double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, prob_intern, MAP_FORWARD, NULL, NULL);
@@ -3259,6 +3271,123 @@ int loglikelihood_1poissonS(int thread_id, int *UNUSED(lcache_idx), double *__re
 		for (int i = 0; i < -m; i++) {
 			double prob = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = prob + (1.0 - prob) * pois;
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0nbinomial(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			     double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.nbinomial0_E[idx];
+	double size = (ds->variant == 0 ? 1.0 : E) * exp(ds->data_observations.log_size[thread_id][0]);
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double prob_intern = 0.0;
+	for (int i = 0; i < ds->data_observations.nbinomial0_nbeta; i++) {
+		prob_intern += ds->data_observations.nbinomial0_beta[i][thread_id][0] * ds->data_observations.nbinomial0_x[i][idx];
+	}
+	double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, prob_intern, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		if (y > 0.0) {
+			double lnorm = -normc + gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+				double mu = E * lambda;
+				double p = size / (size + mu);
+				logll[i] = lnorm + size * LOG_p(p) + y * LOG_1mp(p) + LOG_1mp(prob);
+			}
+		} else {
+			double lnorm = -normc;
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+				double mu = E * lambda;
+				double p = size / (size + mu);
+				double logl = lnorm + size * LOG_p(p) + y * LOG_1mp(p);
+				logll[i] = log(prob + (1.0 - prob) * exp(logl));
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
+			double mu = E * lambda;
+			double p = size / (size + mu);
+			logll[i] = prob + (1.0 - prob) * gsl_cdf_negative_binomial_P((unsigned int) *yy, p, size);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0nbinomialS(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+			      double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.nbinomial0_E[idx];
+	double size = (ds->variant == 0 ? 1.0 : E) * exp(ds->data_observations.log_size[thread_id][0]);
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double eta = 0.0;
+	for (int i = 0; i < ds->data_observations.nbinomial0_nbeta; i++) {
+		eta += ds->data_observations.nbinomial0_beta[i][thread_id][0] * ds->data_observations.nbinomial0_x[i][idx];
+	}
+	double lambda = ds->data_observations.link_simple_invlinkfunc(thread_id, eta, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		double mu = E * lambda;
+		double p = size / (size + mu);
+		double logl = size * LOG_p(p) + y * LOG_1mp(p);
+		if (y > 0.0) {
+			logl += -normc + gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+				logll[i] = logl + LOG_1mp(prob);
+			}
+		} else {
+			logl += -normc;
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+				logll[i] = log(prob + (1.0 - prob) * exp(logl));
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		double mu = E * lambda;
+		double p = size / (size + mu);
+		double P = gsl_cdf_negative_binomial_P((unsigned int) *yy, p, size);
+		for (int i = 0; i < -m; i++) {
+			double prob = PREDICTOR_INVERSE_LINK(x[i], off);
+			logll[i] = prob + (1.0 - prob) * P;
 		}
 	}
 
@@ -7774,6 +7903,10 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *__restric
 #define SAFEGUARD(value_)						\
 	for(int i_ = 0; i_ < (m); i_++) {				\
 		SAFEGUARD1(value_[i_]);					\
+	}
+
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;

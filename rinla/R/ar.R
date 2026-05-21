@@ -6,8 +6,10 @@
 #' for `arima`-models in `R`; see `?arima` and the
 #' parameter-vector `a` in `Details`.
 #'
-#' @aliases inla.ar.pacf2phi ar.pacf2phi pacf2phi inla.ar.phi2pacf ar.phi2pacf phi2pacf
-#' @aliases inla.ar.phi2acf ar.phi2acf phi2acf inla.ar.pacf2acf ar.pacf2acf pacf2acf
+#' @aliases inla.ar.pacf2phi ar.pacf2phi pacf2phi inla.ar.phi2pacf ar.phi2pacf
+#' @aliases phi2pacf
+#' @aliases inla.ar.phi2acf ar.phi2acf phi2acf inla.ar.pacf2acf ar.pacf2acf
+#' @aliases pacf2acf
 #' 
 #' @param pac The partial autorcorrelation coefficients
 #' @param phi The AR(p) parameters `phi`

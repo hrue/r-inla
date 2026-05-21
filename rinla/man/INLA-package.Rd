@@ -22,6 +22,7 @@ See \url{https://www.r-inla.org/} for further details.
 
 Authors:
 \itemize{
+  \item Havard Rue \email{hrue@r-inla.org}
   \item Finn Lindgren \email{finn.lindgren@gmail.com}
   \item Elias Teixeira Krainski \email{elias@r-inla.org}
 }

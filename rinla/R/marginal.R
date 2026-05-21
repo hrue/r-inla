@@ -12,9 +12,12 @@
 #' 
 #' @rdname marginal
 #' @name marginal
-#' @aliases inla.marginal marginal pmarginal inla.pmarginal qmarginal inla.qmarginal dmarginal
-#' @aliases inla.dmarginal rmarginal inla.rmarginal inla.hpdmarginal hpdmarginal inla.emarginal
-#' @aliases emarginal inla.smarginal smarginal inla.tmarginal inla.mmarginal mmarginal
+#' @aliases inla.marginal marginal pmarginal inla.pmarginal qmarginal
+#' @aliases inla.qmarginal dmarginal
+#' @aliases inla.dmarginal rmarginal inla.rmarginal inla.hpdmarginal
+#' @aliases hpdmarginal inla.emarginal
+#' @aliases emarginal inla.smarginal smarginal inla.tmarginal inla.mmarginal
+#' @aliases mmarginal
 #' @aliases inla.zmarginal zmarginal
 #' 
 #' @param marginal A marginal object from either `inla` or
