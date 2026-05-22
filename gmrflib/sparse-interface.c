@@ -1011,7 +1011,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			s_idx.within_group = problem->stiles_idx->within_group;
 		}
 		GMRFLib_stiles_set_idx(&s_idx, nrhs);
-#if 1
+#if 0
 		static double tref = 0.0;
 		static double trefc = 0.0;
 		static double trefc_min = 0;
@@ -1019,7 +1019,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			tref += -GMRFLib_timer();
 #endif
 		GMRFLib_stiles_solve_LLT(&s_idx, rhs);
-#if 1
+#if 0
 		if (trefc_min >= 25 && nrhs == 1) {
 			tref += GMRFLib_timer();
 			trefc += nrhs;

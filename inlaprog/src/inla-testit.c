@@ -6013,84 +6013,15 @@ int testit(int argc, char **argv)
 		break;
 
 	case 191:
-	{
-#       define M 12
-		int m = atoi(args[0]);
-		int n = (int) pow(2.0, M + 1.0);
-		P(m);
-		double *x = Calloc(n + 100, double);
-		double *y = Calloc(n + 100, double);
-		double tref0[M] = { 0 };
-		double tref1[M] = { 0 };
-		int siz[M] = { 2 };
-		for (int k = 1; k < M; k++)
-			siz[k] = 2 * siz[k - 1];
-		for (int j = 0; j < m; j++) {
-			for (int i = 0; i < n; i++) {
-				x[i] = GMRFLib_uniform();
-				y[i] = GMRFLib_uniform();
-			}
-			for (int k = 0; k < M; k++) {
-				int nn = siz[k];
-				tref0[k] -= GMRFLib_timer();
-				volatile int POSSIBLY_UNUSED(re) = GMRFLib_ddot_x(nn, x, y, INT_MAX);
-				tref0[k] += GMRFLib_timer();
-				tref1[k] -= GMRFLib_timer();
-				volatile int POSSIBLY_UNUSED(ree) = GMRFLib_ddot_x(nn, x, y, 0);
-				tref1[k] += GMRFLib_timer();
-			}
-		}
-		for (int k = 0; k < M; k++) {
-			printf("ddot: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
-		}
-#       undef M
-	}
 		break;
 
 	case 192:
-	{
-#       define M 12
-		int m = atoi(args[0]);
-		int n = (int) pow(2.0, M + 1.0);
-		P(m);
-		double *x = Calloc(n + 100, double);
-		double *y = Calloc(n + 100, double);
-		double tref0[M] = { 0 };
-		double tref1[M] = { 0 };
-		int siz[M] = { 0 };
-
-		siz[0] = 2;
-		for (int k = 1; k < M; k++)
-			siz[k] = 2 * siz[k - 1];
-
-		for (int j = -10; j < m; j++) {
-			double a = GMRFLib_uniform();
-			for (int i = 0; i < n; i++) {
-				x[i] = GMRFLib_uniform();
-				y[i] = GMRFLib_uniform();
-			}
-			for (int k = 0; k < M; k++) {
-				int nn = siz[k];
-				if (j >= 0)
-					tref0[k] -= GMRFLib_timer();
-				for (int kk = 0; kk < 10; k++)
-					GMRFLib_daxpy_x(nn, a, x, y, INT_MAX);
-				double tt = GMRFLib_timer();
-				if (j >= 0)
-					tref0[k] += tt;
-				if (j >= 0)
-					tref1[k] -= tt;
-				for (int kk = 0; kk < 10; k++)
-					GMRFLib_daxpy_x(nn, a, x, y, 0);
-				if (j >= 0)
-					tref1[k] += GMRFLib_timer();
-			}
-		}
-		for (int k = 0; k < M; k++) {
-			printf("daxpy: size %1d plain %.3f mkl %.3f\n", siz[k], tref0[k] / (tref0[k] + tref1[k]), tref1[k] / (tref0[k] + tref1[k]));
-		}
-#       undef M
-	}
+		int cutoff1 = GMRFLib_daxpy_tune(stdout);
+		P(cutoff1);
+		int cutoff2 = GMRFLib_ddot_tune(stdout);
+		P(cutoff2);
+		int cutoff3 = GMRFLib_dscale_tune(stdout);
+		P(cutoff3);
 		break;
 
 	case 193:
