@@ -9522,6 +9522,29 @@
                     pdf = "gpoisson"
                 ),
 
+                poissonlognormal = list(
+                    doc = "The Poisson log-normal likelihood: y ~ Poisson(E*exp(eta+u)), u ~ N(0, 1/prec). The random effect u is integrated out analytically using Gauss-Hermite quadrature.",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 57001,
+                            name = "log precision",
+                            short.name = "prec",
+                            output.name = "Precision for poissonlognormal",
+                            output.name.intern = "Log precision for poissonlognormal",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "pc.prec",
+                            param = c(1, 0.01),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset"),
+                    pdf = "poissonlognormal"
+                ),
+
                 poisson.special1 = list(
                     doc = "The Poisson.special1 likelihood",
                     hyper = list(
