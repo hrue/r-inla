@@ -34,7 +34,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	// sum_i v[i] * a[idx[i]]
@@ -73,7 +73,7 @@ double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// special case: ->idx == sequential and all(->val == 1.0)
@@ -95,7 +95,7 @@ double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp *__restrict ELM_, double *__re
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_sum1_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *x = ARR_ + ELM_->idx[0];
@@ -136,7 +136,7 @@ double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 #if defined(INLA_WITH_ARMPL)
@@ -161,7 +161,7 @@ double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restri
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value = 0.0;
@@ -207,7 +207,7 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// in this case, there is only one group giving dense vector calls to 'dot' or 'sum'
@@ -224,4 +224,3 @@ double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp *__restrict ELM_, dou
 	return value;
 }
 #pragma GCC diagnostic pop
-	
