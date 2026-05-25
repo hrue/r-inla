@@ -2757,7 +2757,6 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 				   double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
-#define PLN_GHQ_N 50
 #define _pln_logE(E_) ((E_) > 0.0 ? log(E_) : 0.0)
 
 	/*
@@ -2765,12 +2764,12 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 	 *
 	 * log I = log sigma_a + logsumexp_k [ log(w_k) + normc + y*(eta+vk*sd) - E*exp(eta+vk*sd) - vk^2/2 + xq[k]^2/2 ]
 	 *
-	 * Fixed-reference adaptive GHQ (solution 2):
+	 * Fixed-reference adaptive GHQ:
 	 *   Compute v*(eta_ref) via Newton once (eta_ref from x[m/2]).
 	 *   sigma_a = 1/sqrt(mu_star*sd^2+1).
 	 *   Fix nodes vk[k] = v* + xq[k]*sigma_a for all m evaluations.
 	 *   Since vk does NOT depend on eta_i, d/d(eta_i)[eta_i+vk*sd] = 1 (correct gradient).
-	 *   Nodes are placed near the posterior mode → accurate for large rates.
+	 *   Nodes are placed near the posterior mode -- accurate for all rate regimes.
 	 */
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -2791,40 +2790,40 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 	double sd = exp(-0.5 * log_prec);		       /* sd = 1/sqrt(prec) */
 	double sd2 = sd * sd;
 
-	int nq = PLN_GHQ_N;
+	int nq = ds->data_observations.pln_nquad;
 	double *xq = NULL, *wq = NULL;
 	GMRFLib_ghq(&xq, &wq, nq);
 
+	/* Per-call working arrays allocated on the heap (size is user-controlled, malloc is portable C89). */
+	double *vk     = Malloc(nq, double);
+	double *log_wq = Malloc(nq, double);
+	double *xq2    = Malloc(nq, double);
+	double *vk2    = Malloc(nq, double);
+	double *vals   = Malloc(nq, double);
+
 	LINK_INIT;
 
-	if (m > 0) {
+	{
 		/* Reference eta from the middle evaluation point */
 		double eta_ref = PREDICTOR_INVERSE_IDENTITY_LINK(x[m / 2], off);
 
-		/* Newton's method: find v* = argmax [ y*(eta_ref+v*sd) - E*exp(eta_ref+v*sd) - v^2/2 ]
-		 * g'(v)  = (y - mu_v)*sd - v,  where mu_v = E*exp(eta_ref+v*sd)
-		 * g''(v) = -(mu_v*sd^2 + 1)
-		 * Update: v -= g'(v)/g''(v)
-		 * Initialise at the Poisson mode (ignoring the v^2/2 regulariser) to avoid
-		 * huge first Newton steps when eta_ref is far from the truth. */
+		/* Newton: find v* = argmax [ y*(eta_ref+v*sd) - E*exp(eta_ref+v*sd) - v^2/2 ]
+		 * Initialise at the Poisson mode (mu=y) to keep the first step small even when
+		 * eta_ref is far from the truth (starting at v=0 can give a step of ~y/mu_0). */
 		double v_star;
+		int iter;
 		if (y > 0.0) {
-			/* Start at the Poisson mode (mu=y), ignoring the v^2/2 regulariser.
-			 * This gives a small first Newton step even when eta_ref is far from truth. */
 			v_star = (log(y / fmax(E, 1e-300)) - eta_ref) / sd;
 			v_star = fmax(-30.0, fmin(30.0, v_star));
 		} else {
-			/* For y=0 the Poisson mode is mu→0; start at v=0 (regulariser dominates). */
 			v_star = 0.0;
 		}
-		for (int iter = 0; iter < 30; iter++) {
+		for (iter = 0; iter < 30; iter++) {
 			double eta_v = eta_ref + v_star * sd;
 			double mu_v = (eta_v < 500.0) ? E * exp(eta_v) : E * exp(500.0);
 			double gp = (y - mu_v) * sd - v_star;
 			double gpp = -(mu_v * sd2 + 1.0);
-			double dv = -gp / gpp;
-			/* clamp step for robustness */
-			dv = fmax(-5.0, fmin(5.0, dv));
+			double dv = fmax(-5.0, fmin(5.0, -gp / gpp));
 			v_star += dv;
 			if (fabs(dv) < 1e-8) {
 				break;
@@ -2835,28 +2834,22 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 		double sigma_a = 1.0 / sqrt(mu_star * sd2 + 1.0);
 		double log_sigma_a = -0.5 * log(mu_star * sd2 + 1.0);
 
-		/* Fixed quadrature nodes in v-space (do NOT depend on eta_i) */
-		double vk[PLN_GHQ_N];
-		double log_wq[PLN_GHQ_N];
-		double xq2[PLN_GHQ_N];
-		double vk2[PLN_GHQ_N];
-		for (int k = 0; k < nq; k++) {
-			vk[k] = v_star + xq[k] * sigma_a;
+		int k;
+		for (k = 0; k < nq; k++) {
+			vk[k]     = v_star + xq[k] * sigma_a;
 			log_wq[k] = log(wq[k]);
-			xq2[k] = xq[k] * xq[k];
-			vk2[k] = vk[k] * vk[k];
+			xq2[k]    = xq[k] * xq[k];
+			vk2[k]    = vk[k] * vk[k];
 		}
 
-		for (int i = 0; i < m; i++) {
+		int i;
+		for (i = 0; i < m; i++) {
 			double eta_i = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
-
 			double vmax = -INFINITY;
-			double vals[PLN_GHQ_N];
 
-			for (int k = 0; k < nq; k++) {
+			for (k = 0; k < nq; k++) {
 				double eta_k = eta_i + vk[k] * sd;
 				double mu_k = E * exp(eta_k);
-				/* log p(y|eta_k) - vk^2/2 + xq_k^2/2 */
 				vals[k] = log_wq[k] + normc + y * eta_k - mu_k - 0.5 * vk2[k] + 0.5 * xq2[k];
 				if (vals[k] > vmax) {
 					vmax = vals[k];
@@ -2864,7 +2857,7 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 			}
 
 			double sum = 0.0;
-			for (int k = 0; k < nq; k++) {
+			for (k = 0; k < nq; k++) {
 				if (!ISNAN(vals[k])) {
 					sum += exp(vals[k] - vmax);
 				}
@@ -2874,7 +2867,13 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 	}
 
 	LINK_END;
-#undef PLN_GHQ_N
+
+	Free(vk);
+	Free(log_wq);
+	Free(xq2);
+	Free(vk2);
+	Free(vals);
+
 #undef _pln_logE
 	return GMRFLib_SUCCESS;
 }

@@ -741,6 +741,7 @@ typedef struct {
 	 * Poisson log-normal (GHQ): y ~ Poisson(E*exp(eta+u)), u ~ N(0, 1/prec)
 	 */
 	double **pln_log_prec;
+	int pln_nquad;
 
 	/*
 	 * cencored poisson. values in [interval[0], interval[1]] are cencored

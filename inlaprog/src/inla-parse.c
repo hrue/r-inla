@@ -3162,9 +3162,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.pln_log_prec, tmp);
+		ds->data_observations.pln_nquad = iniparser_getint(ini, inla_string_join(secname, "NQUAD"), 50);
 		if (mb->verbose) {
 			printf("\t\tinitialise pln_log_prec[%g]\n", ds->data_observations.pln_log_prec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+			printf("\t\tpln_nquad=[%1d]\n", ds->data_observations.pln_nquad);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "PCPREC", NULL);
 
