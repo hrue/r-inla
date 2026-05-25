@@ -587,8 +587,8 @@ control.gcpo <-
              beta.censor.value = 0.0,
 
              #' @param nquad Number of Gauss-Hermite quadrature points for the
-             #' `poissonlognormal` likelihood (default 50).
-             nquad = 50L,
+             #' `poissonlognormal` likelihood (default 15).
+             nquad = 15L,
 
              #' @param variant This variable is used to give options for various variants of
              #' the likelihood,  like chosing different parameterisations for example. See the

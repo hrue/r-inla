@@ -305,7 +305,7 @@ inla.parse.Bmatrix.test <- function() {
     }
 
     if (inla.one.of(family, "poissonlognormal")) {
-        nquad <- inla.ifelse(is.null(control$nquad), 50L, as.integer(control$nquad))
+        nquad <- inla.ifelse(is.null(control$nquad), 15L, as.integer(control$nquad))
         if (nquad < 1L) {
             stop("control.family: nquad must be a positive integer")
         }

@@ -9523,7 +9523,7 @@
                 ),
 
                 poissonlognormal = list(
-                    doc = "The Poisson log-normal likelihood: y ~ Poisson(E*exp(eta+u)), u ~ N(0, 1/prec). The random effect u is integrated out analytically using Gauss-Hermite quadrature.",
+                    doc = "The Poisson log-normal likelihood: y ~ Poisson(E*exp(eta+u)), u ~ N(0, 1/prec). The random effect u is integrated out analytically using fixed-reference adaptive Gauss-Hermite quadrature (default 15 points; set nquad in control.family to adjust).",
                     hyper = list(
                         theta = list(
                             hyperid = 57001,
