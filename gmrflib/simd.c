@@ -5,7 +5,12 @@
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
+// maybe chose wiser
+#define LIM 32
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_exp(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
@@ -19,7 +24,11 @@ void GMRFLib_exp(int n, double *x, double *y)
 	}
 #endif
 }
-
+#pragma GCC diagnostic pop
+		
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 {
 	// y = exp(x) with inc
@@ -32,7 +41,11 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_log(int n, double *x, double *y)
 {
 	// y = log(x)
@@ -47,7 +60,11 @@ void GMRFLib_log(int n, double *x, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_log1p(int n, double *x, double *y)
 {
 	// y = log1p(x)
@@ -62,7 +79,11 @@ void GMRFLib_log1p(int n, double *x, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_sqr(int n, double *x, double *y)
 {
 	// y = x * x
@@ -75,7 +96,11 @@ void GMRFLib_sqr(int n, double *x, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_sqrt(int n, double *x, double *y)
 {
 	// y = sqrt(x)
@@ -90,10 +115,20 @@ void GMRFLib_sqrt(int n, double *x, double *y)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_add(int n, double *x, double *y, double *z)
 {
 	// z = x + y
+	if (n <= LIM) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			z[i] = x[i] + y[i];
+		}
+	}
 #if defined(INLA_WITH_MKL)
 	vdAdd(n, x, y, z);
 #else
@@ -103,6 +138,7 @@ void GMRFLib_add(int n, double *x, double *y, double *z)
 	}
 #endif
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -110,6 +146,12 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_mul(int n, double *x, double *y, double *z)
 {
 	// z = x * y
+	if (n <= LIM) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			z[i] = x[i] * y[i];
+		}
+	}
 #if defined(INLA_WITH_MKL)
 	vdMul(n, x, y, z);
 #else
@@ -121,13 +163,18 @@ void GMRFLib_mul(int n, double *x, double *y, double *z)
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daddto(int n, double *x, double *y)
 {
 	// y = y + x
-	int inc = 1;
-	double one = 1.0;
-	daxpy_(&n, &one, x, &inc, y, &inc);
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] += x[i];
+	}
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
