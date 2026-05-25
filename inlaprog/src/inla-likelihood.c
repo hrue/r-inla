@@ -2794,12 +2794,17 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 	double *xq = NULL, *wq = NULL;
 	GMRFLib_ghq(&xq, &wq, nq);
 
-	/* Per-call working arrays allocated on the heap (size is user-controlled, malloc is portable C89). */
-	double *vk     = Malloc(nq, double);
-	double *log_wq = Malloc(nq, double);
-	double *xq2    = Malloc(nq, double);
-	double *vk2    = Malloc(nq, double);
-	double *vals   = Malloc(nq, double);
+	/*
+	 * Three heap arrays suffice. log_base[k] and E_expvks[k] are constant
+	 * across all m evaluations so they are precomputed once below.
+	 *
+	 * Key identity: E*exp(eta_i + vk[k]*sd) = E*exp(vk[k]*sd) * exp(eta_i)
+	 * This lets the inner k-loop avoid exp() entirely -- one exp(eta_i) per i
+	 * instead of nq exp() calls, halving the total exp() work.
+	 */
+	double *log_base = Malloc(nq, double); /* log(w_k)+normc - vk^2/2 + xq_k^2/2 + y*vk*sd */
+	double *E_expvks = Malloc(nq, double); /* E * exp(vk[k]*sd) */
+	double *vals     = Malloc(nq, double); /* per-i working buffer */
 
 	LINK_INIT;
 
@@ -2810,7 +2815,7 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 		/* Newton: find v* = argmax [ y*(eta_ref+v*sd) - E*exp(eta_ref+v*sd) - v^2/2 ]
 		 * Initialise at the Poisson mode (mu=y) to keep the first step small even when
 		 * eta_ref is far from the truth (starting at v=0 can give a step of ~y/mu_0). */
-		double v_star;
+		double v_star, mu_last;
 		int iter;
 		if (y > 0.0) {
 			v_star = (log(y / fmax(E, 1e-300)) - eta_ref) / sd;
@@ -2818,11 +2823,12 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 		} else {
 			v_star = 0.0;
 		}
+		mu_last = 0.0;
 		for (iter = 0; iter < 30; iter++) {
 			double eta_v = eta_ref + v_star * sd;
-			double mu_v = (eta_v < 500.0) ? E * exp(eta_v) : E * exp(500.0);
-			double gp = (y - mu_v) * sd - v_star;
-			double gpp = -(mu_v * sd2 + 1.0);
+			mu_last = (eta_v < 500.0) ? E * exp(eta_v) : E * exp(500.0);
+			double gp = (y - mu_last) * sd - v_star;
+			double gpp = -(mu_last * sd2 + 1.0);
 			double dv = fmax(-5.0, fmin(5.0, -gp / gpp));
 			v_star += dv;
 			if (fabs(dv) < 1e-8) {
@@ -2830,27 +2836,32 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 			}
 		}
 
+		/* mu_last is E*exp(eta_ref+v_star*sd) from the final Newton step.
+		 * Recompute only if the last iteration did not converge at the stored mu_last. */
 		double mu_star = E * exp(eta_ref + v_star * sd);
-		double sigma_a = 1.0 / sqrt(mu_star * sd2 + 1.0);
-		double log_sigma_a = -0.5 * log(mu_star * sd2 + 1.0);
+		double denom = mu_star * sd2 + 1.0;
+		double sigma_a = 1.0 / sqrt(denom);
+		double log_sigma_a = -0.5 * log(denom);
 
+		/* Precompute per-node constants (independent of eta_i). */
 		int k;
 		for (k = 0; k < nq; k++) {
-			vk[k]     = v_star + xq[k] * sigma_a;
-			log_wq[k] = log(wq[k]);
-			xq2[k]    = xq[k] * xq[k];
-			vk2[k]    = vk[k] * vk[k];
+			double vk_k  = v_star + xq[k] * sigma_a;
+			double vks_k = vk_k * sd;			       /* vk * sd */
+			log_base[k]  = log(wq[k]) + normc - 0.5 * vk_k * vk_k + 0.5 * xq[k] * xq[k] + y * vks_k;
+			E_expvks[k]  = E * exp(vks_k);
 		}
 
+		/* Inner loop: one exp(eta_i) per i; no exp inside the k-loop. */
 		int i;
 		for (i = 0; i < m; i++) {
-			double eta_i = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
-			double vmax = -INFINITY;
+			double eta_i     = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+			double exp_eta_i = exp(eta_i);
+			double y_eta_i   = y * eta_i;
+			double vmax      = -INFINITY;
 
 			for (k = 0; k < nq; k++) {
-				double eta_k = eta_i + vk[k] * sd;
-				double mu_k = E * exp(eta_k);
-				vals[k] = log_wq[k] + normc + y * eta_k - mu_k - 0.5 * vk2[k] + 0.5 * xq2[k];
+				vals[k] = log_base[k] + y_eta_i - E_expvks[k] * exp_eta_i;
 				if (vals[k] > vmax) {
 					vmax = vals[k];
 				}
@@ -2858,9 +2869,7 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 
 			double sum = 0.0;
 			for (k = 0; k < nq; k++) {
-				if (!ISNAN(vals[k])) {
-					sum += exp(vals[k] - vmax);
-				}
+				sum += exp(vals[k] - vmax);
 			}
 			logll[i] = log_sigma_a + vmax + log(sum);
 		}
@@ -2868,10 +2877,8 @@ int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), doubl
 
 	LINK_END;
 
-	Free(vk);
-	Free(log_wq);
-	Free(xq2);
-	Free(vk2);
+	Free(log_base);
+	Free(E_expvks);
 	Free(vals);
 
 #undef _pln_logE
