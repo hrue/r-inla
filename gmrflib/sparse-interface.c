@@ -887,13 +887,31 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph,
 				    GMRFLib_problem_tp *problem, GMRFLib_stiles_idx_tp *stiles_idx)
 {
-#if 0
-#       define LIM 1000
-	static double tref[LIM] = { 0.0 };
-	static int trefc[LIM] = { 0 };
-	if (nrhs < LIM)
-		tref[nrhs] += -GMRFLib_timer();
-#endif
+	static bool first = 1;
+	static bool enable_timer = 0;
+	static int interval = 1;
+	
+	if (first) {
+#pragma omp critical (Name_e17713a7b7212540f4e968c9656f2f9b4f2351ac)
+		if (first) {
+			char *val = getenv("INLA_ENABLE_SOLVE_LLT_TIMER");
+			if (val) {
+				interval = IMAX(1, atoi(val));
+				enable_timer = 1;
+			}
+			first = 0;
+		}
+	}
+			
+#       define LIM 128
+	static float tref[LIM+1] = { 0.0 };
+#pragma omp threadprivate(tref)
+	static unsigned int trefc[LIM+1] = { 0 };
+#pragma omp threadprivate(trefc)
+
+	if (enable_timer && nrhs <= LIM) {
+		tref[nrhs] += - (float) GMRFLib_timer();
+	}
 
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
@@ -1011,35 +1029,22 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			s_idx.within_group = problem->stiles_idx->within_group;
 		}
 		GMRFLib_stiles_set_idx(&s_idx, nrhs);
-#if 0
-		static double tref = 0.0;
-		static double trefc = 0.0;
-		static double trefc_min = 0;
-		if (trefc_min >= 25 && nrhs == 1)
-			tref += -GMRFLib_timer();
-#endif
 		GMRFLib_stiles_solve_LLT(&s_idx, rhs);
-#if 0
-		if (trefc_min >= 25 && nrhs == 1) {
-			tref += GMRFLib_timer();
-			trefc += nrhs;
-			printf("Solve %.6f\n", tref / trefc);
-		}
-		trefc_min++;
-#endif
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
 	GMRFLib_LEAVE_FUNCTION;
 
-#if 0
-	if (nrhs < LIM) {
-		tref[nrhs] += GMRFLib_timer();
+	if (enable_timer && nrhs <= LIM) {
+		tref[nrhs] += (float) GMRFLib_timer();
 		trefc[nrhs]++;
-		printf("nrhs %d tref %g trefc %d tref/nrhs/trefc %g\n", nrhs, tref[nrhs], trefc[nrhs], tref[nrhs] / nrhs / trefc[nrhs]);
+		if (trefc[nrhs] % interval == 0 || trefc[nrhs] == 1) {
+			printf("[%1d] nrhs %d tref %.4g trefc %d tref/nrhs/trefc*1E6 %.4g\n", omp_get_thread_num(), nrhs, tref[nrhs], trefc[nrhs],
+			       1.0E6 * tref[nrhs] / nrhs / trefc[nrhs]);
+		}
 	}
 #       undef LIM
-#endif
+
 	return GMRFLib_SUCCESS;
 }
 
