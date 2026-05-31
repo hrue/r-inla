@@ -384,12 +384,12 @@ typedef enum {
 	}
 
 #              define GMRFLib_TRACE_i(msg_, i_)				\
-	if (!(trace_count_ % trace_) || trace_count_ == 1) { \
+	if (trace_ && (trace_count_ % trace_ == 0 || trace_count_ == 1)) { \
 		printf("\t[%1d] %s (%s:%1d): %s %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_); \
-	}
+		}
 
 #              define GMRFLib_TRACE_idd(msg_, i_, d_, dd_)		\
-	if (!(trace_count_ % trace_) || trace_count_ ==  1) { \
+	if (trace_ && (trace_count_ % trace_ == 0 || trace_count_ ==  1)) { \
 		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
 	}
 
