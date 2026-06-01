@@ -25,7 +25,7 @@ void GMRFLib_exp(int n, double *x, double *y)
 #endif
 }
 #pragma GCC diagnostic pop
-		
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))

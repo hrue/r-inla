@@ -890,7 +890,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 	static bool first = 1;
 	static bool enable_timer = 0;
 	static int interval = 1;
-	
+
 	if (first) {
 #pragma omp critical (Name_e17713a7b7212540f4e968c9656f2f9b4f2351ac)
 		if (first) {
@@ -902,15 +902,14 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			first = 0;
 		}
 	}
-			
-#       define LIM 128
-	static float tref[LIM+1] = { 0.0 };
+#define LIM 128
+	static float tref[LIM + 1] = { 0.0 };
 #pragma omp threadprivate(tref)
-	static unsigned int trefc[LIM+1] = { 0 };
+	static unsigned int trefc[LIM + 1] = { 0 };
 #pragma omp threadprivate(trefc)
 
 	if (enable_timer && nrhs <= LIM) {
-		tref[nrhs] += - (float) GMRFLib_timer();
+		tref[nrhs] += -(float) GMRFLib_timer();
 	}
 
 	/*
@@ -1043,7 +1042,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			       1.0E6 * tref[nrhs] / nrhs / trefc[nrhs]);
 		}
 	}
-#       undef LIM
+#undef LIM
 
 	return GMRFLib_SUCCESS;
 }
