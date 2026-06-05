@@ -49,9 +49,11 @@ GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y);
+double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y);
 double GMRFLib_dssqr(int n, double *x);
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx);
+double GMRFLib_sparse_dsum_INLINE(int n, double *__restrict a, int *__restrict idx);
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
@@ -115,7 +117,6 @@ void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y);
 void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__restrict x, double *__restrict y, double *__restrict z);
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_dscale(int n, double a, double *x);
-void GMRFLib_dscale_INLINE(int n, double a, double *x);
 void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y);
 void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, int num_threads);
 void GMRFLib_ifill(int n, int ia, int *ix);
@@ -146,6 +147,7 @@ void dtbsv_(const char *, const char *, const char *, int *, int *, double *, in
 void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
 	    FORTRAN_CHARLEN_T);
 void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
+
 
 __END_DECLS
 #endif

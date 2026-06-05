@@ -3600,12 +3600,14 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_idxval_tp **Aw = A_idx_ptr();
 				for (int knode = 0; knode < dn; knode++) {
 					int nnode = d_idx->idx[knode];
-					GMRFLib_idxval_tp *vv = Aw[nnode];
-					double sum = GMRFLib_sparse_ddot_(vv, Sa);
-					sum *= s * isd[nnode];
-					cor[knode] = TRUNCATE(sum, -1.0, 1.0);
-					cor_abs[knode] = ABS(cor[knode]);
-					if (unlikely(node == nnode)) {
+					if (likely(node != nnode))
+					{
+						GMRFLib_idxval_tp *vv = Aw[nnode];
+						double sum = GMRFLib_sparse_ddot_(vv, Sa);
+						sum *= s * isd[nnode];
+						cor[knode] = TRUNCATE(sum, -1.0, 1.0);
+						cor_abs[knode] = ABS(cor[knode]);
+					} else {
 						cor[knode] = cor_abs[knode] = 1.0;
 					}
 				}
@@ -3622,9 +3624,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) dn);
 
 					double sumw = W(node);
+					double cor_abs_prev = 1.0;
 					int i_prev_l = (int) largest[0];
 					int i_prev = d_idx->idx[i_prev_l];
-					double cor_abs_prev = 1.0;
 					GMRFLib_idxval_add(&(groups[node]), i_prev, cor_abs_prev);
 					for (int i = 1; i < siz_g && !levels_ok; i++) {
 						int i_new_l = (int) largest[i];

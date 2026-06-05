@@ -7,9 +7,9 @@
 #include "GMRFLib/GMRFLib.h"
 
 // Use SIMD <=cutoff and BLAS above
-static int GMRFLib_daxpy_cutoff = 192;
-static int GMRFLib_ddot_cutoff = 96;
-static int GMRFLib_dscale_cutoff = 1024;
+int GMRFLib_daxpy_cutoff = 192;
+int GMRFLib_ddot_cutoff = 96;
+int GMRFLib_dscale_cutoff = 1024;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1811,6 +1811,11 @@ double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 }
 #pragma GCC diagnostic pop
 
+forceinline double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y)
+{
+	DDOT_CORE();
+}
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -2005,6 +2010,16 @@ double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 	return res;
 }
 #pragma GCC diagnostic pop
+
+forceinline double GMRFLib_sparse_dsum_INLINE(int n, double *__restrict a, int *__restrict idx)
+{
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for (int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
+}
 
 #define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\
