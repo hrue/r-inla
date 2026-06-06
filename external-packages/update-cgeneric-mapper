@@ -8,7 +8,7 @@ function namechange () {
     awk '{
     	while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
         while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
-	while(gsub("inla_sgeneric_sblocks", "inla_cgeneric_gmrfs_sblocks")); 
+	while(gsub("inla_cgeneric_sblocks", "inla_cgeneric_gmrfs_sblocks")); 
 	print
     }'
 }
