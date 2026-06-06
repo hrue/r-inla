@@ -9,6 +9,7 @@ function namechange () {
     	while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
         while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
 	while(gsub("inla_sgeneric_pblocks", "inla_cgeneric_gmrfs_sblocks")); 
+	print
     }'
 }
 
