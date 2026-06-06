@@ -3,6 +3,15 @@ h="cgeneric-table.h"
 hh="cgeneric-defs.h"
 test -f "$h" && rm -f "$h"
 test -f "$hh" && rm -f "$hh"
+
+function namechange () {
+    awk '{
+    	while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
+        while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
+	while(gsub("inla_sgeneric_pblocks", "inla_cgeneric_gmrfs_sblocks")); 
+    }'
+}
+
 {
     for f in $(find . -name FUNCTIONS); do
 	if [ -f "$f" ]; then 
@@ -13,12 +22,11 @@ test -f "$hh" && rm -f "$hh"
     	    { print "{ \"" $1 "\", (inla_cgeneric_func_tp *) " $1 " }," }'
 	fi
     done
-} | sort | uniq > $h
+} | sort | uniq | namechange > $h
 
 {
     for f in $(find . -name FUNCTIONS); do
-	if [ -f "$f"
-	   ]; then 
+	if [ -f "$f" ]; then 
 	    echo Process $f >&2 
 	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
 		sort | uniq | tr -d ';' | \
@@ -26,4 +34,4 @@ test -f "$hh" && rm -f "$hh"
     	    { print "inla_cgeneric_func_tp " $1 ";" }'
 	fi
     done
-} | sort | uniq > $hh
+} | sort | uniq | namechange > $hh
