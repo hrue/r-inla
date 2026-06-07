@@ -3600,8 +3600,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_idxval_tp **Aw = A_idx_ptr();
 				for (int knode = 0; knode < dn; knode++) {
 					int nnode = d_idx->idx[knode];
-					if (likely(node != nnode))
-					{
+					if (likely(node != nnode)) {
 						GMRFLib_idxval_tp *vv = Aw[nnode];
 						double sum = GMRFLib_sparse_ddot_(vv, Sa);
 						sum *= s * isd[nnode];
