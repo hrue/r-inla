@@ -22,6 +22,7 @@ __BEGIN_DECLS
 #              include "armpl_sparse.h"
 #       endif
 double GMRFLib_sparse_ddot(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_sparse_ddot_INLINE(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);

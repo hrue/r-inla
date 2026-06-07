@@ -1,3 +1,7 @@
+# INLA 26.06.07
+* Last build on R-4.5
+* Various code maintainance
+
 # INLA 26.05.21
 * New 0nbinomial(S) likelihood
 * Fixed regression for group-cv and likelihoods not returning CDFs.

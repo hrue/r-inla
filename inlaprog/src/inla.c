@@ -6084,6 +6084,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 	// report timings
 	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop_max = 0.0;
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			for (j = 0; j < (int) (sizeof(time_loop) / sizeof(double)); j++) {
@@ -6091,6 +6092,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 		}
 
+		time_loop_max = DMAX(time_loop[0], time_loop[1]);
 		double s = 1.0 / DMAX(DBL_EPSILON, DMAX(time_loop[0], time_loop[1]));
 		time_loop[0] *= s;
 		time_loop[1] *= s;
@@ -6100,6 +6102,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		time_loop[3] *= s;
 		time_loop[4] *= s;
 	}
+
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_SERIAL, NULL, NULL);
+	int ddot_cutoff = GMRFLib_ddot_tune(NULL);
+	int dscale_cutoff = GMRFLib_dscale_tune(NULL);
+	int daxpy_cutoff = GMRFLib_daxpy_tune(NULL);
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
@@ -6122,16 +6129,20 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
-			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
-			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
+			printf("\tOptimise ddot.............. [%1d]\n", ddot_cutoff);
+			printf("\tOptimise dscale............ [%1d]\n", dscale_cutoff);
+			printf("\tOptimise daxpy............. [%1d]\n", daxpy_cutoff);
+			printf("\tOptimise sort2_id.......... [%1d]\n", GMRFLib_sort2_id_cut_off);
+			printf("\tOptimise sort2_dd.......... [%1d]\n", GMRFLib_sort2_dd_cut_off);
+			printf("\tOptimise Qx-strategy....... serial[%.3f] parallel [%.3f] choose[%s]\n",
 			       time_used_Qx[0] / DMAX(time_used_Qx[0], time_used_Qx[1]), time_used_Qx[1] / DMAX(time_used_Qx[0], time_used_Qx[1]),
 			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
+			printf("\tOptimise pred-strategy..... plain [%.3f] data-rich[%.3f] choose[%s]\n",
 			       time_used_pred[0] / DMAX(time_used_pred[0], time_used_pred[1]),
 			       time_used_pred[1] / DMAX(time_used_pred[0], time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-			printf("\tOptimizing dot-products.... plain[%.3f] group[%.3f]\n", time_loop[0], time_loop[1]);
+			printf("\tOptimise dot-products...... plain[%.3f] group[%.3f] max[%.6f ms]\n", time_loop[0], time_loop[1],
+			       1000.0 * time_loop_max);
 			printf("\t                            ->mix[%.3f] (plain[%.1f%%] group[%.1f%%])\n",
 			       time_loop[2], 100 * time_loop[3], 100 * time_loop[4]);
 		}

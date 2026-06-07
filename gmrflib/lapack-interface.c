@@ -6,6 +6,11 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+// Use SIMD <=cutoff and BLAS above
+int GMRFLib_daxpy_cutoff = 192;
+int GMRFLib_ddot_cutoff = 96;
+int GMRFLib_dscale_cutoff = 1024;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -55,16 +60,6 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 		}
 	}
 
-#if 0
-#       pragma omp parallel for collapse(2) num_threads(num_threads) if (num_threads > 1)
-	for (int ii = 0; ii < n; ii += block_n) {
-		for (int jj = ii; jj < n; jj += block_n) {
-			// 
-			// 
-		}
-	}
-#endif
-
 #pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
@@ -95,7 +90,6 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 #undef SIZE
 }
 #pragma GCC diagnostic pop
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -550,6 +544,10 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 {
 	/*
@@ -575,7 +573,12 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 
 	return At;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix *A, gsl_matrix *At)
 {
 	// overwrite At with the transpose
@@ -598,7 +601,12 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix *A, gsl_matrix *At)
 
 	return (At ? NULL : At);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 {
 	/*
@@ -621,6 +629,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 
 	return logdet;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 {
@@ -637,6 +646,10 @@ int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 {
 	// diag(A) = diag(A) + value
@@ -648,7 +661,12 @@ int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 	}
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 {
 	/*
@@ -680,6 +698,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -768,6 +787,10 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
 	return GMRFLib_ensure_spd_x(A, dim, tol, msg, NULL);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl_ensure_spd_store_tp *store)
 {
 	// this just a plain interface to the GMRFLib_gsl_ensure_spd
@@ -801,6 +824,7 @@ int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_gsl_ensure_spd(gsl_matrix *A, double tol, char **msg)
 {
@@ -847,6 +871,10 @@ int GMRFLib_gsl_ensure_spd_store_free(GMRFLib_gsl_ensure_spd_store_tp *S)
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **msg, GMRFLib_gsl_ensure_spd_store_tp *store)
 {
 	/*
@@ -951,6 +979,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n)
 {
@@ -1492,7 +1521,8 @@ __attribute__((optimize("O3")))
 void GMRFLib_dscale(int n, double a, double *x)
 {
 	// x[i] *= a
-	if (n < 32) {
+	if (n <= GMRFLib_dscale_cutoff) {
+#pragma omp simd
 		for (int i = 0; i < n; i++) {
 			x[i] *= a;
 		}
@@ -1502,6 +1532,88 @@ void GMRFLib_dscale(int n, double a, double *x)
 	}
 }
 #pragma GCC diagnostic pop
+
+forceinline void GMRFLib_dscale_INLINE(int n, double a, double *x)
+{
+	// x[i] *= a
+	if (n <= GMRFLib_dscale_cutoff) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			x[i] *= a;
+		}
+	} else {
+		int one = 1;
+		dscal_(&n, &a, x, &one);
+	}
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_dscale_tune(FILE *fp)
+{
+	int cutoff_default = GMRFLib_dscale_cutoff;
+	const int m = 10000;
+	const int nmin = 32;
+	const int nadd = 32;
+	const int nmax = 1024;
+	double *x = Calloc(nmax, double);
+	double a, aa;
+	int found = 0;
+
+	for (int n = nmin; n <= nmax; n += nadd) {
+		double tref[2] = { 0 };
+
+		a = GMRFLib_uniform();
+		aa = 1.0 / a;
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int k = -5; k < m; k++) {
+			if (k == 0) {
+				tref[0] = tref[1] = 0.0;
+			}
+			GMRFLib_dscale_cutoff = INT_MAX;
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_dscale(n, a, x);
+			GMRFLib_dscale(n, aa, x);
+			tref[0] += GMRFLib_timer();
+
+			GMRFLib_dscale_cutoff = 0;
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_dscale(n, a, x);
+			GMRFLib_dscale(n, aa, x);
+			tref[1] += GMRFLib_timer();
+		}
+
+		if (fp) {
+			fprintf(fp, "\tGMRFLib_dscale_tune:  n %1d SIMD %.3f BLAS %.3f\n", n,
+				tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		}
+		if (tref[0] > tref[1]) {
+			found = 1;
+			if (n == nmin) {
+				GMRFLib_dscale_cutoff = 0;
+			} else {
+				GMRFLib_dscale_cutoff = IMAX(0, n - nadd);
+			}
+			break;
+		}
+	}
+
+	if (!found) {
+		GMRFLib_dscale_cutoff = cutoff_default;
+	}
+	if (fp) {
+		fprintf(fp, "\tGMRFLib_dscale_tune: cutoff set to %d\n", GMRFLib_dscale_cutoff);
+	}
+	Free(x);
+	return GMRFLib_dscale_cutoff;
+}
+#pragma GCC diagnostic pop
+
 
 #define DSCALE2_CORE()				\
 	_Pragma("omp simd")			\
@@ -1539,8 +1651,8 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	int inc = 1;
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
-	GMRFLib_dscale(n, b, y);
-	GMRFLib_daxpy(n, a, x, y);
+	GMRFLib_dscale_INLINE(n, b, y);
+	GMRFLib_daxpy_INLINE(n, a, x, y);
 #endif
 }
 
@@ -1570,42 +1682,29 @@ __attribute__((optimize("O3")))
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
-	if (n <= 32) {
-		int limit = n & ~3;
-		for (int i = 0; i < limit; i += 4) {
-			y[i] = a * x[i] + b;
-			y[i + 1] = a * x[i + 1] + b;
-			y[i + 2] = a * x[i + 2] + b;
-			y[i + 3] = a * x[i + 3] + b;
-		}
-		for (int i = limit; i < n; i++) {
-			y[i] = a * x[i] + b;
-		}
-	} else {
-		GMRFLib_dfill(n, b, y);
-		GMRFLib_daxpy(n, a, x, y);
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = a * x[i] + b;
 	}
 }
 #pragma GCC diagnostic pop
 
 // y = a * x + y
-#define DAXPY_CORE(cutoff_)				\
-	if (n < cutoff_) {				\
-		int limit = n & ~3;			\
+#define DAXPY_CORE()					\
+	if (n <= GMRFLib_daxpy_cutoff) {		\
 		_Pragma("omp simd")			\
-		for (int i = 0; i < limit; i += 4) {	\
-			y[i] += a * x[i];		\
-			y[i+1] += a * x[i+1];		\
-			y[i+2] += a * x[i+2];		\
-			y[i+3] += a * x[i+3];		\
-		}					\
-		for (int i = limit; i < n; i++) {	\
-			y[i] += a * x[i];		\
-		}					\
+			for (int i = 0; i < n; i++) {	\
+				y[i] += a * x[i];	\
+			}				\
 	} else {					\
 		int inc = 1;				\
 		daxpy_(&n, &a, x, &inc, y, &inc);	\
 	}
+
+forceinline void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
+{
+	DAXPY_CORE();
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1613,9 +1712,8 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_daxpy(int n, double a, double *x, double *y)
 {
-//      int inc = 1;
-//      daxpy_(&n, &a, x, &inc, y, &inc);
-	DAXPY_CORE(64);
+	// y = a * x + y
+	DAXPY_CORE();
 }
 #pragma GCC diagnostic pop
 
@@ -1623,32 +1721,81 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_daxpy_x(int n, double a, double *x, double *y, int cutoff)
+int GMRFLib_daxpy_tune(FILE *fp)
 {
-	DAXPY_CORE(cutoff);
+	int cutoff_default = GMRFLib_daxpy_cutoff;
+	const int m = 10000;
+	const int nmin = 16;
+	const int nadd = 16;
+	const int nmax = 1024;
+	double *x = Calloc(nmax, double);
+	double *y = Calloc(nmax, double);
+	double a, aa;
+	int found = 0;
+
+	for (int n = nmin; n <= nmax; n += nadd) {
+		double tref[2] = { 0 };
+
+		a = GMRFLib_uniform();
+		aa = 1.0 / a;
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+		}
+
+		for (int k = -5; k < m; k++) {
+			if (k == 0) {
+				tref[0] = tref[1] = 0.0;
+			}
+			GMRFLib_daxpy_cutoff = INT_MAX;
+			tref[0] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, a, x, y);
+			GMRFLib_daxpy(n, aa, y, x);
+			tref[0] += GMRFLib_timer();
+
+			GMRFLib_daxpy_cutoff = 0;
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_daxpy(n, a, x, y);
+			GMRFLib_daxpy(n, aa, y, x);
+			tref[1] += GMRFLib_timer();
+		}
+
+		if (fp) {
+			fprintf(fp, "\tGMRFLib_daxpy_tune:  n %1d SIMD %.3f BLAS %.3f\n", n,
+				tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		}
+		if (tref[0] > tref[1]) {
+			found = 1;
+			if (n == nmin) {
+				GMRFLib_daxpy_cutoff = 0;
+			} else {
+				GMRFLib_daxpy_cutoff = IMAX(0, n - nadd);
+			}
+			break;
+		}
+	}
+
+	if (!found) {
+		GMRFLib_daxpy_cutoff = cutoff_default;
+	}
+	if (fp) {
+		fprintf(fp, "\tGMRFLib_daxpy_tune: cutoff set to %d\n", GMRFLib_daxpy_cutoff);
+	}
+	Free(x);
+	Free(y);
+
+	return GMRFLib_daxpy_cutoff;
 }
 #pragma GCC diagnostic pop
-#undef DAXPY_CORE
-
-//              _Pragma("omp simd reduction(+: sum0,sum1,sum2,sum3)")
 
 #define DDOT_CORE(cutoff_)						\
-	if (n < cutoff_) {						\
-		double sum0 = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;	\
-		double *xx = x, *yy = y;				\
-		int limit = n & ~3;					\
-			for (int i = 0; i < limit; i += 4) {		\
-			sum0 += xx[0] * yy[0];				\
-			sum1 += xx[1] * yy[1];				\
-			sum2 += xx[2] * yy[2];				\
-			sum3 += xx[3] * yy[3];				\
-			xx += 4;					\
-			yy += 4;					\
-		}							\
-		for (int i = limit; i < n; i++) {			\
-			sum0 += x[i] * y[i];				\
-		}							\
-		return (sum0 + sum1) + (sum2 + sum3);			\
+	if (n <= GMRFLib_ddot_cutoff) {					\
+		double res = 0.0;					\
+		_Pragma("omp simd reduction(+: res)")			\
+			for (int i = 0; i < n; i++) {			\
+				res += x[i] * y[i];			\
+			}						\
+		return res;						\
 	} else {							\
 		int one = 1;						\
 		return ddot_(&n, x, &one, y, &one);			\
@@ -1660,11 +1807,96 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
 {
-//      int one = 1;
-//      return ddot_(&n, x, &one, y, &one);
-	DDOT_CORE(32);
+	DDOT_CORE();
 }
 #pragma GCC diagnostic pop
+
+forceinline double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y)
+{
+	DDOT_CORE();
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_ddot_tune(FILE *fp)
+{
+	int cutoff_default = GMRFLib_ddot_cutoff;
+	const int m = 10000;
+	const int nmin = 16;
+	const int nadd = 16;
+	const int nmax = 256;
+	double *x = Calloc(nmax, double);
+	double *y = Calloc(nmax, double);
+	int found = 0;
+
+	for (int n = nmin; n <= nmax; n += nadd) {
+		double tref[2] = { 0 };
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+		}
+
+		for (int k = -5; k < m; k++) {
+			volatile double a;
+			volatile double aa;
+			if (k == 0) {
+				tref[0] = tref[1] = 0.0;
+			}
+			GMRFLib_ddot_cutoff = INT_MAX;
+			tref[0] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x, y);
+			aa = GMRFLib_ddot(n, y, x);
+			tref[0] += GMRFLib_timer();
+			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+
+			GMRFLib_ddot_cutoff = 0;
+			tref[1] -= GMRFLib_timer();
+			a = GMRFLib_ddot(n, x, y);
+			aa = GMRFLib_ddot(n, y, x);
+			tref[1] += GMRFLib_timer();
+			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+		}
+
+		if (fp) {
+			fprintf(fp, "\tGMRFLib_ddot_tune: n %1d SIMD %.3f BLAS %.3f\n", n,
+				tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		}
+		if (tref[0] > tref[1]) {
+			found = 1;
+			if (n == nmin) {
+				GMRFLib_ddot_cutoff = 0;
+			} else {
+				GMRFLib_ddot_cutoff = IMAX(0, n - nadd);
+			}
+			break;
+		}
+	}
+
+	if (!found) {
+		GMRFLib_ddot_cutoff = cutoff_default;
+	}
+	if (fp) {
+		fprintf(fp, "\tGMRFLib_ddot_tune: cutoff set to %d\n", GMRFLib_ddot_cutoff);
+	}
+	Free(x);
+	Free(y);
+
+	return GMRFLib_ddot_cutoff;
+}
+#pragma GCC diagnostic pop
+
+#define DDOT2_CORE()					\
+	double aa = 0.0, bb = 0.0;			\
+	_Pragma("omp simd reduction(+: aa, bb)")	\
+	for (int i = 0; i < n; i++) {			\
+		aa += x[i] * y[i];			\
+		bb += x[i] * z[i];			\
+	}						\
+	*a = aa;					\
+	*b = bb
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1682,47 +1914,13 @@ void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__
 #elif defined(INLA_WITH_SIMDE)
 #       include "intrinsics/simde/ddot2-sse2.h"
 #else
-		int limit = n & ~1;
-		double aa = 0.0, bb = 0.0;
-		for (int i = 0; i < limit; i += 2) {
-			aa += x[i] * y[i] + x[i + 1] * y[i + 1];
-			bb += x[i] * z[i] + x[i + 1] * z[i + 1];
-		}
-		if (limit < n) {
-			int n1 = n - 1;
-			aa += x[n1] * y[n1];
-			bb += x[n1] * z[n1];
-		}
-		*a = aa;
-		*b = bb;
+		DDOT2_CORE();
 #endif
 	} else {
-		int limit = n & ~1;
-		double aa = 0.0, bb = 0.0;
-		for (int i = 0; i < limit; i += 2) {
-			aa += x[i] * y[i] + x[i + 1] * y[i + 1];
-			bb += x[i] * z[i] + x[i + 1] * z[i + 1];
-		}
-		if (limit < n) {
-			int n1 = n - 1;
-			aa += x[n1] * y[n1];
-			bb += x[n1] * z[n1];
-		}
-		*a = aa;
+		DDOT2_CORE();
 	}
 }
 #pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_ddot_x(int n, double *__restrict x, double *__restrict y, int cutoff)
-{
-	DDOT_CORE(cutoff);
-}
-#pragma GCC diagnostic pop
-#undef DDOT_CORE
 
 #define SUM_CORE_PLAIN(TYPE_, n_)				\
 	TYPE_ r = 0;						\
@@ -1745,10 +1943,10 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	if (unlikely(n < 16)) {
+	if (likely(n <= 16)) {
 		SUM_CORE_PLAIN(double, n);
 	}
-#if defined(INLA_WITH_OPENBLAS)
+#if defined(INLA_WITH_OPENBLAS) || defined(INLA_WITH_DSUM)
 	double cblas_dsum(int, double *, int);
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
@@ -1796,29 +1994,7 @@ int GMRFLib_isum(int n, int *x)
 	SUM_CORE(int, n);
 #endif
 }
-#undef SUM_CORE
-#undef SUM_CORE_PLAIN
 #pragma GCC diagnostic pop
-
-#define SPARSE_DSUM()					\
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
-	int m = n & ~7;					\
-	int *iidx = idx;				\
-	for (int i = 0; i < m; i += 8) {		\
-		s0 += a[iidx[0]];			\
-		s1 += a[iidx[1]];			\
-		s2 += a[iidx[2]];			\
-		s3 += a[iidx[3]];			\
-		s0 += a[iidx[4]];			\
-		s1 += a[iidx[5]];			\
-		s2 += a[iidx[6]];			\
-		s3 += a[iidx[7]];			\
-		iidx += 8;				\
-	}						\
-	for (int i = m; i < n; i++) {			\
-		s0 += a[idx[i]];			\
-	}						\
-	return (s0 + s1) + (s2 + s3)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1826,10 +2002,24 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
 {
-	SPARSE_DSUM();
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for (int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
 }
 #pragma GCC diagnostic pop
-#undef SPARSE_DSUM
+
+forceinline double GMRFLib_sparse_dsum_INLINE(int n, double *__restrict a, int *__restrict idx)
+{
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for (int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
+}
 
 #define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\
@@ -1874,7 +2064,6 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 {
 	FILL_CORE(bool, 512);
 }
-#undef FILL_CORE
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"

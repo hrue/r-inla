@@ -994,6 +994,9 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, taucs_crs_matrix 
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	// GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1011,7 +1014,11 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLi
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	static double **wwork = NULL;
@@ -1056,7 +1063,11 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, taucs_crs_matrix *LL, GMRFLib_graph_tp *graph, int *remap, double *work)
 {
 	assert(graph->n == L->n);
@@ -1084,7 +1095,11 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	GMRFLib_convert_from_mapped(rhs, work, graph, remap);
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs, double *work)
 {
 #if 0
@@ -1146,7 +1161,11 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int findx, int toindx,
 						 int remapped)
 {
@@ -1194,7 +1213,11 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int findx, int toindx,
 						int remapped)
 {
@@ -1239,7 +1262,11 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L, GMRFLib_graph_tp *UNUSED(graph), int *remap, int idx)
 {
 	/*
@@ -1294,7 +1321,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 		int jp = colptr[i];
 		int jp1 = colptr[i] + 1;
 		double inv_Aii = 1.0 / d[jp];
-		double s = GMRFLib_sparse_ddot(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+		double s = GMRFLib_sparse_ddot_INLINE(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = (y[i] - s) * inv_Aii;
 	}
 
@@ -1303,6 +1330,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph,
 				   int *remap)
@@ -1432,7 +1460,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 			int nn = L->colptr[i + 1] - (L->colptr[i] + 1);
 			int kk = L->colptr[i] + 1;
 			double diag = L->values[L->colptr[i]];
-			double dot = GMRFLib_sparse_ddot(nn, d + kk, Zj, L->rowind + kk);
+			double dot = GMRFLib_sparse_ddot_INLINE(nn, d + kk, Zj, L->rowind + kk);
 			double value = (i == j ? 1.0 / diag : 0.0);
 			value = (value - dot) / diag;
 			Zj[i] = value;
@@ -1511,13 +1539,16 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 
 	for (int i = L->n - 1; i >= 0; i--) {
 		int jp1 = L->colptr[i] + 1;
-		b[i] -= GMRFLib_sparse_ddot(L->colptr[i + 1] - jp1, L->values + jp1, x, L->rowind + jp1);
+		b[i] -= GMRFLib_sparse_ddot_INLINE(L->colptr[i + 1] - jp1, L->values + jp1, x, L->rowind + jp1);
 
 		int jp = L->colptr[i];
 		double Aii = L->values[jp];
@@ -1526,7 +1557,11 @@ int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1534,7 +1569,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 	GMRFLib_dfill(from_idx, 0.0, x);
 	for (int i = from_idx; i >= to_idx; i--) {
 		int jp1 = L->colptr[i] + 1;
-		b[i] -= GMRFLib_sparse_ddot(L->colptr[i + 1] - jp1, L->values + jp1, x, L->rowind + jp1);
+		b[i] -= GMRFLib_sparse_ddot_INLINE(L->colptr[i + 1] - jp1, L->values + jp1, x, L->rowind + jp1);
 
 		int jp = L->colptr[i];
 		double Aii = L->values[jp];
@@ -1543,7 +1578,11 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1559,7 +1598,11 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 	}
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, double *__restrict w)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1597,12 +1640,14 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 		int jp = colptr[i];
 		int jp1 = jp + 1;
 		double inv_Aii = 1.0 / d[jp];
-		y[i] -= GMRFLib_sparse_ddot(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+		y[i] -= GMRFLib_sparse_ddot_INLINE(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
 
 	return 0;
 }
+#pragma GCC diagnostic pop
+
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1666,7 +1711,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			double Aij = -L->values[ip];	       // OOOPS! add minus here for daxpy
 			xx = x + L->rowind[ip] * nrhs;
-			GMRFLib_daxpy(nrhs, Aij, yy, xx);
+			GMRFLib_daxpy_INLINE(nrhs, Aij, yy, xx);
 		}
 	}
 
@@ -1677,12 +1722,12 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			double Aij = L->values[jp];
 			double *xx = x + L->rowind[jp] * nrhs;
-			GMRFLib_daxpy(nrhs, Aij, xx, sum);
+			GMRFLib_daxpy_INLINE(nrhs, Aij, xx, sum);
 		}
 
 		int offset_i = i * nrhs;
 		double *yy = y + offset_i;
-		GMRFLib_daxpy(nrhs, -1.0, sum, yy);
+		GMRFLib_daxpy_INLINE(nrhs, -1.0, sum, yy);
 
 		int jp = L->colptr[i];
 		double iAii = 1.0 / L->values[jp];
@@ -1705,6 +1750,9 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, 
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 {
 	// this version using both ccs and crs. 
@@ -1727,7 +1775,7 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 	for (int i = 1; i < n; i++) {
 		int m = rowptr[i + 1] - rowptr[i];
 		int jj = rowptr[i];
-		double s = GMRFLib_sparse_ddot(m, d + jj, y, colind + jj);
+		double s = GMRFLib_sparse_ddot_INLINE(m, d + jj, y, colind + jj);
 		y[i] = (x[i] - s) / d[rowptr[i + 1] - 1];
 	}
 
@@ -1739,13 +1787,17 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		int jp = colptr[i];
 		int jp1 = jp + 1;
 		double inv_Aii = 1.0 / d[jp];
-		y[i] -= GMRFLib_sparse_ddot(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+		y[i] -= GMRFLib_sparse_ddot_INLINE(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
 		x[i] = y[i] * inv_Aii;
 	}
 
 	return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1792,6 +1844,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	}
 	return 0;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix *L, double *x)
 {
