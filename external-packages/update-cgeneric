@@ -6,9 +6,12 @@ test -f "$hh" && rm -f "$hh"
 
 function namechange () {
     awk '{
-    	while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
-        while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
-	while(gsub("inla_cgeneric_sblocks", "inla_cgeneric_gmrfs_sblocks")); 
+        ## this is fixed now. keep it here, in case we need similar
+	## workarounds in the future
+	##
+    	## while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
+        ## while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
+	## while(gsub("inla_cgeneric_sblocks", "inla_cgeneric_gmrfs_sblocks")); 
 	print
     }'
 }
