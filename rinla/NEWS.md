@@ -1,3 +1,6 @@
+# INLA 26.06.08
+* Last build on R-4.6
+
 # INLA 26.06.07
 * Last build on R-4.5
 * Various code maintainance
