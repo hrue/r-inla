@@ -252,6 +252,7 @@ typedef enum {
 	L_GAMMACOUNTMEAN,
 	L_0NBINOMIAL,
 	L_0NBINOMIALS,
+	L_POISSONLOGNORMAL,				       /* Poisson log-normal (GHQ) */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -735,6 +736,12 @@ typedef struct {
 	 */
 	double **gpoisson_overdispersion;
 	double **gpoisson_p;
+
+	/*
+	 * Poisson log-normal (GHQ): y ~ Poisson(E*exp(eta+u)), u ~ N(0, 1/prec)
+	 */
+	double **pln_log_prec;
+	int pln_nquad;
 
 	/*
 	 * cencored poisson. values in [interval[0], interval[1]] are cencored
@@ -2385,6 +2392,7 @@ int loglikelihood_occupancy(int thread_id, int *lcache_idx, double *__restrict l
 int loglikelihood_obeta(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
 			double *y_cdf, void *arg);
 int loglikelihood_poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_poissonlognormal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_poisson_special1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
 				   void *arg);
 int loglikelihood_pom(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

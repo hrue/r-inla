@@ -2693,6 +2693,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case L_QCONTPOISSON:
 				break;
 
+			case L_POISSONLOGNORMAL:
+			{
+				if (!ds->data_fixed) {
+					double log_prec = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_prec);
+					count++;
+				}
+			}
+				break;
+
 			case L_EXPONENTIALSURV:
 			case L_GAMMAJWSURV:
 			{
