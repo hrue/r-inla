@@ -13844,7 +13844,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
 			nt = (int) x[0];
 			theta = Calloc(nt + inla_theta_all_get_n(), double);
-			Memcpy(theta,  x + 1,  nt * sizeof(double));
+			Memcpy(theta, x + 1, nt * sizeof(double));
 			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_INITIAL, x);
 
 			x = model_func(INLA_CGENERIC_GRAPH, theta, cgeneric_data);
@@ -13876,7 +13876,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
 		nt = (int) x[0];
 		theta = Calloc(nt + inla_theta_all_get_n(), double);
-		Memcpy(theta,  x + 1,  nt * sizeof(double));
+		Memcpy(theta, x + 1, nt * sizeof(double));
 		Free(x);
 		xx_out = model_func(INLA_CGENERIC_GRAPH, theta, cgeneric_data);
 		if (cgeneric_debug) {
@@ -17977,7 +17977,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
 		}
 		Free(x);
-		
+
 		int len, *ilist = NULL, *jlist = NULL;
 		k = 0;
 		n = (int) x_out[k++];
@@ -20313,36 +20313,35 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 }
 
 static inla_tp *hold = NULL;
-void inla_theta_all_init(inla_tp *mb) 
+void inla_theta_all_init(inla_tp *mb)
 {
 	hold = mb;
 }
 
-int inla_theta_all_get_n(void) 
+int inla_theta_all_get_n(void)
 {
 	assert(hold);
 	return (hold->ntheta);
 }
 
-void inla_theta_all_get_tags(char **tags) 
+void inla_theta_all_get_tags(char **tags)
 {
 	assert(hold);
 	if (hold->ntheta > 0) {
 		assert(tags);
-		for(int i = 0; i < hold->ntheta; i++) {
+		for (int i = 0; i < hold->ntheta; i++) {
 			tags[i] = hold->theta_tag[i];
 		}
 	}
 }
 
-void inla_theta_all_get_values(int thread_id, double *values) 
+void inla_theta_all_get_values(int thread_id, double *values)
 {
 	assert(hold);
 	if (hold->ntheta > 0) {
 		assert(values);
-		for(int i = 0; i < hold->ntheta; i++) {
+		for (int i = 0; i < hold->ntheta; i++) {
 			values[i] = hold->theta[i][thread_id][0];
 		}
 	}
 }
-

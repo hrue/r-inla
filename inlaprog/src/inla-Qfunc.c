@@ -643,10 +643,9 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 	if (a->mu_zero) {
 		return 0.0;
 	}
-
 	// this is true even if theta_all_n=0
 	assert(a->data->theta_all_names);
-	
+
 	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
 	for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
