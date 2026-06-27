@@ -173,6 +173,10 @@ typedef struct {
 
 	int processed;
 	void *cache;
+
+	// pass values of all other theta's as well by appending those to 'theta' (for the moment)
+	int theta_all_n;
+	char **theta_all_names;
 } inla_cgeneric_data_tp;
 
 #       if defined(_OPENMP)

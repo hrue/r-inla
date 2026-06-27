@@ -2470,6 +2470,11 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned long long getTotalSystemMemory();
 void inla_signal(int sig);
 
+int inla_theta_all_get_n(void);
+void inla_theta_all_init(inla_tp *mb);
+void inla_theta_all_get_tags(char **tags);
+void inla_theta_all_get_values(int thread_id, double *values);
+
 double testit_Qfunc(int thread_id, int i, int j, double *values, void *arg);
 
 // defined in cores.c
