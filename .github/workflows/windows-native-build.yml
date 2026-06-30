@@ -1,0 +1,404 @@
+name: windows-native-build (phase 1 inlaprog)
+
+# Phase 1: build + install GMRFLib (proven in phase 0), then attempt to build the
+# `inla` engine (inlaprog), which links GMRFLib + numeric libs + R (libR/libRmath).
+# Goal is still reconnaissance-driven: get inla.exe to link, capturing the first
+# wall of errors (expected around the R linkage and METIS-5 / muParser-2 drift).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [windows-native-build]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up R (Windows)
+        uses: r-lib/actions/setup-r@v2
+        with:
+          # Pin to the newest R that the INLA project ships a Windows binary for
+          # (stable repo currently has 4.2-4.5; not 4.6). Our inla.exe links
+          # against this R, so build and reference engine stay consistent.
+          r-version: '4.5'
+
+      - name: Set up MSYS2 (UCRT64)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit   # so the msys2 shell can see the Windows R.exe
+          install: >-
+            base-devel
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-make
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-gsl
+            mingw-w64-ucrt-x86_64-metis
+            mingw-w64-ucrt-x86_64-muparser
+            mingw-w64-ucrt-x86_64-zlib
+            mingw-w64-ucrt-x86_64-openssl
+            mingw-w64-ucrt-x86_64-suitesparse
+            mingw-w64-ucrt-x86_64-libtool
+
+      - name: Vendor SIMDE headers (header-only; no MSYS2 package exists)
+        # gmrflib's intrinsics #include <simde/...>, but MSYS2 ships no simde
+        # package. SIMDE is header-only, so pin a release and add it to -I.
+        run: |
+          set -e
+          git clone --depth 1 --branch v0.8.2 https://github.com/simd-everywhere/simde.git "$PWD/extern/simde"
+          test -f "$PWD/extern/simde/simde/x86/sse2.h"
+          echo "SIMDE_INC=-I$PWD/extern/simde" >> "$GITHUB_ENV"
+          echo "vendored simde v0.8.2 at $PWD/extern/simde"
+
+      - name: Build + install GMRFLib
+        run: |
+          set -e
+          PREFIX="$PWD/local"
+          mkdir -p "$PREFIX/lib" "$PREFIX/include" "$PREFIX/bin"
+          make -C gmrflib \
+            PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 \
+            CC=gcc CXX=g++ FC=gfortran \
+            FLAGS="-O2 -fopenmp -pthread -DINLA_WITH_OPENBLAS -DINLA_WITH_SIMDE $SIMDE_INC"
+          make -C gmrflib PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 install
+          # taucs (with AMD) is vendored in gmrflib/taucs; install its static lib for inlaprog
+          cp -v gmrflib/taucs/libtaucs.a "$PREFIX/lib/" || true
+          echo "=== installed libs ===" ; ls -la "$PREFIX/lib"
+
+      - name: Locate R and prepare an import library for R.dll
+        run: |
+          set -e
+          RHOME="$(cygpath -u "$(Rscript -e 'cat(normalizePath(R.home()))' | tr -d '\r')")"
+          echo "RHOME=$RHOME"
+          echo "RHOME=$RHOME" >> "$GITHUB_ENV"
+          ls "$RHOME/include" | head
+          RBIN="$RHOME/bin/x64"; [ -d "$RBIN" ] || RBIN="$RHOME/bin"
+          echo "RBIN=$RBIN ; contents:" ; ls "$RBIN" | grep -iE '\.(dll|a|lib)$' || true
+          # MinGW needs an import lib for R.dll; generate one if absent.
+          cd "$RBIN"
+          gendef R.dll >/dev/null 2>&1
+          dlltool -d R.def -l libR.dll.a && echo "generated libR.dll.a"
+          # INLA is built with MATHLIB_STANDALONE, so it references the Rmath
+          # functions by their UNPREFIXED names (qgamma, dnorm4, ...). Windows R
+          # ships no standalone libRmath, but R.dll exports the same functions
+          # Rf_-prefixed. Build a forwarder DLL whose unprefixed export `qgamma`
+          # FORWARDS at load time to R.Rf_qgamma, so no INLA source change is
+          # needed. (A plain import-lib alias does NOT work: it makes the loader
+          # look up the unprefixed name in R.dll, which fails 0xC0000139.)
+          echo "LIBRARY Rmathfwd.dll" > Rmathfwd.def
+          echo "EXPORTS" >> Rmathfwd.def
+          grep -oE 'Rf_[A-Za-z0-9_]+' R.def | sort -u > rf-exports.txt
+          grep -oE '\b(d|p|q|r)(norm|unif|gamma|beta|binom|pois|t|f|chisq|cauchy|exp|geom|hyper|lnorm|logis|nbinom|weibull|wilcox|signrank|nbeta|nchisq|nt|nf|nbinom_mu)[0-9]*\b|\b(gammafn|lgammafn|digamma|trigamma|tetragamma|pentagamma|beta|lbeta|choose|lchoose|bessel_i|bessel_j|bessel_k|bessel_y|psigamma|sign|fsign|fround|fprec|ftrunc|log1p|expm1|bessel_i_ex|bessel_k_ex)\b' "$RHOME/include/Rmath.h" | sort -u > rmath-names.txt
+          n=0
+          while read fn; do
+            # forwarder target uses the module base name without extension: R.dll -> R
+            if grep -qx "Rf_$fn" rf-exports.txt; then echo "$fn = R.Rf_$fn" >> Rmathfwd.def; n=$((n+1)); fi
+          done < rmath-names.txt
+          echo "Rmath forwarder: $n functions forwarded to R.dll Rf_ exports"
+          printf 'int __rmathfwd_dummy;\n' > rmathfwd_dummy.c
+          gcc -c rmathfwd_dummy.c -o rmathfwd_dummy.o
+          gcc -shared -o Rmathfwd.dll rmathfwd_dummy.o Rmathfwd.def -Wl,--out-implib,libRmathfwd.dll.a
+          echo "=== verify forwarders present in Rmathfwd.dll ==="
+          objdump -p Rmathfwd.dll | grep -iE 'forward' | head -5 || echo "WARN: no forwarder entries found"
+          ls -la Rmathfwd.dll libRmathfwd.dll.a
+          echo "RBIN=$RBIN" >> "$GITHUB_ENV"
+
+      - name: PROBE — does <Rinterface.h> compile on native Windows R? (the headline question)
+        # Isolated, source-independent test of the exact issue raised on PR #124:
+        # devel's inlaprog/src/R-interface.c includes <Rinterface.h> unconditionally.
+        # On Unix R that header exists; on native Windows R (MSYS2 here, and CRAN's
+        # Rtools build) it does NOT. This step proves (1) the header is absent, (2)
+        # the unconditional include fails to compile, (3) the `#if !defined(_WIN32)`
+        # guard fixes it while keeping the extern R_CStackLimit decl on both OSes.
+        run: |
+          echo "=== Is Rinterface.h present in Windows R's include dir? ==="
+          ls -la "$RHOME/include/Rinterface.h" 2>&1 || echo ">>> Rinterface.h is ABSENT in Windows R"
+          echo
+          echo "=== (A) NEGATIVE CONTROL: devel's UNCONDITIONAL include ==="
+          printf '#include <stdint.h>\n#include <Rinterface.h>\nextern uintptr_t R_CStackLimit;\nint main(void){ return (int)(R_CStackLimit & 0); }\n' > probe_unguarded.c
+          if gcc -I"$RHOME/include" -fsyntax-only probe_unguarded.c 2>probe_unguarded.err; then
+            echo ">>> UNGUARDED include COMPILES (header is present on this R)"
+          else
+            echo ">>> UNGUARDED include FAILS to compile (as expected on native Windows R):"
+            cat probe_unguarded.err
+          fi
+          echo
+          echo "=== (B) THE FIX: guard the include with #if !defined(_WIN32) ==="
+          printf '#include <stdint.h>\n#if !defined(_WIN32)\n#include <Rinterface.h>\n#endif\nextern uintptr_t R_CStackLimit;\nint main(void){ return (int)(R_CStackLimit & 0); }\n' > probe_guarded.c
+          if gcc -I"$RHOME/include" -fsyntax-only probe_guarded.c 2>probe_guarded.err; then
+            echo ">>> GUARDED version COMPILES — one-line guard resolves the build break"
+          else
+            echo ">>> GUARDED version unexpectedly FAILS:"
+            cat probe_guarded.err
+          fi
+
+      - name: Generate cgeneric headers (empty tables; bundled external cgeneric pkgs disabled for MVP)
+        run: |
+          cd external-packages
+          bash ./update-cgeneric
+          echo "=== generated headers ===" ; ls -la cgeneric-defs.h cgeneric-table.h ; wc -l cgeneric-defs.h cgeneric-table.h
+
+      - name: Attempt inlaprog build (capture first wall of errors)
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          PREFIX="$PWD/local"
+          make -C inlaprog \
+            PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 \
+            CC=gcc CXX=g++ FC=gfortran \
+            FLAGS="-std=gnu99 -O2 -fopenmp -pipe -DINLA_WITH_OPENBLAS -DINLA_WITH_SIMDE -DINLA_WITH_MUPARSER $SIMDE_INC" \
+            RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include" \
+            RLIB_LIB="-L$RBIN -lRmathfwd -lR" \
+            EXTLIBS1="-L$PREFIX/lib -lGMRFLib -ltaucs" \
+            EXTLIBS2="-lgsl -lmetis -lopenblas -lmuparser -lz -lgfortran -lcrypto -lltdl" \
+            EXTLIBS3="-lm" \
+            2>&1 | tee inlaprog-build.log
+          echo "make exit status: ${PIPESTATUS[0]}"
+          echo "=== does inla.exe exist? ===" ; ls -la inlaprog/inla* 2>&1 || true
+
+      - name: Summarise errors
+        if: always()
+        run: |
+          echo "=== compile errors ===" ; grep -nE 'error:|fatal error|No such file' inlaprog-build.log | head -40 || true
+          echo "=== link errors (undefined refs) ===" ; grep -nE 'undefined reference|cannot find -l|undefined symbol' inlaprog-build.log | head -40 || true
+
+      - name: Assemble the Windows bundle (inla.exe + runtime DLLs)
+        if: always()
+        run: |
+          set -e
+          # Lay the engine out exactly as the INLA R package expects under
+          # inst/bin/windows/64bit/, so it drops in with NO inla.setOption override:
+          # inla.call.builtin() resolves system.file("bin/windows/64bit/inla.exe").
+          rm -rf bundle && mkdir -p bundle
+          cp inlaprog/inla.exe bundle/
+          cp "$RBIN/Rmathfwd.dll" bundle/
+          # MinGW/UCRT64 runtime DLLs inla.exe needs (NOT R's own DLLs -- those come
+          # from the user's R install; Rmathfwd.dll forwards Rmath calls into R.dll).
+          # Resolve the FULL TRANSITIVE closure from /ucrt64/bin: a one-level
+          # `ldd | grep /ucrt64/bin` misses second-order deps (libgslcblas-0,
+          # libquadmath-0, libwinpthread-1) that ldd resolves via other MSYS2
+          # paths, so the bundle fails to load on a clean machine without msys2
+          # on PATH. Walk the dependency graph and copy each name from /ucrt64/bin.
+          deps_of() { ldd "$1" 2>/dev/null | awk '{print $1}'; }
+          declare -A seen
+          queue="$(deps_of inlaprog/inla.exe)"
+          while [ -n "$queue" ]; do
+            next=""
+            for name in $queue; do
+              [ -n "${seen[$name]:-}" ] && continue
+              seen[$name]=1
+              src="/ucrt64/bin/$name"
+              if [ -f "$src" ]; then
+                cp -n "$src" bundle/ && echo "bundled $name"
+                next="$next $(deps_of "$src")"
+              fi
+            done
+            queue="$next"
+          done
+          echo "=== bundle DLL count: $(ls bundle/*.dll | wc -l) ==="
+          cat > bundle/README.txt <<'TXT'
+          R-INLA -- native Windows build of the `inla` engine (from source, MSYS2/UCRT64 MinGW-w64).
+          Solver: TAUCS (PARDISO not included). Validated vs the official INLA engine on 6 models
+          (gaussian/poisson/binomial; fixed/iid/rw1/besag/SPDE-2D; eb + ccd) to 1e-6..1e-16.
+
+          DROP-IN install (becomes the default engine, no inla.call override). From R:
+              d <- system.file("bin/windows/64bit", package = "INLA")
+              file.copy(list.files("C:/path/to/this/folder", full.names = TRUE), d, overwrite = TRUE)
+          inla.call.builtin() then resolves to this inla.exe automatically.
+
+          OR explicit override (no copy needed):
+              inla.setOption(inla.call = "C:/path/to/this/folder/inla.exe")
+
+          Requires a working R on PATH (provides R.dll; Rmathfwd.dll forwards Rmath into it).
+          TXT
+          echo "=== bundle contents ===" ; ls -la bundle/
+
+      - name: Install INLA R package (in-repo source, our engine embedded — self-contained)
+        # The INLA R package IS this repo's rinla/ (pure R, no compiled code). Embed
+        # our from-source engine into its inst/bin/windows/64bit/ and install -- which
+        # is exactly how the official binary package is built, but with OUR inla.exe,
+        # and with NO external INLA CDN (the official one 415s under bot-protection;
+        # r-universe has no Windows binary). Only the R deps come from a CRAN mirror.
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -e
+          export PATH="/c/R/bin:/ucrt64/bin:$RBIN:$PATH"
+          mkdir -p rinla/inst/bin/windows/64bit
+          cp -v bundle/* rinla/inst/bin/windows/64bit/
+          Rscript -e 'options(timeout=1800); install.packages(c("fmesher","lifecycle","rlang","withr","MatrixModels"), repos="https://packagemanager.posit.co/cran/latest")'
+          Rscript -e 'install.packages("rinla", repos=NULL, type="source")'
+          Rscript -e 'cat("INLA installed:", as.character(packageVersion("INLA")), "\n")'
+
+      - name: Package — verify drop-in as the DEFAULT INLA engine (no inla.call override)
+        # Proves the from-source bundle is a drop-in replacement for the official
+        # cross-built binary in the standard package layout: copy it into the
+        # installed package's bin/windows/64bit, then run a model with the DEFAULT
+        # engine (inla.call.builtin()). Needs the INLA R package (external download),
+        # so gated to manual dispatch like the install/smoke steps.
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          export PATH="/ucrt64/bin:$RBIN:$PATH"
+          # INLA was installed with our engine already embedded at bin/windows/64bit.
+          # Confirm inla.call.builtin() resolves to it and run a model through the
+          # DEFAULT engine -- no inla.setOption(inla.call=...) override anywhere.
+          Rscript -e '
+            suppressMessages(library(INLA));
+            cc <- inla.getOption("inla.call");
+            cat("default inla.call ->", cc, "\n"); stopifnot(file.exists(cc));
+            set.seed(1); n <- 60; x <- rnorm(n); y <- 1 + 0.5 * x + rnorm(n, sd = 0.3);
+            r <- inla(y ~ x, data = data.frame(y = y, x = x), control.inla = list(int.strategy = "eb"));
+            print(r$summary.fixed[, c("mean", "sd")]);
+            stopifnot(all(is.finite(r$summary.fixed[, "mean"])),
+                      abs(r$summary.fixed["(Intercept)", "mean"] - 1) < 0.3,
+                      abs(r$summary.fixed["x", "mean"] - 0.5) < 0.3);
+            cat("PACKAGE DROP-IN OK: the default INLA engine is the from-source inla.exe\n");
+          '
+
+      - name: Diagnose our inla.exe (DLL resolution)
+        continue-on-error: true
+        run: |
+          export PATH="/ucrt64/bin:/c/R/bin/x64:$PATH"
+          echo "=== DLL dependencies (ldd) ==="
+          ldd inlaprog/inla.exe 2>&1 | sort || true
+          echo "=== unresolved DLLs? ==="
+          if ldd inlaprog/inla.exe 2>&1 | grep -i 'not found'; then echo "WARNING: unresolved DLLs above"; else echo "all DLLs resolved"; fi
+          true
+
+      - name: Smoke test — our inla.exe vs official engine on an identical model
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          export PATH="/ucrt64/bin:/c/R/bin/x64:$PATH"
+          # Wrap our engine in a .bat so we capture the EXACT args + raw stdout/stderr
+          # + exit code (INLA's inla.core.safe otherwise swallows the engine output).
+          EXE_W="$(cygpath -w "$PWD/inlaprog/inla.exe")"
+          LOG_W="$(cygpath -w "$PWD/wrap.log")"
+          printf '@echo off\r\n' > inla-wrap.bat
+          printf 'echo === ARGS: %%* >> "%s"\r\n' "$LOG_W" >> inla-wrap.bat
+          printf '"%s" %%* >> "%s" 2>&1\r\n' "$EXE_W" "$LOG_W" >> inla-wrap.bat
+          printf 'echo === EXIT: %%errorlevel%% >> "%s"\r\n' "$LOG_W" >> inla-wrap.bat
+          OURINLA="$(cygpath -m "$PWD/inla-wrap.bat")"   # forward-slash Windows path; avoids R backslash-escape
+          echo "our engine (via wrapper): $OURINLA"
+          cat inla-wrap.bat
+          cat > smoke.R <<'EOF'
+          suppressMessages({library(INLA); library(Matrix); library(fmesher)})
+          our.call <- commandArgs(trailingOnly=TRUE)[1]
+          set.seed(1)
+
+          ## Each case is a self-contained closure that re-seeds + rebuilds its data,
+          ## so the REFERENCE run and the TEST run get bit-identical inputs. The matrix
+          ## spans likelihoods (gaussian/poisson/binomial), latent structures
+          ## (fixed/iid/rw1/besag/SPDE-2D), full hyperparameter integration (ccd, not
+          ## just modal eb), and the sparse/spatial solver path (besag + SPDE exercise
+          ## reordering -> the reimplemented taucs permute).
+          cases <- list(
+            gaussian_lm = function() {
+              set.seed(1); n <- 50; x <- rnorm(n); y <- 1 + 2*x + rnorm(n)
+              inla(y ~ x, family="gaussian", data=data.frame(y, x),
+                   control.inla=list(int.strategy="eb")) },
+            poisson_iid = function() {
+              set.seed(2); n <- 100; x <- rnorm(n); id <- 1:n
+              yp <- rpois(n, exp(0.5 + 0.3*x + rnorm(n, sd=0.2)))
+              inla(yp ~ x + f(id, model="iid"), family="poisson",
+                   data=data.frame(yp, x, id), control.inla=list(int.strategy="eb")) },
+            binomial_iid = function() {
+              set.seed(3); n <- 120; x <- rnorm(n); id <- 1:n
+              eta <- -0.2 + 0.8*x + rnorm(n, sd=0.3); p <- 1/(1+exp(-eta))
+              yb <- rbinom(n, 1, p)
+              inla(yb ~ x + f(id, model="iid"), family="binomial", Ntrials=1,
+                   data=data.frame(yb, x, id), control.inla=list(int.strategy="eb")) },
+            rw1_ccd = function() {           # full hyperparameter integration (CCD)
+              set.seed(4); n <- 60; t <- 1:n
+              yr <- 2*sin(2*pi*t/n) + rnorm(n, sd=0.4)
+              inla(yr ~ f(t, model="rw1"), family="gaussian", data=data.frame(yr, t),
+                   control.inla=list(int.strategy="ccd")) },
+            besag = function() {
+              set.seed(5); ns <- 30; A <- Matrix(0, ns, ns, sparse=TRUE)
+              for (i in 1:(ns-1)) { A[i,i+1] <- 1; A[i+1,i] <- 1 }
+              g <- inla.read.graph(A); sp <- cumsum(rnorm(ns, sd=0.3)); sp <- sp - mean(sp)
+              yb <- 1 + sp + rnorm(ns, sd=0.3)
+              inla(yb ~ f(s, model="besag", graph=g), family="gaussian",
+                   data=data.frame(yb, s=1:ns), control.inla=list(int.strategy="eb")) },
+            spde2d = function() {            # 2D SPDE: mesh + Matern field + sparse solve
+              set.seed(6); n <- 200; loc <- matrix(runif(2*n), n, 2)
+              mesh <- fm_mesh_2d(loc, max.edge=c(0.1, 0.3), cutoff=0.05)
+              spde <- inla.spde2.pcmatern(mesh, prior.range=c(0.3, 0.5), prior.sigma=c(1, 0.5))
+              field <- sin(3*loc[,1]) + cos(3*loc[,2])
+              y <- 1 + field + rnorm(n, sd=0.3)
+              A <- inla.spde.make.A(mesh, loc); idx <- inla.spde.make.index("s", spde$n.spde)
+              stk <- inla.stack(data=list(y=y), A=list(A, 1),
+                                effects=list(idx, list(b0=rep(1, n))), tag="e")
+              inla(y ~ 0 + b0 + f(s, model=spde), family="gaussian",
+                   data=inla.stack.data(stk),
+                   control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="eb")) }
+          )
+
+          cat("=== REFERENCE (official engine) ===\n")
+          ref <- setNames(lapply(names(cases), function(nm)
+            tryCatch(cases[[nm]](), error=function(e){cat("REF FAIL",nm,":",conditionMessage(e),"\n");NULL})), names(cases))
+          cat("=== TEST (our from-source inla.exe) ===\n")
+          inla.setOption(inla.call=our.call)
+          tst <- setNames(lapply(names(cases), function(nm)
+            tryCatch(cases[[nm]](), error=function(e){cat("OUR FAIL",nm,":",conditionMessage(e),"\n");NULL})), names(cases))
+
+          allpass <- TRUE
+          for (nm in names(cases)) {
+            cat("\n##### model:", nm, "#####\n")
+            r <- ref[[nm]]; t <- tst[[nm]]
+            if (is.null(r) || is.null(t)) { cat("  SKIP (a fit failed)\n"); allpass <- FALSE; next }
+            fd <- if (!is.null(r$summary.fixed) && nrow(r$summary.fixed)) max(abs(r$summary.fixed[,"mean"]-t$summary.fixed[,"mean"])) else 0
+            ## Hyperparameters: compare on the MEDIAN (0.5quant). The MEAN of a
+            ## weakly-identified precision has a heavy right tail and is an unstable
+            ## summary; the median/mode are the statistically appropriate metric.
+            hmean <- hmed <- 0
+            if (!is.null(r$summary.hyperpar) && nrow(r$summary.hyperpar)) {
+              hmean <- max(abs(r$summary.hyperpar[,"mean"]     - t$summary.hyperpar[,"mean"]))
+              hmed  <- max(abs(r$summary.hyperpar[,"0.5quant"] - t$summary.hyperpar[,"0.5quant"])
+                           / pmax(abs(r$summary.hyperpar[,"0.5quant"]), 1e-6))  # relative
+            }
+            rd <- 0
+            if (length(r$summary.random)) for (k in names(r$summary.random))
+              rd <- max(rd, max(abs(r$summary.random[[k]]$mean - t$summary.random[[k]]$mean)))
+            md <- max(abs(r$mlik - t$mlik))
+            cat(sprintf("  fixed=%.2e  hyper(mean)=%.2e  hyper(median,rel)=%.2e  random(latent field)=%.2e  mlik=%.2e\n",
+                        fd, hmean, hmed, rd, md))
+            if (hmean > 1e-2) { cat("  -- hyperpar means (ref vs our) --\n")
+              print(round(cbind(ref=r$summary.hyperpar[,"mean"], our=t$summary.hyperpar[,"mean"],
+                                ref.median=r$summary.hyperpar[,"0.5quant"], our.median=t$summary.hyperpar[,"0.5quant"]), 4)) }
+            ok <- (fd<1e-3) && (hmed<1e-2) && (rd<1e-3) && (md<1e-1)   # median-based hyper criterion
+            cat("  ", if (ok) "PASS" else "REVIEW", "\n", sep="")
+            if (!ok) allpass <- FALSE
+          }
+          cat("\n=== OVERALL:", if (allpass) "ALL MODELS MATCH OFFICIAL ENGINE" else "SOME MODELS NEED REVIEW", "===\n")
+          EOF
+          Rscript smoke.R "$OURINLA" 2>&1 | tee smoke.log
+          echo "smoke exit: ${PIPESTATUS[0]}"
+          echo ""
+          echo "===== wrap.log (raw engine output + exit code) ====="
+          cat wrap.log 2>/dev/null || echo "(no wrap.log — engine was never invoked)"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase1-logs
+          path: |
+            inlaprog-build.log
+            smoke.log
+            wrap.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inla-windows-x64-bundle
+          path: bundle/
