@@ -11,7 +11,6 @@
 #include <Rembedded.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
-#include <Rinterface.h>
 
 // Rinterface.h is Unix-only; R.dll still exports this symbol 
 extern uintptr_t R_CStackLimit;
