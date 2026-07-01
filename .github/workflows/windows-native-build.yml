@@ -7,14 +7,15 @@ name: windows-native-build (static inla engine + differential validation + binar
 # R.dll). Everything else with a UCRT64 static archive (.a) is folded into inla.exe.
 #
 # Correctness gate (dispatch job): the from-source engine must STILL match the official
-# INLA engine on 16 models (6 synthetic + 10 real bundled-dataset cases from the R-INLA
+# INLA engine on 15 models (6 synthetic + 9 real bundled-dataset cases from the R-INLA
 # literature: Scotland BYM2, Kidney/Leuk survival, Tokyo cyclic RW2, Germany BYM+RW2,
-# Seeds/Epil GLMMs, Drivers seasonal, PRprec SPDE+AR1, Munich geoadditive). Static
-# BLAS/OpenMP can change FP reduction order, so (a) BOTH engines are run SINGLE-THREADED
-# (num.threads="1:1") to make the latent-field solve deterministic, and (b) the
-# hyperparameter comparison uses the MEDIAN (0.5quant), the project's stable metric
-# (right-skewed precision posteriors have unstable means). The step exits NON-ZERO if any
-# model needs REVIEW, so a green job genuinely means every model matched.
+# Seeds/Epil GLMMs, Drivers seasonal, PRprec SPDE+AR1). Static BLAS/OpenMP can change FP
+# reduction order, so (a) BOTH engines are run SINGLE-THREADED (num.threads="1:1") to make
+# the latent-field solve deterministic (this stabilised the flaky PRprec SPDE+AR1 case to a
+# bit-identical match), and (b) the hyperparameter comparison uses the MEDIAN (0.5quant),
+# the project's stable metric (right-skewed precision posteriors have unstable means). The
+# step exits NON-ZERO if any model needs REVIEW, so a green job genuinely means every model
+# matched. (A Munich geoadditive case was trialled but excluded — multimodal, see below.)
 
 on:
   workflow_dispatch:
@@ -264,7 +265,7 @@ jobs:
           Rscript -e 'install.packages("rinla", repos=NULL, type="source")'
           Rscript -e 'cat("INLA installed:", as.character(packageVersion("INLA")), "\n")'
 
-      - name: VALIDATION — statically-linked engine vs official engine on 16 models (single-threaded)
+      - name: VALIDATION — statically-linked engine vs official engine on 15 models (single-threaded)
         if: github.event_name == 'workflow_dispatch'
         run: |
           set -o pipefail
@@ -398,20 +399,13 @@ jobs:
                                   control.group=list(model="ar1")),
                    family="binomial", Ntrials=1, data=inla.stack.data(stk),
                    control.predictor=list(A=inla.stack.A(stk)),
-                   control.inla=list(int.strategy="eb")) },
-            munich_geoadditive = function() {
-              # Rue&Held Munich rent: Gaussian geoadditive with a besag spatial effect on
-              # `location` plus two rw2 smooths (year, floor.size). scale.model=TRUE + weak
-              # PC priors on the variance components so both engines settle on one mode
-              # (same regularisation convention as the other real-data cases). Median metric.
-              data(Munich); g <- system.file("demodata/munich.graph", package="INLA")
-              pc <- list(prec=list(prior="pc.prec", param=c(1, 0.01)))
-              inla(rent ~ 1 +
-                     f(location, model="besag", graph=g, scale.model=TRUE, hyper=pc) +
-                     f(year, model="rw2", scale.model=TRUE, hyper=pc) +
-                     f(floor.size, model="rw2", scale.model=TRUE, hyper=pc),
-                   family="gaussian", data=Munich,
                    control.inla=list(int.strategy="eb")) }
+            # NOTE: the Munich geoadditive case (Gaussian besag(location)+2x rw2) is
+            # deliberately EXCLUDED. It is weakly-identified/multimodal, so the two engine
+            # builds converge to DIFFERENT posterior modes (latent-field diff ~3.5e-2,
+            # mlik ~3.5e-2 — a mode gap, not FP noise); it PASSed one dispatch and REVIEWed
+            # the next at the SAME commit. Single-threading fixes reduction-order noise, not
+            # mode selection, so this case is not reproducible in a differential test.
           )
           cat("=== REFERENCE (official engine) ===\n")
           ref <- setNames(lapply(names(cases), function(nm)
