@@ -539,3 +539,201 @@ jobs:
           name: inla-windows-binary-package
           path: INLA_*.zip
           if-no-files-found: warn
+
+  # ===========================================================================
+  # mt-smoke: MULTITHREAD liveness/sanity for the native static engine.
+  #
+  # WHY a separate job: the `build` job's 15-model validation runs SINGLE-THREADED
+  # (num.threads="1:1") for bit-reproducibility, so it never exercises the OpenMP
+  # PARALLEL path. This job proves the freshly-native-built, STATICALLY-LINKED engine
+  # (libgomp + winpthread + multithreaded OpenBLAS cooperating inside one static
+  # inla.exe) actually RUNS CORRECTLY under multithreading on Windows — the classic
+  # native-Windows failure surface. It is a ROBUSTNESS/LIVENESS test, NOT a
+  # strict-equality test and NOT a benchmark.
+  #
+  # It CANNOT destabilise the deterministic gate: it is its own job, it only reads the
+  # ALREADY-BUILT binary package (via `needs: build` + the inla-windows-binary-package
+  # artifact) and install.packages()es it — the proven, installable, default-engine
+  # package. No rebuild, no touching the build job.
+  #
+  # Trigger: DISPATCH-GATED (`if: workflow_dispatch`), same as the build job's
+  # validation. This is required, not just chosen: the binary-package artifact it
+  # consumes is only produced on workflow_dispatch.
+  #
+  # Multithreaded results are NOT bit-identical to serial (thread count changes the FP
+  # reduction order in the latent solve and the CCD integration -> ~1e-6..1e-3 diffs),
+  # so the consistency gate uses a LOOSE tolerance (RTOL=1e-2, ~10x above real noise).
+  # Gating on exact equality here would reintroduce the very flakiness the build job's
+  # single-threading fixed.
+  # ===========================================================================
+  mt-smoke:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Set up R (Windows)
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5'
+
+      - name: Set up MSYS2 (UCRT64)
+        # path-type: inherit so the msys2 shell sees the Windows R.exe, and so the
+        # engine spawned by INLA inherits a PATH that can resolve R.dll. No toolchain
+        # install list needed: mt-smoke REUSES the prebuilt binary package (static
+        # engine) and never compiles anything. Base msys2 provides cygpath/timeout/ls.
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+
+      - name: Download the ALREADY-BUILT native binary package (reuse the proven engine)
+        uses: actions/download-artifact@v4
+        with:
+          name: inla-windows-binary-package
+          path: pkg
+
+      - name: MT-SMOKE — install the native package and run the multithread liveness/sanity gate
+        run: |
+          set -o pipefail
+          # R.dll lives in R's bin; put it (and, defensively, /ucrt64/bin) on PATH so the
+          # package's inla.exe — spawned by INLA as a child process — can resolve R.dll
+          # (Rmathfwd.dll + libcrypto ship next to inla.exe inside the package dir).
+          RHOME="$(cygpath -u "$(Rscript -e 'cat(normalizePath(R.home()))' | tr -d '\r')")"
+          RBIN="$RHOME/bin/x64"; [ -d "$RBIN" ] || RBIN="$RHOME/bin"
+          export PATH="/ucrt64/bin:$RBIN:$PATH"
+          echo "RHOME=$RHOME  RBIN=$RBIN"
+
+          ZIP="$(ls -1 pkg/INLA_*.zip 2>/dev/null | head -1)"
+          test -n "$ZIP" && test -f "$ZIP" || { echo "FATAL: no INLA_*.zip in downloaded artifact"; exit 1; }
+          echo "reusing binary package: $ZIP"
+          ZIP_W="$(cygpath -m "$PWD/$ZIP")"
+
+          # Deps for INLA + R.utils (per-fit timeout). All win.binary from RSPM (no build).
+          Rscript -e 'options(timeout=1800); install.packages(c("fmesher","lifecycle","rlang","withr","MatrixModels","R.utils"), repos="https://packagemanager.posit.co/cran/latest")' \
+            || { echo "FATAL: dependency install failed"; exit 1; }
+          # Install the SAME binary package a user would install; its builtin engine
+          # becomes the DEFAULT inla.call (no inla.call override anywhere below).
+          Rscript -e 'install.packages(commandArgs(TRUE)[1], repos=NULL, type="win.binary")' "$ZIP_W" \
+            || { echo "FATAL: binary-package install failed"; exit 1; }
+          Rscript -e 'stopifnot("INLA" %in% rownames(installed.packages())); cat("INLA installed:", as.character(packageVersion("INLA")), "\n")' \
+            || { echo "FATAL: INLA not importable after install"; exit 1; }
+
+          cat > mt-smoke.R <<'MTEOF'
+          suppressMessages({library(INLA); library(Matrix); library(fmesher); library(R.utils)})
+
+          # ---- MT-SMOKE: multithread liveness / sanity of the DEFAULT native engine ----
+          # Runs the package-builtin native static engine under several OpenMP thread
+          # configs. Per model x config we assert: (1) COMPLETES (no crash/hang -> a hung
+          # fit trips a per-fit timeout AND an outer shell `timeout`, both => job FAIL);
+          # (2) FINITE/sane fixed-effect means + hyperpar summaries; (3) LOOSE consistency
+          # vs the serial 1:1 baseline. NOT strict-equality, NOT a benchmark.
+          RTOL   <- 1e-2  # LOOSE relative tolerance for the 1:1-baseline consistency GATE.
+                          # Cross-thread FP-reduction noise is ~1e-6..1e-3; 1e-2 sits a
+                          # comfortable ~10x above it, so benign thread-order differences
+                          # PASS while GROSS disagreement (a real threading bug) FAILS.
+          FLOORV <- 1e-3  # denominator floor: near-zero coefficients don't blow up reldiff.
+          PERFIT <- 900   # per-fit elapsed timeout (s); a hung fit -> error -> FAIL.
+                          # An outer shell `timeout` wraps the whole script as a hard backstop.
+
+          ncores <- tryCatch(parallel::detectCores(), error=function(e) NA_integer_)
+          cat(sprintf("runner logical cores: %s\n", ncores))
+          # baseline first, then both thread axes; add 4:1 only if the runner has >=4 cores.
+          configs <- c("1:1","2:1","1:2","2:2")
+          if (!is.na(ncores) && ncores >= 4) configs <- c(configs, "4:1")
+          cat("thread configs (outer:inner):", paste(configs, collapse=" "), "\n")
+
+          # 3 models chosen to drive BOTH thread axes. num.threads is passed PER FIT.
+          #  - gaussian_lm : fast baseline (EB).
+          #  - germany_bym_rw2 : non-trivial GMRF solve (544-region BYM + RW2) -> INNER
+          #                      threads; CCD over its hyperpars -> OUTER threads.
+          #  - spde2d : bigger 2D sparse solve + CCD integration -> INNER solve + OUTER
+          #             integration-point parallelism. Mesh args pinned for determinism.
+          models <- list(
+            gaussian_lm = function(nt) {
+              set.seed(1); n <- 200; x <- rnorm(n); y <- 1 + 2*x + rnorm(n)
+              inla(y ~ x, family="gaussian", data=data.frame(y, x),
+                   control.inla=list(int.strategy="eb"), num.threads=nt) },
+            germany_bym_rw2 = function(nt) {
+              data(Germany); g <- system.file("demodata/germany.graph", package="INLA")
+              inla(Y ~ 1 + f(region, model="bym", graph=g) + f(x, model="rw2"),
+                   family="poisson", E=E, data=Germany,
+                   control.inla=list(int.strategy="ccd"), num.threads=nt) },
+            spde2d = function(nt) {
+              set.seed(6); n <- 300; loc <- matrix(runif(2*n), n, 2)
+              mesh <- fm_mesh_2d(loc, max.edge=c(0.08, 0.3), cutoff=0.05)
+              spde <- inla.spde2.pcmatern(mesh, prior.range=c(0.3, 0.5), prior.sigma=c(1, 0.5))
+              field <- sin(3*loc[,1]) + cos(3*loc[,2]); y <- 1 + field + rnorm(n, sd=0.3)
+              A <- inla.spde.make.A(mesh, loc); idx <- inla.spde.make.index("s", spde$n.spde)
+              stk <- inla.stack(data=list(y=y), A=list(A, 1),
+                                effects=list(idx, list(b0=rep(1, n))), tag="e")
+              inla(y ~ 0 + b0 + f(s, model=spde), family="gaussian",
+                   data=inla.stack.data(stk),
+                   control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="ccd"), num.threads=nt) }
+          )
+
+          # per-fit timeout guard: onTimeout->error, caught by the caller and gated as FAIL.
+          fit_one <- function(fn, nt) withTimeout(fn(nt), timeout=PERFIT, onTimeout="error")
+
+          allok  <- TRUE
+          maxrel <- 0
+          timing <- list()
+
+          for (mn in names(models)) {
+            cat("\n=================== MODEL:", mn, "===================\n")
+            base_fx <- base_hy <- NULL
+            for (cfg in configs) {
+              cat(sprintf("--- %s | num.threads=%s (requested) ---\n", mn, cfg))
+              t0 <- proc.time()[["elapsed"]]
+              r <- tryCatch(fit_one(models[[mn]], cfg),
+                            error=function(e){cat("  FIT ERROR:", conditionMessage(e), "\n"); NULL})
+              el <- proc.time()[["elapsed"]] - t0
+              timing[[length(timing)+1]] <- data.frame(model=mn, config=cfg, seconds=round(el,2))
+              if (is.null(r)) { cat("  RESULT: FAIL (error/timeout)\n"); allok <- FALSE; next }
+              fx <- if (!is.null(r$summary.fixed)    && nrow(r$summary.fixed))    r$summary.fixed[,"mean"]      else numeric(0)
+              hy <- if (!is.null(r$summary.hyperpar) && nrow(r$summary.hyperpar)) r$summary.hyperpar[,"0.5quant"] else numeric(0)
+              cat(sprintf("  wall=%.2fs  fixed(mean)=[%s]  hyper(median)=[%s]\n", el,
+                          paste(sprintf("%.5g", fx), collapse=", "),
+                          paste(sprintf("%.5g", hy), collapse=", ")))
+              if (!(all(is.finite(fx)) && all(is.finite(hy)))) {
+                cat("  RESULT: FAIL (non-finite mean/hyperpar)\n"); allok <- FALSE; next }
+              if (cfg == "1:1") { base_fx <- fx; base_hy <- hy; cat("  RESULT: OK (serial baseline)\n"); next }
+              if (is.null(base_fx)) { cat("  RESULT: FAIL (no 1:1 baseline to compare against)\n"); allok <- FALSE; next }
+              reld <- function(cur, base) if (length(base)) max(abs(cur - base) / pmax(abs(base), FLOORV)) else 0
+              rfx <- reld(fx, base_fx); rhy <- reld(hy, base_hy); rr <- max(rfx, rhy)
+              maxrel <- max(maxrel, rr)
+              cat(sprintf("  reldiff vs 1:1: fixed(mean)=%.2e  hyper(median)=%.2e  MAX=%.2e  (tol=%.0e)\n",
+                          rfx, rhy, rr, RTOL))
+              if (rr < RTOL) cat("  RESULT: OK\n")
+              else { cat("  RESULT: FAIL (exceeds LOOSE tolerance -> gross disagreement, likely a real bug)\n"); allok <- FALSE }
+            }
+          }
+
+          cat("\n===== TIMING (wall seconds; NON-gating) =====\n")
+          print(do.call(rbind, timing), row.names=FALSE)
+          cat(sprintf("\n===== MAX multithread-vs-1:1 reldiff across ALL models/configs: %.3e   (LOOSE tol %.0e) =====\n",
+                      maxrel, RTOL))
+
+          if (allok) { cat("=== MT-SMOKE: ALL CONFIGS OK ===\n"); quit(save="no", status=0L) }
+          cat("=== MT-SMOKE: FAILURES DETECTED (see 'RESULT: FAIL' line(s) above) ===\n")
+          quit(save="no", status=1L)
+          MTEOF
+
+          # Outer HARD hang backstop: if the engine deadlocks under OpenMP and wedges a
+          # system2() call the R-level withTimeout can't interrupt, this kills it and the
+          # job FAILS (non-zero) rather than waiting forever.
+          timeout 1800 Rscript mt-smoke.R 2>&1 | tee mt-smoke.log
+          rc=${PIPESTATUS[0]}
+          echo "mt-smoke exit: $rc"
+          test "$rc" -eq 0 || { echo "MT-SMOKE GATE FAILED (crash/hang/non-finite/gross-disagreement) — see 'RESULT: FAIL' above"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mt-smoke-log
+          path: mt-smoke.log
+          if-no-files-found: warn
