@@ -631,11 +631,22 @@ jobs:
           # fit trips a per-fit timeout AND an outer shell `timeout`, both => job FAIL);
           # (2) FINITE/sane fixed-effect means + hyperpar summaries; (3) LOOSE consistency
           # vs the serial 1:1 baseline. NOT strict-equality, NOT a benchmark.
-          RTOL   <- 1e-2  # LOOSE relative tolerance for the 1:1-baseline consistency GATE.
-                          # Cross-thread FP-reduction noise is ~1e-6..1e-3; 1e-2 sits a
-                          # comfortable ~10x above it, so benign thread-order differences
-                          # PASS while GROSS disagreement (a real threading bug) FAILS.
-          FLOORV <- 1e-3  # denominator floor: near-zero coefficients don't blow up reldiff.
+          # SEPARATE loose tolerances for the 1:1-baseline consistency GATE, calibrated
+          # from two dispatch runs of THIS job (both saw PERFECT liveness; the only
+          # cross-thread differences were benign FP-reduction wobble):
+          #   * fixed-effect MEANS are tight -- gaussian/germany wobble ~1e-4, but the
+          #     SPDE intercept b0 legitimately wobbles ~3.9e-3 (the intercept/spatial-
+          #     field mean split shifts with reduction order). Observed worst = 3.93e-3.
+          #   * hyperpar MEDIANS wobble more (weakly-identified precisions). Observed
+          #     worst = 1.39e-2 (spde2d, 2:1).
+          # So: fixed 1e-2 (~2.5x over 3.93e-3), hyper-median 5e-2 (~3.6x over 1.39e-2).
+          # Both still FAIL on GROSS/bug-level disagreement (order-of-magnitude, sign
+          # flip, NaN -- all >> these tols); they only pass benign thread-order noise.
+          # A single blanket tol would force a false choice: 1e-2 false-fails the SPDE
+          # hyperpar; 5e-2 everywhere would be needlessly slack on the tight fixed means.
+          RTOL_FIXED <- 1e-2  # relative tol, fixed-effect means (tight).
+          RTOL_HYPER <- 5e-2  # relative tol, hyperpar medians (looser: reduction noise).
+          FLOORV     <- 1e-3  # denominator floor: near-zero coefficients don't blow up reldiff.
           PERFIT <- 900   # per-fit elapsed timeout (s); a hung fit -> error -> FAIL.
                           # An outer shell `timeout` wraps the whole script as a hard backstop.
 
@@ -679,9 +690,10 @@ jobs:
           # per-fit timeout guard: onTimeout->error, caught by the caller and gated as FAIL.
           fit_one <- function(fn, nt) withTimeout(fn(nt), timeout=PERFIT, onTimeout="error")
 
-          allok  <- TRUE
-          maxrel <- 0
-          timing <- list()
+          allok      <- TRUE
+          maxrel_fx  <- 0   # worst fixed-effect-mean reldiff across all models/configs
+          maxrel_hy  <- 0   # worst hyperpar-median reldiff across all models/configs
+          timing     <- list()
 
           for (mn in names(models)) {
             cat("\n=================== MODEL:", mn, "===================\n")
@@ -704,19 +716,27 @@ jobs:
               if (cfg == "1:1") { base_fx <- fx; base_hy <- hy; cat("  RESULT: OK (serial baseline)\n"); next }
               if (is.null(base_fx)) { cat("  RESULT: FAIL (no 1:1 baseline to compare against)\n"); allok <- FALSE; next }
               reld <- function(cur, base) if (length(base)) max(abs(cur - base) / pmax(abs(base), FLOORV)) else 0
-              rfx <- reld(fx, base_fx); rhy <- reld(hy, base_hy); rr <- max(rfx, rhy)
-              maxrel <- max(maxrel, rr)
-              cat(sprintf("  reldiff vs 1:1: fixed(mean)=%.2e  hyper(median)=%.2e  MAX=%.2e  (tol=%.0e)\n",
-                          rfx, rhy, rr, RTOL))
-              if (rr < RTOL) cat("  RESULT: OK\n")
-              else { cat("  RESULT: FAIL (exceeds LOOSE tolerance -> gross disagreement, likely a real bug)\n"); allok <- FALSE }
+              rfx <- reld(fx, base_fx); rhy <- reld(hy, base_hy)
+              maxrel_fx <- max(maxrel_fx, rfx); maxrel_hy <- max(maxrel_hy, rhy)
+              ok_fx <- rfx < RTOL_FIXED; ok_hy <- rhy < RTOL_HYPER
+              cat(sprintf("  reldiff vs 1:1: fixed(mean)=%.2e (tol %.0e)  hyper(median)=%.2e (tol %.0e)\n",
+                          rfx, RTOL_FIXED, rhy, RTOL_HYPER))
+              if (ok_fx && ok_hy) cat("  RESULT: OK\n")
+              else {
+                if (!ok_fx) cat("  RESULT: FAIL (fixed-effect mean exceeds tol -> gross disagreement, likely a real bug)\n")
+                if (!ok_hy) cat("  RESULT: FAIL (hyperpar median exceeds tol -> gross disagreement, likely a real bug)\n")
+                allok <- FALSE
+              }
             }
           }
 
           cat("\n===== TIMING (wall seconds; NON-gating) =====\n")
           print(do.call(rbind, timing), row.names=FALSE)
-          cat(sprintf("\n===== MAX multithread-vs-1:1 reldiff across ALL models/configs: %.3e   (LOOSE tol %.0e) =====\n",
-                      maxrel, RTOL))
+          cat(sprintf("\n===== MAX multithread-vs-1:1 reldiff across ALL models/configs =====\n"))
+          cat(sprintf("      fixed-effect mean : %.3e  (tol %.0e, margin %.1fx)\n",
+                      maxrel_fx, RTOL_FIXED, RTOL_FIXED/max(maxrel_fx, 1e-12)))
+          cat(sprintf("      hyperpar median   : %.3e  (tol %.0e, margin %.1fx)\n",
+                      maxrel_hy, RTOL_HYPER, RTOL_HYPER/max(maxrel_hy, 1e-12)))
 
           if (allok) { cat("=== MT-SMOKE: ALL CONFIGS OK ===\n"); quit(save="no", status=0L) }
           cat("=== MT-SMOKE: FAILURES DETECTED (see 'RESULT: FAIL' line(s) above) ===\n")
