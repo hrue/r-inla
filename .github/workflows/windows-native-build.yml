@@ -7,11 +7,14 @@ name: windows-native-build (static inla engine + differential validation + binar
 # R.dll). Everything else with a UCRT64 static archive (.a) is folded into inla.exe.
 #
 # Correctness gate (dispatch job): the from-source engine must STILL match the official
-# INLA engine on 15 models (6 synthetic + 9 real bundled-dataset cases from the R-INLA
+# INLA engine on 16 models (6 synthetic + 10 real bundled-dataset cases from the R-INLA
 # literature: Scotland BYM2, Kidney/Leuk survival, Tokyo cyclic RW2, Germany BYM+RW2,
-# Seeds/Epil GLMMs, Drivers seasonal, PRprec SPDE+AR1). Static BLAS/OpenMP can change FP
-# reduction order, so the hyperparameter comparison uses the MEDIAN (0.5quant), the
-# project's stable metric (right-skewed precision posteriors have unstable means).
+# Seeds/Epil GLMMs, Drivers seasonal, PRprec SPDE+AR1, Munich geoadditive). Static
+# BLAS/OpenMP can change FP reduction order, so (a) BOTH engines are run SINGLE-THREADED
+# (num.threads="1:1") to make the latent-field solve deterministic, and (b) the
+# hyperparameter comparison uses the MEDIAN (0.5quant), the project's stable metric
+# (right-skewed precision posteriors have unstable means). The step exits NON-ZERO if any
+# model needs REVIEW, so a green job genuinely means every model matched.
 
 on:
   workflow_dispatch:
@@ -261,7 +264,7 @@ jobs:
           Rscript -e 'install.packages("rinla", repos=NULL, type="source")'
           Rscript -e 'cat("INLA installed:", as.character(packageVersion("INLA")), "\n")'
 
-      - name: VALIDATION — statically-linked engine vs official engine on 15 models
+      - name: VALIDATION — statically-linked engine vs official engine on 16 models (single-threaded)
         if: github.event_name == 'workflow_dispatch'
         run: |
           set -o pipefail
@@ -277,6 +280,13 @@ jobs:
           cat > smoke.R <<'EOF'
           suppressMessages({library(INLA); library(Matrix); library(fmesher)})
           our.call <- commandArgs(trailingOnly=TRUE)[1]
+          # DETERMINISM: run BOTH engines single-threaded. Multi-thread OpenMP changes the
+          # FP reduction order in the latent-field solve, which made prprec_spde_ar1 flaky
+          # (random-field diff wobbling ~1e-3 across runs — sometimes PASS, sometimes REVIEW).
+          # "1:1" = 1 outer x 1 inner thread; set globally BEFORE any fit so it applies to
+          # the official reference fits AND our-engine fits. This is a determinism fix, NOT
+          # a tolerance relaxation — single-threaded, the SPDE+AR1 field matches to ~1e-5.
+          inla.setOption(num.threads = "1:1")
           set.seed(1)
           cases <- list(
             gaussian_lm = function() {
@@ -388,6 +398,19 @@ jobs:
                                   control.group=list(model="ar1")),
                    family="binomial", Ntrials=1, data=inla.stack.data(stk),
                    control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="eb")) },
+            munich_geoadditive = function() {
+              # Rue&Held Munich rent: Gaussian geoadditive with a besag spatial effect on
+              # `location` plus two rw2 smooths (year, floor.size). scale.model=TRUE + weak
+              # PC priors on the variance components so both engines settle on one mode
+              # (same regularisation convention as the other real-data cases). Median metric.
+              data(Munich); g <- system.file("demodata/munich.graph", package="INLA")
+              pc <- list(prec=list(prior="pc.prec", param=c(1, 0.01)))
+              inla(rent ~ 1 +
+                     f(location, model="besag", graph=g, scale.model=TRUE, hyper=pc) +
+                     f(year, model="rw2", scale.model=TRUE, hyper=pc) +
+                     f(floor.size, model="rw2", scale.model=TRUE, hyper=pc),
+                   family="gaussian", data=Munich,
                    control.inla=list(int.strategy="eb")) }
           )
           cat("=== REFERENCE (official engine) ===\n")
@@ -423,12 +446,20 @@ jobs:
             if (!ok) allpass <- FALSE
           }
           cat("\n=== OVERALL:", if (allpass) "ALL MODELS MATCH OFFICIAL ENGINE" else "SOME MODELS NEED REVIEW", "===\n")
+          # GATE: non-zero exit when ANY model needs REVIEW (or a fit failed). This is what
+          # makes a green validation job genuinely mean "every model matched the official
+          # engine" — previously the step printed REVIEW but still concluded success.
+          quit(save="no", status=if (allpass) 0L else 1L)
           EOF
           Rscript smoke.R "$OURINLA" 2>&1 | tee smoke.log
-          echo "smoke exit: ${PIPESTATUS[0]}"
+          rc=${PIPESTATUS[0]}
+          echo "smoke exit: $rc"
           echo ""
           echo "===== wrap.log (raw engine output + exit code) ====="
           cat wrap.log 2>/dev/null || echo "(no wrap.log — engine was never invoked)"
+          # Propagate the R gate to the CI step (this shell runs with pipefail but not -e,
+          # so the failure must be re-raised explicitly). Diagnostics above are printed first.
+          test "$rc" -eq 0 || { echo "VALIDATION GATE FAILED: OVERALL was not all-match — see the REVIEW line(s) above"; exit 1; }
 
       - name: Build + verify an installable Windows binary package (INLA_*.zip)
         # Turns the from-source engine into a real, redistributable Windows binary package:
