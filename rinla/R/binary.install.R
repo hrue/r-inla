@@ -96,6 +96,7 @@
     close(fp)
     ff <- ff[grep(version, ff)]
 
+    nf <- NA
     if (is.null(os) || list.only) {
         ## filter on this one
         aa <- "aarch64"
@@ -128,6 +129,15 @@
             return (invisible(FALSE))
         }
     } else {
+        aa <- "aarch64"
+        if (inla.one.of(R.version$arch, aa)) {
+            ff <- ff[grep(aa, ff)]
+        } else {
+            if (length(grep(aa, ff)) > 0) {
+                ff <- ff[-grep(aa, ff)]
+            }
+        }
+        nf <- length(ff)
         ans <- grep(os, ff)
         if (length(ans) == 0) {
             stop(paste0("Sorry, os=", os, " is not available for ", version))
