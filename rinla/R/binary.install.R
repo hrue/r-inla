@@ -93,21 +93,19 @@
     Files <- paste0(address, "/FILES")
     fp <- url(Files, open = "r")
     ff <- readLines(fp)
-    close(fp)
     ff <- ff[grep(version, ff)]
-
-    nf <- NA
-    if (is.null(os) || list.only) {
-        ## filter on this one
-        aa <- "aarch64"
-        if (inla.one.of(R.version$arch, aa)) {
-            ff <- ff[grep(aa, ff)]
+    aa <- "aarch64"
+    if (inla.one.of(R.version$arch, aa)) {
+        ff <- ff[grep(aa, ff)]
         } else {
             if (length(grep(aa, ff)) > 0) {
                 ff <- ff[-grep(aa, ff)]
             }
         }
-        nf <- length(ff)
+    nf <- length(ff)
+    close(fp)
+    
+    if (is.null(os) || list.only) {
         if (nf == 0) {
             cat("  Sorry, no alternative binary builds available for ", version)
             if (list.only) {
@@ -129,15 +127,6 @@
             return (invisible(FALSE))
         }
     } else {
-        aa <- "aarch64"
-        if (inla.one.of(R.version$arch, aa)) {
-            ff <- ff[grep(aa, ff)]
-        } else {
-            if (length(grep(aa, ff)) > 0) {
-                ff <- ff[-grep(aa, ff)]
-            }
-        }
-        nf <- length(ff)
         ans <- grep(os, ff)
         if (length(ans) == 0) {
             stop(paste0("Sorry, os=", os, " is not available for ", version))
@@ -180,7 +169,7 @@
         show(paste0("ERROR: No write access to [", pa, "]"))
     }
 
-    show("Download file, please wait...")
+    show("Download file...")
     to.file <- paste0(pa, "/64bit-download-", random.num, ".tgz")
     ret <- download.file(map.filename(fnm), to.file, quiet = TRUE, mode = "wb")
     
@@ -192,7 +181,7 @@
         if (!inherits(ret.md5, "try-error")) {
             md5.checksum <- scan(file=md5.file, what=character(), n=1, quiet = TRUE)
             if (md5.checksum == tools::md5sum(to.file)) {
-                show("md5-checksum [", md5.checksum, "] OK.")
+                show("md5-checksum [", md5.checksum, "] OK")
             } else {
                 stop(paste0("md5-checksum [", md5.checksum, "] FAILED. Stop."))
             }
