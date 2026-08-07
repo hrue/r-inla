@@ -436,6 +436,17 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
 	int rebuild, id = 0;
 
+	if (!a->data->theta_all_names) {
+#pragma omp critical (Name_dea5afeeebb08b2de36cc867c260d12e7b76bfe7)
+		if (!a->data->theta_all_names) {
+			a->data->theta_all_n = inla_theta_all_get_n();
+			// must be non-NULL ptr even if theta_all_n=0
+			char **tags = Calloc(IMAX(1, a->data->theta_all_n), char *);
+			inla_theta_all_get_tags(tags);
+			a->data->theta_all_names = tags;
+		}
+	}
+
 	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
@@ -457,10 +468,11 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 			if (a->Q[id]) {
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
 			}
-			double *a_tmp = Malloc(a->ntheta, double);
+			double *a_tmp = Malloc(a->ntheta + a->data->theta_all_n, double);
 			for (int jj = 0; jj < a->ntheta; jj++) {
 				a_tmp[jj] = a->theta[jj][thread_id][0];
 			}
+			inla_theta_all_get_values(thread_id, a_tmp + a->ntheta);
 
 			double *x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
 			if (a->debug) {
@@ -631,6 +643,8 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 	if (a->mu_zero) {
 		return 0.0;
 	}
+	// this is true even if theta_all_n=0
+	assert(a->data->theta_all_names);
 
 	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
@@ -646,15 +660,12 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 			printf("Rebuild mu-hash for id %d thread_id %d\n", id, thread_id);
 		}
 		if (!(a->mu_param[id])) {
-			assert(a->ntheta >= 0 && a->ntheta < 1000000);
-			a->mu_param[id] = Calloc(a->ntheta, double);
+			a->mu_param[id] = Calloc(IMAX(1, a->ntheta + a->data->theta_all_n), double);
 		}
 		for (int jj = 0; jj < a->ntheta; jj++) {
 			a->mu_param[id][jj] = a->theta[jj][thread_id][0];
-			if (debug) {
-				printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
-			}
 		}
+		inla_theta_all_get_values(thread_id, a->mu_param[id] + a->ntheta);
 
 		if (debug) {
 			printf("Call cgeneric in mfunc_cgeneric\n");
@@ -668,7 +679,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 		if (n > 0) {
 			assert(n == a->n);
 			if (!(a->mu[id])) {
-				a->mu[id] = Calloc(n, double);
+				a->mu[id] = Malloc(n, double);
 			}
 			Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 			a->mu_zero = 0;

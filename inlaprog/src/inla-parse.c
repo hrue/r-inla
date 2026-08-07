@@ -13843,14 +13843,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			fprintf(fp, "CGENERIC_BEGIN\n");
 			x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
 			nt = (int) x[0];
-			if (nt > 0) {
-				theta = x + 1;
-			} else {
-				theta = NULL;
-			}
+			theta = Calloc(nt + inla_theta_all_get_n(), double);
+			Memcpy(theta, x + 1, nt * sizeof(double));
 			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_INITIAL, x);
 
-			x = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+			x = model_func(INLA_CGENERIC_GRAPH, theta, cgeneric_data);
 			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_GRAPH, x);
 
 			x = model_func(INLA_CGENERIC_Q, theta, cgeneric_data);
@@ -13874,7 +13871,14 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			exit(0);
 		}
 
-		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+		double *x = NULL, *theta = NULL;
+		int nt;
+		x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
+		nt = (int) x[0];
+		theta = Calloc(nt + inla_theta_all_get_n(), double);
+		Memcpy(theta, x + 1, nt * sizeof(double));
+		Free(x);
+		xx_out = model_func(INLA_CGENERIC_GRAPH, theta, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, xx_out);
 		}
@@ -17958,12 +17962,21 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			def_orig->theta = NULL;
 		}
 
+		double *x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
+		double *theta = NULL;
+		int nt = (int) x[0];
+		if (nt > 0) {
+			theta = x + 1;
+		} else {
+			theta = NULL;
+		}
 
 		double *x_out = NULL;
-		x_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+		x_out = model_func(INLA_CGENERIC_GRAPH, theta, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
 		}
+		Free(x);
 
 		int len, *ilist = NULL, *jlist = NULL;
 		k = 0;
@@ -18040,6 +18053,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
+
+
+		// reset so that theta_all_* is set correct later
+		def->data->theta_all_names = NULL;
+		def_orig->data->theta_all_names = NULL;
 	}
 		break;
 
@@ -20292,4 +20310,38 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	return INLA_OK;
+}
+
+static inla_tp *hold = NULL;
+void inla_theta_all_init(inla_tp *mb)
+{
+	hold = mb;
+}
+
+int inla_theta_all_get_n(void)
+{
+	assert(hold);
+	return (hold->ntheta);
+}
+
+void inla_theta_all_get_tags(char **tags)
+{
+	assert(hold);
+	if (hold->ntheta > 0) {
+		assert(tags);
+		for (int i = 0; i < hold->ntheta; i++) {
+			tags[i] = hold->theta_tag[i];
+		}
+	}
+}
+
+void inla_theta_all_get_values(int thread_id, double *values)
+{
+	assert(hold);
+	if (hold->ntheta > 0) {
+		assert(values);
+		for (int i = 0; i < hold->ntheta; i++) {
+			values[i] = hold->theta[i][thread_id][0];
+		}
+	}
 }

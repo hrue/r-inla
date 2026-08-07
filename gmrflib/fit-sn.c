@@ -319,11 +319,11 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 	param[3] = aa * wsi;
 
 	int iter_max = 100;
-	double *grad = Malloc(NPARAM, double);
-	double *Grad = Malloc(NPARAM, double);
-	double *hess = Malloc(ISQR(NPARAM), double);
-	double *Hess = Malloc(ISQR(NPARAM), double);
-	double *delta = Malloc(NPARAM, double);
+	double *grad = Calloc(NPARAM, double);
+	double *Grad = Calloc(NPARAM, double);
+	double *hess = Calloc(ISQR(NPARAM), double);
+	double *Hess = Calloc(ISQR(NPARAM), double);
+	double *delta = Calloc(NPARAM, double);
 	double func_val = 0.0;
 	double func_val_p = 0.0;
 

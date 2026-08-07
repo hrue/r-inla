@@ -2288,20 +2288,34 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		double *ll_info = NULL;
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
-			ll_info = Calloc(3 * preopt->Npred, double);
+			double h = (ai_par->step_len > 0.0 ? ai_par->step_len : 1.0E-4); 
+			double h4 = 5.0 * h; // use larger step-size for deriv4
+			double hh4 = 1.0 / (2.0 * h4);
+			int stencil = ai_par->stencil;
+			ll_info = Calloc(4 * preopt->Npred, double);
 			int *llcache_idx = Malloc(GMRFLib_openmp->max_threads_inner, int);
 			GMRFLib_ifill(GMRFLib_openmp->max_threads_inner, -1, llcache_idx);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int j = 0; j < preopt->Npred; j++) {
-				int jj = 3 * j;
-				double local_aa;
+				int jj = 4 * j;
+				double local_aa = 0, local_bb = 0, local_cc = 0;
 				if (d[j]) {
 					int *lc = &(llcache_idx[omp_get_thread_num()]);
 					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &(ll_info[jj]), &(ll_info[jj + 1]),
 							      &(ll_info[jj + 2]), d[j], lpred_mode[j], j, lpred_mode, loglFunc,
-							      loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
+							      loglFunc_arg, &h, &stencil);
+
+					// add the 4th derivative here and not in the _taylor code. the _taylor code is a little
+					// messy to change, _and_ the 4th derivative is only needed here to pass it to the output.
+					// this can be changed later if needed...
+					double deriv4[2] = {0};
+					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4, 
+							      d[j], lpred_mode[j] - h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
+					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4+1, 
+							      d[j], lpred_mode[j] + h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
+					ll_info[jj + 3] = (deriv4[1] - deriv4[0]) * hh4;
 				} else {
-					ll_info[jj] = ll_info[jj + 1] = ll_info[jj + 2] = NAN;
+					GMRFLib_dfill(4, NAN, ll_info + jj);
 				}
 			}
 			Free(llcache_idx);

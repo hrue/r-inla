@@ -269,6 +269,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	mb->verbose = verbose;
 	mb->mode_restart = 1;
 	mb->mode_fixed = mb->mode_use_mode = 0;
+	inla_theta_all_init(mb);			       /* temporary */
 
 	ini = mb->ini = iniparser_load(dict_filename);
 	if (!ini) {
@@ -860,6 +861,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		fprintf(stderr, "\n\n*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
 		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
 	}
+
+	// register 'mb'
+	inla_theta_all_init(mb);
 
 	return mb;
 }
@@ -4536,7 +4540,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			nt = def->ntheta;
-			param = Calloc(nt, double);
+			param = Calloc(nt + inla_theta_all_get_n(), double);
 			if (nt) {
 				all_fixed = 1;
 				for (ii = 0; ii < nt; ii++) {
@@ -4549,6 +4553,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					}
 				}
 			}
+			Memcpy(param + nt, theta, ntheta * sizeof(double));
 
 			x_out = def->model_func(INLA_CGENERIC_LOG_NORM_CONST, param, def->data);
 			if (def->debug) {

@@ -600,10 +600,25 @@
                 ll.info <- NULL
                 have.ll.info <- readBin(fp, numeric(), 1)
                 if (have.ll.info > 0) {
-                    ll.info <- readBin(fp, double(), 3 * configs$Npred)
+                    kk <- 4
+                    nn <- kk * configs$Npred
+                    ll.info <- readBin(fp, double(), nn)
                     ll.info[is.nan(ll.info)] <- NA
-                    ll.info <- matrix(ll.info, configs$Npred, 3, byrow = TRUE)
-                    colnames(ll.info) <- c("gradient", "hessian", "deriv3")
+                    ## so it can read older binary-output (remove this later on)
+                    if (length(ll.info) == nn) {
+                        ll.info <- matrix(ll.info, configs$Npred, kk, byrow = TRUE)
+                        colnames(ll.info) <- c("gradient", "hessian", "deriv3", "deriv4")
+                    } else {
+                        kk <- 3
+                        nn <- kk * configs$Npred
+                        if (length(ll.info) == nn) {
+                            ll.info <- matrix(ll.info, configs$Npred, kk, byrow = TRUE)
+                            colnames(ll.info) <- c("gradient", "hessian", "deriv3")
+                        } else {
+                            warning("Fail to read config's likelihood information, ignore...")
+                            ll.info <- NULL
+                        }
+                    }
                 }
 
                 A.lpred.mean.variance <- matrix(0.0, nrow = 0, ncol = 2, dimnames = list(NULL, c("mean", "variance")))
