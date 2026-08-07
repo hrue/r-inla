@@ -2313,7 +2313,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							      d[j], lpred_mode[j] - h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
 					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4+1, 
 							      d[j], lpred_mode[j] + h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
-					ll_info[jj + 3] = (deriv4[1] - deriv4[0]) / (2.0 * h4);
+					ll_info[jj + 3] = (deriv4[1] - deriv4[0]) * hh4;
 				} else {
 					GMRFLib_dfill(4, NAN, ll_info + jj);
 				}
