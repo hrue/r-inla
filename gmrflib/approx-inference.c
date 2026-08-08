@@ -477,7 +477,6 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	Free(ai_store->correction_term);
 	Free(ai_store->correction_idx);
 	Free(ai_store->derivative3);
-	Free(ai_store->derivative4);
 	Free(ai_store->aa);
 	Free(ai_store->bb);
 	Free(ai_store->cc);
@@ -569,7 +568,6 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp *ai_store)
 		Free(ai_store->correction_term);
 		Free(ai_store->correction_idx);
 		Free(ai_store->derivative3);
-		Free(ai_store->derivative4);
 		Free(ai_store);
 	}
 	return GMRFLib_SUCCESS;
@@ -7438,7 +7436,6 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	DUPLICATE(stdev, n, double, skeleton);
 	DUPLICATE(correction_term, n, double, skeleton);
 	DUPLICATE(derivative3, n, double, skeleton);
-	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
 	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx);
 
