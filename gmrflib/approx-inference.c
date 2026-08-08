@@ -2286,8 +2286,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		double *ll_info = NULL;
 		if (!early_stop[dens_count] && misc_output->configs_preopt) {
-			double h = (ai_par->step_len > 0.0 ? ai_par->step_len : 1.0E-4); 
-			double h4 = 5.0 * h; // use larger step-size for deriv4
+			double h = (ai_par->step_len > 0.0 ? ai_par->step_len : 1.0E-4);
+			double h4 = 5.0 * h;		       // use larger step-size for deriv4
 			double hh4 = 1.0 / (2.0 * h4);
 			int stencil = ai_par->stencil;
 			ll_info = Calloc(4 * preopt->Npred, double);
@@ -2306,10 +2306,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					// add the 4th derivative here and not in the _taylor code. the _taylor code is a little
 					// messy to change, _and_ the 4th derivative is only needed here to pass it to the output.
 					// this can be changed later if needed...
-					double deriv4[2] = {0};
-					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4, 
+					double deriv4[2] = { 0 };
+					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4,
 							      d[j], lpred_mode[j] - h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
-					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4+1, 
+					GMRFLib_2order_taylor(thread_id, lc, &local_aa, &local_bb, &local_cc, deriv4 + 1,
 							      d[j], lpred_mode[j] + h4, j, lpred_mode, loglFunc, loglFunc_arg, &h, &stencil);
 					ll_info[jj + 3] = (deriv4[1] - deriv4[0]) * hh4;
 				} else {
