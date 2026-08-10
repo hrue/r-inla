@@ -4,7 +4,18 @@
 #include <stdio.h>
 
 #include "cgeneric.h"
-#include "../../external-packages/cgeneric-defs.h"
+
+#if __has_include("cgeneric-defs.h")
+#       include "cgeneric-defs.h"
+#elif __has_include("../external-packages/cgeneric-defs.h")
+#       include "../external-packages/cgeneric-defs.h"
+#elif __has_include("../../external-packages/cgeneric-defs.h")
+#       include "../../external-packages/cgeneric-defs.h"
+#elif __has_include("../../../external-packages/cgeneric-defs.h")
+#       include "../../../external-packages/cgeneric-defs.h"
+#else
+#       error "Cannot find file 'cgeneric-defs.h'"
+#endif
 
 typedef struct {
 	const char *name;
