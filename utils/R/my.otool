@@ -46,7 +46,16 @@ process () {
     } | sort | uniq
 }
 
+malloclib () {
+   for f in $1/lib*malloc.dylib; do 
+        if [ -f "$f" ]; then 
+            echo $(readlink -f $f)
+        fi
+    done
+}
+
 {
     process $(process $(process $(process "$@")))
     process $(findLIBS $prelib)
+    malloclib $lib2
 } | sort | uniq
