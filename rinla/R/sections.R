@@ -1915,14 +1915,36 @@ inla.parse.Bmatrix.test <- function() {
     cat("\n", inla.secsep("INLA.stiles"), "\n", sep = "", file = file, append = TRUE)
     cat("type = stiles\n", sep = " ", file = file, append = TRUE)
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    if (contr$block.size == 0) contr$block.size <- -1
-    cat("block.size = ", max(-1, as.integer(contr$block.size)), "\n", sep = " ", file = file, append = TRUE)
+
+    if (contr$block.size <= 0 || is.na(contr$block.size)) contr$block.size <- -1
+    if (contr$tile.size <= 0 || is.na(contr$tile.size)) contr$tile.size <- -1
+    cat("block.size = ", as.integer(contr$block.size), "\n", sep = " ", file = file, append = TRUE)
+    cat("tile.size = ", as.integer(contr$tile.size), "\n", sep = " ", file = file, append = TRUE)
+
+    typ <- match.arg(contr$tile.type, c("default", "auto", "sparse", "semisparse", "dense"), several.ok = FALSE)
+    typ.id <- NA
+    if (typ == "default") {
+        typ.id <- -1
+    } else if (typ == "auto") {
+        typ.id <- 3
+    } else if (typ == "sparse") {
+        typ.id <- 2
+    } else if (typ == "semisparse") {
+        typ.id <- 1
+    } else if (typ == "dense") {
+        typ.id <- 0
+    } else {
+        stop(paste0("This should not happen: typ=", typ))
+    }
+    cat("tile.type = ", as.integer(typ.id), "\n", sep = " ", file = file, append = TRUE)
+
     min.len <- 32
     m <- length(contr$param)
     if (m < min.len) {
-        contr$param <- c(contr$param, rep(-1, min.len - m))
+        contr$param <- c(contr$param, rep(NA, min.len - m))
         m <- min.len
     }
+    contr$param[is.na(contr$param)] <- -1
     file.param <- inla.tempfile(tmpdir = data.dir)
     fd <- file(file.param, "wb")
     writeBin(as.integer(m), fd)

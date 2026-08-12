@@ -19961,13 +19961,29 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	// no longer used
-	int UNUSED(tile_size) = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 40);
-
+	int tile_size = iniparser_getint(ini, inla_string_join(secname, "TILE.SIZE"), 40);
 	int block_size = iniparser_getint(ini, inla_string_join(secname, "BLOCK.SIZE"), 40);
 	if (mb->verbose) {
+		printf("\t\ttile.size[%1d]\n", tile_size);
 		printf("\t\tblock.size[%1d]\n", block_size);
 	}
-
+	int tile_type = iniparser_getint(ini, inla_string_join(secname, "TILE.TYPE"), -1);
+	if (mb->verbose) {
+		if (tile_type == -1) {
+			printf("\t\ttile.type[%1d] (default)\n", tile_type);
+		} else if (tile_type == 3) {
+			printf("\t\ttile.type[%1d] (auto)\n", tile_type);
+		} else if (tile_type == 2) {
+			printf("\t\ttile.type[%1d] (sparse)\n", tile_type);
+		} else if (tile_type == 1) {
+			printf("\t\ttile.type[%1d] (semisparse)\n", tile_type);
+		} else if (tile_type == 0) {
+			printf("\t\ttile.type[%1d] (dense)\n", tile_type);
+		} else {
+			assert(0 == 1 && "tile_type is wrong");
+		}
+	}
+	
 	int len = 0, *param = NULL, ret = 0;
 	char *filename = iniparser_getstring(ini, inla_string_join(secname, "PARAM"), NULL);
 	if (filename) {
@@ -19988,7 +20004,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		param = Malloc(len, int);
 		GMRFLib_ifill(len, -1, param);
 	}
-	GMRFLib_stiles_set_ctl(verbose, block_size, len, param);
+	GMRFLib_stiles_set_ctl(verbose, block_size, tile_size, tile_type, len, param);
 	char *tmp = NULL;
 	GMRFLib_sprintf(&tmp, "\t\t");
 	GMRFLib_stiles_print_ctl_param(stdout, tmp);

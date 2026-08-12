@@ -475,10 +475,18 @@ control.gcpo <-
              #' A higher value will increase memory usage.
              block.size = -1, 
 
+             #' @param tile.size (integer) Size of the tiles (-1 is default and adaptive).
+             tile.size = -1, 
+
+             #' @param tile.type (character) The storage type for the tiles. One of
+             #' "default", "auto", "dense", "semisparse" or "sparse". "auto" will chose type
+             #' according to heuristics.
+             tile.type = c("default", "auto", "sparse", "semisparse", "dense"), 
+
              #' @param param An integer vector of parameters (variable length).
-             #' Default values are given by '-1'.
+             #' Default values are given by '-1' or 'NA'
              #' See sTiles documentation for explaination of these parameters
-             param = rep(-1, 20) 
+             param = rep(NA, 32) 
              ) {
         ctrl_object(as.list(environment()), "stiles", check = FALSE)
     }
