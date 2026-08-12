@@ -7,11 +7,11 @@
 
 //...
 
-#define STILES_PARAM_TILE_SIZE 1
-#define STILES_TILE_DENSE 0
-#define STILES_TILE_SEMISPARSE 1
-#define STILES_TILE_SPARSE 2
-#define STILES_TILE_AUTO_SELECT 3
+#       define STILES_PARAM_TILE_SIZE 1
+#       define STILES_TILE_DENSE 0
+#       define STILES_TILE_SEMISPARSE 1
+#       define STILES_TILE_SPARSE 2
+#       define STILES_TILE_AUTO_SELECT 3
 
 const char *sTiles_get_version(void);
 double *sTiles_get_selinv_row(int group_index, int call_index, int node, int *node_neighbors, int size, void **obj);

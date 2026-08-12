@@ -19983,7 +19983,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 			assert(0 == 1 && "tile_type is wrong");
 		}
 	}
-	
+
 	int len = 0, *param = NULL, ret = 0;
 	char *filename = iniparser_getstring(ini, inla_string_join(secname, "PARAM"), NULL);
 	if (filename) {

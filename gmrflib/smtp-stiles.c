@@ -418,8 +418,8 @@ int GMRFLib_stiles_set_ctl(int verbose, int block_size, int tile_size, int tile_
 	}
 	ctl = Calloc(1, GMRFLib_stiles_ctl_tp);
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
-	ctl->block_size = block_size; 
-	ctl->tile_size = tile_size; 
+	ctl->block_size = block_size;
+	ctl->tile_size = tile_size;
 	ctl->tile_type = tile_type;
 	if (len > 0) {
 		ctl->param_len = len;

@@ -6403,30 +6403,30 @@ int testit(int argc, char **argv)
 		P(m);
 
 		int nn;
-		for(nn = n; nn % 4 != 0; nn++);
+		for (nn = n; nn % 4 != 0; nn++);
 		P(nn);
-		
+
 		double tref[2] = { 0 };
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
-			
+
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd reduction(+: x)
+#       pragma omp simd reduction(+: x)
 			for (int i = 0; i < n; i++) {
 				x += i;
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd reduction(+: xx)
+#       pragma omp simd reduction(+: xx)
 			for (int i = 0; i < nn; i++) {
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
 			assert(x > 0);
 			assert(xx > 0);
-			
+
 		}
 		double s = tref[0] + tref[1];
 		printf("plain %.3f augmented %.3f\n", tref[0] / s, tref[1] / s);
@@ -6444,7 +6444,7 @@ int testit(int argc, char **argv)
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
-			
+
 			tref[0] -= GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
 				x += i;
@@ -6452,14 +6452,14 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-#pragma omp simd reduction(+: xx)
+#       pragma omp simd reduction(+: xx)
 			for (int i = 0; i < n; i++) {
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
 			assert(x > 0);
 			assert(xx > 0);
-			
+
 		}
 		double s = tref[0] + tref[1];
 		printf("plain %.3f simd %.3f\n", tref[0] / s, tref[1] / s);
