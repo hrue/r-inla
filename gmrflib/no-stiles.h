@@ -7,6 +7,7 @@
 
 //...
 
+#       define STILES_PARAM_TILE_TYPE 3
 #       define STILES_PARAM_TILE_SIZE 1
 #       define STILES_TILE_DENSE 0
 #       define STILES_TILE_SEMISPARSE 1
