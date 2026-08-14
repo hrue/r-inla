@@ -33,6 +33,7 @@ process () {
 		    case "$dd" in 
 			/System/*) ;;
 			/usr/lib/*) ;;
+			/opt/homebrew/*) findLIBS $(basename "$dd");;
 			/opt/*) echo $dd;;
 			/Library/*) echo $dd;;
 			/usr/local/*) findLIBS $(basename "$dd");;
