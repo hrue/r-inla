@@ -110,6 +110,12 @@ if (!is.na(outdir) && nzchar(outdir)) {
         print(list.files(outdir, recursive = TRUE))
         stop("no Model.ini found under ", outdir)
     }
+    ## make the export relocatable: the ini references its data files by
+    ## absolute path, which only exists on this machine
+    dir  <- dirname(normalizePath(ini[1]))
+    txt  <- readLines(ini[1])
+    txt  <- gsub(paste0(dir, "/"), "./", txt, fixed = TRUE)
+    writeLines(txt, ini[1])
     cat("test model exported:", ini[1], "\n")
 }
 EOF
