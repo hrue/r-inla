@@ -1,0 +1,72 @@
+## Build the inla binary on Linux x86_64 and prove it computes.
+##
+## Pipeline: system deps (ci/deps-ubuntu.sh) -> build (ci/build.sh) ->
+## smoke test (ci/smoke-test.sh) -> upload the binary as a run artifact.
+## The three scripts run unchanged on any Ubuntu machine; this file only
+## provides the machine, the ordering, the caching and the artifact upload.
+name: build-inla
+
+on:
+  push:
+    branches: [devel, ci]
+  workflow_dispatch:
+
+## A newer push supersedes any run still in flight on the same branch.
+concurrency:
+  group: build-inla-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      ## The external-packages makefiles clone their sources via SSH URLs;
+      ## the runner has no SSH keys, so rewrite to anonymous https here.
+      ## Local builds are unaffected (this config lives only on the runner).
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: System dependencies
+        run: bash ci/deps-ubuntu.sh
+
+      ## The smoke test installs a few CRAN packages (fmesher compiles C++,
+      ## several minutes). Cache the private R library so only the first
+      ## run after a cache bump pays that cost. Bump v1 to force a refresh.
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: local/Rlib
+          key: rlib-${{ runner.os }}-v1
+
+      ## Full output goes to build.log (make echoes every compile command,
+      ## which would bury real errors past the log limit). On failure,
+      ## surface only the error lines plus the tail.
+      - name: Build
+        env:
+          CC: gcc-14
+          CXX: g++-14
+          FC: gfortran-14
+        run: |
+          if ! bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          tail -5 build.log
+
+      - name: Smoke test
+        run: bash ci/smoke-test.sh
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-x86_64
+          path: local/bin/inla
+          if-no-files-found: error
