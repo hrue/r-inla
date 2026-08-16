@@ -152,10 +152,13 @@ jobs:
       - name: Run the binary on this distro
         run: |
           head -2 /etc/os-release
+          BASE=$PWD
           tar xzf inla-linux-x86_64-portable.tar.gz
           ./bin/inla -ping
-          cd testmodel
-          ../bin/inla Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          INI=$(find testmodel -name Model.ini | head -1)
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; find testmodel | head; exit 1; }
+          cd "$(dirname "$INI")"
+          "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
           tail -3 run.log
           echo "OK: full model ran on ${{ matrix.distro }}"
 

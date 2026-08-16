@@ -102,7 +102,14 @@ if (!is.na(outdir) && nzchar(outdir)) {
                data = data.frame(y = y, x = x, idx = idx),
                family = "gaussian",
                keep = TRUE, working.directory = outdir)
-    stopifnot(file.exists(file.path(outdir, "Model.ini")))
-    cat("test model exported to", outdir, "\n")
+    ## the files may sit in a subdirectory of the working directory
+    ini <- list.files(outdir, pattern = "^Model\\.ini$",
+                      recursive = TRUE, full.names = TRUE)
+    if (length(ini) == 0) {
+        cat("contents of", outdir, ":\n")
+        print(list.files(outdir, recursive = TRUE))
+        stop("no Model.ini found under ", outdir)
+    }
+    cat("test model exported:", ini[1], "\n")
 }
 EOF

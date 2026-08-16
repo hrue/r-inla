@@ -92,7 +92,8 @@ rm -f "$EPATH"/lib*.a
 ( cd "$EPATH" && ./build \
       CC="$CC" CXX="$CXX" FC="$FC" \
       FLAGS="-fPIC" \
-      INC="-DINLA_WITH_EXTERNAL_PACKAGES -I/usr/include/eigen3 \
+      INC="-DINLA_WITH_EXTERNAL_PACKAGES \
+           -I/usr/local/include/eigen3 -I/usr/include/eigen3 \
            -I/usr/include/R -I/usr/share/R/include \
            -I$EPATH -I$ROOT/inlaprog/src" )
 
