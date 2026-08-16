@@ -155,8 +155,12 @@ jobs:
           BASE=$PWD
           tar xzf inla-linux-x86_64-portable.tar.gz
           ./bin/inla -ping
-          INI=$(find testmodel -name Model.ini | head -1)
-          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; find testmodel | head; exit 1; }
+          ## no `find`: the barest images (rockylinux:8) do not ship it
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; ls -R testmodel | head -20; exit 1; }
           cd "$(dirname "$INI")"
           "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
           tail -3 run.log
