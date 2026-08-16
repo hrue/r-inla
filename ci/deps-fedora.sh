@@ -12,7 +12,7 @@ $SUDO dnf -y install \
     openblas-devel \
     gsl-devel \
     metis-devel \
-    muparser-devel \
+    muParser-devel \
     openssl-devel \
     suitesparse-devel \
     zlib-devel \
