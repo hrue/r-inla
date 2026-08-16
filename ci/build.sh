@@ -43,8 +43,11 @@ FLAGS="-O2 -mtune=generic -ftree-vectorize -funroll-loops -pipe -pthread \
 ## needs the shared libR that Debian/Ubuntu R provides). WITH_LIBR=0 links
 ## only the standalone Rmath library; everything but rgeneric works.
 if [ "$WITH_LIBR" = 1 ]; then
+    ## libR's directory differs per family (Debian: /usr/lib/R/lib,
+    ## Fedora: /usr/lib64/R/lib); ask R itself.
+    R_HOME_DIR=${R_HOME_DIR:-$(R RHOME 2>/dev/null || echo /usr/lib/R)}
     RLIB_INC="-DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include"
-    RLIB_LIB="-lRmath -L/usr/lib/R/lib -lR"
+    RLIB_LIB="-lRmath -L$R_HOME_DIR/lib -lR"
 else
     RLIB_INC="-I/usr/share/R/include"
     RLIB_LIB="-lRmath"
@@ -143,6 +146,6 @@ make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
 ## libR.so lives outside the default loader path; R's own launcher normally
 ## provides it via LD_LIBRARY_PATH, but here the binary runs straight from
 ## the shell.
-export LD_LIBRARY_PATH="/usr/lib/R/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH="${R_HOME_DIR:-/usr/lib/R}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 "$PREFIX/bin/inla" -ping
 echo "OK: inla built and installed in $PREFIX/bin"
