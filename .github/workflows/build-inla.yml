@@ -41,7 +41,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: local/Rlib
-          key: rlib-${{ runner.os }}-v1
+          ## Bump the suffix whenever the R minor version changes (packages
+          ## are built per R minor version and must not cross over).
+          key: rlib-${{ runner.os }}-v2
 
       ## Full output goes to build.log (make echoes every compile command,
       ## which would bury real errors past the log limit). On failure,
@@ -59,6 +61,7 @@ jobs:
             tail -40 build.log
             exit 1
           fi
+          grep -m1 "^== building" build.log || true
           tail -5 build.log
 
       - name: Smoke test
@@ -70,3 +73,38 @@ jobs:
           name: inla-linux-x86_64
           path: local/bin/inla
           if-no-files-found: error
+
+  ## Canary: same build with the NEWEST released GCC (the official gcc image;
+  ## its default compiler is the latest release and rolls forward on its own).
+  ## Debian-based image: the deps script's Ubuntu-only extras (CRAN apt repo,
+  ## binary package mirror) fall back automatically; the R packages compile
+  ## from source here, so this job is slower. continue-on-error: a failure
+  ## warns without blocking the gate -- new-compiler breakage is an early
+  ## warning, not a stop sign.
+  build-latest-gcc:
+    runs-on: ubuntu-latest
+    container: gcc:latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      - name: System dependencies
+        run: bash ci/deps-ubuntu.sh
+      - name: Build
+        run: |
+          gcc --version | head -1
+          if ! bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -5 build.log
+      - name: Smoke test
+        run: bash ci/smoke-test.sh
