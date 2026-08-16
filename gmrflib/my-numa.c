@@ -22,6 +22,20 @@ static int NUMA_enable = 1;				       // if not enabled, then all NUMA support i
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #include "my-numa.h"
 
+#if defined(__linux__) && defined(__GLIBC__) && defined(__GLIBC_PREREQ)
+#if !__GLIBC_PREREQ(2, 29)
+// glibc before 2.29 has the getcpu syscall but no libc wrapper
+#include <unistd.h>
+#include <sys/syscall.h>
+#if defined(SYS_getcpu)
+static inline int getcpu(unsigned int *cpu, unsigned int *node)
+{
+	return (int) syscall(SYS_getcpu, cpu, node, NULL);
+}
+#endif
+#endif
+#endif
+
 #if defined(INLA_WITH_NUMA) && !defined(__linux__)
 #       undef INLA_WITH_NUMA
 #endif
