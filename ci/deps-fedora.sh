@@ -8,7 +8,7 @@ SUDO=""
 [ "$(id -u)" != 0 ] && SUDO=sudo
 
 $SUDO dnf -y install \
-    gcc gcc-c++ gcc-gfortran make git-core findutils diffutils \
+    gcc gcc-c++ gcc-gfortran make git-core findutils diffutils rsync \
     openblas-devel \
     gsl-devel \
     metis-devel \
