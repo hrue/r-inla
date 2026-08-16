@@ -70,8 +70,10 @@ fi
 R CMD INSTALL --library="$R_LIBS_USER" --no-docs --no-help --no-byte-compile \
     "$ROOT/rinla"
 
-## 5. A small Gaussian model with a known answer.
-Rscript --vanilla - "$INLA_BIN" <<'EOF'
+## 5. A small Gaussian model with a known answer. When TESTMODEL_DIR is set,
+##    the model's input files are also exported there (keep=TRUE), so other
+##    jobs can run the bare binary on a real model without needing R.
+Rscript --vanilla - "$INLA_BIN" "${TESTMODEL_DIR:-}" <<'EOF'
 argv <- commandArgs(trailingOnly = TRUE)
 library(INLA)
 inla.setOption(inla.call = argv[1])
@@ -92,4 +94,15 @@ b <- r$summary.fixed
 stopifnot(abs(b["(Intercept)", "mean"] - 1.0) < 0.1)
 stopifnot(abs(b["x", "mean"] - 0.7) < 0.1)
 cat("smoke test OK: mlik =", r$mlik[1], "\n")
+
+outdir <- argv[2]
+if (!is.na(outdir) && nzchar(outdir)) {
+    unlink(outdir, recursive = TRUE)
+    r2 <- inla(y ~ x + f(idx, model = "iid"),
+               data = data.frame(y = y, x = x, idx = idx),
+               family = "gaussian",
+               keep = TRUE, working.directory = outdir)
+    stopifnot(file.exists(file.path(outdir, "Model.ini")))
+    cat("test model exported to", outdir, "\n")
+}
 EOF
