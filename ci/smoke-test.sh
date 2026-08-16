@@ -12,8 +12,10 @@ PREFIX=${PREFIX:-$ROOT/local}
 INLA_BIN=$PREFIX/bin/inla
 
 ## 1. The binary answers at all. (libR.so lives outside the default loader
-##    path; harmless when the binary was built without libR.)
-export LD_LIBRARY_PATH="/usr/lib/R/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+##    path; harmless when the binary was built without libR. The directory
+##    differs per family, so ask R itself.)
+R_HOME_DIR=$(R RHOME 2>/dev/null || echo /usr/lib/R)
+export LD_LIBRARY_PATH="$R_HOME_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 "$INLA_BIN" -ping
 
 ## 2. Package dependencies into a private, user-writable library

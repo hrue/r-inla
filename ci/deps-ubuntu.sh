@@ -5,7 +5,10 @@
 ##
 ## R packages: r-base-dev provides the headers and the shared libR that
 ## INLA_WITH_LIBR links (rgeneric); r-mathlib is the standalone Rmath
-## library used for distributions throughout.
+## library used for distributions throughout. The geo libraries
+## (udunits2/gdal/geos/proj) are not used by inla itself: they are runtime
+## requirements of the sf/units R packages, which current fmesher imports,
+## and the INLA package imports fmesher.
 set -e
 
 ## No sudo when already root (e.g. inside a container).
@@ -37,6 +40,7 @@ $SUDO apt-get install -y --no-install-recommends \
     libeigen3-dev \
     libsimde-dev \
     r-base-dev r-mathlib \
+    libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
     libnuma-dev libhwloc-dev libltdl-dev
 
 ## The pinned newer toolchain for the primary CI job. Ubuntu-archive only:
