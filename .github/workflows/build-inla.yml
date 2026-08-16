@@ -88,10 +88,12 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## Deps first: the bare container has no git yet (deps installs it),
+      ## and the git config below needs it.
       - name: System dependencies
         run: bash ci/deps-fedora.sh
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: Build
         run: |
           gcc --version | head -1
