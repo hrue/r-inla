@@ -39,17 +39,24 @@ FLAGS="-O2 -mtune=generic -ftree-vectorize -funroll-loops -pipe -pthread \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
  -DGITCOMMIT=$TAG"
 
-## R linkage: WITH_LIBR=1 embeds the R interpreter (rgeneric models work;
-## needs the shared libR that Debian/Ubuntu R provides). WITH_LIBR=0 links
-## only the standalone Rmath library; everything but rgeneric works.
+## R linkage, three modes:
+##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;
+##                needs R with a shared libR on the BUILD machine)
+##   WITH_LIBR=2  dlopen mode: no libR at build or start time; rgeneric
+##                loads the running machine's libR (via R_HOME) on first
+##                use. Needs no R headers, so it builds without R.
+##   WITH_LIBR=0  no R embedding at all; everything but rgeneric works.
 if [ "$WITH_LIBR" = 1 ]; then
     ## libR's directory differs per family (Debian: /usr/lib/R/lib,
     ## Fedora: /usr/lib64/R/lib); ask R itself.
     R_HOME_DIR=${R_HOME_DIR:-$(R RHOME 2>/dev/null || echo /usr/lib/R)}
     RLIB_INC="-DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include"
     RLIB_LIB="-lRmath -L$R_HOME_DIR/lib -lR"
+elif [ "$WITH_LIBR" = 2 ]; then
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    RLIB_LIB="-lRmath"
 else
-    RLIB_INC="-I/usr/share/R/include"
+    RLIB_INC=""
     RLIB_LIB="-lRmath"
 fi
 
