@@ -20,4 +20,5 @@ $SUDO dnf -y install \
     simde-devel \
     R-core-devel libRmath-devel \
     udunits2-devel gdal-devel geos-devel proj-devel \
+    abseil-cpp-devel cmake \
     numactl-devel hwloc-devel libtool-ltdl-devel
