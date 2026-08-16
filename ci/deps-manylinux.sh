@@ -16,9 +16,21 @@ dnf -y install \
     openssl-devel \
     suitesparse-devel \
     zlib-devel \
-    eigen3-devel \
     libRmath-devel \
+    R-core-devel \
     numactl-devel hwloc-devel libtool-ltdl-devel
+
+## R-core-devel above provides only the HEADERS the external model packages
+## compile against; the built binary uses dlopen mode, so the shipped
+## bundle still needs no R anywhere.
+
+## Eigen: the external packages use Eigen 3.4 API and EL8 packages 3.3 --
+## vendor current 3.4 headers instead (header-only).
+if [ ! -d /usr/local/include/eigen3/Eigen ]; then
+    git clone --depth 1 --branch 3.4 https://gitlab.com/libeigen/eigen.git /tmp/eigen
+    mkdir -p /usr/local/include/eigen3
+    cp -r /tmp/eigen/Eigen /tmp/eigen/unsupported /usr/local/include/eigen3/
+fi
 
 ## muParser: the package name varies across repos and EPEL8 may not carry
 ## it at all -- try both names, else build the (small, cmake-based) library
