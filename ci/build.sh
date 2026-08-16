@@ -26,6 +26,8 @@ EPATH=$ROOT/external-packages
 ## falls back to "devel" outside a git checkout.
 TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
 
+echo "== building $TAG with CC=$CC CXX=$CXX FC=$FC ($($CC --version | head -1)) =="
+
 ## The devel feature set, minus PARDISO (requires a license; libpardiso.c
 ## provides stubs so the link still closes) and minus MKL (this build links
 ## OpenBLAS). INLA_WITH_SIMDE needs the SIMDE headers (libsimde-dev).

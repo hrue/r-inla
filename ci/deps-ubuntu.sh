@@ -12,9 +12,21 @@ set -e
 SUDO=""
 [ "$(id -u)" != 0 ] && SUDO=sudo
 
+## Latest R from CRAN's own repository: the distro archive freezes R at
+## release time (Ubuntu 24.04 carries 4.3), while users install current R
+## from CRAN -- so the binary should link against current R as well.
+## Ubuntu only; other apt systems keep their distro R.
+. /etc/os-release 2>/dev/null || true
+if [ "${ID:-}" = "ubuntu" ] && [ ! -f /etc/apt/sources.list.d/cran.list ]; then
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
+        | $SUDO tee /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc > /dev/null
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu ${VERSION_CODENAME}-cran40/" \
+        | $SUDO tee /etc/apt/sources.list.d/cran.list > /dev/null
+fi
+
 $SUDO apt-get update
 $SUDO apt-get install -y --no-install-recommends \
-    gcc-14 g++-14 gfortran-14 gcc g++ gfortran make \
+    gcc g++ gfortran make \
     libopenblas-dev \
     libgsl-dev \
     libmetis-dev \
@@ -26,3 +38,10 @@ $SUDO apt-get install -y --no-install-recommends \
     libsimde-dev \
     r-base-dev r-mathlib \
     libnuma-dev libhwloc-dev libltdl-dev
+
+## The pinned newer toolchain for the primary CI job. Ubuntu-archive only:
+## other systems (e.g. the gcc:latest canary container) use their own
+## default compiler.
+if [ "${ID:-}" = "ubuntu" ]; then
+    $SUDO apt-get install -y --no-install-recommends gcc-14 g++-14 gfortran-14
+fi
