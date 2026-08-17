@@ -102,6 +102,24 @@ stopifnot(abs(b["(Intercept)", "mean"] - 1.0) < 0.1)
 stopifnot(abs(b["x", "mean"] - 0.7) < 0.1)
 cat("smoke test OK: mlik =", r$mlik[1], "\n")
 
+## An rgeneric model: the only part of the binary that calls back INTO R
+## while it runs. It is worth its own check because nothing else here
+## exercises that path, and in a build with INLA_WITH_LIBR_DLOPEN it also
+## proves the runtime library loading -- the binary locates the libR of
+## whatever R is driving it and evaluates the model's R functions through
+## it. A plain "the model converged" result is not evidence of that.
+cat("== rgeneric ==\n")
+rg <- inla.rgeneric.define(inla.rgeneric.iid.model, n = 30)
+set.seed(2)
+yy  <- rnorm(30)
+iid <- 1:30
+rr  <- inla(yy ~ -1 + f(iid, model = rg),
+            data = data.frame(yy = yy, iid = iid),
+            family = "gaussian")
+stopifnot(is.finite(rr$mlik[1]))
+stopifnot(nrow(rr$summary.random$iid) == 30)
+cat("rgeneric OK: mlik =", rr$mlik[1], "\n")
+
 outdir <- argv[2]
 if (!is.na(outdir) && nzchar(outdir)) {
     unlink(outdir, recursive = TRUE)
