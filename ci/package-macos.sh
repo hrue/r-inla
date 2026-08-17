@@ -23,14 +23,50 @@ cp "$BIN" "$OUT/bin/inla"
 echo "== dependencies before bundling =="
 otool -L "$OUT/bin/inla" || true
 
-## dylibbundler copies every non-system dependency (recursively) next to
-## the binary and rewrites the load commands to @loader_path.
-## </dev/null: it prompts interactively when it cannot resolve something,
-## which would otherwise hang the job.
-dylibbundler --overwrite-files --bundle-deps --create-dir \
+## ARMPL first, by hand. Its libraries are referenced as @rpath/... and
+## dylibbundler does not read the binary's rpaths, so it cannot find them:
+## it drops into an interactive prompt and, with no input, loops on it
+## forever. Copying them and rewriting the load commands ourselves removes
+## the question before dylibbundler is ever run.
+ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
+if [ -n "$ARMPL_DIR" ]; then
+    echo "== resolving ARMPL from $ARMPL_DIR =="
+    pending=$(otool -L "$OUT/bin/inla" | awk '/@rpath\// {print $1}' | sed 's|@rpath/||')
+    while [ -n "$pending" ]; do
+        next=""
+        for lib in $pending; do
+            [ -f "$OUT/lib/$lib" ] && continue
+            src="$ARMPL_DIR/lib/$lib"
+            [ -f "$src" ] || { echo "ERROR: $lib not found in $ARMPL_DIR/lib"; exit 1; }
+            cp -v "$src" "$OUT/lib/"
+            chmod u+w "$OUT/lib/$lib"
+            ## the copy must refer to itself and to its siblings by a path
+            ## relative to the binary, not through an rpath
+            install_name_tool -id "@loader_path/../lib/$lib" "$OUT/lib/$lib"
+            next="$next $(otool -L "$OUT/lib/$lib" | awk '/@rpath\// {print $1}' | sed 's|@rpath/||')"
+        done
+        pending=$(echo "$next" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+        [ -z "$(echo "$pending" | tr -d ' ')" ] && break
+    done
+    ## point every @rpath reference, in the binary and in the copies, at the
+    ## bundled files
+    for f in "$OUT/bin/inla" "$OUT"/lib/*.dylib; do
+        [ -f "$f" ] || continue
+        for dep in $(otool -L "$f" | awk '/@rpath\// {print $1}'); do
+            base=${dep#@rpath/}
+            install_name_tool -change "$dep" "@loader_path/../lib/$base" "$f" 2>/dev/null || true
+        done
+    done
+fi
+
+## Everything else (Homebrew's gsl, muparser, ltdl, crypto, gfortran...) is
+## referenced by absolute path, which dylibbundler handles on its own.
+## timeout + </dev/null: it must never be able to wait for input.
+timeout 300 dylibbundler --overwrite-files --bundle-deps --create-dir \
     --fix-file "$OUT/bin/inla" \
     --dest-dir "$OUT/lib" \
-    --install-path @loader_path/../lib/ </dev/null
+    --install-path @loader_path/../lib/ </dev/null \
+  || { echo "ERROR: dylibbundler could not resolve every dependency"; exit 1; }
 
 ## dylibbundler can leave a duplicate @loader_path rpath, which dyld on
 ## recent macOS rejects outright; the load commands already carry the full
