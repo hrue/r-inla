@@ -43,9 +43,15 @@ mkdir -p "$DEST/lib" "$DEST/include" /tmp/stiles-dl
 EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
                  -w '%{url_effective}' "$URL") \
     || { echo "ERROR: cannot download $URL"; exit 1; }
-## Record which release "latest" resolved to (the redirect names the tag);
-## the release notes table reads this.
-RELTAG=$(echo "$EFFECTIVE" | grep -oE '/download/[^/]+/' | sed 's|/download/||; s|/||')
+## Record which release "latest" resolved to; the release notes table
+## reads this. The effective URL usually ends on the CDN (no tag in it),
+## so ask the /releases/latest redirect for the tag instead. Never fatal:
+## a miss records the requested tag.
+RELTAG=$(echo "$EFFECTIVE" | grep -oE '/download/[^/]+/' | head -1 | sed 's|/download/||; s|/||' || true)
+if [ -z "$RELTAG" ] && [ "$STILES_TAG" = latest ]; then
+    RELTAG=$(curl -sI "https://github.com/$STILES_REPO/releases/latest" 2>/dev/null \
+             | grep -i '^location:' | grep -oE '/tag/[^[:space:]]+' | sed 's|/tag/||' | tr -d '\r' || true)
+fi
 echo "${RELTAG:-$STILES_TAG}" > "$DEST/RELEASE"
 echo "  release: $(cat "$DEST/RELEASE")"
 ## unzip is not in every container image this runs in (the manylinux ones
