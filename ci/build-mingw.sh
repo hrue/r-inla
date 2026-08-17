@@ -84,6 +84,12 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## Link model follows the upstream Windows recipe: whole-archive externals,
 ## Windows R's own R.dll/Rblas/Rlapack, static Rmath/gsl/metis/muparser,
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
+## The GCC runtime is NOT linked with a blanket -static: libgomp must stay
+## a DLL so that a library loaded into this process later (libstiles.dll,
+## which is built the same way) SHARES one OpenMP runtime with the binary.
+## Two copies of libgomp in one process is the "OMP: Error #15" case. The
+## bundling step below ships libgomp-1.dll and friends beside the exe, and
+## now fails loudly if it cannot find one.
 ## libgslcblas is needed here although Linux and macOS get by without it:
 ## OpenBLAS, MKL and Accelerate all export the cblas_* interface GSL calls,
 ## while R's Rblas is Fortran-only.
@@ -118,7 +124,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      RLIB_INC="$RLIB_INC" \
      RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
-               -static -static-libstdc++ -static-libgcc \
+               -static-libstdc++ -static-libgcc \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
                $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.dll.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
