@@ -41,13 +41,15 @@ for so in "$OUT"/lib/*.so*; do
     patchelf --set-rpath '$ORIGIN' "$so"
 done
 
-## The portability floor: no glibc symbol newer than the container's 2.28.
+## The portability floor: no glibc symbol newer than GLIBC_MAX (default
+## 2.28, the manylinux container's; the modern gcc-16 lane builds on
+## Ubuntu 24.04 and passes 2.39).
+GLIBC_MAX=${GLIBC_MAX:-2.28}
 floor=$(objdump -T "$OUT/bin/inla" | grep -oE 'GLIBC_2\.[0-9]+' | sort -uV | tail -1)
-echo "glibc floor: ${floor:-none}"
-case "${floor:-GLIBC_2.0}" in
-    GLIBC_2.2[0-8]|GLIBC_2.1?|GLIBC_2.[0-9]) : ;;
-    *) echo "ERROR: glibc floor $floor exceeds 2.28 (a host library leaked in)"; exit 1 ;;
-esac
+echo "glibc floor: ${floor:-none} (allowed: <= $GLIBC_MAX)"
+worst=$(printf 'GLIBC_%s\n%s\n' "$GLIBC_MAX" "${floor:-GLIBC_2.0}" | sort -V | tail -1)
+[ "$worst" = "GLIBC_$GLIBC_MAX" ] \
+    || { echo "ERROR: glibc floor $floor exceeds $GLIBC_MAX (a host library leaked in)"; exit 1; }
 
 ## One OpenMP runtime in the shipped bundle as well: the check in the build
 ## script covers the freshly linked binary, this one covers what actually
