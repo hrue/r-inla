@@ -260,6 +260,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: System dependencies
         run: bash ci/deps-macos.sh
       - name: Build

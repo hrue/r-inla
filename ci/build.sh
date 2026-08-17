@@ -114,6 +114,8 @@ for d in "$EPATH"/*/; do
     fi
 done
 [ "$FAILED" -eq 0 ]
+ls "$EPATH"/lib*.a >/dev/null 2>&1 \
+    || { echo "ERROR: no external-package archives at all (git access problem?)"; exit 1; }
 
 ## ---- 2. GMRFLib (+ vendored taucs/amd) -> $PREFIX/lib/libGMRFLib.a ---------
 ## ARFLAGS=rvU: modern ar defaults to deterministic mode; U restores real

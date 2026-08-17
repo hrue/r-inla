@@ -38,6 +38,19 @@ FLAGS="$FLAGS -I$PREFIX/include.boot"
 RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include"
 RLIB_LIB="-L$RHOME/lib -lR -lRmath"
 
+## BLAS/LAPACK: ARMPL when installed (what the upstream macOS binaries
+## use; the binary then expects ARMPL on the running machine, like
+## upstream's), otherwise R's own Rblas/Rlapack.
+ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1)
+if [ -n "$ARMPL_DIR" ]; then
+    echo "BLAS: ARMPL at $ARMPL_DIR"
+    FLAGS="$FLAGS -DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
+    BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
+else
+    echo "BLAS: R's Rblas/Rlapack (ARMPL not found)"
+    BLASLIBS="-lRblas -lRlapack"
+fi
+
 ## ---- 1. External model packages --------------------------------------------
 for d in "$EPATH"/*/; do
     [ -f "$d/Makefile" ] && make -C "$d" clean >/dev/null
@@ -61,6 +74,8 @@ for d in "$EPATH"/*/; do
     fi
 done
 [ "$FAILED" -eq 0 ]
+ls "$EPATH"/lib*.a >/dev/null 2>&1 \
+    || { echo "ERROR: no external-package archives at all (git access problem?)"; exit 1; }
 
 ## ld64 whole-archive: one -force_load per archive.
 EXTOBJ=""
@@ -83,7 +98,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      EXTLIBS2="$EXTOBJ \
                -L$BREW/lib -L$DEPS/lib -L$BREW/opt/openssl@3/lib -L$BREW/opt/libtool/lib \
                -Wl,-rpath,$RHOME/lib -Wl,-rpath,$BREW/lib \
-               -lgsl -lgslcblas -lRblas -lRlapack \
+               -lgsl -lgslcblas $BLASLIBS \
                -lmuparser -lz -lmetis \
                -lltdl -lcrypto -lgfortran -lquadmath \
                -static-libstdc++ -static-libgcc -lm -ldl" \
