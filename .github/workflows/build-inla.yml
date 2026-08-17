@@ -8,7 +8,7 @@ name: build-inla
 
 on:
   push:
-    branches: [devel, ci]
+    branches: [devel, feature/ci]
   workflow_dispatch:
 
 ## A newer push supersedes any run still in flight on the same branch.
