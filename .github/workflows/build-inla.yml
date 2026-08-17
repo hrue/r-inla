@@ -9,6 +9,7 @@ name: build-inla
 on:
   push:
     branches: [devel, feature/ci]
+    tags: ['v*']
   workflow_dispatch:
 
 ## A newer push supersedes any run still in flight on the same branch.
@@ -90,6 +91,24 @@ jobs:
           INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
 
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-x86_64"
+            echo "purpose=Plain Linux build (needs system libraries); the CI gate"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=system OpenBLAS (shared)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-x86_64.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-x86_64
+          path: manifest/inla-linux-x86_64.txt
+
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
@@ -157,6 +176,24 @@ jobs:
           tail -3 build.log
       - name: Package
         run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-x86_64-portable"
+            echo "purpose=Portable Linux x86_64, glibc 2.28+, no R needed"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=Intel MKL (static, embedded)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-x86_64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-x86_64-portable
+          path: manifest/inla-linux-x86_64-portable.txt
+
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
@@ -212,6 +249,24 @@ jobs:
           tail -3 build.log
       - name: Package
         run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-aarch64-portable"
+            echo "purpose=Portable Linux arm64, glibc 2.28+, no R needed"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=OpenBLAS (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-aarch64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-aarch64-portable
+          path: manifest/inla-linux-aarch64-portable.txt
+
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
@@ -270,6 +325,24 @@ jobs:
         env:
           SUFFIX: armpl
         run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-aarch64-armpl-portable"
+            echo "purpose=Portable Linux arm64 with ARM Performance Libraries"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=ARMPL (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-aarch64-armpl-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-aarch64-armpl-portable
+          path: manifest/inla-linux-aarch64-armpl-portable.txt
+
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
@@ -448,6 +521,24 @@ jobs:
         run: bash ci/smoke-test.sh
       - name: Package (self-contained bundle)
         run: bash ci/package-macos.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-macos-arm64-portable"
+            echo "purpose=macOS Apple Silicon bundle, self-contained"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=ARMPL (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-macos-arm64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-macos-arm64-portable
+          path: manifest/inla-macos-arm64-portable.txt
+
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
@@ -508,6 +599,24 @@ jobs:
         run: bash ci/smoke-test.sh
       - name: Package (self-contained bundle)
         run: bash ci/package-macos.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-macos-x86_64-portable"
+            echo "purpose=macOS Intel bundle, self-contained"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=Apple Accelerate (system)"
+            echo "stiles=$ST"
+          } > manifest/inla-macos-x86_64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-macos-x86_64-portable
+          path: manifest/inla-macos-x86_64-portable.txt
+
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
@@ -575,6 +684,24 @@ jobs:
       ## The directory itself, not the zip the build script also makes:
       ## GitHub packs artifacts anyway, and Git Bash on the Windows runner
       ## has no unzip to open an inner archive with.
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local-win/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-windows-x86_64"
+            echo "purpose=Windows x86_64: inla.exe + all DLLs, runs with or without R installed"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=R's Rblas/Rlapack (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-windows-x86_64.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-windows-x86_64
+          path: manifest/inla-windows-x86_64.txt
+
       - name: Upload Windows bundle
         uses: actions/upload-artifact@v4
         with:
@@ -703,3 +830,71 @@ jobs:
         env:
           INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
+
+  ## On a v* tag: attach the binaries this run just built AND proved (every
+  ## lane below ran its model) to a GitHub Release. Mirrors the sTiles
+  ## release job: the full asset set is asserted before publishing, since a
+  ## missing platform would otherwise be discovered by whoever needed it.
+  release:
+    name: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux-x86_64, portable-linux-x86_64, portable-linux-arm64,
+            portable-linux-arm64-armpl, macos-arm64, macos-intel,
+            windows-x86_64, run-windows, run-portable-x86_64,
+            run-portable-arm64, run-portable-arm64-armpl]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: inla-*
+          path: artifacts
+      - name: Assert every platform is present, then pack
+        run: |
+          cd artifacts
+          missing=0
+          for a in inla-linux-x86_64 inla-linux-x86_64-portable \
+                   inla-linux-aarch64-portable inla-linux-aarch64-armpl-portable \
+                   inla-macos-arm64-portable inla-macos-x86_64-portable \
+                   inla-windows-x86_64; do
+            [ -d "$a" ] && echo "  ok      $a" || { echo "::error::missing: $a"; missing=1; }
+          done
+          [ $missing -eq 0 ] || { echo "::error::refusing a partial release"; exit 1; }
+          mkdir -p ../dist
+          ## portables already carry one tar.gz each; pass it through
+          for d in *-portable; do cp "$d"/*.tar.gz ../dist/; done
+          ## the plain linux binary and the windows folder get archived here
+          tar -C inla-linux-x86_64 -czf ../dist/inla-linux-x86_64.tar.gz .
+          ( cd inla-windows-x86_64 && zip -qr ../../dist/inla-windows-x86_64.zip . )
+          ls -lh ../dist
+      - name: Build the release notes table
+        run: |
+          {
+            echo "inla binaries with the sTiles backend built in. Portable bundles need no R installed; rgeneric loads the running machine's own R at first use."
+            echo
+            echo "| asset | built for | compiler | BLAS | libstiles |"
+            echo "|---|---|---|---|---|"
+            for m in artifacts/manifest-*/*.txt; do
+              [ -f "$m" ] || continue
+              a=$(grep '^artifact=' "$m" | cut -d= -f2-)
+              p=$(grep '^purpose='  "$m" | cut -d= -f2-)
+              c=$(grep '^compiler=' "$m" | cut -d= -f2-)
+              b=$(grep '^blas='     "$m" | cut -d= -f2-)
+              t=$(grep '^stiles='   "$m" | cut -d= -f2-)
+              echo "| $a | $p | $c | $b | $t |"
+            done
+          } > notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "inla binaries $GITHUB_REF_NAME" \
+            --notes-file notes.md
