@@ -14,6 +14,7 @@
 ##   BLAS        openblas | armpl                   default: openblas
 ##   OPT         fast | safe                        default: fast
 ##   LTO         1 to add -flto=auto                default: 0
+##   WITH_STILES 1 to link libstiles (see ci/fetch-stiles.sh)  default: 0
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -104,6 +105,24 @@ case "$BLAS" in
         ;;
 esac
 
+## sTiles: an alternative sparse-matrix backend the sources already support
+## (gmrflib/smtp-stiles.c, guarded by INLA_WITH_STILES). Only a prebuilt
+## library and its header are needed -- ci/fetch-stiles.sh stages them from
+## a published release, so no sTiles source is involved.
+WITH_STILES=${WITH_STILES:-0}
+STILES_LIBS=""
+if [ "$WITH_STILES" = 1 ]; then
+    STILES_DIR=${STILES_DIR:-$PREFIX/stiles}
+    [ -f "$STILES_DIR/include/stiles.h" ] \
+        || { echo "ERROR: no stiles.h under $STILES_DIR (run ci/fetch-stiles.sh)"; exit 1; }
+    echo "== sTiles: $STILES_DIR =="
+    ## -ltileindexer is NOT needed: released libraries carry it inside.
+    STILES_INC="-DINLA_WITH_STILES -I$STILES_DIR/include"
+    STILES_LIBS="-L$STILES_DIR/lib -Wl,-rpath,$STILES_DIR/lib -lstiles"
+else
+    STILES_INC=""
+fi
+
 ## The devel feature set, minus PARDISO (requires a license; libpardiso.c
 ## provides stubs so the link still closes) and minus MKL (this build links
 ## OpenBLAS). INLA_WITH_SIMDE needs the SIMDE headers (libsimde-dev).
@@ -113,7 +132,7 @@ FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
- -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' $BLAS_INC"
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' $BLAS_INC $STILES_INC"
 
 ## R linkage, three modes:
 ##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;
@@ -229,6 +248,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
+               $STILES_LIBS \
                -lgsl $BLAS_LIBS -lmuparser -lz -lmetis \
                -lnuma -lhwloc -lltdl -lcrypto -lgfortran $QUADMATH -lm -ldl"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
