@@ -113,7 +113,7 @@ FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
- -DGITCOMMIT=$TAG $BLAS_INC"
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' $BLAS_INC"
 
 ## R linkage, three modes:
 ##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;

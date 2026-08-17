@@ -39,7 +39,7 @@ FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
- -DGITCOMMIT=$TAG \
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' \
  -I$DEPS/include -I$RWIN/include"
 
 mkdir -p "$PREFIX"/bin "$PREFIX"/lib "$PREFIX"/include
@@ -118,7 +118,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      RLIB_INC="$RLIB_INC" \
      RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
-               -static-libstdc++ -static-libgcc \
+               -static -static-libstdc++ -static-libgcc \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
                $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.dll.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
@@ -147,10 +147,30 @@ for pass in 1 2 3; do
             R.dll|Rblas.dll|Rlapack.dll|KERNEL32*|msvcrt*|api-ms-*|ucrtbase*|ADVAPI32*|WS2_32*|USER32*|SHELL32*|ole32*|RPCRT4*|dbghelp*|bcrypt*|CRYPT32*) continue ;;
         esac
         [ -f "$OUT/$dll" ] && continue
-        src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" "$DEPS" -name "$dll" 2>/dev/null | head -1)
-        [ -n "$src" ] && cp -v "$src" "$OUT/"
+        src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
+                   /usr/lib/gcc/$TRIPLET "$DEPS" -name "$dll" 2>/dev/null | head -1)
+        if [ -n "$src" ]; then
+            cp -v "$src" "$OUT/"
+        else
+            ## Never skip quietly: a missing DLL makes the exe fail to start
+            ## on Windows with a bare exit code and no message at all.
+            echo "MISSING: $dll (imported but not found on this system)" >> "$OUT/.missing"
+        fi
     done
 done
+
+if [ -s "$OUT/.missing" ]; then
+    echo "ERROR: the bundle is incomplete:"
+    sort -u "$OUT/.missing"
+    rm -f "$OUT/.missing"
+    exit 1
+fi
+rm -f "$OUT/.missing"
+
+echo "== imports of the shipped exe =="
+$TRIPLET-objdump -p "$OUT/inla.exe" | awk '/DLL Name/ {print "  " $3}' | sort -u
+echo "== bundled files =="
+ls -1 "$OUT"
 
 ( cd "$ROOT" && zip -qr inla-windows-x86_64.zip "$(basename "$OUT")" )
 echo "OK: $(du -h "$ROOT/inla-windows-x86_64.zip" | cut -f1) Windows bundle"

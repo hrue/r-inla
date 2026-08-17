@@ -53,7 +53,7 @@ FLAGS="$OPTFLAGS $ARCHFLAGS -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
- -DGITCOMMIT=$TAG \
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' \
  -I$BREW/include -I$DEPS/include"
 
 mkdir -p "$PREFIX"/bin "$PREFIX"/lib "$PREFIX"/include "$PREFIX/include.boot"
