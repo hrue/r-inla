@@ -22,9 +22,12 @@ export LD_LIBRARY_PATH="$R_HOME_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 ##    (cached by the workflow so the install runs once). On Ubuntu, prefer
 ##    Posit's mirror: it serves prebuilt Linux binaries of CRAN packages,
 ##    so nothing needs compiling; plain CRAN is the fallback.
+echo "== R dependencies =="
 export R_LIBS_USER=$PREFIX/Rlib
 mkdir -p "$R_LIBS_USER"
-. /etc/os-release 2>/dev/null || true
+## Guarded: /etc/os-release does not exist on macOS, and sourcing a missing
+## file is fatal under set -e.
+if [ -r /etc/os-release ]; then . /etc/os-release; fi
 if [ "${ID:-}" = "ubuntu" ] && [ -n "${VERSION_CODENAME:-}" ]; then
     export SMOKE_CRAN_REPOS="https://packagemanager.posit.co/cran/__linux__/${VERSION_CODENAME}/latest https://cloud.r-project.org"
 else
@@ -42,6 +45,7 @@ Rscript --vanilla -e '
 ## 3. The package's NAMESPACE is generated, not tracked: create it the same
 ##    way upstream does (roxygen; see rinla/R/Makefile) when it is missing.
 ##    The testthat_print definition mirrors that Makefile's document() call.
+echo "== R package NAMESPACE =="
 if [ ! -f "$ROOT/rinla/NAMESPACE" ]; then
     ## Roxygen's loader performs a minimal install, which itself requires
     ## some NAMESPACE file -- seed a placeholder that roxygen immediately
@@ -67,8 +71,11 @@ fi
 
 ## 4. The R package from this checkout (R side only; it ships no binaries,
 ##    the binary comes from ci/build.sh via the inla.call option below).
+echo "== installing the R package =="
 R CMD INSTALL --library="$R_LIBS_USER" --no-docs --no-help --no-byte-compile \
     "$ROOT/rinla"
+
+echo "== running the model =="
 
 ## 5. A small Gaussian model with a known answer. When TESTMODEL_DIR is set,
 ##    the model's input files are also exported there (keep=TRUE), so other
