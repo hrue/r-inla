@@ -110,9 +110,23 @@ if [ "$ARCH" = arm64 ] && [ -n "$ARMPL_DIR" ]; then
         BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
     fi
 elif [ "$ARCH" = x86_64 ]; then
-    echo "BLAS: Accelerate framework"
-    FLAGS="$FLAGS -DINLA_WITH_FRAMEWORK_ACCELERATE"
-    BLASLIBS="-framework Accelerate"
+    ## NOT Accelerate: its internal threading has no reliable control (no
+    ## runtime API; VECLIB_MAXIMUM_THREADS is legacy and partially ignored),
+    ## and under INLA's nested parallelism an uncontrollable BLAS pool
+    ## oversubscribes -- upstream observed exactly such timing anomalies.
+    ## A SERIAL locking-safe OpenBLAS (built by ci/deps-macos.sh with the
+    ## same recipe as the sTiles Intel lane) never threads itself, so all
+    ## parallelism stays where INLA puts it. Same policy as every other
+    ## platform: sequential MKL on Linux x86_64, serial ARMPL on arm64.
+    OB=${OPENBLAS_SERIAL_ROOT:-$ROOT/local/openblas}
+    if [ -f "$OB/lib/libopenblas.dylib" ]; then
+        echo "BLAS: OpenBLAS (serial, locking-safe) at $OB"
+        BLASLIBS="-L$OB/lib -Wl,-rpath,$OB/lib -lopenblas"
+    else
+        echo "BLAS: Accelerate framework (serial OpenBLAS not found at $OB)"
+        FLAGS="$FLAGS -DINLA_WITH_FRAMEWORK_ACCELERATE"
+        BLASLIBS="-framework Accelerate"
+    fi
 else
     echo "BLAS: R's Rblas/Rlapack"
     BLASLIBS="-lRblas -lRlapack"

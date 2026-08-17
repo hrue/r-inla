@@ -141,6 +141,12 @@ echo "== R linkage: WITH_LIBR=$WITH_LIBR =="
 GKLIB=""
 [ -f "$DEPS/lib/libGKlib.a" ] && GKLIB="$DEPS/lib/libGKlib.a"
 
+## mimalloc first on the link line + --undefined=mi_version, exactly the
+## upstream Windows recipe: forcing mi_version in pulls mimalloc's malloc
+## override ahead of the UCRT one.
+MIMALLOC=""
+[ -f "$DEPS/lib/libmimalloc.dll.a" ] && MIMALLOC="$DEPS/lib/libmimalloc.dll.a -Wl,--undefined=mi_version"
+
 EXTOBJ=$(echo "$EPATH"/lib*.a)
 LTDL=$(ls "$DEPS"/lib/libltdl.dll.a "$SYSROOT"/mingw/lib/libltdl.dll.a \
           "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
@@ -152,7 +158,8 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" \
      RLIB_LIB="$RLIB_LIB" \
-     EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
+     EXTLIBS2="$MIMALLOC \
+               -Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -static-libstdc++ -static-libgcc \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
                $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.dll.a \

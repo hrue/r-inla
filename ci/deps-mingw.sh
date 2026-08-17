@@ -122,6 +122,28 @@ if ! $SUDO dnf -y install ucrt64-dlfcn 2>/dev/null \
     cmake --install /tmp/dlfcn/build
 fi
 
+## ---- mimalloc: fast allocator, as in the upstream Windows recipe -----------
+## Upstream links libmimalloc.dll.a first in EXTLIBS2 plus
+## -Wl,--undefined=mi_version, which routes the process allocations through
+## mimalloc. GMRFLib is allocation-heavy, so this is a real speedup on
+## Windows, where the UCRT allocator is comparatively slow.
+if [ ! -f "$DEPS/lib/libmimalloc.dll.a" ]; then
+    git clone --depth 1 --branch v2.2.4 https://github.com/microsoft/mimalloc /tmp/mimalloc \
+      || git clone --depth 1 https://github.com/microsoft/mimalloc /tmp/mimalloc
+    cmake -S /tmp/mimalloc -B /tmp/mimalloc/build \
+        -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC \
+        -DCMAKE_CXX_COMPILER=${MINGW_CC%-gcc}-g++ \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
+        -DMI_BUILD_STATIC=OFF -DMI_BUILD_TESTS=OFF -DMI_BUILD_OBJECT=OFF \
+        -DCMAKE_INSTALL_PREFIX="$DEPS"
+    cmake --build /tmp/mimalloc/build -j"$(nproc)"
+    cmake --install /tmp/mimalloc/build
+    ## normalize install layout: some versions install under lib/mimalloc-2.x
+    find "$DEPS" -name 'libmimalloc*.dll.a' -exec cp -n {} "$DEPS/lib/libmimalloc.dll.a" \; 2>/dev/null || true
+    find "$DEPS" -name 'libmimalloc*.dll' -exec cp -n {} "$DEPS/lib/" \; 2>/dev/null || true
+    ls "$DEPS/lib"/libmimalloc* 
+fi
+
 ## ---- gsl, metis, muparser: static mingw builds ------------------------------
 if [ ! -f "$DEPS/lib/libgsl.a" ]; then
     GSL=$(wget -qO- https://ftp.gnu.org/gnu/gsl/ | grep -oE 'gsl-2\.[0-9.]+\.tar\.gz' | sort -V | tail -1)
