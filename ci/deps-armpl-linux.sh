@@ -25,14 +25,20 @@ mkdir -p /tmp/armpl && tar xf /tmp/armpl.tar -C /tmp/armpl --strip-components=1
 ## Two shapes have shipped over the years: a self-extracting installer
 ## script (-a accepts the licence non-interactively, -f overwrites, -i
 ## chooses the prefix), or plain packages to install directly.
-INSTALLER=$(ls /tmp/armpl/*.sh 2>/dev/null | head -1 || true)
+INSTALLER=$(find /tmp/armpl -name 'arm-performance-libraries*.sh' 2>/dev/null | head -1 || true)
+RPMS=$(find /tmp/armpl -name '*.rpm' 2>/dev/null | head -1 || true)
+DEBS=$(find /tmp/armpl -name '*.deb' 2>/dev/null | head -1 || true)
 if [ -n "$INSTALLER" ]; then
     chmod +x "$INSTALLER"
-    "$INSTALLER" -a -f -i /opt/arm
-elif ls /tmp/armpl/*.rpm >/dev/null 2>&1; then
-    rpm -Uvh --nodeps /tmp/armpl/*.rpm
-elif ls /tmp/armpl/*.deb >/dev/null 2>&1; then
-    dpkg -i /tmp/armpl/*.deb
+    ## The flags changed between releases: older installers take
+    ## -a -f -i <dir>, newer ones --accept --install-to <dir>.
+    "$INSTALLER" -a -f -i /opt/arm \
+        || "$INSTALLER" --accept --force --install-to /opt/arm \
+        || { echo "ERROR: ARMPL installer rejected both flag styles"; "$INSTALLER" --help || true; exit 1; }
+elif [ -n "$RPMS" ]; then
+    rpm -Uvh --nodeps $(find /tmp/armpl -name '*.rpm')
+elif [ -n "$DEBS" ]; then
+    dpkg -i $(find /tmp/armpl -name '*.deb')
 else
     echo "ERROR: unrecognised ARMPL tarball layout:"; ls -R /tmp/armpl | head -20
     exit 1

@@ -24,7 +24,18 @@ TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
 echo "== building $TAG for Windows with $CC ($($CC --version | head -1)) =="
 
 ## No NUMA/CLONE_TARGETS (Linux-only); otherwise the devel feature set.
-FLAGS="-O2 -mtune=generic -ftree-vectorize -funroll-loops -pipe \
+## Optimization: the upstream Windows configuration. LTO stays opt-in.
+OPT=${OPT:-fast}
+LTO=${LTO:-0}
+case "$OPT" in
+    fast) OPTFLAGS="-O3 -ftree-vectorize -funroll-loops -fvariable-expansion-in-unroller -ftracer" ;;
+    safe) OPTFLAGS="-O2 -ftree-vectorize" ;;
+    *)    echo "ERROR: OPT must be fast or safe"; exit 1 ;;
+esac
+[ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
+echo "== optimization: OPT=$OPT LTO=$LTO =="
+
+FLAGS="$OPTFLAGS -mtune=generic -pipe \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
