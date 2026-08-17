@@ -126,6 +126,45 @@ jobs:
           path: inla-linux-x86_64-portable.tar.gz
           if-no-files-found: error
 
+  ## Same portable build for arm64 Linux (Graviton, Ampere, Raspberry Pi):
+  ## GitHub's arm64 runner + the aarch64 manylinux container, identical
+  ## scripts. BLAS is the bundled OpenBLAS -- ARMPL would be faster on SVE
+  ## machines but its license does not allow redistributing the libraries,
+  ## so it stays a build-it-yourself option rather than an artifact.
+  build-portable-arm64:
+    runs-on: ubuntu-24.04-arm
+    container: quay.io/pypa/manylinux_2_28_aarch64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        run: bash ci/deps-manylinux.sh
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      - name: Build (portable, dlopen libR)
+        run: |
+          for e in /opt/rh/gcc-toolset-*/enable; do [ -f "$e" ] && source "$e" && break; done
+          gcc --version | head -1
+          if ! WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Package
+        run: bash ci/package-portable.sh
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-aarch64-portable
+          path: inla-linux-aarch64-portable.tar.gz
+          if-no-files-found: error
+
   ## The proof of "runs on all Linux": take the portable bundle and run a
   ## real model with it on the oldest supported base (Rocky 8 = the glibc
   ## floor) and the major current families. No compiler, no R -- just the
@@ -165,6 +204,43 @@ jobs:
           "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
           tail -3 run.log
           echo "OK: full model ran on ${{ matrix.distro }}"
+
+  ## Same cross-distro proof on arm64 (the container images resolve to
+  ## their arm64 variants on the arm64 runner automatically).
+  test-portable-arm64:
+    needs: [build, build-portable-arm64]
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ["rockylinux:8", "fedora:latest", "debian:12", "ubuntu:22.04"]
+    container: ${{ matrix.distro }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-linux-aarch64-portable
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-testmodel
+          path: testmodel
+      - name: Run the binary on this distro
+        run: |
+          head -2 /etc/os-release
+          BASE=$PWD
+          tar xzf inla-linux-aarch64-portable.tar.gz
+          ./bin/inla -ping
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; ls -R testmodel | head -20; exit 1; }
+          cd "$(dirname "$INI")"
+          "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          tail -3 run.log
+          echo "OK: full model ran on ${{ matrix.distro }} (arm64)"
 
   ## Canary: same build on Fedora, which tracks the newest released GCC and
   ## current R -- the toolchain the upstream binaries are actually built
