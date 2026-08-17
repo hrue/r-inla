@@ -131,14 +131,19 @@ static void inla_R_dlopen_(void)
 	lt_dladvise advise;
 	lt_dladvise_init(&advise);
 	lt_dladvise_global(&advise);
+	// let libltdl append the platform's own extension: .so, .dylib, .dll
+	lt_dladvise_ext(&advise);
+
+	// where R keeps its library, per platform layout
+	static const char *rel[] = { "lib/libR", "bin/x64/R", "bin/R", NULL };
 	char *rhome = getenv((const char *) "R_HOME");
-	if (rhome) {
+	for (int i = 0; rhome && rel[i] && !R_dlhandle; i++) {
 		char *path = NULL;
-		GMRFLib_sprintf(&path, "%s/lib/libR.so", rhome);
+		GMRFLib_sprintf(&path, "%s/%s", rhome, rel[i]);
 		R_dlhandle = lt_dlopenadvise(path, advise);
 	}
 	if (!R_dlhandle) {
-		R_dlhandle = lt_dlopenadvise("libR.so", advise);
+		R_dlhandle = lt_dlopenadvise("libR", advise);
 	}
 	lt_dladvise_destroy(&advise);
 	if (!R_dlhandle) {
