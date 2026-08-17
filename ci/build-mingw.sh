@@ -153,7 +153,10 @@ for pass in 1 2 3; do
             R.dll|Rblas.dll|Rlapack.dll|KERNEL32*|msvcrt*|api-ms-*|ucrtbase*|ADVAPI32*|WS2_32*|USER32*|SHELL32*|ole32*|RPCRT4*|dbghelp*|bcrypt*|CRYPT32*) continue ;;
         esac
         [ -f "$OUT/$dll" ] && continue
+        ## Both mingw sysroots: ltdl comes from the msvcrt one when the
+        ## UCRT variant is not packaged (upstream links it the same way).
         src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
+                   /usr/x86_64-w64-mingw32*/sys-root/mingw/bin \
                    /usr/lib/gcc/$TRIPLET "$DEPS" -name "$dll" 2>/dev/null | head -1)
         if [ -n "$src" ]; then
             cp -v "$src" "$OUT/"

@@ -24,6 +24,9 @@ $SUDO dnf -y install \
 ## Optional UCRT packages: use them when present, otherwise the source
 ## builds below cover the gaps.
 $SUDO dnf -y install ucrt64-zlib 2>/dev/null || true
+## Prefer a UCRT libltdl when one is packaged; the mingw64 build installed
+## above is the fallback (its DLL works, being a thin dlopen wrapper).
+$SUDO dnf -y install ucrt64-libltdl 2>/dev/null || true
 $SUDO dnf -y install ucrt64-openssl 2>/dev/null || $SUDO dnf -y install mingw64-openssl 2>/dev/null || true
 
 ## OpenMP runtime for the cross compiler. INLA requires OpenMP (the sources
