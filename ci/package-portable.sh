@@ -52,10 +52,17 @@ esac
 ## Prove the bundle runs from its own libraries.
 "$OUT/bin/inla" -ping
 
-## Report the BLAS that actually travels in the bundle -- the one property
-## of the artifact that is invisible from the outside and easy to get wrong.
-echo "== bundled BLAS =="
-ls "$OUT"/lib | grep -iE 'blas|armpl|amath|astring' || echo "  (none found -- check the link)"
+## The BLAS is linked statically, so it should be INSIDE the binary rather
+## than beside it. Report either way: this is the one property of the
+## artifact that is invisible from the outside and easy to get wrong.
+echo "== BLAS in the bundle =="
+if ls "$OUT"/lib | grep -iE 'blas|armpl|amath|astring'; then
+    echo "  ^ shipped as shared libraries beside the binary"
+else
+    ## Confirm the symbols really are in the executable.
+    n=$(nm -D --defined-only "$OUT/bin/inla" 2>/dev/null | grep -ciE 'dgemm|dpotrf' || true)
+    echo "  embedded in the binary (BLAS symbols defined: $n)"
+fi
 
 ARCH=$(uname -m)
 NAME=inla-linux-$ARCH${SUFFIX:+-$SUFFIX}-portable

@@ -10,12 +10,6 @@ on:
   push:
     branches: [devel, feature/ci]
   workflow_dispatch:
-    inputs:
-      lanes:
-        description: "Lanes to run: auto (by changed files), all, linux, portable, macos, windows"
-        default: auto
-        type: choice
-        options: [auto, all, linux, portable, macos, windows]
 
 ## A newer push supersedes any run still in flight on the same branch.
 concurrency:
@@ -23,76 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ## Decide which lanes this push actually needs. A change to one lane's
-  ## own scripts concerns only that lane; a change to the sources or the
-  ## shared scripts concerns all of them. "Run workflow" in the Actions tab
-  ## overrides the decision, which is the fast way to iterate on a single
-  ## platform. The gate lane always runs: it is the verdict on the push and
-  ## it produces the test model every other lane replays.
-  plan:
-    name: "Plan: which lanes to run"
-    runs-on: ubuntu-latest
-    outputs:
-      portable: ${{ steps.decide.outputs.portable }}
-      macos: ${{ steps.decide.outputs.macos }}
-      windows: ${{ steps.decide.outputs.windows }}
-      canary: ${{ steps.decide.outputs.canary }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      - id: decide
-        run: |
-          sel="${{ github.event.inputs.lanes || 'auto' }}"
-          changed=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo UNKNOWN)
-          echo "selection: $sel"
-          echo "changed files:"; echo "$changed" | sed 's/^/  /'
-
-          shared=false
-          ## Sources, the shared build/test scripts, or the workflow itself:
-          ## everything has to run. An unknown diff (first push, force push)
-          ## counts as shared, erring towards running more rather than less.
-          if [ "$changed" = UNKNOWN ] || echo "$changed" | grep -qE \
-             '^(gmrflib/|inlaprog/|external-packages/|rinla/|ci/build\.sh|ci/smoke-test\.sh|ci/package-portable\.sh|\.github/workflows/)'; then
-            shared=true
-          fi
-          has() { echo "$changed" | grep -qE "$1"; }
-
-          case "$sel" in
-            all)      p=true;  m=true;  w=true;  c=true ;;
-            linux)    p=false; m=false; w=false; c=false ;;
-            portable) p=true;  m=false; w=false; c=false ;;
-            macos)    p=false; m=true;  w=false; c=false ;;
-            windows)  p=false; m=false; w=true;  c=false ;;
-            *)
-              if [ "$shared" = true ]; then
-                p=true; m=true; w=true; c=true
-              else
-                p=false; m=false; w=false; c=false
-                has 'ci/(deps-manylinux|deps-armpl-linux)\.sh' && p=true
-                has 'ci/(deps-macos|build-macos)\.sh'          && m=true
-                has 'ci/(deps-mingw|build-mingw)\.sh'          && w=true
-                has 'ci/deps-fedora\.sh'                       && c=true
-              fi ;;
-          esac
-          echo "portable=$p" >> "$GITHUB_OUTPUT"
-          echo "macos=$m"    >> "$GITHUB_OUTPUT"
-          echo "windows=$w"  >> "$GITHUB_OUTPUT"
-          echo "canary=$c"   >> "$GITHUB_OUTPUT"
-          {
-            echo "### Lanes selected"
-            echo "| lane | run |"
-            echo "|---|---|"
-            echo "| Linux x86_64 (gate) | always |"
-            echo "| portable bundles | $p |"
-            echo "| macOS | $m |"
-            echo "| Windows | $w |"
-            echo "| canary | $c |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   linux-x86_64:
     name: "Linux x86_64: build + smoke test (gcc-14, current R)"
-    needs: plan
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -167,8 +93,6 @@ jobs:
   ## libR on first use.
   portable-linux-x86_64:
     name: "Portable bundle: Linux x86_64 (glibc 2.28+, no R needed)"
-    needs: plan
-    if: needs.plan.outputs.portable == 'true'
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
     defaults:
@@ -178,15 +102,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: System dependencies
         run: bash ci/deps-manylinux.sh
+      ## MKL is what the upstream Linux x86_64 builds link, statically.
+      - name: Install Intel MKL
+        run: bash ci/deps-mkl.sh
       - name: Use https for git clones
         run: git config --global url."https://github.com/".insteadOf "git@github.com:"
-      - name: Build (portable, dlopen libR)
+      - name: Build (portable, static MKL, dlopen libR)
         run: |
           ## The container's newer gcc-toolset, when present (EL8 base gcc
           ## is 8.5).
           for e in /opt/rh/gcc-toolset-*/enable; do [ -f "$e" ] && source "$e" && break; done
           gcc --version | head -1
-          if ! WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
+          if ! BLAS=mkl WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -211,8 +138,6 @@ jobs:
   ## so it stays a build-it-yourself option rather than an artifact.
   portable-linux-arm64:
     name: "Portable bundle: Linux arm64 (glibc 2.28+, no R needed)"
-    needs: plan
-    if: needs.plan.outputs.portable == 'true'
     runs-on: ubuntu-24.04-arm
     container: quay.io/pypa/manylinux_2_28_aarch64
     defaults:
@@ -250,14 +175,10 @@ jobs:
   ## the backend the upstream Arm builds use, and one the sources have
   ## dedicated code paths for (INLA_WITH_ARMPL). ARMPL travels inside the
   ## bundle like every other library, so the artifact stays self-contained.
-  ## Experimental: the ARMPL download is an external moving part.
   portable-linux-arm64-armpl:
-    name: "Portable bundle: Linux arm64 with ARMPL (experimental)"
-    needs: plan
-    if: needs.plan.outputs.portable == 'true'
+    name: "Portable bundle: Linux arm64 with ARMPL"
     runs-on: ubuntu-24.04-arm
     container: quay.io/pypa/manylinux_2_28_aarch64
-    continue-on-error: true
     defaults:
       run:
         shell: bash
@@ -377,7 +298,6 @@ jobs:
     name: "Portable arm64+ARMPL runs a model on ${{ matrix.distro }}"
     needs: [linux-x86_64, portable-linux-arm64-armpl]
     runs-on: ubuntu-24.04-arm
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -415,9 +335,7 @@ jobs:
   ## libRblas/libRlapack. Runs the full smoke test since R is present.
   ## Experimental while it stabilizes: cannot fail the workflow.
   macos-arm64:
-    name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, experimental)"
-    needs: plan
-    if: needs.plan.outputs.macos == 'true'
+    name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
     continue-on-error: true
     defaults:
@@ -449,14 +367,50 @@ jobs:
           path: local/bin/inla
           if-no-files-found: error
 
+  ## macOS Intel: the same scripts on the last x86_64 macOS runner image.
+  ## BLAS is the Accelerate framework, matching the upstream Intel recipe
+  ## (gmrflib/simd.c has Accelerate-specific paths). Experimental while it
+  ## stabilizes.
+  macos-intel:
+    name: "macOS Intel: build + smoke test (Accelerate)"
+    runs-on: macos-15-intel
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      - name: System dependencies
+        run: bash ci/deps-macos.sh
+      - name: Build
+        run: |
+          if ! bash ci/build-macos.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|Undefined symbols|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          grep -m1 "^BLAS:" build.log || true
+          tail -3 build.log
+      - name: Smoke test
+        run: bash ci/smoke-test.sh
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-macos-x86_64
+          path: local/bin/inla
+          if-no-files-found: error
+
   ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
   ## following the upstream Windows build recipe (Windows R's own
   ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).
   ## Experimental while it stabilizes: cannot fail the workflow.
   windows-x86_64:
-    name: "Windows x86_64: cross-build inla.exe (MinGW UCRT, experimental)"
-    needs: plan
-    if: needs.plan.outputs.windows == 'true'
+    name: "Windows x86_64: cross-build inla.exe (MinGW UCRT)"
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true
@@ -490,7 +444,7 @@ jobs:
   ## Prove the exe on real Windows: install R (for R.dll and the realistic
   ## user environment), run ping and the same test model as every other lane.
   run-windows:
-    name: "Windows runs a model with installed R (experimental)"
+    name: "Windows runs a model with installed R"
     needs: [linux-x86_64, windows-x86_64]
     runs-on: windows-latest
     continue-on-error: true
@@ -530,9 +484,7 @@ jobs:
   ## job is slower. continue-on-error: a failure warns without blocking the
   ## gate -- new-compiler breakage is an early warning, not a stop sign.
   canary-newest-gcc:
-    name: "Canary: newest GCC on Fedora (non-blocking)"
-    needs: plan
-    if: needs.plan.outputs.canary == 'true'
+    name: "Canary: newest GCC on Fedora"
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true

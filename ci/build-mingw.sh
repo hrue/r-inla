@@ -84,6 +84,23 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## Link model follows the upstream Windows recipe: whole-archive externals,
 ## Windows R's own R.dll/Rblas/Rlapack, static Rmath/gsl/metis/muparser,
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
+## R linkage: 1 links R.dll at build time (what upstream ships), 2 loads
+## the running machine's R through libltdl on first rgeneric use.
+WITH_LIBR=${WITH_LIBR:-1}
+if [ "$WITH_LIBR" = 2 ]; then
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    RLIB_LIB=""
+else
+    RLIB_INC="-DINLA_WITH_LIBR -I$RWIN/include"
+    RLIB_LIB="$RWIN/bin/x64/R.dll"
+fi
+echo "== R linkage: WITH_LIBR=$WITH_LIBR =="
+
+## METIS 5.2 split its support routines into GKlib; it must follow libmetis
+## on the link line.
+GKLIB=""
+[ -f "$DEPS/lib/libGKlib.a" ] && GKLIB="$DEPS/lib/libGKlib.a"
+
 EXTOBJ=$(echo "$EPATH"/lib*.a)
 LTDL=$(ls "$DEPS"/lib/libltdl.dll.a "$SYSROOT"/mingw/lib/libltdl.dll.a \
           "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
@@ -93,12 +110,12 @@ DL=$(ls "$SYSROOT"/mingw/lib/libdl.dll.a "$SYSROOT2"/mingw/lib/libdl.dll.a \
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
-     RLIB_INC="-DINLA_WITH_LIBR -I$RWIN/include" \
-     RLIB_LIB="$RWIN/bin/x64/R.dll" \
+     RLIB_INC="$RLIB_INC" \
+     RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -static-libstdc++ -static-libgcc \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a \
-               $DEPS/lib/libmetis.a $DEPS/lib/libmuparser.a \
+               $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
                $LTDL $DL \
                -lgfortran -lquadmath -lcrypto -lz \
