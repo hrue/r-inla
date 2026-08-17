@@ -53,52 +53,27 @@ FLAGS="$FLAGS -I$PREFIX/include.boot"
 ## a published release, so no sTiles source is involved. It has to be
 ## resolved here, before GMRFLib is built: smtp-stiles.c is part of GMRFLib.
 ##
-## The Windows asset ships an import library (libstiles.dll.a) beside the
-## DLL, so this links the ordinary way. The DLL itself, and the runtime it
-## brings, are picked up by the bundling step further down.
+## The DLL and the runtime it brings are picked up by the bundling step
+## further down.
 WITH_STILES=${WITH_STILES:-0}
 STILES_LIBS=""
 STILES_DIR=${STILES_DIR:-$PREFIX/stiles}
 if [ "$WITH_STILES" = 1 ]; then
     [ -f "$STILES_DIR/include/stiles.h" ] \
         || { echo "ERROR: no stiles.h under $STILES_DIR (run ci/fetch-stiles.sh)"; exit 1; }
-    IMP=$(ls "$STILES_DIR"/lib/libstiles.dll.a 2>/dev/null | head -1 || true)
-    [ -n "$IMP" ] \
-        || { echo "ERROR: the Windows libstiles asset has no import library (libstiles.dll.a)"; exit 1; }
-    echo "== sTiles: $STILES_DIR =="
-    ## The released import library types every function as DATA -- a PE
-    ## --version-script on the DLL link breaks --out-implib's code/data
-    ## classification -- so ld links calls without thunks and leaves
-    ## 32-bit runtime pseudo-relocations, the exact startup crash the
-    ## pseudo-reloc gate below forbids. Regenerate a correctly-typed
-    ## implib from the import names: .def exports are CODE by default,
-    ## and every symbol in this API is a function.
-    DLLTOOL=$(command -v $TRIPLET-dlltool || command -v x86_64-w64-mingw32-dlltool || true)
-    NMT=$(command -v $TRIPLET-nm || command -v x86_64-w64-mingw32-nm || true)
-    [ -n "$DLLTOOL" ] && [ -n "$NMT" ] \
-        || { echo "ERROR: dlltool/nm not found; cannot regenerate the sTiles implib"; exit 1; }
-    { echo "LIBRARY libstiles.dll"; echo "EXPORTS";
-      "$NMT" "$IMP" | awk '/ I __imp_/{sub("__imp_","",$3); print "  " $3}' | sort -u; } \
-        > "$STILES_DIR/lib/stiles.def"
-    ## -m pinned: a multi-target dlltool defaulting to i386 would prefix
-    ## every symbol with an underscore and produce a useless implib.
-    "$DLLTOOL" -m i386:x86-64 --input-def "$STILES_DIR/lib/stiles.def" --dllname libstiles.dll \
-               --output-lib "$STILES_DIR/lib/libstiles_thunked.dll.a"
-    "$NMT" "$STILES_DIR/lib/libstiles_thunked.dll.a" | grep -q " T sTiles_init" \
-        || { echo "ERROR: regenerated implib still carries no code thunks"
-             echo "-- tools: NMT=$NMT DLLTOOL=$DLLTOOL"
-             echo "-- stiles.def ($(wc -l < "$STILES_DIR/lib/stiles.def") lines), head:"
-             head -6 "$STILES_DIR/lib/stiles.def"
-             echo "-- nm of the fetched implib (head):"
-             "$NMT" "$IMP" 2>&1 | head -8
-             echo "-- nm of the regenerated implib (head):"
-             "$NMT" "$STILES_DIR/lib/libstiles_thunked.dll.a" 2>&1 | head -8
-             exit 1; }
-    IMP="$STILES_DIR/lib/libstiles_thunked.dll.a"
-    echo "   implib regenerated with code thunks ($(grep -c '^  ' "$STILES_DIR/lib/stiles.def") exports)"
+    ## Link against the DLL ITSELF, exactly as Rblas.dll/Rlapack.dll are
+    ## linked below. The shipped import library (.dll.a) types every
+    ## function as DATA (a PE --version-script on the DLL link breaks
+    ## --out-implib's classification), so using it leaves the exe full of
+    ## 32-bit runtime pseudo-relocations that crash at startup under ASLR.
+    ## ld reading the DLL's own export table sees the symbols in .text and
+    ## synthesizes correct thunks -- verified: the pseudo-reloc list is
+    ## empty, with and without LTO.
+    [ -f "$STILES_DIR/lib/libstiles.dll" ] \
+        || { echo "ERROR: no libstiles.dll under $STILES_DIR/lib"; exit 1; }
     ## -ltileindexer is NOT needed: released libraries carry it inside.
     FLAGS="$FLAGS -DINLA_WITH_STILES -I$STILES_DIR/include"
-    STILES_LIBS="$IMP"
+    STILES_LIBS="$STILES_DIR/lib/libstiles.dll"
 fi
 
 ## ---- 1. External model packages --------------------------------------------
