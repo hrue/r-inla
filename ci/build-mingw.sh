@@ -154,10 +154,32 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
                $LTDL $DL $STILES_LIBS \
                -lgfortran -lquadmath -lcrypto -lz \
-               -Wl,--enable-auto-import -lpthread -lm" \
+               -lpthread -lm" \
      EXTLIBS3="-lm" \
      inla
 [ -f "$ROOT/inlaprog/inla.exe" ] || { echo "ERROR: inla.exe was not produced"; exit 1; }
+
+## No 32-bit pseudo-relocations may survive in the exe. They are created
+## when code references DATA from a DLL without dllimport: the linker
+## leaves a 32-bit slot the mingw runtime patches at startup, and with
+## today's high-entropy ASLR the target lands beyond +-2GB often enough
+## that the exe dies with "32 bit pseudo relocation ... out of range"
+## before main() -- which is exactly how the first sTiles-linked build
+## failed on a real Windows runner. --enable-auto-import was dropped from
+## the link above so ld now WARNS per auto-imported symbol; this check
+## makes the warnings fatal and names the culprits. (Read before strip:
+## the list symbols are gone afterwards.)
+PSTART=$($TRIPLET-nm "$ROOT/inlaprog/inla.exe" 2>/dev/null | awk '/ __RUNTIME_PSEUDO_RELOC_LIST__$/{print $1}')
+PEND=$($TRIPLET-nm "$ROOT/inlaprog/inla.exe" 2>/dev/null | awk '/ __RUNTIME_PSEUDO_RELOC_LIST_END__$/{print $1}')
+if [ -n "$PSTART" ] && [ "$PSTART" != "$PEND" ]; then
+    echo "ERROR: the exe carries runtime pseudo-relocations (data auto-imports)."
+    echo "       These crash at startup whenever ASLR places the DLL out of"
+    echo "       32-bit range. The symbols involved (from the linker):"
+    grep -iE "auto-import|pseudo" "$ROOT"/inlaprog/*.log 2>/dev/null || true
+    exit 1
+fi
+echo "== pseudo-relocation check: clean =="
+
 $TRIPLET-strip "$ROOT/inlaprog/inla.exe" 2>/dev/null || mingw-strip "$ROOT/inlaprog/inla.exe" || true
 cp -f "$ROOT/inlaprog/inla.exe" "$PREFIX/bin/"
 
