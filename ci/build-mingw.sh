@@ -35,7 +35,7 @@ esac
 [ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
 echo "== optimization: OPT=$OPT LTO=$LTO =="
 
-FLAGS="$OPTFLAGS -mtune=generic -pipe \
+FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
