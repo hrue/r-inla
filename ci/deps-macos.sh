@@ -28,19 +28,33 @@ fi
 ## Arm Performance Libraries: the BLAS/LAPACK the upstream macOS binaries
 ## use. Installed from Arm's public download; if the URL has moved (version
 ## bumps), the build falls back to R's own Rblas/Rlapack automatically.
+## Apple Silicon only: Intel Macs use the Accelerate framework instead.
 ARMPL_VERSION=${ARMPL_VERSION:-26.07}
-if ! ls -d /opt/arm/armpl_* >/dev/null 2>&1; then
+if [ "$(uname -m)" = arm64 ] && ! ls -d /opt/arm/armpl_* >/dev/null 2>&1; then
     URL=${ARMPL_URL:-https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_macOS.tgz}
     if curl -sfL -o /tmp/armpl.tgz "$URL"; then
         mkdir -p /tmp/armpl && tar xzf /tmp/armpl.tgz -C /tmp/armpl
-        PKG=$(find /tmp/armpl -name '*.pkg' 2>/dev/null | head -1)
-        DIR=$(find /tmp/armpl -maxdepth 2 -type d -name 'armpl_*' 2>/dev/null | head -1)
-        if [ -n "$PKG" ]; then
-            sudo installer -pkg "$PKG" -target /
-        elif [ -n "$DIR" ]; then
-            sudo mkdir -p /opt/arm && sudo cp -R "$DIR" /opt/arm/
+        ## The archive wraps a disk image containing the installer package.
+        DMG=$(find /tmp/armpl -name '*.dmg' 2>/dev/null | head -1)
+        if [ -n "$DMG" ]; then
+            hdiutil attach -quiet -nobrowse -mountpoint /Volumes/armpl "$DMG"
+            PKG=$(find /Volumes/armpl -name '*.pkg' -maxdepth 3 2>/dev/null | head -1)
+            if [ -n "$PKG" ]; then
+                sudo installer -pkg "$PKG" -target /
+            else
+                echo "WARNING: no package inside the ARMPL disk image:"; ls -R /Volumes/armpl | head -20
+            fi
+            hdiutil detach -quiet /Volumes/armpl || true
         else
-            echo "WARNING: unrecognised ARMPL archive layout:"; ls -R /tmp/armpl | head -20
+            PKG=$(find /tmp/armpl -name '*.pkg' 2>/dev/null | head -1)
+            DIR=$(find /tmp/armpl -maxdepth 2 -type d -name 'armpl_*' 2>/dev/null | head -1)
+            if [ -n "$PKG" ]; then
+                sudo installer -pkg "$PKG" -target /
+            elif [ -n "$DIR" ]; then
+                sudo mkdir -p /opt/arm && sudo cp -R "$DIR" /opt/arm/
+            else
+                echo "WARNING: unrecognised ARMPL archive layout:"; ls -R /tmp/armpl | head -20
+            fi
         fi
     else
         echo "WARNING: ARMPL ${ARMPL_VERSION} download failed; the build will use R's Rblas/Rlapack"
@@ -77,10 +91,14 @@ EOF
     ## standalone build does. The installed framework header is written for
     ## use from inside R and does not declare everything the standalone
     ## library provides (lbeta, the M_LN_SQRT_* constants).
+    ## configure generates Rmath.h0 from Rmath.h0.in, and a source tarball
+    ## carries only the template, so accept either.
+    TPL=$(ls /tmp/R-src/src/include/Rmath.h0 /tmp/R-src/src/include/Rmath.h0.in 2>/dev/null | head -1 || true)
+    [ -n "$TPL" ] || { echo "ERROR: no Rmath.h0 template in the R sources"; exit 1; }
     sed -e "s/@PACKAGE_VERSION@/$RVER/g" \
         -e 's|^#undef MATHLIB_STANDALONE|#define MATHLIB_STANDALONE 1|' \
         -e 's|^/\* #undef MATHLIB_STANDALONE \*/|#define MATHLIB_STANDALONE 1|' \
-        /tmp/R-src/src/include/Rmath.h0 > "$DEPS/include/Rmath.h"
+        "$TPL" > "$DEPS/include/Rmath.h"
     if grep -q '@[A-Z_]*@' "$DEPS/include/Rmath.h"; then
         echo "WARNING: unsubstituted tokens left in the generated Rmath.h:"
         grep -o '@[A-Z_]*@' "$DEPS/include/Rmath.h" | sort -u
