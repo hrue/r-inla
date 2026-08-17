@@ -66,6 +66,26 @@ if [ "$WITH_STILES" = 1 ]; then
     [ -n "$IMP" ] \
         || { echo "ERROR: the Windows libstiles asset has no import library (libstiles.dll.a)"; exit 1; }
     echo "== sTiles: $STILES_DIR =="
+    ## The released import library types every function as DATA -- a PE
+    ## --version-script on the DLL link breaks --out-implib's code/data
+    ## classification -- so ld links calls without thunks and leaves
+    ## 32-bit runtime pseudo-relocations, the exact startup crash the
+    ## pseudo-reloc gate below forbids. Regenerate a correctly-typed
+    ## implib from the import names: .def exports are CODE by default,
+    ## and every symbol in this API is a function.
+    DLLTOOL=$(command -v $TRIPLET-dlltool || command -v x86_64-w64-mingw32-dlltool || true)
+    NMT=$(command -v $TRIPLET-nm || command -v x86_64-w64-mingw32-nm || true)
+    [ -n "$DLLTOOL" ] && [ -n "$NMT" ] \
+        || { echo "ERROR: dlltool/nm not found; cannot regenerate the sTiles implib"; exit 1; }
+    { echo "LIBRARY libstiles.dll"; echo "EXPORTS";
+      "$NMT" "$IMP" | awk '/ I __imp_/{sub("__imp_","",$3); print "  " $3}' | sort -u; } \
+        > "$STILES_DIR/lib/stiles.def"
+    "$DLLTOOL" --input-def "$STILES_DIR/lib/stiles.def" --dllname libstiles.dll \
+               --output-lib "$STILES_DIR/lib/libstiles_thunked.dll.a"
+    "$NMT" "$STILES_DIR/lib/libstiles_thunked.dll.a" | grep -q " T sTiles_init" \
+        || { echo "ERROR: regenerated implib still carries no code thunks"; exit 1; }
+    IMP="$STILES_DIR/lib/libstiles_thunked.dll.a"
+    echo "   implib regenerated with code thunks ($(grep -c '^  ' "$STILES_DIR/lib/stiles.def") exports)"
     ## -ltileindexer is NOT needed: released libraries carry it inside.
     FLAGS="$FLAGS -DINLA_WITH_STILES -I$STILES_DIR/include"
     STILES_LIBS="$IMP"
