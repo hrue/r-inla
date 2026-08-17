@@ -247,6 +247,41 @@ jobs:
           tail -3 run.log
           echo "OK: full model ran on ${{ matrix.distro }} (arm64)"
 
+  ## macOS Apple Silicon: Homebrew GCC (the upstream macOS builds also use
+  ## GCC, not clang), official CRAN R framework, BLAS/LAPACK from R's own
+  ## libRblas/libRlapack. Runs the full smoke test since R is present.
+  ## Experimental while it stabilizes: cannot fail the workflow.
+  macos-arm64:
+    name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, experimental)"
+    runs-on: macos-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        run: bash ci/deps-macos.sh
+      - name: Build
+        run: |
+          if ! bash ci/build-macos.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|Undefined symbols|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Smoke test
+        run: bash ci/smoke-test.sh
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-macos-arm64
+          path: local/bin/inla
+          if-no-files-found: error
+
   ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
   ## following the upstream Windows build recipe (Windows R's own
   ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).

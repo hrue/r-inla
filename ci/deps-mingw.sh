@@ -46,6 +46,13 @@ if [ ! -f "$DEPS/lib/libRmath.a" ]; then
     wget -q "https://cran.r-project.org/src/base/R-4/$R_SRC" -O /tmp/R-src.tar.gz
     mkdir -p /tmp/R-src && tar xzf /tmp/R-src.tar.gz -C /tmp/R-src --strip-components=1
     ( cd /tmp/R-src/src/nmath
+      ## minimal configuration header the sources expect from configure
+      cat > config.h <<'EOF'
+#define HAVE_EXPM1 1
+#define HAVE_HYPOT 1
+#define HAVE_LOG1P 1
+#define HAVE_WORKING_LOG1P 1
+EOF
       for f in *.c standalone/std_unif.c; do
           $MINGW_CC -O2 -DMATHLIB_STANDALONE \
               -I. -I"$DEPS/R-win/include" -c "$f" -o "$(basename "$f" .c).o"
