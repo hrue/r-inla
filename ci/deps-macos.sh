@@ -115,3 +115,23 @@ if [ ! -f "$DEPS/lib/libmetis.a" ]; then
 fi
 
 echo "OK: macOS deps ready (brew + CRAN R + $DEPS)"
+
+## Serial, locking-safe OpenBLAS for the Intel lane (arm64 uses ARMPL).
+## Accelerate's threading cannot be controlled reliably, which breaks
+## INLA's nested parallelism; this build never threads itself. Same
+## recipe as the sTiles Intel lane, so both sides of the pairing sit on
+## the same BLAS behavior.
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+if [ "$(uname -m)" = x86_64 ] && [ ! -f "$ROOT/local/openblas/lib/libopenblas.dylib" ]; then
+    for attempt in 1 2 3; do
+        git clone --depth 1 --branch v0.3.29 \
+            https://github.com/OpenMathLib/OpenBLAS.git /tmp/openblas-src && break
+        echo "OpenBLAS clone failed (attempt $attempt/3), retrying"; sleep $((attempt*20)); rm -rf /tmp/openblas-src
+    done
+    make -C /tmp/openblas-src -j3 TARGET=HASWELL \
+        USE_THREAD=0 USE_OPENMP=0 USE_LOCKING=1 \
+        libs netlib shared > /tmp/ob.log 2>&1 || { tail -30 /tmp/ob.log; exit 1; }
+    touch /tmp/openblas-src/lib.grd
+    make -C /tmp/openblas-src install PREFIX="$ROOT/local/openblas" >> /tmp/ob.log 2>&1
+    ls -l "$ROOT/local/openblas/lib/"libopenblas*.dylib
+fi
