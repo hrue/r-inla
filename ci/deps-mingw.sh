@@ -77,6 +77,17 @@ EOF
               -I. -I"$DEPS/R-win/include" -c "$f" -o "$(basename "$f" .c).o"
       done
       $TRIPLET-ar rcs "$DEPS/lib/libRmath.a" ./*.o )
+
+    ## The matching header, generated from R's own template as the
+    ## standalone build does (the shipped header is written for use from
+    ## inside R and omits part of the standalone API).
+    RVER=$(echo "$R_SRC" | sed -e 's/^R-//' -e 's/\.tar\.gz$//')
+    sed -e "s/@PACKAGE_VERSION@/$RVER/g" \
+        -e 's|^#undef MATHLIB_STANDALONE|#define MATHLIB_STANDALONE 1|' \
+        -e 's|^/\* #undef MATHLIB_STANDALONE \*/|#define MATHLIB_STANDALONE 1|' \
+        /tmp/R-src/src/include/Rmath.h0 > "$DEPS/include/Rmath.h"
+    grep -q 'double.*lbeta' "$DEPS/include/Rmath.h" \
+        || { echo "ERROR: generated Rmath.h lacks lbeta"; exit 1; }
 fi
 
 ## ---- dlfcn-win32: the Windows port of dlfcn.h, which the external model

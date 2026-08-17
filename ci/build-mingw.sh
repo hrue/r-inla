@@ -84,11 +84,16 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## Link model follows the upstream Windows recipe: whole-archive externals,
 ## Windows R's own R.dll/Rblas/Rlapack, static Rmath/gsl/metis/muparser,
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
+## libgslcblas is needed here although Linux and macOS get by without it:
+## OpenBLAS, MKL and Accelerate all export the cblas_* interface GSL calls,
+## while R's Rblas is Fortran-only.
 ## R linkage: 1 links R.dll at build time (what upstream ships), 2 loads
 ## the running machine's R through libltdl on first rgeneric use.
 WITH_LIBR=${WITH_LIBR:-1}
 if [ "$WITH_LIBR" = 2 ]; then
-    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    ## The R include path stays: R.dll is not linked, but rmath.h still
+    ## includes <Rmath.h> for the standalone math library.
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN -I$RWIN/include"
     RLIB_LIB=""
 else
     RLIB_INC="-DINLA_WITH_LIBR -I$RWIN/include"
@@ -114,7 +119,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -static-libstdc++ -static-libgcc \
-               $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a \
+               $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
                $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
                $LTDL $DL \

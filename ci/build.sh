@@ -20,6 +20,15 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PREFIX=${PREFIX:-$ROOT/local}
 WITH_LIBR=${WITH_LIBR:-1}
 JOBS=${JOBS:-$(nproc)}
+## Compilers: the newest versioned GCC installed, else the default one.
+## (A container that puts its own gcc first -- the manylinux gcc-toolset,
+## for instance -- keeps winning, since no gcc-N binaries exist there.)
+newest_gcc() {
+    ls /usr/bin/"$1"-1[0-9] 2>/dev/null | sort -V | tail -1 || true
+}
+CC=${CC:-$(newest_gcc gcc)}
+CXX=${CXX:-$(newest_gcc g++)}
+FC=${FC:-$(newest_gcc gfortran)}
 CC=${CC:-gcc}
 CXX=${CXX:-g++}
 FC=${FC:-gfortran}
@@ -120,7 +129,9 @@ if [ "$WITH_LIBR" = 1 ]; then
     RLIB_INC="-DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include"
     RLIB_LIB="-lRmath -L$R_HOME_DIR/lib -lR"
 elif [ "$WITH_LIBR" = 2 ]; then
-    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    ## The R include path stays: libR is not linked, but rmath.h still
+    ## includes <Rmath.h> for the standalone math library.
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN -I/usr/include/R -I/usr/share/R/include"
     RLIB_LIB="-lRmath"
 else
     RLIB_INC=""

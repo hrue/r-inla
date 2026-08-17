@@ -60,7 +60,9 @@ FLAGS="$FLAGS -I$PREFIX/include.boot"
 ## not that one.
 WITH_LIBR=${WITH_LIBR:-1}
 if [ "$WITH_LIBR" = 2 ]; then
-    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    ## The R include path stays: libR is not linked, but rmath.h still
+    ## includes <Rmath.h> for the standalone math library.
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN -I$RHOME/include"
     RLIB_LIB="-L$DEPS/lib -lRmath"
 else
     RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include"
@@ -72,11 +74,20 @@ echo "== R linkage: WITH_LIBR=$WITH_LIBR =="
 ## Apple Silicon uses ARMPL, Intel uses the Accelerate framework (which
 ## has its own code paths in gmrflib/simd.c). Either falls back to R's own
 ## Rblas/Rlapack when the preferred backend is unavailable.
+STATIC_BLAS=${STATIC_BLAS:-1}
 ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
 if [ "$ARCH" = arm64 ] && [ -n "$ARMPL_DIR" ]; then
-    echo "BLAS: ARMPL at $ARMPL_DIR"
     FLAGS="$FLAGS -DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
-    BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
+    ARMPL_A=$(ls "$ARMPL_DIR"/lib/libarmpl_lp64.a "$ARMPL_DIR"/lib/libarmpl.a 2>/dev/null | head -1 || true)
+    if [ "$STATIC_BLAS" = 1 ] && [ -n "$ARMPL_A" ]; then
+        echo "BLAS: ARMPL (static, embedded) $ARMPL_A"
+        AMATH=$(ls "$ARMPL_DIR"/lib/libamath.a 2>/dev/null | head -1 || echo -lamath)
+        ASTR=$(ls "$ARMPL_DIR"/lib/libastring.a 2>/dev/null | head -1 || echo -lastring)
+        BLASLIBS="$ARMPL_A $AMATH $ASTR -L$ARMPL_DIR/lib"
+    else
+        echo "BLAS: ARMPL (shared) at $ARMPL_DIR"
+        BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
+    fi
 elif [ "$ARCH" = x86_64 ]; then
     echo "BLAS: Accelerate framework"
     FLAGS="$FLAGS -DINLA_WITH_FRAMEWORK_ACCELERATE"
