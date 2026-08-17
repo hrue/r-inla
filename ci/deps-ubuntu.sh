@@ -43,9 +43,19 @@ $SUDO apt-get install -y --no-install-recommends \
     libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
     libnuma-dev libhwloc-dev libltdl-dev
 
-## The pinned newer toolchain for the primary CI job. Ubuntu-archive only:
-## other systems (e.g. the gcc:latest canary container) use their own
-## default compiler.
+## Newest usable GCC. Ubuntu freezes its archive at release time (24.04
+## stops at 14), while the toolchain PPA carries the newer series; take
+## whichever is available, newest first. ci/build.sh then picks the highest
+## gcc-N it finds, so nothing needs pinning anywhere else.
 if [ "${ID:-}" = "ubuntu" ]; then
-    $SUDO apt-get install -y --no-install-recommends gcc-14 g++-14 gfortran-14
+    $SUDO apt-get install -y --no-install-recommends software-properties-common
+    $SUDO add-apt-repository -y ppa:ubuntu-toolchain-r/test 2>/dev/null || true
+    $SUDO apt-get update || true
+    for v in 16 15 14; do
+        if $SUDO apt-get install -y --no-install-recommends \
+               "gcc-$v" "g++-$v" "gfortran-$v" 2>/dev/null; then
+            echo "toolchain: gcc-$v"
+            break
+        fi
+    done
 fi

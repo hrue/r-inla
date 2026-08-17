@@ -7,7 +7,8 @@ set -e
 
 ## gnu-sed: gmrflib's dependency-file rule uses GNU sed syntax, which BSD
 ## sed silently mangles into an unparsable .d file.
-brew install gcc gsl muparser eigen simde libtool openssl@3 cmake gnu-sed 2>/dev/null || true
+## dylibbundler makes the built binary self-contained (ci/package-macos.sh).
+brew install gcc gsl muparser eigen simde libtool openssl@3 cmake gnu-sed dylibbundler 2>/dev/null || true
 
 ## Official CRAN R for Apple Silicon (the user-realistic install).
 if [ ! -d /Library/Frameworks/R.framework ]; then
@@ -71,8 +72,23 @@ EOF
                  -c "$f" -o "$(basename "$f" .c).o"
       done
       ar rcs "$DEPS/lib/libRmath.a" ./*.o )
+
+    ## The matching header, generated from R's own template the way the
+    ## standalone build does. The installed framework header is written for
+    ## use from inside R and does not declare everything the standalone
+    ## library provides (lbeta, the M_LN_SQRT_* constants).
+    sed -e "s/@PACKAGE_VERSION@/$RVER/g" \
+        -e 's|^#undef MATHLIB_STANDALONE|#define MATHLIB_STANDALONE 1|' \
+        -e 's|^/\* #undef MATHLIB_STANDALONE \*/|#define MATHLIB_STANDALONE 1|' \
+        /tmp/R-src/src/include/Rmath.h0 > "$DEPS/include/Rmath.h"
+    if grep -q '@[A-Z_]*@' "$DEPS/include/Rmath.h"; then
+        echo "WARNING: unsubstituted tokens left in the generated Rmath.h:"
+        grep -o '@[A-Z_]*@' "$DEPS/include/Rmath.h" | sort -u
+    fi
 fi
 [ -f "$DEPS/lib/libRmath.a" ] || { echo "ERROR: standalone Rmath was not built"; exit 1; }
+[ -f "$DEPS/include/Rmath.h" ] || { echo "ERROR: standalone Rmath.h was not generated"; exit 1; }
+grep -q 'double.*lbeta' "$DEPS/include/Rmath.h" || { echo "ERROR: generated Rmath.h lacks lbeta"; exit 1; }
 
 if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     ## The scivision mirror carries a modern cmake build that also handles

@@ -47,6 +47,18 @@ if ! dnf -y install muParser-devel 2>/dev/null \
     ldconfig
 fi
 
+## Newest gcc-toolset available. These are recent GCCs that target the
+## container's own glibc, so the binary keeps its low glibc floor while
+## being compiled by a modern compiler. The image ships one already; take
+## a newer one when the repositories offer it.
+for v in 17 16 15 14; do
+    if dnf -y install "gcc-toolset-$v" "gcc-toolset-$v-gcc-c++" \
+                      "gcc-toolset-$v-gcc-gfortran" 2>/dev/null; then
+        echo "toolchain: gcc-toolset-$v"
+        break
+    fi
+done
+
 ## Static archives for the libraries that get embedded into the binary.
 dnf -y install openblas-static 2>/dev/null || true
 
