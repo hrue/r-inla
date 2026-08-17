@@ -40,8 +40,14 @@ fi
 echo "== fetching $STILES_ASSET from $STILES_REPO ($STILES_TAG) =="
 rm -rf "$DEST" /tmp/stiles-dl
 mkdir -p "$DEST/lib" "$DEST/include" /tmp/stiles-dl
-curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip "$URL" \
+EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
+                 -w '%{url_effective}' "$URL") \
     || { echo "ERROR: cannot download $URL"; exit 1; }
+## Record which release "latest" resolved to (the redirect names the tag);
+## the release notes table reads this.
+RELTAG=$(echo "$EFFECTIVE" | grep -oE '/download/[^/]+/' | sed 's|/download/||; s|/||')
+echo "${RELTAG:-$STILES_TAG}" > "$DEST/RELEASE"
+echo "  release: $(cat "$DEST/RELEASE")"
 ## unzip is not in every container image this runs in (the manylinux ones
 ## ship neither unzip nor bsdtar), so fall back to python's zipfile rather
 ## than adding a package to four different dependency scripts.
