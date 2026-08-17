@@ -85,7 +85,16 @@ STATIC_BLAS=${STATIC_BLAS:-1}
 ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
 if [ "$ARCH" = arm64 ] && [ -n "$ARMPL_DIR" ]; then
     FLAGS="$FLAGS -DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
-    ARMPL_A=$(ls "$ARMPL_DIR"/lib/libarmpl_lp64.a "$ARMPL_DIR"/lib/libarmpl.a 2>/dev/null | head -1 || true)
+    ## ARMPL's macOS build is flang-based: its static Fortran objects
+    ## reference the flang runtime, which a GCC/gfortran link cannot supply
+    ## (ilaenv_ and friends stay undefined), and they are compiled for macOS
+    ## 13.0, which would silently raise this artifact's 11.0 floor. The
+    ## dylib carries its own runtime, so ARMPL is linked dynamically here and
+    ## ci/package-macos.sh copies it into the bundle: self-contained either
+    ## way. On Linux the _gcc build is used and does embed (STATIC_BLAS=1).
+    ARMPL_A=""
+    [ "${ARMPL_MACOS_STATIC:-0}" = 1 ] && \
+        ARMPL_A=$(ls "$ARMPL_DIR"/lib/libarmpl_lp64.a "$ARMPL_DIR"/lib/libarmpl.a 2>/dev/null | head -1 || true)
     if [ "$STATIC_BLAS" = 1 ] && [ -n "$ARMPL_A" ]; then
         echo "BLAS: ARMPL (static, embedded) $ARMPL_A"
         AMATH=$(ls "$ARMPL_DIR"/lib/libamath.a 2>/dev/null | head -1 || echo -lamath)

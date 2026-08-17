@@ -120,7 +120,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -static-libstdc++ -static-libgcc \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
-               $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.a \
+               $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.dll.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
                $LTDL $DL \
                -lgfortran -lquadmath -lcrypto -lz \
