@@ -547,8 +547,12 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Fetch libstiles
+        ## PREFIX must match build-mingw.sh, whose prefix is local-win, not
+        ## the local/ every other lane uses -- without it the fetch stages
+        ## into a directory the Windows build never looks at.
         env:
           STILES_ASSET: libstiles-windows-x86_64.zip
+          PREFIX: ${{ github.workspace }}/local-win
         run: bash ci/fetch-stiles.sh
       - name: Cross-build inla.exe
         ## WITH_LIBR=2: R.dll is not linked; rgeneric loads the running
