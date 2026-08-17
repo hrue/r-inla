@@ -11,6 +11,7 @@
 ##   WITH_LIBR   1 = embed R, enables rgeneric      default: 1
 ##   JOBS        parallel compile jobs              default: nproc
 ##   CC/CXX/FC   compilers                          default: gcc/g++/gfortran
+##   BLAS        openblas | armpl                   default: openblas
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -20,6 +21,7 @@ JOBS=${JOBS:-$(nproc)}
 CC=${CC:-gcc}
 CXX=${CXX:-g++}
 FC=${FC:-gfortran}
+BLAS=${BLAS:-openblas}
 EPATH=$ROOT/external-packages
 
 ## Version string compiled into the binary (shown by inla -V and inla -ping);
@@ -27,6 +29,23 @@ EPATH=$ROOT/external-packages
 TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
 
 echo "== building $TAG with CC=$CC CXX=$CXX FC=$FC ($($CC --version | head -1)) =="
+
+## BLAS/LAPACK. ARMPL is not only a faster backend on Arm: the sources have
+## dedicated code paths behind INLA_WITH_ARMPL (dot products, idxval,
+## lapack-interface), so the define belongs with the libraries.
+if [ "$BLAS" = armpl ]; then
+    ARMPL_DIR=${ARMPL_DIR:-$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)}
+    [ -n "$ARMPL_DIR" ] || { echo "ERROR: BLAS=armpl but no /opt/arm/armpl_* found"; exit 1; }
+    echo "== BLAS: ARMPL at $ARMPL_DIR =="
+    BLAS_INC="-DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
+    ## No rpath here: ci/package-portable.sh sets $ORIGIN rpaths on the
+    ## staged binary, and a literal $ORIGIN would be mangled by make.
+    BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath -lastring"
+else
+    echo "== BLAS: OpenBLAS =="
+    BLAS_INC=""
+    BLAS_LIBS="-lopenblas"
+fi
 
 ## The devel feature set, minus PARDISO (requires a license; libpardiso.c
 ## provides stubs so the link still closes) and minus MKL (this build links
@@ -37,7 +56,7 @@ FLAGS="-O2 -mtune=generic -ftree-vectorize -funroll-loops -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
- -DGITCOMMIT=$TAG"
+ -DGITCOMMIT=$TAG $BLAS_INC"
 
 ## R linkage, three modes:
 ##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;
@@ -151,7 +170,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
-               -lgsl -lopenblas -lmuparser -lz -lmetis \
+               -lgsl $BLAS_LIBS -lmuparser -lz -lmetis \
                -lnuma -lhwloc -lltdl -lcrypto -lgfortran $QUADMATH -lm -ldl"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \

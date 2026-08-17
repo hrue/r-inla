@@ -84,11 +84,13 @@ for a in "$EPATH"/lib*.a; do
 done
 
 ## ---- 2. GMRFLib (+ vendored taucs/amd) --------------------------------------
-## BSD ar has no 'U' flag; plain rv is deterministic enough here.
+## BSD ar has no 'U' flag; plain rv is deterministic enough here. SED=gsed:
+## the dependency-file rule is written for GNU sed.
+SED=$(command -v gsed || command -v sed)
 make -C "$ROOT/gmrflib" -j"$JOBS" PREFIX="$PREFIX" FLAGS="$FLAGS" \
-     CC="$CC" CXX="$CXX" FC="$FC" ARFLAGS=rv
+     CC="$CC" CXX="$CXX" FC="$FC" ARFLAGS=rv SED="$SED"
 make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
-     CC="$CC" CXX="$CXX" FC="$FC" ARFLAGS=rv install
+     CC="$CC" CXX="$CXX" FC="$FC" ARFLAGS=rv SED="$SED" install
 
 ## ---- 3. inlaprog -> inla -----------------------------------------------------
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \

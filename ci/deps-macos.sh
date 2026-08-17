@@ -5,7 +5,9 @@
 ## reliable Homebrew formula, so it is built static from source.
 set -e
 
-brew install gcc gsl muparser eigen simde libtool openssl@3 cmake 2>/dev/null || true
+## gnu-sed: gmrflib's dependency-file rule uses GNU sed syntax, which BSD
+## sed silently mangles into an unparsable .d file.
+brew install gcc gsl muparser eigen simde libtool openssl@3 cmake gnu-sed 2>/dev/null || true
 
 ## Official CRAN R for Apple Silicon (the user-realistic install).
 if [ ! -d /Library/Frameworks/R.framework ]; then

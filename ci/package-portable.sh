@@ -46,6 +46,12 @@ esac
 ## Prove the bundle runs from its own libraries.
 "$OUT/bin/inla" -ping
 
+## Report the BLAS that actually travels in the bundle -- the one property
+## of the artifact that is invisible from the outside and easy to get wrong.
+echo "== bundled BLAS =="
+ls "$OUT"/lib | grep -iE 'blas|armpl|amath|astring' || echo "  (none found -- check the link)"
+
 ARCH=$(uname -m)
-tar -C "$OUT" -czf "$ROOT/inla-linux-$ARCH-portable.tar.gz" bin lib
-echo "OK: portable bundle $(du -h "$ROOT/inla-linux-$ARCH-portable.tar.gz" | cut -f1)"
+NAME=inla-linux-$ARCH${SUFFIX:+-$SUFFIX}-portable
+tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib
+echo "OK: portable bundle $NAME.tar.gz ($(du -h "$ROOT/$NAME.tar.gz" | cut -f1))"

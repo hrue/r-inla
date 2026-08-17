@@ -63,6 +63,22 @@ EOF
       $TRIPLET-ar rcs "$DEPS/lib/libRmath.a" ./*.o )
 fi
 
+## ---- dlfcn-win32: the Windows port of dlfcn.h, which the external model
+## packages include. Fedora packages it as mingw64-dlfcn/ucrt64-dlfcn; build
+## it from source when neither is available.
+if ! $SUDO dnf -y install ucrt64-dlfcn 2>/dev/null \
+   && ! $SUDO dnf -y install mingw64-dlfcn 2>/dev/null \
+   && [ ! -f "$DEPS/lib/libdl.a" ]; then
+    git clone --depth 1 https://github.com/dlfcn-win32/dlfcn-win32 /tmp/dlfcn
+    cmake -S /tmp/dlfcn -B /tmp/dlfcn/build \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_INSTALL_PREFIX="$DEPS"
+    cmake --build /tmp/dlfcn/build -j"$(nproc)"
+    cmake --install /tmp/dlfcn/build
+fi
+
 ## ---- gsl, metis, muparser: static mingw builds ------------------------------
 if [ ! -f "$DEPS/lib/libgsl.a" ]; then
     GSL=$(wget -qO- https://ftp.gnu.org/gnu/gsl/ | grep -oE 'gsl-2\.[0-9.]+\.tar\.gz' | sort -V | tail -1)

@@ -44,7 +44,7 @@ rm -f "$EPATH"/lib*.a
 ( cd "$EPATH" && ./build \
       CC="$CC" CXX="$CXX" FC="$FC" \
       FLAGS="" \
-      INC="-DINLA_WITH_EXTERNAL_PACKAGES \
+      INC="-DINLA_WITH_EXTERNAL_PACKAGES -I$DEPS/include \
            -I$SYSROOT2/mingw/include/eigen3 -I$SYSROOT/mingw/include/eigen3 \
            -I$RWIN/include -I$EPATH -I$ROOT/inlaprog/src" )
 
@@ -75,6 +75,9 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
 EXTOBJ=$(echo "$EPATH"/lib*.a)
 LTDL=$(ls "$SYSROOT"/mingw/lib/libltdl.dll.a "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
+## dlfcn-win32: from the sysroot when packaged, else the static build in $DEPS
+DL=$(ls "$SYSROOT"/mingw/lib/libdl.dll.a "$SYSROOT2"/mingw/lib/libdl.dll.a \
+        "$DEPS"/lib/libdl.a 2>/dev/null | head -1 || true)
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
@@ -85,7 +88,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a \
                $DEPS/lib/libmetis.a $DEPS/lib/libmuparser.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
-               $LTDL \
+               $LTDL $DL \
                -lgfortran -lquadmath -lcrypto -lz \
                -Wl,--enable-auto-import -lpthread -lm" \
      inla
