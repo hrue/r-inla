@@ -144,7 +144,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -lgsl -lopenblas -lmuparser -lz -lmetis \
-               -lnuma -lhwloc -lltdl -lcrypto -lgfortran -lquadmath -lm -ldl"
+               -lnuma -lhwloc -lltdl -lcrypto -lgfortran -lquadmath -lm"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
