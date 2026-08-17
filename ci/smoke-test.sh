@@ -80,11 +80,20 @@ echo "== running the model =="
 ## 5. A small Gaussian model with a known answer. When TESTMODEL_DIR is set,
 ##    the model's input files are also exported there (keep=TRUE), so other
 ##    jobs can run the bare binary on a real model without needing R.
-Rscript --vanilla - "$INLA_BIN" "${TESTMODEL_DIR:-}" <<'EOF'
+Rscript --vanilla - "$INLA_BIN" "${TESTMODEL_DIR:-}" "${INLA_SMTP:-}" <<'EOF'
 argv <- commandArgs(trailingOnly = TRUE)
 library(INLA)
 inla.setOption(inla.call = argv[1])
 inla.setOption(num.threads = "2:1")
+
+## INLA_SMTP selects the sparse-matrix backend. The sTiles lane sets it to
+## "stiles" so the models below actually run through that solver rather
+## than merely proving the binary links against it.
+smtp <- if (length(argv) >= 3 && nzchar(argv[3])) argv[3] else ""
+if (nzchar(smtp)) {
+    cat("using smtp =", smtp, "\n")
+    inla.setOption(smtp = smtp)
+}
 
 set.seed(1)
 n   <- 300
