@@ -465,11 +465,14 @@ jobs:
           fi
           grep -m1 "^== building" build.log || true
           tail -3 build.log
+      ## The directory itself, not the zip the build script also makes:
+      ## GitHub packs artifacts anyway, and Git Bash on the Windows runner
+      ## has no unzip to open an inner archive with.
       - name: Upload Windows bundle
         uses: actions/upload-artifact@v4
         with:
           name: inla-windows-x86_64
-          path: inla-windows-x86_64.zip
+          path: dist-win
           if-no-files-found: error
 
   ## Prove the exe on real Windows: install R (for R.dll and the realistic
@@ -496,8 +499,7 @@ jobs:
         run: |
           RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
           export PATH="$RBIN:$PATH"
-          unzip -q inla-windows-x86_64.zip
-          BASE=$PWD/dist-win
+          BASE=$PWD
           "$BASE/inla.exe" -ping
           INI=""
           for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
