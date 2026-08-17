@@ -141,23 +141,44 @@ cp -f "$ROOT/inlaprog/inla.exe" "$PREFIX/bin/"
 OUT=$ROOT/dist-win
 rm -rf "$OUT"; mkdir -p "$OUT"
 cp "$PREFIX/bin/inla.exe" "$OUT/"
-## Resolve DLL imports from the sysroots and the deps tree; R's own DLLs
-## (R.dll, Rblas, Rlapack) are deliberately NOT bundled: they come from the
-## user's installed R for Windows, found via R's bin directory on PATH.
+
+## R's BLAS and LAPACK travel with the bundle. The exe imports them by name,
+## so without them beside it Windows refuses to start the process at all --
+## no message, just STATUS_DLL_NOT_FOUND (0xc0000135). Relying on the user's
+## R to supply them only works when the exe is launched from R with R's bin
+## directory on PATH; anyone unpacking the artifact and running inla.exe
+## directly gets an exe that cannot start.
+##
+## R.dll is a different case and stays out: this build uses
+## INLA_WITH_LIBR_DLOPEN, so it is not imported at all -- it is loaded at
+## runtime from whichever R is driving the process, which is the point of
+## that mode.
+for dll in Rblas.dll Rlapack.dll; do
+    [ -f "$RWIN/bin/x64/$dll" ] || { echo "ERROR: $dll not in $RWIN/bin/x64"; exit 1; }
+    cp -v "$RWIN/bin/x64/$dll" "$OUT/"
+done
+
+## Resolve DLL imports from the sysroots and the deps tree. The pass below
+## also walks the imports of the two R DLLs just copied, so anything THEY
+## need is bundled too rather than discovered missing by a user.
 for pass in 1 2 3; do
     for exe in "$OUT"/*.exe "$OUT"/*.dll; do
         [ -f "$exe" ] || continue
         $TRIPLET-objdump -p "$exe" 2>/dev/null | awk '/DLL Name/ {print $3}'
     done | sort -u | while read -r dll; do
         case "$dll" in
-            R.dll|Rblas.dll|Rlapack.dll|KERNEL32*|msvcrt*|api-ms-*|ucrtbase*|ADVAPI32*|WS2_32*|USER32*|SHELL32*|ole32*|RPCRT4*|dbghelp*|bcrypt*|CRYPT32*) continue ;;
+            R.dll|KERNEL32*|msvcrt*|api-ms-*|ucrtbase*|ADVAPI32*|WS2_32*|USER32*|SHELL32*|ole32*|RPCRT4*|dbghelp*|bcrypt*|CRYPT32*) continue ;;
         esac
         [ -f "$OUT/$dll" ] && continue
         ## Both mingw sysroots: ltdl comes from the msvcrt one when the
         ## UCRT variant is not packaged (upstream links it the same way).
+        ## $RWIN/bin/x64 is in the list for whatever Rblas/Rlapack themselves
+        ## import (R builds them with gfortran); R.dll is excluded above, so
+        ## this cannot drag R itself into the bundle.
         src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
                    /usr/x86_64-w64-mingw32*/sys-root/mingw/bin \
-                   /usr/lib/gcc/$TRIPLET "$DEPS" -name "$dll" 2>/dev/null | head -1)
+                   /usr/lib/gcc/$TRIPLET "$DEPS" "$RWIN/bin/x64" \
+                   -name "$dll" 2>/dev/null | head -1)
         if [ -n "$src" ]; then
             cp -v "$src" "$OUT/"
         else

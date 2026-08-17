@@ -374,6 +374,59 @@ jobs:
           tail -3 run.log
           echo "OK: ARMPL bundle ran a model on ${{ matrix.distro }}"
 
+  ## INLA built against sTiles: an alternative sparse-matrix backend the
+  ## sources already support (gmrflib/smtp-stiles.c). The library comes from
+  ## a published release as a binary plus its header, so this lane needs no
+  ## sTiles source and no credentials. The smoke test then runs its models
+  ## through that solver (smtp=stiles), which is the only way to show the
+  ## pairing actually computes rather than merely links.
+  linux-x86_64-stiles:
+    name: "Linux x86_64 + sTiles: build + smoke test"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        run: bash ci/deps-ubuntu.sh
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: local/Rlib
+          key: rlib-${{ runner.os }}-v2
+      - name: Build with sTiles
+        env:
+          WITH_STILES: 1
+        run: |
+          if ! bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== sTiles" build.log || true
+          ## The library must really be linked, and exactly one OpenMP
+          ## runtime may be present once libstiles is in the process.
+          ldd local/bin/inla | grep -i stiles \
+            || { echo "::error::libstiles is not a dependency of the binary"; exit 1; }
+          n=$(ldd local/bin/inla | grep -coE 'lib(gomp|iomp5|omp)\.so[^ ]*' || true)
+          echo "  OpenMP runtimes linked: $n"
+          [ "$n" -le 1 ] || { echo "::error::more than one OpenMP runtime"; ldd local/bin/inla | grep -i omp; exit 1; }
+      - name: Smoke test through sTiles
+        env:
+          INLA_SMTP: stiles
+        run: bash ci/smoke-test.sh
+
   ## macOS Apple Silicon: Homebrew GCC (the upstream macOS builds also use
   ## GCC, not clang), official CRAN R framework, BLAS/LAPACK from R's own
   ## libRblas/libRlapack. Runs the full smoke test since R is present.
@@ -584,6 +637,30 @@ jobs:
           "$EXE" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
           tail -3 run.log
           echo "OK: full model ran on Windows"
+
+      ## The same bundle with NO R anywhere on PATH. This is how someone who
+      ## downloads the artifact actually runs it, and it is a genuinely
+      ## different test: an import the bundle is missing is resolved from R's
+      ## bin directory in the step above, hiding the defect. Without R,
+      ## Windows refuses to start the process at all (0xc0000135) before any
+      ## of our code runs, so nothing in the program can report it.
+      - name: Run the exe with no R on PATH (the bare-bundle case)
+        run: |
+          export PATH=$(echo "$PATH" | tr ':' '\n' | grep -viE '/R/R-[0-9]|/R/bin' | paste -sd:)
+          echo "R on PATH? $(command -v R || echo no)"
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          "$EXE" -ping || { echo "::error::the bundle cannot start without an installed R"; exit 1; }
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          cd "$(dirname "$INI")"
+          "$EXE" Model.ini > bare.log 2>&1 || { tail -30 bare.log; exit 1; }
+          tail -3 bare.log
+          echo "OK: the bundle is self-contained (no R installed)"
 
   ## Canary: same build on Fedora, which tracks the newest released GCC and
   ## current R -- the toolchain the upstream binaries are actually built
