@@ -86,14 +86,11 @@ library(INLA)
 inla.setOption(inla.call = argv[1])
 inla.setOption(num.threads = "2:1")
 
-## INLA_SMTP selects the sparse-matrix backend. The sTiles lane sets it to
-## "stiles" so the models below actually run through that solver rather
-## than merely proving the binary links against it.
+## INLA_SMTP names a second sparse-matrix backend to check. The models
+## below then run TWICE -- once on the default backend, once on this one --
+## and the two marginal likelihoods must agree. Linking against a solver
+## proves nothing about whether it computes the same posterior.
 smtp <- if (length(argv) >= 3 && nzchar(argv[3])) argv[3] else ""
-if (nzchar(smtp)) {
-    cat("using smtp =", smtp, "\n")
-    inla.setOption(smtp = smtp)
-}
 
 set.seed(1)
 n   <- 300
@@ -110,6 +107,25 @@ b <- r$summary.fixed
 stopifnot(abs(b["(Intercept)", "mean"] - 1.0) < 0.1)
 stopifnot(abs(b["x", "mean"] - 0.7) < 0.1)
 cat("smoke test OK: mlik =", r$mlik[1], "\n")
+
+## The same model through the alternative backend. Both are exact
+## factorizations of the same precision matrix, so the marginal likelihoods
+## differ only by arithmetic ordering -- a mismatch beyond that means the
+## backend is wrong, not merely different.
+if (nzchar(smtp)) {
+    cat("== backend:", smtp, "==\n")
+    inla.setOption(smtp = smtp)
+    rs <- inla(y ~ x + f(idx, model = "iid"),
+               data   = data.frame(y = y, x = x, idx = idx),
+               family = "gaussian")
+    stopifnot(is.finite(rs$mlik[1]))
+    d <- abs(rs$mlik[1] - r$mlik[1])
+    cat(sprintf("mlik default=%.6f  %s=%.6f  |diff|=%.2e\n",
+                r$mlik[1], smtp, rs$mlik[1], d))
+    if (d > 1e-3)
+        stop(sprintf("%s disagrees with the default backend by %.3e", smtp, d))
+    cat(smtp, "agrees with the default backend\n")
+}
 
 ## An rgeneric model: the only part of the binary that calls back INTO R
 ## while it runs. It is worth its own check because nothing else here

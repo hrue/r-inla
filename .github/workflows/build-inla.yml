@@ -57,11 +57,13 @@ jobs:
       ## Full output goes to build.log (make echoes every compile command,
       ## which would bury real errors past the log limit). On failure,
       ## surface only the error lines plus the tail.
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build
         ## No compiler pinned: ci/deps-ubuntu.sh installs the newest GCC it
         ## can get and ci/build.sh selects the highest version present.
         run: |
-          if ! bash ci/build.sh > build.log 2>&1; then
+          if ! WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -69,11 +71,23 @@ jobs:
             exit 1
           fi
           grep -m1 "^== building" build.log || true
+          grep -m1 "^== sTiles" build.log || true
           tail -5 build.log
+          ## sTiles has to be a real dependency, and once it is in the
+          ## process there may still be only ONE OpenMP runtime: library
+          ## and binary are both GCC-built, so both use libgomp, and a
+          ## second runtime is the classic "OMP: Error #15" abort.
+          ldd local/bin/inla | grep -i stiles \
+            || { echo "::error::libstiles is not a dependency of the binary"; exit 1; }
+          n=$(ldd local/bin/inla | grep -coE 'lib(gomp|iomp5|omp)\.so[^ ]*' || true)
+          echo "  OpenMP runtimes linked: $n"
+          [ "$n" -le 1 ] \
+            || { echo "::error::more than one OpenMP runtime"; ldd local/bin/inla | grep -i omp; exit 1; }
 
       - name: Smoke test
         env:
           TESTMODEL_DIR: local/testmodel
+          INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
 
       - name: Upload binary
@@ -121,6 +135,8 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build (portable, static MKL, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -130,7 +146,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! BLAS=mkl WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -174,6 +190,8 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build (portable, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -183,7 +201,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
+          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -228,6 +246,8 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build (portable, ARMPL, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -237,7 +257,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! BLAS=armpl WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
+          if ! BLAS=armpl WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -380,57 +400,6 @@ jobs:
   ## sTiles source and no credentials. The smoke test then runs its models
   ## through that solver (smtp=stiles), which is the only way to show the
   ## pairing actually computes rather than merely links.
-  linux-x86_64-stiles:
-    name: "Linux x86_64 + sTiles: build + smoke test"
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use authenticated https for git clones
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global \
-            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
-      - name: System dependencies
-        run: bash ci/deps-ubuntu.sh
-      - name: Fetch libstiles
-        run: bash ci/fetch-stiles.sh
-      - name: Cache R packages
-        uses: actions/cache@v4
-        with:
-          path: local/Rlib
-          key: rlib-${{ runner.os }}-v2
-      - name: Build with sTiles
-        env:
-          WITH_STILES: 1
-        run: |
-          if ! bash ci/build.sh > build.log 2>&1; then
-            echo "::group::errors"
-            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
-            echo "::endgroup::"
-            tail -40 build.log
-            exit 1
-          fi
-          grep -m1 "^== sTiles" build.log || true
-          ## The library must really be linked, and exactly one OpenMP
-          ## runtime may be present once libstiles is in the process.
-          ldd local/bin/inla | grep -i stiles \
-            || { echo "::error::libstiles is not a dependency of the binary"; exit 1; }
-          n=$(ldd local/bin/inla | grep -coE 'lib(gomp|iomp5|omp)\.so[^ ]*' || true)
-          echo "  OpenMP runtimes linked: $n"
-          [ "$n" -le 1 ] || { echo "::error::more than one OpenMP runtime"; ldd local/bin/inla | grep -i omp; exit 1; }
-      - name: Smoke test through sTiles
-        env:
-          INLA_SMTP: stiles
-        run: bash ci/smoke-test.sh
-
-  ## macOS Apple Silicon: Homebrew GCC (the upstream macOS builds also use
-  ## GCC, not clang), official CRAN R framework, BLAS/LAPACK from R's own
-  ## libRblas/libRlapack. Runs the full smoke test since R is present.
-  ## Experimental while it stabilizes: cannot fail the workflow.
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
@@ -451,12 +420,15 @@ jobs:
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
         run: bash ci/deps-macos.sh
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build
         ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
         ## time, so the bundle runs on a Mac with any R or none, and
         ## rgeneric loads the running machine's own libR when first used.
         env:
           WITH_LIBR: 2
+          WITH_STILES: 1
           ## The shipped artifacts get the full upstream optimization; the
           ## gate lane stays LTO-free so iteration remains fast.
           LTO: 1
@@ -471,6 +443,8 @@ jobs:
           grep -m1 "^== building" build.log || true
           tail -3 build.log
       - name: Smoke test
+        env:
+          INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
       - name: Package (self-contained bundle)
         run: bash ci/package-macos.sh
@@ -505,12 +479,15 @@ jobs:
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
         run: bash ci/deps-macos.sh
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build
         ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
         ## time, so the bundle runs on a Mac with any R or none, and
         ## rgeneric loads the running machine's own libR when first used.
         env:
           WITH_LIBR: 2
+          WITH_STILES: 1
           ## The shipped artifacts get the full upstream optimization; the
           ## gate lane stays LTO-free so iteration remains fast.
           LTO: 1
@@ -526,6 +503,8 @@ jobs:
           grep -m1 "^BLAS:" build.log || true
           tail -3 build.log
       - name: Smoke test
+        env:
+          INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
       - name: Package (self-contained bundle)
         run: bash ci/package-macos.sh
@@ -567,12 +546,17 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        env:
+          STILES_ASSET: libstiles-windows-x86_64.zip
+        run: bash ci/fetch-stiles.sh
       - name: Cross-build inla.exe
         ## WITH_LIBR=2: R.dll is not linked; rgeneric loads the running
         ## machine's own R through libltdl, which finds it under
         ## $R_HOME/bin/x64 on Windows.
         env:
           WITH_LIBR: 2
+          WITH_STILES: 1
           LTO: 1
         run: |
           if ! bash ci/build-mingw.sh > build.log 2>&1; then
@@ -697,10 +681,12 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
       - name: Build
         run: |
           gcc --version | head -1
-          if ! bash ci/build.sh > build.log 2>&1; then
+          if ! WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -710,4 +696,6 @@ jobs:
           grep -m1 "^== building" build.log || true
           tail -5 build.log
       - name: Smoke test
+        env:
+          INLA_SMTP: stiles
         run: bash ci/smoke-test.sh
