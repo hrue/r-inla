@@ -142,15 +142,23 @@ if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     cmake --install /tmp/metis/build
 fi
 
-if [ ! -f "$DEPS/lib/libmuparser.a" ]; then
+## muParser as a DLL, as the upstream Windows build links it: inla's eval.c
+## uses muParser's C API, whose header declares the entry points
+## __declspec(dllimport) on Windows, so the symbols come out as __imp_mup*
+## and only an import library resolves them.
+if [ ! -f "$DEPS/lib/libmuparser.dll.a" ]; then
     git clone --depth 1 https://github.com/beltoforion/muparser /tmp/muparser
     cmake -S /tmp/muparser -B /tmp/muparser/build \
         -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC -DCMAKE_CXX_COMPILER=$MINGW_CXX \
         -DCMAKE_BUILD_TYPE=Release -DENABLE_SAMPLES=OFF -DENABLE_OPENMP=OFF \
-        -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="$DEPS"
+        -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$DEPS"
     cmake --build /tmp/muparser/build -j"$(nproc)"
     cmake --install /tmp/muparser/build
+    ## cmake puts the DLL in bin/ and the import library in lib/
+    cp -f "$DEPS"/bin/*muparser*.dll "$DEPS/lib/" 2>/dev/null || true
 fi
+ls "$DEPS"/lib/libmuparser.dll.a >/dev/null 2>&1 \
+    || { echo "ERROR: no muParser import library was produced"; ls "$DEPS"/lib "$DEPS"/bin; exit 1; }
 
 ## ---- libltdl: the UCRT sysroot has no ltdl.h, so take the header and the
 ## import library from the mingw64 sysroot into our own deps tree (upstream
