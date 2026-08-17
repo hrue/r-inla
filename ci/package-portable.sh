@@ -15,12 +15,18 @@ PREFIX=${PREFIX:-$ROOT/local}
 OUT=$ROOT/dist
 BIN=$PREFIX/bin/inla
 
+## Libraries that live outside the loader's search path (ARMPL) must be
+## resolvable here, otherwise ldd cannot report them and they would be
+## missing from the bundle.
+ARMPL_DIR=${ARMPL_DIR:-$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)}
+[ -n "$ARMPL_DIR" ] && export LD_LIBRARY_PATH="$ARMPL_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
 rm -rf "$OUT"
 mkdir -p "$OUT/bin" "$OUT/lib"
 cp "$BIN" "$OUT/bin/inla"
 
 ## Everything ldd resolves, except the glibc family and the loader.
-ldd "$BIN" | awk '/=>/ {print $3}' | while read -r so; do
+ldd "$BIN" | awk '/=>/ {print $3}' | grep -v '^$' | while read -r so; do
     [ -f "$so" ] || continue
     case "$(basename "$so")" in
         libc.so*|libm.so*|libpthread.so*|libdl.so*|librt.so*|libresolv.so*|libmvec.so*|ld-linux*) ;;

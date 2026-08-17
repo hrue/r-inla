@@ -112,6 +112,19 @@ if [ ! -f "$DEPS/lib/libmuparser.a" ]; then
     cmake --install /tmp/muparser/build
 fi
 
+## ---- libltdl: the UCRT sysroot has no ltdl.h, so take the header and the
+## import library from the mingw64 sysroot into our own deps tree (upstream
+## links that same library into UCRT builds). --------------------------------
+if [ ! -f "$DEPS/include/ltdl.h" ]; then
+    H=$(find /usr/x86_64-w64-mingw32*/sys-root/mingw/include -name ltdl.h 2>/dev/null | head -1 || true)
+    [ -n "$H" ] || { echo "ERROR: ltdl.h not found in any mingw sysroot"; exit 1; }
+    cp "$H" "$DEPS/include/"
+    D=$(dirname "$H")/libltdl
+    [ -d "$D" ] && cp -r "$D" "$DEPS/include/"
+    L=$(find /usr/x86_64-w64-mingw32*/sys-root/mingw/lib -name 'libltdl.dll.a' 2>/dev/null | head -1 || true)
+    [ -n "$L" ] && cp "$L" "$DEPS/lib/"
+fi
+
 ## ---- SIMDE headers (header-only, host-independent) --------------------------
 ## From upstream rather than the distribution package: Fedora's simde
 ## expects hedley.h from a separate package, while the upstream tree keeps

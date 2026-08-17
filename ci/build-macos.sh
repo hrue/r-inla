@@ -92,6 +92,11 @@ done
 ls "$EPATH"/lib*.a >/dev/null 2>&1 \
     || { echo "ERROR: no external-package archives at all (git access problem?)"; exit 1; }
 
+## METIS 5.2 split its support routines into GKlib; link it when the build
+## produced a separate archive.
+GKLIB=""
+[ -f "$DEPS/lib/libGKlib.a" ] && GKLIB="-lGKlib"
+
 ## ld64 whole-archive: one -force_load per archive.
 EXTOBJ=""
 for a in "$EPATH"/lib*.a; do
@@ -119,7 +124,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                -L$BREW/lib -L$DEPS/lib -L$BREW/opt/openssl@3/lib -L$BREW/opt/libtool/lib \
                -Wl,-rpath,$RHOME/lib -Wl,-rpath,$BREW/lib \
                -lgsl -lgslcblas $BLASLIBS \
-               -lmuparser -lz -lmetis \
+               -lmuparser -lz -lmetis $GKLIB \
                -lltdl -lcrypto -lgfortran -lquadmath \
                -static-libstdc++ -static-libgcc -lm -ldl" \
      EXTLIBS3="-lm" \
