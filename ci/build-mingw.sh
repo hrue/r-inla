@@ -80,10 +80,20 @@ if [ "$WITH_STILES" = 1 ]; then
     { echo "LIBRARY libstiles.dll"; echo "EXPORTS";
       "$NMT" "$IMP" | awk '/ I __imp_/{sub("__imp_","",$3); print "  " $3}' | sort -u; } \
         > "$STILES_DIR/lib/stiles.def"
-    "$DLLTOOL" --input-def "$STILES_DIR/lib/stiles.def" --dllname libstiles.dll \
+    ## -m pinned: a multi-target dlltool defaulting to i386 would prefix
+    ## every symbol with an underscore and produce a useless implib.
+    "$DLLTOOL" -m i386:x86-64 --input-def "$STILES_DIR/lib/stiles.def" --dllname libstiles.dll \
                --output-lib "$STILES_DIR/lib/libstiles_thunked.dll.a"
     "$NMT" "$STILES_DIR/lib/libstiles_thunked.dll.a" | grep -q " T sTiles_init" \
-        || { echo "ERROR: regenerated implib still carries no code thunks"; exit 1; }
+        || { echo "ERROR: regenerated implib still carries no code thunks"
+             echo "-- tools: NMT=$NMT DLLTOOL=$DLLTOOL"
+             echo "-- stiles.def ($(wc -l < "$STILES_DIR/lib/stiles.def") lines), head:"
+             head -6 "$STILES_DIR/lib/stiles.def"
+             echo "-- nm of the fetched implib (head):"
+             "$NMT" "$IMP" 2>&1 | head -8
+             echo "-- nm of the regenerated implib (head):"
+             "$NMT" "$STILES_DIR/lib/libstiles_thunked.dll.a" 2>&1 | head -8
+             exit 1; }
     IMP="$STILES_DIR/lib/libstiles_thunked.dll.a"
     echo "   implib regenerated with code thunks ($(grep -c '^  ' "$STILES_DIR/lib/stiles.def") exports)"
     ## -ltileindexer is NOT needed: released libraries carry it inside.
