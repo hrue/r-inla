@@ -49,6 +49,17 @@ case "${floor:-GLIBC_2.0}" in
     *) echo "ERROR: glibc floor $floor exceeds 2.28 (a host library leaked in)"; exit 1 ;;
 esac
 
+## One OpenMP runtime in the shipped bundle as well: the check in the build
+## script covers the freshly linked binary, this one covers what actually
+## travels to the user.
+OMPRT=$(ldd "$OUT/bin/inla" 2>/dev/null | grep -oE 'lib(gomp|iomp5|omp)\.so[^ ]*' | sort -u || true)
+echo "== OpenMP runtime in the bundle: ${OMPRT:-none (static)} =="
+if echo "$OMPRT" | grep -q 'libiomp5' || [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
+    echo "ERROR: the bundle carries an unexpected set of OpenMP runtimes"
+    echo "$OMPRT"
+    exit 1
+fi
+
 ## Prove the bundle runs from its own libraries.
 "$OUT/bin/inla" -ping
 

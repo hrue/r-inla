@@ -236,7 +236,26 @@ make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" install
 
-## ---- 4. Sanity --------------------------------------------------------------
+## ---- 4. Runtime invariants ---------------------------------------------------
+## Exactly one OpenMP runtime, and it must be libgomp. A process holding
+## both libgomp and Intel's libiomp5 oversubscribes its threads and can
+## crash outright, and that is precisely what happens if MKL is linked
+## through its Intel-threaded variant instead of mkl_gnu_thread. It is also
+## the invariant to keep when this binary is later linked against a library
+## that carries its own BLAS.
+OMPRT=$(ldd "$PREFIX/bin/inla" 2>/dev/null | grep -oE 'lib(gomp|iomp5|omp)\.so[^ ]*' | sort -u || true)
+echo "== OpenMP runtime: ${OMPRT:-none (static)} =="
+if echo "$OMPRT" | grep -q 'libiomp5'; then
+    echo "ERROR: Intel's libiomp5 is linked; expected libgomp"
+    ldd "$PREFIX/bin/inla" | grep -iE 'omp|mkl'
+    exit 1
+fi
+if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
+    echo "ERROR: more than one OpenMP runtime is linked:"; echo "$OMPRT"
+    exit 1
+fi
+
+## ---- 5. Sanity --------------------------------------------------------------
 ## libR.so lives outside the default loader path; R's own launcher normally
 ## provides it via LD_LIBRARY_PATH, but here the binary runs straight from
 ## the shell.

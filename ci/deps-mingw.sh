@@ -85,10 +85,20 @@ EOF
     RVER=$(echo "$R_SRC" | sed -e 's/^R-//' -e 's/\.tar\.gz$//')
     TPL=$(ls /tmp/R-src/src/include/Rmath.h0 /tmp/R-src/src/include/Rmath.h0.in 2>/dev/null | head -1 || true)
     [ -n "$TPL" ] || { echo "ERROR: no Rmath.h0 template in the R sources"; exit 1; }
+    ## configure normally fills these in; do the same substitutions here.
+    ## HAVE_WORKING_LOG1P matters: without it the header falls into a block
+    ## that declares Rlog1p inside extern "C", which is not valid C.
     sed -e "s/@PACKAGE_VERSION@/$RVER/g" \
+        -e 's|@RMATH_HAVE_WORKING_LOG1P@|#define HAVE_WORKING_LOG1P 1|' \
         -e 's|^#undef MATHLIB_STANDALONE|#define MATHLIB_STANDALONE 1|' \
         -e 's|^/\* #undef MATHLIB_STANDALONE \*/|#define MATHLIB_STANDALONE 1|' \
+        -e 's/@[A-Za-z0-9_]*@//g' \
         "$TPL" > "$DEPS/include/Rmath.h"
+    if grep -q '@[A-Za-z0-9_]*@' "$DEPS/include/Rmath.h"; then
+        echo "ERROR: unsubstituted tokens remain in the generated Rmath.h"
+        grep -n '@[A-Za-z0-9_]*@' "$DEPS/include/Rmath.h" | head
+        exit 1
+    fi
     grep -q 'double.*lbeta' "$DEPS/include/Rmath.h" \
         || { echo "ERROR: generated Rmath.h lacks lbeta"; exit 1; }
 fi

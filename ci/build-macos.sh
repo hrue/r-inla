@@ -37,6 +37,13 @@ esac
 [ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
 echo "== optimization: OPT=$OPT LTO=$LTO =="
 
+## Oldest macOS the artifact must load on. Without this the deployment
+## target defaults to the BUILD machine's OS, which would lock the binary
+## out of every older Mac. 11.0 is the first macOS on Apple Silicon, so
+## nothing is excluded on either architecture.
+export MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-11.0}
+echo "== macOS deployment target: $MACOSX_DEPLOYMENT_TARGET =="
+
 ## Apple Silicon gets the M-series tuning; Intel Macs the generic 64-bit
 ## baseline upstream uses (every Intel Mac on a current macOS is x86-64).
 ARCH=$(uname -m)
@@ -165,6 +172,18 @@ make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" install
 
-## ---- 4. Sanity --------------------------------------------------------------
+## ---- 4. Runtime invariants ---------------------------------------------------
+## One OpenMP runtime only. On macOS the danger is a mix of GCC's libgomp
+## and LLVM's libomp: two runtimes in one process oversubscribe the machine
+## and can abort. Keeping this single is also what allows the binary to be
+## linked later against a library carrying its own BLAS.
+OMPRT=$(otool -L "$PREFIX/bin/inla" 2>/dev/null | grep -oE 'lib(gomp|omp|iomp5)[^ ]*dylib' | sort -u || true)
+echo "== OpenMP runtime: ${OMPRT:-none (static)} =="
+if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
+    echo "ERROR: more than one OpenMP runtime is linked:"; echo "$OMPRT"
+    exit 1
+fi
+
+## ---- 5. Sanity --------------------------------------------------------------
 "$PREFIX/bin/inla" -ping
 echo "OK: inla built and installed in $PREFIX/bin (macOS arm64)"
