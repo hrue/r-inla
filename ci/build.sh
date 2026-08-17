@@ -141,13 +141,16 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## make command-line variable truncates the link recipe at that point,
 ## leaving --whole-archive unterminated).
 EXTOBJ=$(echo "$EPATH"/lib*.a)
+## libquadmath is x86-only (__float128); aarch64 neither has nor needs it.
+QUADMATH=""
+[ "$(uname -m)" = "x86_64" ] && QUADMATH="-lquadmath"
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -lgsl -lopenblas -lmuparser -lz -lmetis \
-               -lnuma -lhwloc -lltdl -lcrypto -lgfortran -lquadmath -lm -ldl"
+               -lnuma -lhwloc -lltdl -lcrypto -lgfortran $QUADMATH -lm -ldl"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
