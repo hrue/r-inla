@@ -7665,11 +7665,11 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 #if defined(__linux__)
 		char *val = getenv("LD_PRELOAD");
-		fprintf(stdout, "\nPRELOAD.......[%s]\n", (val ? val : "(none)"));
+		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
 #endif
 #if defined(__APPLE__)
 		char *val = getenv("DYLD_INSERT_LIBRARIES");
-		fprintf(stdout, "\nPRELOAD.......[%s]\n", (val ? val : "(none)"));
+		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
 #endif
 #if !defined(INLA_WITH_DEVEL)
 		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
