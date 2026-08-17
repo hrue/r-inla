@@ -505,7 +505,8 @@ jobs:
         run: bash ci/fetch-stiles.sh
       - name: Build
         run: |
-          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
+          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=x86-64-v3 -mtune=generic" \
+               bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -526,7 +527,7 @@ jobs:
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-x86_64-modern-portable"
-            echo "purpose=Portable Linux x86_64 with the newest GCC; needs glibc 2.39+ (Ubuntu 24.04+, Debian 13+, RHEL 10)"
+            echo "purpose=Portable Linux x86_64, newest GCC, AVX2 code throughout (x86-64-v3); needs glibc 2.39+ and a ~2015+ CPU"
             echo "compiler=${CO:-unknown}"
             echo "blas=OpenBLAS (serial), bundled"
             echo "stiles=$ST"
