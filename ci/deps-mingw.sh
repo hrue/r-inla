@@ -135,6 +135,7 @@ if [ ! -f "$DEPS/lib/libmimalloc.dll.a" ]; then
         -DCMAKE_CXX_COMPILER=${MINGW_CC%-gcc}-g++ \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
         -DMI_BUILD_STATIC=OFF -DMI_BUILD_TESTS=OFF -DMI_BUILD_OBJECT=OFF \
+        -DMI_WIN_REDIRECT=OFF \
         -DCMAKE_INSTALL_PREFIX="$DEPS"
     cmake --build /tmp/mimalloc/build -j"$(nproc)"
     cmake --install /tmp/mimalloc/build
