@@ -450,6 +450,12 @@ jobs:
       run:
         shell: bash
     steps:
+      ## Before checkout: without git in the container, actions/checkout
+      ## falls back to downloading a tarball through the REST API, which is
+      ## rate-limited and fails the job with 429 under load. With git
+      ## present it does an ordinary clone.
+      - name: Install git for the checkout
+        run: dnf -y install git-core
       - uses: actions/checkout@v4
       - name: System dependencies
         run: bash ci/deps-mingw.sh
@@ -541,6 +547,12 @@ jobs:
       run:
         shell: bash
     steps:
+      ## Before checkout: without git in the container, actions/checkout
+      ## falls back to downloading a tarball through the REST API, which is
+      ## rate-limited and fails the job with 429 under load. With git
+      ## present it does an ordinary clone.
+      - name: Install git for the checkout
+        run: dnf -y install git-core
       - uses: actions/checkout@v4
       ## Deps first: the bare container has no git yet (deps installs it),
       ## and the git config below needs it.
