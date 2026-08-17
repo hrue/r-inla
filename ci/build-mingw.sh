@@ -149,32 +149,53 @@ cp "$PREFIX/bin/inla.exe" "$OUT/"
 ## directory on PATH; anyone unpacking the artifact and running inla.exe
 ## directly gets an exe that cannot start.
 ##
-## R.dll is a different case and stays out: this build uses
-## INLA_WITH_LIBR_DLOPEN, so it is not imported at all -- it is loaded at
-## runtime from whichever R is driving the process, which is the point of
-## that mode.
+## Their dependencies come too, and that is not only these two files:
+## Rblas.dll imports R.dll, which imports Rgraphapp.dll and Riconv.dll. The
+## import walk below follows that chain, so the bundle ends up with the
+## whole closure rather than the two names the exe happens to mention.
+##
+## Note what this does NOT change: the binary still has no static import of
+## R.dll (that is INLA_WITH_LIBR_DLOPEN doing its job). R.dll is here to
+## satisfy Rblas, and rgeneric still loads R at runtime from whichever R is
+## driving the process.
 for dll in Rblas.dll Rlapack.dll; do
     [ -f "$RWIN/bin/x64/$dll" ] || { echo "ERROR: $dll not in $RWIN/bin/x64"; exit 1; }
     cp -v "$RWIN/bin/x64/$dll" "$OUT/"
 done
 
-## Resolve DLL imports from the sysroots and the deps tree. The pass below
-## also walks the imports of the two R DLLs just copied, so anything THEY
-## need is bundled too rather than discovered missing by a user.
-for pass in 1 2 3; do
+## Is this name a Windows system DLL? Rather than guess from a list of
+## names, ask the toolchain: mingw ships an import library (libfoo.a /
+## libfoo.dll.a) for every DLL Windows itself provides, and for nothing
+## else. R.dll alone imports a dozen of them (GDI32, COMDLG32, WINSPOOL,
+## IMM32, ...), which is more than a hand-written list stays right about.
+LIBDIRS="$SYSROOT/mingw/lib $SYSROOT2/mingw/lib /usr/x86_64-w64-mingw32/sys-root/mingw/lib /usr/x86_64-w64-mingw32/lib"
+is_system_dll() {
+    ## strip whatever extension it carries: R.dll imports WINSPOOL.DRV, and
+    ## the import library for that one is still plain libwinspool.a
+    b=$(echo "${1%.*}" | tr 'A-Z' 'a-z')
+    case "$1" in api-ms-*|API-MS-*) return 0 ;; esac
+    for d in $LIBDIRS; do
+        [ -f "$d/lib$b.a" ] && return 0
+        [ -f "$d/lib$b.dll.a" ] && return 0
+    done
+    return 1
+}
+
+## Resolve DLL imports from the sysroots, the deps tree and R's bin. Three
+## passes: each one may add DLLs whose own imports the next pass resolves
+## (inla.exe -> Rblas.dll -> R.dll -> Rgraphapp.dll/Riconv.dll is four
+## levels, and the loop stops adding when a pass copies nothing new).
+for pass in 1 2 3 4; do
     for exe in "$OUT"/*.exe "$OUT"/*.dll; do
         [ -f "$exe" ] || continue
         $TRIPLET-objdump -p "$exe" 2>/dev/null | awk '/DLL Name/ {print $3}'
     done | sort -u | while read -r dll; do
-        case "$dll" in
-            R.dll|KERNEL32*|msvcrt*|api-ms-*|ucrtbase*|ADVAPI32*|WS2_32*|USER32*|SHELL32*|ole32*|RPCRT4*|dbghelp*|bcrypt*|CRYPT32*) continue ;;
-        esac
+        is_system_dll "$dll" && continue
         [ -f "$OUT/$dll" ] && continue
         ## Both mingw sysroots: ltdl comes from the msvcrt one when the
         ## UCRT variant is not packaged (upstream links it the same way).
-        ## $RWIN/bin/x64 is in the list for whatever Rblas/Rlapack themselves
-        ## import (R builds them with gfortran); R.dll is excluded above, so
-        ## this cannot drag R itself into the bundle.
+        ## $RWIN/bin/x64 supplies R's own DLLs -- Rblas and Rlapack, and
+        ## through them R.dll, Rgraphapp.dll and Riconv.dll.
         src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
                    /usr/x86_64-w64-mingw32*/sys-root/mingw/bin \
                    /usr/lib/gcc/$TRIPLET "$DEPS" "$RWIN/bin/x64" \
