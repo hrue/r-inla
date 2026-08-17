@@ -128,7 +128,12 @@ fi
 ## OpenBLAS). INLA_WITH_SIMDE needs the SIMDE headers (libsimde-dev).
 ## No -march: baseline x86-64, with the fast per-CPU paths supplied at run
 ## time by the INLA_WITH_CLONE_TARGETS function clones.
-FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
+## MARCH: default is the universal x86-64 baseline (runtime dispatch via
+## MKL + INLA_WITH_CLONE_TARGETS covers the hot paths). The modern lane
+## passes -march=x86-64-v3 so ALL code gets AVX2/FMA, closing most of the
+## portable-vs-native gap on any CPU from ~2015 on.
+MARCH=${MARCH:--mtune=generic}
+FLAGS="$OPTFLAGS $MARCH -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
