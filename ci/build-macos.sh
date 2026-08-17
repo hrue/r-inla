@@ -14,9 +14,9 @@ JOBS=${JOBS:-$(sysctl -n hw.ncpu)}
 BREW=$(brew --prefix)
 
 ## Homebrew's gcc: pick the newest versioned binaries.
-CC=${CC:-$(ls "$BREW"/bin/gcc-1[0-9] 2>/dev/null | sort -V | tail -1)}
-CXX=${CXX:-$(ls "$BREW"/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1)}
-FC=${FC:-$(ls "$BREW"/bin/gfortran-1[0-9] 2>/dev/null | sort -V | tail -1)}
+CC=${CC:-$(ls "$BREW"/bin/gcc-1[0-9] 2>/dev/null | sort -V | tail -1 || true)}
+CXX=${CXX:-$(ls "$BREW"/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1 || true)}
+FC=${FC:-$(ls "$BREW"/bin/gfortran-1[0-9] 2>/dev/null | sort -V | tail -1 || true)}
 [ -n "$CC" ] && [ -n "$CXX" ] && [ -n "$FC" ] || { echo "ERROR: Homebrew gcc not found"; exit 1; }
 
 RHOME=$(R RHOME)
@@ -41,7 +41,7 @@ RLIB_LIB="-L$RHOME/lib -lR -lRmath"
 ## BLAS/LAPACK: ARMPL when installed (what the upstream macOS binaries
 ## use; the binary then expects ARMPL on the running machine, like
 ## upstream's), otherwise R's own Rblas/Rlapack.
-ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1)
+ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
 if [ -n "$ARMPL_DIR" ]; then
     echo "BLAS: ARMPL at $ARMPL_DIR"
     FLAGS="$FLAGS -DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
