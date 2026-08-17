@@ -133,6 +133,9 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ##     implementation in the process instead of three partial ones
 ##   - numa/hwloc (my-numa.c) and ltdl (cgeneric loading in inla.c) are used
 ##     by the sources but absent from the default link line
+##   - -ldl stays although our own loading goes through ltdl: the external
+##     packages call dl* directly, and glibc before 2.34 (e.g. the
+##     manylinux container) ships libdl as a separate library
 ## -I$EPATH lets inla.c find the generated cgeneric-table.h.
 ## One space-separated line (ls would emit newlines, and a newline inside a
 ## make command-line variable truncates the link recipe at that point,
@@ -144,7 +147,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      RLIB_INC="$RLIB_INC" RLIB_LIB="$RLIB_LIB" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                -lgsl -lopenblas -lmuparser -lz -lmetis \
-               -lnuma -lhwloc -lltdl -lcrypto -lgfortran -lquadmath -lm"
+               -lnuma -lhwloc -lltdl -lcrypto -lgfortran -lquadmath -lm -ldl"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \

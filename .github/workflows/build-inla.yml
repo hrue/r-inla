@@ -17,7 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  linux-x86_64:
+    name: "Linux x86_64: build + smoke test (gcc-14, current R)"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -90,7 +91,8 @@ jobs:
   ## library it needs. WITH_LIBR=2 (dlopen mode): starts with any R or no
   ## R at all, and rgeneric works by loading the running machine's own
   ## libR on first use.
-  build-portable:
+  portable-linux-x86_64:
+    name: "Portable bundle: Linux x86_64 (glibc 2.28+, no R needed)"
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
     defaults:
@@ -131,7 +133,8 @@ jobs:
   ## scripts. BLAS is the bundled OpenBLAS -- ARMPL would be faster on SVE
   ## machines but its license does not allow redistributing the libraries,
   ## so it stays a build-it-yourself option rather than an artifact.
-  build-portable-arm64:
+  portable-linux-arm64:
+    name: "Portable bundle: Linux arm64 (glibc 2.28+, no R needed)"
     runs-on: ubuntu-24.04-arm
     container: quay.io/pypa/manylinux_2_28_aarch64
     defaults:
@@ -169,8 +172,9 @@ jobs:
   ## real model with it on the oldest supported base (Rocky 8 = the glibc
   ## floor) and the major current families. No compiler, no R -- just the
   ## tarball and the model files from the main job's smoke test.
-  test-portable:
-    needs: [build, build-portable]
+  run-portable-x86_64:
+    name: "Portable x86_64 runs a model on ${{ matrix.distro }}"
+    needs: [linux-x86_64, portable-linux-x86_64]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -207,8 +211,9 @@ jobs:
 
   ## Same cross-distro proof on arm64 (the container images resolve to
   ## their arm64 variants on the arm64 runner automatically).
-  test-portable-arm64:
-    needs: [build, build-portable-arm64]
+  run-portable-arm64:
+    name: "Portable arm64 runs a model on ${{ matrix.distro }}"
+    needs: [linux-x86_64, portable-linux-arm64]
     runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
@@ -242,12 +247,86 @@ jobs:
           tail -3 run.log
           echo "OK: full model ran on ${{ matrix.distro }} (arm64)"
 
+  ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
+  ## following the upstream Windows build recipe (Windows R's own
+  ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).
+  ## Experimental while it stabilizes: cannot fail the workflow.
+  windows-x86_64:
+    name: "Windows x86_64: cross-build inla.exe (MinGW UCRT, experimental)"
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        run: bash ci/deps-mingw.sh
+      - name: Use https for git clones
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      - name: Cross-build inla.exe
+        run: |
+          if ! bash ci/build-mingw.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Upload Windows bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-windows-x86_64
+          path: inla-windows-x86_64.zip
+          if-no-files-found: error
+
+  ## Prove the exe on real Windows: install R (for R.dll and the realistic
+  ## user environment), run ping and the same test model as every other lane.
+  run-windows:
+    name: "Windows runs a model with installed R (experimental)"
+    needs: [linux-x86_64, windows-x86_64]
+    runs-on: windows-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-windows-x86_64
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-testmodel
+          path: testmodel
+      - name: Install R
+        run: choco install r.project --no-progress -y
+      - name: Run the exe on Windows
+        run: |
+          RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
+          export PATH="$RBIN:$PATH"
+          unzip -q inla-windows-x86_64.zip
+          BASE=$PWD/dist-win
+          "$BASE/inla.exe" -ping
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; exit 1; }
+          cd "$(dirname "$INI")"
+          "$BASE/inla.exe" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          tail -3 run.log
+          echo "OK: full model ran on Windows"
+
   ## Canary: same build on Fedora, which tracks the newest released GCC and
   ## current R -- the toolchain the upstream binaries are actually built
   ## with. R packages install from source here (no binary mirror), so the
   ## job is slower. continue-on-error: a failure warns without blocking the
   ## gate -- new-compiler breakage is an early warning, not a stop sign.
-  build-latest-gcc:
+  canary-newest-gcc:
+    name: "Canary: newest GCC on Fedora (non-blocking)"
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true
