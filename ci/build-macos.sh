@@ -93,6 +93,9 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
      CC="$CC" CXX="$CXX" FC="$FC" ARFLAGS=rv SED="$SED" install
 
 ## ---- 3. inlaprog -> inla -----------------------------------------------------
+## EXTLIBS3 is replaced below: its default is GNU-ld syntax
+## (--whole-archive -lpthread), which ld64 rejects outright. Threads come
+## from libSystem here, so nothing is lost.
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
@@ -104,6 +107,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                -lmuparser -lz -lmetis \
                -lltdl -lcrypto -lgfortran -lquadmath \
                -static-libstdc++ -static-libgcc -lm -ldl" \
+     EXTLIBS3="-lm" \
      inla
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \

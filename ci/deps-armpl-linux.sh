@@ -5,14 +5,13 @@
 ##
 ## Knobs:
 ##   ARMPL_VERSION   default below
+##   ARMPL_PKG       rpm (RHEL/Alma/manylinux) or deb (Debian/Ubuntu)
 ##   ARMPL_URL       full tarball URL, when the permalink pattern changes
-##   ARMPL_DISTRO    installer flavour matching the container (RHEL-8 for
-##                   manylinux_2_28, Ubuntu-22.04 on a plain runner, ...)
 set -e
 
-ARMPL_VERSION=${ARMPL_VERSION:-24.10}
-ARMPL_DISTRO=${ARMPL_DISTRO:-RHEL-8}
-ARMPL_URL=${ARMPL_URL:-https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_${ARMPL_DISTRO}_gcc.tar}
+ARMPL_VERSION=${ARMPL_VERSION:-26.07}
+ARMPL_PKG=${ARMPL_PKG:-rpm}
+ARMPL_URL=${ARMPL_URL:-https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_${ARMPL_PKG}_gcc.tar}
 
 if ls -d /opt/arm/armpl_* >/dev/null 2>&1; then
     echo "ARMPL already installed: $(ls -d /opt/arm/armpl_* | tail -1)"
@@ -23,11 +22,21 @@ echo "fetching $ARMPL_URL"
 curl -fL -o /tmp/armpl.tar "$ARMPL_URL"
 mkdir -p /tmp/armpl && tar xf /tmp/armpl.tar -C /tmp/armpl --strip-components=1
 
-## The tarball ships a self-extracting installer; -a accepts the licence
-## non-interactively, -f overwrites a previous install.
-INSTALLER=$(ls /tmp/armpl/*.sh | head -1)
-chmod +x "$INSTALLER"
-"$INSTALLER" -a -f -i /opt/arm
+## Two shapes have shipped over the years: a self-extracting installer
+## script (-a accepts the licence non-interactively, -f overwrites, -i
+## chooses the prefix), or plain packages to install directly.
+INSTALLER=$(ls /tmp/armpl/*.sh 2>/dev/null | head -1 || true)
+if [ -n "$INSTALLER" ]; then
+    chmod +x "$INSTALLER"
+    "$INSTALLER" -a -f -i /opt/arm
+elif ls /tmp/armpl/*.rpm >/dev/null 2>&1; then
+    rpm -Uvh --nodeps /tmp/armpl/*.rpm
+elif ls /tmp/armpl/*.deb >/dev/null 2>&1; then
+    dpkg -i /tmp/armpl/*.deb
+else
+    echo "ERROR: unrecognised ARMPL tarball layout:"; ls -R /tmp/armpl | head -20
+    exit 1
+fi
 
 ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
 [ -n "$ARMPL_DIR" ] || { echo "ERROR: ARMPL installer produced no /opt/arm/armpl_* tree"; exit 1; }

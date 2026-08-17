@@ -10,6 +10,12 @@ on:
   push:
     branches: [devel, feature/ci]
   workflow_dispatch:
+    inputs:
+      lanes:
+        description: "Lanes to run: auto (by changed files), all, linux, portable, macos, windows"
+        default: auto
+        type: choice
+        options: [auto, all, linux, portable, macos, windows]
 
 ## A newer push supersedes any run still in flight on the same branch.
 concurrency:
@@ -17,8 +23,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ## Decide which lanes this push actually needs. A change to one lane's
+  ## own scripts concerns only that lane; a change to the sources or the
+  ## shared scripts concerns all of them. "Run workflow" in the Actions tab
+  ## overrides the decision, which is the fast way to iterate on a single
+  ## platform. The gate lane always runs: it is the verdict on the push and
+  ## it produces the test model every other lane replays.
+  plan:
+    name: "Plan: which lanes to run"
+    runs-on: ubuntu-latest
+    outputs:
+      portable: ${{ steps.decide.outputs.portable }}
+      macos: ${{ steps.decide.outputs.macos }}
+      windows: ${{ steps.decide.outputs.windows }}
+      canary: ${{ steps.decide.outputs.canary }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: decide
+        run: |
+          sel="${{ github.event.inputs.lanes || 'auto' }}"
+          changed=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo UNKNOWN)
+          echo "selection: $sel"
+          echo "changed files:"; echo "$changed" | sed 's/^/  /'
+
+          shared=false
+          ## Sources, the shared build/test scripts, or the workflow itself:
+          ## everything has to run. An unknown diff (first push, force push)
+          ## counts as shared, erring towards running more rather than less.
+          if [ "$changed" = UNKNOWN ] || echo "$changed" | grep -qE \
+             '^(gmrflib/|inlaprog/|external-packages/|rinla/|ci/build\.sh|ci/smoke-test\.sh|ci/package-portable\.sh|\.github/workflows/)'; then
+            shared=true
+          fi
+          has() { echo "$changed" | grep -qE "$1"; }
+
+          case "$sel" in
+            all)      p=true;  m=true;  w=true;  c=true ;;
+            linux)    p=false; m=false; w=false; c=false ;;
+            portable) p=true;  m=false; w=false; c=false ;;
+            macos)    p=false; m=true;  w=false; c=false ;;
+            windows)  p=false; m=false; w=true;  c=false ;;
+            *)
+              if [ "$shared" = true ]; then
+                p=true; m=true; w=true; c=true
+              else
+                p=false; m=false; w=false; c=false
+                has 'ci/(deps-manylinux|deps-armpl-linux)\.sh' && p=true
+                has 'ci/(deps-macos|build-macos)\.sh'          && m=true
+                has 'ci/(deps-mingw|build-mingw)\.sh'          && w=true
+                has 'ci/deps-fedora\.sh'                       && c=true
+              fi ;;
+          esac
+          echo "portable=$p" >> "$GITHUB_OUTPUT"
+          echo "macos=$m"    >> "$GITHUB_OUTPUT"
+          echo "windows=$w"  >> "$GITHUB_OUTPUT"
+          echo "canary=$c"   >> "$GITHUB_OUTPUT"
+          {
+            echo "### Lanes selected"
+            echo "| lane | run |"
+            echo "|---|---|"
+            echo "| Linux x86_64 (gate) | always |"
+            echo "| portable bundles | $p |"
+            echo "| macOS | $m |"
+            echo "| Windows | $w |"
+            echo "| canary | $c |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   linux-x86_64:
     name: "Linux x86_64: build + smoke test (gcc-14, current R)"
+    needs: plan
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -93,6 +167,8 @@ jobs:
   ## libR on first use.
   portable-linux-x86_64:
     name: "Portable bundle: Linux x86_64 (glibc 2.28+, no R needed)"
+    needs: plan
+    if: needs.plan.outputs.portable == 'true'
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
     defaults:
@@ -135,6 +211,8 @@ jobs:
   ## so it stays a build-it-yourself option rather than an artifact.
   portable-linux-arm64:
     name: "Portable bundle: Linux arm64 (glibc 2.28+, no R needed)"
+    needs: plan
+    if: needs.plan.outputs.portable == 'true'
     runs-on: ubuntu-24.04-arm
     container: quay.io/pypa/manylinux_2_28_aarch64
     defaults:
@@ -175,6 +253,8 @@ jobs:
   ## Experimental: the ARMPL download is an external moving part.
   portable-linux-arm64-armpl:
     name: "Portable bundle: Linux arm64 with ARMPL (experimental)"
+    needs: plan
+    if: needs.plan.outputs.portable == 'true'
     runs-on: ubuntu-24.04-arm
     container: quay.io/pypa/manylinux_2_28_aarch64
     continue-on-error: true
@@ -336,6 +416,8 @@ jobs:
   ## Experimental while it stabilizes: cannot fail the workflow.
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, experimental)"
+    needs: plan
+    if: needs.plan.outputs.macos == 'true'
     runs-on: macos-latest
     continue-on-error: true
     defaults:
@@ -373,6 +455,8 @@ jobs:
   ## Experimental while it stabilizes: cannot fail the workflow.
   windows-x86_64:
     name: "Windows x86_64: cross-build inla.exe (MinGW UCRT, experimental)"
+    needs: plan
+    if: needs.plan.outputs.windows == 'true'
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true
@@ -447,6 +531,8 @@ jobs:
   ## gate -- new-compiler breakage is an early warning, not a stop sign.
   canary-newest-gcc:
     name: "Canary: newest GCC on Fedora (non-blocking)"
+    needs: plan
+    if: needs.plan.outputs.canary == 'true'
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true
