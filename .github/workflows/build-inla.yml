@@ -543,24 +543,95 @@ jobs:
           name: inla-linux-x86_64-modern-portable
           path: inla-linux-x86_64-modern-portable.tar.gz
           if-no-files-found: error
+  portable-linux-arm64-modern:
+    name: "Portable bundle: Linux arm64 modern (gcc-16, glibc 2.39+)"
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        run: |
+          bash ci/deps-ubuntu.sh
+          ## serial OpenBLAS, and make it the default libopenblas
+          sudo apt-get install -y --no-install-recommends libopenblas-serial-dev
+          sudo update-alternatives --set libopenblas.so.0-aarch64-linux-gnu \
+            /usr/lib/aarch64-linux-gnu/openblas-serial/libopenblas.so.0 2>/dev/null || true
+          sudo update-alternatives --set libopenblas.so-aarch64-linux-gnu \
+            /usr/lib/aarch64-linux-gnu/openblas-serial/libopenblas.so 2>/dev/null || true
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build
+        run: |
+          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=armv8.2-a -mtune=neoverse-n1" \
+               bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Package
+        env:
+          GLIBC_MAX: "2.39"
+          SUFFIX: modern
+        run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-aarch64-modern-portable"
+            echo "purpose=Portable Linux arm64, newest GCC, armv8.2 code throughout; needs glibc 2.39+ (Graviton2+, Ampere, RPi5)"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=OpenBLAS (serial), bundled"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-aarch64-modern-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-aarch64-modern-portable
+          path: manifest/inla-linux-aarch64-modern-portable.txt
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-aarch64-modern-portable
+          path: inla-linux-aarch64-modern-portable.tar.gz
+          if-no-files-found: error
+
 
   ## The modern bundle replayed on a clean current distro.
   run-portable-modern:
-    name: "Portable modern runs a model on ${{ matrix.distro }}"
-    needs: [portable-linux-x86_64-modern, linux-x86_64]
-    runs-on: ubuntu-latest
+    name: "Portable modern (${{ matrix.arch }}) runs a model on ${{ matrix.distro }}"
+    needs: [portable-linux-x86_64-modern, portable-linux-arm64-modern, linux-x86_64]
+    runs-on: ${{ matrix.runner }}
     container: ${{ matrix.distro }}
     strategy:
       fail-fast: false
       matrix:
         distro: ["ubuntu:24.04", "fedora:latest"]
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: inla-linux-x86_64-modern-portable
+          name: inla-linux-${{ matrix.arch }}-modern-portable
       - uses: actions/download-artifact@v4
         with:
           name: inla-testmodel
@@ -569,7 +640,7 @@ jobs:
         run: |
           head -2 /etc/os-release
           BASE=$PWD
-          tar xzf inla-linux-x86_64-modern-portable.tar.gz
+          tar xzf inla-linux-${{ matrix.arch }}-modern-portable.tar.gz
           ./bin/inla -ping
           INI=""
           for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
@@ -948,9 +1019,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [linux-x86_64, portable-linux-x86_64, portable-linux-arm64,
             portable-linux-arm64-armpl, portable-linux-x86_64-modern,
-            macos-arm64, macos-intel, windows-x86_64, run-windows,
-            run-portable-x86_64, run-portable-arm64,
-            run-portable-arm64-armpl, run-portable-modern]
+            portable-linux-arm64-modern, macos-arm64, macos-intel,
+            windows-x86_64, run-windows, run-portable-x86_64,
+            run-portable-arm64, run-portable-arm64-armpl,
+            run-portable-modern]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -967,7 +1039,8 @@ jobs:
           cd artifacts
           missing=0
           for a in inla-linux-x86_64-portable inla-linux-x86_64-modern-portable \
-                   inla-linux-aarch64-portable inla-linux-aarch64-armpl-portable \
+                   inla-linux-aarch64-portable inla-linux-aarch64-modern-portable \
+                   inla-linux-aarch64-armpl-portable \
                    inla-macos-arm64-portable inla-macos-x86_64-portable \
                    inla-windows-x86_64; do
             [ -d "$a" ] && echo "  ok      $a" || { echo "::error::missing: $a"; missing=1; }
