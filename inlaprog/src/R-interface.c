@@ -53,7 +53,7 @@ __END_DECLS
  * it (through R_HOME) on first use. Only the small embedding API below is
  * needed, so building this mode requires no R at all.
  */
-#include <dlfcn.h>
+#include <ltdl.h>
 
 typedef void *SEXP;
 typedef ptrdiff_t R_xlen_t;
@@ -64,7 +64,7 @@ typedef ptrdiff_t R_xlen_t;
 #define FALSE 0
 #endif
 
-static void *R_dlhandle = NULL;
+static lt_dlhandle R_dlhandle = NULL;
 static SEXP (*p_Rf_protect)(SEXP);
 static void (*p_Rf_unprotect)(int);
 static SEXP (*p_Rf_mkString)(const char *);
@@ -105,9 +105,9 @@ static uintptr_t *p_R_CStackLimit;
 
 static void *inla_R_dlsym_(const char *name, const char *alt)
 {
-	void *p = dlsym(R_dlhandle, name);
+	void *p = (void *) lt_dlsym(R_dlhandle, name);
 	if (!p && alt) {
-		p = dlsym(R_dlhandle, alt);
+		p = (void *) lt_dlsym(R_dlhandle, alt);
 	}
 	if (!p) {
 		fprintf(stderr, "\n *** ERROR *** libR has no symbol [%s]\n", name);
@@ -121,20 +121,28 @@ static void inla_R_dlopen_(void)
 	if (R_dlhandle) {
 		return;
 	}
+	if (lt_dlinit() != 0) {
+		fprintf(stderr, "\n *** ERROR *** lt_dlinit failed: %s\n", lt_dlerror());
+		exit(1);
+	}
 	// R_HOME is validated (or guessed) by the caller before this runs.
-	// RTLD_GLOBAL: shared objects that R loads later (packages) resolve
-	// their R symbols from the global namespace.
+	// Global loading: shared objects that R loads later (packages)
+	// resolve their R symbols from the global namespace.
+	lt_dladvise advise;
+	lt_dladvise_init(&advise);
+	lt_dladvise_global(&advise);
 	char *rhome = getenv((const char *) "R_HOME");
 	if (rhome) {
 		char *path = NULL;
 		GMRFLib_sprintf(&path, "%s/lib/libR.so", rhome);
-		R_dlhandle = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+		R_dlhandle = lt_dlopenadvise(path, advise);
 	}
 	if (!R_dlhandle) {
-		R_dlhandle = dlopen("libR.so", RTLD_NOW | RTLD_GLOBAL);
+		R_dlhandle = lt_dlopenadvise("libR.so", advise);
 	}
+	lt_dladvise_destroy(&advise);
 	if (!R_dlhandle) {
-		fprintf(stderr, "\n *** ERROR *** rgeneric needs R with a shared libR: %s\n", dlerror());
+		fprintf(stderr, "\n *** ERROR *** rgeneric needs R with a shared libR: %s\n", lt_dlerror());
 		exit(1);
 	}
 	p_Rf_protect = (SEXP(*)(SEXP)) inla_R_dlsym_("Rf_protect", NULL);
