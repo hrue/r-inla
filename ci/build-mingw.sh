@@ -74,7 +74,7 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## Windows R's own R.dll/Rblas/Rlapack, static Rmath/gsl/metis/muparser,
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
 EXTOBJ=$(echo "$EPATH"/lib*.a)
-LTDL=$(ls "$SYSROOT"/mingw/lib/libltdl.dll.a "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1)
+LTDL=$(ls "$SYSROOT"/mingw/lib/libltdl.dll.a "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
 make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \

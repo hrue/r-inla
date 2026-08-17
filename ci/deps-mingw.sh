@@ -53,7 +53,10 @@ if [ ! -f "$DEPS/lib/libRmath.a" ]; then
 #define HAVE_LOG1P 1
 #define HAVE_WORKING_LOG1P 1
 EOF
-      for f in *.c standalone/std_unif.c; do
+      ## the RNG stub's filename has changed across R versions: take
+      ## whatever .c the standalone dir provides (minus its test program)
+      STD=$(ls standalone/*.c 2>/dev/null | grep -v test || true)
+      for f in *.c $STD; do
           $MINGW_CC -O2 -DMATHLIB_STANDALONE \
               -I. -I"$DEPS/R-win/include" -c "$f" -o "$(basename "$f" .c).o"
       done
