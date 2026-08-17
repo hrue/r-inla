@@ -12,6 +12,8 @@
 ##   JOBS        parallel compile jobs              default: nproc
 ##   CC/CXX/FC   compilers                          default: gcc/g++/gfortran
 ##   BLAS        openblas | armpl                   default: openblas
+##   OPT         fast | safe                        default: fast
+##   LTO         1 to add -flto=auto                default: 0
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -24,11 +26,25 @@ FC=${FC:-gfortran}
 BLAS=${BLAS:-openblas}
 EPATH=$ROOT/external-packages
 
+## Optimization. "fast" is the upstream release configuration; "safe"
+## exists for bisecting a problem that only appears optimized. LTO is the
+## one upstream flag kept opt-in: it roughly doubles link time and its
+## failures are unrelated to the change being tested.
+OPT=${OPT:-fast}
+LTO=${LTO:-0}
+case "$OPT" in
+    fast) OPTFLAGS="-O3 -ftree-vectorize -funroll-loops -fvariable-expansion-in-unroller -ftracer" ;;
+    safe) OPTFLAGS="-O2 -ftree-vectorize" ;;
+    *)    echo "ERROR: OPT must be fast or safe"; exit 1 ;;
+esac
+[ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
+
 ## Version string compiled into the binary (shown by inla -V and inla -ping);
 ## falls back to "devel" outside a git checkout.
 TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
 
 echo "== building $TAG with CC=$CC CXX=$CXX FC=$FC ($($CC --version | head -1)) =="
+echo "== optimization: OPT=$OPT LTO=$LTO =="
 
 ## BLAS/LAPACK. ARMPL is not only a faster backend on Arm: the sources have
 ## dedicated code paths behind INLA_WITH_ARMPL (dot products, idxval,
@@ -52,7 +68,7 @@ fi
 ## OpenBLAS). INLA_WITH_SIMDE needs the SIMDE headers (libsimde-dev).
 ## No -march: baseline x86-64, with the fast per-CPU paths supplied at run
 ## time by the INLA_WITH_CLONE_TARGETS function clones.
-FLAGS="-O2 -mtune=generic -ftree-vectorize -funroll-loops -pipe -pthread \
+FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \

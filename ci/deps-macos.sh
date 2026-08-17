@@ -42,6 +42,31 @@ fi
 DEPS=$HOME/inla-macos-deps
 mkdir -p "$DEPS/lib" "$DEPS/include"
 
+## Standalone Rmath: the CRAN framework ships libR/libRblas/libRlapack but
+## not the standalone math library the sources use (rmath.h defines
+## MATHLIB_STANDALONE), so build it from R's own sources.
+if [ ! -f "$DEPS/lib/libRmath.a" ]; then
+    RHOME=$(R RHOME)
+    RVER=$("$RHOME/bin/R" --version | head -1 | awk '{print $3}')
+    curl -sL -o /tmp/R-src.tar.gz "https://cran.r-project.org/src/base/R-4/R-${RVER}.tar.gz"
+    mkdir -p /tmp/R-src && tar xzf /tmp/R-src.tar.gz -C /tmp/R-src --strip-components=1
+    ( cd /tmp/R-src/src/nmath
+      cat > config.h <<'EOF'
+#define HAVE_EXPM1 1
+#define HAVE_HYPOT 1
+#define HAVE_LOG1P 1
+#define HAVE_WORKING_LOG1P 1
+EOF
+      CCB=$(ls "$(brew --prefix)"/bin/gcc-1[0-9] 2>/dev/null | sort -V | tail -1 || echo cc)
+      STD=$(ls standalone/*.c 2>/dev/null | grep -v test || true)
+      for f in *.c $STD; do
+          "$CCB" -O2 -DMATHLIB_STANDALONE -I. -I"$RHOME/include" \
+                 -c "$f" -o "$(basename "$f" .c).o"
+      done
+      ar rcs "$DEPS/lib/libRmath.a" ./*.o )
+fi
+[ -f "$DEPS/lib/libRmath.a" ] || { echo "ERROR: standalone Rmath was not built"; exit 1; }
+
 if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     ## The scivision mirror carries a modern cmake build that also handles
     ## GKlib; the policy flag keeps any old cmake_minimum_required lines
