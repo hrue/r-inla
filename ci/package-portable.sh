@@ -46,5 +46,6 @@ esac
 ## Prove the bundle runs from its own libraries.
 "$OUT/bin/inla" -ping
 
-tar -C "$OUT" -czf "$ROOT/inla-linux-x86_64-portable.tar.gz" bin lib
-echo "OK: portable bundle $(du -h "$ROOT/inla-linux-x86_64-portable.tar.gz" | cut -f1)"
+ARCH=$(uname -m)
+tar -C "$OUT" -czf "$ROOT/inla-linux-$ARCH-portable.tar.gz" bin lib
+echo "OK: portable bundle $(du -h "$ROOT/inla-linux-$ARCH-portable.tar.gz" | cut -f1)"
