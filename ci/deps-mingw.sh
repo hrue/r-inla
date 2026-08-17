@@ -26,6 +26,22 @@ $SUDO dnf -y install \
 $SUDO dnf -y install ucrt64-zlib 2>/dev/null || true
 $SUDO dnf -y install ucrt64-openssl 2>/dev/null || $SUDO dnf -y install mingw64-openssl 2>/dev/null || true
 
+## OpenMP runtime for the cross compiler. INLA requires OpenMP (the sources
+## refuse to compile without it), and the link needs libgomp.spec next to
+## the target's libraries. Package naming varies, so try the candidates and
+## report the toolchain's actual contents when none of them provides it.
+for p in ucrt64-libgomp mingw64-libgomp ucrt64-gcc-libgomp ucrt64-openmp; do
+    $SUDO dnf -y install "$p" 2>/dev/null && break
+done
+if ! find /usr/lib/gcc/$TRIPLET -name 'libgomp.spec' 2>/dev/null | grep -q .; then
+    echo "WARNING: no libgomp.spec for $TRIPLET -- OpenMP link will fail"
+    echo "  gcc lib dir:"; ls -R /usr/lib/gcc/$TRIPLET 2>/dev/null | head -30
+    echo "  candidate packages:"
+    dnf -q list --available '*gomp*' 2>/dev/null | grep -iE 'ucrt|mingw' | head -10 || true
+    echo "  files providing libgomp.spec:"
+    dnf -q provides '*/libgomp.spec' 2>/dev/null | head -10 || true
+fi
+
 DEPS=/opt/mingw-deps
 $SUDO mkdir -p "$DEPS"/lib "$DEPS"/include
 $SUDO chmod 777 "$DEPS"

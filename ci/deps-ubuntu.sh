@@ -19,7 +19,7 @@ SUDO=""
 ## release time (Ubuntu 24.04 carries 4.3), while users install current R
 ## from CRAN -- so the binary should link against current R as well.
 ## Ubuntu only; other apt systems keep their distro R.
-. /etc/os-release 2>/dev/null || true
+if [ -r /etc/os-release ]; then . /etc/os-release; fi
 if [ "${ID:-}" = "ubuntu" ] && [ ! -f /etc/apt/sources.list.d/cran.list ]; then
     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
         | $SUDO tee /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc > /dev/null
