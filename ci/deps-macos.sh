@@ -20,14 +20,20 @@ fi
 ## Arm Performance Libraries: the BLAS/LAPACK the upstream macOS binaries
 ## use. Installed from Arm's public download; if the URL has moved (version
 ## bumps), the build falls back to R's own Rblas/Rlapack automatically.
-ARMPL_VERSION=${ARMPL_VERSION:-24.10}
+ARMPL_VERSION=${ARMPL_VERSION:-26.07}
 if ! ls -d /opt/arm/armpl_* >/dev/null 2>&1; then
-    URL="https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_macOS.dmg"
-    if curl -sfL -o /tmp/armpl.dmg "$URL"; then
-        hdiutil attach -quiet -nobrowse -mountpoint /Volumes/armpl /tmp/armpl.dmg
-        PKG=$(ls /Volumes/armpl/*.pkg 2>/dev/null | head -1)
-        [ -n "$PKG" ] && sudo installer -pkg "$PKG" -target /
-        hdiutil detach -quiet /Volumes/armpl || true
+    URL=${ARMPL_URL:-https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_macOS.tgz}
+    if curl -sfL -o /tmp/armpl.tgz "$URL"; then
+        mkdir -p /tmp/armpl && tar xzf /tmp/armpl.tgz -C /tmp/armpl
+        PKG=$(find /tmp/armpl -name '*.pkg' 2>/dev/null | head -1)
+        DIR=$(find /tmp/armpl -maxdepth 2 -type d -name 'armpl_*' 2>/dev/null | head -1)
+        if [ -n "$PKG" ]; then
+            sudo installer -pkg "$PKG" -target /
+        elif [ -n "$DIR" ]; then
+            sudo mkdir -p /opt/arm && sudo cp -R "$DIR" /opt/arm/
+        else
+            echo "WARNING: unrecognised ARMPL archive layout:"; ls -R /tmp/armpl | head -20
+        fi
     else
         echo "WARNING: ARMPL ${ARMPL_VERSION} download failed; the build will use R's Rblas/Rlapack"
     fi

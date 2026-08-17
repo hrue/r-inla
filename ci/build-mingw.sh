@@ -44,7 +44,7 @@ rm -f "$EPATH"/lib*.a
 ( cd "$EPATH" && ./build \
       CC="$CC" CXX="$CXX" FC="$FC" \
       FLAGS="" \
-      INC="-DINLA_WITH_EXTERNAL_PACKAGES -I$DEPS/include \
+      INC="-DINLA_WITH_EXTERNAL_PACKAGES -I$DEPS/include -I$DEPS/include/eigen3 \
            -I$SYSROOT2/mingw/include/eigen3 -I$SYSROOT/mingw/include/eigen3 \
            -I$RWIN/include -I$EPATH -I$ROOT/inlaprog/src" )
 
@@ -91,6 +91,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                $LTDL $DL \
                -lgfortran -lquadmath -lcrypto -lz \
                -Wl,--enable-auto-import -lpthread -lm" \
+     EXTLIBS3="-lm" \
      inla
 [ -f "$ROOT/inlaprog/inla.exe" ] || { echo "ERROR: inla.exe was not produced"; exit 1; }
 $TRIPLET-strip "$ROOT/inlaprog/inla.exe" 2>/dev/null || mingw-strip "$ROOT/inlaprog/inla.exe" || true

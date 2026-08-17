@@ -17,7 +17,7 @@ SUDO=""
 $SUDO dnf -y install \
     ucrt64-gcc ucrt64-gcc-c++ ucrt64-gcc-gfortran ucrt64-winpthreads \
     mingw64-eigen3 mingw64-libltdl \
-    simde-devel \
+    eigen3-devel \
     git-core make cmake findutils diffutils rsync wget innoextract zip \
     gcc gcc-c++ R-core-devel libRmath-devel
 
@@ -112,9 +112,23 @@ if [ ! -f "$DEPS/lib/libmuparser.a" ]; then
     cmake --install /tmp/muparser/build
 fi
 
-## ---- SIMDE headers in a clean include dir (they are host-independent) ------
+## ---- SIMDE headers (header-only, host-independent) --------------------------
+## From upstream rather than the distribution package: Fedora's simde
+## expects hedley.h from a separate package, while the upstream tree keeps
+## it inside simde/, so the copied headers stay self-contained.
 if [ ! -d "$DEPS/include/simde" ]; then
-    cp -r /usr/include/simde "$DEPS/include/simde"
+    git clone --depth 1 https://github.com/simd-everywhere/simde /tmp/simde-src
+    cp -r /tmp/simde-src/simde "$DEPS/include/simde"
 fi
+
+## ---- Eigen headers (header-only, so the host package serves the cross
+## build as well) -------------------------------------------------------------
+if [ ! -d "$DEPS/include/eigen3" ]; then
+    for d in /usr/include/eigen3 /usr/x86_64-w64-mingw32ucrt/sys-root/mingw/include/eigen3 \
+             /usr/x86_64-w64-mingw32/sys-root/mingw/include/eigen3; do
+        [ -d "$d" ] && { cp -r "$d" "$DEPS/include/eigen3"; break; }
+    done
+fi
+[ -d "$DEPS/include/eigen3/Eigen" ] || { echo "ERROR: no Eigen headers found"; exit 1; }
 
 echo "OK: mingw deps ready under $DEPS"
