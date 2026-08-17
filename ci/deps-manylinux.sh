@@ -47,6 +47,9 @@ if ! dnf -y install muParser-devel 2>/dev/null \
     ldconfig
 fi
 
+## Static archives for the libraries that get embedded into the binary.
+dnf -y install openblas-static 2>/dev/null || true
+
 ## SIMDE is header-only and has no EL8 package: vendor the headers.
 if [ ! -d /usr/local/include/simde ]; then
     git clone --depth 1 https://github.com/simd-everywhere/simde /tmp/simde-src

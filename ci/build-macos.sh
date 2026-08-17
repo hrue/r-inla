@@ -37,7 +37,12 @@ esac
 [ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
 echo "== optimization: OPT=$OPT LTO=$LTO =="
 
-FLAGS="$OPTFLAGS -mcpu=apple-m1 -pipe -pthread \
+## Apple Silicon gets the M-series tuning; Intel Macs the generic 64-bit
+## baseline upstream uses (every Intel Mac on a current macOS is x86-64).
+ARCH=$(uname -m)
+if [ "$ARCH" = arm64 ]; then ARCHFLAGS="-mcpu=apple-m1"; else ARCHFLAGS="-mtune=generic -m64"; fi
+
+FLAGS="$OPTFLAGS $ARCHFLAGS -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
@@ -48,21 +53,36 @@ mkdir -p "$PREFIX"/bin "$PREFIX"/lib "$PREFIX"/include "$PREFIX/include.boot"
 ln -sfn "$ROOT/gmrflib" "$PREFIX/include.boot/GMRFLib"
 FLAGS="$FLAGS -I$PREFIX/include.boot"
 
-RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include"
-## -L$DEPS/lib supplies the standalone Rmath built by ci/deps-macos.sh: the
-## framework ships libR but not that one.
-RLIB_LIB="-L$RHOME/lib -L$DEPS/lib -lR -lRmath"
+## R linkage, as on Linux: 1 links libR at build time, 2 loads the running
+## machine's libR through libltdl when an rgeneric model first appears (so
+## the binary starts with any R or none). -L$DEPS/lib supplies the
+## standalone Rmath built by ci/deps-macos.sh: the framework ships libR but
+## not that one.
+WITH_LIBR=${WITH_LIBR:-1}
+if [ "$WITH_LIBR" = 2 ]; then
+    RLIB_INC="-DINLA_WITH_LIBR -DINLA_WITH_LIBR_DLOPEN"
+    RLIB_LIB="-L$DEPS/lib -lRmath"
+else
+    RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include"
+    RLIB_LIB="-L$RHOME/lib -L$DEPS/lib -lR -lRmath"
+fi
+echo "== R linkage: WITH_LIBR=$WITH_LIBR =="
 
-## BLAS/LAPACK: ARMPL when installed (what the upstream macOS binaries
-## use; the binary then expects ARMPL on the running machine, like
-## upstream's), otherwise R's own Rblas/Rlapack.
+## BLAS/LAPACK, following the upstream recipe for each architecture:
+## Apple Silicon uses ARMPL, Intel uses the Accelerate framework (which
+## has its own code paths in gmrflib/simd.c). Either falls back to R's own
+## Rblas/Rlapack when the preferred backend is unavailable.
 ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
-if [ -n "$ARMPL_DIR" ]; then
+if [ "$ARCH" = arm64 ] && [ -n "$ARMPL_DIR" ]; then
     echo "BLAS: ARMPL at $ARMPL_DIR"
     FLAGS="$FLAGS -DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
     BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
+elif [ "$ARCH" = x86_64 ]; then
+    echo "BLAS: Accelerate framework"
+    FLAGS="$FLAGS -DINLA_WITH_FRAMEWORK_ACCELERATE"
+    BLASLIBS="-framework Accelerate"
 else
-    echo "BLAS: R's Rblas/Rlapack (ARMPL not found)"
+    echo "BLAS: R's Rblas/Rlapack"
     BLASLIBS="-lRblas -lRlapack"
 fi
 

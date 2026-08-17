@@ -11,9 +11,16 @@ brew install gcc gsl muparser eigen simde libtool openssl@3 cmake gnu-sed 2>/dev
 
 ## Official CRAN R for Apple Silicon (the user-realistic install).
 if [ ! -d /Library/Frameworks/R.framework ]; then
-    PKG=$(curl -s https://cran.r-project.org/bin/macosx/big-sur-arm64/base/ \
-          | grep -oE 'R-[0-9.]+-arm64\.pkg' | sort -V | tail -1)
-    curl -s -o /tmp/R.pkg "https://cran.r-project.org/bin/macosx/big-sur-arm64/base/$PKG"
+    if [ "$(uname -m)" = arm64 ]; then
+        BASE=https://cran.r-project.org/bin/macosx/big-sur-arm64/base
+        PAT='R-[0-9.]+-arm64\.pkg'
+    else
+        BASE=https://cran.r-project.org/bin/macosx/big-sur-x86_64/base
+        PAT='R-[0-9.]+-x86_64\.pkg'
+    fi
+    PKG=$(curl -s "$BASE/" | grep -oE "$PAT" | sort -V | tail -1)
+    [ -n "$PKG" ] || { echo "ERROR: no R installer found at $BASE"; exit 1; }
+    curl -s -o /tmp/R.pkg "$BASE/$PKG"
     sudo installer -pkg /tmp/R.pkg -target /
 fi
 

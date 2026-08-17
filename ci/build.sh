@@ -46,22 +46,54 @@ TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
 echo "== building $TAG with CC=$CC CXX=$CXX FC=$FC ($($CC --version | head -1)) =="
 echo "== optimization: OPT=$OPT LTO=$LTO =="
 
-## BLAS/LAPACK. ARMPL is not only a faster backend on Arm: the sources have
-## dedicated code paths behind INLA_WITH_ARMPL (dot products, idxval,
-## lapack-interface), so the define belongs with the libraries.
-if [ "$BLAS" = armpl ]; then
-    ARMPL_DIR=${ARMPL_DIR:-$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)}
-    [ -n "$ARMPL_DIR" ] || { echo "ERROR: BLAS=armpl but no /opt/arm/armpl_* found"; exit 1; }
-    echo "== BLAS: ARMPL at $ARMPL_DIR =="
-    BLAS_INC="-DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
-    ## No rpath here: ci/package-portable.sh sets $ORIGIN rpaths on the
-    ## staged binary, and a literal $ORIGIN would be mangled by make.
-    BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath -lastring"
-else
-    echo "== BLAS: OpenBLAS =="
-    BLAS_INC=""
-    BLAS_LIBS="-lopenblas"
-fi
+## BLAS/LAPACK. Linked STATICALLY wherever an archive exists, so the BLAS
+## ends up inside the binary as it does upstream, instead of travelling
+## beside it. Set STATIC_BLAS=0 to link dynamically instead.
+##
+## The defines are not cosmetic: the sources have dedicated code paths
+## behind INLA_WITH_MKL and INLA_WITH_ARMPL (dot products, idxval,
+## lapack-interface), so each belongs with its libraries.
+STATIC_BLAS=${STATIC_BLAS:-1}
+case "$BLAS" in
+    mkl)
+        MKLROOT=${MKLROOT:-/opt/intel/oneapi/mkl/latest}
+        MKLLIB=$MKLROOT/lib/intel64
+        [ -d "$MKLLIB" ] || MKLLIB=$MKLROOT/lib
+        [ -f "$MKLLIB/libmkl_core.a" ] || { echo "ERROR: no static MKL under $MKLLIB"; exit 1; }
+        echo "== BLAS: MKL (static, embedded) from $MKLLIB =="
+        BLAS_INC="-DINLA_WITH_MKL -I$MKLROOT/include"
+        ## The start/end group resolves MKL's circular dependencies, as in
+        ## the upstream recipe.
+        BLAS_LIBS="-Wl,--start-group $MKLLIB/libmkl_intel_lp64.a \
+                   $MKLLIB/libmkl_gnu_thread.a $MKLLIB/libmkl_core.a -Wl,--end-group"
+        ;;
+    armpl)
+        ARMPL_DIR=${ARMPL_DIR:-$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)}
+        [ -n "$ARMPL_DIR" ] || { echo "ERROR: BLAS=armpl but no /opt/arm/armpl_* found"; exit 1; }
+        BLAS_INC="-DINLA_WITH_ARMPL -I$ARMPL_DIR/include"
+        ARMPL_A=$(ls "$ARMPL_DIR"/lib/libarmpl_lp64.a "$ARMPL_DIR"/lib/libarmpl.a 2>/dev/null | head -1 || true)
+        if [ "$STATIC_BLAS" = 1 ] && [ -n "$ARMPL_A" ]; then
+            echo "== BLAS: ARMPL (static, embedded) $ARMPL_A =="
+            AMATH=$(ls "$ARMPL_DIR"/lib/libamath.a 2>/dev/null | head -1 || echo -lamath)
+            ASTR=$(ls "$ARMPL_DIR"/lib/libastring.a 2>/dev/null | head -1 || echo -lastring)
+            BLAS_LIBS="$ARMPL_A $AMATH $ASTR -L$ARMPL_DIR/lib"
+        else
+            echo "== BLAS: ARMPL (shared) at $ARMPL_DIR =="
+            BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath -lastring"
+        fi
+        ;;
+    *)
+        BLAS_INC=""
+        OB_A=$(ls /usr/lib64/libopenblas.a /usr/lib/*-linux-gnu/libopenblas.a 2>/dev/null | head -1 || true)
+        if [ "$STATIC_BLAS" = 1 ] && [ -n "$OB_A" ]; then
+            echo "== BLAS: OpenBLAS (static, embedded) $OB_A =="
+            BLAS_LIBS="$OB_A"
+        else
+            echo "== BLAS: OpenBLAS (shared) =="
+            BLAS_LIBS="-lopenblas"
+        fi
+        ;;
+esac
 
 ## The devel feature set, minus PARDISO (requires a license; libpardiso.c
 ## provides stubs so the link still closes) and minus MKL (this build links
