@@ -348,6 +348,11 @@ jobs:
       - name: System dependencies
         run: bash ci/deps-macos.sh
       - name: Build
+        ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
+        ## time, so the bundle runs on a Mac with any R or none, and
+        ## rgeneric loads the running machine's own libR when first used.
+        env:
+          WITH_LIBR: 2
         run: |
           if ! bash ci/build-macos.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -360,11 +365,13 @@ jobs:
           tail -3 build.log
       - name: Smoke test
         run: bash ci/smoke-test.sh
-      - name: Upload binary
+      - name: Package (self-contained bundle)
+        run: bash ci/package-macos.sh
+      - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: inla-macos-arm64
-          path: local/bin/inla
+          name: inla-macos-arm64-portable
+          path: inla-macos-*-portable.tar.gz
           if-no-files-found: error
 
   ## macOS Intel: the same scripts on the last x86_64 macOS runner image.
@@ -385,6 +392,11 @@ jobs:
       - name: System dependencies
         run: bash ci/deps-macos.sh
       - name: Build
+        ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
+        ## time, so the bundle runs on a Mac with any R or none, and
+        ## rgeneric loads the running machine's own libR when first used.
+        env:
+          WITH_LIBR: 2
         run: |
           if ! bash ci/build-macos.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -398,11 +410,13 @@ jobs:
           tail -3 build.log
       - name: Smoke test
         run: bash ci/smoke-test.sh
-      - name: Upload binary
+      - name: Package (self-contained bundle)
+        run: bash ci/package-macos.sh
+      - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: inla-macos-x86_64
-          path: local/bin/inla
+          name: inla-macos-x86_64-portable
+          path: inla-macos-*-portable.tar.gz
           if-no-files-found: error
 
   ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
