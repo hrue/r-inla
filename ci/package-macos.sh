@@ -107,6 +107,24 @@ ${TO:+$TO 300} dylibbundler --overwrite-files --bundle-deps --create-dir \
     --install-path @loader_path/../lib/ </dev/null \
   || { echo "ERROR: dylibbundler could not resolve every dependency"; exit 1; }
 
+## Normalize any remaining ABSOLUTE third-party reference to the bundled
+## copy. dylibbundler only rewrites files it discovered from the binary's
+## dependency chain; the sTiles-staged dylibs arrive with their own
+## internal references (the GCC runtime trio -- libgfortran, libquadmath,
+## libgcc_s -- referenced as /usr/local/opt/gcc/... from the build
+## machine), which nothing above touches. Every such reference whose
+## basename exists in $OUT/lib is pointed there; anything else survives to
+## fail the gate below, which is what an unbundlable dependency should do.
+for f in "$OUT/bin/inla" "$OUT"/lib/*.dylib; do
+    [ -f "$f" ] || continue
+    otool -L "$f" | awk 'NR>1 && $1 ~ /^\/(usr\/local|opt\/(homebrew|arm|local))\// {print $1}'     | while read -r dep; do
+        base=$(basename "$dep")
+        [ -f "$OUT/lib/$base" ] || continue
+        chmod u+w "$f" 2>/dev/null || true
+        install_name_tool -change "$dep" "@loader_path/../lib/$base" "$f" 2>/dev/null || true
+    done
+done
+
 ## dylibbundler can leave a duplicate @loader_path rpath, which dyld on
 ## recent macOS rejects outright; the load commands already carry the full
 ## @loader_path/../lib/ path, so no rpath entry is needed at all. Every
