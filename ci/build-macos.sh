@@ -90,7 +90,12 @@ if [ "$ARCH" = arm64 ] && [ -n "$ARMPL_DIR" ]; then
         echo "BLAS: ARMPL (static, embedded) $ARMPL_A"
         AMATH=$(ls "$ARMPL_DIR"/lib/libamath.a 2>/dev/null | head -1 || echo -lamath)
         ASTR=$(ls "$ARMPL_DIR"/lib/libastring.a 2>/dev/null | head -1 || echo -lastring)
-        BLASLIBS="$ARMPL_A $AMATH $ASTR -L$ARMPL_DIR/lib"
+        ## ARMPL's archive carries C++ built against libc++ (the std::__1
+        ## symbols), while this binary is linked by g++ against libstdc++.
+        ## Both can coexist -- they use different inline namespaces and
+        ## ARMPL's C++ never crosses the boundary -- but libc++ has to be on
+        ## the link line or those symbols stay undefined.
+        BLASLIBS="$ARMPL_A $AMATH $ASTR -L$ARMPL_DIR/lib -lc++"
     else
         echo "BLAS: ARMPL (shared) at $ARMPL_DIR"
         BLASLIBS="-L$ARMPL_DIR/lib -Wl,-rpath,$ARMPL_DIR/lib -larmpl -lamath -lastring"
