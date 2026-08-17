@@ -39,7 +39,7 @@ echo "== optimization: OPT=$OPT LTO=$LTO =="
 
 FLAGS="$OPTFLAGS -mcpu=apple-m1 -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
- -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL \
+ -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
  -DGITCOMMIT=$TAG \
  -I$BREW/include -I$DEPS/include"

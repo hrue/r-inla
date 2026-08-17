@@ -68,7 +68,7 @@ fi
 ## OpenBLAS). INLA_WITH_SIMDE needs the SIMDE headers (libsimde-dev).
 ## No -march: baseline x86-64, with the fast per-CPU paths supplied at run
 ## time by the INLA_WITH_CLONE_TARGETS function clones.
-FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread \
+FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
