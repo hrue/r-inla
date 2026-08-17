@@ -62,6 +62,25 @@ else
     echo "  embedded in the binary, or Accelerate (BLAS symbols defined: $n)"
 fi
 
+## The macOS version a user actually needs is the MAXIMUM over the binary
+## and every bundled library, not the deployment target we asked for: one
+## dependency built for a newer OS raises the floor for the whole bundle.
+## ARMPL's macOS build targets 13.0, so the Apple Silicon bundle lands
+## there while the Intel one (Accelerate is a system framework) stays at
+## the 11.0 we set. Printed per file so a regression is visible here rather
+## than discovered by someone on an older Mac.
+echo "== macOS deployment floor (ours: $MACOSX_DEPLOYMENT_TARGET) =="
+FLOOR=0
+for f in "$OUT/bin/inla" "$OUT"/lib/*.dylib; do
+    [ -f "$f" ] || continue
+    v=$(otool -l "$f" | awk '/LC_BUILD_VERSION/{f=1} f&&/minos/{print $2; exit}')
+    printf '  %-38s minos %s\n' "$(basename "$f")" "${v:-?}"
+    case "$v" in
+        [0-9]*) [ "$(printf '%s\n%s\n' "$v" "$FLOOR" | sort -V | tail -1)" = "$v" ] && FLOOR=$v ;;
+    esac
+done
+echo "  bundle requires macOS >= ${FLOOR:-unknown}"
+
 "$OUT/bin/inla" -ping
 
 NAME=inla-macos-$ARCH-portable
