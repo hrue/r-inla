@@ -175,7 +175,10 @@ if [ -n "$PSTART" ] && [ "$PSTART" != "$PEND" ]; then
     echo "ERROR: the exe carries runtime pseudo-relocations (data auto-imports)."
     echo "       These crash at startup whenever ASLR places the DLL out of"
     echo "       32-bit range. The symbols involved (from the linker):"
-    grep -iE "auto-import|pseudo" "$ROOT"/inlaprog/*.log 2>/dev/null || true
+    ## The workflow runs this script with all output redirected to
+    ## $ROOT/build.log, so the linker's per-symbol auto-import warnings are
+    ## in that file by the time the link has finished.
+    grep -iE "auto-import|pseudo-reloc" "$ROOT/build.log" 2>/dev/null | head -30 || true
     exit 1
 fi
 echo "== pseudo-relocation check: clean =="
