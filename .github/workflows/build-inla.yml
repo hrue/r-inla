@@ -50,10 +50,8 @@ jobs:
       ## which would bury real errors past the log limit). On failure,
       ## surface only the error lines plus the tail.
       - name: Build
-        env:
-          CC: gcc-14
-          CXX: g++-14
-          FC: gfortran-14
+        ## No compiler pinned: ci/deps-ubuntu.sh installs the newest GCC it
+        ## can get and ci/build.sh selects the highest version present.
         run: |
           if ! bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -109,9 +107,12 @@ jobs:
         run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: Build (portable, static MKL, dlopen libR)
         run: |
-          ## The container's newer gcc-toolset, when present (EL8 base gcc
-          ## is 8.5).
-          for e in /opt/rh/gcc-toolset-*/enable; do [ -f "$e" ] && source "$e" && break; done
+          ## Newest gcc-toolset in the container (its base gcc is 8.5).
+          ## These toolchains target the container's own glibc, so a newer
+          ## compiler costs nothing in portability. Sorted by version: the
+          ## plain glob would pick gcc-toolset-10 over gcc-toolset-9.
+          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
+          [ -n "$e" ] && source "$e"
           gcc --version | head -1
           if ! BLAS=mkl WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -151,7 +152,12 @@ jobs:
         run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: Build (portable, dlopen libR)
         run: |
-          for e in /opt/rh/gcc-toolset-*/enable; do [ -f "$e" ] && source "$e" && break; done
+          ## Newest gcc-toolset in the container (its base gcc is 8.5).
+          ## These toolchains target the container's own glibc, so a newer
+          ## compiler costs nothing in portability. Sorted by version: the
+          ## plain glob would pick gcc-toolset-10 over gcc-toolset-9.
+          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
+          [ -n "$e" ] && source "$e"
           gcc --version | head -1
           if ! WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -192,7 +198,13 @@ jobs:
         run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: Build (portable, ARMPL, dlopen libR)
         run: |
-          for e in /opt/rh/gcc-toolset-*/enable; do [ -f "$e" ] && source "$e" && break; done
+          ## Newest gcc-toolset in the container (its base gcc is 8.5).
+          ## These toolchains target the container's own glibc, so a newer
+          ## compiler costs nothing in portability. Sorted by version: the
+          ## plain glob would pick gcc-toolset-10 over gcc-toolset-9.
+          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
+          [ -n "$e" ] && source "$e"
+          gcc --version | head -1
           if ! BLAS=armpl WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
@@ -438,6 +450,11 @@ jobs:
       - name: Use https for git clones
         run: git config --global url."https://github.com/".insteadOf "git@github.com:"
       - name: Cross-build inla.exe
+        ## WITH_LIBR=2: R.dll is not linked; rgeneric loads the running
+        ## machine's own R through libltdl, which finds it under
+        ## $R_HOME/bin/x64 on Windows.
+        env:
+          WITH_LIBR: 2
         run: |
           if ! bash ci/build-mingw.sh > build.log 2>&1; then
             echo "::group::errors"

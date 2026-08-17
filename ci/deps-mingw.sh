@@ -33,7 +33,8 @@ $SUDO dnf -y install ucrt64-openssl 2>/dev/null || $SUDO dnf -y install mingw64-
 for p in ucrt64-libgomp mingw64-libgomp ucrt64-gcc-libgomp ucrt64-openmp; do
     $SUDO dnf -y install "$p" 2>/dev/null && break
 done
-if ! find /usr/lib/gcc/$TRIPLET -name 'libgomp.spec' 2>/dev/null | grep -q .; then
+if ! find /usr/lib/gcc/$TRIPLET /usr/$TRIPLET/sys-root/mingw/lib \
+          -name 'libgomp.spec' 2>/dev/null | grep -q .; then
     echo "WARNING: no libgomp.spec for $TRIPLET -- OpenMP link will fail"
     echo "  gcc lib dir:"; ls -R /usr/lib/gcc/$TRIPLET 2>/dev/null | head -30
     echo "  candidate packages:"
@@ -82,10 +83,12 @@ EOF
     ## standalone build does (the shipped header is written for use from
     ## inside R and omits part of the standalone API).
     RVER=$(echo "$R_SRC" | sed -e 's/^R-//' -e 's/\.tar\.gz$//')
+    TPL=$(ls /tmp/R-src/src/include/Rmath.h0 /tmp/R-src/src/include/Rmath.h0.in 2>/dev/null | head -1 || true)
+    [ -n "$TPL" ] || { echo "ERROR: no Rmath.h0 template in the R sources"; exit 1; }
     sed -e "s/@PACKAGE_VERSION@/$RVER/g" \
         -e 's|^#undef MATHLIB_STANDALONE|#define MATHLIB_STANDALONE 1|' \
         -e 's|^/\* #undef MATHLIB_STANDALONE \*/|#define MATHLIB_STANDALONE 1|' \
-        /tmp/R-src/src/include/Rmath.h0 > "$DEPS/include/Rmath.h"
+        "$TPL" > "$DEPS/include/Rmath.h"
     grep -q 'double.*lbeta' "$DEPS/include/Rmath.h" \
         || { echo "ERROR: generated Rmath.h lacks lbeta"; exit 1; }
 fi
