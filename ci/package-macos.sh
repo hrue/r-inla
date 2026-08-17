@@ -62,7 +62,9 @@ fi
 ## Everything else (Homebrew's gsl, muparser, ltdl, crypto, gfortran...) is
 ## referenced by absolute path, which dylibbundler handles on its own.
 ## timeout + </dev/null: it must never be able to wait for input.
-timeout 300 dylibbundler --overwrite-files --bundle-deps --create-dir \
+## macOS ships no `timeout` (it is GNU coreutils); use it only if present.
+TO=$(command -v gtimeout || command -v timeout || true)
+${TO:+$TO 300} dylibbundler --overwrite-files --bundle-deps --create-dir \
     --fix-file "$OUT/bin/inla" \
     --dest-dir "$OUT/lib" \
     --install-path @loader_path/../lib/ </dev/null \
