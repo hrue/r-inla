@@ -15,20 +15,32 @@ if [ ! -d /Library/Frameworks/R.framework ]; then
     sudo installer -pkg /tmp/R.pkg -target /
 fi
 
+## Arm Performance Libraries: the BLAS/LAPACK the upstream macOS binaries
+## use. Installed from Arm's public download; if the URL has moved (version
+## bumps), the build falls back to R's own Rblas/Rlapack automatically.
+ARMPL_VERSION=${ARMPL_VERSION:-24.10}
+if ! ls -d /opt/arm/armpl_* >/dev/null 2>&1; then
+    URL="https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_macOS.dmg"
+    if curl -sfL -o /tmp/armpl.dmg "$URL"; then
+        hdiutil attach -quiet -nobrowse -mountpoint /Volumes/armpl /tmp/armpl.dmg
+        PKG=$(ls /Volumes/armpl/*.pkg 2>/dev/null | head -1)
+        [ -n "$PKG" ] && sudo installer -pkg "$PKG" -target /
+        hdiutil detach -quiet /Volumes/armpl || true
+    else
+        echo "WARNING: ARMPL ${ARMPL_VERSION} download failed; the build will use R's Rblas/Rlapack"
+    fi
+fi
+
 DEPS=$HOME/inla-macos-deps
 mkdir -p "$DEPS/lib" "$DEPS/include"
 
 if [ ! -f "$DEPS/lib/libmetis.a" ]; then
-    curl -sL -o /tmp/metis.tar.gz \
-        https://github.com/KarypisLab/METIS/archive/refs/tags/v5.2.1.tar.gz 2>/dev/null || true
-    if [ -s /tmp/metis.tar.gz ]; then
-        mkdir -p /tmp/metis && tar xzf /tmp/metis.tar.gz -C /tmp/metis --strip-components=1
-    else
-        git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
-    fi
-    ## METIS >= 5.2 needs GKlib separately; the scivision mirror bundles a
-    ## cmake build that handles both.
+    ## The scivision mirror carries a modern cmake build that also handles
+    ## GKlib; the policy flag keeps any old cmake_minimum_required lines
+    ## acceptable to current CMake.
+    git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
     cmake -S /tmp/metis -B /tmp/metis/build \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_INSTALL_PREFIX="$DEPS"
     cmake --build /tmp/metis/build -j"$(sysctl -n hw.ncpu)"

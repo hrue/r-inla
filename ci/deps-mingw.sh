@@ -71,13 +71,14 @@ if [ ! -f "$DEPS/lib/libgsl.a" ]; then
 fi
 
 if [ ! -f "$DEPS/lib/libmetis.a" ]; then
-    git clone --depth 1 https://github.com/KarypisLab/METIS /tmp/metis 2>/dev/null || \
-        wget -q http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz -O /tmp/metis.tar.gz
-    if [ ! -d /tmp/metis ]; then mkdir -p /tmp/metis && tar xzf /tmp/metis.tar.gz -C /tmp/metis --strip-components=1; fi
+    ## The scivision mirror carries a modern cmake build that also handles
+    ## GKlib and cross-compilation.
+    git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
     cmake -S /tmp/metis -B /tmp/metis/build \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC \
-        -DCMAKE_BUILD_TYPE=Release -DSHARED=OFF -DCMAKE_INSTALL_PREFIX="$DEPS" \
-        -DGKLIB_PATH=/tmp/metis/GKlib 2>/dev/null || true
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_INSTALL_PREFIX="$DEPS"
     cmake --build /tmp/metis/build -j"$(nproc)"
     cmake --install /tmp/metis/build
 fi
