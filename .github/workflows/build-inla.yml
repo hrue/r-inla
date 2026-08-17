@@ -114,7 +114,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! BLAS=mkl WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -159,7 +159,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
+          if ! WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -205,7 +205,7 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          if ! BLAS=armpl WITH_LIBR=2 bash ci/build.sh > build.log 2>&1; then
+          if ! BLAS=armpl WITH_LIBR=2 LTO=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
             echo "::endgroup::"
@@ -365,6 +365,9 @@ jobs:
         ## rgeneric loads the running machine's own libR when first used.
         env:
           WITH_LIBR: 2
+          ## The shipped artifacts get the full upstream optimization; the
+          ## gate lane stays LTO-free so iteration remains fast.
+          LTO: 1
         run: |
           if ! bash ci/build-macos.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -409,6 +412,9 @@ jobs:
         ## rgeneric loads the running machine's own libR when first used.
         env:
           WITH_LIBR: 2
+          ## The shipped artifacts get the full upstream optimization; the
+          ## gate lane stays LTO-free so iteration remains fast.
+          LTO: 1
         run: |
           if ! bash ci/build-macos.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -455,6 +461,7 @@ jobs:
         ## $R_HOME/bin/x64 on Windows.
         env:
           WITH_LIBR: 2
+          LTO: 1
         run: |
           if ! bash ci/build-mingw.sh > build.log 2>&1; then
             echo "::group::errors"
