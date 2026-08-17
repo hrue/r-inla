@@ -198,5 +198,8 @@ make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
 ## provides it via LD_LIBRARY_PATH, but here the binary runs straight from
 ## the shell.
 export LD_LIBRARY_PATH="${R_HOME_DIR:-/usr/lib/R}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+## ARMPL sits outside the loader's search path; the packaged bundle carries
+## it with an $ORIGIN rpath, but this in-tree binary needs to be told.
+[ -n "${ARMPL_DIR:-}" ] && export LD_LIBRARY_PATH="$ARMPL_DIR/lib:$LD_LIBRARY_PATH"
 "$PREFIX/bin/inla" -ping
 echo "OK: inla built and installed in $PREFIX/bin"

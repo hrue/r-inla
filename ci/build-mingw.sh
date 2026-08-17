@@ -85,7 +85,8 @@ make -C "$ROOT/gmrflib"           PREFIX="$PREFIX" FLAGS="$FLAGS" \
 ## Windows R's own R.dll/Rblas/Rlapack, static Rmath/gsl/metis/muparser,
 ## static C++/GCC runtimes, ltdl import library from the sysroot.
 EXTOBJ=$(echo "$EPATH"/lib*.a)
-LTDL=$(ls "$SYSROOT"/mingw/lib/libltdl.dll.a "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
+LTDL=$(ls "$DEPS"/lib/libltdl.dll.a "$SYSROOT"/mingw/lib/libltdl.dll.a \
+          "$SYSROOT2"/mingw/lib/libltdl.dll.a 2>/dev/null | head -1 || true)
 ## dlfcn-win32: from the sysroot when packaged, else the static build in $DEPS
 DL=$(ls "$SYSROOT"/mingw/lib/libdl.dll.a "$SYSROOT2"/mingw/lib/libdl.dll.a \
         "$DEPS"/lib/libdl.a 2>/dev/null | head -1 || true)
