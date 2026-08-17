@@ -47,6 +47,30 @@ mkdir -p "$PREFIX/include.boot"
 ln -sfn "$ROOT/gmrflib" "$PREFIX/include.boot/GMRFLib"
 FLAGS="$FLAGS -I$PREFIX/include.boot"
 
+## sTiles: an alternative sparse-matrix backend the sources already support
+## (gmrflib/smtp-stiles.c, guarded by INLA_WITH_STILES). Only a prebuilt
+## library and its header are needed -- ci/fetch-stiles.sh stages them from
+## a published release, so no sTiles source is involved. It has to be
+## resolved here, before GMRFLib is built: smtp-stiles.c is part of GMRFLib.
+##
+## The Windows asset ships an import library (libstiles.dll.a) beside the
+## DLL, so this links the ordinary way. The DLL itself, and the runtime it
+## brings, are picked up by the bundling step further down.
+WITH_STILES=${WITH_STILES:-0}
+STILES_LIBS=""
+STILES_DIR=${STILES_DIR:-$PREFIX/stiles}
+if [ "$WITH_STILES" = 1 ]; then
+    [ -f "$STILES_DIR/include/stiles.h" ] \
+        || { echo "ERROR: no stiles.h under $STILES_DIR (run ci/fetch-stiles.sh)"; exit 1; }
+    IMP=$(ls "$STILES_DIR"/lib/libstiles.dll.a 2>/dev/null | head -1 || true)
+    [ -n "$IMP" ] \
+        || { echo "ERROR: the Windows libstiles asset has no import library (libstiles.dll.a)"; exit 1; }
+    echo "== sTiles: $STILES_DIR =="
+    ## -ltileindexer is NOT needed: released libraries carry it inside.
+    FLAGS="$FLAGS -DINLA_WITH_STILES -I$STILES_DIR/include"
+    STILES_LIBS="$IMP"
+fi
+
 ## ---- 1. External model packages --------------------------------------------
 for d in "$EPATH"/*/; do
     [ -f "$d/Makefile" ] && make -C "$d" clean >/dev/null
@@ -128,7 +152,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                $DEPS/lib/libRmath.a $DEPS/lib/libgsl.a $DEPS/lib/libgslcblas.a \
                $DEPS/lib/libmetis.a $GKLIB $DEPS/lib/libmuparser.dll.a \
                $RWIN/bin/x64/Rblas.dll $RWIN/bin/x64/Rlapack.dll \
-               $LTDL $DL \
+               $LTDL $DL $STILES_LIBS \
                -lgfortran -lquadmath -lcrypto -lz \
                -Wl,--enable-auto-import -lpthread -lm" \
      EXTLIBS3="-lm" \
@@ -158,6 +182,10 @@ cp "$PREFIX/bin/inla.exe" "$OUT/"
 ## R.dll (that is INLA_WITH_LIBR_DLOPEN doing its job). R.dll is here to
 ## satisfy Rblas, and rgeneric still loads R at runtime from whichever R is
 ## driving the process.
+if [ "$WITH_STILES" = 1 ]; then
+    cp -v "$STILES_DIR"/lib/libstiles.dll "$OUT/"
+fi
+
 for dll in Rblas.dll Rlapack.dll; do
     [ -f "$RWIN/bin/x64/$dll" ] || { echo "ERROR: $dll not in $RWIN/bin/x64"; exit 1; }
     cp -v "$RWIN/bin/x64/$dll" "$OUT/"
@@ -196,7 +224,15 @@ for pass in 1 2 3 4; do
         ## UCRT variant is not packaged (upstream links it the same way).
         ## $RWIN/bin/x64 supplies R's own DLLs -- Rblas and Rlapack, and
         ## through them R.dll, Rgraphapp.dll and Riconv.dll.
-        src=$(find "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
+        ## $STILES_DIR/lib comes FIRST on purpose. libstiles.dll and this
+        ## build share several runtime DLLs by name (libgomp-1.dll above
+        ## all), and Windows loads one file per name from the exe's
+        ## directory -- so whichever copy is staged is the copy BOTH use.
+        ## sTiles is built with a newer GCC than the cross toolchain here,
+        ## and libgomp is backward compatible, so its copy is the one that
+        ## satisfies both. The reverse order can leave libstiles.dll unable
+        ## to resolve a symbol its own build produced.
+        src=$(find "$STILES_DIR/lib" "$SYSROOT/mingw/bin" "$SYSROOT2/mingw/bin" \
                    /usr/x86_64-w64-mingw32*/sys-root/mingw/bin \
                    /usr/lib/gcc/$TRIPLET "$DEPS" "$RWIN/bin/x64" \
                    -name "$dll" 2>/dev/null | head -1)

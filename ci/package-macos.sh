@@ -23,7 +23,44 @@ cp "$BIN" "$OUT/bin/inla"
 echo "== dependencies before bundling =="
 otool -L "$OUT/bin/inla" || true
 
-## ARMPL first, by hand. Its libraries are referenced as @rpath/... and
+## sTiles first, for the same reason ARMPL is handled below: its dylib is
+## installed as @rpath/libstiles.dylib, and dylibbundler does not read the
+## binary's rpaths, so it cannot find it.
+##
+## Everything beside it travels too. The macOS libstiles refers to its own
+## dependencies as @loader_path/<name>, so those names must resolve in the
+## same directory it ends up in. Landing them all in $OUT/lib means any
+## library both sides need -- libgomp above all -- exists as ONE file there,
+## which is what keeps a single OpenMP runtime in the process. (Copied
+## first, so INLA's own Homebrew copies overwrite them: those are the ones
+## the binary was linked against.)
+STILES_DIR=${STILES_DIR:-$PREFIX/stiles}
+if [ -f "$STILES_DIR/lib/libstiles.dylib" ]; then
+    echo "== staging sTiles from $STILES_DIR =="
+    cp -a "$STILES_DIR"/lib/*.dylib "$OUT/lib/" 2>/dev/null || true
+    chmod u+w "$OUT"/lib/*.dylib
+    for f in "$OUT"/lib/*.dylib; do
+        install_name_tool -id "@loader_path/../lib/$(basename "$f")" "$f" 2>/dev/null || true
+    done
+    ## libstiles' own @loader_path/<name> references stay valid ($OUT/lib is
+    ## where its siblings now live). Its @rpath ones, and the binary's
+    ## @rpath/libstiles.dylib, are redirected here rather than in the ARMPL
+    ## pass below: that pass only runs when ARMPL is installed, so on Intel
+    ## it would never happen and the bundle would keep a reference no
+    ## loader can resolve. Only names actually present in $OUT/lib are
+    ## touched, leaving ARMPL's own @rpath entries for that pass.
+    for f in "$OUT/bin/inla" "$OUT"/lib/*.dylib; do
+        [ -f "$f" ] || continue
+        for dep in $(otool -L "$f" | awk '/@rpath\// {print $1}'); do
+            base=${dep#@rpath/}
+            [ -f "$OUT/lib/$base" ] || continue
+            install_name_tool -change "$dep" "@loader_path/../lib/$base" "$f" 2>/dev/null || true
+        done
+    done
+    ls -1 "$OUT/lib" | sed 's/^/  /'
+fi
+
+## ARMPL next, by hand. Its libraries are referenced as @rpath/... and
 ## dylibbundler does not read the binary's rpaths, so it cannot find them:
 ## it drops into an interactive prompt and, with no input, loops on it
 ## forever. Copying them and rewriting the load commands ourselves removes

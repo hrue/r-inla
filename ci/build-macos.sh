@@ -118,6 +118,30 @@ else
     BLASLIBS="-lRblas -lRlapack"
 fi
 
+## sTiles: an alternative sparse-matrix backend the sources already support
+## (gmrflib/smtp-stiles.c, guarded by INLA_WITH_STILES). Only a prebuilt
+## library and its header are needed -- ci/fetch-stiles.sh stages them from
+## a published release, so no sTiles source is involved.
+##
+## -L goes AFTER the Homebrew paths on the link line below, deliberately:
+## the macOS libstiles ships its own copies of the GCC runtime
+## (libgomp/libgfortran/libstdc++) beside itself, and this build must keep
+## resolving those from Homebrew. Nothing here should let the linker prefer
+## the copies that travel with the solver.
+WITH_STILES=${WITH_STILES:-0}
+STILES_LIBS=""
+STILES_INC=""
+if [ "$WITH_STILES" = 1 ]; then
+    STILES_DIR=${STILES_DIR:-$PREFIX/stiles}
+    [ -f "$STILES_DIR/include/stiles.h" ] \
+        || { echo "ERROR: no stiles.h under $STILES_DIR (run ci/fetch-stiles.sh)"; exit 1; }
+    echo "== sTiles: $STILES_DIR =="
+    ## -ltileindexer is NOT needed: released libraries carry it inside.
+    STILES_INC="-DINLA_WITH_STILES -I$STILES_DIR/include"
+    STILES_LIBS="-L$STILES_DIR/lib -Wl,-rpath,$STILES_DIR/lib -lstiles"
+fi
+FLAGS="$FLAGS $STILES_INC"
+
 ## ---- 1. External model packages --------------------------------------------
 for d in "$EPATH"/*/; do
     [ -f "$d/Makefile" ] && make -C "$d" clean >/dev/null
@@ -178,7 +202,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
                -lgsl -lgslcblas $BLASLIBS \
                -lmuparser -lz -lmetis $GKLIB \
                -lltdl -lcrypto -lgfortran -lquadmath \
-               -static-libstdc++ -static-libgcc -lm -ldl" \
+               -static-libstdc++ -static-libgcc -lm -ldl $STILES_LIBS" \
      EXTLIBS3="-lm" \
      inla
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \

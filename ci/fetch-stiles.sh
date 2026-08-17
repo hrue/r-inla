@@ -42,12 +42,25 @@ rm -rf "$DEST" /tmp/stiles-dl
 mkdir -p "$DEST/lib" "$DEST/include" /tmp/stiles-dl
 curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip "$URL" \
     || { echo "ERROR: cannot download $URL"; exit 1; }
-( cd /tmp/stiles-dl && unzip -q asset.zip )
+## unzip is not in every container image this runs in (the manylinux ones
+## ship neither unzip nor bsdtar), so fall back to python's zipfile rather
+## than adding a package to four different dependency scripts.
+if command -v unzip >/dev/null 2>&1; then
+    ( cd /tmp/stiles-dl && unzip -q asset.zip )
+elif command -v bsdtar >/dev/null 2>&1; then
+    ( cd /tmp/stiles-dl && bsdtar xf asset.zip )
+elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' \
+            /tmp/stiles-dl/asset.zip /tmp/stiles-dl
+else
+    echo "ERROR: no way to unpack a zip here (unzip, bsdtar and python3 all missing)"; exit 1
+fi
 
 ## The layout inside the asset has moved between releases, so locate the
 ## pieces rather than assume where they are.
 HDR=$(find /tmp/stiles-dl -name 'stiles.h' | head -1)
-LIB=$(find /tmp/stiles-dl \( -name 'libstiles.so*' -o -name 'libstiles.dylib' -o -name 'stiles.dll' \) | head -1)
+LIB=$(find /tmp/stiles-dl \( -name 'libstiles.so*' -o -name 'libstiles.dylib' \
+                             -o -name 'libstiles.dll' -o -name 'stiles.dll' \) | head -1)
 [ -n "$HDR" ] || { echo "ERROR: stiles.h not in the asset"; find /tmp/stiles-dl | head -20; exit 1; }
 [ -n "$LIB" ] || { echo "ERROR: no libstiles in the asset"; find /tmp/stiles-dl | head -20; exit 1; }
 cp "$HDR" "$DEST/include/"
@@ -65,6 +78,15 @@ ls -lh "$DEST/lib" | head -10
 ## failure later. Its OpenMP runtime is reported for the same reason: an
 ## INLA process is GCC-built and carries libgomp, and a second runtime in
 ## the same process is the classic "OMP: Error #15" abort.
+## A Windows asset is fetched from a Linux cross-build host, so nothing
+## here can load it; the bare-bundle test on a real Windows runner is what
+## checks that one.
+if [ -f "$DEST/lib/libstiles.dll" ]; then
+    echo "== Windows DLL (cross-build host cannot inspect it) =="
+    ls -1 "$DEST/lib" | sed 's/^/  /'
+    exit 0
+fi
+
 case "$(uname -s)" in
     Linux)
         SO=$(ls "$DEST"/lib/libstiles.so* 2>/dev/null | head -1)
