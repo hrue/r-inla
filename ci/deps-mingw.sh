@@ -136,11 +136,17 @@ if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     ## The scivision mirror carries a modern cmake build that also handles
     ## GKlib and cross-compilation.
     git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
-    cmake -S /tmp/metis -B /tmp/metis/build \
+    ## GitHub throttles anonymous downloads (cmake's FetchContent pulls
+    ## GKlib from there), so retry rather than fail the whole lane.
+    for attempt in 1 2 3; do
+        cmake -S /tmp/metis -B /tmp/metis/build \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_INSTALL_PREFIX="$DEPS"
+            -DCMAKE_INSTALL_PREFIX="$DEPS" && break
+        echo "METIS configure failed (attempt $attempt/3), retrying"
+        sleep $((attempt * 20))
+    done
     cmake --build /tmp/metis/build -j"$(nproc)"
     cmake --install /tmp/metis/build
 fi

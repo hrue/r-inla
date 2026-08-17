@@ -29,8 +29,16 @@ jobs:
       ## The external-packages makefiles clone their sources via SSH URLs;
       ## the runner has no SSH keys, so rewrite to anonymous https here.
       ## Local builds are unaffected (this config lives only on the runner).
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: System dependencies
         run: bash ci/deps-ubuntu.sh
@@ -103,8 +111,16 @@ jobs:
       ## MKL is what the upstream Linux x86_64 builds link, statically.
       - name: Install Intel MKL
         run: bash ci/deps-mkl.sh
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Build (portable, static MKL, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -148,8 +164,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: System dependencies
         run: bash ci/deps-manylinux.sh
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Build (portable, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -194,8 +218,16 @@ jobs:
         run: bash ci/deps-manylinux.sh
       - name: Install ARMPL
         run: bash ci/deps-armpl-linux.sh
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Build (portable, ARMPL, dlopen libR)
         run: |
           ## Newest gcc-toolset in the container (its base gcc is 8.5).
@@ -355,8 +387,16 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
         run: bash ci/deps-macos.sh
       - name: Build
@@ -402,8 +442,16 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
         run: bash ci/deps-macos.sh
       - name: Build
@@ -459,8 +507,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: System dependencies
         run: bash ci/deps-mingw.sh
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Cross-build inla.exe
         ## WITH_LIBR=2: R.dll is not linked; rgeneric loads the running
         ## machine's own R through libltdl, which finds it under
@@ -558,8 +614,16 @@ jobs:
       ## and the git config below needs it.
       - name: System dependencies
         run: bash ci/deps-fedora.sh
-      - name: Use https for git clones
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Build
         run: |
           gcc --version | head -1
