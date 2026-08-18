@@ -956,13 +956,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          ## python, not jq: the manylinux image has no jq
           API=https://api.github.com/repos/${{ github.repository }}
           RID=$(curl -sH "Authorization: Bearer $GH_TOKEN" \
-                "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" | jq -r '.workflow_runs[0].id')
+                "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" \
+                | python3 -c 'import sys,json; print(json.load(sys.stdin)["workflow_runs"][0]["id"])')
           AID=$(curl -sH "Authorization: Bearer $GH_TOKEN" "$API/actions/runs/$RID/artifacts" \
-                | jq -r '.artifacts[] | select(.name=="inla-testmodel") | .id' | head -1)
+                | python3 -c 'import sys,json; print([a["id"] for a in json.load(sys.stdin)["artifacts"] if a["name"]=="inla-testmodel"][0])')
           curl -sL -H "Authorization: Bearer $GH_TOKEN" "$API/actions/artifacts/$AID/zip" -o model.zip
-          mkdir -p testmodel && unzip -qo model.zip -d testmodel
+          mkdir -p testmodel
+          python3 -c 'import zipfile; zipfile.ZipFile("model.zip").extractall("testmodel")'
+          find testmodel -name Model.ini | head -1
       - name: Crash rate over 120 runs
         run: |
           BASE=$PWD
