@@ -267,8 +267,13 @@ jobs:
       ## performance one, so it gets the fastest x86 BLAS, not a fallback.
       - name: Install Intel MKL
         run: bash ci/deps-mkl.sh
+      ## the libstiles built the same way this bundle is (newest gcc,
+      ## x86-64-v3, MKL); falls back to the standard asset until a release
+      ## carries it.
       - name: Fetch libstiles
-        run: bash ci/fetch-stiles.sh
+        run: |
+          STILES_ASSET=libstiles-linux-x86_64-v3-mkl.zip bash ci/fetch-stiles.sh \
+            || bash ci/fetch-stiles.sh
       - name: Build
         run: |
           . ci/toolchain.env
