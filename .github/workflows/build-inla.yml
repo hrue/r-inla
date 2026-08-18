@@ -847,6 +847,8 @@ jobs:
           {
             echo "inla binaries with the sTiles backend built in. Portable bundles need no R installed; rgeneric loads the running machine's own R at first use."
             echo
+            echo "x86_64 bundles need a CPU with AVX2 (Intel Haswell 2013+, AMD Excavator+): the sTiles kernels inside them are compiled for it."
+            echo
             echo "| asset | built for | compiler | BLAS | libstiles |"
             echo "|---|---|---|---|---|"
             for m in artifacts/manifest-*/*.txt; do
