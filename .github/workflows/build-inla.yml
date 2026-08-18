@@ -946,6 +946,17 @@ jobs:
           - variant: "gcc15-armv82"
             lto: "1"
             march: "-march=armv8.2-a -mtune=neoverse-n1"
+          ## armv8.1 is the first level with LSE atomics: if this is clean
+          ## too, the trigger is atomics, not the wider armv8.2 codegen.
+          - variant: "gcc15-armv81"
+            lto: "1"
+            march: "-march=armv8.1-a -mtune=generic"
+          ## baseline ISA but WITHOUT outline atomics (the runtime LL/SC-vs-LSE
+          ## dispatch GCC uses at armv8.0). A clean result here is the useful
+          ## one: it fixes the crash while still running on armv8.0 hardware.
+          - variant: "gcc15-noOutlineAtomics"
+            lto: "1"
+            march: "-mtune=generic -mno-outline-atomics"
     defaults:
       run:
         shell: bash
