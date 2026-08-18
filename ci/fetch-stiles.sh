@@ -25,7 +25,8 @@ if [ -z "${STILES_ASSET:-}" ]; then
     case "$(uname -s)-$(uname -m)" in
         Linux-x86_64)   STILES_ASSET=libstiles-linux-x86_64.zip ;;
         Linux-aarch64)  STILES_ASSET=libstiles-linux-arm64.zip ;;
-        Darwin-arm64)   STILES_ASSET=libstiles-macos-apple-arm64-armpl.zip ;;
+        Darwin-arm64)   STILES_ASSET=libstiles-macos-arm64-gcc-armpl.zip
+                        STILES_ASSET_FALLBACK=libstiles-macos-apple-arm64-armpl.zip ;;
         Darwin-x86_64)  STILES_ASSET=libstiles-macos-intel-x86_64-gcc-openblas.zip ;;
         *)              echo "ERROR: no libstiles asset defined for $(uname -s)-$(uname -m)"; exit 1 ;;
     esac
@@ -40,9 +41,19 @@ fi
 echo "== fetching $STILES_ASSET from $STILES_REPO ($STILES_TAG) =="
 rm -rf "$DEST" /tmp/stiles-dl
 mkdir -p "$DEST/lib" "$DEST/include" /tmp/stiles-dl
-EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
-                 -w '%{url_effective}' "$URL") \
-    || { echo "ERROR: cannot download $URL"; exit 1; }
+if ! EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
+                 -w '%{url_effective}' "$URL"); then
+    ## older releases may carry the asset under its previous name
+    if [ -n "${STILES_ASSET_FALLBACK:-}" ]; then
+        echo "  $STILES_ASSET not in this release; trying $STILES_ASSET_FALLBACK"
+        URL=${URL/$STILES_ASSET/$STILES_ASSET_FALLBACK}
+        EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
+                     -w '%{url_effective}' "$URL") \
+            || { echo "ERROR: cannot download $URL"; exit 1; }
+    else
+        echo "ERROR: cannot download $URL"; exit 1
+    fi
+fi
 ## Record which release "latest" resolved to; the release notes table
 ## reads this. The effective URL usually ends on the CDN (no tag in it),
 ## so ask the /releases/latest redirect for the tag instead. Never fatal:
