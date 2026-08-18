@@ -154,9 +154,16 @@ fi
 ## passes -march=x86-64-v3 so ALL code gets AVX2/FMA, closing most of the
 ## portable-vs-native gap on any CPU from ~2015 on.
 MARCH=${MARCH:--mtune=generic}
+## INLA_WITH_CLONE_TARGETS compiles hot functions several times and picks
+## one at run time (function multi-versioning). GCC calls FMV experimental
+## on aarch64 ("-Wexperimental-fmv-target"), so it is a knob here: set
+## CLONE_TARGETS=0 to build a single version of every function.
+CLONE_TARGETS=${CLONE_TARGETS:-1}
+CLONE_DEF=""
+[ "$CLONE_TARGETS" = 1 ] && CLONE_DEF="-DINLA_WITH_CLONE_TARGETS"
 FLAGS="$OPTFLAGS $MARCH -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
- -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
+ -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL $CLONE_DEF \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
  -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' $BLAS_INC $STILES_INC"
 
