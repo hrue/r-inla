@@ -983,6 +983,79 @@ jobs:
           echo "== arm64 ${{ matrix.variant }}: $fails/120 failed =="
           echo "arm64 ${{ matrix.variant }}: $fails/120 failed" >> "$GITHUB_STEP_SUMMARY"
 
+  ## Root cause: build the arm64 binary with AddressSanitizer and run the
+  ## model until the corruption is caught. ASan reports the exact line that
+  ## writes out of bounds, plus the allocation it belongs to -- which is
+  ## what neither valgrind (too slow to hit the rate, and it hides the
+  ## timing) nor a backtrace of the eventual crash can give. libstiles is
+  ## NOT sanitized (it ships prebuilt), so a report inside it will show as a
+  ## frame without source lines, which is itself informative: it tells us
+  ## whether the fault is in INLA's code or the solver's.
+  diag-arm64-asan:
+    name: "Diagnostic: arm64 AddressSanitizer"
+    runs-on: ubuntu-24.04-arm
+    container: quay.io/pypa/manylinux_2_28_aarch64
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        run: bash ci/deps-manylinux.sh
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build with AddressSanitizer
+        run: |
+          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
+          [ -n "$e" ] && source "$e"
+          gcc --version | head -1
+          ## no LTO: it makes ASan reports much harder to read
+          WITH_LIBR=2 LTO=0 WITH_STILES=1 SANITIZE=address bash ci/build.sh > build.log 2>&1 \
+            || { echo "::group::build errors"; grep -nE "error:|undefined reference" build.log | head -30; echo "::endgroup::"; tail -20 build.log; exit 1; }
+          echo "built"
+      - name: Fetch the test model from the last green board
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          API=https://api.github.com/repos/${{ github.repository }}
+          RID=$(curl -sH "Authorization: Bearer $GH_TOKEN" \
+                "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" \
+                | python3 -c 'import sys,json; print(json.load(sys.stdin)["workflow_runs"][0]["id"])')
+          AID=$(curl -sH "Authorization: Bearer $GH_TOKEN" "$API/actions/runs/$RID/artifacts" \
+                | python3 -c 'import sys,json; print([a["id"] for a in json.load(sys.stdin)["artifacts"] if a["name"]=="inla-testmodel"][0])')
+          curl -sL -H "Authorization: Bearer $GH_TOKEN" "$API/actions/artifacts/$AID/zip" -o model.zip
+          mkdir -p testmodel
+          python3 -c 'import zipfile; zipfile.ZipFile("model.zip").extractall("testmodel")'
+      - name: Run until ASan reports
+        run: |
+          BASE=$PWD
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini"; exit 1; }
+          cd "$(dirname "$INI")"
+          export ASAN_OPTIONS=detect_leaks=0:abort_on_error=0:print_stacktrace=1:halt_on_error=1
+          export LD_LIBRARY_PATH="$BASE/local/stiles/lib:${LD_LIBRARY_PATH:-}"
+          found=0
+          for i in $(seq 1 40); do
+            if ! OMP_NUM_THREADS=1 "$BASE/local/bin/inla" Model.ini > out.log 2>&1; then
+              if grep -q "ERROR: AddressSanitizer" out.log; then
+                echo "== ASan caught it on run $i =="
+                sed -n '/ERROR: AddressSanitizer/,/^SUMMARY/p' out.log | head -45
+                found=1
+                break
+              fi
+            fi
+          done
+          [ "$found" = 1 ] || echo "no ASan report in 40 runs (the fault may be in the unsanitized libstiles)"
+
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
