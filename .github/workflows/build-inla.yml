@@ -676,11 +676,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: ["ubuntu:22.04"]
-        bundle:
-          - inla-linux-aarch64-armpl-portable
-          - inla-linux-aarch64-portable
-          - inla-linux-aarch64-modern-portable
+        include:
+          - bundle: inla-linux-aarch64-armpl-portable
+            distro: "ubuntu:22.04"
+          - bundle: inla-linux-aarch64-portable
+            distro: "ubuntu:22.04"
+          ## the modern bundle needs glibc 2.38+, so it gets a matching base
+          - bundle: inla-linux-aarch64-modern-portable
+            distro: "ubuntu:24.04"
     defaults:
       run:
         shell: bash
@@ -704,10 +707,10 @@ jobs:
         run: |
           if command -v apt-get >/dev/null; then
             apt-get update -qq >/dev/null
-            apt-get install -y -qq curl jq unzip findutils >/dev/null
+            apt-get install -y -qq curl jq unzip findutils gcc >/dev/null
           else
-            (yum -y install curl jq unzip findutils epel-release || \
-             dnf -y install curl jq unzip findutils) >/dev/null 2>&1 || true
+            (yum -y install curl jq unzip findutils gcc epel-release || \
+             dnf -y install curl jq unzip findutils gcc) >/dev/null 2>&1 || true
             command -v jq >/dev/null || { curl -sL -o /usr/bin/jq \
               https://github.com/jqlang/jq/releases/latest/download/jq-linux-arm64 && chmod +x /usr/bin/jq; }
           fi
