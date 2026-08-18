@@ -291,6 +291,7 @@ if [ -s "$OUT/.missing" ]; then
 fi
 rm -f "$OUT/.missing"
 
+bash "$ROOT/ci/write-buildinfo.sh" "$OUT/BUILDINFO" "$CC" "$FLAGS" "R Rblas/Rlapack, bundled"
 echo "== imports of the shipped exe =="
 $TRIPLET-objdump -p "$OUT/inla.exe" | awk '/DLL Name/ {print "  " $3}' | sort -u
 echo "== bundled files =="

@@ -238,5 +238,7 @@ if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
 fi
 
 ## ---- 5. Sanity --------------------------------------------------------------
+BLAS_DESC=${BLAS_DESC:-"$BLASLIBS"}
+bash "$ROOT/ci/write-buildinfo.sh" "$PREFIX/BUILDINFO" "$CC" "$FLAGS" "$BLAS_DESC"
 "$PREFIX/bin/inla" -ping
 echo "OK: inla built and installed in $PREFIX/bin (macOS arm64)"
