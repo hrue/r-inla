@@ -930,6 +930,12 @@ jobs:
             lto: "1"
           - variant: "gcc15-nolto"    # same compiler, no LTO
             lto: "0"
+          ## function multi-versioning is experimental on aarch64 in gcc-15
+          ## (the build warns about it); this variant compiles one version
+          ## of every function instead.
+          - variant: "gcc15-nofmv"
+            lto: "1"
+            clones: "0"
     defaults:
       run:
         shell: bash
@@ -949,7 +955,8 @@ jobs:
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
-          WITH_LIBR=2 LTO=${{ matrix.lto }} WITH_STILES=1 bash ci/build.sh > build.log 2>&1 \
+          WITH_LIBR=2 LTO=${{ matrix.lto }} CLONE_TARGETS=${{ matrix.clones || '1' }} \
+            WITH_STILES=1 bash ci/build.sh > build.log 2>&1 \
             || { tail -30 build.log; exit 1; }
           grep -m1 "^== building" build.log || true
       - name: Fetch the test model from the last green board
@@ -1014,6 +1021,12 @@ jobs:
         run: |
           e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
           [ -n "$e" ] && source "$e"
+          ## the sanitizer runtime is a separate package in this image
+          v=$(echo "$e" | grep -oE 'gcc-toolset-[0-9]+' | head -1)
+          dnf -y install "$v-libasan-devel" libasan >/dev/null 2>&1 || \
+            dnf -y install "$v-annobin-annocheck" >/dev/null 2>&1 || true
+          ls /opt/rh/$v/root/usr/lib/gcc/aarch64-redhat-linux/*/libasan* 2>/dev/null | head -2 || \
+            echo "note: libasan may still be missing"
           gcc --version | head -1
           ## no LTO: it makes ASan reports much harder to read
           WITH_LIBR=2 LTO=0 WITH_STILES=1 SANITIZE=address bash ci/build.sh > build.log 2>&1 \
