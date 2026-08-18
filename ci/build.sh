@@ -85,11 +85,19 @@ case "$BLAS" in
         if [ "$STATIC_BLAS" = 1 ] && [ -n "$ARMPL_A" ]; then
             echo "== BLAS: ARMPL (static, embedded) $ARMPL_A =="
             AMATH=$(ls "$ARMPL_DIR"/lib/libamath.a 2>/dev/null | head -1 || echo -lamath)
-            ASTR=$(ls "$ARMPL_DIR"/lib/libastring.a 2>/dev/null | head -1 || echo -lastring)
-            BLAS_LIBS="$ARMPL_A $AMATH $ASTR -L$ARMPL_DIR/lib"
+            ## libastring is deliberately NOT linked. Its vectorized memchr
+            ## reads 16 bytes at a time, and ARMPL's own /proc/cpuinfo parser
+            ## (a static initializer, before main) calls it on a small heap
+            ## buffer: when that buffer lies near a page end the over-read
+            ## touches an unmapped page and the process dies. Measured at
+            ## ~3% of startups on the arm64 runners, in every ARMPL version
+            ## tested (26.07, 25.07, 25.04); linking libarmpl WITHOUT
+            ## libastring is clean under valgrind. Only string routines are
+            ## lost, which INLA does not use in any hot path.
+            BLAS_LIBS="$ARMPL_A $AMATH -L$ARMPL_DIR/lib"
         else
             echo "== BLAS: ARMPL (shared) at $ARMPL_DIR =="
-            BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath -lastring"
+            BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath"
         fi
         ;;
     *)
