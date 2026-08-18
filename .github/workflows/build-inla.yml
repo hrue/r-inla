@@ -940,6 +940,12 @@ jobs:
           - variant: "gcc15-nofmv"
             lto: "1"
             clones: "0"
+          ## the last difference between the crashing classic build and the
+          ## clean modern one: the ISA target. Same old compiler, modern
+          ## target.
+          - variant: "gcc15-armv82"
+            lto: "1"
+            march: "-march=armv8.2-a -mtune=neoverse-n1"
     defaults:
       run:
         shell: bash
@@ -960,6 +966,7 @@ jobs:
           [ -n "$e" ] && source "$e"
           gcc --version | head -1
           WITH_LIBR=2 LTO=${{ matrix.lto }} CLONE_TARGETS=${{ matrix.clones || '1' }} \
+            MARCH="${{ matrix.march || '-mtune=generic' }}" \
             WITH_STILES=1 bash ci/build.sh > build.log 2>&1 \
             || { tail -30 build.log; exit 1; }
           grep -m1 "^== building" build.log || true
@@ -1033,8 +1040,10 @@ jobs:
             echo "note: libasan may still be missing"
           gcc --version | head -1
           ## no LTO: it makes ASan reports much harder to read
+          df -h /__w | tail -1
           WITH_LIBR=2 LTO=0 WITH_STILES=1 SANITIZE=address bash ci/build.sh > build.log 2>&1 \
-            || { echo "== build failed; last 40 lines =="; tail -40 build.log; exit 1; }
+            || { echo "== build failed =="; df -h /__w | tail -1
+                 grep -nE "Error [0-9]+|error:|No space|cannot" build.log | tail -20; exit 1; }
           echo "built"
       - name: Fetch the test model from the last green board
         env:
