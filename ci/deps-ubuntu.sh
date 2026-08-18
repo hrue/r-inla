@@ -51,7 +51,9 @@ if [ "${ID:-}" = "ubuntu" ]; then
     $SUDO apt-get install -y --no-install-recommends software-properties-common
     $SUDO add-apt-repository -y ppa:ubuntu-toolchain-r/test 2>/dev/null || true
     $SUDO apt-get update || true
-    for v in 16 15 14; do
+    ## preference order comes from ci/toolchain.env
+    _R=$(cd "$(dirname "$0")/.." && pwd); [ -f "$_R/ci/toolchain.env" ] && . "$_R/ci/toolchain.env"
+    for v in ${GCC_PREFER:-16 15 14}; do
         if $SUDO apt-get install -y --no-install-recommends \
                "gcc-$v" "g++-$v" "gfortran-$v" 2>/dev/null; then
             echo "toolchain: gcc-$v"

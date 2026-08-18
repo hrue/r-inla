@@ -9,6 +9,9 @@
 ##   ARMPL_URL       full tarball URL, when the permalink pattern changes
 set -e
 
+## default from the shared toolchain file when the caller does not pin one
+_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+[ -f "$_ROOT/ci/toolchain.env" ] && . "$_ROOT/ci/toolchain.env"
 ARMPL_VERSION=${ARMPL_VERSION:-26.07}
 ARMPL_PKG=${ARMPL_PKG:-rpm}
 ARMPL_URL=${ARMPL_URL:-https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_${ARMPL_VERSION}/arm-performance-libraries_${ARMPL_VERSION}_${ARMPL_PKG}_gcc.tar}

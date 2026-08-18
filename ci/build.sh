@@ -18,6 +18,11 @@
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
+## Toolchain and dependency versions live in one file that the maintainer
+## owns (ci/toolchain.env); the sTiles CI fetches the same file, so both
+## sides build with the same compiler, CPU target and libraries.
+[ -f "$ROOT/ci/toolchain.env" ] && . "$ROOT/ci/toolchain.env"
 PREFIX=${PREFIX:-$ROOT/local}
 WITH_LIBR=${WITH_LIBR:-1}
 JOBS=${JOBS:-$(nproc)}
