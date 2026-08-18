@@ -271,7 +271,8 @@ jobs:
         run: bash ci/fetch-stiles.sh
       - name: Build
         run: |
-          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=x86-64-v3 -mtune=generic" \
+          . ci/toolchain.env
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="$MARCH_X86_MODERN" \
                bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
@@ -341,7 +342,8 @@ jobs:
             || bash ci/fetch-stiles.sh
       - name: Build
         run: |
-          if ! BLAS=armpl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=armv8.2-a -mtune=neoverse-n1" \
+          . ci/toolchain.env
+          if ! BLAS=armpl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="$MARCH_ARM_MODERN" \
                bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
