@@ -826,7 +826,7 @@ jobs:
   ## that initializer, so each version can be tested in seconds instead of
   ## rebuilding the whole bundle.
   diag-armpl-versions:
-    name: "Diagnostic: ARMPL ${{ matrix.armpl }} cpuinfo probe"
+    name: "Diagnostic: ARMPL ${{ matrix.armpl }} cpuinfo probe (+astring)"
     runs-on: ubuntu-24.04-arm
     container: rockylinux:8
     continue-on-error: true
@@ -868,8 +868,16 @@ jobs:
             echo '    return 0;'
             echo '}'
           } > probe.c
+          ## Link exactly what the bundle links: libamath and libastring are
+          ## Arm's optimized math/string routines, and because everything is
+          ## static, ARMPL's OWN internal memchr/strlen calls then bind to
+          ## Arm's versions instead of glibc's. The first probe omitted them
+          ## and was clean, which is itself the clue: the vectorized string
+          ## routines are the suspect, not the BLAS kernels.
           gcc -O2 probe.c -I"$A/include" "$A/lib/libarmpl_lp64.a" \
+              "$A/lib/libamath.a" "$A/lib/libastring.a" \
               -lgfortran -lm -o probe 2>err.txt || { tail -5 err.txt; exit 1; }
+          echo "  memchr comes from: $(nm -C probe 2>/dev/null | grep -w -m1 'T memchr' || echo glibc)"
           echo "::group::valgrind"
           valgrind --num-callers=12 ./probe > /dev/null 2> vg.txt || true
           if grep -qE "Invalid read|uninitialised" vg.txt; then
