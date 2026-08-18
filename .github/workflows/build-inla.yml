@@ -818,6 +818,74 @@ jobs:
           done
           echo "no crash in 60 attempts"
 
+  ## Which ARMPL versions have the /proc/cpuinfo over-read? Valgrind found
+  ## an invalid 16-byte read in ARMPL's own static initializer
+  ## (detect_micro_arch -> parse_proc_cpuinfo -> memchr), which runs before
+  ## main() and explains the ~3% startup segfault of the ARMPL bundle.
+  ## The fault needs no INLA at all: a program that merely links ARMPL runs
+  ## that initializer, so each version can be tested in seconds instead of
+  ## rebuilding the whole bundle.
+  diag-armpl-versions:
+    name: "Diagnostic: ARMPL ${{ matrix.armpl }} cpuinfo probe"
+    runs-on: ubuntu-24.04-arm
+    container: rockylinux:8
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        armpl: ["26.07", "25.07", "25.04"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          (yum -y install gcc gcc-gfortran valgrind curl tar findutils || \
+           dnf -y install gcc gcc-gfortran valgrind curl tar findutils) >/dev/null 2>&1 || true
+          gcc --version | head -1; valgrind --version || true
+      - name: Install ARMPL ${{ matrix.armpl }}
+        env:
+          ARMPL_VERSION: ${{ matrix.armpl }}
+          ARMPL_PKG: rpm
+        run: bash ci/deps-armpl-linux.sh
+      - name: Probe
+        run: |
+          A=$(ls -d /opt/arm/armpl_* | sort -V | tail -1)
+          echo "using $A"
+          cat > probe.c <<'EOF'
+          #include <stdio.h>
+          /* One BLAS call: enough to pull in ARMPL and run its static
+             initializers, which is where the faulty CPU detection lives. */
+          void dgemm_(const char*, const char*, const int*, const int*, const int*,
+                      const double*, const double*, const int*, const double*,
+                      const int*, const double*, double*, const int*);
+          int main(void) {
+              int n = 2; double a[4] = {1,2,3,4}, b[4] = {5,6,7,8}, c[4] = {0,0,0,0};
+              double one = 1.0, zero = 0.0;
+              dgemm_("N","N",&n,&n,&n,&one,a,&n,b,&n,&zero,c,&n);
+              printf("%g\n", c[0]);
+              return 0;
+          }
+EOF
+          gcc -O2 probe.c -I"$A/include" "$A/lib/libarmpl_lp64.a" \
+              -lgfortran -lm -o probe 2>err.txt || { tail -5 err.txt; exit 1; }
+          echo "::group::valgrind"
+          valgrind --num-callers=12 ./probe > /dev/null 2> vg.txt || true
+          if grep -qE "Invalid read|uninitialised" vg.txt; then
+            echo "AFFECTED: ARMPL ${{ matrix.armpl }} reads out of bounds at startup"
+            grep -B1 -A 10 -m1 "Invalid read" vg.txt || true
+            grep -m1 -A 6 "uninitialised value" vg.txt || true
+          else
+            echo "CLEAN: no memcheck findings for ARMPL ${{ matrix.armpl }}"
+          fi
+          grep "ERROR SUMMARY" vg.txt || true
+          echo "::endgroup::"
+          fails=0
+          for i in $(seq 1 300); do ./probe > /dev/null 2>&1 || fails=$((fails+1)); done
+          echo "== ARMPL ${{ matrix.armpl }}: $fails/300 startup crashes =="
+          echo "ARMPL ${{ matrix.armpl }}: $fails/300 crashes" >> "$GITHUB_STEP_SUMMARY"
+
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
