@@ -177,5 +177,6 @@ echo "  bundle requires macOS >= ${FLOOR:-unknown}"
 "$OUT/bin/inla" -ping
 
 NAME=inla-macos-$ARCH-portable
-tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib
+cp "$PREFIX/BUILDINFO" "$OUT/BUILDINFO" 2>/dev/null || true
+tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib $( [ -f "$OUT/BUILDINFO" ] && echo BUILDINFO )
 echo "OK: portable bundle $NAME.tar.gz ($(du -h "$ROOT/$NAME.tar.gz" | cut -f1))"

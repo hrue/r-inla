@@ -89,6 +89,7 @@ case "$BLAS" in
         [ -d "$MKLLIB" ] || MKLLIB=$MKLROOT/lib
         [ -f "$MKLLIB/libmkl_core.a" ] || { echo "ERROR: no static MKL under $MKLLIB"; exit 1; }
         echo "== BLAS: MKL (static, embedded) from $MKLLIB =="
+        BLAS_DESC="Intel MKL, static, embedded ($MKLLIB)"
         BLAS_INC="-DINLA_WITH_MKL -I$MKLROOT/include"
         ## The start/end group resolves MKL's circular dependencies, as in
         ## the upstream recipe.
@@ -123,6 +124,7 @@ case "$BLAS" in
         OB_A=$(ls /usr/lib64/libopenblas.a /usr/lib/*-linux-gnu/libopenblas.a 2>/dev/null | head -1 || true)
         if [ "$STATIC_BLAS" = 1 ] && [ -n "$OB_A" ]; then
             echo "== BLAS: OpenBLAS (static, embedded) $OB_A =="
+            BLAS_DESC="OpenBLAS, static, embedded ($OB_A)"
             BLAS_LIBS="$OB_A"
         else
             echo "== BLAS: OpenBLAS (shared) =="
@@ -321,5 +323,7 @@ export LD_LIBRARY_PATH="${R_HOME_DIR:-/usr/lib/R}/lib${LD_LIBRARY_PATH:+:$LD_LIB
 ## ARMPL sits outside the loader's search path; the packaged bundle carries
 ## it with an $ORIGIN rpath, but this in-tree binary needs to be told.
 [ -n "${ARMPL_DIR:-}" ] && export LD_LIBRARY_PATH="$ARMPL_DIR/lib:$LD_LIBRARY_PATH"
+BLAS_DESC=${BLAS_DESC:-"$BLAS"}
+bash "$ROOT/ci/write-buildinfo.sh" "$PREFIX/BUILDINFO" "$CC" "$FLAGS" "$BLAS_DESC"
 "$PREFIX/bin/inla" -ping
 echo "OK: inla built and installed in $PREFIX/bin"

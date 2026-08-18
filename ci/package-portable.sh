@@ -79,5 +79,6 @@ fi
 
 ARCH=$(uname -m)
 NAME=inla-linux-$ARCH${SUFFIX:+-$SUFFIX}-portable
-tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib
+cp "$PREFIX/BUILDINFO" "$OUT/BUILDINFO" 2>/dev/null || true
+tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib BUILDINFO
 echo "OK: portable bundle $NAME.tar.gz ($(du -h "$ROOT/$NAME.tar.gz" | cut -f1))"
