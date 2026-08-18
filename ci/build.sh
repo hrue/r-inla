@@ -49,6 +49,19 @@ case "$OPT" in
 esac
 [ "$LTO" = 1 ] && OPTFLAGS="$OPTFLAGS -flto=auto -ffat-lto-objects"
 
+## SANITIZE=address builds an AddressSanitizer binary: it reports the exact
+## line of an out-of-bounds access instead of leaving a corrupted heap to
+## crash somewhere else later. Diagnostic only, never shipped -- ASan needs
+## -fno-omit-frame-pointer and its own runtime, and it is several times
+## slower. -O1 keeps the stack readable without being unusably slow.
+SANITIZE=${SANITIZE:-}
+SAN_LIBS=""
+if [ -n "$SANITIZE" ]; then
+    OPTFLAGS="-O1 -g -fno-omit-frame-pointer -fsanitize=$SANITIZE"
+    SAN_LIBS="-fsanitize=$SANITIZE"
+    echo "== sanitizer: $SANITIZE (diagnostic build) =="
+fi
+
 ## Version string compiled into the binary (shown by inla -V and inla -ping);
 ## falls back to "devel" outside a git checkout.
 TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
@@ -263,7 +276,7 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      EXTLIBS2="-Wl,--whole-archive $EXTOBJ -Wl,--no-whole-archive \
                $STILES_LIBS \
                -lgsl $BLAS_LIBS -lmuparser -lz -lmetis \
-               -lnuma -lhwloc -lltdl -lcrypto -lgfortran $QUADMATH -lm -ldl"
+               -lnuma -lhwloc -lltdl -lcrypto -lgfortran $QUADMATH -lm -ldl $SAN_LIBS"
 make -C "$ROOT/inlaprog" PREFIX="$PREFIX" \
      CC="$CC" CXX="$CXX" FC="$FC" \
      FLAGS="$FLAGS -I$EPATH" \
