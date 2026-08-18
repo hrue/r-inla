@@ -833,38 +833,6 @@ jobs:
           done
           echo "no crash in 120 attempts with the handler preloaded"
 
-      ## kept for reference; cores are not written in these containers
-      - name: Backtrace from the core of a reproduced crash
-        if: false
-        if: always()
-        run: |
-          BASE=$PWD
-          ## glob-safe: an unmatched glob makes `ls` exit 2, which under
-          ## pipefail kills the step before anything runs
-          INI=""
-          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
-            [ -f "$f" ] && { INI=$f; break; }
-          done
-          [ -n "$INI" ] || { echo "no Model.ini"; exit 1; }
-          cd "$(dirname "$INI")"
-          ulimit -c unlimited || true
-          echo "core_pattern: $(cat /proc/sys/kernel/core_pattern 2>/dev/null)"
-          for i in $(seq 1 80); do
-            if ! OMP_NUM_THREADS=1 "$BASE/bin/inla" Model.ini > /dev/null 2>&1; then
-              echo "== crashed on attempt $i =="
-              CORE=$(ls -t core core.* /tmp/core* /var/lib/systemd/coredump/* 2>/dev/null | head -1)
-              if [ -n "$CORE" ]; then
-                echo "core: $CORE"
-                gdb -batch -ex "bt 40" -ex "info registers pc" -ex "info threads" \
-                    "$BASE/bin/inla" "$CORE" 2>&1 | tail -50
-              else
-                echo "no core file written (core_pattern above decides where it goes)"
-              fi
-              exit 0
-            fi
-          done
-          echo "no crash in 60 attempts"
-
   ## Which ARMPL versions have the /proc/cpuinfo over-read? Valgrind found
   ## an invalid 16-byte read in ARMPL's own static initializer
   ## (detect_micro_arch -> parse_proc_cpuinfo -> memchr), which runs before
