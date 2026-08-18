@@ -560,19 +560,19 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
-        run: |
-          bash ci/deps-ubuntu.sh
-          ## serial OpenBLAS, and make it the default libopenblas
-          sudo apt-get install -y --no-install-recommends libopenblas-serial-dev
-          sudo update-alternatives --set libopenblas.so.0-aarch64-linux-gnu \
-            /usr/lib/aarch64-linux-gnu/openblas-serial/libopenblas.so.0 2>/dev/null || true
-          sudo update-alternatives --set libopenblas.so-aarch64-linux-gnu \
-            /usr/lib/aarch64-linux-gnu/openblas-serial/libopenblas.so 2>/dev/null || true
+        run: bash ci/deps-ubuntu.sh
+      ## ARMPL, statically embedded: the fastest BLAS on arm64, matching
+      ## what the classic ARMPL bundle carries. deb packages here (the
+      ## manylinux lane takes the rpm ones).
+      - name: Install ARMPL
+        env:
+          ARMPL_PKG: deb
+        run: bash ci/deps-armpl-linux.sh
       - name: Fetch libstiles
         run: bash ci/fetch-stiles.sh
       - name: Build
         run: |
-          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=armv8.2-a -mtune=neoverse-n1" \
+          if ! BLAS=armpl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=armv8.2-a -mtune=neoverse-n1" \
                bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
@@ -595,9 +595,9 @@ jobs:
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-aarch64-modern-portable"
-            echo "purpose=Portable Linux arm64, newest GCC, armv8.2 code throughout; needs glibc 2.39+ (Graviton2+, Ampere, RPi5)"
+            echo "purpose=Portable Linux arm64, newest GCC, armv8.2 code throughout, ARMPL; needs glibc 2.38+ (Graviton2+, Ampere, RPi 5)"
             echo "compiler=${CO:-unknown}"
-            echo "blas=OpenBLAS (serial), bundled"
+            echo "blas=ARMPL, static, embedded"
             echo "stiles=$ST"
           } > manifest/inla-linux-aarch64-modern-portable.txt
       - uses: actions/upload-artifact@v4
