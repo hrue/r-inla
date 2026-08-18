@@ -853,21 +853,21 @@ jobs:
         run: |
           A=$(ls -d /opt/arm/armpl_* | sort -V | tail -1)
           echo "using $A"
-          cat > probe.c <<'EOF'
-          #include <stdio.h>
-          /* One BLAS call: enough to pull in ARMPL and run its static
-             initializers, which is where the faulty CPU detection lives. */
-          void dgemm_(const char*, const char*, const int*, const int*, const int*,
-                      const double*, const double*, const int*, const double*,
-                      const int*, const double*, double*, const int*);
-          int main(void) {
-              int n = 2; double a[4] = {1,2,3,4}, b[4] = {5,6,7,8}, c[4] = {0,0,0,0};
-              double one = 1.0, zero = 0.0;
-              dgemm_("N","N",&n,&n,&n,&one,a,&n,b,&n,&zero,c,&n);
-              printf("%g\n", c[0]);
-              return 0;
-          }
-EOF
+          ## written line by line: a heredoc terminator must sit at column 0,
+          ## which would break this YAML block scalar
+          {
+            echo '#include <stdio.h>'
+            echo 'void dgemm_(const char*, const char*, const int*, const int*, const int*,'
+            echo '            const double*, const double*, const int*, const double*,'
+            echo '            const int*, const double*, double*, const int*);'
+            echo 'int main(void) {'
+            echo '    int n = 2; double a[4] = {1,2,3,4}, b[4] = {5,6,7,8}, c[4] = {0,0,0,0};'
+            echo '    double one = 1.0, zero = 0.0;'
+            echo '    dgemm_("N","N",&n,&n,&n,&one,a,&n,b,&n,&zero,c,&n);'
+            echo '    printf("%g\\n", c[0]);'
+            echo '    return 0;'
+            echo '}'
+          } > probe.c
           gcc -O2 probe.c -I"$A/include" "$A/lib/libarmpl_lp64.a" \
               -lgfortran -lm -o probe 2>err.txt || { tail -5 err.txt; exit 1; }
           echo "::group::valgrind"
