@@ -698,8 +698,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if command -v apt-get >/dev/null; then apt-get install -y -qq curl jq unzip >/dev/null
-          else (yum -y install curl jq unzip || dnf -y install curl jq unzip) >/dev/null 2>&1; fi
+          if command -v apt-get >/dev/null; then
+            apt-get update -qq >/dev/null
+            apt-get install -y -qq curl jq unzip findutils >/dev/null
+          else
+            (yum -y install curl jq unzip findutils epel-release || \
+             dnf -y install curl jq unzip findutils) >/dev/null 2>&1 || true
+            command -v jq >/dev/null || { curl -sL -o /usr/bin/jq \
+              https://github.com/jqlang/jq/releases/latest/download/jq-linux-arm64 && chmod +x /usr/bin/jq; }
+          fi
           API=https://api.github.com/repos/${{ github.repository }}
           RID=$(curl -sH "Authorization: Bearer $GH_TOKEN" \
                 "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" \
@@ -725,7 +732,7 @@ jobs:
             [ -f "$f" ] && { INI=$f; break; }
           done
           cd "$(dirname "$INI")"
-          N=${N:-25}
+          N=${N:-60}
           run_phase() {
             local label=$1; shift
             local fails=0 i
@@ -745,22 +752,31 @@ jobs:
           echo "::group::phase B - single thread"
           run_phase "OMP_NUM_THREADS=1" OMP_NUM_THREADS=1 PATH="$PATH"
           echo "::endgroup::"
-      - name: Backtrace from a reproduced crash
+      ## Running under gdb makes the crash disappear (it is timing
+      ## dependent), so run it bare and post-mortem the core instead.
+      - name: Backtrace from the core of a reproduced crash
         if: always()
         run: |
           BASE=$PWD
-          INI=$(find testmodel -name Model.ini | head -1)
+          INI=$(ls testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini 2>/dev/null | head -1)
           cd "$(dirname "$INI")"
           ulimit -c unlimited || true
-          for i in $(seq 1 40); do
+          echo "core_pattern: $(cat /proc/sys/kernel/core_pattern 2>/dev/null)"
+          for i in $(seq 1 60); do
             if ! "$BASE/bin/inla" Model.ini > /dev/null 2>&1; then
-              echo "reproduced on attempt $i - running under gdb"
-              gdb -batch -ex run -ex "bt 40" -ex "info threads" \
-                  --args "$BASE/bin/inla" Model.ini 2>&1 | tail -60
+              echo "== crashed on attempt $i =="
+              CORE=$(ls -t core core.* /tmp/core* /var/lib/systemd/coredump/* 2>/dev/null | head -1)
+              if [ -n "$CORE" ]; then
+                echo "core: $CORE"
+                gdb -batch -ex "bt 40" -ex "info registers pc" -ex "info threads" \
+                    "$BASE/bin/inla" "$CORE" 2>&1 | tail -50
+              else
+                echo "no core file written (core_pattern above decides where it goes)"
+              fi
               exit 0
             fi
           done
-          echo "no crash in 40 further attempts"
+          echo "no crash in 60 attempts"
 
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
