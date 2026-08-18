@@ -285,7 +285,7 @@ jobs:
       - name: Package
         env:
           GLIBC_MAX: "2.39"
-          SUFFIX: modern
+          SUFFIX: v3
         run: bash ci/package-portable.sh
       - name: Manifest
         if: always()
@@ -294,22 +294,22 @@ jobs:
           CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
-          { echo "artifact=inla-linux-x86_64-modern-portable"
+          { echo "artifact=inla-linux-x86_64-v3-portable"
             echo "purpose=Portable Linux x86_64, newest GCC, AVX2 code throughout (x86-64-v3); needs glibc 2.39+ and a ~2015+ CPU"
             echo "compiler=${CO:-unknown}"
             echo "blas=Intel MKL, static, embedded"
             echo "stiles=$ST"
-          } > manifest/inla-linux-x86_64-modern-portable.txt
+          } > manifest/inla-linux-x86_64-v3-portable.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: manifest-inla-linux-x86_64-modern-portable
-          path: manifest/inla-linux-x86_64-modern-portable.txt
+          name: manifest-inla-linux-x86_64-v3-portable
+          path: manifest/inla-linux-x86_64-v3-portable.txt
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: inla-linux-x86_64-modern-portable
-          path: inla-linux-x86_64-modern-portable.tar.gz
+          name: inla-linux-x86_64-v3-portable
+          path: inla-linux-x86_64-v3-portable.tar.gz
           if-no-files-found: error
   portable-linux-arm64-modern:
     name: "Portable bundle: Linux arm64 modern (gcc-16, glibc 2.39+)"
@@ -338,7 +338,7 @@ jobs:
       ## exists.
       - name: Fetch libstiles
         run: |
-          STILES_ASSET=libstiles-linux-arm64-modern.zip bash ci/fetch-stiles.sh \
+          STILES_ASSET=libstiles-linux-arm64-armv82-armpl.zip bash ci/fetch-stiles.sh \
             || bash ci/fetch-stiles.sh
       - name: Build
         run: |
@@ -356,7 +356,8 @@ jobs:
       - name: Package
         env:
           GLIBC_MAX: "2.39"
-          SUFFIX: modern
+          SUFFIX: armv82
+          ARCH_NAME: arm64
         run: bash ci/package-portable.sh
       - name: Manifest
         if: always()
@@ -365,22 +366,22 @@ jobs:
           CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
-          { echo "artifact=inla-linux-aarch64-modern-portable"
+          { echo "artifact=inla-linux-arm64-armv82-portable"
             echo "purpose=Portable Linux arm64, newest GCC, armv8.2 code throughout, ARMPL; needs glibc 2.38+ (Graviton2+, Ampere, RPi 5)"
             echo "compiler=${CO:-unknown}"
             echo "blas=ARMPL, static, embedded"
             echo "stiles=$ST"
-          } > manifest/inla-linux-aarch64-modern-portable.txt
+          } > manifest/inla-linux-arm64-armv82-portable.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: manifest-inla-linux-aarch64-modern-portable
-          path: manifest/inla-linux-aarch64-modern-portable.txt
+          name: manifest-inla-linux-arm64-armv82-portable
+          path: manifest/inla-linux-arm64-armv82-portable.txt
       - name: Upload portable bundle
         uses: actions/upload-artifact@v4
         with:
-          name: inla-linux-aarch64-modern-portable
-          path: inla-linux-aarch64-modern-portable.tar.gz
+          name: inla-linux-arm64-armv82-portable
+          path: inla-linux-arm64-armv82-portable.tar.gz
           if-no-files-found: error
 
 
@@ -398,15 +399,17 @@ jobs:
         include:
           - arch: x86_64
             runner: ubuntu-latest
+            bundle: inla-linux-x86_64-v3-portable
           - arch: aarch64
             runner: ubuntu-24.04-arm
+            bundle: inla-linux-arm64-armv82-portable
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: inla-linux-${{ matrix.arch }}-modern-portable
+          name: ${{ matrix.bundle }}
       - uses: actions/download-artifact@v4
         with:
           name: inla-testmodel
@@ -415,7 +418,7 @@ jobs:
         run: |
           head -2 /etc/os-release
           BASE=$PWD
-          tar xzf inla-linux-${{ matrix.arch }}-modern-portable.tar.gz
+          tar xzf ${{ matrix.bundle }}.tar.gz
           ./bin/inla -ping
           INI=""
           for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
@@ -828,8 +831,8 @@ jobs:
           ## arm64 ships the modern bundle only: the baseline-ISA arm64
           ## builds corrupt the heap in ~4% of runs (see the diagnostics in
           ## this file's history), while the armv8.2 build is clean.
-          for a in inla-linux-x86_64-portable inla-linux-x86_64-modern-portable \
-                   inla-linux-aarch64-modern-portable \
+          for a in inla-linux-x86_64-portable inla-linux-x86_64-v3-portable \
+                   inla-linux-arm64-armv82-portable \
                    inla-macos-arm64-portable inla-macos-x86_64-portable \
                    inla-windows-x86_64; do
             [ -d "$a" ] && echo "  ok      $a" || { echo "::error::missing: $a"; missing=1; }

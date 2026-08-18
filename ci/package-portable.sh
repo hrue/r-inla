@@ -78,7 +78,8 @@ else
 fi
 
 ARCH=$(uname -m)
-NAME=inla-linux-$ARCH${SUFFIX:+-$SUFFIX}-portable
+## ARCH_NAME overrides the uname spelling (aarch64 -> arm64) in artifact names
+NAME=inla-linux-${ARCH_NAME:-$ARCH}${SUFFIX:+-$SUFFIX}-portable
 cp "$PREFIX/BUILDINFO" "$OUT/BUILDINFO" 2>/dev/null || true
 tar -C "$OUT" -czf "$ROOT/$NAME.tar.gz" bin lib BUILDINFO
 echo "OK: portable bundle $NAME.tar.gz ($(du -h "$ROOT/$NAME.tar.gz" | cut -f1))"
