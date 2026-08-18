@@ -752,6 +752,34 @@ jobs:
           echo "::group::phase B - single thread"
           run_phase "OMP_NUM_THREADS=1" OMP_NUM_THREADS=1 PATH="$PATH"
           echo "::endgroup::"
+      ## The fault fires single-threaded (4/120 vs 1/120 threaded), so it is
+      ## not a data race but a memory error whose effect depends on the
+      ## per-run heap/ASLR layout. Valgrind reports such errors on EVERY
+      ## run, crash or not -- one run should name the exact instruction.
+      ## (memcheck may refuse SVE instructions on older valgrind; the step
+      ## never fails the job, it only reports.)
+      - name: Valgrind memcheck (single-threaded)
+        if: always()
+        continue-on-error: true
+        run: |
+          if command -v apt-get >/dev/null; then apt-get install -y -qq valgrind >/dev/null 2>&1 || true
+          else (yum -y install valgrind || dnf -y install valgrind) >/dev/null 2>&1 || true; fi
+          command -v valgrind >/dev/null || { echo "valgrind unavailable here"; exit 0; }
+          BASE=$PWD
+          INI=$(ls testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini 2>/dev/null | head -1)
+          cd "$(dirname "$INI")"
+          for r in 1 2; do
+            echo "::group::memcheck run $r"
+            OMP_NUM_THREADS=1 valgrind --error-limit=no --num-callers=25 \
+              --errors-for-leak-kinds=none --leak-check=no \
+              "$BASE/bin/inla" Model.ini > /dev/null 2> vg$r.txt || true
+            grep -E "Invalid (read|write|free)|uninitialised|unhandled instruction|ERROR SUMMARY" vg$r.txt \
+              | head -5
+            ## the first error with its stack, which is what names the bug
+            awk '/Invalid (read|write)|uninitialised value/{f=1} f&&/^==/{print} f&&++n>26{exit}' vg$r.txt | head -28
+            echo "::endgroup::"
+          done
+
       ## Running under gdb makes the crash disappear (it is timing
       ## dependent), so run it bare and post-mortem the core instead.
       - name: Backtrace from the core of a reproduced crash
@@ -762,8 +790,8 @@ jobs:
           cd "$(dirname "$INI")"
           ulimit -c unlimited || true
           echo "core_pattern: $(cat /proc/sys/kernel/core_pattern 2>/dev/null)"
-          for i in $(seq 1 60); do
-            if ! "$BASE/bin/inla" Model.ini > /dev/null 2>&1; then
+          for i in $(seq 1 80); do
+            if ! OMP_NUM_THREADS=1 "$BASE/bin/inla" Model.ini > /dev/null 2>&1; then
               echo "== crashed on attempt $i =="
               CORE=$(ls -t core core.* /tmp/core* /var/lib/systemd/coredump/* 2>/dev/null | head -1)
               if [ -n "$CORE" ]; then
