@@ -766,7 +766,13 @@ jobs:
           else (yum -y install valgrind || dnf -y install valgrind) >/dev/null 2>&1 || true; fi
           command -v valgrind >/dev/null || { echo "valgrind unavailable here"; exit 0; }
           BASE=$PWD
-          INI=$(ls testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini 2>/dev/null | head -1)
+          ## glob-safe: an unmatched glob makes `ls` exit 2, which under
+          ## pipefail kills the step before anything runs
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini"; exit 1; }
           cd "$(dirname "$INI")"
           for r in 1 2; do
             echo "::group::memcheck run $r"
@@ -774,7 +780,7 @@ jobs:
               --errors-for-leak-kinds=none --leak-check=no \
               "$BASE/bin/inla" Model.ini > /dev/null 2> vg$r.txt || true
             grep -E "Invalid (read|write|free)|uninitialised|unhandled instruction|ERROR SUMMARY" vg$r.txt \
-              | head -5
+              | head -5 || echo "  (no memcheck findings in run $r)"
             ## the first error with its stack, which is what names the bug
             awk '/Invalid (read|write)|uninitialised value/{f=1} f&&/^==/{print} f&&++n>26{exit}' vg$r.txt | head -28
             echo "::endgroup::"
@@ -786,7 +792,13 @@ jobs:
         if: always()
         run: |
           BASE=$PWD
-          INI=$(ls testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini 2>/dev/null | head -1)
+          ## glob-safe: an unmatched glob makes `ls` exit 2, which under
+          ## pipefail kills the step before anything runs
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini"; exit 1; }
           cd "$(dirname "$INI")"
           ulimit -c unlimited || true
           echo "core_pattern: $(cat /proc/sys/kernel/core_pattern 2>/dev/null)"
