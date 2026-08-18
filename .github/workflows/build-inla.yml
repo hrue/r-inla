@@ -681,6 +681,10 @@ jobs:
             distro: "ubuntu:22.04"
           - bundle: inla-linux-aarch64-portable
             distro: "ubuntu:22.04"
+          ## the same classic bundle on the newer base the modern bundle was
+          ## tested on: separates "old compiler" from "old runtime"
+          - bundle: inla-linux-aarch64-portable
+            distro: "ubuntu:24.04"
           ## the modern bundle needs glibc 2.38+, so it gets a matching base
           - bundle: inla-linux-aarch64-modern-portable
             distro: "ubuntu:24.04"
@@ -1030,7 +1034,7 @@ jobs:
           gcc --version | head -1
           ## no LTO: it makes ASan reports much harder to read
           WITH_LIBR=2 LTO=0 WITH_STILES=1 SANITIZE=address bash ci/build.sh > build.log 2>&1 \
-            || { echo "::group::build errors"; grep -nE "error:|undefined reference" build.log | head -30; echo "::endgroup::"; tail -20 build.log; exit 1; }
+            || { echo "== build failed; last 40 lines =="; tail -40 build.log; exit 1; }
           echo "built"
       - name: Fetch the test model from the last green board
         env:
