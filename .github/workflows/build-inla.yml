@@ -94,7 +94,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-x86_64"
@@ -179,7 +180,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-x86_64-portable"
@@ -252,7 +254,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-aarch64-portable"
@@ -328,7 +331,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-aarch64-armpl-portable"
@@ -493,19 +497,17 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
-        run: |
-          bash ci/deps-ubuntu.sh
-          ## serial OpenBLAS, and make it the default libopenblas
-          sudo apt-get install -y --no-install-recommends libopenblas-serial-dev
-          sudo update-alternatives --set libopenblas.so.0-x86_64-linux-gnu \
-            /usr/lib/x86_64-linux-gnu/openblas-serial/libopenblas.so.0 2>/dev/null || true
-          sudo update-alternatives --set libopenblas.so-x86_64-linux-gnu \
-            /usr/lib/x86_64-linux-gnu/openblas-serial/libopenblas.so 2>/dev/null || true
+        run: bash ci/deps-ubuntu.sh
+      ## MKL, statically embedded -- the same BLAS the classic x86_64
+      ## bundle carries and what upstream links on Linux. This bundle is the
+      ## performance one, so it gets the fastest x86 BLAS, not a fallback.
+      - name: Install Intel MKL
+        run: bash ci/deps-mkl.sh
       - name: Fetch libstiles
         run: bash ci/fetch-stiles.sh
       - name: Build
         run: |
-          if ! WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=x86-64-v3 -mtune=generic" \
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="-march=x86-64-v3 -mtune=generic" \
                bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
             grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
@@ -523,13 +525,14 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-x86_64-modern-portable"
             echo "purpose=Portable Linux x86_64, newest GCC, AVX2 code throughout (x86-64-v3); needs glibc 2.39+ and a ~2015+ CPU"
             echo "compiler=${CO:-unknown}"
-            echo "blas=OpenBLAS (serial), bundled"
+            echo "blas=Intel MKL, static, embedded"
             echo "stiles=$ST"
           } > manifest/inla-linux-x86_64-modern-portable.txt
       - uses: actions/upload-artifact@v4
@@ -587,7 +590,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-linux-aarch64-modern-portable"
@@ -703,7 +707,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-macos-arm64-portable"
@@ -781,13 +786,14 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-macos-x86_64-portable"
             echo "purpose=macOS Intel bundle, self-contained"
             echo "compiler=${CO:-unknown}"
-            echo "blas=Apple Accelerate (system)"
+            echo "blas=OpenBLAS, serial, bundled"
             echo "stiles=$ST"
           } > manifest/inla-macos-x86_64-portable.txt
       - uses: actions/upload-artifact@v4
@@ -866,7 +872,8 @@ jobs:
       - name: Manifest
         if: always()
         run: |
-          CO=$(grep -m1 "^== building" build.log 2>/dev/null | sed -E 's/.*\((.*)\) ==/\1/' || true)
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
           ST=$(cat local-win/stiles/RELEASE 2>/dev/null || echo latest)
           mkdir -p manifest
           { echo "artifact=inla-windows-x86_64"
