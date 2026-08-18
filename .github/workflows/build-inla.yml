@@ -669,7 +669,7 @@ jobs:
   ## heterogeneous and ARMPL selects kernels by CPU features.
   diag-armpl-repeat:
     name: "Diagnostic: ARMPL bundle repeated runs (${{ matrix.distro }})"
-    needs: [portable-linux-arm64-armpl, linux-x86_64]
+    needs: [portable-linux-arm64-armpl]
     runs-on: ubuntu-24.04-arm
     container: ${{ matrix.distro }}
     continue-on-error: true
@@ -691,10 +691,26 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: inla-linux-aarch64-armpl-portable
-      - uses: actions/download-artifact@v4
-        with:
-          name: inla-testmodel
-          path: testmodel
+      ## The exported model comes from the last successful board rather than
+      ## this run's gate lane: this job only needs a Model.ini, and the
+      ## model has not changed in weeks.
+      - name: Fetch the test model from the last green board
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if command -v apt-get >/dev/null; then apt-get install -y -qq curl jq unzip >/dev/null
+          else (yum -y install curl jq unzip || dnf -y install curl jq unzip) >/dev/null 2>&1; fi
+          API=https://api.github.com/repos/${{ github.repository }}
+          RID=$(curl -sH "Authorization: Bearer $GH_TOKEN" \
+                "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" \
+                | jq -r '.workflow_runs[0].id')
+          AID=$(curl -sH "Authorization: Bearer $GH_TOKEN" "$API/actions/runs/$RID/artifacts" \
+                | jq -r '.artifacts[] | select(.name=="inla-testmodel") | .id' | head -1)
+          [ -n "$AID" ] || { echo "no inla-testmodel artifact in run $RID"; exit 1; }
+          curl -sL -H "Authorization: Bearer $GH_TOKEN" \
+               "$API/actions/artifacts/$AID/zip" -o model.zip
+          mkdir -p testmodel && unzip -qo model.zip -d testmodel
+          find testmodel -name Model.ini | head -1
       - name: Which CPU is this
         run: |
           grep -m1 -E "model name|CPU implementer|CPU part" /proc/cpuinfo || true
