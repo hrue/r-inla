@@ -912,6 +912,73 @@ jobs:
           echo "== ARMPL ${{ matrix.armpl }}: $fails/300 startup crashes =="
           echo "ARMPL ${{ matrix.armpl }}: $fails/300 crashes" >> "$GITHUB_STEP_SUMMARY"
 
+  ## Which ingredient of the OLD arm64 toolchain corrupts the heap? The
+  ## modern bundle (gcc-16, armv8.2) is clean over 120 runs while both
+  ## gcc-toolset-15 bundles crash, so this builds the same sources in the
+  ## same container with one variable changed at a time and measures the
+  ## rate directly. Build and test in one job: the bundle is self-contained.
+  diag-arm64-variants:
+    name: "Diagnostic: arm64 ${{ matrix.variant }}"
+    runs-on: ubuntu-24.04-arm
+    container: quay.io/pypa/manylinux_2_28_aarch64
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: "gcc15-lto"      # the shipped configuration
+            lto: "1"
+          - variant: "gcc15-nolto"    # same compiler, no LTO
+            lto: "0"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        run: bash ci/deps-manylinux.sh
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build (${{ matrix.variant }})
+        run: |
+          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
+          [ -n "$e" ] && source "$e"
+          gcc --version | head -1
+          WITH_LIBR=2 LTO=${{ matrix.lto }} WITH_STILES=1 bash ci/build.sh > build.log 2>&1 \
+            || { tail -30 build.log; exit 1; }
+          grep -m1 "^== building" build.log || true
+      - name: Fetch the test model from the last green board
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          API=https://api.github.com/repos/${{ github.repository }}
+          RID=$(curl -sH "Authorization: Bearer $GH_TOKEN" \
+                "$API/actions/workflows/build-inla.yml/runs?status=success&per_page=1" | jq -r '.workflow_runs[0].id')
+          AID=$(curl -sH "Authorization: Bearer $GH_TOKEN" "$API/actions/runs/$RID/artifacts" \
+                | jq -r '.artifacts[] | select(.name=="inla-testmodel") | .id' | head -1)
+          curl -sL -H "Authorization: Bearer $GH_TOKEN" "$API/actions/artifacts/$AID/zip" -o model.zip
+          mkdir -p testmodel && unzip -qo model.zip -d testmodel
+      - name: Crash rate over 120 runs
+        run: |
+          BASE=$PWD
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini"; exit 1; }
+          cd "$(dirname "$INI")"
+          fails=0
+          for i in $(seq 1 120); do
+            OMP_NUM_THREADS=1 "$BASE/local/bin/inla" Model.ini > /dev/null 2>&1 || fails=$((fails+1))
+          done
+          echo "== arm64 ${{ matrix.variant }}: $fails/120 failed =="
+          echo "arm64 ${{ matrix.variant }}: $fails/120 failed" >> "$GITHUB_STEP_SUMMARY"
+
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
