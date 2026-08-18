@@ -459,7 +459,7 @@ jobs:
         run: |
           head -2 /etc/os-release
           BASE=$PWD
-          tar xzf inla-linux-aarch64-armpl-portable.tar.gz
+          tar xzf ${{ matrix.bundle }}.tar.gz
           ./bin/inla -ping
           INI=""
           for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
@@ -668,15 +668,19 @@ jobs:
   ## gdb. The host CPU is logged because the arm64 runner pool is
   ## heterogeneous and ARMPL selects kernels by CPU features.
   diag-armpl-repeat:
-    name: "Diagnostic: ARMPL bundle repeated runs (${{ matrix.distro }})"
-    needs: [portable-linux-arm64-armpl]
+    name: "Diagnostic: ${{ matrix.bundle }} repeated runs (${{ matrix.distro }})"
+    needs: [portable-linux-arm64-armpl, portable-linux-arm64, portable-linux-arm64-modern]
     runs-on: ubuntu-24.04-arm
     container: ${{ matrix.distro }}
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        distro: ["ubuntu:22.04", "rockylinux:8"]
+        distro: ["ubuntu:22.04"]
+        bundle:
+          - inla-linux-aarch64-armpl-portable
+          - inla-linux-aarch64-portable
+          - inla-linux-aarch64-modern-portable
     defaults:
       run:
         shell: bash
@@ -690,7 +694,7 @@ jobs:
           fi
       - uses: actions/download-artifact@v4
         with:
-          name: inla-linux-aarch64-armpl-portable
+          name: ${{ matrix.bundle }}
       ## The exported model comes from the last successful board rather than
       ## this run's gate lane: this job only needs a Model.ini, and the
       ## model has not changed in weeks.
@@ -726,7 +730,7 @@ jobs:
       - name: Repeat the model, threaded and serial
         run: |
           BASE=$PWD
-          tar xzf inla-linux-aarch64-armpl-portable.tar.gz
+          tar xzf ${{ matrix.bundle }}.tar.gz
           INI=""
           for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
             [ -f "$f" ] && { INI=$f; break; }
@@ -786,9 +790,52 @@ jobs:
             echo "::endgroup::"
           done
 
-      ## Running under gdb makes the crash disappear (it is timing
-      ## dependent), so run it bare and post-mortem the core instead.
+      ## gdb suppresses the crash and the container cannot set core_pattern,
+      ## so catch SIGSEGV inside the process itself and print the stack.
+      - name: Stack from a reproduced crash (SIGSEGV handler)
+        if: always()
+        continue-on-error: true
+        run: |
+          BASE=$PWD
+          {
+            echo '#define _GNU_SOURCE'
+            echo '#include <execinfo.h>'
+            echo '#include <signal.h>'
+            echo '#include <stdio.h>'
+            echo '#include <stdlib.h>'
+            echo '#include <unistd.h>'
+            echo 'static void h(int sig, siginfo_t *si, void *u) {'
+            echo '    (void)u;'
+            echo '    void *bt[48];'
+            echo '    int n = backtrace(bt, 48);'
+            echo '    dprintf(2, "\\n=== SIGSEGV at %p ===\\n", si->si_addr);'
+            echo '    backtrace_symbols_fd(bt, n, 2);'
+            echo '    _exit(139);'
+            echo '}'
+            echo '__attribute__((constructor)) static void init(void) {'
+            echo '    struct sigaction sa; sa.sa_flags = SA_SIGINFO;'
+            echo '    sigemptyset(&sa.sa_mask); sa.sa_sigaction = h;'
+            echo '    sigaction(SIGSEGV, &sa, 0); sigaction(SIGBUS, &sa, 0);'
+            echo '}'
+          } > segv.c
+          gcc -shared -fPIC -O0 -g segv.c -o segv.so -ldl || { echo "handler build failed"; exit 0; }
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          cd "$(dirname "$INI")"
+          for i in $(seq 1 120); do
+            out=$(LD_PRELOAD="$BASE/segv.so" OMP_NUM_THREADS=1 "$BASE/bin/inla" Model.ini 2>&1 >/dev/null) || {
+              echo "== ${{ matrix.bundle }} crashed on attempt $i =="
+              echo "$out" | sed -n '/=== SIGSEGV/,$p' | head -40
+              exit 0
+            }
+          done
+          echo "no crash in 120 attempts with the handler preloaded"
+
+      ## kept for reference; cores are not written in these containers
       - name: Backtrace from the core of a reproduced crash
+        if: false
         if: always()
         run: |
           BASE=$PWD
