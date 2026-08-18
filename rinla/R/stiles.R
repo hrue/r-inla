@@ -57,5 +57,8 @@
         cat("\n==> I think '", ans, "' is your choice\n", sep = "")
     }
 
+    cat("\n==> More information is available here: ", 
+        "https://github.com/hrue/r-inla/releases/tag/v", inla.version("version"), "\n", sep = "")
+
     return (invisible())
 }
