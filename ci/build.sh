@@ -46,9 +46,9 @@ EPATH=$ROOT/external-packages
 ## one upstream flag kept opt-in: it roughly doubles link time and its
 ## failures are unrelated to the change being tested.
 OPT=${OPT:-fast}
-LTO=${LTO:-0}
+LTO=${LTO:-${USE_LTO:-0}}
 case "$OPT" in
-    fast) OPTFLAGS="-O3 -ftree-vectorize -funroll-loops -fvariable-expansion-in-unroller -ftracer" ;;
+    fast) OPTFLAGS="-O${OPT_LEVEL:-3} -ftree-vectorize -funroll-loops -fvariable-expansion-in-unroller -ftracer" ;;
     safe) OPTFLAGS="-O2 -ftree-vectorize" ;;
     *)    echo "ERROR: OPT must be fast or safe"; exit 1 ;;
 esac
