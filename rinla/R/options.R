@@ -22,8 +22,8 @@
 #' is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' provides the
 #' default value for 'control.expert$blas.num.threads'. } 
 #' 
-#' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`
-#' (`default`) or `pardiso`}
+#' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`, `stiles`
+#' `default` or `pardiso`}
 #' 
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}

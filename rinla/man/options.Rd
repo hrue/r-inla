@@ -28,8 +28,8 @@ functions. If set to 0,  the the number of threads will be determined adapativel
 is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' provides the
 default value for 'control.expert$blas.num.threads'. }
 
-\item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
-(\code{default}) or \code{pardiso}}
+\item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}, \code{stiles}
+\code{default} or \code{pardiso}}
 
 \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 (default \code{TRUE})}

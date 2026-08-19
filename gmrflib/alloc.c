@@ -1,8 +1,6 @@
 #include <assert.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "GMRFLib/GMRFLib.h"
 
@@ -15,6 +13,16 @@ int GMRFLib_memory_alignment_enabled = 1;
 
 // will be over-rided by an adaptive default in inla-parse.c
 unsigned int GMRFLib_memory_alignment = 16;
+
+#if defined(INLA_WITH_MIMALLOC)
+void *mi_aligned_alloc(size_t alignment, size_t size);
+void *mi_calloc(size_t n, size_t size);
+void *mi_malloc(size_t size);
+void *mi_realloc(void *ptr, size_t size);
+void *mi_reallocarray(void *ptr, size_t n, size_t size);
+void mi_free(void *ptr);
+#       include <mimalloc-override.h>
+#endif
 
 void *malloc_intern(size_t size)
 {

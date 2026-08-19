@@ -5,7 +5,13 @@
 \alias{inla.set.control.stiles.default}
 \title{control.stiles}
 \usage{
-control.stiles(verbose = FALSE, block.size = -1, param = rep(-1, 20))
+control.stiles(
+  verbose = FALSE,
+  block.size = -1,
+  tile.size = -1,
+  tile.type = c("default", "auto", "sparse", "semisparse", "dense"),
+  param = rep(NA, 32)
+)
 
 inla.set.control.stiles.default(...)
 }
@@ -17,8 +23,14 @@ split many rhs's into threads. Default value (-1) is to use the 'tile.size'
 from sTiles, which is a reasonable tradeoff between speed and memory use.
 A higher value will increase memory usage.}
 
+\item{tile.size}{(integer) Size of the tiles (-1 is default and adaptive).}
+
+\item{tile.type}{(character) The storage type for the tiles. One of
+"default", "auto", "dense", "semisparse" or "sparse". "auto" will chose type
+according to heuristics.}
+
 \item{param}{An integer vector of parameters (variable length).
-Default values are given by '-1'.
+Default values are given by '-1' or 'NA'
 See sTiles documentation for explaination of these parameters}
 
 \item{...}{Named arguments passed on to the main function}

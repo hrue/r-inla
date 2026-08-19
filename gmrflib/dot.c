@@ -103,13 +103,14 @@ double GMRFLib_sparse_ddot_sum5_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 double GMRFLib_sparse_ddot_sum6_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *x = ARR_ + ELM_->idx[0];
-	return (x[0] + x[1] + x[2]) + (x[3] + x[4] + x[5]);
+	return ((x[0] + x[1]) + x[2]) + ((x[3] + x[4]) + x[5]);
+
 }
 
 double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double *x = ARR_ + ELM_->idx[0];
-	return ((x[0] + x[1] + x[2]) + (x[3] + x[4] + x[5])) + x[6];
+	return ((x[0] + x[1]) + (x[2] + x[3])) + ((x[4] + x[5]) + x[6]);
 }
 #pragma GCC diagnostic pop
 
