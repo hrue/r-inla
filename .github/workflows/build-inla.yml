@@ -42,6 +42,8 @@ jobs:
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-ubuntu.sh
 
       ## The smoke test installs a few CRAN packages (fmesher compiles C++,
@@ -141,9 +143,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-manylinux.sh
       ## MKL is what the upstream Linux x86_64 builds link, statically.
       - name: Install Intel MKL
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-mkl.sh
       ## SSH -> https for the external packages' clone URLs (no keys on a
       ## runner), and https -> authenticated https so every GitHub fetch
@@ -261,11 +267,15 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-ubuntu.sh
       ## MKL, statically embedded -- the same BLAS the classic x86_64
       ## bundle carries and what upstream links on Linux. This bundle is the
       ## performance one, so it gets the fastest x86 BLAS, not a fallback.
       - name: Install Intel MKL
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-mkl.sh
       ## the libstiles built the same way this bundle is (newest gcc,
       ## x86-64-v3, MKL); falls back to the standard asset until a release
@@ -330,6 +340,8 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-ubuntu.sh
       ## ARMPL, statically embedded: the fastest BLAS on arm64, matching
       ## what the classic ARMPL bundle carries. deb packages here (the
@@ -465,6 +477,8 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-macos.sh
       - name: Fetch libstiles
         run: bash ci/fetch-stiles.sh
@@ -543,6 +557,8 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-macos.sh
       - name: Fetch libstiles
         run: bash ci/fetch-stiles.sh
@@ -619,6 +635,8 @@ jobs:
         run: dnf -y install git-core
       - uses: actions/checkout@v4
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-mingw.sh
       ## SSH -> https for the external packages' clone URLs (no keys on a
       ## runner), and https -> authenticated https so every GitHub fetch
@@ -777,6 +795,8 @@ jobs:
       ## Deps first: the bare container has no git yet (deps installs it),
       ## and the git config below needs it.
       - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
         run: bash ci/deps-fedora.sh
       ## SSH -> https for the external packages' clone URLs (no keys on a
       ## runner), and https -> authenticated https so every GitHub fetch
