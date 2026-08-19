@@ -10,7 +10,7 @@
 #' The binaries are portable: six of them cover Linux (x86-64 baseline and
 #' x86-64-v3), Linux arm64, macOS (Intel and Apple silicon) and Windows, so the
 #' choice follows from the operating system, the architecture, the C library
-#' version and -- on x86-64 -- the instruction sets the processor actually
+#' version, and the instruction sets the processor actually
 #' supports. Each bundle embeds a matching `libstiles`, and carries a
 #' `BUILDINFO` file recording the compiler, flags and library versions that
 #' produced it.
@@ -49,36 +49,81 @@
     machine <- Sys.info()["machine"]
     arm <- machine %in% c("aarch64", "arm64")
 
-    ## The C library sets which Linux bundle can run at all, and on x86-64 the
-    ## processor sets which one is safe: x86-64-v3 needs AVX2/FMA/BMI, i.e.
-    ## Haswell (2013) or newer. A recent distribution on an older processor is
-    ## an ordinary combination, and picking the v3 build there would abort with
-    ## an illegal instruction on the first vectorised kernel.
+    ## The C library decides which Linux bundle can run at all, and the
+    ## processor decides which one is safe: x86-64-v3 needs AVX2, FMA and BMI,
+    ## meaning Haswell (2013) or newer. A recent distribution on an older
+    ## processor is an ordinary combination, and choosing by glibc alone hands
+    ## it a binary that aborts on the first vectorised kernel.
+    ## Every bundle has an instruction-set floor, so a machine below it gets a
+    ## binary that aborts with an illegal instruction on the first vectorised
+    ## kernel. Read the floors here and refuse rather than install something
+    ## that cannot run.
+    cpuflags <- function(key) {
+        if (!file.exists("/proc/cpuinfo")) return(NA_character_)
+        ln <- grep(paste0("^", key), readLines("/proc/cpuinfo", warn = FALSE), value = TRUE)
+        if (!length(ln)) NA_character_ else ln[1]
+    }
+    has <- function(line, want) {
+        !is.na(line) && all(vapply(want,
+            function(f) grepl(paste0("\\b", f, "\\b"), line), TRUE))
+    }
+
     glibc <- NA_real_
     v3 <- FALSE
+    avx2 <- NA          # NA when it cannot be determined; do not block on that
+    armv82 <- NA
     if (sysname == "Linux") {
         s <- tryCatch(system("getconf GNU_LIBC_VERSION", intern = TRUE),
                       error = function(e) NA_character_,
                       warning = function(w) NA_character_)
         if (!is.na(s[1])) glibc <- suppressWarnings(as.numeric(strsplit(s, " ")[[1]][2]))
-        if (!arm && file.exists("/proc/cpuinfo")) {
-            flags <- grep("^flags", readLines("/proc/cpuinfo", warn = FALSE), value = TRUE)[1]
-            v3 <- length(flags) > 0 && !is.na(flags) &&
-                all(vapply(c("avx2", "fma", "bmi1", "bmi2"),
-                           function(f) grepl(paste0("\\b", f, "\\b"), flags), TRUE))
+        if (arm) {
+            ## armv8.2 markers: the half-precision and dot-product extensions
+            ## the arm64 bundle is compiled for. Present on Graviton2 and newer,
+            ## Ampere, Grace and the Raspberry Pi 5; absent on armv8.0 parts such
+            ## as the Raspberry Pi 4 and Graviton1.
+            f <- cpuflags("Features")
+            if (!is.na(f)) armv82 <- has(f, c("asimdrdm")) && has(f, c("fphp", "asimdhp"))
+        } else {
+            f <- cpuflags("flags")
+            if (!is.na(f)) {
+                avx2 <- has(f, "avx2")
+                v3 <- has(f, c("avx2", "fma", "bmi1", "bmi2"))
+            }
         }
     }
 
     asset <- if (sysname == "Windows") {
         "inla-windows-x86_64.zip"
     } else if (sysname == "Darwin") {
+        ## The macOS bundles carry libraries built on a recent system, so an
+        ## older one can fail at load time with a message that explains nothing.
+        mac <- tryCatch(system("sw_vers -productVersion", intern = TRUE)[1],
+                        error = function(e) NA_character_,
+                        warning = function(w) NA_character_)
+        if (!is.na(mac)) {
+            major <- suppressWarnings(as.numeric(strsplit(mac, "\\.")[[1]][1]))
+            if (!is.na(major) && major < 11) {
+                warning("macOS ", mac, " is older than the bundles are built for ",
+                        "(11.0). It may fail to load; see the release page.")
+            }
+        }
         if (arm) "inla-macos-arm64-portable.tar.gz" else "inla-macos-x86_64-portable.tar.gz"
     } else if (sysname == "Linux") {
         if (arm) {
+            if (identical(armv82, FALSE)) {
+                stop("this machine is armv8.0 (a Raspberry Pi 4 or Graviton1, say). ",
+                     "The only arm64 build needs armv8.2, so no pre-built binary ",
+                     "fits it; build from source instead.")
+            }
             "inla-linux-arm64-armv82-portable.tar.gz"
         } else if (isTRUE(v3) && !is.na(glibc) && glibc >= 2.38) {
             "inla-linux-x86_64-v3-portable.tar.gz"
         } else {
+            if (identical(avx2, FALSE)) {
+                stop("this processor has no AVX2, which every x86-64 build needs ",
+                     "(Haswell 2013 or newer). Build from source instead.")
+            }
             "inla-linux-x86_64-portable.tar.gz"
         }
     } else {
@@ -87,7 +132,8 @@
 
     say("platform: ", sysname, " ", machine,
         if (!is.na(glibc)) paste0(", glibc ", glibc) else "",
-        if (sysname == "Linux" && !arm) paste0(", x86-64-v3: ", v3) else "")
+        if (sysname == "Linux" && !arm) paste0(", x86-64-v3: ", v3) else "",
+        if (sysname == "Linux" && arm && !is.na(armv82)) paste0(", armv8.2: ", armv82) else "")
     say("binary:   ", asset)
 
     url <- if (is.null(tag)) {

@@ -4,6 +4,11 @@
 ## machines: use ci/deps-ubuntu.sh or ci/deps-fedora.sh there.
 set -e
 
+## Shared versions come from one file the maintainer owns, so this project and
+## sTiles build with the same compiler rather than each picking its own.
+_here=$(cd "$(dirname "$0")" && pwd)
+[ -r "$_here/toolchain.env" ] && . "$_here/toolchain.env"
+
 dnf -y install dnf-plugins-core epel-release
 dnf config-manager --set-enabled powertools 2>/dev/null \
     || dnf config-manager --set-enabled crb 2>/dev/null || true
@@ -51,13 +56,30 @@ fi
 ## container's own glibc, so the binary keeps its low glibc floor while
 ## being compiled by a modern compiler. The image ships one already; take
 ## a newer one when the repositories offer it.
-for v in 17 16 15 14; do
-    if dnf -y install "gcc-toolset-$v" "gcc-toolset-$v-gcc-c++" \
-                      "gcc-toolset-$v-gcc-gfortran" 2>/dev/null; then
-        echo "toolchain: gcc-toolset-$v"
-        break
+## GCC_TOOLSET (ci/toolchain.env) names the ONE toolset both this project and
+## sTiles use, so a bundle and the library inside it are built by the same
+## compiler. Taking "the newest available" independently on each side is how
+## they drifted apart: this lane installed 15 while sTiles used the image's 14.
+_want=${GCC_TOOLSET:-}
+if [ -n "$_want" ]; then
+    if dnf -y install "gcc-toolset-$_want" "gcc-toolset-$_want-gcc-c++" \
+                      "gcc-toolset-$_want-gcc-gfortran" 2>/dev/null; then
+        echo "toolchain: gcc-toolset-$_want (pinned by GCC_TOOLSET)"
+    else
+        echo "ERROR: gcc-toolset-$_want is not available in this container." >&2
+        echo "       Pinned by ci/toolchain.env; update it rather than falling back," >&2
+        echo "       so this project and sTiles keep using the same compiler." >&2
+        exit 1
     fi
-done
+else
+    for v in 17 16 15 14; do
+        if dnf -y install "gcc-toolset-$v" "gcc-toolset-$v-gcc-c++" \
+                          "gcc-toolset-$v-gcc-gfortran" 2>/dev/null; then
+            echo "toolchain: gcc-toolset-$v (unpinned)"
+            break
+        fi
+    done
+fi
 
 ## Static archives for the libraries that get embedded into the binary.
 dnf -y install openblas-static 2>/dev/null || true
