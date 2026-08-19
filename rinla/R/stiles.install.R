@@ -136,15 +136,36 @@
         if (sysname == "Linux" && arm && !is.na(armv82)) paste0(", armv8.2: ", armv82) else "")
     say("binary:   ", asset)
 
-    url <- if (is.null(tag)) {
+    ## Resolve which release "latest" currently means, and cache under THAT
+    ## name. Caching under a directory called "latest" makes the first install
+    ## permanent: a newer release lands on the same path, the binary is found,
+    ## and the caller keeps the old one until they think to pass force = TRUE.
+    ## One request to the releases API, and the tag comes back in the JSON; if
+    ## it cannot be reached, fall back to the redirecting URL as before.
+    resolved <- tag
+    if (is.null(resolved)) {
+        js <- tryCatch(
+            paste(readLines(paste0("https://api.github.com/repos/", repo,
+                                   "/releases/latest"), warn = FALSE),
+                  collapse = ""),
+            error = function(e) "", warning = function(w) "")
+        m <- regmatches(js, regexpr('"tag_name"[^"]*"[^"]+"', js))
+        if (length(m) == 1L) {
+            resolved <- sub('.*"tag_name"[^"]*"([^"]+)".*', "\\1", m)
+            say("release:  ", resolved)
+        }
+    }
+
+    url <- if (is.null(tag) && is.null(resolved)) {
         paste0("https://github.com/", repo, "/releases/latest/download/", asset)
     } else {
-        paste0("https://github.com/", repo, "/releases/download/", tag, "/", asset)
+        paste0("https://github.com/", repo, "/releases/download/",
+               if (is.null(tag)) resolved else tag, "/", asset)
     }
 
     if (is.null(dir)) {
         dir <- file.path(tools::R_user_dir("INLA", "cache"), "stiles-binary",
-                         if (is.null(tag)) "latest" else tag)
+                         if (!is.null(resolved)) resolved else "latest")
     }
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 

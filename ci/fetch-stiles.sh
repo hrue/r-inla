@@ -95,6 +95,53 @@ echo "  header:  $DEST/include/stiles.h"
 echo "  library: $(ls "$DEST"/lib/libstiles.* 2>/dev/null | head -1)"
 ls -lh "$DEST/lib" | head -10
 
+## ---------------------------------------------------------------------------
+## Same compiler on both sides, checked rather than assumed.
+##
+## The shared toolchain file pins the compiler where a package manager lets us
+## (GCC_PREFER for the modern Linux lanes, GCC_TOOLSET inside the manylinux
+## containers). It cannot on macOS or Windows: Homebrew and MSYS2 serve only
+## their current package, so two lanes built on different days get different
+## point releases. Pinning is therefore not enough, and the pairing has already
+## drifted twice without anything saying so: the baseline Linux bundle carried a
+## library built by GCC 14 inside a binary built by GCC 15, and the Windows DLL
+## was built by MinGW 16.2.0 while inla.exe used 16.1.1.
+##
+## So compare what actually built each side. The asset records its compiler in
+## BUILDINFO; this build knows its own. A mismatch fails here, where it is one
+## line to read, instead of surviving into a release nobody questions.
+## STILES_ALLOW_COMPILER_MISMATCH=1 downgrades it to a warning for the case
+## where a deliberate mismatch is being tested.
+BI=$(find /tmp/stiles-dl -maxdepth 3 -name BUILDINFO | head -1)
+if [ -n "$BI" ]; then
+    ## "g++ (GCC) 14.2.1 ..." / "gcc-16 (Ubuntu ...) 16.0.1 ..." / MSYS2 rev
+    lib_cc=$(grep -i '^compiler' "$BI" | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    ## Compare against the compiler that builds for the SAME target. The
+    ## Windows lane cross-builds from Linux, so $CXX there is the host g++ and
+    ## comparing it with a DLL built by MSYS2 would fail for no reason.
+    own_cxx=${CXX:-g++}
+    if [ -f "$DEST/lib/libstiles.dll" ]; then
+        for c in ${MINGW_CXX:-} x86_64-w64-mingw32ucrt-g++ x86_64-w64-mingw32-g++; do
+            command -v "$c" >/dev/null 2>&1 && { own_cxx=$c; break; }
+        done
+    fi
+    own_cc=$($own_cxx --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    echo "  compiler: library $lib_cc, this build ${own_cc:-unknown} ($own_cxx)"
+    if [ -n "$lib_cc" ] && [ -n "$own_cc" ] && [ "$lib_cc" != "$own_cc" ]; then
+        if [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" = "1" ]; then
+            echo "  WARNING: compiler mismatch ($lib_cc vs $own_cc), allowed by request"
+        else
+            echo "ERROR: libstiles was built by GCC $lib_cc but this build uses $own_cc." >&2
+            echo "       The bundle would ship a library compiled by a different" >&2
+            echo "       compiler than the binary around it. Align them through the" >&2
+            echo "       shared toolchain file (GCC_PREFER / GCC_TOOLSET), or rebuild" >&2
+            echo "       the sTiles asset. Set STILES_ALLOW_COMPILER_MISMATCH=1 to" >&2
+            echo "       proceed anyway." >&2
+            exit 1
+        fi
+    fi
+fi
+
 ## The library is portable but not self-contained: it expects a few system
 ## libraries (libnuma, libhwloc, libgfortran) from the host. Resolve it now,
 ## so a missing one is a clear message here rather than a link or load
