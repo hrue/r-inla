@@ -2502,6 +2502,8 @@ GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 #       endif
 void inla_cgeneric_mapper_list(FILE * fp);
 inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
+void inla_cloglike_mapper_list(FILE *fp);
+inla_cloglike_func_tp *inla_cloglike_mapper(char *name);
 
 /* 
 ***

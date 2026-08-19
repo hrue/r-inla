@@ -15,11 +15,12 @@
 `inla.cloglike.define` <- function(model = NULL, shlib = NULL, debug = FALSE, ...)
 {
     stopifnot(!missing(model))
-    stopifnot(!missing(shlib))
-    shlib <- normalizePath(shlib)
-    if (!file.exists(shlib)) {
-        shlib <- paste0(getwd(), "/", shlib)
-        stopifnot(file.exists(shlib))
+    if (!is.null(shlib)) {
+        shlib <- normalizePath(shlib)
+        if (!file.exists(shlib)) {
+            shlib <- paste0(getwd(), "/", shlib)
+            stopifnot(file.exists(shlib))
+        }
     }
 
     args <- list(...)

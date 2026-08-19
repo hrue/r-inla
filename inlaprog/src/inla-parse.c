@@ -805,6 +805,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	int beta_delayed_error = 0;
 	double tmp;
 	Data_section_tp *ds = NULL;
+	inla_cloglike_func_tp *loglike_func = NULL;
 
 	mb->nds++;
 	mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
@@ -9125,42 +9126,55 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		int POSSIBLY_UNUSED(n_attr) = ds->data_observations.n_attr;
 		assert(n_attr == 1);
 		double *x_out = NULL;
+		loglike_func = (inla_cloglike_func_tp *) inla_cloglike_mapper(cloglike_model);
 
-		if (ltdl_init) {
-			lt_dlinit();
-			if ((emsg = lt_dlerror())) {
-				GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
+		if (loglike_func) {
+			if (mb->verbose) {
+				printf("\t\tModel [%s] is built-in, ignore [%s]\n", cloglike_model, cloglike_shlib);
+			}
+		} else {
+			if (!cloglike_shlib) {
+				GMRFLib_sprintf(&msg, "\n *** shlib for cloglike %s is NULL\n", cloglike_model);
 				inla_error_general(msg);
 				assert(0 != 1);
 				exit(1);
 			}
-			ltdl_init = 0;
+			if (ltdl_init) {
+				lt_dlinit();
+				if ((emsg = lt_dlerror())) {
+					GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
+					inla_error_general(msg);
+					assert(0 != 1);
+					exit(1);
+				}
+				ltdl_init = 0;
+				lt_dlerror();
+			}
+
+			lt_dlhandle handle = lt_dlopen(cloglike_shlib);
+			if (!handle) {
+				GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cloglike_shlib, lt_dlerror());
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			lt_dlerror();
+
+			loglike_func = (inla_cloglike_func_tp *) lt_dlsym(handle, cloglike_model);
+			if ((emsg = lt_dlerror())) {
+				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
 			lt_dlerror();
 		}
-
-		lt_dlhandle handle = lt_dlopen(cloglike_shlib);
-		if (!handle) {
-			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cloglike_shlib, lt_dlerror());
-			inla_error_general(msg);
-			assert(0 != 1);
-			exit(1);
-		}
-		lt_dlerror();
-
-		inla_cloglike_func_tp *model_func = (inla_cloglike_func_tp *) lt_dlsym(handle, cloglike_model);
-		if ((emsg = lt_dlerror())) {
-			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
-			inla_error_general(msg);
-			assert(0 != 1);
-			exit(1);
-		}
-		lt_dlerror();
-		ds->data_observations.cloglike_func = model_func;
+		ds->data_observations.cloglike_func = loglike_func;
 
 		int ntheta = 0;
 		double *initial = NULL;
 
-		x_out = model_func(INLA_CLOGLIKE_INITIAL, NULL, ds->data_observations.cloglike_data, 0, NULL, 0, NULL, NULL);
+		x_out = loglike_func(INLA_CLOGLIKE_INITIAL, NULL, ds->data_observations.cloglike_data, 0, NULL, 0, NULL, NULL);
 		ntheta = (int) x_out[0];
 		if (ntheta) {
 			initial = Calloc(ntheta, double);
@@ -13793,26 +13807,32 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		int nn;
 		double *x_out = NULL, *xx_out = NULL;
-
 		static int ltdl_init = 1;
-		if (ltdl_init) {
-			lt_dlinit();
-			if ((emsg = lt_dlerror())) {
-				GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
-				inla_error_general(msg);
-				assert(0 != 1);
-				exit(1);
-			}
-			ltdl_init = 0;
-			lt_dlerror();
-		}
 
-		model_func = inla_cgeneric_mapper(cgeneric_model);
+		model_func = (inla_cgeneric_func_tp *) inla_cgeneric_mapper(cgeneric_model);
 		if (model_func) {
 			if (mb->verbose) {
 				printf("\t\tModel [%s] is built-in, ignore [%s]\n", cgeneric_model, cgeneric_shlib);
 			}
 		} else {
+			if (!cgeneric_shlib) {
+				GMRFLib_sprintf(&msg, "\n *** shlib for cgeneric %s is NULL\n", cgeneric_model);
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			if (ltdl_init) {
+				lt_dlinit();
+				if ((emsg = lt_dlerror())) {
+					GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
+					inla_error_general(msg);
+					assert(0 != 1);
+					exit(1);
+				}
+				ltdl_init = 0;
+				lt_dlerror();
+			}
+
 			handle = lt_dlopen(cgeneric_shlib);
 			if (!handle) {
 				GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
