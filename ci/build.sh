@@ -323,6 +323,27 @@ export LD_LIBRARY_PATH="${R_HOME_DIR:-/usr/lib/R}/lib${LD_LIBRARY_PATH:+:$LD_LIB
 ## ARMPL sits outside the loader's search path; the packaged bundle carries
 ## it with an $ORIGIN rpath, but this in-tree binary needs to be told.
 [ -n "${ARMPL_DIR:-}" ] && export LD_LIBRARY_PATH="$ARMPL_DIR/lib:$LD_LIBRARY_PATH"
+## ---- mimalloc: shipped beside the binary, never linked ----------------------
+## inla.run preloads it only when INLA_MALLOC_LIB asks for it, so the binary
+## itself stays allocator-agnostic. Built from mimalloc's single translation
+## unit (src/static.c), which needs no cmake and works in every container
+## this script runs in. Version pinned in ci/toolchain.env.
+if [ -n "${MIMALLOC_VERSION:-}" ]; then
+    rm -rf "$ROOT/mimalloc-src"
+    git clone -q --depth 1 --branch "$MIMALLOC_VERSION" \
+        https://github.com/microsoft/mimalloc "$ROOT/mimalloc-src"
+    ## MI_MALLOC_OVERRIDE is what makes the library actually REPLACE
+    ## malloc/free when preloaded; cmake sets it, the single-TU build must
+    ## too, or the .so exports no allocator entry points at all (verified
+    ## with nm before this flag was added).
+    $CC -O2 -DNDEBUG -DMI_MALLOC_OVERRIDE -fPIC -shared -pthread \
+        -I"$ROOT/mimalloc-src/include" \
+        "$ROOT/mimalloc-src/src/static.c" \
+        -o "$PREFIX/lib/libmimalloc.so" \
+        || { echo "ERROR: mimalloc $MIMALLOC_VERSION failed to build"; exit 1; }
+    echo "mimalloc: $MIMALLOC_VERSION -> $PREFIX/lib/libmimalloc.so"
+fi
+
 BLAS_DESC=${BLAS_DESC:-"$BLAS"}
 bash "$ROOT/ci/write-buildinfo.sh" "$PREFIX/BUILDINFO" "$CC" "$FLAGS" "$BLAS_DESC"
 "$PREFIX/bin/inla" -ping
