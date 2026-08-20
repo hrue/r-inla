@@ -190,6 +190,18 @@
         say("already installed (use force=TRUE to re-download)")
     }
 
+    ## The bundles ship bin/inla.run beside the binary (it preloads the
+    ## bundled allocator, then execs inla); that script is the upstream entry
+    ## point, so point inla.call at it when it exists. Older releases have
+    ## only the binary, and Windows has no wrapper.
+    if (sysname != "Windows") {
+        run <- file.path(dirname(bin[1]), "inla.run")
+        if (file.exists(run)) {
+            Sys.chmod(run, "0755")
+            bin[1] <- run
+        }
+    }
+
     ## Run it before trusting it: a binary that unpacks but cannot start is the
     ## failure worth catching here, not at the first inla() call.
     ping <- tryCatch(system2(bin[1], "-ping", stdout = TRUE, stderr = TRUE),
@@ -209,6 +221,16 @@
         say("BUILDINFO:")
         cat(paste0("    ", readLines(info, warn = FALSE)), sep = "\n")
     }
+
+    ## The options set above live in this R session only; a restart keeps the
+    ## downloaded binary but forgets both settings, which looks like the
+    ## install vanished. Print the calls that bring it back, unconditionally:
+    ## they are the actionable output of this function, not progress chatter.
+    cat("\nThese settings do not survive an R restart. To restore them next time, run:\n\n")
+    cat(sprintf('    inla.setOption(inla.call = "%s")\n', bin[1]))
+    if (isTRUE(smtp)) cat('    inla.setOption(smtp = "stiles")\n')
+    cat("\nor put those lines in your ~/.Rprofile to make them permanent,\n")
+    cat("or simply call inla.stiles.install() again (the download is cached).\n")
 
     invisible(bin[1])
 }
