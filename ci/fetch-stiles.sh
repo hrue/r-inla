@@ -128,16 +128,7 @@ if [ -n "$BI" ]; then
     own_cc=$($own_cxx --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
     echo "  compiler: library $lib_cc, this build ${own_cc:-unknown} ($own_cxx)"
     if [ -n "$lib_cc" ] && [ -n "$own_cc" ] && [ "$lib_cc" != "$own_cc" ]; then
-        ## Windows is the one target where the two projects cannot align: INLA
-        ## cross-compiles with Fedora's ucrt64 packages, sTiles builds natively
-        ## with MSYS2's, and those are separate release streams that no shared
-        ## pin can bring together. Both target the same UCRT ABI and libstiles
-        ## exposes a plain C API, so report it and carry on rather than blocking
-        ## every Windows release over a difference that is not causing harm.
-        if [ -f "$DEST/lib/libstiles.dll" ]; then
-            echo "  NOTE: Windows toolchains differ by design (cross-built inla.exe" \
-                 "vs MSYS2-built DLL); same UCRT ABI, continuing"
-        elif [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" = "1" ]; then
+        if [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" = "1" ]; then
             echo "  WARNING: compiler mismatch ($lib_cc vs $own_cc), allowed by request"
         else
             echo "ERROR: libstiles was built by GCC $lib_cc but this build uses $own_cc." >&2

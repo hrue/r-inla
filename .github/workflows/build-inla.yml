@@ -653,7 +653,11 @@ jobs:
         ## the local/ every other lane uses -- without it the fetch stages
         ## into a directory the Windows build never looks at.
         env:
-          STILES_ASSET: libstiles-windows-x86_64.zip
+          ## The ucrt-cross asset is built by the same Fedora ucrt64 toolchain
+          ## as this lane (same gcc, same libgomp), so the compiler check can
+          ## enforce the pairing here like everywhere else. The MSYS2-built
+          ## asset stays on the releases page for standalone Windows use.
+          STILES_ASSET: libstiles-windows-x86_64-ucrt-cross.zip
           PREFIX: ${{ github.workspace }}/local-win
         run: bash ci/fetch-stiles.sh
       - name: Cross-build inla.exe
