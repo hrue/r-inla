@@ -251,3 +251,70 @@
 
     invisible(bin[1])
 }
+
+
+#' @title What the session is using right now
+#'
+#' @description
+#' `inla.stiles.status()` answers the question `inla.stiles.install()` leaves
+#' open after a restart: which binary is this session actually pointing at,
+#' with which backend, and what was that binary built from. Everything is read
+#' from the session's options and the binary's own `BUILDINFO`, not from what
+#' an earlier install intended.
+#'
+#' @param ping Also run the binary with `-ping` to prove it starts (default
+#'             `TRUE`; costs about a second).
+#' @param verbose Print the report (default `TRUE`).
+#'
+#' @return Invisibly, a list with `inla.call`, `smtp`, `release`, `alive`,
+#'         `buildinfo` (character vector) and `cache` (installed releases).
+#'
+#' @seealso [inla.stiles.install()]
+#' @rdname stiles.install
+#' @export inla.stiles.status
+
+`inla.stiles.status` <- function(ping = TRUE, verbose = TRUE) {
+    say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
+
+    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    smtp <- tryCatch(inla.getOption("smtp"), error = function(e) NULL)
+
+    cache <- file.path(tools::R_user_dir("INLA", "cache"), "stiles-binary")
+    installed <- basename(list.dirs(cache, recursive = FALSE))
+
+    ## Is the active binary one of ours, and which release? The cache path is
+    ## <cache>/<tag>/bin/<exe>, so the tag is two levels up from the file.
+    release <- NA_character_
+    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
+        root <- dirname(dirname(call))
+        if (identical(normalizePath(dirname(root), mustWork = FALSE),
+                      normalizePath(cache, mustWork = FALSE))) {
+            release <- basename(root)
+        }
+        info <- file.path(root, "BUILDINFO")
+        buildinfo <- if (file.exists(info)) readLines(info, warn = FALSE) else character(0)
+    } else {
+        buildinfo <- character(0)
+    }
+
+    say("inla.call: ", if (is.null(call) || !is.character(call) || !nzchar(call[1])) "(package default)" else call)
+    if (!is.na(release)) say("release:   ", release, "  (from the install cache)")
+    say("smtp:      ", if (is.null(smtp)) "(default)" else smtp)
+
+    alive <- NA
+    if (isTRUE(ping) && !is.null(call) && is.character(call) && file.exists(call)) {
+        out <- tryCatch(system2(call, "-ping", stdout = TRUE, stderr = TRUE),
+                        error = function(e) character(0))
+        alive <- any(grepl("ALIVE", out))
+        say(if (isTRUE(alive)) "binary answers -ping" else "binary DID NOT answer -ping")
+    }
+
+    if (length(buildinfo) && verbose) {
+        keep <- grep("^(compiler|libstiles|blas|date):", buildinfo, ignore.case = TRUE, value = TRUE)
+        if (length(keep)) { say("BUILDINFO:"); cat(paste0("    ", keep), sep = "\n") }
+    }
+    if (length(installed)) say("installed releases: ", paste(installed, collapse = ", "))
+
+    invisible(list(inla.call = call, smtp = smtp, release = release,
+                   alive = alive, buildinfo = buildinfo, cache = installed))
+}
