@@ -8,6 +8,10 @@
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+## Shared versions (MIMALLOC_VERSION and friends); build.sh has sourced this
+## from the start, this script never did, so any key used here was silently
+## empty.
+[ -f "$ROOT/ci/toolchain.env" ] && . "$ROOT/ci/toolchain.env"
 PREFIX=${PREFIX:-$ROOT/local}
 DEPS=${DEPS:-$HOME/inla-macos-deps}
 JOBS=${JOBS:-$(sysctl -n hw.ncpu)}
@@ -238,6 +242,24 @@ if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
 fi
 
 ## ---- 5. Sanity --------------------------------------------------------------
+## ---- mimalloc: shipped beside the binary, never linked (see build.sh) -------
+if [ -n "${MIMALLOC_VERSION:-}" ]; then
+    rm -rf "$ROOT/mimalloc-src"
+    git clone -q --depth 1 --branch "$MIMALLOC_VERSION" \
+        https://github.com/microsoft/mimalloc "$ROOT/mimalloc-src"
+    ## MI_MALLOC_OVERRIDE is what makes the library actually REPLACE
+    ## malloc/free when preloaded; cmake sets it, the single-TU build must
+    ## too, or the .so exports no allocator entry points at all (verified
+    ## with nm before this flag was added).
+    $CC -O2 -DNDEBUG -DMI_MALLOC_OVERRIDE -fPIC -shared -pthread \
+        -I"$ROOT/mimalloc-src/include" \
+        "$ROOT/mimalloc-src/src/static.c" \
+        -install_name @rpath/libmimalloc.dylib \
+        -o "$PREFIX/lib/libmimalloc.dylib" \
+        || { echo "ERROR: mimalloc $MIMALLOC_VERSION failed to build"; exit 1; }
+    echo "mimalloc: $MIMALLOC_VERSION -> $PREFIX/lib/libmimalloc.dylib"
+fi
+
 BLAS_DESC=${BLAS_DESC:-"$BLASLIBS"}
 bash "$ROOT/ci/write-buildinfo.sh" "$PREFIX/BUILDINFO" "$CC" "$FLAGS" "$BLAS_DESC"
 "$PREFIX/bin/inla" -ping

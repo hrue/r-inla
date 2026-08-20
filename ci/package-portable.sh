@@ -25,6 +25,25 @@ rm -rf "$OUT"
 mkdir -p "$OUT/bin" "$OUT/lib"
 cp "$BIN" "$OUT/bin/inla"
 
+## inla.run beside the binary: the upstream entry point is the SCRIPT (it
+## preloads the bundled allocator when it finds one, then execs bin/inla).
+## Canonical copy from utils/scripts; the per-platform R-package copy is the
+## fallback for older checkouts.
+RUN_SRC=""
+for c in "$ROOT/utils/scripts/inla.run" "$ROOT/rinla/inst/bin/linux/64bit/inla.run"; do
+    [ -f "$c" ] && { RUN_SRC=$c; break; }
+done
+[ -n "$RUN_SRC" ] || { echo "ERROR: no inla.run found to ship"; exit 1; }
+cp "$RUN_SRC" "$OUT/bin/inla.run"
+chmod 0755 "$OUT/bin/inla.run"
+
+## The allocator itself: copied, never linked (see ci/build.sh).
+if [ -f "$PREFIX/lib/libmimalloc.so" ]; then
+    cp "$PREFIX/lib/libmimalloc.so" "$OUT/lib/"
+else
+    echo "ERROR: libmimalloc.so was not built (MIMALLOC_VERSION unset?)"; exit 1
+fi
+
 ## Everything ldd resolves, except the glibc family and the loader.
 ldd "$BIN" | awk '/=>/ {print $3}' | grep -v '^$' | while read -r so; do
     [ -f "$so" ] || continue
@@ -40,6 +59,8 @@ patchelf --set-rpath '$ORIGIN/../lib' "$OUT/bin/inla"
 for so in "$OUT"/lib/*.so*; do
     patchelf --set-rpath '$ORIGIN' "$so"
 done
+## the allocator is dlopen/preload-only; give it the same self-relative rpath
+patchelf --set-rpath '$ORIGIN' "$OUT/lib/libmimalloc.so" 2>/dev/null || true
 
 ## The portability floor: no glibc symbol newer than GLIBC_MAX (default
 ## 2.28, the manylinux container's; the modern gcc-16 lane builds on
@@ -64,6 +85,20 @@ fi
 
 ## Prove the bundle runs from its own libraries.
 "$OUT/bin/inla" -ping
+## the SHIPPED entry point must work too
+"$OUT/bin/inla.run" -ping
+## Report whether the wrapper's own lookup can find the allocator we ship:
+## it computes LIB as the PARENT of the bundle root plus /lib, which for a
+## bin/+lib/ bundle points OUTSIDE the bundle. Not fatal -- the wrapper falls
+## back to a plain exec -- but then the shipped allocator is dead weight, so
+## say it loudly rather than let it pass silently.
+WLIB=$(dirname "$OUT")/lib
+if find "$WLIB" -name 'libmimalloc*' 2>/dev/null | grep -q .; then
+    echo "inla.run will preload: $(find "$WLIB" -name 'libmimalloc*' | tail -1)"
+else
+    echo "NOTE: inla.run looks for the allocator in $WLIB and will find none;"
+    echo "      the bundled lib/libmimalloc.so is not on its search path."
+fi
 
 ## The BLAS is linked statically, so it should be INSIDE the binary rather
 ## than beside it. Report either way: this is the one property of the

@@ -20,6 +20,26 @@ rm -rf "$OUT"
 mkdir -p "$OUT/bin" "$OUT/lib"
 cp "$BIN" "$OUT/bin/inla"
 
+## inla.run beside the binary: the upstream entry point is the SCRIPT (it
+## preloads the bundled allocator when it finds one, then execs bin/inla).
+## Canonical copy from utils/scripts; the per-platform R-package copies are
+## fallbacks for older checkouts.
+RUN_SRC=""
+for c in "$ROOT/utils/scripts/inla.run" "$ROOT/rinla/inst/bin/mac.arm64/64bit/inla.run" \
+         "$ROOT/rinla/inst/bin/mac/64bit/inla.run"; do
+    [ -f "$c" ] && { RUN_SRC=$c; break; }
+done
+[ -n "$RUN_SRC" ] || { echo "ERROR: no inla.run found to ship"; exit 1; }
+cp "$RUN_SRC" "$OUT/bin/inla.run"
+chmod 0755 "$OUT/bin/inla.run"
+
+## The allocator: copied, never linked (see ci/build-macos.sh).
+if [ -f "$PREFIX/lib/libmimalloc.dylib" ]; then
+    cp "$PREFIX/lib/libmimalloc.dylib" "$OUT/lib/"
+else
+    echo "ERROR: libmimalloc.dylib was not built (MIMALLOC_VERSION unset?)"; exit 1
+fi
+
 echo "== dependencies before bundling =="
 otool -L "$OUT/bin/inla" || true
 
@@ -175,6 +195,17 @@ done
 echo "  bundle requires macOS >= ${FLOOR:-unknown}"
 
 "$OUT/bin/inla" -ping
+## the SHIPPED entry point must work too
+"$OUT/bin/inla.run" -ping
+## see package-portable.sh: the wrapper computes its lib dir OUTSIDE a
+## bin/+lib/ bundle; report rather than fail.
+WLIB=$(dirname "$OUT")/lib
+if find "$WLIB" -name 'libmimalloc*' 2>/dev/null | grep -q .; then
+    echo "inla.run will preload: $(find "$WLIB" -name 'libmimalloc*' | tail -1)"
+else
+    echo "NOTE: inla.run looks for the allocator in $WLIB and will find none;"
+    echo "      the bundled lib/libmimalloc.dylib is not on its search path."
+fi
 
 NAME=inla-macos-$ARCH-portable
 cp "$PREFIX/BUILDINFO" "$OUT/BUILDINFO" 2>/dev/null || true
