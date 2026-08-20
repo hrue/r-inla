@@ -1901,6 +1901,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
 		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
+		mb->gcpo_param->build_radius = iniparser_getint(ini, inla_string_join(secname, "GCPO.BUILD.RADIUS"), 1);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		mb->gcpo_param->type_cv = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.TYPECV"), 0);
@@ -2160,6 +2161,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
 			printf("\t\t\t\tepsilon=[%g]\n", mb->gcpo_param->epsilon);
 			printf("\t\t\t\tprior.diagonal=[%g]\n", mb->gcpo_param->prior_diagonal);
+			printf("\t\t\t\tbuild.radius=[%1d]\n", mb->gcpo_param->build_radius);
 			if (mb->gcpo_param->groups) {
 				printf("\t\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
 			}

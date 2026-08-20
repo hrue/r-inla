@@ -71,6 +71,13 @@
              #' added to the diagonal of the prior precision matrix to avoid singularities
              prior.diagonal = 1e-4, 
 
+             #' @param build.radius Radius, in hops on the latent graph, of the local
+             #' candidate search used to build the groups: the groups are formed from
+             #' the candidates within the radius and certified complete by a separator
+             #' bound, and nodes that cannot be certified fall back to the exact full
+             #' solve. `0` disables the local build (always the full solve).
+             build.radius = 1, 
+
              #' @param keep For `strategy="prior"`, then this gives a vector of the
              #' name of model-components TO USE when computing the groups. See the vignette
              #' for details. Not both of `keep` and `remove` can be defined.
@@ -115,6 +122,7 @@
                               verbose = verbose,
                               epsilon = epsilon,
                               prior.diagonal = prior.diagonal,
+                              build.radius = build.radius,
                               keep = keep,
                               remove = remove,
                               remove.fixed = remove.fixed, 
@@ -133,6 +141,7 @@
                       verbose = verbose, 
                       epsilon = epsilon, 
                       prior.diagonal = prior.diagonal, 
+                      build.radius = build.radius, 
                       correct.hyperpar = FALSE, 
                       keep = keep, 
                       remove = remove, 

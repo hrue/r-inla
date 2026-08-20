@@ -3317,14 +3317,1018 @@ int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+// tiny dense in-place Cholesky (row-major lower factor) and forward solve, for
+// the radius-build separator-certificate (matrix sizes = candidate-ball sizes)
+static int rb_chol_(int n, double *A)
+{
+	for (int j = 0; j < n; j++) {
+		double d = A[j * n + j];
+		for (int k = 0; k < j; k++) {
+			d -= A[j * n + k] * A[j * n + k];
+		}
+		if (d <= 0.0) {
+			return 1;
+		}
+		d = sqrt(d);
+		A[j * n + j] = d;
+		for (int i = j + 1; i < n; i++) {
+			double s = A[i * n + j];
+			for (int k = 0; k < j; k++) {
+				s -= A[i * n + k] * A[j * n + k];
+			}
+			A[i * n + j] = s / d;
+		}
+	}
+	return 0;
+}
+
+static void rb_fsolve_(int n, double *L, double *b)
+{
+	for (int i = 0; i < n; i++) {
+		double s = b[i];
+		for (int k = 0; k < i; k++) {
+			s -= L[i * n + k] * b[k];
+		}
+		b[i] = s / L[i * n + i];
+	}
+}
+
+// canonical order for truncating a tie level-set at size_max: exact ties carry
+// no information to prefer one member over another, so the fp sort order must
+// not decide membership -- the smallest data indices win, making both build
+// paths and repeated runs select the same subset
+typedef struct {
+	int idx;
+	double val;
+} gcpo_iv_tp_;
+
+static int gcpo_iv_cmp_(const void *a, const void *b)
+{
+	return (((const gcpo_iv_tp_ *) a)->idx - ((const gcpo_iv_tp_ *) b)->idx);
+}
+
+// level-set formation, shared by the radius-lookup and the solve paths. the
+// candidates are cor[0..nc-1] (signed) / cor_abs (absolute) with data-node ids
+// cidx[]; largest is scratch of length nc. walking down the sorted |cor|, a
+// new level opens when equal_cor says the value differs; weights accumulate
+// until num_level_sets is reached or size_max is hit. the size_max cap never
+// splits an equal-cor tie by fp sort order: the level that overflows the cap
+// is truncated canonically (all tied members collected, the smallest data
+// indices win) and deeper levels are dropped; ntrunc/ltrunc count those.
+// full=1 says the nc candidates are ALL data nodes (solve path, separated
+// node): an exhausted scan then simply concludes. full=0 (lookup path): an
+// exhausted scan concludes only if every requested level set was found (the
+// certificate then supplies the band-completion witness), else returns 0 =
+// inconclusive. *v_last = the deepest accepted |cor| (the certificate target)
+static int gcpo_form_levels_(int node, int nc, int *cidx, int full, double *cor, double *cor_abs, size_t *largest,
+			     GMRFLib_gcpo_param_tp *gcpo_param, GMRFLib_idxval_tp **group, double *v_last, size_t *ntrunc, int *ltrunc)
+{
+#define W(node_) (gcpo_param->weights[node_])
+#define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
+			     GMRFLib_iwhich_sorted(node_, gcpo_param->group_selection->idx, (unsigned int) gcpo_param->group_selection->n) >= 0)
+
+	int nls = IABS(gcpo_param->num_level_sets);
+	int levels_ok = 0, exhausted = 0;
+	double levels_magnify = 1.0;
+	double cor_abs_prev = 1.0;
+
+	while (!levels_ok && !exhausted) {
+		(*group)->n = 0;
+		int siz_g = IMIN(nc, (int) (levels_magnify * (nls + 4L)));
+		int capped = (siz_g == nc);
+		levels_magnify *= 4.0;
+		gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) nc);
+
+		double sumw = W(node);
+		cor_abs_prev = 1.0;
+		int i_prev = cidx[(int) largest[0]];
+		GMRFLib_idxval_add(group, i_prev, cor_abs_prev);
+		int lvl_start = 0, lvl = 1, cut = 0;
+		for (int i = 1; i < siz_g && !levels_ok; i++) {
+			int i_new_l = (int) largest[i];
+			int i_new = cidx[i_new_l];
+			double cor_abs_new = cor_abs[i_new_l];
+			if (LEGAL_TO_ADD(i_new)) {
+				if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param)) {
+					// a new level: we had to look one further to collect all equal ones first
+					lvl_start = (*group)->n;
+					if ((sumw >= nls) || (gcpo_param->size_max > 0 && (*group)->n >= gcpo_param->size_max)) {
+						levels_ok = 1;
+					} else {
+						lvl++;
+						sumw += W(i_new);
+						i_prev = i_new;
+						cor_abs_prev = cor_abs_new;
+						GMRFLib_idxval_add(group, i_new, cor[i_new_l]);
+					}
+				} else {
+					cor_abs[i_new_l] = cor_abs_prev;
+					cor[i_new_l] = DSIGN(cor[i_new_l]) * cor_abs_prev;
+					GMRFLib_idxval_add(group, i_new, cor[i_new_l]);
+					if (W(i_new) > W(i_prev)) {
+						// use the maximum weight when they are equal
+						sumw += W(i_new) - W(i_prev);
+						i_prev = i_new;
+					}
+					if (gcpo_param->size_max > 0 && (*group)->n > gcpo_param->size_max) {
+						cut = 1;	       /* level 'lvl' overflows the cap */
+						levels_ok = 1;
+					}
+				}
+			}
+		}
+		if (cut) {
+			// rebuild the included part of the overflowing level from ALL tied
+			// candidates in index order (one equal_cor pass, independent of the fp sort)
+			int keep = gcpo_param->size_max - lvl_start;
+			int nband = 0;
+			gcpo_iv_tp_ *band = Malloc(nc, gcpo_iv_tp_);
+			for (int c = 0; c < nc; c++) {
+				int j = cidx[c];
+				if (j != node && LEGAL_TO_ADD(j) && GMRFLib_equal_cor(cor_abs[c], cor_abs_prev, gcpo_param)) {
+					band[nband].idx = j;
+					band[nband].val = DSIGN(cor[c]) * cor_abs_prev;
+					nband++;
+				}
+			}
+			QSORT_FUN(band, (size_t) nband, sizeof(gcpo_iv_tp_), gcpo_iv_cmp_);
+			(*group)->n = lvl_start;
+			if (lvl_start == 0) {
+				// the |cor|=1 band itself overflows: the node keeps its seat
+				GMRFLib_idxval_add(group, node, 1.0);
+				keep--;
+			}
+			for (int c = 0; c < IMIN(keep, nband); c++) {
+				GMRFLib_idxval_add(group, band[c].idx, band[c].val);
+			}
+			Free(band);
+			(*ntrunc)++;
+			*ltrunc = IMAX(*ltrunc, lvl);
+		}
+		if (!levels_ok) {
+			if (sumw > nls) {
+				levels_ok = 1;
+			} else if (capped) {
+				// the whole candidate list was scanned
+				if (full || sumw >= nls) {
+					levels_ok = 1;
+				} else {
+					exhausted = 1;
+				}
+			}
+		}
+	}
+	if (levels_ok && gcpo_param->verbose) {
+		printf("%s[%1d]: for node=%1d : num.nodes %1d, deepest |cor| %g\n", __GMRFLib_FuncName, omp_get_thread_num(), node,
+		       (*group)->n, cor_abs_prev);
+	}
+	*v_last = cor_abs_prev;
+	return levels_ok;
+#undef W
+#undef LEGAL_TO_ADD
+}
+
+// core-first radius build: ONE walk on the factor graph is read out twice --
+// the certificate interior K = visited \ cond ('ballI'), and the proposal =
+// lift(visited \ hub) = the data-nodes touching the walk ('cand'). growing
+// the walk grows both in lockstep, so the certificate hypothesis "any data
+// node touching K is a candidate" holds by construction:
+// lift(K) subset-of proposal, since K subset-of visited\cond subset-of visited\hub.
+// RB_KCAP is the dense-Cholesky budget of the certificate: the interior is
+// truncated to its RB_KCAP closest members (stack order), which is always
+// legal (any K works, only tightness changes). RB_NHUB_MAX caps the
+// conditioning set H (|H| exact column solves and an |H|x|H| Cholesky).
+// RB_ROUNDS is the number of grow-retry rounds for refused nodes. RB_FP_MARGIN
+// is the rounding-error allowance inside the certificate's square roots
+#define RB_KCAP 256
+#define RB_NHUB_MAX 128
+#define RB_ROUNDS 4
+#define RB_FP_MARGIN 1.0e-6
+
+typedef struct {
+	GMRFLib_graph_tp *lg;			       /* factor graph of the build store */
+	int nlatent;
+	GMRFLib_idx_tp **touch;			       /* lift: latent -> data-nodes touching it */
+	char *hub;				       /* extreme-degree latents: reachable, never expand */
+	char *cond;				       /* H: certificate conditioning set (superset of hub) */
+	char *ctouch;				       /* latents in a constraint support: a straddling constraint
+						        * re-couples the separated sides, no separator equality */
+	int *dist;				       /* walk marks: -1 untouched, else the BFS ring */
+	int *stack;				       /* visited latents in discovery order */
+	GMRFLib_idxval_tp **Aidx;		       /* drop: data-node -> A-support */
+	GMRFLib_idx_tp **kp;			       /* demanded Qinv pairs (smaller latent -> partners) */
+} rb_ctx_tp_;
+
+// grow the walk of 'node' by hop-BFS from its A-support, hubs settle but do not
+// expand. two-sided growth targets (0 = off): keep growing past grow_radius
+// until the interior holds min_ball latents AND the lifted proposal is
+// estimated to hold min_cand data nodes; the retry rounds pass the previous
+// sizes doubled, so the climb is geometric and self-paced, the certificate
+// arbitrates. returns 1 iff the walk exhausted its component: visited\cond is
+// closed in the graph minus cond, i.e. H seals the core off ('separator
+// equality': every non-candidate correlation is then EXACTLY the hub part)
+static int rb_grow_node_(rb_ctx_tp_ *c, int node, int grow_radius, int min_ball, int min_cand, GMRFLib_idx_tp **cand, GMRFLib_idx_tp **ballI)
+{
+	GMRFLib_graph_tp *lg = c->lg;
+	GMRFLib_idxval_tp *va = c->Aidx[node];
+	int closed = 1;
+
+	// a regrow (retry round) rebuilds the readouts from scratch; stale
+	// demands in c->kp are merely extra kept pairs
+	if (cand[node]) {
+		GMRFLib_idx_free(cand[node]);
+		cand[node] = NULL;
+	}
+	if (ballI[node]) {
+		GMRFLib_idx_free(ballI[node]);
+		ballI[node] = NULL;
+	}
+
+	int ns = 0, nball = 0, ncest = 0;
+	for (int ka = 0; ka < va->n; ka++) {
+		int a = va->idx[ka];
+		if (c->dist[a] < 0) {
+			c->dist[a] = 0;
+			c->stack[ns++] = a;
+			nball += !c->cond[a];
+			if (!c->hub[a] && c->touch[a]) {
+				ncest += c->touch[a]->n;
+			}
+		}
+	}
+	int lo = 0, hi = ns;
+	for (int r = 1; r <= c->nlatent; r++) {
+		if (r > grow_radius && nball >= min_ball && ncest >= min_cand) {
+			break;
+		}
+		if (nball >= RB_KCAP) {
+			break;				       /* interior budget reached */
+		}
+		int added = 0;
+		for (int t = lo; t < hi; t++) {
+			int a = c->stack[t];
+			if (c->hub[a]) {
+				continue;		       /* reachable, but does not expand */
+			}
+			for (int kk = 0; kk < lg->nnbs[a]; kk++) {
+				int b = lg->nbs[a][kk];
+				if (c->dist[b] < 0) {
+					c->dist[b] = r;
+					c->stack[ns++] = b;
+					nball += !c->cond[b];
+					if (!c->hub[b] && c->touch[b]) {
+						ncest += c->touch[b]->n;
+					}
+					added++;
+				}
+			}
+		}
+		if (!added) {
+			break;				       /* component exhausted */
+		}
+		lo = hi;
+		hi = ns;
+	}
+	// the two readouts. proposal: every data node touching a non-hub visited
+	// latent. interior K: the non-cond visited latents (H excluded: Var(eta |
+	// rest) is computed from the Q-submatrix over K), truncated at RB_KCAP in
+	// stack order (closest first)
+	for (int t = 0; t < ns; t++) {
+		int a = c->stack[t];
+		GMRFLib_idx_tp *tc = c->touch[a];
+		if (tc && !c->hub[a]) {
+			GMRFLib_idx_nadd(&(cand[node]), tc->n, tc->idx);
+		}
+		if (!c->cond[a] && (!ballI[node] || ballI[node]->n < RB_KCAP)) {
+			GMRFLib_idx_add(&(ballI[node]), a);
+		}
+	}
+	// separator-equality detection: visited\cond is closed under the graph
+	// minus cond iff no non-cond neighbour was left unvisited (uses the dist
+	// marks, so it must run before they are cleared)
+	for (int t = 0; t < ns && closed; t++) {
+		int a = c->stack[t];
+		if (c->cond[a]) {
+			continue;
+		}
+		if (c->ctouch && c->ctouch[a]) {
+			closed = 0;
+			break;
+		}
+		for (int kk = 0; kk < lg->nnbs[a]; kk++) {
+			int b = lg->nbs[a][kk];
+			if (!c->cond[b] && c->dist[b] < 0) {
+				closed = 0;
+				break;
+			}
+		}
+	}
+	for (int t = 0; t < ns; t++) {
+		c->dist[c->stack[t]] = -1;
+	}
+	if (cand[node]) {
+		GMRFLib_idx_sort(cand[node]);
+		GMRFLib_idx_uniq(cand[node]);
+		// every candidate pair is demanded (and closure-computed if outside
+		// the fill): the group forms from exact values only, no miss-as-zero
+		for (int cc = 0; cc < cand[node]->n; cc++) {
+			int nnode = cand[node]->idx[cc];
+			if (nnode == node) {
+				continue;
+			}
+			GMRFLib_idxval_tp *vb = c->Aidx[nnode];
+			for (int ka = 0; ka < va->n; ka++) {
+				for (int kb = 0; kb < vb->n; kb++) {
+					int a = va->idx[ka];
+					int b = vb->idx[kb];
+					if (a != b) {
+						GMRFLib_idx_add(&(c->kp[IMIN(a, b)]), IMAX(a, b));
+					}
+				}
+			}
+		}
+	}
+	if (ballI[node]) {
+		GMRFLib_idx_sort(ballI[node]);
+	}
+	return closed;
+}
+
+// the separator certificate for one node (level-1 theorem of the notes): for
+// every data node j outside the proposal,
+//   |cor(eta_i,eta_j)| <= rho_i rho_max + sqrt(1 - sig2_i - rho_i^2),
+// rho_i = hub share of eta_i (exact hub columns), sig2_i = Var(eta_i | x_F) /
+// Var(eta_i) = a_K' Q_KK^{-1} a_K isd_i^2 from one small Cholesky of the Q-block
+// over the interior K (Markov: conditioning on the ball complement separates).
+// the level-0 cap sqrt(1 - sig2_i) is valid as well, so the min of the two is
+// used. constrained problems ('constrained locality'): given x_F the active
+// constraints reduce to A_K x_K, their explained part is conditioned away on
+// the same local factor, sig2 <- sig2 - w'(A_K Q_KK^{-1} A_K')^{-1} w with
+// w = A_K Q_KK^{-1} a_K; inactive rows are constants given x_F and drop out,
+// dependent active rows refuse the node; soft constraints over-correct, hence
+// conservative.
+// returns 1 iff bnd < v_last strictly outside the tie band (the group is
+// complete); *perm = 1 marks a refusal no regrown interior can lift
+static int rb_certify_(int thread_id, GMRFLib_problem_tp *pb, GMRFLib_idx_tp *bi, GMRFLib_idxval_tp *va, double isd_i,
+		       double rh, double rhoH_max, double v_last, GMRFLib_gcpo_param_tp *gcpo_param, int *perm)
+{
+	*perm = 0;
+	// fp-margin guard: near the |cor|=1 pile-up the equal_cor band (abs
+	// halfwidth ~ eps(1-v^2)/2) gets narrower than the fp agreement of two
+	// exact-in-theory computation paths; group identity is then not
+	// fp-well-defined in ANY implementation, so refuse and let the solve
+	// path decide. v_last (the nls-th distinct level value) can only grow
+	// as candidates are added, so this refusal is permanent: never retry
+	if (0.5 * gcpo_param->epsilon * (1.0 - v_last * v_last) <= 1.0e-9) {
+		*perm = 1;
+		return 0;
+	}
+	if (!bi || bi->n == 0 || bi->n > RB_KCAP || !pb->tab) {
+		return 0;
+	}
+	GMRFLib_tabulate_Qfunc_tp *tab = pb->tab;
+	GMRFLib_graph_tp *lg = pb->sub_graph;
+	int nb = bi->n;
+	int ok = 0;
+	double *QII = Calloc((size_t) nb * nb, double);
+	double *aI = Calloc(nb, double);
+	for (int r = 0; r < nb; r++) {
+		int a = bi->idx[r];
+		QII[(size_t) r * nb + r] = tab->Qfunc(thread_id, a, a, NULL, tab->Qfunc_arg);
+		for (int kk = 0; kk < lg->nnbs[a]; kk++) {
+			int b = lg->nbs[a][kk];
+			int c2 = GMRFLib_iwhich_sorted(b, bi->idx, (unsigned int) nb);
+			if (c2 >= 0) {
+				QII[(size_t) r * nb + c2] = tab->Qfunc(thread_id, a, b, NULL, tab->Qfunc_arg);
+			}
+		}
+	}
+	for (int ka = 0; ka < va->n; ka++) {
+		int c2 = GMRFLib_iwhich_sorted(va->idx[ka], bi->idx, (unsigned int) nb);
+		if (c2 >= 0) {
+			aI[c2] = va->val[ka];
+		}
+	}
+	if (!rb_chol_(nb, QII)) {
+		rb_fsolve_(nb, QII, aI);
+		double vc = 0.0;
+		for (int r = 0; r < nb; r++) {
+			vc += aI[r] * aI[r];
+		}
+		GMRFLib_constr_tp *rcn = pb->sub_constr;
+		int cfail = 0;
+		if (rcn && rcn->nc > 0) {
+			int ncr = rcn->nc, nact = 0;
+			double *G = Malloc((size_t) ncr * nb + ncr + (size_t) ncr * ncr, double);
+			double *w = G + (size_t) ncr * nb;
+			double *M = w + ncr;
+			for (int cc = 0; cc < ncr; cc++) {
+				double *g = G + (size_t) nact * nb;
+				int nz = 0;
+				for (int r = 0; r < nb; r++) {
+					g[r] = rcn->a_matrix[cc + (size_t) bi->idx[r] * ncr];
+					nz += (g[r] != 0.0);
+				}
+				if (nz) {
+					rb_fsolve_(nb, QII, g);
+					nact++;
+				}
+			}
+			for (int c1 = 0; c1 < nact; c1++) {
+				double sw = 0.0;
+				for (int r = 0; r < nb; r++) {
+					sw += G[(size_t) c1 * nb + r] * aI[r];
+				}
+				w[c1] = sw;
+				for (int c2 = 0; c2 <= c1; c2++) {
+					double m = 0.0;
+					for (int r = 0; r < nb; r++) {
+						m += G[(size_t) c1 * nb + r] * G[(size_t) c2 * nb + r];
+					}
+					M[c1 * nact + c2] = M[c2 * nact + c1] = m;
+				}
+			}
+			if (nact > 0) {
+				if (rb_chol_(nact, M)) {
+					cfail = 1;
+				} else {
+					rb_fsolve_(nact, M, w);
+					double vcorr = 0.0;
+					for (int c1 = 0; c1 < nact; c1++) {
+						vcorr += w[c1] * w[c1];
+					}
+					vc = DMAX(0.0, vc - vcorr);
+				}
+			}
+			Free(G);
+		}
+		if (!cfail) {
+			// the leak variance 1 - sig2 - rho^2 is a difference of O(1) quantities
+			// that come out of sparse solves on Q; when the core is (nearly)
+			// sealed it is ~0 and the square root amplifies any rounding error
+			// in them (an ill-conditioned Q, e.g. 'copy' with precision 1e8,
+			// leaves ~1e-6 relative error in Sigma, which the root turned into a
+			// 2e-4 bound violation). RB_FP_MARGIN inside the roots absorbs that
+			// at a tightness cost of at most sqrt(RB_FP_MARGIN)
+			double sig2 = TRUNCATE(vc * isd_i * isd_i, 0.0, 1.0);
+			double bnd0 = sqrt(1.0 - sig2 + RB_FP_MARGIN);	/* level 0: condition on x_F only */
+			double bnd1 = rh * rhoH_max + sqrt(DMAX(0.0, 1.0 - sig2 - rh * rh) + RB_FP_MARGIN);	/* level 1: hubs split off */
+			double bnd = DMIN(bnd0, bnd1);
+			ok = (bnd < v_last) && !GMRFLib_equal_cor(bnd, v_last, gcpo_param);
+		}
+	}
+	Free(QII);
+	Free(aI);
+	return ok;
+}
+
+// the radius-build state, shared by the stages below and freed by rb_free_
+typedef struct {
+	int radius;				       /* build radius (0 = radius build off) */
+	int ab;					       /* A/B mode: run both paths, compare */
+	int verbose;
+	int cert_ok;				       /* certificate machinery usable (hubs within budget, SHH spd, tab present) */
+	int nhub;
+	GMRFLib_idx_tp *hubs;			       /* H as a list */
+	GMRFLib_idx_tp **cand;			       /* per-node proposal: the candidate data-nodes */
+	GMRFLib_idx_tp **ballI;			       /* per-node K: the certificate interior */
+	char *sep;				       /* per-node: walk exhausted its component (separator equality) */
+	double *rhoH;				       /* per-data-node hub share rho_i */
+	double rhoH_max;
+	double *ldg;				       /* latent hub-loadings zeta_k = L^{-1} Sigma_{H,k} */
+	double *udg;				       /* per-data-node hub-loadings u_i = L^{-1} c_H(eta_i) */
+	char *certflag;				       /* A/B only: 1=certified, 2=refused (shadow kept) */
+	rb_ctx_tp_ ctx;				       /* the walk state, kept alive for the retry rounds */
+} rb_build_tp_;
+
+// stage 1, the walk: lift map (touch), the two hub roles, round-0 walks for
+// every data node, and the demanded Qinv pairs installed as the global
+// keep-pairs so that the store computed next keeps (and closure-computes)
+// exactly the pairs the lookup will ask for
+static void rb_setup_(rb_build_tp_ *rb, GMRFLib_problem_tp *pb, GMRFLib_idxval_tp **Aidx, GMRFLib_gcpo_param_tp *gcpo_param,
+		      GMRFLib_idx_tp *d_idx, int Npred)
+{
+	double tref = GMRFLib_timer();
+	GMRFLib_graph_tp *lg = pb->sub_graph;
+	int nlatent = lg->n;
+	rb_ctx_tp_ *c = &(rb->ctx);
+
+	c->lg = lg;
+	c->nlatent = nlatent;
+	c->Aidx = Aidx;
+	c->touch = Calloc(nlatent, GMRFLib_idx_tp *);
+	for (int k = 0; k < d_idx->n; k++) {
+		int node = d_idx->idx[k];
+		GMRFLib_idxval_tp *va = Aidx[node];
+		for (int ka = 0; ka < va->n; ka++) {
+			GMRFLib_idx_add(&(c->touch[va->idx[ka]]), node);
+		}
+	}
+	// 'global' latents (intercept, fixed effects) sit in nearly every
+	// A-support: letting the BFS pass through them makes everything a 1-hop
+	// neighbour of everything. two distinct hub roles (decoupled on purpose):
+	// hub  = BFS-expansion blockers: only EXTREME-degree latents (intercept-
+	//        like channels that reach 'everything'); small shared effects (a
+	//        group touching 80 data) must still expand, they are the
+	//        legitimate path to the true group members.
+	// cond = the certificate conditioning set H (the theorem holds for any
+	//        H, membership only affects tightness): moderate-degree latents
+	//        PLUS all latents of any model component with dim <= 64 (the
+	//        vb_nodes philosophy: fixed effects and small components are
+	//        'few global effects').
+	int exp_lim = IMAX(64, d_idx->n / 4);
+	int cond_lim = IMAX(64, d_idx->n / 100);
+	c->hub = Calloc(nlatent, char);
+	c->cond = Calloc(nlatent, char);
+	for (int a = 0; a < nlatent; a++) {
+		c->hub[a] = (c->touch[a] && c->touch[a]->n > exp_lim);
+		c->cond[a] = c->hub[a] || (c->touch[a] && c->touch[a]->n > cond_lim);
+	}
+	if (gcpo_param->idx_tot > 0 && gcpo_param->idx_tag && gcpo_param->idx_start && gcpo_param->idx_n) {
+		int n_offset = 0, jfirst = 0;
+		if (!strcmp(gcpo_param->idx_tag[0], "APredictor")) {
+			n_offset = gcpo_param->idx_n[0] + gcpo_param->idx_n[1];
+			jfirst = 2;
+		} else if (!strcmp(gcpo_param->idx_tag[0], "Predictor")) {
+			n_offset = gcpo_param->idx_n[0];
+			jfirst = 1;
+		}
+		for (int j = jfirst; j < gcpo_param->idx_tot; j++) {
+			if (gcpo_param->idx_n[j] > 64) {
+				continue;		       /* large component: stays local */
+			}
+			for (int i = 0; i < gcpo_param->idx_n[j]; i++) {
+				int k = gcpo_param->idx_start[j] - n_offset + i;
+				if (k >= 0 && k < nlatent) {
+					c->cond[k] = 1;
+				}
+			}
+		}
+	}
+	for (int a = 0; a < nlatent; a++) {
+		if (c->cond[a]) {
+			GMRFLib_idx_add(&(rb->hubs), a);
+		}
+	}
+	// a straddling constraint re-couples the separated sides: components
+	// touched by one lose the separator equality
+	if (pb->sub_constr && pb->sub_constr->nc > 0) {
+		GMRFLib_constr_tp *rcn = pb->sub_constr;
+		c->ctouch = Calloc(nlatent, char);
+		for (int cc = 0; cc < rcn->nc; cc++) {
+			int jlo = (rcn->jfirst ? rcn->jfirst[cc] : 0);
+			int jhi = (rcn->jlen ? jlo + rcn->jlen[cc] : nlatent);
+			for (int j = jlo; j < jhi; j++) {
+				if (rcn->a_matrix[cc + (size_t) j * rcn->nc] != 0.0) {
+					c->ctouch[j] = 1;
+				}
+			}
+		}
+	}
+	c->kp = Calloc(nlatent, GMRFLib_idx_tp *);
+	c->dist = Malloc(nlatent, int);
+	c->stack = Malloc(nlatent, int);
+	for (int i = 0; i < nlatent; i++) {
+		c->dist[i] = -1;
+	}
+	// round-0 growth: plain reach 'radius', no size targets
+	rb->cand = Calloc(Npred, GMRFLib_idx_tp *);
+	rb->ballI = Calloc(Npred, GMRFLib_idx_tp *);
+	rb->sep = Calloc(Npred, char);
+	for (int k = 0; k < d_idx->n; k++) {
+		rb->sep[d_idx->idx[k]] = (char) rb_grow_node_(c, d_idx->idx[k], rb->radius, 0, 0, rb->cand, rb->ballI);
+	}
+	size_t kp_n = 0;
+	for (int i = 0; i < nlatent; i++) {
+		if (c->kp[i]) {
+			GMRFLib_idx_sort(c->kp[i]);
+			GMRFLib_idx_uniq(c->kp[i]);
+			kp_n += (size_t) c->kp[i]->n;
+		}
+	}
+	// install as the global keep-pairs (owned by the global from here on:
+	// rb_free_ does not free c->kp) and force the store to be recomputed
+	if (GMRFLib_qinv_keep_pairs) {
+		for (int i = 0; i < GMRFLib_qinv_keep_pairs_n; i++) {
+			GMRFLib_idx_free(GMRFLib_qinv_keep_pairs[i]);
+		}
+		Free(GMRFLib_qinv_keep_pairs);
+	}
+	GMRFLib_qinv_keep_pairs = c->kp;
+	GMRFLib_qinv_keep_pairs_n = nlatent;
+	GMRFLib_free_Qinv(pb);
+	if (rb->verbose) {
+		printf("[gcpo-timing] build: radius-%1d candidates+demands %.4f s (%zu latent pairs beyond the Q-graph)\n",
+		       rb->radius, GMRFLib_timer() - tref, kp_n);
+	}
+}
+
+// stage 2, the hub channel: one batched solve for the |H| hub columns Sigma
+// e_h (constraint-corrected by GMRFLib_Qsolves), the Cholesky of Sigma_HH, and
+// per data node the hub share rho_i = |L^{-1} c_H(eta_i)| isd_i with c_H =
+// (Sigma a_i)_H; rho_max over all data nodes is the j-free cap of the hub
+// channel. the loadings zeta_k / u_i for the separator equality are kept when
+// memory allows
+static void rb_hub_columns_(rb_build_tp_ *rb, GMRFLib_problem_tp *pb, GMRFLib_idxval_tp **Aidx, GMRFLib_idx_tp *d_idx, double *isd,
+			    int Npred, int mnpred)
+{
+	double tref = GMRFLib_timer();
+	int nlatent = pb->sub_graph->n;
+	int nhub = (rb->hubs ? rb->hubs->n : 0);
+
+	rb->cert_ok = (pb->tab != NULL);
+	if (nhub > RB_NHUB_MAX) {
+		// conditioning set too large for the exact-column budget: refuse
+		// the certificate (everything falls back, nothing wrong)
+		rb->cert_ok = 0;
+		nhub = 0;
+	}
+	rb->nhub = nhub;
+	if (nhub == 0) {
+		return;
+	}
+	double *Z = Calloc((size_t) nlatent * nhub, double);
+	for (int h = 0; h < nhub; h++) {
+		Z[(size_t) h * nlatent + rb->hubs->idx[h]] = 1.0;
+	}
+	GMRFLib_stiles_idx_tp sidx = { 0, -1, nhub };
+	GMRFLib_Qsolves(Z, nhub, pb, &sidx);
+	double *SHH = Calloc(nhub * nhub, double);
+	for (int h = 0; h < nhub; h++) {
+		for (int h2 = 0; h2 < nhub; h2++) {
+			SHH[h * nhub + h2] = Z[(size_t) h2 * nlatent + rb->hubs->idx[h]];
+		}
+	}
+	if (rb_chol_(nhub, SHH)) {
+		rb->cert_ok = 0;			       /* refuse: all nodes will fall back */
+	} else {
+		double *ub = Calloc(nhub, double);
+		rb->rhoH = Calloc(mnpred, double);
+		size_t sep_mem = (size_t) nhub * ((size_t) nlatent + (size_t) Npred);
+		if (sep_mem <= (size_t) 32000000) {
+			rb->ldg = Calloc((size_t) nlatent * nhub, double);
+			for (int k2 = 0; k2 < nlatent; k2++) {
+				double *zk = rb->ldg + (size_t) k2 * nhub;
+				for (int h = 0; h < nhub; h++) {
+					zk[h] = Z[(size_t) h * nlatent + k2];
+				}
+				rb_fsolve_(nhub, SHH, zk);
+			}
+			rb->udg = Calloc((size_t) Npred * nhub, double);
+		}
+		for (int k = 0; k < d_idx->n; k++) {
+			int node = d_idx->idx[k];
+			GMRFLib_idxval_tp *va = Aidx[node];
+			for (int h = 0; h < nhub; h++) {
+				double s = 0.0;
+				for (int ka = 0; ka < va->n; ka++) {
+					s += va->val[ka] * Z[(size_t) h * nlatent + va->idx[ka]];
+				}
+				ub[h] = s;
+			}
+			rb_fsolve_(nhub, SHH, ub);
+			if (rb->udg) {
+				Memcpy(rb->udg + (size_t) node * nhub, ub, nhub * sizeof(double));
+			}
+			double s2 = 0.0;
+			for (int h = 0; h < nhub; h++) {
+				s2 += ub[h] * ub[h];
+			}
+			double r2 = s2 * isd[node] * isd[node];
+			rb->rhoH[node] = sqrt(TRUNCATE(r2, 0.0, 1.0));
+			rb->rhoH_max = DMAX(rb->rhoH_max, rb->rhoH[node]);
+		}
+		Free(ub);
+	}
+	Free(SHH);
+	Free(Z);
+	if (rb->verbose) {
+		printf("[gcpo-timing] build: hub columns %.4f s (%1d hubs, max hub-share %.4f, cert %s)\n",
+		       GMRFLib_timer() - tref, nhub, rb->rhoH_max, (rb->cert_ok ? "ok" : "REFUSED"));
+	}
+}
+
+// stage 3, the lookup rounds: per node, the candidate correlations are read
+// from the Qinv store (a separated node extends its candidates virtually to
+// ALL data nodes, the non-candidates valued exactly from the hub loadings),
+// the level sets are formed, and the separator certificate decides. a refused
+// node regrows its walk with a larger reach (proposal re-lifted from the new
+// K, demands appended, the Qinv fill recomputed with the union) and is
+// retried, for RB_ROUNDS rounds; the reach is self-paced: each round doubles
+// the sizes the failed round achieved, one more ring as the floor.
+// returns the nodes left for the solve path (caller frees)
+static GMRFLib_idx_tp *rb_lookup_rounds_(int thread_id, rb_build_tp_ *rb, GMRFLib_ai_store_tp *build_ai_store, GMRFLib_idxval_tp **Aidx,
+					 GMRFLib_gcpo_param_tp *gcpo_param, GMRFLib_idx_tp *d_idx, GMRFLib_idx_tp *selection, double *isd,
+					 double min_sd, GMRFLib_idxval_tp **groups, int nt_outer)
+{
+	GMRFLib_problem_tp *pb = build_ai_store->problem;
+	rb_ctx_tp_ *c = &(rb->ctx);
+	int dn = d_idx->n;
+	int nhub = rb->nhub;
+	size_t ntrunc = 0;
+	int ltrunc = 0;
+	GMRFLib_idx_tp *round_sel = selection;
+	GMRFLib_idx_tp *fb_sel = NULL;
+	GMRFLib_idx_tp *perm_sel = NULL;	       /* refusals no retry can lift */
+
+	for (int round = 0; round < RB_ROUNDS; round++) {
+		if (round > 0) {
+			if (!rb->cert_ok || !fb_sel || fb_sel->n == 0) {
+				break;
+			}
+			// retry economics: the refill is a full Takahashi recompute (fixed
+			// cost, independent of how few nodes regrow), while falling a small
+			// tail back costs per-column only -- retrying pays exactly when the
+			// failed set is bulk, and every observed bulk case fails with >= 99%
+			// of the data nodes. a small tail (< 1/8) goes to the solve path
+			if ((size_t) fb_sel->n * 8 < (size_t) dn) {
+				if (rb->verbose) {
+					printf("[gcpo-timing] build: retry-round %1d skipped (%1d nodes, a tail), to solve-fallback\n", round, fb_sel->n);
+				}
+				break;
+			}
+			double tref = GMRFLib_timer();
+			size_t sz_before = 0, sz_after = 0;
+			for (int is = 0; is < fb_sel->n; is++) {
+				int nd = fb_sel->idx[is];
+				// self-paced climb: double the sizes the failed round
+				// achieved, on both sides of the lift
+				int mb = IMIN(2 * (rb->ballI[nd] ? rb->ballI[nd]->n : 1), RB_KCAP);
+				int mc = IMIN(2 * (rb->cand[nd] ? rb->cand[nd]->n : 1), dn);
+				sz_before += (rb->ballI[nd] ? rb->ballI[nd]->n : 0) + (rb->cand[nd] ? rb->cand[nd]->n : 0);
+				rb->sep[nd] = (char) rb_grow_node_(c, nd, rb->radius + round, mb, mc, rb->cand, rb->ballI);
+				sz_after += (rb->ballI[nd] ? rb->ballI[nd]->n : 0) + (rb->cand[nd] ? rb->cand[nd]->n : 0);
+			}
+			if (sz_after == sz_before) {
+				// every walk is saturated (interior at its cap, candidates
+				// exhausted): the retry inputs cannot change anymore, so further
+				// rounds just repeat the refusal -- stop, fb_sel goes to the solve path
+				if (rb->verbose) {
+					printf("[gcpo-timing] build: retry-round %1d saturated (%1d nodes), stop\n", round, fb_sel->n);
+				}
+				break;
+			}
+			for (int i = 0; i < c->nlatent; i++) {
+				if (c->kp[i]) {
+					GMRFLib_idx_sort(c->kp[i]);
+					GMRFLib_idx_uniq(c->kp[i]);
+				}
+			}
+			GMRFLib_free_Qinv(pb);
+			GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
+			if (round_sel != selection) {
+				GMRFLib_idx_free(round_sel);
+			}
+			round_sel = fb_sel;
+			fb_sel = NULL;
+			if (rb->verbose) {
+				printf("[gcpo-timing] build: retry-round %1d regrow+refill %.4f s (%1d nodes)\n", round, GMRFLib_timer() - tref, round_sel->n);
+			}
+		}
+		double tref = GMRFLib_timer();
+		GMRFLib_idx_tp **fbl = Calloc(nt_outer, GMRFLib_idx_tp *);
+		GMRFLib_idx_tp **pfl = Calloc(nt_outer, GMRFLib_idx_tp *);	/* permanent refusals */
+		size_t n_ok = 0, n_pmiss = 0, n_nmiss = 0, n_certfail = 0, n_sep = 0, n_permfail = 0;
+
+#pragma omp parallel for num_threads(nt_outer) schedule(dynamic, 64) reduction(+: n_ok, n_pmiss, n_nmiss, n_certfail, n_sep, ntrunc, n_permfail) reduction(max: ltrunc)
+		for (int is = 0; is < round_sel->n; is++) {
+			int node = round_sel->idx[is];
+			int tnum = omp_get_thread_num();
+			GMRFLib_idx_tp *cd = rb->cand[node];
+			int ncand = (cd ? cd->n : 0);
+			// separator equality: the walk's component is sealed off by H, so
+			// every non-candidate correlation equals the hub part EXACTLY --
+			// extend the candidate list virtually to ALL data nodes, the
+			// hub-only values assembled entry-wise from the loadings with the
+			// same zero_small gate. full information, no certificate needed
+			int sep = (rb->sep[node] && rb->ldg && rb->udg && ncand > 0);
+			int nc_eff = (sep ? dn : ncand);
+			int *cidx = (sep ? d_idx->idx : (cd ? cd->idx : NULL));
+			int ok = (ncand > 0);
+			double *cor = (ok ? Malloc(2 * nc_eff, double) : NULL);
+			double *cor_abs = (ok ? cor + nc_eff : NULL);
+			size_t *largest = (ok ? Malloc(nc_eff, size_t) : NULL);
+			GMRFLib_idxval_tp *va = Aidx[node];
+			size_t node_miss = 0;
+
+			for (int cc = 0; cc < nc_eff && ok; cc++) {
+				int nnode = cidx[cc];
+				if (nnode == node) {
+					cor[cc] = cor_abs[cc] = 1.0;
+					continue;
+				}
+				GMRFLib_idxval_tp *vb = Aidx[nnode];
+				double sum = 0.0;
+				int hit = 1;
+				double zs_eps = 1.0E-3 * min_sd / isd[node];
+				if (sep && GMRFLib_iwhich_sorted(nnode, cd->idx, (unsigned int) cd->n) < 0) {
+					// separated pair: (Sigma a_i)_k = <zeta_k, u_i> exactly
+					double *ui = rb->udg + (size_t) node * nhub;
+					for (int kb = 0; kb < vb->n; kb++) {
+						double *zk = rb->ldg + (size_t) vb->idx[kb] * nhub;
+						double s = 0.0;
+						for (int h = 0; h < nhub; h++) {
+							s += zk[h] * ui[h];
+						}
+						if (ABS(s) > zs_eps) {
+							sum += vb->val[kb] * s;
+						}
+					}
+				} else {
+					for (int kb = 0; kb < vb->n && hit; kb++) {
+						// assemble the latent covariance entry (Sigma A_node')_b
+						// and pass it through the same zero_small gate as the
+						// solve path, so band-edge ties resolve identically
+						double s = 0.0;
+						for (int ka = 0; ka < va->n; ka++) {
+							double *q = GMRFLib_Qinv_get(pb, va->idx[ka], vb->idx[kb]);
+							if (!q) {
+								hit = 0;
+								break;
+							}
+							s += va->val[ka] * (*q);
+						}
+						if (ABS(s) > zs_eps) {
+							sum += vb->val[kb] * s;
+						}
+					}
+				}
+				if (hit) {
+					sum *= isd[node] * isd[nnode];
+					cor[cc] = TRUNCATE(sum, -1.0, 1.0);
+					cor_abs[cc] = ABS(cor[cc]);
+				} else {
+					// pair beyond the store (should not happen: every candidate
+					// pair is demanded): value 0 sorts last and can only serve
+					// as a deeper-level witness; the full-information shortcut
+					// is disabled for this node
+					cor[cc] = cor_abs[cc] = 0.0;
+					node_miss++;
+				}
+			}
+			n_pmiss += node_miss;
+			n_nmiss += (node_miss > 0);
+
+			int cert_perm = 0;
+			if (ok) {
+				double v_last = 1.0;
+				int levels_ok = gcpo_form_levels_(node, nc_eff, cidx, (nc_eff >= dn && node_miss == 0), cor, cor_abs, largest,
+								  gcpo_param, &(groups[node]), &v_last, &ntrunc, &ltrunc);
+				if (levels_ok) {
+					GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0);
+					if (GMRFLib_iwhich_sorted(node, groups[node]->idx, (unsigned int) groups[node]->n) < 0) {
+						GMRFLib_idxval_add(&(groups[node]), node, 1.0);
+						GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0);
+					}
+					int cert_ok = 0;
+					if (rb->cert_ok && nc_eff >= dn && node_miss == 0) {
+						// complete information: every data node is a candidate and
+						// every pair was exact, so the selection already saw
+						// everything the solve path would see -- there is no
+						// 'outside' left to certify against
+						cert_ok = 1;
+					} else if (rb->cert_ok) {
+						cert_ok = rb_certify_(thread_id, pb, rb->ballI[node], va, isd[node], (rb->rhoH ? rb->rhoH[node] : 0.0),
+								      rb->rhoH_max, v_last, gcpo_param, &cert_perm);
+					}
+					if (cert_ok) {
+						if (rb->certflag) {
+							rb->certflag[node] = 1;
+						}
+						n_ok++;
+						n_sep += (size_t) (sep != 0);
+					} else {
+						n_certfail++;
+						if (rb->certflag) {
+							rb->certflag[node] = 2;	/* keep the shadow group */
+						}
+						ok = 0;
+					}
+				} else {
+					ok = 0;
+				}
+			}
+			if (!ok) {
+				if (groups[node] && !(rb->certflag && rb->certflag[node] == 2)) {
+					groups[node]->n = 0;
+				}
+				if (cert_perm) {
+					n_permfail++;
+					GMRFLib_idx_add(&(pfl[tnum]), node);
+				} else {
+					GMRFLib_idx_add(&(fbl[tnum]), node);
+				}
+			}
+			Free(cor);
+			Free(largest);
+		}
+
+		for (int t = 0; t < nt_outer; t++) {
+			if (fbl[t]) {
+				GMRFLib_idx_nadd(&fb_sel, fbl[t]->n, fbl[t]->idx);
+				GMRFLib_idx_free(fbl[t]);
+			}
+			if (pfl[t]) {
+				GMRFLib_idx_nadd(&perm_sel, pfl[t]->n, pfl[t]->idx);
+				GMRFLib_idx_free(pfl[t]);
+			}
+		}
+		Free(fbl);
+		Free(pfl);
+		if (!fb_sel) {
+			GMRFLib_idx_create_x(&fb_sel, 1);	/* empty */
+		}
+		if (rb->verbose) {
+			printf("[gcpo-timing] build: round-%1d radius-lookup groups %.4f s (%zu of %1d certified (%zu analytic), %1d to %s "
+			       "(%zu certificate-refused, %zu permanently); %zu fill-miss pairs on %zu nodes)\n",
+			       round, GMRFLib_timer() - tref, n_ok, round_sel->n, n_sep, fb_sel->n,
+			       (round + 1 < RB_ROUNDS && rb->cert_ok && fb_sel->n > 0 ? "retry" : "solve-fallback"), n_certfail, n_permfail, n_pmiss,
+			       n_nmiss);
+		}
+	}
+	if (round_sel != selection) {
+		GMRFLib_idx_free(round_sel);
+	}
+	if (perm_sel) {
+		GMRFLib_idx_nadd(&fb_sel, perm_sel->n, perm_sel->idx);
+		GMRFLib_idx_free(perm_sel);
+	}
+	if (ntrunc) {
+		printf("[gcpo] WARNING: size.max=%1d truncated a tie level-set at %zu of %1d nodes (deepest at level %1d); "
+		       "tied members kept by smallest index, deeper levels dropped\n", gcpo_param->size_max, ntrunc, selection->n, ltrunc);
+	}
+	return fb_sel;
+}
+
+// A/B: compare the radius groups (groups_rb) with the solve-path groups; refused
+// nodes kept their shadow group so refusals can be scored as true/false positives
+static void rb_ab_compare_(rb_build_tp_ *rb, GMRFLib_idxval_tp **groups_rb, GMRFLib_idxval_tp **groups, GMRFLib_idx_tp *selection)
+{
+	size_t n_cmp = 0, n_mismatch = 0, n_ref_cmp = 0, n_ref_wrong = 0;
+	for (int is = 0; is < selection->n; is++) {
+		int node = selection->idx[is];
+		GMRFLib_idxval_tp *g_rb = groups_rb[node];
+		if (!(g_rb && g_rb->n > 0)) {
+			continue;			       /* radius path fell back with no shadow: nothing to compare */
+		}
+		GMRFLib_idxval_tp *g_ref = groups[node];
+		int eq = (g_rb->n == g_ref->n);
+		for (int i = 0; eq && i < g_rb->n; i++) {
+			eq = (g_rb->idx[i] == g_ref->idx[i]);
+		}
+		if (rb->certflag && rb->certflag[node] == 2) {
+			n_ref_cmp++;
+			n_ref_wrong += !eq;
+			continue;
+		}
+		n_cmp++;
+		if (!eq) {
+			n_mismatch++;
+			if (n_mismatch <= 10) {
+				printf("[gcpo-timing] build: A/B MISMATCH node %1d: radius(n=%1d) vs solve(n=%1d)\n", node, g_rb->n, g_ref->n);
+			}
+		}
+	}
+	printf("[gcpo-timing] build: A/B compare %zu certified nodes: %zu group-mismatches\n", n_cmp, n_mismatch);
+	if (n_ref_cmp) {
+		printf("[gcpo-timing] build: A/B refused-shadow: %zu of %zu refusals would have given a WRONG group\n", n_ref_wrong, n_ref_cmp);
+	}
+}
+
+static void rb_free_(rb_build_tp_ *rb, int Npred)
+{
+	rb_ctx_tp_ *c = &(rb->ctx);
+	for (int i = 0; i < Npred; i++) {
+		GMRFLib_idx_free(rb->cand[i]);
+		GMRFLib_idx_free(rb->ballI[i]);
+	}
+	Free(rb->cand);
+	Free(rb->ballI);
+	GMRFLib_idx_free(rb->hubs);
+	Free(rb->rhoH);
+	Free(rb->sep);
+	Free(rb->ldg);
+	Free(rb->udg);
+	Free(rb->certflag);
+	// c->kp is NOT freed: it is owned by the global GMRFLib_qinv_keep_pairs
+	if (c->touch) {
+		for (int i = 0; i < c->nlatent; i++) {
+			GMRFLib_idx_free(c->touch[i]);
+		}
+		Free(c->touch);
+	}
+	Free(c->hub);
+	Free(c->cond);
+	Free(c->ctouch);
+	Free(c->dist);
+	Free(c->stack);
+}
+
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define A_idx_ptr() (preopt->pAA_idxval ? preopt->pAA_idxval : preopt->A_idxval)
-#define W(node_) (gcpo_param->weights[node_])
-#define LEGAL_TO_ADD(node_) (!(gcpo_param->group_selection) ? 1 :	\
-			     GMRFLib_iwhich_sorted(node_, gcpo_param->group_selection->idx, (unsigned int) gcpo_param->group_selection->n) >= 0)
 
 	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ENTER_FUNCTION;
@@ -3492,6 +4496,53 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		assert(build_ai_store != NULL);
 
 		groups = GMRFLib_idxval_ncreate_x(Npred, 1 + 2 * IABS(gcpo_param->num_level_sets), IMIN(2, GMRFLib_MAX_THREADS()));
+
+		// radius build (gcpo_param->build_radius = r > 0; INLA_GCPO_BUILD_RADIUS
+		// overrides it for experiments): walk the factor graph
+		// r hops out of each data-node's A-support (hubs do not expand), take the
+		// data-nodes touching the walk as candidates and demand their support-
+		// product pairs into the Qinv-store computed just below (which is computed
+		// anyway for the sd's: no extra Takahashi pass). group formation then reads
+		// the correlations from the store, and the separator certificate proves
+		// that no data-node outside the candidates can enter the group; a refused
+		// node regrows its walk for RB_ROUNDS rounds and finally falls back to the
+		// solve-loop. INLA_GCPO_BUILD_AB=1 runs both paths and compares.
+		// constrained problems are supported: GMRFLib_Qsolves and
+		// GMRFLib_compute_Qinv both apply the constraint correction, so the hub
+		// columns, the candidate correlations and the sds are already
+		// constrained; the certificate conditions on the active constraints
+		// locally, and the separator equality is disabled for components
+		// touched by a constraint
+		rb_build_tp_ rb;
+		memset(&rb, 0, sizeof(rb_build_tp_));
+		rb.verbose = (gcpo_param->verbose || getenv("INLA_GCPO_TIMING") != NULL);
+		rb.radius = IMAX(0, gcpo_param->build_radius);
+		if (getenv("INLA_GCPO_BUILD_RADIUS")) {
+			rb.radius = IMAX(0, atoi(getenv("INLA_GCPO_BUILD_RADIUS")));
+		}
+		if (!(GMRFLib_smtp == GMRFLib_SMTP_TAUCS && !(gcpo_param->friends) && gcpo_param->num_level_sets != -1 && d_idx)) {
+			rb.radius = 0;			       /* the radius build needs the TAUCS Qinv store and plain level-set groups */
+		}
+		rb.ab = (rb.radius > 0 && getenv("INLA_GCPO_BUILD_AB") != NULL);
+		if (rb.radius == 0 && rb.verbose) {
+			printf("[gcpo-timing] build: radius build off (build.radius %1d, smtp %s, friends %s, num.level.sets %1d)\n",
+			       gcpo_param->build_radius, (GMRFLib_smtp == GMRFLib_SMTP_TAUCS ? "taucs" : "other"),
+			       (gcpo_param->friends ? "yes" : "no"), gcpo_param->num_level_sets);
+		}
+		if (rb.radius > 0 && gcpo_param->any_rankdef) {
+			// unconstrained intrinsic components: the posterior is only weakly
+			// identified, the two build paths' cor values then differ beyond
+			// the equal_cor band and group identity is not fp-well-defined in
+			// ANY implementation -- refuse the fast path entirely
+			if (rb.verbose) {
+				printf("[gcpo-timing] build: radius-lookup disabled (rank-deficient component without constraint)\n");
+			}
+			rb.radius = 0;
+		}
+		if (rb.radius > 0) {
+			rb_setup_(&rb, build_ai_store->problem, A_idx_ptr(), gcpo_param, d_idx, Npred);
+		}
+
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -3501,6 +4552,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #pragma omp simd
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
+		}
+
+		if (rb.radius > 0) {
+			rb_hub_columns_(&rb, build_ai_store->problem, A_idx_ptr(), d_idx, isd, Npred, mnpred);
 		}
 
 		GMRFLib_idx_tp *selection = NULL;
@@ -3553,15 +4608,44 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		for (int i = 0; i < nt_outer; i++) {
 			Swork[i] = Malloc(n * nrhs, double);
 		}
-		GMRFLib_ptr_tp *split = GMRFLib_idx_split(selection, nrhs);
+		GMRFLib_idx_tp *solve_sel = selection;
+		GMRFLib_idx_tp *fb_sel = NULL;
+		GMRFLib_idxval_tp **groups_rb = NULL;
+		if (rb.radius > 0) {
+			rb.certflag = (rb.ab ? Calloc(Npred, char) : NULL);
+			fb_sel = rb_lookup_rounds_(thread_id, &rb, build_ai_store, A_idx_ptr(), gcpo_param, d_idx, selection, isd, min_sd, groups, nt_outer);
+			solve_sel = fb_sel;
+			if (rb.ab) {
+				// save the radius groups and let the solve-loop redo ALL nodes
+				groups_rb = Calloc(Npred, GMRFLib_idxval_tp *);
+				for (int is = 0; is < selection->n; is++) {
+					int node = selection->idx[is];
+					if (groups[node] && groups[node]->n > 0) {
+						GMRFLib_idxval_create_x(&(groups_rb[node]), groups[node]->n);
+						for (int i = 0; i < groups[node]->n; i++) {
+							GMRFLib_idxval_add(&(groups_rb[node]), groups[node]->idx[i], groups[node]->val[i]);
+						}
+					}
+					groups[node]->n = 0;
+				}
+				solve_sel = selection;
+			}
+		}
+
+		GMRFLib_ptr_tp *split = GMRFLib_idx_split(solve_sel, nrhs);
 
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			// ...and deal with unbind manually
 			GMRFLib_stiles_rescale_start(1);
 		}
 
-#pragma omp parallel for num_threads(nt_outer)
-		for (int kk = 0; kk < split->n; kk++) {
+		int gcpo_timing = (getenv("INLA_GCPO_TIMING") != NULL);
+		double gcpo_tref = (gcpo_timing ? GMRFLib_timer() : 0.0);
+		size_t sg_ntrunc = 0;
+		int sg_ltrunc = 0;
+
+#pragma omp parallel for num_threads(nt_outer) reduction(+: sg_ntrunc) reduction(max: sg_ltrunc)
+		for (int kk = 0; kk < (split ? split->n : 0); kk++) {
 			GMRFLib_idx_tp *sel = (GMRFLib_idx_tp *) split->ptr[kk];
 
 			GMRFLib_stiles_idx_tp stiles_idx = { GMRFLib_stiles_rescale_group(), -1, sel->n };
@@ -3623,80 +4707,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					}
 				}
 
-				int levels_ok = 0;
-				double levels_magnify = 1.0;
-
-				while (!levels_ok) {
-					groups[node]->n = 0;
-					int siz_g = IMIN(dn, (int) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
-					levels_magnify *= 4.0;
-					GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
-							    (double) dn, (double) gcpo_param->num_level_sets, levels_magnify);
-					gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) dn);
-
-					double sumw = W(node);
-					double cor_abs_prev = 1.0;
-					int i_prev_l = (int) largest[0];
-					int i_prev = d_idx->idx[i_prev_l];
-					GMRFLib_idxval_add(&(groups[node]), i_prev, cor_abs_prev);
-					for (int i = 1; i < siz_g && !levels_ok; i++) {
-						int i_new_l = (int) largest[i];
-						int i_new = d_idx->idx[i_new_l];
-						double cor_abs_new = cor_abs[i_new_l];
-						if (LEGAL_TO_ADD(i_new)) {
-							/*
-							 * we have to go to one more before we stop as we need to add all equal ones first 
-							 */
-							if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param)) {
-								if ((sumw >= IABS(gcpo_param->num_level_sets))) {
-									/*
-									 * then we will go over if adding, then skip 
-									 */
-									levels_ok = 1;
-								} else {
-									sumw += W(i_new);
-									i_prev = i_new;
-									cor_abs_prev = cor_abs_new;
-									GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new);
-									GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
-								}
-							} else {
-								cor_abs[i_new_l] = cor_abs_prev;
-								cor[i_new_l] = DSIGN(cor[i_new_l]) * cor_abs_prev;
-								GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
-								GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev);
-								/*
-								 * use the maximum weight when they are equal 
-								 */
-								if (W(i_new) > W(i_prev)) {
-									/*
-									 * correct sumw, reset i_prev to point to the max weight one 
-									 */
-									sumw += W(i_new) - W(i_prev);
-									i_prev = i_new;
-								}
-							}
-						}
-						if (!levels_ok) {
-							if ((sumw > IABS(gcpo_param->num_level_sets)) ||
-							    (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max)) {
-								levels_ok = 1;
-							}
-						}
-						if (groups[node]->n >= dn)
-							levels_ok = 1;	/* emergency option */
-					}
-					if (levels_ok) {
-						if (gcpo_param->verbose || detailed_output) {
-							printf("%s[%1d]: for node=%1d : sumw %g, num.nodes %1d\n",
-							       __GMRFLib_FuncName, omp_get_thread_num(), node, sumw, groups[node]->n);
-							printf("%s[%1d]: stop because there are no more levels or size.max is reached.\n",
-							       __GMRFLib_FuncName, omp_get_thread_num());
-						}
-					}
-					GMRFLib_DEBUG_d("found group with sum of weights", sumw);
-					GMRFLib_DEBUG_i("levels_ok", levels_ok);
-				}
+				double v_last = 1.0;
+				gcpo_form_levels_(node, dn, d_idx->idx, 1, cor, cor_abs, largest, gcpo_param, &(groups[node]), &v_last, &sg_ntrunc, &sg_ltrunc);
 
 				if (gcpo_param->friends) {
 					// add friends nodes
@@ -3740,12 +4752,35 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 			}
 		}
+		if (gcpo_timing) {
+			printf("[gcpo-timing] build: solve+group loop %.4f s for %1d columns (nrhs %1d, nt_outer %1d)\n",
+			       GMRFLib_timer() - gcpo_tref, solve_sel->n, nrhs, nt_outer);
+		}
+		if (sg_ntrunc) {
+			printf("[gcpo] WARNING: size.max=%1d truncated a tie level-set at %zu of %1d nodes (deepest at level %1d); "
+			       "tied members kept by smallest index, deeper levels dropped\n",
+			       gcpo_param->size_max, sg_ntrunc, solve_sel->n, sg_ltrunc);
+		}
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			// this wil also do unbind
 			GMRFLib_stiles_rescale_end();
 		}
 
-		GMRFLib_idx_split_free(split);
+		if (split) {
+			GMRFLib_idx_split_free(split);
+		}
+
+		if (rb.radius > 0) {
+			if (rb.ab && groups_rb) {
+				rb_ab_compare_(&rb, groups_rb, groups, selection);
+				for (int i = 0; i < Npred; i++) {
+					GMRFLib_idxval_free(groups_rb[i]);
+				}
+				Free(groups_rb);
+			}
+			GMRFLib_idx_free(fb_sel);	       /* solve_sel is not used past this point */
+			rb_free_(&rb, Npred);
+		}
 
 		for (int i = 0; i < nt_outer; i++) {
 			for (int j = 0; j < work_n; j++) {
@@ -3830,8 +4865,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #undef A_idx
 #undef A_idx_ptr
-#undef W
-#undef LEGAL_TO_ADD
 	GMRFLib_LEAVE_FUNCTION;
 	return ggroups;
 }

@@ -1468,6 +1468,7 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
     cat("gcpo.prior.diagonal =", max(0, gcpo$prior.diagonal), "\n", file = file, append = TRUE)
+    cat("gcpo.build.radius =", max(0, as.integer(gcpo$build.radius)), "\n", file = file, append = TRUE)
     gcpo$type <- match.arg(gcpo$type, c("single", "joint"))
     inla.write.boolean.field("gcpo.typecv", if (gcpo$type.cv == "single") 0 else 1, file)
 

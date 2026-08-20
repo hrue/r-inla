@@ -318,6 +318,12 @@ control.gcpo <-
              epsilon = 0.005,
              # @param prior.diagonal TODO
              prior.diagonal = 1e-4,
+             # @param build.radius Radius, in hops on the latent graph, of the local
+             # candidate search used to build the groups: the groups are formed from
+             # the candidates within the radius and certified complete by a separator
+             # bound, and nodes that cannot be certified fall back to the exact full
+             # solve. `0` disables the local build (always the full solve).
+             build.radius = 1,
              # @param correct.hyperpar TODO
              correct.hyperpar = TRUE,
              # @param keep TODO
