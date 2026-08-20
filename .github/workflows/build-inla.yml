@@ -813,6 +813,12 @@ jobs:
           git config --global \
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
       - name: Fetch libstiles
+        ## The canary exists to build with the NEWEST GCC, unpinned by design,
+        ## so it will race ahead of the pinned library; that mismatch is the
+        ## canary's purpose, not a defect. Allow it explicitly -- the shipped
+        ## bundles keep the strict check.
+        env:
+          STILES_ALLOW_COMPILER_MISMATCH: 1
         run: bash ci/fetch-stiles.sh
       - name: Build
         run: |

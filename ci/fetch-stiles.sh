@@ -119,6 +119,23 @@ if [ -n "$BI" ]; then
     ## Compare against the compiler that builds for the SAME target. The
     ## Windows lane cross-builds from Linux, so $CXX there is the host g++ and
     ## comparing it with a DLL built by MSYS2 would fail for no reason.
+    ## Resolve the compiler the way ci/build.sh does (newest versioned g++,
+    ## else the default): the Ubuntu PPA installs g++-16 WITHOUT repointing
+    ## bare g++, so querying g++ here compared the library against a compiler
+    ## the build never uses -- 16.0.1 vs 13.3.0 on a lane that builds with 16.
+    if [ -z "${CXX:-}" ]; then
+        ## manylinux first: the pinned gcc-toolset lives under /opt/rh, not as
+        ## a versioned /usr/bin binary, and the image leaves the OLD toolset on
+        ## PATH at fetch time -- bare g++ answered 14.2.1 on a lane whose build
+        ## uses toolset-15.
+        HERE=$(cd "$(dirname "$0")" && pwd)
+        [ -f "$HERE/toolchain.env" ] && . "$HERE/toolchain.env"
+        if [ -n "${GCC_TOOLSET:-}" ] && [ -x "/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++" ]; then
+            CXX="/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++"
+        else
+            CXX=$(ls /usr/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1 || true)
+        fi
+    fi
     own_cxx=${CXX:-g++}
     if [ -f "$DEST/lib/libstiles.dll" ]; then
         for c in ${MINGW_CXX:-} x86_64-w64-mingw32ucrt-g++ x86_64-w64-mingw32-g++; do
