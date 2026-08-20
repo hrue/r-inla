@@ -20,11 +20,18 @@ SUDO=""
 ## from CRAN -- so the binary should link against current R as well.
 ## Ubuntu only; other apt systems keep their distro R.
 if [ -r /etc/os-release ]; then . /etc/os-release; fi
-if [ "${ID:-}" = "ubuntu" ] && [ ! -f /etc/apt/sources.list.d/cran.list ]; then
+if [ "${ID:-}" = "ubuntu" ]; then
+    ## The key is installed UNCONDITIONALLY: the runner image pre-adds the CRAN
+    ## repository itself, so guarding the key behind "cran.list absent" skips
+    ## it exactly when the image ships the repo without its key -- and apt
+    ## update then dies with NO_PUBKEY before anything else runs. Re-writing
+    ## the key when it exists is a no-op.
     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
         | $SUDO tee /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc > /dev/null
-    echo "deb https://cloud.r-project.org/bin/linux/ubuntu ${VERSION_CODENAME}-cran40/" \
-        | $SUDO tee /etc/apt/sources.list.d/cran.list > /dev/null
+    if [ ! -f /etc/apt/sources.list.d/cran.list ]; then
+        echo "deb https://cloud.r-project.org/bin/linux/ubuntu ${VERSION_CODENAME}-cran40/" \
+            | $SUDO tee /etc/apt/sources.list.d/cran.list > /dev/null
+    fi
 fi
 
 $SUDO apt-get update
