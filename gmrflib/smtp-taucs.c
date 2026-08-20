@@ -1959,6 +1959,80 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 }
 #pragma GCC diagnostic pop
 
+int GMRFLib_taucs_Lsolve_blocked(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w)
+{
+	// blocked forward solve only: solve L y = x for 'nrhs' rhs. x is column-major
+	// (n * nrhs) and is overwritten with y. w is work of length n * nrhs.
+	// this is the forward half of GMRFLib_my_taucs_dccs_solve_llt2()
+
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	int n = L->n;
+
+	if (n <= 0 || nrhs <= 0) {
+		return 0;
+	}
+
+	double *work = w;
+	int ione = 1;
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for (int j = 0; j < nrhs; j++) {
+		double *xx = x + j;
+		double *ww = work + j * n;
+		dcopy_(&n, ww, &ione, xx, &nrhs);
+	}
+
+	// start at the first non-zero index
+	int jfirst = n;
+	for (int j = 0; j < n; j++) {
+		double *xx = x + j * nrhs;
+		int found = 0;
+		if (j == 0) {
+			for (int k = 0; k < nrhs; k++) {
+				if (ISNONZERO(xx[k])) {
+					found = 1;
+					break;
+				}
+			}
+		} else {
+			if (memcmp((const void *) xx, (const void *) x, nrhs * sizeof(double))) {
+				found = 1;
+			}
+		}
+		if (found) {
+			jfirst = j;
+			break;
+		}
+	}
+
+	double *y = work;
+	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
+
+	for (int j = jfirst; j < n; j++) {
+		int ip = L->colptr[j];
+		int offset_j = j * nrhs;
+		double iAjj = 1.0 / L->values[ip];
+		double *yy = y + offset_j;
+		double *xx = x + offset_j;
+
+		GMRFLib_dscale2(nrhs, iAjj, xx, yy);
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			double Aij = -L->values[ip];
+			xx = x + L->rowind[ip] * nrhs;
+			GMRFLib_daxpy_INLINE(nrhs, Aij, yy, xx);
+		}
+	}
+
+	// y is node-major: transpose back to column-major into x
+	for (int j = 0; j < nrhs; j++) {
+		double *yy = y + j;
+		double *xx = x + j * n;
+		dcopy_(&n, yy, &nrhs, xx, &ione);
+	}
+
+	return 0;
+}
+
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix *L, double *x)
 {
 	double b = 0.0;
