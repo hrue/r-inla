@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+if [ ! -z "$INLA_DEBUG" ]; then
+    set -vx
+fi
+
+OS=$(uname -s)
+if $(type -P realpath >/dev/null); then
+    INLARUN=$(realpath "$0")
+else
+    INLARUN="$(cd "$(dirname -- "$0")" && pwd -P)/$(basename -- "$0")"
+fi
+PREFIX=$(dirname $(dirname "$INLARUN"))
+LIB=$(dirname "$PREFIX")/lib
+INLA="$PREFIX"/bin/inla
+mimalloc=$(find "$LIB" -name libmimalloc\* 2>/dev/null | tail -n1)
+
+if [ "$OS" = "Linux" ]; then
+    if [ -f "$mimalloc" ]; then
+	if [ -z "$LD_PRELOAD" ]; then
+	    exec env LD_PRELOAD="$mimalloc" "$INLA" "$@"
+	else
+	    exec env LD_PRELOAD="$mimalloc":"$LD_PRELOAD" "$INLA" "$@"
+	fi
+    else
+	exec "$INLA" "$@"
+    fi
+elif [ "$OS" = "Darwin" ]; then
+    if [ -f "$mimalloc" ]; then
+	if [ -z "$DYLD_INSERT_LIBRARIES" ]; then
+	    exec env DYLD_INSERT_LIBRARIES="$mimalloc" "$INLA" "$@"
+	else
+	    exec env DYLD_INSERT_LIBRARIES="$mimalloc":"$DYLD_INSERT_LIBRARIES" "$INLA" "$@"
+	fi
+    else
+	exec "$INLA" "$@"
+    fi
+else
+    echo "Unknown operating system: $OS" 1>&2
+    exit 1
+fi
