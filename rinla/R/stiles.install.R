@@ -163,6 +163,7 @@
                if (is.null(tag)) resolved else tag, "/", asset)
     }
 
+    default.dir <- is.null(dir)
     if (is.null(dir)) {
         dir <- file.path(tools::R_user_dir("INLA", "cache"), "stiles-binary",
                          if (!is.null(resolved)) resolved else "latest")
@@ -210,6 +211,22 @@
         warning("the binary did not answer '-ping': ", paste(ping, collapse = " "))
     } else {
         say("binary answers -ping")
+    }
+
+    ## Superseded releases serve nobody once a newer one has answered -ping:
+    ## each is ~100 MB, and keeping them is how a cache quietly grows to
+    ## gigabytes. Clean AFTER the ping, never before, and only in the default
+    ## cache (a caller-supplied dir has siblings that are none of our
+    ## business) when following the latest release (a pinned tag means the
+    ## caller manages versions deliberately). This also removes the "latest"
+    ## directory a pre-fix version of this function left behind.
+    if (default.dir && is.null(tag) && any(grepl("ALIVE", ping))) {
+        for (d in list.dirs(dirname(dir), recursive = FALSE)) {
+            if (!identical(basename(d), basename(dir))) {
+                say("removing superseded ", basename(d))
+                unlink(d, recursive = TRUE)
+            }
+        }
     }
 
     inla.setOption(inla.call = bin[1])
