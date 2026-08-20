@@ -213,7 +213,11 @@ double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 }
 #pragma GCC diagnostic pop
 
-forceinline double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 #if defined(INLA_WITH_ARMPL)
 	if (ELM_->spvec) {
@@ -232,6 +236,7 @@ forceinline double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, doub
 		return (GMRFLib_sparse_ddot_INLINE(ELM_->n, vv_, aa_, idx_));
 	}
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
