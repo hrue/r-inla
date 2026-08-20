@@ -4,13 +4,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#if defined(_WIN32)
-#       define aligned_alloc(a_, b_) malloc(b_)
-int GMRFLib_memory_alignment_enabled = 0;
-#else
-int GMRFLib_memory_alignment_enabled = 1;
-#endif
-
 // will be over-rided by an adaptive default in inla-parse.c
 unsigned int GMRFLib_memory_alignment = 16;
 
@@ -23,6 +16,19 @@ void *mi_reallocarray(void *ptr, size_t n, size_t size);
 void mi_free(void *ptr);
 #       include <mimalloc-override.h>
 #endif
+
+#if defined(_WIN32)
+#       if !defined(INLA_WITH_MIMALLOC)
+#              define aligned_alloc(a_, b_) malloc(b_)
+int GMRFLib_memory_alignment_enabled = 0;
+#       else
+int GMRFLib_memory_alignment_enabled = 1;
+#       endif
+#else
+int GMRFLib_memory_alignment_enabled = 1;
+#endif
+
+
 
 void *malloc_intern(size_t size)
 {
