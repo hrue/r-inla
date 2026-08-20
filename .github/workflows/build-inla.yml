@@ -61,6 +61,12 @@ jobs:
       ## which would bury real errors past the log limit). On failure,
       ## surface only the error lines plus the tail.
       - name: Fetch libstiles
+        ## Test lane, not a shipped bundle: it builds with the newest GCC while
+        ## the baseline libstiles is deliberately gcc-toolset-built for the
+        ## glibc floor, so the versions differ by design here. The shipped
+        ## bundles keep the strict check.
+        env:
+          STILES_ALLOW_COMPILER_MISMATCH: 1
         run: bash ci/fetch-stiles.sh
       - name: Build
         ## No compiler pinned: ci/deps-ubuntu.sh installs the newest GCC it
