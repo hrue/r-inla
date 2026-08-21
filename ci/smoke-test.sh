@@ -36,7 +36,8 @@ fi
 Rscript --vanilla -e '
     lib   <- Sys.getenv("R_LIBS_USER")
     repos <- strsplit(Sys.getenv("SMOKE_CRAN_REPOS"), " ")[[1]]
-    need  <- c("fmesher", "lifecycle", "rlang", "withr", "MatrixModels")
+    need  <- c("fmesher", "lifecycle", "rlang", "withr", "MatrixModels",
+               "INLAspacetime")
     miss  <- setdiff(need, rownames(installed.packages()))
     if (length(miss))
         install.packages(miss, lib = lib, repos = repos)
@@ -74,6 +75,14 @@ fi
 echo "== installing the R package =="
 R CMD INSTALL --library="$R_LIBS_USER" --no-docs --no-help --no-byte-compile \
     "$ROOT/rinla"
+
+## 4b. The in-tree fbesag companion package. Its model function is compiled
+##     INTO the binary (external-packages -> cgeneric-table.h); the R package
+##     only assembles the data, so installing from the checkout tests exactly
+##     the cgeneric code this build ships.
+echo "== installing fbesag (in-tree) =="
+R CMD INSTALL --library="$R_LIBS_USER" --no-docs --no-help --no-byte-compile \
+    "$ROOT/external-packages/fbesag/fbesag"
 
 echo "== running the model =="
 
@@ -154,6 +163,77 @@ rr  <- inla(yy ~ -1 + f(iid, model = rg),
 stopifnot(is.finite(rr$mlik[1]))
 stopifnot(nrow(rr$summary.random$iid) == 30)
 cat("rgeneric OK: mlik =", rr$mlik[1], "\n")
+
+## Built-in cgeneric models. The model functions live in the BINARY
+## (cgeneric-mapper: the shlib argument is ignored for registered names), so
+## this is the only part of the suite that exercises the external-packages
+## objects and the mapper. Under INLA_SMTP each model runs on both backends
+## and the marginal likelihoods must agree -- the cgeneric path hands the
+## backend a precision assembled per iteration, which nothing above covers.
+check_both <- function(fit, label, tol = 5e-2) {
+    old <- inla.getOption("smtp"); on.exit(inla.setOption(smtp = old), add = TRUE)
+    r1 <- fit()
+    stopifnot(is.finite(r1$mlik[1]))
+    cat(sprintf("%s: mlik(default) = %.6f\n", label, r1$mlik[1]))
+    if (nzchar(smtp)) {
+        inla.setOption(smtp = smtp)
+        r2 <- fit()
+        stopifnot(is.finite(r2$mlik[1]))
+        d <- abs(r2$mlik[1] - r1$mlik[1])
+        cat(sprintf("%s: mlik(%s) = %.6f  |diff| = %.2e\n", label, smtp, r2$mlik[1], d))
+        if (d > tol)
+            stop(sprintf("%s: %s disagrees with the default backend by %.3e",
+                         label, smtp, d))
+    }
+    invisible(r1)
+}
+
+## fbesag on a chain graph. The input is the intrinsic PRECISION (D - A):
+## get_fbesag scales it via inla.scale.model, which aborts on an adjacency
+## (indefinite matrix) -- the demo's all-ones matrix is equally degenerate.
+cat("== cgeneric: fbesag ==\n")
+library(fbesag)
+nf  <- 20
+Af  <- matrix(0, nf, nf)
+for (i in 1:(nf - 1)) { Af[i, i + 1] <- 1; Af[i + 1, i] <- 1 }
+Qf  <- diag(rowSums(Af)) - Af
+mfb <- fbesag::get_fbesag(graph = Qf, id = rep(1:2, each = nf / 2),
+                          sd_gamma = 0.15, param = list(p1 = 1, p2 = 1e-5))
+set.seed(3)
+yf <- rnorm(nf, 0, 0.1)
+check_both(function()
+    inla(y ~ 1 + f(idx, model = mfb),
+         data = list(y = yf, idx = 1:nf), family = "gaussian"),
+    "fbesag")
+
+## INLAspacetime model 102 (sstspde, also compiled in): a small space-time
+## field on a coarse mesh -- the heaviest precision structure in this suite.
+cat("== cgeneric: spacetime (model 102) ==\n")
+library(INLAspacetime)
+library(fmesher)
+smesh <- fm_mesh_2d(cbind(c(0, 1, 0, 1, 0.5), c(0, 0, 1, 1, 0.5)),
+                    max.edge = 0.6, offset = 0.3)
+tmesh <- fm_mesh_1d(1:4)
+stm <- stModel.define(smesh, tmesh, model = "102",
+                      control.priors = list(prs    = c(0.5, 0.5),
+                                            prt    = c(2, 0.5),
+                                            psigma = c(1, 0.5)))
+set.seed(4)
+nst <- 60
+loc <- cbind(runif(nst), runif(nst))
+tim <- sample(1:4, nst, replace = TRUE)
+Ast <- inla.spde.make.A(smesh, loc = loc, group = tim, group.mesh = tmesh)
+yst <- rnorm(nst, 0, 0.3)
+stk <- inla.stack(data = list(y = yst), A = list(Ast, 1),
+                  effects = list(field = 1:(smesh$n * tmesh$n),
+                                 intercept = rep(1, nst)))
+check_both(function()
+    inla(y ~ -1 + intercept + f(field, model = stm),
+         data = inla.stack.data(stk),
+         control.predictor = list(A = inla.stack.A(stk)),
+         family = "gaussian"),
+    "spacetime-102")
+cat("cgeneric OK\n")
 
 outdir <- argv[2]
 if (!is.na(outdir) && nzchar(outdir)) {
