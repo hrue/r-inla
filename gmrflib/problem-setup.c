@@ -1099,6 +1099,7 @@ int GMRFLib_free_Qinv(GMRFLib_problem_tp *problem)
 
 		Free(problem->sub_inverse->mapping);
 		Free(problem->sub_inverse);
+		problem->sub_inverse = NULL;		       /* a later duplicate/add must not see the dangling ptr */
 	}
 	return GMRFLib_SUCCESS;
 }
