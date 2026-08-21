@@ -197,8 +197,16 @@ nf  <- 20
 Af  <- matrix(0, nf, nf)
 for (i in 1:(nf - 1)) { Af[i, i + 1] <- 1; Af[i + 1, i] <- 1 }
 Qf  <- diag(rowSums(Af)) - Af
+## The checkout-installed INLA package ships no precompiled external libs,
+## so point fbesag at its OWN installed shlib (R CMD INSTALL compiled it from
+## the same src/fbesag.c that is baked into the binary). The binary resolves
+## the registered model name from its cgeneric table either way; the file
+## only has to EXIST for inla.cgeneric.define's R-side check.
+fbso <- system.file("libs", paste0("fbesag", .Platform$dynlib.ext), package = "fbesag")
+stopifnot(nzchar(fbso))
 mfb <- fbesag::get_fbesag(graph = Qf, id = rep(1:2, each = nf / 2),
-                          sd_gamma = 0.15, param = list(p1 = 1, p2 = 1e-5))
+                          sd_gamma = 0.15, param = list(p1 = 1, p2 = 1e-5),
+                          useINLAprecomp = FALSE, libpath = fbso)
 set.seed(3)
 yf <- rnorm(nf, 0, 0.1)
 check_both(function()
@@ -214,10 +222,14 @@ library(fmesher)
 smesh <- fm_mesh_2d(cbind(c(0, 1, 0, 1, 0.5), c(0, 0, 1, 1, 0.5)),
                     max.edge = 0.6, offset = 0.3)
 tmesh <- fm_mesh_1d(1:4)
+## useINLAprecomp = FALSE: the checkout-installed INLA ships no precompiled
+## external libs, so use the CRAN package's own compiled shlib (same source
+## family); the binary resolves model 102 from its cgeneric table regardless.
 stm <- stModel.define(smesh, tmesh, model = "102",
                       control.priors = list(prs    = c(0.5, 0.5),
                                             prt    = c(2, 0.5),
-                                            psigma = c(1, 0.5)))
+                                            psigma = c(1, 0.5)),
+                      useINLAprecomp = FALSE)
 set.seed(4)
 nst <- 60
 loc <- cbind(runif(nst), runif(nst))
