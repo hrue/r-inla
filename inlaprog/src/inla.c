@@ -647,6 +647,21 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		mb->gcpo_param->idx_tag = mb->idx_tag;
 		mb->gcpo_param->idx_start = mb->idx_start;
 		mb->gcpo_param->idx_n = mb->idx_n;
+		// flag only rank-deficiency that the constraints do NOT repair:
+		// the final f_rankdef counts the sumzero constraint (proper case)
+		// and any extra constraints into the normalization, so subtract
+		// them back out; what remains is a null-space dimension left
+		// unconstrained, i.e. a weakly identified posterior (the case the
+		// gcpo radius build must refuse as fp-ill-defined)
+		mb->gcpo_param->any_rankdef = 0;
+		for (i = 0; i < mb->nf; i++) {
+			double unrepaired = mb->f_rankdef[i]
+			    - (mb->f_sumzero && mb->f_sumzero[i] ? 1.0 : 0.0)
+			    - (mb->f_constr && mb->f_constr[i] ? (double) mb->f_constr[i]->nc : 0.0);
+			if (unrepaired > 0.0) {
+				mb->gcpo_param->any_rankdef = 1;
+			}
+		}
 	}
 
 	/*
