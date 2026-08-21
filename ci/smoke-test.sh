@@ -222,14 +222,19 @@ library(fmesher)
 smesh <- fm_mesh_2d(cbind(c(0, 1, 0, 1, 0.5), c(0, 0, 1, 1, 0.5)),
                     max.edge = 0.6, offset = 0.3)
 tmesh <- fm_mesh_1d(1:4)
-## useINLAprecomp = FALSE: the checkout-installed INLA ships no precompiled
-## external libs, so use the CRAN package's own compiled shlib (same source
-## family); the binary resolves model 102 from its cgeneric table regardless.
+## Pass the CRAN package's own compiled shlib explicitly: the checkout-
+## installed INLA ships no precompiled external libs, and the shorter
+## useINLAprecomp = FALSE route trips an upstream bug (its branch never
+## assigns 'hasverbose'). The binary resolves model 102 from its cgeneric
+## table regardless; the file only satisfies the R-side existence check.
+stlib <- system.file("libs", paste0("INLAspacetime", .Platform$dynlib.ext),
+                     package = "INLAspacetime")
+stopifnot(nzchar(stlib))
 stm <- stModel.define(smesh, tmesh, model = "102",
                       control.priors = list(prs    = c(0.5, 0.5),
                                             prt    = c(2, 0.5),
                                             psigma = c(1, 0.5)),
-                      useINLAprecomp = FALSE)
+                      libpath = stlib)
 set.seed(4)
 nst <- 60
 loc <- cbind(runif(nst), runif(nst))
