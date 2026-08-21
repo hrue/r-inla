@@ -71,7 +71,14 @@
 `inla.qsolve` <- function(Q, B, reordering = inla.reorderings(),
                           method = c("solve", "forward", "backward")) {
     t.dir <- inla.tempdir()
-    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
+    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso", "stiles"))
+    ## The sTiles backend serves the main inference program; these one-shot
+    ## helper runs gain nothing from it and predate its group setup, so fall
+    ## back the same way the binary itself does for classic mode. Without
+    ## this, ANY helper call dies in match.arg once the session has
+    ## inla.setOption(smtp = "stiles") -- found by the cgeneric smoke test
+    ## (fbesag scales its model, which calls inla.qinv).
+    if (identical(smtp, "stiles")) smtp <- "taucs"
     Q <- inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         Qfile <- inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
