@@ -2,8 +2,19 @@
 
 PREFIX = /usr/local
 
-RLIB_INC = -DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include
-RLIB_LIB = -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
+# R's own layout, asked from the R on THIS machine, so one makefile serves
+# every device without editing paths per machine. `?=` keeps every existing
+# way of overriding: a command-line RLIB_INC=... (what the CI does) or an
+# environment variable wins over the derivation. When no R is on the PATH the
+# derivation comes back empty and the classic Ubuntu defaults below apply.
+R_HOME_DERIVED := $(shell R RHOME 2>/dev/null)
+ifneq ($(strip $(R_HOME_DERIVED)),)
+RLIB_INC ?= -DINLA_WITH_LIBR -I$(shell "$(R_HOME_DERIVED)/bin/Rscript" -e 'cat(R.home("include"))' 2>/dev/null)
+RLIB_LIB ?= -lRmath -L$(R_HOME_DERIVED)/lib -lR
+else
+RLIB_INC ?= -DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include
+RLIB_LIB ?= -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
+endif
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
 CC = gcc
