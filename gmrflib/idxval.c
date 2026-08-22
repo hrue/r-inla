@@ -1342,7 +1342,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1507,17 +1507,17 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	return ptr;
 }
 
-double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v) 
+double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
 	// compute the inner-product of two sparse vectors assuming ->idx is sorted
 	if (0) {
 		assert(GMRFLib_is_sorted_iinc(u->n, u->idx));
 		assert(GMRFLib_is_sorted_iinc(v->n, v->idx));
 	}
-	
+
 	int nu = u->n;
 	int nv = v->n;
-	if (!nu || !nv || (u->idx[nu-1] < v->idx[0]) || (v->idx[nv-1] < u->idx[0])) {
+	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
 		return 0.0;
 	}
 
@@ -1527,7 +1527,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	while (iu < nu && iv < nv) {
 		if (u->idx[iu] == v->idx[iv]) {
 			res += u->val[iu++] * v->val[iv++];
-		} else if (u->idx[iu] < v->idx[iv]){
+		} else if (u->idx[iu] < v->idx[iv]) {
 			iu++;
 		} else {
 			iv++;
@@ -1536,9 +1536,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	return res;
 }
 
-int GMRFLib_idxval_match(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v) 
+int GMRFLib_idxval_match(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
 	return GMRFLib_idx_match(u->n, u->idx, v->n, v->idx);
 }
-
-

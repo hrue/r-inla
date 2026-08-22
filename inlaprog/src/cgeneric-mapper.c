@@ -5,10 +5,10 @@
 
 #include "cgeneric.h"
 #if __has_include("cgeneric-defs.h")
-#include "cgeneric-defs.h"
+#       include "cgeneric-defs.h"
 #endif
 #if __has_include("cloglike-defs.h")
-#include "cloglike-defs.h"
+#       include "cloglike-defs.h"
 #endif
 
 typedef struct {
@@ -18,9 +18,9 @@ typedef struct {
 
 static inla_cgeneric_mapper_elm_tp table_cgeneric[] = {
 #if __has_include("cgeneric-table.h")
-#include "cgeneric-table.h"
+#       include "cgeneric-table.h"
 #endif
-	{ (const char *) NULL, (inla_cgeneric_func_tp *)NULL }
+	{ (const char *) NULL, (inla_cgeneric_func_tp *) NULL }
 };
 
 void inla_cgeneric_mapper_list(FILE *fp)
@@ -52,9 +52,9 @@ typedef struct {
 
 static inla_cloglike_mapper_elm_tp table_cloglike[] = {
 #if __has_include("cloglike-table.h")
-#include "cloglike-table.h"
+#       include "cloglike-table.h"
 #endif
-	{ (const char *) NULL, (inla_cloglike_func_tp *)NULL }
+	{ (const char *) NULL, (inla_cloglike_func_tp *) NULL }
 };
 
 void inla_cloglike_mapper_list(FILE *fp)
@@ -78,4 +78,3 @@ inla_cloglike_func_tp *inla_cloglike_mapper(char *name)
 	}
 	return NULL;
 }
-
