@@ -2408,3 +2408,50 @@ void GMRFLib_zero_small(int n, double eps, double *x)
 #endif
 }
 #pragma GCC diagnostic pop
+
+
+int GMRFLib_idx_match(int nx, int *x, int ny, int *y) 
+{
+	// check if any value in (increasing) x matches any element in (increasing) y.
+
+	FIXME("This function is not yet finalized. second option is good when na << nb:  complete...");
+	exit(1);
+	
+	if (1) {
+		int i = 0;
+		int j = 0;
+		while(i < nx && j < ny) {
+			if (x[i] == y[j]){
+				return 1;
+			}
+			if (x[i] < y[j]){
+				i++;
+			} else {
+				j++;
+			}
+		}
+	} else {
+		// let 'a' be the shorter one
+		int na, nb, *a, *b;
+		if (nx <= ny) {
+			a = x;
+			b = y;
+			na = nx;
+			nb = ny;
+		} else {
+			b = x;
+			a = y;
+			nb = nx;
+			na = ny;
+		}
+
+		for(int i = 0; i < na; i++) {
+			int found = GMRFLib_iwhich_sorted(a[i], b, nb);
+			if (found >= 0){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+

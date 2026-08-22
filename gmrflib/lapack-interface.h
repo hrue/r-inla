@@ -51,10 +51,6 @@ GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y);
 double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y);
 double GMRFLib_dssqr(int n, double *x);
-double GMRFLib_dsum(int n, double *x);
-double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx);
-double GMRFLib_sparse_dsum_INLINE(int n, double *__restrict a, int *__restrict idx);
-double GMRFLib_dsum(int n, double *x);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
 double GMRFLib_gsl_ldnorm_x(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity, GMRFLib_gsl_ldnorm_store_tp * store);
@@ -102,7 +98,6 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
 int GMRFLib_gsl_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x);
 int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
-int GMRFLib_isum(int n, int *ix);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta,
 		       gsl_matrix * C, int nt);

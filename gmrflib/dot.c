@@ -4,6 +4,105 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+#define SUM_CORE_PLAIN(TYPE_, n_)				\
+	TYPE_ r = 0;						\
+	for (int i = 0; i < (n_); i++) {			\
+		r += x[i];					\
+	}							\
+	return r
+
+#define SUM_CORE(TYPE_, n_)					\
+	TYPE_ r = 0;						\
+	_Pragma("omp simd reduction(+: r)")			\
+	for (int i = 0; i < (n_); i++) {			\
+		r += x[i];					\
+	}							\
+	return r
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_dsum(int n, double *x)
+{
+	if (likely(n <= 16)) {
+		SUM_CORE_PLAIN(double, n);
+	}
+#if defined(INLA_WITH_OPENBLAS) || defined(INLA_WITH_DSUM)
+	double cblas_dsum(int, double *, int);
+	return cblas_dsum(n, x, 1);
+#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	double alignas(64) r0 = 0.0;
+	int k = ((64 - ((uintptr_t) x & 63)) & 63) / sizeof(double);
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
+	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-avx512f.h"
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+	double alignas(32) r0 = 0.0;
+	int k = ((32 - ((uintptr_t) x & 31)) & 31) / sizeof(double);
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
+	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-avx2.h"
+#elif defined(INLA_WITH_SIMDE)
+	double alignas(16) r0 = 0.0;
+	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
+	for (int i = 0; i < k; i++) {
+		r0 += x[i];
+	}
+	x += k;
+	n -= k;
+#       include "intrinsics/simde/dsum-sse2.h"
+#else
+	SUM_CORE(double, n);
+#endif
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_isum(int n, int *x)
+{
+#if defined(INLA_WITH_SIMDE)
+#       include "intrinsics/simde/isum-sse2.h"
+#else
+	SUM_CORE(int, n);
+#endif
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_sparse_dsum(int n, double *__restrict a, int *__restrict idx)
+{
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for (int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
+}
+#pragma GCC diagnostic pop
+
+forceinline double GMRFLib_sparse_dsum_INLINE(int n, double *__restrict a, int *__restrict idx)
+{
+	double res = 0.0;
+#pragma omp simd reduction(+: res)
+	for (int i = 0; i < n; i++) {
+		res += a[idx[i]];
+	}
+	return res;
+}
+
 #define SPARSE_DOT()					\
 	double res = 0.0;				\
 	_Pragma("omp simd reduction(+:res)")		\
@@ -114,7 +213,11 @@ double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 }
 #pragma GCC diagnostic pop
 
-forceinline double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 #if defined(INLA_WITH_ARMPL)
 	if (ELM_->spvec) {
@@ -133,11 +236,12 @@ forceinline double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp *__restrict ELM_, doub
 		return (GMRFLib_sparse_ddot_INLINE(ELM_->n, vv_, aa_, idx_));
 	}
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value = 0.0;
@@ -183,7 +287,7 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *__restrict ELM_, double *__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// in this case, there is only one group giving dense vector calls to 'dot' or 'sum'
