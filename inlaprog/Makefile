@@ -10,10 +10,10 @@ PREFIX = /usr/local
 R_HOME_DERIVED := $(shell R --vanilla RHOME 2>/dev/null)
 ifneq ($(strip $(R_HOME_DERIVED)),)
 RLIB_INC ?= -DINLA_WITH_LIBR -I$(shell "$(R_HOME_DERIVED)/bin/Rscript" --vanilla -e 'cat(R.home("include"))' 2>/dev/null)
-RLIB_LIB ?= -lRmath -L$(R_HOME_DERIVED)/lib -lR
+RLIB_LIB ?=  -L$(R_HOME_DERIVED)/lib -lRmath
 else
 RLIB_INC ?= -DINLA_WITH_LIBR -I/usr/include/R -I/usr/share/R/include
-RLIB_LIB ?= -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
+RLIB_LIB ?= -L/usr/lib -L/usr/lib/R/lib -lRmath
 endif
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
