@@ -25,11 +25,12 @@ Authors:
   \item Havard Rue \email{hrue@r-inla.org}
   \item Finn Lindgren \email{finn.lindgren@gmail.com}
   \item Elias Teixeira Krainski \email{elias@r-inla.org}
+  \item Esmail Abdul Fattah \email{esmail.abdulfattah@kaust.edu.sa}
+  \item Sara Martino \email{saramartino0@gmail.com}
 }
 
 Other contributors:
 \itemize{
-  \item Sara Martino \email{saramartino0@gmail.com} [contributor]
   \item Haakon Bakka \email{bakka@r-inla.org} [contributor]
   \item Daniel Simpson \email{dp.simpson@gmail.com} [contributor]
   \item Andrea Riebler \email{andrea.riebler@math.ntnu.no} [contributor]

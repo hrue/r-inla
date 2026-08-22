@@ -7,13 +7,15 @@
 #include <omp.h>
 #include <unistd.h>
 
+#if defined(INLA_WITH_LIBR) && !defined(INLA_WITH_LIBR_DLOPEN)
 #include <R.h>
 #include <Rembedded.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
 
-// Rinterface.h is Unix-only; R.dll still exports this symbol 
+// Rinterface.h is Unix-only; R.dll still exports this symbol
 extern uintptr_t R_CStackLimit;
+#endif
 
 #include "GMRFLib/timer.h"
 extern char *GMRFLib_tmpdir;
@@ -42,6 +44,164 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 
 __END_DECLS
 #include "R-interface.h"
+
+#if defined(INLA_WITH_LIBR) && defined(INLA_WITH_LIBR_DLOPEN)
+/*
+ * Load libR at runtime instead of linking it, in the same spirit as the
+ * PARDISO workaround (libpardiso.c): the binary then starts on machines
+ * with any R or with none, and rgeneric resolves the R that actually runs
+ * it (through R_HOME) on first use. Only the small embedding API below is
+ * needed, so building this mode requires no R at all.
+ */
+#include <ltdl.h>
+
+typedef void *SEXP;
+typedef ptrdiff_t R_xlen_t;
+#define REALSXP 14				       /* SEXPTYPE values are fixed in R's ABI */
+#define STRSXP  16
+#ifndef TRUE
+#define TRUE  1
+#define FALSE 0
+#endif
+
+static lt_dlhandle R_dlhandle = NULL;
+static SEXP (*p_Rf_protect)(SEXP);
+static void (*p_Rf_unprotect)(int);
+static SEXP (*p_Rf_mkString)(const char *);
+static SEXP (*p_Rf_mkChar)(const char *);
+static SEXP (*p_Rf_install)(const char *);
+static SEXP (*p_Rf_lang2)(SEXP, SEXP);
+static SEXP (*p_Rf_lang3)(SEXP, SEXP, SEXP);
+static SEXP (*p_Rf_lang4)(SEXP, SEXP, SEXP, SEXP);
+static SEXP (*p_Rf_ScalarLogical)(int);
+static SEXP (*p_Rf_allocVector)(unsigned int, R_xlen_t);
+static SEXP (*p_R_tryEval)(SEXP, SEXP, int *);
+static double *(*p_REAL)(SEXP);
+static R_xlen_t (*p_XLENGTH)(SEXP);
+static void (*p_SET_STRING_ELT)(SEXP, R_xlen_t, SEXP);
+static int (*p_Rf_initEmbeddedR)(int, char **);
+static void (*p_Rf_endEmbeddedR)(int);
+static SEXP *p_R_GlobalEnv;
+static uintptr_t *p_R_CStackLimit;
+
+#define PROTECT(x_)      p_Rf_protect(x_)
+#define UNPROTECT(n_)    p_Rf_unprotect(n_)
+#define mkString         p_Rf_mkString
+#define mkChar           p_Rf_mkChar
+#define install          p_Rf_install
+#define lang2            p_Rf_lang2
+#define lang3            p_Rf_lang3
+#define lang4            p_Rf_lang4
+#define ScalarLogical    p_Rf_ScalarLogical
+#define allocVector      p_Rf_allocVector
+#define R_tryEval        p_R_tryEval
+#define REAL             p_REAL
+#define XLENGTH          p_XLENGTH
+#define SET_STRING_ELT   p_SET_STRING_ELT
+#define Rf_initEmbeddedR p_Rf_initEmbeddedR
+#define Rf_endEmbeddedR  p_Rf_endEmbeddedR
+#define R_GlobalEnv      (*p_R_GlobalEnv)
+#define R_CStackLimit    (*p_R_CStackLimit)
+
+static void *inla_R_dlsym_(const char *name, const char *alt)
+{
+	void *p = (void *) lt_dlsym(R_dlhandle, name);
+	if (!p && alt) {
+		p = (void *) lt_dlsym(R_dlhandle, alt);
+	}
+	if (!p) {
+		fprintf(stderr, "\n *** ERROR *** libR has no symbol [%s]\n", name);
+		exit(1);
+	}
+	return p;
+}
+
+static void inla_R_dlopen_(void)
+{
+	if (R_dlhandle) {
+		return;
+	}
+	if (lt_dlinit() != 0) {
+		fprintf(stderr, "\n *** ERROR *** lt_dlinit failed: %s\n", lt_dlerror());
+		exit(1);
+	}
+	// R_HOME is validated (or guessed) by the caller before this runs.
+	// Global loading: shared objects that R loads later (packages)
+	// resolve their R symbols from the global namespace.
+	lt_dladvise advise;
+	lt_dladvise_init(&advise);
+	lt_dladvise_global(&advise);
+	// let libltdl append the platform's own extension: .so, .dylib, .dll
+	lt_dladvise_ext(&advise);
+
+	// where R keeps its library, per platform layout
+	static const char *rel[] = { "lib/libR", "bin/x64/R", "bin/R", NULL };
+	char *rhome = getenv((const char *) "R_HOME");
+	for (int i = 0; rhome && rel[i] && !R_dlhandle; i++) {
+		char *path = NULL;
+		GMRFLib_sprintf(&path, "%s/%s", rhome, rel[i]);
+		R_dlhandle = lt_dlopenadvise(path, advise);
+	}
+	if (!R_dlhandle) {
+		R_dlhandle = lt_dlopenadvise("libR", advise);
+	}
+	lt_dladvise_destroy(&advise);
+	if (!R_dlhandle) {
+		fprintf(stderr, "\n *** ERROR *** rgeneric needs R with a shared libR: %s\n", lt_dlerror());
+		exit(1);
+	}
+	p_Rf_protect = (SEXP(*)(SEXP)) inla_R_dlsym_("Rf_protect", NULL);
+	p_Rf_unprotect = (void (*)(int)) inla_R_dlsym_("Rf_unprotect", NULL);
+	p_Rf_mkString = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_mkString", NULL);
+	p_Rf_mkChar = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_mkChar", NULL);
+	p_Rf_install = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_install", NULL);
+	p_Rf_lang2 = (SEXP(*)(SEXP, SEXP)) inla_R_dlsym_("Rf_lang2", NULL);
+	p_Rf_lang3 = (SEXP(*)(SEXP, SEXP, SEXP)) inla_R_dlsym_("Rf_lang3", NULL);
+	p_Rf_lang4 = (SEXP(*)(SEXP, SEXP, SEXP, SEXP)) inla_R_dlsym_("Rf_lang4", NULL);
+	p_Rf_ScalarLogical = (SEXP(*)(int)) inla_R_dlsym_("Rf_ScalarLogical", NULL);
+	p_Rf_allocVector = (SEXP(*)(unsigned int, R_xlen_t)) inla_R_dlsym_("Rf_allocVector", NULL);
+	p_R_tryEval = (SEXP(*)(SEXP, SEXP, int *)) inla_R_dlsym_("R_tryEval", NULL);
+	p_REAL = (double *(*)(SEXP)) inla_R_dlsym_("REAL", NULL);
+	p_XLENGTH = (R_xlen_t(*)(SEXP)) inla_R_dlsym_("XLENGTH", "Rf_xlength");
+	p_SET_STRING_ELT = (void (*)(SEXP, R_xlen_t, SEXP)) inla_R_dlsym_("SET_STRING_ELT", NULL);
+	p_Rf_initEmbeddedR = (int (*)(int, char **)) inla_R_dlsym_("Rf_initEmbeddedR", NULL);
+	p_Rf_endEmbeddedR = (void (*)(int)) inla_R_dlsym_("Rf_endEmbeddedR", NULL);
+	p_R_GlobalEnv = (SEXP *) inla_R_dlsym_("R_GlobalEnv", NULL);
+	p_R_CStackLimit = (uintptr_t *) inla_R_dlsym_("R_CStackLimit", NULL);
+}
+
+/*
+ * The external model packages compile against R's headers and so reference
+ * the Rf_-prefixed names, which normally come from libR. Here libR is not
+ * linked: forward the math ones to the standalone Rmath library (which
+ * exports the unprefixed names), and make Rf_error fail loudly -- R's
+ * error unwinding does not exist when these models run outside R anyway.
+ */
+#include <stdarg.h>
+extern double gammafn(double);
+extern double bessel_k(double, double, double);
+
+double Rf_gammafn(double x)
+{
+	return gammafn(x);
+}
+
+double Rf_bessel_k(double x, double alpha, double expo)
+{
+	return bessel_k(x, alpha, expo);
+}
+
+void Rf_error(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
+	exit(1);
+}
+#endif							       /* INLA_WITH_LIBR_DLOPEN */
+
 static int R_init = 1;
 static int R_debug = 0;
 static char *R_home = NULL;
@@ -206,6 +366,10 @@ int inla_R_init_(void)
 				my_setenv(rrhome, 0);
 			}
 
+#if defined(INLA_WITH_LIBR_DLOPEN)
+			// R_HOME is set by now; load libR and resolve the API.
+			inla_R_dlopen_();
+#endif
 			char *Rargv[4];
 			Rargv[0] = Strdup("REmbeddedPostgres");
 			Rargv[1] = Strdup("--gui=none");

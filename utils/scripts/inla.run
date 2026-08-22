@@ -11,7 +11,10 @@ else
     INLARUN="$(cd "$(dirname -- "$0")" && pwd -P)/$(basename -- "$0")"
 fi
 PREFIX=$(dirname $(dirname "$INLARUN"))
-LIB=$(dirname "$PREFIX")/lib
+## lib sits inside the tree, beside bin: PREFIX/bin/inla.run, PREFIX/lib.
+## The earlier $(dirname "$PREFIX")/lib looked one level above the tree, so
+## the preload silently never happened.
+LIB="$PREFIX"/lib
 INLA="$PREFIX"/bin/inla
 mimalloc=$(find "$LIB" -name libmimalloc\* 2>/dev/null | tail -n1)
 

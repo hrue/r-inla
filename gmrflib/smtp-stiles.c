@@ -169,7 +169,15 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	Free(sidx_i);
 	Free(sidx_j);
 
-	sTiles_init(&(store->obj));
+	if (sTiles_init(&(store->obj)) != 0) {
+		/* A refused preprocess (for instance the dense-variant memory
+		 * guard) leaves the object unusable; continuing means hours of
+		 * mode-finding on the groups that fit before dying on one that
+		 * did not. Older libstiles always returns 0 here, so this is a
+		 * no-op until a library with failure propagation is paired. */
+		fprintf(stderr, "\n*** sTiles setup failed (see errors above); cannot continue.\n");
+		exit(1);
+	}
 
 	store->perm = Calloc(ngt, int *);
 	store->iperm = Calloc(ngt, int *);
