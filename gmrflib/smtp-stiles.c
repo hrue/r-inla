@@ -194,7 +194,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	store->wtime = GMRFLib_timer() - tref;
 
 	if (ctl && ctl->verbose) {
-		GMRFLib_stiles_print(stdout);
+		// GMRFLib_stiles_print(stdout);
 	}
 
 	GMRFLib_LEAVE_FUNCTION;
