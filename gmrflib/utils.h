@@ -75,6 +75,7 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
 int GMRFLib_iamax_value(int *x, int n, int *idx);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_icmp_r(const void *a, const void *b);
+int GMRFLib_idx_match(int nx, int *x, int ny, int *y);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
