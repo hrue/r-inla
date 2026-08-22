@@ -10,6 +10,7 @@
 #include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
+#include "no-stiles.h"					       /* this includes stiles.h if defined(INLA_WITH_STILES) */
 
 static GMRFLib_stiles_ctl_tp *ctl = NULL;
 static GMRFLib_stiles_store_tp *store = NULL;
@@ -407,7 +408,7 @@ int *GMRFLib_stiles_get_iperm(GMRFLib_stiles_idx_tp *stiles_idx)
 	return (store ? store->iperm[stiles_idx->in_group] : NULL);
 }
 
-int GMRFLib_stiles_set_ctl(int verbose, int block_size, int len, int *param)
+int GMRFLib_stiles_set_ctl(int verbose, int block_size, int tile_size, int tile_type, int len, int *param)
 {
 	assert(GMRFLib_OPENMP_IN_SERIAL());
 
@@ -417,25 +418,33 @@ int GMRFLib_stiles_set_ctl(int verbose, int block_size, int len, int *param)
 	}
 	ctl = Calloc(1, GMRFLib_stiles_ctl_tp);
 	ctl->verbose = (verbose >= 0 ? verbose : 0);
-	ctl->block_size = (block_size > 0 ? block_size : 32);
+	ctl->block_size = block_size;
+	ctl->tile_size = tile_size;
+	ctl->tile_type = tile_type;
 	if (len > 0) {
 		ctl->param_len = len;
 		ctl->param = Malloc(len, int);
 		Memcpy(ctl->param, param, len * sizeof(int));
 	} else {
-		ctl->param_len = 32;
+		ctl->param_len = 64;
 		ctl->param = Malloc(ctl->param_len, int);
 		GMRFLib_ifill(ctl->param_len, -1, ctl->param);
 	}
 
 	sTiles_expert_user();
+	ctl->param[STILES_PARAM_TILE_SIZE] = tile_size;
+	if (tile_type >= 0) {
+		ctl->param[STILES_PARAM_TILE_TYPE] = (tile_type == 0 ? STILES_TILE_DENSE :
+						      (tile_type == 1 ? STILES_TILE_SEMISPARSE :
+						       (tile_type == 2 ? STILES_TILE_SPARSE :
+							(tile_type == 3 ? STILES_TILE_AUTO_SELECT : STILES_TILE_AUTO_SELECT))));
+	}
 	for (int i = 0; i < ctl->param_len; i++) {
 		sTiles_set_control_param(i, ctl->param[i]);
 	}
 	for (int i = 0; i < ctl->param_len; i++) {
 		ctl->param[i] = sTiles_get_control_param(i);
 	}
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -795,7 +804,7 @@ GMRFLib_stiles_ctl_tp *GMRFLib_stiles_get_ctl(void)
 
 int GMRFLib_stiles_get_tile_size(void)
 {
-	return (ctl && ctl->param[1] > 0 ? ctl->param[1] : sTiles_get_auto_tile_size());
+	return (ctl && ctl->param[STILES_PARAM_TILE_SIZE] > 0 ? ctl->param[STILES_PARAM_TILE_SIZE] : sTiles_get_auto_tile_size());
 }
 
 int GMRFLib_stiles_get_block_size(void)

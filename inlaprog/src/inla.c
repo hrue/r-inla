@@ -7244,6 +7244,9 @@ int main(int argc, char **argv)
 		{
 			printf("List of built-in models for 'cgeneric': \n");
 			inla_cgeneric_mapper_list(NULL);
+			printf("\n");
+			printf("List of built-in models for 'cloglike': \n");
+			inla_cloglike_mapper_list(NULL);
 		}
 			break;
 
@@ -7663,6 +7666,14 @@ int main(int argc, char **argv)
 
 	if (!silent || verbose) {
 		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+#if defined(__linux__)
+		char *val = getenv("LD_PRELOAD");
+		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
+#endif
+#if defined(__APPLE__)
+		char *val = getenv("DYLD_INSERT_LIBRARIES");
+		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
+#endif
 #if !defined(INLA_WITH_DEVEL)
 		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
 #endif

@@ -31,7 +31,12 @@
 // better with function than macro...
 char *Strdup(const char *s)
 {
+#if defined(INLA_WITH_MIMALLOC)
+	char *mi_strdup(const char *s);
+	return (s ? mi_strdup(s) : (char *) NULL);
+#else
 	return (s ? strdup(s) : (char *) NULL);
+#endif
 }
 
 unsigned char *Strdup_sha(unsigned char *sha)
@@ -2167,9 +2172,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
@@ -2209,8 +2214,8 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2403,3 +2408,50 @@ void GMRFLib_zero_small(int n, double eps, double *x)
 #endif
 }
 #pragma GCC diagnostic pop
+
+
+int GMRFLib_idx_match(int nx, int *x, int ny, int *y) 
+{
+	// check if any value in (increasing) x matches any element in (increasing) y.
+
+	FIXME("This function is not yet finalized. second option is good when na << nb:  complete...");
+	exit(1);
+	
+	if (1) {
+		int i = 0;
+		int j = 0;
+		while(i < nx && j < ny) {
+			if (x[i] == y[j]){
+				return 1;
+			}
+			if (x[i] < y[j]){
+				i++;
+			} else {
+				j++;
+			}
+		}
+	} else {
+		// let 'a' be the shorter one
+		int na, nb, *a, *b;
+		if (nx <= ny) {
+			a = x;
+			b = y;
+			na = nx;
+			nb = ny;
+		} else {
+			b = x;
+			a = y;
+			nb = nx;
+			na = ny;
+		}
+
+		for(int i = 0; i < na; i++) {
+			int found = GMRFLib_iwhich_sorted(a[i], b, nb);
+			if (found >= 0){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+

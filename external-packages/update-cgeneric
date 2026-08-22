@@ -1,21 +1,14 @@
 #!/usr/bin/env bash
 h="cgeneric-table.h"
 hh="cgeneric-defs.h"
-test -f "$h" && rm -f "$h"
-test -f "$hh" && rm -f "$hh"
+H="cloglike-table.h"
+HH="cloglike-defs.h"
 
-function namechange () {
-    awk '{
-        ## this is fixed now. keep it here, in case we need similar
-	## workarounds in the future
-	##
-    	## while(gsub("inla_cgeneric_cblocks", "inla_cgeneric_gmrfs_cblocks"));
-        ## while(gsub("inla_cgeneric_pblocks", "inla_cgeneric_gmrfs_pblocks"));
-	## while(gsub("inla_cgeneric_sblocks", "inla_cgeneric_gmrfs_sblocks")); 
-	print
-    }'
-}
+for f in "$h" "$hh" "$H" "$HH"; do
+    test -f "$f" && rm -rf "$f";
+done
 
+## CGENERIC
 {
     for f in $(find . -name FUNCTIONS); do
 	if [ -f "$f" ]; then 
@@ -23,10 +16,10 @@ function namechange () {
 	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
 		sort | uniq | tr -d ';' | \
 		awk '/^[ \t]*#/ {next}
-    	    { print "{ \"" $1 "\", (inla_cgeneric_func_tp *) " $1 " }," }'
+    	    { print "{ \"" $1 "\", (inla_cgeneric_func_tp *)" $1 " }," }'
 	fi
     done
-} | sort | uniq | namechange > $h
+} | sort | uniq > $h
 
 {
     for f in $(find . -name FUNCTIONS); do
@@ -38,4 +31,29 @@ function namechange () {
     	    { print "inla_cgeneric_func_tp " $1 ";" }'
 	fi
     done
-} | sort | uniq | namechange > $hh
+} | sort | uniq > $hh
+
+## CLOGLIKE
+{
+    for f in $(find . -name CLOGLIKE); do
+	if [ -f "$f" ]; then 
+	    echo Process $f >&2 
+	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		sort | uniq | tr -d ';' | \
+		awk '/^[ \t]*#/ {next}
+    	    { print "{ \"" $1 "\", (inla_cloglike_func_tp *)" $1 " }," }'
+	fi
+    done
+} | sort | uniq > $H
+
+{
+    for f in $(find . -name CLOGLIKE); do
+	if [ -f "$f" ]; then 
+	    echo Process $f >&2 
+	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		sort | uniq | tr -d ';' | \
+		awk '/^[ \t]*#/ {next}
+    	    { print "inla_cloglike_func_tp " $1 ";" }'
+	fi
+    done
+} | sort | uniq > $HH

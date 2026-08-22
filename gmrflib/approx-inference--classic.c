@@ -515,7 +515,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 			if (!(ai_store->correction_term)) {
 				ai_store->correction_term = Calloc(n, double);	/* compute this */
 				ai_store->derivative3 = Calloc(n, double);	/* and this */
-				ai_store->derivative4 = Calloc(n, double);	/* and this */
 				ai_store->correction_idx = Calloc(n, int);	/* and this one */
 
 				/*
@@ -532,21 +531,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
 					ai_store->derivative3[i] = dd;
 					ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
-#if defined(INLA_RESEARCH1)
-					if (1) {
-						// have to redo this later if this gets serious
-						double d3[2];
-						double s = 1.0 / (2.0 * deldif);
-						GMRFLib_2order_approx(thread_id, 0, &aa, &bb, &cc, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
-								      fixed_mode, loglFunc, loglFunc_arg,
-								      &(ai_par->step_len), &(ai_par->stencil), NULL);
-						GMRFLib_2order_approx(thread_id, 0, &aa, &bb, &cc, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
-								      fixed_mode, loglFunc, loglFunc_arg,
-								      &(ai_par->step_len), &(ai_par->stencil), NULL);
-						ai_store->derivative4[i] = (d3[1] - d3[0]) * s;
-					}
-#endif
-
 				}
 			}
 		}
@@ -686,17 +670,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 			third_order_derivative += ai_store->derivative3[iii] * POW3(derivative[iii]);
 		}
 		third_order_derivative *= POW3(x_sd);
-
-#if defined(INLA_RESEARCH1)
-		double fourth_order_derivative = 0.0;
-		for (jjj = 0; jjj < ai_store->nidx; jjj++) {
-			iii = ai_store->correction_idx[jjj];
-			fourth_order_derivative += ai_store->derivative4[iii] * gsl_pow_4(derivative[iii]);
-		}
-		fourth_order_derivative *= gsl_pow_4(x_sd);
-		fprintf(stdout, "RESEARCH1: idx= %1d mean %.8f sd %.8f d3 %.8f d4 %.8f\n", idx, x_mean, x_sd, third_order_derivative,
-			fourth_order_derivative);
-#endif
 
 		/*
 		 * match the third order derivative at the "mode" and then match the mean and variance with the meancorrected one. 

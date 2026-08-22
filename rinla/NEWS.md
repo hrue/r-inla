@@ -1,3 +1,6 @@
+# INLA 26.08.22
+* Minor code improvements
+
 # INLA 26.08.07
 * Code cleanup
 * Some experimental features (loglike info and cgeneric) added

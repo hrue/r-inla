@@ -609,7 +609,6 @@ typedef struct {
 	 *\brief Store the third (and optionally fourth) derivative of the log likelihood
 	 */
 	double *derivative3;
-	double *derivative4;
 	int *correction_idx;				       /* hold the idx's for the corrections, ie those with d[i] != 0 */
 	int nidx;					       /* number of those */
 } GMRFLib_ai_store_tp;

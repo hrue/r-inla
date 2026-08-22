@@ -46,6 +46,7 @@ models_doc: ../R/models_documentation.R
 
 ../NAMESPACE: $(wildcard *.R) ../R/models_documentation.R ../DESCRIPTION Makefile
 	-test -f ../NAMESPACE && cp ../NAMESPACE ../NAMESPACE.backup
+	-test -f ../NAMESPACE || cp ../NAMESPACE.backup ../NAMESPACE
 	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(RR)
 
 # Generate the pdf files for the manual one by one to
