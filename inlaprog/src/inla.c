@@ -5882,7 +5882,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				bfunc[count + j] = Calloc(1, GMRFLib_bfunc_tp);
+				bfunc[count + j] = Malloc(1, GMRFLib_bfunc_tp);
 				bfunc[count + j]->bdef = mb->f_bfunc2[i];
 				bfunc[count + j]->idx = j;
 			}
@@ -5899,7 +5899,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				prior_mean[count + j] = Calloc(1, GMRFLib_prior_mean_tp);
+				prior_mean[count + j] = Malloc(1, GMRFLib_prior_mean_tp);
 				prior_mean[count + j]->bdef = mb->f_bfunc2[i];
 				prior_mean[count + j]->idx = j;
 				prior_mean[count + j]->fixed_mean = 0.0;
@@ -5908,7 +5908,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		count += mb->f_Ntotal[i];
 	}
 	for (i = 0; i < mb->nlinear; i++) {
-		prior_mean[count] = Calloc(1, GMRFLib_prior_mean_tp);
+		prior_mean[count] = Malloc(1, GMRFLib_prior_mean_tp);
 		prior_mean[count]->bdef = NULL;
 		prior_mean[count]->idx = -1;
 		prior_mean[count]->fixed_mean = mb->linear_mean[i];
@@ -6013,6 +6013,16 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				assert(0 == 1);
 			}
 		}
+	}
+
+	// GCPO
+	if (1) {
+		char *gcpo_fixed_nodes = Calloc(N, char);
+		int icount = GMRFLib_isum(mb->nf, mb->f_Ntotal);
+		for (i = 0; i < mb->nlinear; i++) {
+			gcpo_fixed_nodes[icount++] = (char) 1;
+		}
+		mb->ai_par->gcpo_fixed_nodes = gcpo_fixed_nodes;
 	}
 
 	double tref = GMRFLib_timer();

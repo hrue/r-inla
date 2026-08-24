@@ -6466,6 +6466,23 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 205: 
+	{
+		int n = 10;
+		GMRFLib_idxval_tp *h= NULL;
+
+		for(int i = 0; i < n; i++) {
+			GMRFLib_idxval_addto(&h, 2*i+1, sqrt(i));
+		}
+		GMRFLib_idxval_prepare(&h, 1, 1);
+
+		for(int i = 0-10; i < h->idx[n-1]+10; i++) {
+			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_idx_match(1, &i, h));
+		}
+	}
+	break;
+	
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

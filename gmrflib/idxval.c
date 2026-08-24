@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1143,6 +1144,7 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 	if (hold) {
 		Free(hold->idx);
 		Free(hold->val);
+		Free(hold->bitmap);
 		Free(hold->g_idx);
 		Free(hold->g_val);
 		Free(hold->g_len);
@@ -1302,6 +1304,21 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 		}
 	}
 	return 0;
+}
+
+GMRFLib_idxval_tp *GMRFLib_idxval_duplicate(GMRFLib_idxval_tp *h)
+{
+	if (!h)
+		return NULL;
+	GMRFLib_idxval_tp *nnew = NULL;
+	GMRFLib_idxval_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
+		Memcpy(nnew->idx, h->idx, h->n * sizeof(int));
+		Memcpy(nnew->val, h->val, h->n * sizeof(double));
+		nnew->n= h->n;
+	}
+
+	return nnew;
 }
 
 int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2)
@@ -1536,7 +1553,94 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	return res;
 }
 
-int GMRFLib_idxval_match(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
+void GMRFLib_idxval_bitmap_init(GMRFLib_idxval_tp *hold)
 {
-	return GMRFLib_idx_match(u->n, u->idx, v->n, v->idx);
+	if (!hold || hold->n == 0)
+		return;
+	
+	// idx MUST be sorted
+	int n = hold->n;
+	int low = hold->idx[0];
+	int high = hold->idx[n-1];
+	int len = high - low + 1;
+	int size = (len / 8) + 1;
+	unsigned char *bitmap = Calloc(size, unsigned char);
+
+	for (int i = 0; i < n; i++) {
+		int ix = hold->idx[i] - low;
+		bitmap[ix / 8] |= (1 << (ix % 8));
+	}
+	Free(hold->bitmap);
+	hold->bitmap = bitmap;
+}
+
+int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
+{
+	// check if any of the N IDX's is in HOLD->idx set using the bitmap in idxval_tp. return >=1 if there is a match and 0
+	// otherwise. 
+	assert(hold->bitmap);
+	if (!hold || hold->n == 0 || n == 0){
+		return 0;
+	}
+	
+	int ret = 0;
+	int low = hold->idx[0];
+	int high = hold->idx[hold->n-1];
+	int len = high - low + 1;
+	unsigned char *bm = hold->bitmap;
+	
+	if (0) {
+		// old code
+		for (int i = 0; i < n && !ret; i++) {
+			int ix = idx[i] - low;
+			if (LEGAL(ix, len)) {
+				ret = (bm[ix / 8] & (1 << (ix % 8)));
+			}
+		}
+	}
+	// new code: unroll by 4 to reduce branch overhead and exploit ILP
+	int i = 0;
+	for (; i <= n - 4; i += 4) {
+		int ix0 = idx[i] - low;
+		int ix1 = idx[i+1] - low;
+		int ix2 = idx[i+2] - low;
+		int ix3 = idx[i+3] - low;
+
+		if (ix0 >= 0 && ix0 < len) {
+			if (bm[ix0 >> 3] & (1 << (ix0 & 7))) {
+				ret = 1;
+				break;
+			}
+		}
+		if (ix1 >= 0 && ix1 < len) {
+			if (bm[ix1 >> 3] & (1 << (ix1 & 7))) {
+				ret = 1;
+				break;
+			}
+		}
+		if (ix2 >= 0 && ix2 < len) {
+			if (bm[ix2 >> 3] & (1 << (ix2 & 7))) {
+				ret = 1;
+				break;
+			}
+		}
+		if (ix3 >= 0 && ix3 < len) {
+			if (bm[ix3 >> 3] & (1 << (ix3 & 7))) {
+				ret = 1;
+				break;
+			}
+		}
+	}
+
+	// clean up remaining elements
+	for (; i < n; i++) {
+		int ix = idx[i] - low;
+		if (ix >= 0 && ix < len) {
+			if (bm[ix >> 3] & (1 << (ix & 7))) {
+				ret = 1;
+				break;
+			}
+		}
+	}
+	return (ret ? 1 : 0);
 }
