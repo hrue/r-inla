@@ -1,0 +1,319 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Cor}{\operatorname{Cor}}
+\newcommand{\E}{\operatorname{E}}
+\newcommand{\sd}{\operatorname{sd}}
+\newcommand{\tr}{^{\mathsf T}}
+\newcommand{\supp}{\operatorname{supp}}
+
+\title{The Separator Certificate as One Loop:\\
+Rewrite, Bound, Subtract}
+\author{Lecture notes, gcpo radius build}
+\date{2026-08-20}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+The separator certificate is one three-move loop, applied twice:
+\emph{rewrite exactly} (law of total covariance), \emph{bound only the
+remainder} (Cauchy--Schwarz), \emph{get every standard deviation by
+subtraction} (law of total variance).  The first pass conditions on the
+whole exterior and already yields a certificate; the second conditions
+on the hubs and yields the one the build uses.  Three ledgers stay
+explicit throughout: which $j$'s are computed and which are capped;
+where exactness ends; where each quantity comes from ($Q$ side,
+$\Sigma$ side, subtraction).
+\end{abstract}
+
+\section{Two zones}\label{sec:zones}
+
+A zero-mean Gaussian field $x \sim N(0, \Sigma)$, $Q = \Sigma^{-1}$
+sparse; data point $j$ carries $\eta_j = a_j\tr x$ with sparse support.
+The \emph{group} of a target $i$ is the top level sets of
+$|\Cor(\eta_i,\eta_j)|$ over all $j$; $v$ is the deepest accepted
+absolute correlation ($v_{\mathrm{last}}$ in the build).
+
+The build walks outward from $\supp(a_i)$ on the graph of $Q$, avoiding
+the hubs $H$ (few global latents: intercepts, small components),
+collecting a \textbf{core} $K$; the \textbf{proposal} is
+$\operatorname{lift}(K)$, the data points whose support touches $K$.
+Two zones, treated in opposite ways:
+
+\begin{itemize}
+\item \textbf{Inside the proposal:} finitely many candidates, each
+  correlation computed exactly (sparse solves, no bounding).  The group
+  and $v$ come from here.
+\item \textbf{Outside} (the \emph{far field}:
+  $\supp(a_j) \cap K = \varnothing$, i.e.\ supported in $F := K^c$):
+  never enumerated.  The certificate is one $j$-free number
+  $\mathrm{bnd}_i$ with $|\Cor(\eta_i,\eta_j)| \le \mathrm{bnd}_i$ for
+  every far-field $j$; $\mathrm{bnd}_i < v$ certifies the group
+  complete.
+\end{itemize}
+
+Exactness is priced per $j$, and the far field is almost everybody.
+Hence the rule the rest of these notes keeps explicit: \emph{everything
+$j$-dependent is computed inside the proposal, or capped $j$-free
+outside it.}
+
+\section{The loop}\label{sec:loop}
+
+Normalize every variable to unit variance; covariances \emph{are}
+correlations.  One iteration:
+
+\paragraph{Move 1 — rewrite exactly.}  Pick a conditioning set $x_A$;
+the law of total covariance gives
+\[
+  \Cov(\eta_i, \eta_j)
+  \;=\;
+  \underbrace{\Cov\bigl(\E[\eta_i \mid x_A],\, \E[\eta_j \mid
+  x_A]\bigr)}_{\text{ledger term}}
+  \;+\;
+  \underbrace{\E\bigl[\Cov(\eta_i, \eta_j \mid x_A)\bigr]}_{\text{remainder}} .
+\]
+An identity: signed, nothing lost.  A good $A$ makes one term
+tractable --- the remainder dies, or the ledger term becomes computable
+structure.
+
+\paragraph{Move 2 — bound only the remainder.}  Cauchy--Schwarz,
+$|\Cov(U,V)| \le \sd(U)\,\sd(V)$, on the uncomputed term --- never on
+the whole covariance.  Every $j$-dependent factor then takes a $j$-free
+cap: a supremum computed once, or $\sd \le 1$.
+
+\paragraph{Move 3 — sd by subtraction.}  The variables of Move 2 are
+global objects one cannot assemble; their \emph{variances} survive,
+by the law of total variance:
+\[
+  \Var\bigl(\E[\eta \mid x_A]\bigr)
+  \;=\; \Var(\eta) \;-\; \E\bigl[\Var(\eta \mid x_A)\bigr]
+  \;=\; \text{total} \;-\; \text{the computable part.}
+\]
+For a GMRF the subtracted part is local: conditional on everything
+outside a set, the conditional precision is a subblock of $Q$ --- one
+small Cholesky.  Compute what can be computed; subtract it from the
+total.
+
+\section{Level 0: conditioning on the whole exterior}\label{sec:level0}
+
+\paragraph{Move 1.}  Condition on $x_F$.  A far-field $\eta_j$ is a
+function of $x_F$: the remainder vanishes and
+$\E[\eta_j\mid x_F] = \eta_j$, so
+\begin{equation}
+  \Cov(\eta_i,\eta_j) \;=\; \Cov\bigl(\E[\eta_i\mid x_F],\; \eta_j\bigr)
+  \qquad\text{exactly.}
+  \label{eq:lvl0rewrite}
+\end{equation}
+Only the part of the target \emph{visible to the exterior} carries
+covariance out; the private fluctuation
+$\eta_i - \E[\eta_i\mid x_F]$ left the ledger by an identity, not an
+estimate.
+
+\paragraph{Move 2.}
+$|\Cov(\eta_i,\eta_j)| \le \sd\bigl(\E[\eta_i\mid x_F]\bigr)\cdot 1$.
+
+\paragraph{Move 3.}
+\[
+  \Var\bigl(\E[\eta_i\mid x_F]\bigr)
+  = 1 - \sigma_i^2,
+  \qquad
+  \sigma_i^2 = \E\Var(\eta_i\mid x_F) = a_K\tr\, Q_{KK}^{-1}\, a_K :
+\]
+given $x_F$ only $x_K$ is random, with conditional precision $Q_{KK}$.
+
+\begin{theorem}[Level-0 certificate]\label{thm:lvl0}
+For every far-field $\eta_j$,
+$\;|\Cor(\eta_i,\eta_j)| \le \sqrt{1 - \sigma_i^2}$.
+\end{theorem}
+
+\paragraph{Why it is not enough.}  The visible variance contains
+everything the hubs explain: $1 - \sigma_i^2 \ge \rho_i^2$ (the
+hub-explained share), a floor at $\rho_i$.  Correlations through a
+bottleneck \emph{multiply}: with hub share $t$ on both sides, true
+far-field correlations --- and $v$ with them --- plateau near $t$,
+while the bound plateaus near $\sqrt t$.  The bound is the square root
+of the thing it must beat; nothing certifies.
+
+\section{Level 1: conditioning on the hubs}\label{sec:level1}
+
+Run the loop again on the surviving pair of \eqref{eq:lvl0rewrite},
+with conditioning set $x_H$.
+
+\paragraph{Move 1.}  Total covariance plus the tower rule
+$\E\bigl[\E[\eta_i\mid x_F]\,\big|\,x_H\bigr] = \E[\eta_i\mid x_H]$
+give
+\begin{equation}
+  \Cov(\eta_i,\eta_j)
+  \;=\;
+  \underbrace{\Cov(h_i,\, h_j)}_{\text{hub channel (ledger)}}
+  \;+\;
+  \underbrace{\Cov(l_i,\, e_j)}_{\text{leak channel (remainder)}}
+  \qquad\text{exactly,}
+  \label{eq:lvl1rewrite}
+\end{equation}
+with $h = \E[\eta\mid x_H]$,
+$l_i = \E[\eta_i\mid x_F] - \E[\eta_i\mid x_H]$,
+$e_j = \eta_j - h_j$.  The division of labour has flipped: at level~0
+the remainder died and the ledger carried everything; here the ledger
+term is computable structure ($|H|$-dimensional regressions) and the
+remainder is what Cauchy--Schwarz gets.  Each pass peels one more
+computable layer off the unknown.
+
+\paragraph{Move 2.}  Both channels are capped --- the far field is
+never touched, so nothing stays unbounded:
+\[
+  |\Cov(h_i,h_j)| \;\le\; \rho_i\,\rho_j \;\le\; \rho_i\,\rho_{\max},
+  \qquad
+  |\Cov(l_i,e_j)| \;\le\; \sd(l_i)\,\sd(e_j) \;\le\; \sd(l_i)\cdot 1 .
+\]
+Provenance of $\rho_{\max}$: the maximum of $\rho_j$ over \emph{all}
+data points.  It is free --- every $j$ is the target of its own build,
+so the hub shares exist for the whole field anyway ($|H|$ global solves
+for the hub columns, then one $|H|$-dimensional quadratic form per
+point) --- and it is global rather than per-far-field because the far
+field varies with $i$; one maximum dominates them all.  The price is
+conservatism: the maximizer may sit inside $i$'s own proposal.  (The
+per-$j$ prohibition concerns per-\emph{pair} work; a once-per-$j$
+vector amortized over all targets is exempt.)
+
+\paragraph{Move 3.}  Two subtractions in cascade:
+\[
+  \Var(l_i)
+  \;=\; \underbrace{\bigl(1 - \sigma_i^2\bigr)}_{\text{level 0: total
+  minus private}}
+  \;-\; \underbrace{\rho_i^2}_{\text{level 1: minus the hubs}},
+  \qquad
+  \rho_i^2 = c_H\tr \Sigma_{HH}^{-1} c_H,\;\; c_H = (\Sigma a_i)_H ,
+\]
+the latter on the $\Sigma$ side from the shared hub columns.  Each
+level subtracts the layer it just made computable; the rest is
+surrendered to Cauchy--Schwarz.
+
+\begin{theorem}[Level-1 certificate, as used]\label{thm:lvl1}
+For every far-field $\eta_j$,
+\[
+  |\Cor(\eta_i,\eta_j)|
+  \;\le\;
+  \mathrm{bnd}_i
+  \;:=\;
+  \rho_i\,\rho_{\max}
+  \;+\;
+  \sqrt{\,1 - \sigma_i^2 - \rho_i^2\,}\;.
+\]
+$\mathrm{bnd}_i < v$ (strictly, outside the tie band) certifies the
+group complete.
+\end{theorem}
+
+\begin{remark}[$R_i^2$ is a repackaging]
+The companion notes write the leak term as
+$\sqrt{1-\rho_i^2}\,\sqrt{R_i^2}$,
+$R_i^2 = 1 - \sigma_i^2/(1-\rho_i^2)$.  Here it appears directly as the
+double subtraction $\sqrt{1 - \sigma_i^2 - \rho_i^2}$; $R_i^2$ is the
+same number normalized by the hub residual, and need never be
+introduced.
+\end{remark}
+
+\section{Why splitting before bounding never loses}\label{sec:split}
+
+Both levels are pure bounding; what did the second pass buy?  A
+theorem:
+
+\begin{lemma}[Channelwise beats lumped]\label{lem:split}
+For each far-field $j$,
+\[
+  \rho_i\rho_j + \sd(l_i)\,\sd(e_j)
+  \;\le\;
+  \sqrt{\rho_i^2 + \Var(l_i)}\;\sqrt{\rho_j^2 + \Var(e_j)}
+  \;=\; \sqrt{1-\sigma_i^2}\cdot 1 .
+\]
+\end{lemma}
+
+\begin{proof}
+Cauchy--Schwarz in $\mathbb R^2$ on $(\rho_i, \sd(l_i))$ and
+$(\rho_j, \sd(e_j))$; the right side evaluates by
+$\rho_i^2 + \Var(l_i) = 1 - \sigma_i^2$ and
+$\rho_j^2 + \Var(e_j) = 1$.
+\end{proof}
+
+Two readings of the gain.  \emph{Weaker worst case:} lumped
+Cauchy--Schwarz charges for ``the whole visible part aligns with
+$\eta_j$''; channelwise only for ``hub aligns with hub, leak with
+residual''.  The finer the rewrite, the less alignment information each
+bound discards.  \emph{The product cap:} after splitting, the hub cap
+is $\rho_i\rho_{\max}$, inheriting the multiply-through-a-bottleneck
+structure; lumped bounding buries $\rho_i^2$ under the root and floors
+at $\rho_i$.
+
+One caveat: after uniformization the comparison stops being a theorem.
+At $\rho_{\max}$ near $1$ the level-1 cap
+$\rho_i\rho_{\max} + \sd(l_i)$ can exceed $\sqrt{1-\sigma_i^2}$ (at
+$\rho_{\max}=1$ it always does, slightly).  That regime is the failure
+mode ``$H$ too greedy'', where nothing certifies anyway; and both caps
+being valid, their minimum is free.  (The build uses the level-1 cap
+alone.)
+
+\section{The bounding map}\label{sec:map}
+
+\begin{center}
+\begin{tabular}{>{\raggedright}p{0.38\textwidth}>{\raggedright\arraybackslash}p{0.52\textwidth}}
+\toprule
+\textbf{step} & \textbf{status} \\
+\midrule
+the two rewrites
+\eqref{eq:lvl0rewrite},\,\eqref{eq:lvl1rewrite} & exact, signed
+identities \\
+in-proposal correlations & computed exactly; $v$ comes from here \\
+channelwise Cauchy--Schwarz & first loss; the sign of each channel is
+spent here (with the triangle inequality that adds the caps) \\
+caps $\rho_j \le \rho_{\max}$, $\sd(e_j) \le 1$ & second loss; the
+price of one number for the whole far field \\
+sealed core ($l_i = 0$) & no loss: $\Cov(\eta_i,\eta_j) =
+\Cov(h_i,h_j)$ exactly; per-$j$ cost drops to an $|H|$-dimensional
+inner product and the build resolves the far field analytically, no
+certificate \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+
+Everything above the Cauchy--Schwarz row is signed and exact;
+opposite-signed channels cost tightness, never validity.
+
+\section{Cost, failure, level 2}\label{sec:cost}
+
+\paragraph{Per target.}  One Cholesky of $Q_{KK}$ ($\sigma_i^2$, $Q$
+side); one $|H|$-dimensional quadratic form ($\rho_i^2$, $\Sigma$ side,
+amortized); one subtraction; one comparison with $v$.  Per far-field
+$j$: nothing.
+
+\paragraph{Failure is a size, not an error.}
+$\mathrm{bnd}_i \ge v$ means $K$ is too small.  Growing $K$ feeds
+$\sigma_i^2$ and starves $\sqrt{1-\sigma_i^2-\rho_i^2}$ monotonically
+--- the mathematics of the grow-retry rounds.  Smooth fields, or $v$ at
+the noise floor, refuse and fall back to exact solves: conservative,
+never wrong.
+
+\paragraph{Level 2.}  The loop does not care what the conditioning
+variables are.  Hyperparameters $\theta$ in the slot
+($\Cov = \E_\theta\Cov_\theta + \Cov$ of the per-$\theta$ means) would
+lift the certificate to mixture-level correlations; hard linear
+constraints already ride the slot as a low-rank correction.  One more
+global mechanism, one more pass of \emph{rewrite, bound, subtract}.
+The loop is the theory.
+
+\end{document}
