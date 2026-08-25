@@ -820,7 +820,7 @@ int GMRFLib_stiles_get_block_size(void)
 	return (ctl && ctl->block_size > 0 ? ctl->block_size : (GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 40));
 }
 
-void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *UNUSED(suf))
+void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *suf)
 {
-	sTiles_print_params();
+	sTiles_print_params(suf);
 }
