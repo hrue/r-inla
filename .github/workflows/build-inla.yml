@@ -805,6 +805,10 @@ jobs:
   ## gate -- new-compiler breakage is an early warning, not a stop sign.
   canary-newest-gcc:
     name: "Canary: newest GCC on Fedora"
+    ## Off by default: run it only on a manual dispatch (Actions tab -> Run
+    ## workflow), not on every push. Toggle back to always-on by deleting
+    ## this line, no need to touch anything else in the job.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true
