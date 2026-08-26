@@ -2108,7 +2108,7 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp *g)
 	}
 
 	GMRFLib_SHA_TP c;
-	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	uint8_t *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, uint8_t);
 
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
@@ -2120,7 +2120,7 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp *g)
 		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i], c);
 	}
 
-	GMRFLib_SHA_Final(md, &c);
+	GMRFLib_SHA_Final(&c, md);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 	g->sha = md;
 
