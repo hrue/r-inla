@@ -44,19 +44,54 @@ else
     echo "ERROR: libmimalloc.so was not built (MIMALLOC_VERSION unset?)"; exit 1
 fi
 
-## Everything ldd resolves, except the glibc family and the loader.
+## Everything ldd resolves, except the glibc family, the loader, and libssl.
+## libssl is excluded outright: nothing in this binary's own dependency
+## chain needs it (only sf and other R packages with a TLS/HTTPS path do),
+## so bundling it would only ever be there to shadow, never to serve a real
+## need of ours. libcrypto is different -- inla DOES need it, transitively
+## through Kerberos/GSSAPI (libgssapi_krb5 -> libkrb5 -> libk5crypto ->
+## libcrypto) -- so it goes to a PRIVATE subdirectory instead, below.
 ldd "$BIN" | awk '/=>/ {print $3}' | grep -v '^$' | while read -r so; do
     [ -f "$so" ] || continue
     case "$(basename "$so")" in
         libc.so*|libm.so*|libpthread.so*|libdl.so*|librt.so*|libresolv.so*|libmvec.so*|ld-linux*) ;;
+        libssl.so*|libcrypto.so*) ;;
         *) cp -v "$so" "$OUT/lib/" ;;
     esac
 done
 
+## libcrypto in a PRIVATE subdirectory, reachable only via rpath, never via
+## LD_LIBRARY_PATH: rgeneric evaluates R INSIDE this same process (embedded
+## via libR), and that embedded R needs LD_LIBRARY_PATH pointing at lib/ so
+## it finds libR/Rblas/Rlapack here -- and whatever else lives in that same
+## directory becomes visible to EVERY dlopen the embedded R makes afterward,
+## including unrelated R packages the rgeneric callback loads. sf, via its
+## GDAL/PROJ/libcurl chain, needs libssl -> libcrypto, and a bundle built
+## for an old glibc floor carries an old libcrypto missing symbol versions
+## (OPENSSL_3.3.0) the SYSTEM libssl needs: dyn.load failed on a package
+## this binary never even touches (confirmed on a real failure).
+## rpath is scoped per-object (this uses DT_RUNPATH, not the legacy
+## DT_RPATH) and is never consulted for a library dlopen'd independently
+## elsewhere, so a private subdirectory is invisible to sf's own resolution
+## while still resolving inla's own chain -- on a host with NO system
+## OpenSSL at all, this fallback still works; on a host that has one, sf
+## finds the host's copy, exactly as it would without this bundle at all.
+mkdir -p "$OUT/lib/private-crypto"
+ldd "$BIN" | awk '/=>/ {print $3}' | grep -v '^$' | while read -r so; do
+    [ -f "$so" ] || continue
+    case "$(basename "$so")" in
+        libcrypto.so*) cp -v "$so" "$OUT/lib/private-crypto/" ;;
+    esac
+done
+
 ## The binary finds its bundled libraries relative to itself, wherever the
-## bundle is unpacked; the libraries find each other the same way.
-patchelf --set-rpath '$ORIGIN/../lib' "$OUT/bin/inla"
+## bundle is unpacked; the libraries find each other the same way, and
+## anything that needs Kerberos/libcrypto also gets the private subdirectory.
+patchelf --set-rpath '$ORIGIN/../lib:$ORIGIN/../lib/private-crypto' "$OUT/bin/inla"
 for so in "$OUT"/lib/*.so*; do
+    patchelf --set-rpath '$ORIGIN:$ORIGIN/private-crypto' "$so"
+done
+for so in "$OUT"/lib/private-crypto/*.so*; do
     patchelf --set-rpath '$ORIGIN' "$so"
 done
 ## the allocator is dlopen/preload-only; give it the same self-relative rpath
