@@ -50,21 +50,57 @@ $SUDO apt-get install -y --no-install-recommends \
     libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
     libnuma-dev libhwloc-dev libltdl-dev
 
-## Newest usable GCC. Ubuntu freezes its archive at release time (24.04
-## stops at 14), while the toolchain PPA carries the newer series; take
-## whichever is available, newest first. ci/build.sh then picks the highest
-## gcc-N it finds, so nothing needs pinning anywhere else.
+## GCC on Ubuntu. GCC_PREFER (ci/toolchain.env) is a PIN, not a wish: if it
+## is set, install exactly that version or stop the build. Silently landing
+## on whatever the PPA happened to have is how a bundle and the library
+## inside it drift apart without anything saying so -- the baseline Linux
+## bundle once carried a library built by GCC 14 inside a binary built by
+## GCC 15, and the Windows DLL was built by MinGW 16.2.0 while inla.exe used
+## 16.1.1, both discovered only after shipping. Mirrors the exact-pin-or-fail
+## structure ci/deps-manylinux.sh already uses for GCC_TOOLSET.
+##
+## The version installed is EXPORTED (CC/CXX/FC), not just echoed, so
+## ci/fetch-stiles.sh's BUILDINFO check and ci/build.sh's actual compile both
+## use this exact compiler instead of each re-discovering "the newest gcc-N
+## on disk" independently -- two independent discoveries can disagree even
+## when both succeed. Both already prefer an inherited CXX (only falling
+## back to their own probe if it is unset), so exporting it here is enough;
+## nothing downstream needs to change.
 if [ "${ID:-}" = "ubuntu" ]; then
     $SUDO apt-get install -y --no-install-recommends software-properties-common
     $SUDO add-apt-repository -y ppa:ubuntu-toolchain-r/test 2>/dev/null || true
     $SUDO apt-get update || true
-    ## preference order comes from ci/toolchain.env
     _R=$(cd "$(dirname "$0")/.." && pwd); [ -f "$_R/ci/toolchain.env" ] && . "$_R/ci/toolchain.env"
-    for v in ${GCC_PREFER:-16 15 14}; do
-        if $SUDO apt-get install -y --no-install-recommends \
-               "gcc-$v" "g++-$v" "gfortran-$v" 2>/dev/null; then
-            echo "toolchain: gcc-$v"
-            break
+
+    _install_gcc() {
+        $SUDO apt-get install -y --no-install-recommends \
+            "gcc-$1" "g++-$1" "gfortran-$1" 2>/dev/null
+    }
+    _export_gcc() {
+        echo "toolchain: gcc-$1"
+        if [ -n "${GITHUB_ENV:-}" ]; then
+            { echo "CC=gcc-$1"; echo "CXX=g++-$1"; echo "FC=gfortran-$1"; } >> "$GITHUB_ENV"
         fi
-    done
+    }
+
+    if [ -n "${GCC_PREFER:-}" ]; then
+        if _install_gcc "$GCC_PREFER"; then
+            _export_gcc "$GCC_PREFER"
+        else
+            echo "ERROR: gcc-$GCC_PREFER is not available (checked the" >&2
+            echo "       ubuntu-toolchain-r/test PPA and the distro archive)." >&2
+            echo "       Pinned by ci/toolchain.env; update it rather than falling" >&2
+            echo "       back, so this project and sTiles keep using the same" >&2
+            echo "       compiler. Set GCC_PREFER=\"\" there to allow a fallback." >&2
+            exit 1
+        fi
+    else
+        ## unpinned: take the newest available
+        for v in 17 16 15 14; do
+            if _install_gcc "$v"; then
+                _export_gcc "$v"
+                break
+            fi
+        done
+    fi
 fi

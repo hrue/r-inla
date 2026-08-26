@@ -132,7 +132,21 @@ if [ -n "$BI" ]; then
         [ -f "$HERE/toolchain.env" ] && . "$HERE/toolchain.env"
         if [ -n "${GCC_TOOLSET:-}" ] && [ -x "/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++" ]; then
             CXX="/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++"
+        elif [ -n "${GCC_TOOLSET:-}${GCC_PREFER:-}" ]; then
+            ## A toolchain IS pinned (by GCC_TOOLSET or GCC_PREFER) but
+            ## nothing upstream of this point resolved it to an actual
+            ## compiler: no exported CXX, no matching /opt/rh toolset.
+            ## Globbing /usr/bin for "whatever's highest" here is exactly
+            ## how this checker itself would end up comparing the library
+            ## against a compiler the build never uses. Fail loudly instead;
+            ## fix the step that was supposed to install and export the pin.
+            echo "ERROR: a compiler is pinned (GCC_TOOLSET=${GCC_TOOLSET:-} GCC_PREFER=${GCC_PREFER:-})" >&2
+            echo "       but this step has no CXX and no matching gcc-toolset." >&2
+            echo "       The step that installs it should export CC/CXX/FC" >&2
+            echo "       (see ci/deps-ubuntu.sh) or run before this one." >&2
+            exit 1
         else
+            ## genuinely unpinned (canary / newest-gcc lanes): best effort
             CXX=$(ls /usr/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1 || true)
         fi
     fi
