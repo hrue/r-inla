@@ -825,10 +825,10 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
 	GMRFLib_SHA_TP c;
-	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	uint8_t *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, uint8_t);
 	GMRFLib_SHA_Init(&c);
 	GMRFLib_SHA_IUPDATE(iperm, n, c);
-	GMRFLib_SHA_Final(md, &c);
+	GMRFLib_SHA_Final(&c, md);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
 	if (fast_copy && cache->sha && cache->rowind && cache->colptr && cache->vperm2 &&
