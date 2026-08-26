@@ -57,6 +57,9 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x, double *work);
 int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *work);
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x);
+int GMRFLib_taucs_Lsolve_blocked(void *vL, double *x, int nrhs, double *w);
+extern GMRFLib_idx_tp **GMRFLib_qinv_keep_pairs;
+extern int GMRFLib_qinv_keep_pairs_n;
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx);
 int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
 						int remapped);

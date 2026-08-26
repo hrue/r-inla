@@ -18,6 +18,9 @@
 // }
 //      GMRFLib_taucs_ctl_tp;
 
+GMRFLib_idx_tp **GMRFLib_qinv_keep_pairs = NULL;	       /* demand-set from gcpo: for latent node i (smaller index), sorted partners */
+int GMRFLib_qinv_keep_pairs_n = 0;
+
 static GMRFLib_taucs_ctl_tp taucs_ctl = {
 	.min_block_size = 4,
 	.block_size = 64
@@ -1388,6 +1391,122 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 	return GMRFLib_SUCCESS;
 }
 
+// the demand closure of the Takahashi recurrence: entries demanded via
+// GMRFLib_qinv_keep_pairs that lie OUTSIDE the factorization fill are computed
+// as well. the recurrence for (i,j) [i <= j, remapped] needs (k,j) or (j,k) for
+// every k in the below-diagonal pattern of L-column i; closing the demanded set
+// under this dependency (min-index strictly increases, so it terminates) makes
+// the recurrence exact for every demanded pair. returns ex[j] = the extra rows
+// i to process in column j's sweep (sorted), or NULL when nothing is demanded
+// or the closure is abandoned (see the budget inside)
+static GMRFLib_idx_tp **GMRFLib_qinv_demand_closure_(taucs_ccs_matrix *L, int n, int *remap, int **nbs, int *nnbs)
+{
+	GMRFLib_idx_tp **ex = NULL;
+	if (GMRFLib_qinv_keep_pairs) {
+		double ex_tref = GMRFLib_timer();
+		GMRFLib_idx_tp *stack_i = NULL, *stack_j = NULL;
+		map_ii **exm = Calloc(n, map_ii *);
+		ex = Calloc(n, GMRFLib_idx_tp *);
+
+#define IN_FILL(i_, j_) (GMRFLib_iwhich_sorted(i_, nbs[j_], (unsigned int) nnbs[j_]) >= 0)
+#define ADD_PAIR(i_, j_)						\
+		if (!IN_FILL(i_, j_)) {					\
+			if (!exm[j_]) {					\
+				exm[j_] = Calloc(1, map_ii);		\
+				map_ii_init(exm[j_]);			\
+			}						\
+			if (!map_ii_haskey(exm[j_], i_)) {		\
+				map_ii_set(exm[j_], i_, 1);		\
+				GMRFLib_idx_add(&stack_i, i_);		\
+				GMRFLib_idx_add(&stack_j, j_);		\
+				n_added++;				\
+			}						\
+		}
+
+		// the closure is bounded by its fan-out: a demanded pair that sits deep
+		// in the fill structure pulls in dozens of dependencies, and the pass
+		// then costs many times the Takahashi itself. beyond 4 entries per
+		// demanded pair (plus a million) the closure is abandoned altogether --
+		// a partial closure would leave entries with missing dependencies, so
+		// nothing beyond the fill is kept and the demanded pairs are simply
+		// absent (their consumers solve for them instead)
+		size_t n_added = 0;
+		int aborted = 0;
+		// the demanded pairs go in in chunks, each expanded to its closure before
+		// the next: the fan-out shows on the first chunk, so an abandoned closure
+		// wastes at most a chunk's worth of work
+		int na = IMIN(n, GMRFLib_qinv_keep_pairs_n), nchunk = 16;
+		size_t n_dem_so_far = 0;
+		for (int ch = 0; ch < nchunk && !aborted; ch++) {
+			int a_lo = (int) ((long) na * ch / nchunk), a_hi = (int) ((long) na * (ch + 1) / nchunk);
+			for (int a = a_lo; a < a_hi; a++) {
+				GMRFLib_idx_tp *kp = GMRFLib_qinv_keep_pairs[a];
+				if (!kp) {
+					continue;
+				}
+				n_dem_so_far += (size_t) kp->n;
+				for (int k = 0; k < kp->n; k++) {
+					int b = kp->idx[k];
+					int i = remap[a];
+					int j = remap[b];
+					if (i > j) {
+						int tmp = i;
+						i = j;
+						j = tmp;
+					}
+					ADD_PAIR(i, j);
+				}
+			}
+			while (stack_i && stack_i->n > 0 && !aborted) {
+				if (n_added > 4 * n_dem_so_far + 1000000) {
+					aborted = 1;
+					break;
+				}
+				int i = stack_i->idx[--stack_i->n];
+				int j = stack_j->idx[--stack_j->n];
+				for (int kp = L->colptr[i] + 1; kp < L->colptr[i + 1]; kp++) {
+					int k = L->rowind[kp];
+					if (k == j) {
+						continue;
+					}
+					int pi = IMIN(k, j);
+					int pj = IMAX(k, j);
+					ADD_PAIR(pi, pj);
+				}
+			}
+		}
+#undef IN_FILL
+#undef ADD_PAIR
+		size_t ex_n = 0;
+		for (int j = 0; j < n; j++) {
+			if (exm[j]) {
+				if (!aborted) {
+					for (mapkit_size_t k = -1; (k = map_ii_next(exm[j], k)) != -1;) {
+						GMRFLib_idx_add(&(ex[j]), exm[j]->contents[k].key);
+					}
+					GMRFLib_idx_sort(ex[j]);
+					ex_n += (size_t) ex[j]->n;
+				}
+				map_ii_free(exm[j]);
+				Free(exm[j]);
+			}
+		}
+		if (aborted) {
+			Free(ex);
+			ex = NULL;
+		}
+		Free(exm);
+		GMRFLib_idx_free(stack_i);
+		GMRFLib_idx_free(stack_j);
+		if (getenv("INLA_GCPO_TIMING")) {
+			printf("[gcpo-timing] Qinv: demand-closure %.4f s (%zu entries beyond the fill%s)\n",
+			       GMRFLib_timer() - ex_tref, ex_n, (aborted ? ", ABANDONED: closure over budget" : ""));
+		}
+	}
+
+	return ex;
+}
+
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
 	int n = 0, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *inv_remap = NULL;
@@ -1445,6 +1564,9 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	RUN_CODE_BLOCK(IMIN(2, GMRFLib_OPENMP_NUM_THREADS_LEVEL()), 0, 0);
 #undef CODE_BLOCK
 
+	// entries demanded beyond the fill (GMRFLib_qinv_keep_pairs), closed under the Takahashi dependency
+	GMRFLib_idx_tp **ex = GMRFLib_qinv_demand_closure_(L, n, problem->sub_sm_fact.remap, nbs, nnbs);
+
 	double *Zj = Calloc(n, double);
 	double *d = L->values;
 	for (int j = n - 1; j >= 0; j--) {
@@ -1455,8 +1577,20 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 			Zj[jj] = q->contents[k].value;
 		}
 
-		for (int ii = nnbs[j] - 1; ii >= 0; ii--) {
-			int i = nbs[j][ii];
+		// merged descending sweep over the fill rows and the demand-closure
+		// rows: descending order guarantees every dependency k > i is done
+		int ia = nnbs[j] - 1;
+		int ib = (ex && ex[j] ? ex[j]->n - 1 : -1);
+		while (ia >= 0 || ib >= 0) {
+			int i;
+			if (ia >= 0 && (ib < 0 || nbs[j][ia] >= ex[j]->idx[ib])) {
+				i = nbs[j][ia--];
+				if (ib >= 0 && ex[j]->idx[ib] == i) {
+					ib--;		       /* duplicate, should not happen */
+				}
+			} else {
+				i = ex[j]->idx[ib--];
+			}
 			int nn = L->colptr[i + 1] - (L->colptr[i] + 1);
 			int kk = L->colptr[i] + 1;
 			double diag = L->values[L->colptr[i]];
@@ -1468,32 +1602,48 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 		}
 	}
 
-	// compute the mapping 
+	if (ex) {
+		for (int j = 0; j < n; j++) {
+			GMRFLib_idx_free(ex[j]);
+		}
+		Free(ex);
+	}
+
+	// compute the mapping
 	inv_remap = Malloc(n, int);
 	for (int k = 0; k < n; k++) {
 		inv_remap[problem->sub_sm_fact.remap[k]] = k;
 	}
 
-	// its good to remove as then we do not need to correct that many for constraints
-	int *rremove = nnbsQ;
-	GMRFLib_ifill(n, 0, rremove);
-	for (int i = 0; i < n; i++) {
-		int iii = inv_remap[i];
-		int nrremove = 0;
-		for (int k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-			int j = Qinv_L[i]->contents[k].key;
-			if (j != i) {
-				int jjj = inv_remap[j];
-				if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
-					rremove[nrremove++] = j;
+	// its good to remove as then we do not need to correct that many for constraints.
+	// fill-entries demanded by the gcpo lookup-path (GMRFLib_qinv_keep_pairs) are
+	// kept so they stay available to Qinv_get
+	{
+		int *rremove = nnbsQ;
+		GMRFLib_ifill(n, 0, rremove);
+		for (int i = 0; i < n; i++) {
+			int iii = inv_remap[i];
+			int nrremove = 0;
+			for (int k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+				int j = Qinv_L[i]->contents[k].key;
+				if (j != i) {
+					int jjj = inv_remap[j];
+					int keep = GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph);
+					if (!keep && GMRFLib_qinv_keep_pairs && IMAX(iii, jjj) < GMRFLib_qinv_keep_pairs_n) {
+						GMRFLib_idx_tp *kp = GMRFLib_qinv_keep_pairs[IMIN(iii, jjj)];
+						keep = (kp && GMRFLib_iwhich_sorted(IMAX(iii, jjj), kp->idx, (unsigned int) kp->n) >= 0);
+					}
+					if (!keep) {
+						rremove[nrremove++] = j;
+					}
 				}
 			}
+			for (int k = 0; k < nrremove; k++) {
+				map_id_remove(Qinv_L[i], rremove[k]);
+			}
+			// this can be costly, so we ignore. this will do 'realloc'
+			// map_id_adjustcapacity(Qinv_L[i]);
 		}
-		for (int k = 0; k < nrremove; k++) {
-			map_id_remove(Qinv_L[i], rremove[k]);
-		}
-		// this can be costly, so we ignore. this will do 'realloc'
-		// map_id_adjustcapacity(Qinv_L[i]);
 	}
 
 	/*
@@ -1845,6 +1995,80 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	return 0;
 }
 #pragma GCC diagnostic pop
+
+int GMRFLib_taucs_Lsolve_blocked(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w)
+{
+	// blocked forward solve only: solve L y = x for 'nrhs' rhs. x is column-major
+	// (n * nrhs) and is overwritten with y. w is work of length n * nrhs.
+	// this is the forward half of GMRFLib_my_taucs_dccs_solve_llt2()
+
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	int n = L->n;
+
+	if (n <= 0 || nrhs <= 0) {
+		return 0;
+	}
+
+	double *work = w;
+	int ione = 1;
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for (int j = 0; j < nrhs; j++) {
+		double *xx = x + j;
+		double *ww = work + j * n;
+		dcopy_(&n, ww, &ione, xx, &nrhs);
+	}
+
+	// start at the first non-zero index
+	int jfirst = n;
+	for (int j = 0; j < n; j++) {
+		double *xx = x + j * nrhs;
+		int found = 0;
+		if (j == 0) {
+			for (int k = 0; k < nrhs; k++) {
+				if (ISNONZERO(xx[k])) {
+					found = 1;
+					break;
+				}
+			}
+		} else {
+			if (memcmp((const void *) xx, (const void *) x, nrhs * sizeof(double))) {
+				found = 1;
+			}
+		}
+		if (found) {
+			jfirst = j;
+			break;
+		}
+	}
+
+	double *y = work;
+	GMRFLib_dfill(nrhs * jfirst, 0.0, y);
+
+	for (int j = jfirst; j < n; j++) {
+		int ip = L->colptr[j];
+		int offset_j = j * nrhs;
+		double iAjj = 1.0 / L->values[ip];
+		double *yy = y + offset_j;
+		double *xx = x + offset_j;
+
+		GMRFLib_dscale2(nrhs, iAjj, xx, yy);
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			double Aij = -L->values[ip];
+			xx = x + L->rowind[ip] * nrhs;
+			GMRFLib_daxpy_INLINE(nrhs, Aij, yy, xx);
+		}
+	}
+
+	// y is node-major: transpose back to column-major into x
+	for (int j = 0; j < nrhs; j++) {
+		double *yy = y + j;
+		double *xx = x + j * n;
+		dcopy_(&n, yy, &nrhs, xx, &ione);
+	}
+
+	return 0;
+}
 
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix *L, double *x)
 {
