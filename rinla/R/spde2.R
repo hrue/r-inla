@@ -950,7 +950,7 @@ inla.spde2.matern <- function(mesh,
                 )
                 e.constr <- rbind(
                     e.constr,
-                    matrix(0, length(m$fun_spaces), 1)
+                    matrix(0, length(mesh$fun_spaces), 1)
                 )
             } else {
                 A.constr <- rbind(
