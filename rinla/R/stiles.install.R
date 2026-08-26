@@ -213,16 +213,53 @@
         say("binary answers -ping")
     }
 
+    ## A stable "latest" entry beside the versioned ones (mirrors ~/R/*/default
+    ## and MKL's own .../mkl/latest), so a path saved in ~/.Rprofile survives a
+    ## new release instead of needing hand-editing every time one lands. Only
+    ## when following the latest release (a pinned tag means the caller wants
+    ## an exact, unmoving path) -- and never when `dir` itself is ALREADY named
+    ## "latest", which happens when the release-tag API call failed but the
+    ## download redirect still worked (see `resolved` above): there is nothing
+    ## to point at that is not already sitting at that name.
+    alive <- any(grepl("ALIVE", ping))
+    if (default.dir && is.null(tag) && alive && !identical(basename(dir), "latest")) {
+        latest <- file.path(dirname(dir), "latest")
+        if (file.exists(latest) || nzchar(Sys.readlink(latest)))
+            unlink(latest, recursive = TRUE, force = TRUE)
+        ## Relative target: the link (and the cache root, if the user ever
+        ## relocates it) keeps working without repointing.
+        made <- tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE)
+        if (!isTRUE(made)) {
+            ## Symlinks need a privilege Windows does not always grant; a
+            ## real copy costs disk (one release, ~100 MB) but always works.
+            ## dir and latest are always siblings (same parent), so copying
+            ## `dir` itself INTO dirname(latest) would try to create dir at
+            ## its own existing path -- a self-copy that corrupts it. Copy
+            ## CONTENTS into a freshly made "latest" instead.
+            say("symlink unavailable, copying to 'latest' instead")
+            dir.create(latest, recursive = TRUE, showWarnings = FALSE)
+            ok <- file.copy(list.files(dir, full.names = TRUE), latest,
+                            recursive = TRUE, copy.mode = TRUE)
+            if (!all(ok)) warning("copying to 'latest' was incomplete")
+        }
+        ## bin[1] already reflects the inla.run substitution above; keep that
+        ## choice, just reached through the stable name instead of the
+        ## version-pinned one.
+        bin[1] <- file.path(latest, substring(bin[1], nchar(dir) + 2L))
+        say("stable path: ", bin[1])
+    }
+
     ## Superseded releases serve nobody once a newer one has answered -ping:
     ## each is ~100 MB, and keeping them is how a cache quietly grows to
     ## gigabytes. Clean AFTER the ping, never before, and only in the default
     ## cache (a caller-supplied dir has siblings that are none of our
     ## business) when following the latest release (a pinned tag means the
-    ## caller manages versions deliberately). This also removes the "latest"
-    ## directory a pre-fix version of this function left behind.
-    if (default.dir && is.null(tag) && any(grepl("ALIVE", ping))) {
+    ## caller manages versions deliberately). "latest" is never superseded --
+    ## it was just re-pointed above, or (the offline-fallback case) it IS the
+    ## live install -- either way it must survive this pass.
+    if (default.dir && is.null(tag) && alive) {
         for (d in list.dirs(dirname(dir), recursive = FALSE)) {
-            if (!identical(basename(d), basename(dir))) {
+            if (!identical(basename(d), basename(dir)) && !identical(basename(d), "latest")) {
                 say("removing superseded ", basename(d))
                 unlink(d, recursive = TRUE)
             }
