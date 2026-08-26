@@ -91,9 +91,17 @@ patchelf --set-rpath '$ORIGIN/../lib:$ORIGIN/../lib/private-crypto' "$OUT/bin/in
 for so in "$OUT"/lib/*.so*; do
     patchelf --set-rpath '$ORIGIN:$ORIGIN/private-crypto' "$so"
 done
+## nullglob: if this lane's inla needed no Kerberos/libcrypto at all (its
+## libR did not pull in libtirpc the way another platform's did), the
+## directory is empty and the glob matches nothing. Without nullglob an
+## unmatched glob is passed through LITERALLY, patchelf fails on the
+## pattern-as-filename, and set -e kills the whole script over a directory
+## that was correctly, harmlessly empty.
+shopt -s nullglob
 for so in "$OUT"/lib/private-crypto/*.so*; do
     patchelf --set-rpath '$ORIGIN' "$so"
 done
+shopt -u nullglob
 ## the allocator is dlopen/preload-only; give it the same self-relative rpath
 patchelf --set-rpath '$ORIGIN' "$OUT/lib/libmimalloc.so" 2>/dev/null || true
 

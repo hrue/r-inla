@@ -8,7 +8,7 @@ name: build-inla
 
 on:
   push:
-    branches: [devel, feature/ci]
+    branches: [feature/ci]
     tags: ['v*']
   workflow_dispatch:
 
