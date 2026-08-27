@@ -127,6 +127,13 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+double sin_intern(double x) 
+{
+	double ans = sin(x);
+	printf("call sin_intern(%f) = %f\n", x, ans);
+	return ans;
+}
+
 #       pragma GCC diagnostic push
 #       pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
@@ -1400,6 +1407,31 @@ int testit(int argc, char **argv)
 
 	case 55:
 	{
+		// require linking with '-rdynamic'
+		lt_dlhandle handle;
+		typedef double fun_tp(double);
+		fun_tp *fun = NULL;
+		const char *error = NULL;
+		double x = 1.12312;
+		
+		lt_dlinit();
+		handle = lt_dlopen(NULL);
+		fun = (fun_tp *) lt_dlsym(handle, "sin");
+		if ((error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		printf("Using sin()\n");
+		P(fun(x));
+
+		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
+		if ((error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		printf("Using sin_intern()\n");
+		P(fun(x));
+		lt_dlclose(handle);
 	}
 		break;
 
