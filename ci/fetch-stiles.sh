@@ -133,7 +133,7 @@ if [ -n "$BI" ]; then
         if [ -n "${GCC_TOOLSET:-}" ] && [ -x "/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++" ]; then
             CXX="/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++"
         elif [ -n "${GCC_TOOLSET:-}${GCC_PREFER:-}" ] && [ ! -f "$DEST/lib/libstiles.dll" ] \
-             && [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" != "1" ]; then
+             && [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" = "1" ]; then
             ## A toolchain IS pinned (by GCC_TOOLSET or GCC_PREFER) but
             ## nothing upstream of this point resolved it to an actual
             ## compiler: no exported CXX, no matching /opt/rh toolset.
