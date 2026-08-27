@@ -12,7 +12,14 @@ cat("platform:", R.version$platform, "\n")
 ## forced SOURCE installs of every dependency on Linux, and the heavy ones
 ## (sf needs GDAL/GEOS/PROJ, fmesher needs compiling) failed for want of
 ## system libraries this test has no reason to need.
-repos <- c(inla = "https://inla.r-inla-download.org/R/testing", getOption("repos"))
+## The Windows runner leaves CRAN as the unset placeholder "@CRAN@", which
+## install.packages rejects ("trying to use CRAN without setting a mirror"),
+## so fill that one in rather than replacing the whole option.
+repos <- getOption("repos")
+if (!length(repos) || is.na(repos["CRAN"]) || !nzchar(repos["CRAN"]) ||
+    identical(unname(repos["CRAN"]), "@CRAN@"))
+    repos["CRAN"] <- "https://cloud.r-project.org"
+repos <- c(inla = "https://inla.r-inla-download.org/R/testing", repos)
 cat("repos:\n"); print(repos)
 
 install.packages(c("remotes", "INLAtools"), repos = repos)
@@ -47,19 +54,35 @@ remotes::install_github("eliaskrainski/graphpcor", upgrade = "never")
 cat("INLA:", as.character(packageVersion("INLA")), "\n")
 cat("graphpcor:", as.character(packageVersion("graphpcor")), "\n")
 
-## Report both places the cgeneric library could come from, then require
-## that at least one of them exists: without it the model fails later
-## inside cgeneric_get() with a dlopen error, far from the cause.
-own <- list.files(file.path(find.package("graphpcor"), "libs"))
-ext <- tryCatch(
-    list.files(file.path(find.package("INLA"), "bin",
-                         if (.Platform$OS.type == "windows") "windows"
-                         else if (Sys.info()[["sysname"]] == "Darwin")
-                             if (R.version$arch == "aarch64") "mac.arm64" else "mac"
-                         else "linux",
-                         "64bit", "external", "graphpcor")),
-    error = function(e) character(0))
-cat("graphpcor own libs:", if (length(own)) own else "NONE", "\n")
-cat("INLA external graphpcor:", if (length(ext)) ext else "NONE", "\n")
-if (!length(own) && !length(ext))
-    stop("no cgeneric library for graphpcor on this platform")
+## Populate INLA's external/ tree from the packages' own libraries.
+##
+## Resolving the library in R is not enough. The R side falls back to the
+## package's own libs/ and warns "Changed `shlib` to ...", but the model
+## object still travels to the inla PROGRAM carrying the original path,
+## and inla dlopens it there: on a 26.08.22 macOS install that aborts the
+## fit with "Failed to load shared library 'inla_cgeneric_generic0':
+## dlopen(.../external/INLAtools/libINLAtools.so) (no such file)".
+##
+## So put a copy where inla looks. inla.external.lib() defines that
+## location, and note it spells the file lib<pkg>.so on EVERY platform
+## (macOS included: the 26.08.07 mac package shipped Mach-O objects named
+## .so), so ask it rather than building the path by hand. Only fills gaps:
+## where INLA already ships the library (Windows) nothing is touched.
+library(INLA)
+for (p in c("INLAtools", "graphpcor")) {
+    own <- list.files(file.path(find.package(p), "libs"),
+                      pattern = "\\.(so|dll|dylib)$", full.names = TRUE)
+    target <- eval(call("inla.external.lib", as.name(p)))
+    if (file.exists(target)) {
+        cat("external ", p, ": already shipped by INLA\n", sep = "")
+    } else if (length(own)) {
+        dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
+        ok <- file.copy(own[1], target, overwrite = TRUE)
+        cat("external ", p, ": installed from ", own[1], " -> ", target,
+            if (ok) "" else "  (COPY FAILED)", "\n", sep = "")
+    } else {
+        cat("external ", p, ": NO library available\n", sep = "")
+    }
+    if (!file.exists(target))
+        stop("no cgeneric library for ", p, " on this platform")
+}
