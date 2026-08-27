@@ -1,0 +1,73 @@
+## Cross-platform smoke test for the released bundles: fit a
+## Germany4-style model (a scaled besag per disease, then a treepcor
+## cgeneric kronecker generic0 joint model) through the released inla
+## binary with the sTiles backend, on real macOS and Windows runners.
+## The graph and data are synthetic (ci/germany4-smoke.R), so no data
+## files are involved; the script asserts finite marginal likelihoods.
+##
+## Manual-only: this exercises a published release of this repo, not the
+## current source, so it runs on dispatch (Actions tab), never on push.
+name: germany4-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      inla_tag:
+        description: 'release tag holding the bundles'
+        required: false
+        default: 'v26.08.27'
+
+jobs:
+  smoke:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            asset: inla-macos-arm64-portable.tar.gz
+            call: bundle/bin/inla.run
+          - os: windows-latest
+            asset: inla-windows-x86_64.zip
+            call: bundle/inla.exe
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install R packages (INLA + graphpcor)
+        run: |
+          Rscript -e '
+            repos <- c(inla = "https://inla.r-inla-download.org/R/testing",
+                       cran = "https://cloud.r-project.org")
+            install.packages("graphpcor", repos = repos)
+            tryCatch(install.packages("INLA", repos = repos),
+                     error = function(e) NULL)
+            if (!requireNamespace("INLA", quietly = TRUE))
+                install.packages("INLA", repos = repos, type = "source")
+            cat("INLA", as.character(packageVersion("INLA")), "\n")
+            cat("graphpcor", as.character(packageVersion("graphpcor")), "\n")'
+
+      - name: Fetch the released bundle
+        run: |
+          TAG="${{ github.event.inputs.inla_tag || 'v26.08.27' }}"
+          curl -fL --retry 3 -o asset \
+            "https://github.com/${{ github.repository }}/releases/download/$TAG/${{ matrix.asset }}"
+          mkdir -p bundle
+          case "${{ matrix.asset }}" in
+            *.tar.gz) tar -xzf asset -C bundle ;;
+            *.zip)    (cd bundle && unzip -q ../asset) ;;
+          esac
+          ls bundle | head
+          grep -E "^(compiler|libstiles)" bundle/BUILDINFO || true
+
+      - name: Run the Germany4 smoke test
+        env:
+          INLA_CALL: ${{ github.workspace }}/${{ matrix.call }}
+        run: Rscript ci/germany4-smoke.R
