@@ -65,6 +65,13 @@ jobs:
       - name: Check R runs
         run: Rscript -e 'cat(R.version.string, R.version$platform, "\n")'
 
+      ## graphpcor pulls in igraph, whose Linux binary links libglpk; the
+      ## runner image has neither it nor libxml2, so loading igraph fails
+      ## with "libglpk.so.40: cannot open shared object file".
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libglpk-dev libxml2-dev
+
       - name: Install R packages (INLA + graphpcor)
         ## GITHUB_PAT: install_github reads the GitHub API, and anonymous
         ## calls from a runner hit the rate limit ("cannot open URL
