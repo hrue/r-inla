@@ -558,11 +558,12 @@ jobs:
           if-no-files-found: error
 
   ## macOS Intel: the same scripts on the last x86_64 macOS runner image.
-  ## BLAS is the Accelerate framework, matching the upstream Intel recipe
-  ## (gmrflib/simd.c has Accelerate-specific paths). Experimental while it
-  ## stabilizes.
+  ## BLAS is a serial OpenBLAS built by ci/deps-macos.sh, not Accelerate:
+  ## Accelerate's threading cannot be controlled reliably and that breaks
+  ## INLA's nested parallelism (see the comment there). Same recipe as the
+  ## sTiles Intel lane, so both sides of the pairing sit on the same BLAS.
   macos-intel:
-    name: "macOS Intel: build + smoke test (Accelerate)"
+    name: "macOS Intel: build + smoke test (OpenBLAS)"
     runs-on: macos-15-intel
     defaults:
       run:

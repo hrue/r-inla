@@ -81,9 +81,9 @@ else
 fi
 echo "== R linkage: WITH_LIBR=$WITH_LIBR =="
 
-## BLAS/LAPACK, following the upstream recipe for each architecture:
-## Apple Silicon uses ARMPL, Intel uses the Accelerate framework (which
-## has its own code paths in gmrflib/simd.c). Either falls back to R's own
+## BLAS/LAPACK: Apple Silicon uses ARMPL, Intel a SERIAL OpenBLAS (see the
+## reasoning at the x86_64 branch below; Accelerate remains only as the
+## fallback when that OpenBLAS was not built). Either falls back to R's own
 ## Rblas/Rlapack when the preferred backend is unavailable.
 STATIC_BLAS=${STATIC_BLAS:-1}
 ARMPL_DIR=$(ls -d /opt/arm/armpl_* 2>/dev/null | sort -V | tail -1 || true)
