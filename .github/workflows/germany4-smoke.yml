@@ -5,11 +5,18 @@
 ## The graph and data are synthetic (ci/germany4-smoke.R), so no data
 ## files are involved; the script asserts finite marginal likelihoods.
 ##
-## Manual-only: this exercises a published release of this repo, not the
-## current source, so it runs on dispatch (Actions tab), never on push.
+## This exercises a published release of this repo, not the current
+## source: dispatch it from the Actions tab (available once the file is
+## on the default branch), or touch one of its two files -- the push
+## trigger is scoped to exactly them, so ordinary pushes never run it.
 name: germany4-smoke
 
 on:
+  push:
+    branches: [feature/ci]
+    paths:
+      - '.github/workflows/germany4-smoke.yml'
+      - 'ci/germany4-smoke.R'
   workflow_dispatch:
     inputs:
       inla_tag:
@@ -19,7 +26,7 @@ on:
 
 jobs:
   smoke:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.asset }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -27,6 +34,12 @@ jobs:
         include:
           - os: macos-latest
             asset: inla-macos-arm64-portable.tar.gz
+            call: bundle/bin/inla.run
+          ## The Intel bundle runs on the arm64 runner through Rosetta 2:
+          ## inla is a subprocess of R, so their architectures need not
+          ## match, and GitHub no longer offers Intel macOS runners.
+          - os: macos-latest
+            asset: inla-macos-x86_64-portable.tar.gz
             call: bundle/bin/inla.run
           - os: windows-latest
             asset: inla-windows-x86_64.zip
