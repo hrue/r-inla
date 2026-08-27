@@ -28,7 +28,7 @@ fi
 ## Arm Performance Libraries: the BLAS/LAPACK the upstream macOS binaries
 ## use. Installed from Arm's public download; if the URL has moved (version
 ## bumps), the build falls back to R's own Rblas/Rlapack automatically.
-## Apple Silicon only: Intel Macs use the Accelerate framework instead.
+## Apple Silicon only: the Intel lane uses the serial OpenBLAS built below.
 ## Homebrew's cask installs ARMPL under /opt/arm, which is simpler and more
 ## reliable than fetching from Arm's CDN. Retried: that CDN drops
 ## connections often enough to take out a whole run.
