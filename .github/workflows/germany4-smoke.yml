@@ -66,6 +66,11 @@ jobs:
         run: Rscript -e 'cat(R.version.string, R.version$platform, "\n")'
 
       - name: Install R packages (INLA + graphpcor)
+        ## GITHUB_PAT: install_github reads the GitHub API, and anonymous
+        ## calls from a runner hit the rate limit ("cannot open URL
+        ## .../contents/DESCRIPTION"). The job's own token lifts it.
+        env:
+          GITHUB_PAT: ${{ github.token }}
         run: Rscript ci/germany4-install.R
 
       - name: Fetch the released bundle

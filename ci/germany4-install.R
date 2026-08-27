@@ -6,8 +6,14 @@
 cat("R:", R.version.string, "\n")
 cat("platform:", R.version$platform, "\n")
 
-repos <- c(inla = "https://inla.r-inla-download.org/R/testing",
-           cran = "https://cloud.r-project.org")
+## ADD the INLA repo to whatever the runner already has; do not replace it.
+## setup-r points CRAN at the Posit package manager, which serves prebuilt
+## binaries for this platform. Overriding that with cloud.r-project.org
+## forced SOURCE installs of every dependency on Linux, and the heavy ones
+## (sf needs GDAL/GEOS/PROJ, fmesher needs compiling) failed for want of
+## system libraries this test has no reason to need.
+repos <- c(inla = "https://inla.r-inla-download.org/R/testing", getOption("repos"))
+cat("repos:\n"); print(repos)
 
 install.packages(c("remotes", "INLAtools"), repos = repos)
 
