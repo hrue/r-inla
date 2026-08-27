@@ -17,6 +17,7 @@ on:
     paths:
       - '.github/workflows/germany4-smoke.yml'
       - 'ci/germany4-smoke.R'
+      - 'ci/germany4-install.R'
   workflow_dispatch:
     inputs:
       inla_tag:
@@ -32,6 +33,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - os: ubuntu-latest
+            asset: inla-linux-x86_64-portable.tar.gz
+            call: bundle/bin/inla.run
           - os: macos-latest
             asset: inla-macos-arm64-portable.tar.gz
             call: bundle/bin/inla.run
@@ -54,28 +58,15 @@ jobs:
         with:
           use-public-rspm: true
 
-      ## graphpcor from GitHub, not CRAN: this test needs its cgeneric
-      ## shared library, and the CRAN build ships none for macOS or
-      ## Windows (INLA's own bin/<platform>/external tree only carries
-      ## them for Linux). A source install compiles src/ locally, so the
-      ## cgeneric models resolve on every platform. Rtools provides the
-      ## toolchain on Windows; setup-r installs gfortran on macOS.
+      ## Canary: prove R itself runs here before doing anything heavy.
+      ## The Windows runner segfaulted with no output at all on the first
+      ## attempt, which is indistinguishable from a package failure until
+      ## something this small either passes or reproduces it.
+      - name: Check R runs
+        run: Rscript -e 'cat(R.version.string, R.version$platform, "\n")'
+
       - name: Install R packages (INLA + graphpcor)
-        run: |
-          Rscript -e '
-            repos <- c(inla = "https://inla.r-inla-download.org/R/testing",
-                       cran = "https://cloud.r-project.org")
-            install.packages(c("remotes", "INLAtools"), repos = repos)
-            tryCatch(install.packages("INLA", repos = repos),
-                     error = function(e) NULL)
-            if (!requireNamespace("INLA", quietly = TRUE))
-                install.packages("INLA", repos = repos, type = "source")
-            remotes::install_github("eliaskrainski/graphpcor", upgrade = "never")
-            cat("INLA", as.character(packageVersion("INLA")), "\n")
-            cat("graphpcor", as.character(packageVersion("graphpcor")), "\n")
-            shl <- list.files(file.path(find.package("graphpcor"), "libs"))
-            cat("graphpcor libs:", if (length(shl)) shl else "NONE", "\n")
-            if (!length(shl)) stop("graphpcor has no compiled cgeneric library")'
+        run: Rscript ci/germany4-install.R
 
       - name: Fetch the released bundle
         run: |
