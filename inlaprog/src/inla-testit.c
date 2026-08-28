@@ -1,15 +1,3 @@
-#include <limits.h>
-#include <assert.h>
-#include <stddef.h>
-#include <float.h>
-#include <time.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #if !defined(INLA_WITH_DEVEL)
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
@@ -20,9 +8,6 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
 {
@@ -44,7 +29,6 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	}
 	return GMRFLib_SUCCESS;
 }
-#       pragma GCC diagnostic pop
 
 int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -66,9 +50,6 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
 {
@@ -88,7 +69,6 @@ int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	}
 	return GMRFLib_SUCCESS;
 }
-#       pragma GCC diagnostic pop
 
 int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -127,6 +107,8 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+// Force the compiler to keep this symbol even with aggressive LTO enabled
+__attribute__((used)) __attribute__((visibility("default")))
 double sin_intern(double x) 
 {
 	double ans = sin(x);
@@ -134,9 +116,6 @@ double sin_intern(double x)
 	return ans;
 }
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -1411,25 +1390,43 @@ int testit(int argc, char **argv)
 		lt_dlhandle handle;
 		typedef double fun_tp(double);
 		fun_tp *fun = NULL;
-		const char *error = NULL;
 		double x = 1.12312;
 		
 		lt_dlinit();
 		handle = lt_dlopen(NULL);
-		fun = (fun_tp *) lt_dlsym(handle, "sin");
-		if ((error = lt_dlerror()) != NULL) {
-			fprintf(stderr, "%s\n", error);
-			exit(1);
-		}
-		printf("Using sin()\n");
-		P(fun(x));
-
 		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
-		if ((error = lt_dlerror()) != NULL) {
+		if (!fun) FIXME("sin_intern not found using ltdl");
+#if defined(_WIN32)
+		if (!fun) {
+			HMODULE hModule = GetModuleHandle(NULL);
+			if (hModule) {
+				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin_intern"));
+			}
+		}
+#endif
+		const char *error = NULL;
+		if (!fun && (error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
 		}
 		printf("Using sin_intern()\n");
+		P(fun(x));
+
+		fun = (fun_tp *) lt_dlsym(handle, "sin");
+		if (!fun) FIXME("sin not found using ltdl");
+#if defined(_WIN32)
+		if (!fun) {
+			HMODULE hModule = GetModuleHandle(NULL);
+			if (hModule) {
+				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin"));
+			}
+		}
+#endif
+		if (!fun && (error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		printf("Using sin()\n");
 		P(fun(x));
 		lt_dlclose(handle);
 	}
@@ -6512,5 +6509,4 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
-#       pragma GCC diagnostic pop
 #endif
