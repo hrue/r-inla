@@ -12,7 +12,7 @@ GMRFLibNAME = GMRFLib
 CC = gcc
 CXX = g++
 FC = gfortran
-FCEXTRAFLAGS = -fno-second-underscore
+FCEXTRAFLAGS = -fno-second-underscore -std=legacy -w
 FLAGS = -Wall -g -O2 -ftracer -fopenmp -pthread
 ##STDC = --std=gnu2x 
 ##STDCXX = --std=gnu++23

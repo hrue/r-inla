@@ -1630,7 +1630,7 @@ void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int 
 
 void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
 {
-	int N, k;
+	int N = 0, k = 0;
 
 	if (n == 0) {
 		return;					       /* No data to sort */
@@ -1690,7 +1690,7 @@ void my_downheap2_ii(int *__restrict data1, int *__restrict data2, const int N, 
 
 void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n)
 {
-	int N, k;
+	int N = 0, k = 0;
 
 	if (n == 0) {
 		return;					       /* No data to sort */
@@ -1850,7 +1850,7 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 
 	if (1) {
 		// this one is now a better option (feb'2024). no need to initialize with 0's
-		int *ixy = Malloc(n * 2, int);
+		int *ixy = Calloc(n * 2, int); 
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			int j = 2 * i;

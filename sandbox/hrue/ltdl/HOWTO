@@ -1,0 +1,60 @@
+This is a short not how to write the code do that libltdl can get the
+ptr to a function already in the inla-binary build. gcc/mingw-gcc only
+
+Prepare the function you want to use by adding attributes, so that the
+optimizer does not remove it. 
+
+
+// Force the compiler to keep this symbol even with aggressive LTO enabled
+__attribute__((used)) __attribute__((visibility("default")))
+#if defined(__cplusplus)
+extern "C"
+#endif
+double sin_intern(double x) 
+{
+	double ans = sin(x);
+	printf("call sin_intern(%f) = %f\n", x, ans);
+	return ans;
+}
+
+For linux/mac, we have to add linker option '-rdynamic'
+
+For windows, its more tricky.  First include this header
+
+#if defined(_WIN32)
+#       include <windows.h>
+#endif
+
+Then we need a code-fix like below. The _WIN32 spesific code fix `a
+known issue', which AI describes as
+
+``This Win32 fallback code is required because libltdl has a
+well-known architectural limitation on Windows when trying to look up
+symbols inside the main executable itself (lt_dlopen(NULL)). While
+libltdl works perfectly on Linux when passing NULL to open the main
+program, its Windows implementation frequently fails to find valid,
+exported internal functions like sin_intern.''
+
+		lt_dlinit();
+		handle = lt_dlopen(NULL);
+		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
+#if defined(_WIN32)
+		if (!fun) {
+			HMODULE hModule = GetModuleHandle(NULL);
+			if (hModule) {
+				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin_intern"));
+			}
+		}
+#endif
+		const char *error = NULL;
+		if (!fun && (error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+
+For windows, we also need to add linker option '-Wl,--export-all-symbols'
+
+It also looks like we need to 'fat-lto-objects' using LTO, so using
+compiler options '-flto=auto -ffat-lto-objects'. Its unclear if this
+is only Windows, or also Linux and Mac; Have not checked.
+

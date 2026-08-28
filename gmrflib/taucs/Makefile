@@ -24,8 +24,8 @@ LIBOBJ = obj/amdatr.o obj/amdbarNEW.o obj/amdbar.o obj/amdexa.o \
 	amd/src/amd_valid.o
 
 $(LIBNAME) :
-	$(MAKE) -f Makefile.taucs CC="$(CC)" FC="$(FC)" FFLAGS="$(FFLAGS)" CFLAGS="$(CFLAGS)"
-	$(MAKE) -f Makefile.amd   CC="$(CC)" FC="$(FC)" FFLAGS="$(FFLAGS)" CFLAGS="$(CFLAGS)"
+	$(MAKE) -f Makefile.taucs CC="$(CC)" FC="$(FC)" FFLAGS="-std=legacy -w $(FFLAGS)" CFLAGS="$(CFLAGS)"
+	$(MAKE) -f Makefile.amd   CC="$(CC)" FC="$(FC)" FFLAGS="-std=legacy -w $(FFLAGS)" CFLAGS="$(CFLAGS)"
 	$(RM) -f $(LIBNAME)
 	$(AR) crv $(LIBNAME) $(LIBOBJ)
 	$(RANLIB) $(LIBNAME)
