@@ -30,6 +30,7 @@
         cat("\tMaintainers .............: Havard Rue <hrue@r-inla.org>\n")
         cat("\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
         cat("\t                         : Elias Teixeira Krainski <elias@r-inla.org>\n")
+        cat("\t                         : Esmail Abdul Fattah <esmail.abdulfattah@kaust.edu.sa>\n")
         cat("\tMain web-page ...........: www.r-inla.org\n")
         cat("\tDownload-page ...........: inla.r-inla-download.org\n")
         cat("\tRepository ..............: github.com/hrue/r-inla\n")
