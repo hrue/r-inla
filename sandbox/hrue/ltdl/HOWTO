@@ -54,3 +54,7 @@ exported internal functions like sin_intern.''
 
 For windows, we also need to add linker option '-Wl,--export-all-symbols'
 
+It also looks like we need to 'fat-lto-objects' using LTO, so using
+compiler options '-flto=auto -ffat-lto-objects'. Its unclear if this
+is only Windows, or also Linux and Mac; Have not checked.
+
