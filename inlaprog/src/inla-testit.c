@@ -109,6 +109,9 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 
 // Force the compiler to keep this symbol even with aggressive LTO enabled
 __attribute__((used)) __attribute__((visibility("default")))
+#if defined(__cplusplus)
+extern "C"
+#endif
 double sin_intern(double x) 
 {
 	double ans = sin(x);
