@@ -11,9 +11,6 @@ if [ $win = 0 ]; then
     FLAGS="$FLAGS -rdynamic"
 fi
 
-echo $win
-exit 1
-
 DD=""
 for p in *; do
     if [ -d "$p" -a -f "$p/Makefile" ]; then
