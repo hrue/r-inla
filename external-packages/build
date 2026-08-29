@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -vx
 
+win=0
+for arg in "$@"; do
+    case "$arg" in 
+	*mingw*gcc*) win=1;;
+    esac
+done
+if [ $win = 0 ]; then
+    FLAGS="$FLAGS -rdynamic"
+fi
+
 DD=""
 for p in *; do
     if [ -d "$p" -a -f "$p/Makefile" ]; then
@@ -10,7 +20,7 @@ for p in *; do
 	    cd $p
 	    make download "$@"
 	    find . -name cgeneric.h | while read f; do  mv -vf "$f" "$f"-disabled; done
-	    make build "$@"
+	    make build FLAGS="$FLAGS" "$@"
 	)
     fi
 done
@@ -25,5 +35,3 @@ for D in $DD; do
 	mv -v -f $L ..
     )
 done
-
-
