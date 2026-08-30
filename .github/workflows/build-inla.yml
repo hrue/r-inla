@@ -8,7 +8,7 @@ name: build-inla
 
 on:
   push:
-    branches: [devel, feature/ci]
+    branches: [feature/ci]
     tags: ['v*']
   workflow_dispatch:
 
@@ -42,6 +42,14 @@ jobs:
             url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: System dependencies
+        ## Test lane, not a shipped bundle: intentionally UNPINNED so it
+        ## races ahead of GCC_PREFER and catches compiler-compatibility
+        ## breaks before a pin bump ever ships one. ci/deps-ubuntu.sh now
+        ## treats a set GCC_PREFER as a hard pin (install exactly that
+        ## version or fail); blank it here to keep this one lane on its
+        ## documented "take the newest available" behavior.
+        env:
+          GCC_PREFER: ""
         ## a wedged package manager should fail fast, not hang for hours
         timeout-minutes: 25
         run: bash ci/deps-ubuntu.sh
@@ -171,12 +179,21 @@ jobs:
         run: bash ci/fetch-stiles.sh
       - name: Build (portable, static MKL, dlopen libR)
         run: |
-          ## Newest gcc-toolset in the container (its base gcc is 8.5).
-          ## These toolchains target the container's own glibc, so a newer
-          ## compiler costs nothing in portability. Sorted by version: the
-          ## plain glob would pick gcc-toolset-10 over gcc-toolset-9.
-          e=$(ls -d /opt/rh/gcc-toolset-*/enable 2>/dev/null | sort -V | tail -1 || true)
-          [ -n "$e" ] && source "$e"
+          ## The EXACT toolset ci/deps-manylinux.sh installed and pinned
+          ## (GCC_TOOLSET, ci/toolchain.env), not "whichever is newest in the
+          ## container": that glob picks the highest gcc-toolset-N PRESENT,
+          ## which can differ from the one actually pinned if the image ships
+          ## more than one -- exactly how a bundle and the library inside it
+          ## drift apart without anything saying so. Hard fail rather than
+          ## fall back if the pinned toolset is somehow missing here; it was
+          ## already required to install earlier in this job.
+          . ci/toolchain.env
+          e="/opt/rh/gcc-toolset-$GCC_TOOLSET/enable"
+          if [ ! -f "$e" ]; then
+            echo "ERROR: pinned gcc-toolset-$GCC_TOOLSET/enable not found." >&2
+            exit 1
+          fi
+          source "$e"
           gcc --version | head -1
           if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
             echo "::group::errors"
@@ -541,11 +558,12 @@ jobs:
           if-no-files-found: error
 
   ## macOS Intel: the same scripts on the last x86_64 macOS runner image.
-  ## BLAS is the Accelerate framework, matching the upstream Intel recipe
-  ## (gmrflib/simd.c has Accelerate-specific paths). Experimental while it
-  ## stabilizes.
+  ## BLAS is a serial OpenBLAS built by ci/deps-macos.sh, not Accelerate:
+  ## Accelerate's threading cannot be controlled reliably and that breaks
+  ## INLA's nested parallelism (see the comment there). Same recipe as the
+  ## sTiles Intel lane, so both sides of the pairing sit on the same BLAS.
   macos-intel:
-    name: "macOS Intel: build + smoke test (Accelerate)"
+    name: "macOS Intel: build + smoke test (OpenBLAS)"
     runs-on: macos-15-intel
     defaults:
       run:
@@ -788,6 +806,10 @@ jobs:
   ## gate -- new-compiler breakage is an early warning, not a stop sign.
   canary-newest-gcc:
     name: "Canary: newest GCC on Fedora"
+    ## Off by default: run it only on a manual dispatch (Actions tab -> Run
+    ## workflow), not on every push. Toggle back to always-on by deleting
+    ## this line, no need to touch anything else in the job.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     container: fedora:latest
     continue-on-error: true

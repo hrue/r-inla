@@ -132,7 +132,47 @@ if [ -n "$BI" ]; then
         [ -f "$HERE/toolchain.env" ] && . "$HERE/toolchain.env"
         if [ -n "${GCC_TOOLSET:-}" ] && [ -x "/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++" ]; then
             CXX="/opt/rh/gcc-toolset-$GCC_TOOLSET/root/usr/bin/g++"
+        elif [ -n "${GCC_TOOLSET:-}${GCC_PREFER:-}" ] && [ ! -f "$DEST/lib/libstiles.dll" ] \
+             && [ "${STILES_ALLOW_COMPILER_MISMATCH:-0}" = "1" ]; then
+            ## A toolchain IS pinned (by GCC_TOOLSET or GCC_PREFER) but
+            ## nothing upstream of this point resolved it to an actual
+            ## compiler: no exported CXX, no matching /opt/rh toolset.
+            ## Globbing /usr/bin for "whatever's highest" here is exactly
+            ## how this checker itself would end up comparing the library
+            ## against a compiler the build never uses. Fail loudly instead;
+            ## fix the step that was supposed to install and export the pin.
+            ##
+            ## Excluded when the asset is a DLL: GCC_TOOLSET/GCC_PREFER pin
+            ## the NATIVE compiler and never apply to the Windows cross build
+            ## (that lane has its own pin, MINGW_TRIPLET). Whatever CXX ends
+            ## up as here is thrown away a few lines down in favour of the
+            ## MinGW cross-compiler anyway -- this branch firing here would
+            ## kill the script before it ever reaches that override.
+            ##
+            ## Excluded when the caller already set STILES_ALLOW_COMPILER_MISMATCH:
+            ## a lane that explicitly opted into "compare, but only warn" should
+            ## never be hard-killed by a DIFFERENT, earlier failure to resolve a
+            ## compiler at all -- that is a stricter outcome than the mismatch
+            ## it explicitly said it can tolerate. Fall through to best effort.
+            echo "WARNING: a compiler is pinned (GCC_TOOLSET=${GCC_TOOLSET:-} GCC_PREFER=${GCC_PREFER:-})" >&2
+            echo "         but this step has no CXX and no matching gcc-toolset;" >&2
+            echo "         proceeding with best effort (STILES_ALLOW_COMPILER_MISMATCH=1)." >&2
+            CXX=$(ls /usr/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1 || true)
+        elif [ -n "${GCC_TOOLSET:-}${GCC_PREFER:-}" ] && [ ! -f "$DEST/lib/libstiles.dll" ]; then
+            ## A toolchain IS pinned (by GCC_TOOLSET or GCC_PREFER) but
+            ## nothing upstream of this point resolved it to an actual
+            ## compiler: no exported CXX, no matching /opt/rh toolset.
+            ## Globbing /usr/bin for "whatever's highest" here is exactly
+            ## how this checker itself would end up comparing the library
+            ## against a compiler the build never uses. Fail loudly instead;
+            ## fix the step that was supposed to install and export the pin.
+            echo "ERROR: a compiler is pinned (GCC_TOOLSET=${GCC_TOOLSET:-} GCC_PREFER=${GCC_PREFER:-})" >&2
+            echo "       but this step has no CXX and no matching gcc-toolset." >&2
+            echo "       The step that installs it should export CC/CXX/FC" >&2
+            echo "       (see ci/deps-ubuntu.sh) or run before this one." >&2
+            exit 1
         else
+            ## genuinely unpinned (canary / newest-gcc lanes): best effort
             CXX=$(ls /usr/bin/g++-1[0-9] 2>/dev/null | sort -V | tail -1 || true)
         fi
     fi
