@@ -3461,7 +3461,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_set_idx(&stiles_idx, 1);
 
 			if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-				FIXME("NOT SURE STILES IS SUPPORTED HERE. PLEASE CHECK...");
+				FIXME("STILES IS NOT SUPPORTED HERE. PLEASE FIX CODE...");
 				abort();
 			}
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
