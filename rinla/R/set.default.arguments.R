@@ -300,6 +300,8 @@ control.gcpo <-
              num.level.sets = -1,
              # @param size.max TODO
              size.max = 32,
+             # @param min.overlap TODO
+             min.overlap = 0, 
              # @param strategy TODO
              strategy = c("posterior", "prior"),
              # @param groups TODO
