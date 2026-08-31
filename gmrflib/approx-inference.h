@@ -787,6 +787,7 @@ typedef struct {
 	int correct_hyperpar;
 	int len_weights;				       /* need to check later for Npred... */
 	int num_level_sets;
+	int min_overlap;
 	double epsilon;
 	double sqrt_epsilon;
 	double prior_diagonal;

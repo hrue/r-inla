@@ -3635,21 +3635,20 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 
 				GMRFLib_idx_tp *d_idx_local = NULL;
-				if (1) {
-					// only check linear predictors which has overlap of 'size >= overlap' with 'node'
-					int overlap = 2;
+				// only check linear predictors which has overlap of 'size >= overlap' with 'node'
+				if (gcpo_param->min_overlap == 0) {
+					d_idx_local = d_idx;
+				} else {
 					GMRFLib_idx_create_x(&d_idx_local, 1024);
 					GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(A_idx(node));
 					for (int knode = 0; knode < dn; knode++) {
 						int nnode = d_idx->idx[knode];
 						if (unlikely(node == nnode) ||
-						    GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= overlap) {
+						    GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= gcpo_param->min_overlap) {
 							GMRFLib_idx_add(&d_idx_local, nnode);
 						}
 					}
 					GMRFLib_idxval_bitmap_free(bitmap);
-				} else {
-					d_idx_local = d_idx;
 				}
 				
 				if (show_timer) {
@@ -3687,12 +3686,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							    (double) dn, (double) gcpo_param->num_level_sets, levels_magnify);
 
 					gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) d_idx_local->n);
-					if (0) {
-						for(int k = 0; k < siz_g; k++) {
-							printf("A: largest k %d largest[k] %zu cor_abs %.10f\n",
-							       k, largest[k], cor_abs[largest[k]]);
-						}
-					}
 
 					double sumw = W(node);
 					double cor_abs_prev = 1.0;
@@ -3828,9 +3821,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 			printf("\n");
 		}
-		FIXME("EXIT");
-		exit(0);
-
 
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			// this wil also do unbind
