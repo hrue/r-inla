@@ -1,16 +1,12 @@
 #include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
+#include <time.h>
+#include <math.h>
+#include <strings.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
@@ -1314,7 +1310,7 @@ GMRFLib_idxval_tp *GMRFLib_idxval_duplicate(GMRFLib_idxval_tp *h)
 	if (h->n > 0) {
 		Memcpy(nnew->idx, h->idx, h->n * sizeof(int));
 		Memcpy(nnew->val, h->val, h->n * sizeof(double));
-		nnew->n= h->n;
+		nnew->n = h->n;
 	}
 
 	return nnew;
@@ -1358,7 +1354,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1525,11 +1521,8 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 
 double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
-	// compute the inner-product of two sparse vectors assuming ->idx is sorted
-	if (0) {
-		assert(GMRFLib_is_sorted_iinc(u->n, u->idx));
-		assert(GMRFLib_is_sorted_iinc(v->n, v->idx));
-	}
+	// compute the inner-product of two sparse vectors assuming ->idx is sorted.
+	// this is the old and plain implementation
 
 	int nu = u->n;
 	int nv = v->n;
@@ -1554,7 +1547,8 @@ double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 
 double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
-	// quick verification bounds check (kept unchanged)
+	// compute the inner-product of two sparse vectors assuming ->idx is sorted
+
 	int nu = u->n;
 	int nv = v->n;
 	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
@@ -1570,8 +1564,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 		int v_idx = v->idx[iv];
 		int is_equal = (u_idx == v_idx);
 		int u_is_less = (u_idx < v_idx);
-
-		res += is_equal ? (u->val[iu] * v->val[iv]) : 0.0;
+		res += (is_equal ? (u->val[iu] * v->val[iv]) : 0.0);
 		iu += (u_is_less | is_equal);
 		iv += ((!u_is_less) | is_equal);
 	}
@@ -1588,44 +1581,48 @@ void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 
 GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 {
-	//  Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
+	// Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
+
+	// this function also works for _idx_tp, but needs a new interface. add this when needed...
 	assert(sizeof(size_t) == 8);
-	
+
 	if (!hold || hold->n == 0)
 		return NULL;
-    
+
 	GMRFLib_idx_bitmap_tp *bm = Calloc(1, GMRFLib_idx_bitmap_tp);
 	bm->n = hold->n;
 	bm->low = hold->idx[0];
 	bm->high = hold->idx[hold->n - 1];
 	int len = bm->high - bm->low + 1;
-    
+
 	// len divided by 64, plus 1 for padding
-	int size = (len >> 6) + 1; 
+	int size = (len >> 6) + 1;
 	bm->bitmap = Calloc(size, size_t);
 
 	for (int i = 0; i < bm->n; i++) {
 		int ix = hold->idx[i] - bm->low;
 		// ix >> 6 is division by 64, ix & 63 is modulo 64.
-		bm->bitmap[ix >> 6] |= ((size_t)1 << (ix & 63));
+		bm->bitmap[ix >> 6] |= ((size_t) 1 << (ix & 63));
 	}
 	return (bm);
 }
 
 int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
+	// return 1, if any v->idx match with the u->idx coded in the bitmap
+
 	if (!bm || bm->n == 0 || !v || v->n == 0) {
 		return 0;
 	}
-    
+
 	int low = bm->low;
 	int high = bm->high;
 	int len = high - low + 1;
 	int *idx = v->idx;
 	int n = v->n;
 	size_t *bitmap = bm->bitmap;
-	
-    
+
+
 	// Quick exit
 	if (idx[0] > high || idx[n - 1] < low) {
 		return 0;
@@ -1633,7 +1630,7 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 
 	int block_size = 8;
 	int i = 0;
-    
+
 	// Process in blocks to pipeline memory fetches
 	for (; i <= n - block_size; i += block_size) {
 		// Prefetch the bitmap memory lines for the NEXT block
@@ -1647,13 +1644,12 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 				}
 			}
 		}
-
 		// Evaluate the current block
 		for (int b = 0; b < block_size; b++) {
 			int ix = idx[i + b] - low;
 			if (LEGAL(ix, len)) {
 				if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
-					return 1; // Instant exit on match
+					return 1;	       // Instant exit on match
 				}
 			}
 		}
@@ -1672,10 +1668,12 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 
 int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
+	// return the number of matches of v->idx's with u->idx coded in the bitmap
+
 	if (!bm || bm->n == 0 || !v || v->n == 0) {
 		return 0;
 	}
-    
+
 	int low = bm->low;
 	int high = bm->high;
 	int *idx = v->idx;
@@ -1698,7 +1696,7 @@ int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 		int is_legal = (ix >= 0 && ix < len);
 		// Branchless bit retrieval: 
 		// If legal, lookup bit weight (0 or 1). If illegal, default safely to 0.
-		int has_match = (is_legal ? (int)((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0);
+		int has_match = (is_legal ? (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0);
 		nmatch += has_match;
 	}
 
@@ -1707,6 +1705,8 @@ int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 
 int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 {
+	// a plain implementation of _idxval_match
+
 	int nu = n;
 	int nv = v->n;
 	if (!nu || !nv || (idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < idx[0])) {
@@ -1719,7 +1719,8 @@ int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 		int u_idx = idx[iu];
 		int v_idx = v->idx[iv];
 		int is_equal = (u_idx == v_idx);
-		if (is_equal) return 1;
+		if (is_equal)
+			return 1;
 		int u_is_less = (u_idx < v_idx);
 		iu += (u_is_less | is_equal);
 		iv += ((!u_is_less) | is_equal);
@@ -1729,6 +1730,8 @@ int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 
 int GMRFLib_idxval_nmatch_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 {
+	// a plain implementation of _idxval_nmatch
+
 	int nu = n;
 	int nv = v->n;
 	if (!nu || !nv || (idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < idx[0])) {
@@ -1742,7 +1745,7 @@ int GMRFLib_idxval_nmatch_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 		int u_idx = idx[iu];
 		int v_idx = v->idx[iv];
 		int is_equal = (u_idx == v_idx);
-		res += is_equal ? 1 : 0;
+		res += (is_equal ? 1 : 0);
 		int u_is_less = (u_idx < v_idx);
 		iu += (u_is_less | is_equal);
 		iv += ((!u_is_less) | is_equal);
