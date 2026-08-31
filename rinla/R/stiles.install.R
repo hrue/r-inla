@@ -15,7 +15,9 @@
 #' `BUILDINFO` file recording the compiler, flags and library versions that
 #' produced it.
 #'
-#' @param tag     Release to install from, e.g. `"v26.08.18"`. Defaults to the
+#' @param tag     Release to install from, e.g. `"Version_26.08.31"` (tags
+#'                published before that use the older `"v26.08.18"` form,
+#'                and both still resolve). Defaults to the
 #'                current release. Pin it for reproducibility.
 #' @param dir     Where to unpack. Defaults to a per-user cache directory.
 #' @param force   Re-download even when the binary is already installed.
@@ -28,7 +30,7 @@
 #' @examples
 #' \dontrun{
 #' inla.stiles.install()                  # newest release
-#' inla.stiles.install(tag = "v26.08.18") # a specific one
+#' inla.stiles.install(tag = "Version_26.08.31") # a specific one
 #' }
 #'
 #' @seealso [inla.stiles()], [inla.binary.install()]
