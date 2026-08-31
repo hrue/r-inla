@@ -3319,7 +3319,7 @@ int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx,
-					   char *fixed_nodes)
+					   char *UNUSED(fixed_nodes))
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define A_idx_ptr() (preopt->pAA_idxval ? preopt->pAA_idxval : preopt->A_idxval)
@@ -3508,27 +3508,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		nt_inner = 1;
 		GMRFLib_openmp_implement_strategy_special(nt_outer, nt_inner);
 
-		// build local A_idx, so we can remove the fixed nodes
-		GMRFLib_idxval_tp **A_idx_local = NULL;
-		A_idx_local = Calloc(Npred, GMRFLib_idxval_tp *);
-		FIXME1("DO NOT REMOVE FIXED NODES");
-#pragma omp parallel for num_threads(nt_outer)
-		for (int i = 0; i < Npred; i++) {
-			GMRFLib_idxval_tp *v = A_idx(i);
-			GMRFLib_idxval_tp *w = NULL;
-			GMRFLib_idxval_create_x(&w, v->n);
-			int nn = 0;
-			for(int k = 0; k < v->n; k++) {
-				if (1 || !fixed_nodes[v->idx[k]]) {
-					w->idx[nn] = v->idx[k];
-					w->val[nn] = v->val[k];
-					nn++;
-				}
-			}
-			w->n = nn;
-			A_idx_local[i] = w;
-		}
-		
 		GMRFLib_idx_tp *selection = NULL;
 		if (!(gcpo_param->selection)) {
 			selection = GMRFLib_idx_duplicate(d_idx);
@@ -3650,21 +3629,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_dfill(dn, 0.0, cor);
 				GMRFLib_dfill(dn, 0.0, cor_abs);
 
-				// create 'w', which is A_idx_local[node] but we remove those nodes where Sa[] is zero
-				GMRFLib_idxval_tp *w= NULL;
-				GMRFLib_idxval_create_x(&w, A_idx_local[node]->n);
-				int nn = 0;
-				for(int k = 0; k < A_idx_local[node]->n; k++) {
-					int id = A_idx_local[node]->idx[k];
-					if (!ISZERO(Sa[id])) {
-						w->idx[nn] = id;
-						w->val[nn] = Sa[id];
-						nn++;
-					}
-				}
-				w->n = nn;
-				if (0) printf("Sa: %d out of n=%d elements are non-zero \n", nn, n);
-
 				if (show_timer) {
 					tref[tid][tidd][1] += GMRFLib_timer();
 					tref[tid][tidd][2] -= GMRFLib_timer();
@@ -3672,21 +3636,18 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 				GMRFLib_idx_tp *d_idx_local = NULL;
 				if (1) {
-					// only add linear predictors which has overlap of 'size >= overlap' with 'node' 
+					// only check linear predictors which has overlap of 'size >= overlap' with 'node'
 					int overlap = 2;
 					GMRFLib_idx_create_x(&d_idx_local, 1024);
-					// this bitmap is used for the whole loop...
-					GMRFLib_idxval_bitmap_add(A_idx_local[node]);
+					GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(A_idx(node));
 					for (int knode = 0; knode < dn; knode++) {
 						int nnode = d_idx->idx[knode];
 						if (unlikely(node == nnode) ||
-						    GMRFLib_idxval_idx_nmatch(A_idx_local[nnode]->n, A_idx_local[nnode]->idx,
-									      A_idx_local[node]) >= overlap) {
+						    GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= overlap) {
 							GMRFLib_idx_add(&d_idx_local, nnode);
 						}
 					}
-					// ...and then we remove it
-					GMRFLib_idxval_bitmap_remove(A_idx_local[node]);
+					GMRFLib_idxval_bitmap_free(bitmap);
 				} else {
 					d_idx_local = d_idx;
 				}
@@ -3700,9 +3661,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int knode = 0; knode < d_idx_local->n; knode++) {
 					int nnode = d_idx_local->idx[knode];
 					if (likely(node != nnode)) {
-						GMRFLib_idxval_tp *vv = A_idx_local[nnode];
+						GMRFLib_idxval_tp *vv = A_idx(nnode);
 						double sum = GMRFLib_sparse_ddot_(vv, Sa);
-						//double sum = GMRFLib_idxval_dot(vv, w);
 						sum *= s * isd[nnode];
 						cor[knode] = TRUNCATE(sum, -1.0, 1.0);
 						cor_abs[knode] = ABS(cor[knode]);
@@ -3710,7 +3670,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						cor[knode] = cor_abs[knode] = 1.0;
 					}
 				}
-				GMRFLib_idxval_free(w);
 				
 				if (show_timer) {
 					tref[tid][tidd][3] += GMRFLib_timer();
@@ -3879,13 +3838,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 
 		GMRFLib_idx_split_free(split);
-
-		if (A_idx_local != A_idx_ptr()) {
-			for(int i = 0; i < Npred; i++){
-				GMRFLib_idxval_free(A_idx_local[i]);
-			}
-			Free(A_idx_local);
-		}
 
 		for (int i = 0; i < nt_outer; i++) {
 			for (int j = 0; j < work_n; j++) {

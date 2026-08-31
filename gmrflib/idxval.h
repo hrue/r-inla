@@ -64,12 +64,21 @@ typedef enum {
 
 typedef double GMRFLib_dot_product_tp(void *__restrict, void *__restrict);
 
+typedef struct 
+{
+	int n; 
+	int low; 
+	int high; 
+	size_t *bitmap;
+}
+	GMRFLib_idx_bitmap_tp;
+
+
 typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
 	int *idx;
-	size_t *bitmap;
 	double *val;
 	
 	int g_n;					       /* number of groups with sequential indices */
@@ -150,18 +159,16 @@ int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
 int GMRFLib_idxval_find(int *id, double *val, GMRFLib_idxval_tp * h);
 int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
-int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold);
-int GMRFLib_idxval_idx_match_REF(int n, int *idx, GMRFLib_idxval_tp *hold);
-int GMRFLib_idxval_idx_match_plain(int n, int *idx, GMRFLib_idxval_tp *hold);
-int GMRFLib_idxval_idx_nmatch(int n, int *idx, GMRFLib_idxval_tp *hold);
-int GMRFLib_idxval_idx_nmatch_REF(int n, int *idx, GMRFLib_idxval_tp *hold);
+int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm);
+int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *hold);
+int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm);
 int GMRFLib_idxval_idx_nmatch_plain(int n, int *idx, GMRFLib_idxval_tp *hold);
 int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare, int accumulate);
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x_ran, int prepare, int accumulate);
-int GMRFLib_idxval_overlap(GMRFLib_idxval_tp * idx1, GMRFLib_idxval_tp * idx2);
+int GMRFLib_idxval_overlap(GMRFLib_idxval_tp * idx1, GMRFLib_idxval_tp *idx2);
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
@@ -183,8 +190,9 @@ int GMRFLib_val_free(GMRFLib_val_tp * hold);
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
-void GMRFLib_idxval_bitmap_add(GMRFLib_idxval_tp *hold);
-void GMRFLib_idxval_bitmap_remove(GMRFLib_idxval_tp *hold);
+
+GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold);
+void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm);
 
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp * h);

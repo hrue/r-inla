@@ -6507,9 +6507,11 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_addto(&h, 2*i+1, sqrt(i));
 		}
 		GMRFLib_idxval_prepare(&h, 1, 1);
-
+		GMRFLib_idx_bitmap_tp *bm = GMRFLib_idxval_bitmap_get(h);
 		for(int i = 0-10; i < h->idx[n-1]+10; i++) {
-			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_idx_match(1, &i, h));
+			GMRFLib_idxval_tp *v;
+			GMRFLib_idxval_add(&v, i, 0.0);
+			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_match(v, bm));
 		}
 	}
 	break;

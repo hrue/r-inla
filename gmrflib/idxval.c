@@ -1144,7 +1144,6 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 	if (hold) {
 		Free(hold->idx);
 		Free(hold->val);
-		Free(hold->bitmap);
 		Free(hold->g_idx);
 		Free(hold->g_val);
 		Free(hold->g_len);
@@ -1579,59 +1578,53 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	return res;
 }
 
-void GMRFLib_idxval_bitmap_remove(GMRFLib_idxval_tp *hold)
+void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 {
-	if (hold && hold->bitmap) {
-		Free(hold->bitmap);
+	if (bm) {
+		Free(bm->bitmap);
+		Free(bm);
 	}
 }
 
-void GMRFLib_idxval_bitmap_add(GMRFLib_idxval_tp *hold)
+GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 {
 	//  Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
 	assert(sizeof(size_t) == 8);
 	
 	if (!hold || hold->n == 0)
-		return;
+		return NULL;
     
-	int n = hold->n;
-	int low = hold->idx[0];
-	int high = hold->idx[n - 1];
-	int len = high - low + 1;
+	GMRFLib_idx_bitmap_tp *bm = Calloc(1, GMRFLib_idx_bitmap_tp);
+	bm->n = hold->n;
+	bm->low = hold->idx[0];
+	bm->high = hold->idx[hold->n - 1];
+	int len = bm->high - bm->low + 1;
     
 	// len divided by 64, plus 1 for padding
 	int size = (len >> 6) + 1; 
-	size_t *bitmap = Calloc(size, size_t);
+	bm->bitmap = Calloc(size, size_t);
 
-#if 0
-	static size_t mem = 0;
-#pragma omp critical (Name_baec00b4f5667f2c3c1e862c0ac291b386449a30)
-	{
-		mem += size * sizeof(size_t);
-		P(mem);
+	for (int i = 0; i < bm->n; i++) {
+		int ix = hold->idx[i] - bm->low;
+		// ix >> 6 is division by 64, ix & 63 is modulo 64.
+		bm->bitmap[ix >> 6] |= ((size_t)1 << (ix & 63));
 	}
-#endif	
-	
-	for (int i = 0; i < n; i++) {
-		int ix = hold->idx[i] - low;
-		// ix >> 6 is division by 64. ix & 63 is modulo 64.
-		bitmap[ix >> 6] |= ((size_t)1 << (ix & 63));
-	}
-	Free(hold->bitmap);
-	hold->bitmap = bitmap; 
+	return (bm);
 }
 
-int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
+int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
-	assert(hold->bitmap);
-	if (!hold || hold->n == 0 || n == 0) {
+	if (!bm || bm->n == 0 || !v || v->n == 0) {
 		return 0;
 	}
     
-	int low = hold->idx[0];
-	int high = hold->idx[hold->n - 1];
+	int low = bm->low;
+	int high = bm->high;
 	int len = high - low + 1;
-	size_t *bm = hold->bitmap;
+	int *idx = v->idx;
+	int n = v->n;
+	size_t *bitmap = bm->bitmap;
+	
     
 	// Quick exit
 	if (idx[0] > high || idx[n - 1] < low) {
@@ -1649,7 +1642,7 @@ int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
 				int next_ix = idx[i + block_size + b] - low;
 				if (LEGAL(next_ix, len)) {
 #if defined(__GNUC__) || defined(__clang__)
-					__builtin_prefetch(&bm[next_ix >> 6], 0, 3);
+					__builtin_prefetch(&bitmap[next_ix >> 6], 0, 3);
 #endif
 				}
 			}
@@ -1659,7 +1652,7 @@ int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
 		for (int b = 0; b < block_size; b++) {
 			int ix = idx[i + b] - low;
 			if (LEGAL(ix, len)) {
-				if ((bm[ix >> 6] >> (ix & 63)) & 1) {
+				if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
 					return 1; // Instant exit on match
 				}
 			}
@@ -1669,7 +1662,7 @@ int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
 	for (; i < n; i++) {
 		int ix = idx[i] - low;
 		if (LEGAL(ix, len)) {
-			if ((bm[ix >> 6] >> (ix & 63)) & 1) {
+			if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
 				return 1;
 			}
 		}
@@ -1677,16 +1670,17 @@ int GMRFLib_idxval_idx_match(int n, int *idx, GMRFLib_idxval_tp *hold)
 	return 0;
 }
 
-int GMRFLib_idxval_idx_nmatch(int n, int *idx, GMRFLib_idxval_tp *hold)
+int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
-	assert(hold->bitmap);
-	if (!hold || hold->n == 0 || n == 0) {
+	if (!bm || bm->n == 0 || !v || v->n == 0) {
 		return 0;
 	}
     
-	int low = hold->idx[0];
-	int high = hold->idx[hold->n - 1];
-    
+	int low = bm->low;
+	int high = bm->high;
+	int *idx = v->idx;
+	int n = v->n;
+
 	// Quick exit: If the entire input range falls completely outside the bitmap boundaries
 	if (idx[0] > high || idx[n - 1] < low) {
 		return 0;
@@ -1694,7 +1688,7 @@ int GMRFLib_idxval_idx_nmatch(int n, int *idx, GMRFLib_idxval_tp *hold)
 
 	int len = high - low + 1;
 	int nmatch = 0;
-	size_t *bm = hold->bitmap;
+	size_t *bitmap = bm->bitmap;
 
 	// Pragma hints to the compiler that elements don't overlap and can be SIMD-vectorized
 #pragma omp simd reduction(+:nmatch)
@@ -1704,48 +1698,14 @@ int GMRFLib_idxval_idx_nmatch(int n, int *idx, GMRFLib_idxval_tp *hold)
 		int is_legal = (ix >= 0 && ix < len);
 		// Branchless bit retrieval: 
 		// If legal, lookup bit weight (0 or 1). If illegal, default safely to 0.
-		int has_match = (is_legal ? (int)((bm[ix >> 6] >> (ix & 63)) & 1) : 0);
+		int has_match = (is_legal ? (int)((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0);
 		nmatch += has_match;
 	}
 
 	return nmatch;
 }
 
-// simple function to check against
-int GMRFLib_idxval_idx_match_REF(int n, int *idx, GMRFLib_idxval_tp *hold)
-{
-	if (!hold || hold->n == 0 || n == 0) {
-		return 0;
-	}
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < hold->n; j++) {
-			if (idx[i] == hold->idx[j]) {
-				return 1;
-			}
-		}
-	}
-	return 0; 
-}
-
-// simple function to check against
-int GMRFLib_idxval_idx_nmatch_REF(int n, int *idx, GMRFLib_idxval_tp *hold)
-{
-	if (!hold || hold->n == 0 || n == 0) {
-		return 0;
-	}
-	int count = 0;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < hold->n; j++) {
-			if (idx[i] == hold->idx[j]) {
-				count++;
-				break; 
-			}
-		}
-	}
-	return count;
-}
-
-int GMRFLib_idxval_idx_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
+int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 {
 	int nu = n;
 	int nv = v->n;
@@ -1767,7 +1727,7 @@ int GMRFLib_idxval_idx_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 	return 0;
 }
 
-int GMRFLib_idxval_idx_nmatch_plain(int n, int *idx, GMRFLib_idxval_tp *v)
+int GMRFLib_idxval_nmatch_plain(int n, int *idx, GMRFLib_idxval_tp *v)
 {
 	int nu = n;
 	int nv = v->n;
