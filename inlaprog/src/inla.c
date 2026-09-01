@@ -6018,11 +6018,22 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	// GCPO
 	if (1) {
 		char *gcpo_fixed_nodes = Calloc(N, char);
-		int icount = GMRFLib_isum(mb->nf, mb->f_Ntotal);
-		for (i = 0; i < mb->nlinear; i++) {
-			gcpo_fixed_nodes[icount++] = (char) 1;
+		int offset = 0;
+		for (i = 0; i < mb->nf; i++) {
+			int n = mb->f_Ntotal[i]; 
+			if (n <= 24) {
+				for(j = 0; j < n; j++) {
+					gcpo_fixed_nodes[offset + j] = 1;
+				}
+			}
+			offset += n;
 		}
+		for (i = 0; i < mb->nlinear; i++) {
+			gcpo_fixed_nodes[offset+i] = (char) 1;
+		}
+		offset += mb->nlinear;
 		mb->ai_par->gcpo_fixed_nodes = gcpo_fixed_nodes;
+		assert(offset == N);
 	}
 
 	double tref = GMRFLib_timer();

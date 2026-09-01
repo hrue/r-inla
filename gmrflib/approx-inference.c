@@ -3319,9 +3319,8 @@ int GMRFLib_equal_cor(double c1, double c2, GMRFLib_gcpo_param_tp *param)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param, int *UNUSED(fl), GMRFLib_idx_tp *d_idx,
-					   char *UNUSED(fixed_nodes))
+					   char *fixed_nodes)
 {
-#define WITH_LOCAL_TIMER 1
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define A_idx_ptr() (preopt->pAA_idxval ? preopt->pAA_idxval : preopt->A_idxval)
 #define W(node_) (gcpo_param->weights[node_])
@@ -3560,7 +3559,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_rescale_start(1);
 		}
 
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 #define NLOC 6
 		double tref[GMRFLib_MAX_THREADS()][GMRFLib_MAX_THREADS()][NLOC];
 		// cannot use '={0};' above, need to do this manually
@@ -3577,7 +3576,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			
 #pragma omp parallel for num_threads(nt_outer)
 		for (int kk = 0; kk < split->n; kk++) {
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 			int tid = omp_get_thread_num();
 			if (show_timer) tref[tid][0][0] -= GMRFLib_timer();
 #endif
@@ -3614,13 +3613,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 			GMRFLib_Qsolves(Saa, sel->n, build_ai_store->problem, &stiles_idx);
 
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 			if (show_timer) tref[tid][0][0] += GMRFLib_timer();
 #endif
 			
 #pragma omp parallel for num_threads(nt_inner) if (nt_inner > 1) schedule(static)
 			for (int ii = 0; ii < sel->n; ii++) {
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				int tidd = omp_get_thread_num();
 				if (show_timer) tref[tid][tidd][1] -= GMRFLib_timer();
 #endif				
@@ -3635,7 +3634,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				GMRFLib_dfill(dn, 0.0, cor);
 				GMRFLib_dfill(dn, 0.0, cor_abs);
 
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				if (show_timer) {
 					tref[tid][tidd][1] += GMRFLib_timer();
 					tref[tid][tidd][2] -= GMRFLib_timer();
@@ -3646,29 +3645,61 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				if (gcpo_param->min_overlap == 0) {
 					d_idx_local = d_idx;
 				} else {
-					P(node);
-					GMRFLib_idx_create_x(&d_idx_local, 1024);
-					GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(A_idx(node));
-					for (int knode = 0; knode < dn; knode++) {
-						int nnode = d_idx->idx[knode];
-						P(nnode);
-						P(GMRFLib_idxval_nmatch(A_idx(nnode), bitmap));
-						if (unlikely(node == nnode) ||
-						    GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= gcpo_param->min_overlap) {
-							GMRFLib_idx_add(&d_idx_local, nnode);
+					// bitmap is the bitmap for all (latent) variables making up lin.pred[node], and the union
+					// of their neigbours
+					GMRFLib_graph_tp *g = preopt->latent_graph;
+					GMRFLib_idx_tp *nb = NULL;
+					GMRFLib_idx_create_x(&nb, IMIN(dn, 65536));
+					for(int k = 0; k < A_idx(node)->n; k++) {
+						int lnode = A_idx(node)->idx[k];
+						if (!fixed_nodes[lnode]) {
+							GMRFLib_idx_add(&nb, lnode);
+							for(int j = 0; j < g->nnbs[lnode]; j++) {
+								int llnode = g->nbs[lnode][j];
+								if (!fixed_nodes[llnode]) {
+									GMRFLib_idx_add(&nb, llnode);
+								}
+							}
 						}
 					}
+
+					// need min and max to be set, the easy way is to sort. integer-sort is soooo quick anyway
+					GMRFLib_idx_sort(nb);  
+					GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idx_bitmap_get(nb);
+					GMRFLib_idx_create_x(&d_idx_local, 1024);
+					double tt[2] = {0};
+					if (1 || gcpo_param->min_overlap == 1) {
+						tt[0] -= GMRFLib_timer();
+						for (int knode = 0; knode < dn; knode++) {
+							int nnode = d_idx->idx[knode];
+							if (unlikely(node == nnode) || GMRFLib_idxval_match(A_idx(nnode), bitmap)) {
+								GMRFLib_idx_add(&d_idx_local, nnode);
+							}
+						}
+						tt[0] += GMRFLib_timer();
+					}
+					if (1) {
+						tt[1] -= GMRFLib_timer();
+						for (int knode = 0; knode < dn; knode++) {
+							int nnode = d_idx->idx[knode];
+							if (unlikely(node == nnode) ||
+							    GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= gcpo_param->min_overlap) {
+								GMRFLib_idx_add(&d_idx_local, nnode);
+							}
+						}
+						tt[1] += GMRFLib_timer();
+					}
+					P(tt[0] / (tt[0] + tt[1]));
 					GMRFLib_idxval_bitmap_free(bitmap);
-					GMRFLib_idx_printf(stdout, d_idx_local, "d_idx_local");
+					GMRFLib_idx_free(nb);
 				}
 				
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				if (show_timer) {
 					tref[tid][tidd][2] += GMRFLib_timer();
 					tref[tid][tidd][3] -= GMRFLib_timer();
 				}
 #endif
-				
 				double s = isd[node];
 				for (int knode = 0; knode < d_idx_local->n; knode++) {
 					int nnode = d_idx_local->idx[knode];
@@ -3681,9 +3712,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					} else {
 						cor[knode] = cor_abs[knode] = 1.0;
 					}
+					// printf("\tnode %d nnode %d cor %f\n", node, nnode, cor[knode]);
 				}
 				
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				if (show_timer) {
 					tref[tid][tidd][3] += GMRFLib_timer();
 					tref[tid][tidd][4] -= GMRFLib_timer();
@@ -3695,10 +3727,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 				while (!levels_ok) {
 					groups[node]->n = 0;
-					int siz_g = IMIN(dn, (int) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
+					int siz_g = IMIN(d_idx_local->n, (int) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
 					levels_magnify *= 4.0;
 					GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
-							    (double) dn, (double) gcpo_param->num_level_sets, levels_magnify);
+							    (double) d_idx_local->n, (double) gcpo_param->num_level_sets, levels_magnify);
 
 					gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) d_idx_local->n);
 
@@ -3740,7 +3772,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 									/*
 									 * correct sumw, reset i_prev to point to the max weight one 
 									 */
-									sumw += W(i_new) - W(i_prev);
+									sumw += (W(i_new) - W(i_prev));
 									i_prev = i_new;
 								}
 							}
@@ -3751,7 +3783,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 								levels_ok = 1;
 							}
 						}
-						if (groups[node]->n >= dn)
+						if (groups[node]->n >= d_idx_local->n)
 							levels_ok = 1;	/* emergency option */
 					}
 					if (levels_ok) {
@@ -3766,7 +3798,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					GMRFLib_DEBUG_i("levels_ok", levels_ok);
 				}
 
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				if (show_timer) {
 					tref[tid][tidd][4] += GMRFLib_timer();
 					tref[tid][tidd][5] -= GMRFLib_timer();
@@ -3817,13 +3849,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				if (d_idx_local != d_idx) {
 					GMRFLib_idx_free(d_idx_local);
 				}
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 				if (show_timer) tref[tid][tidd][5] += GMRFLib_timer();
 #endif
 			}
 		}
 
-#if defined(WITH_LOCAL_TIMER)
+#if defined(INLA_WITH_DEVEL)
 		if (show_timer) {
 			double tot[NLOC] = {0};
 			for(int i = 0; i < GMRFLib_MAX_THREADS(); i++){

@@ -192,6 +192,7 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 
 GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold);
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold);
 void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm);
 
 

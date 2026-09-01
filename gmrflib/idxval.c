@@ -1579,11 +1579,25 @@ void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 	}
 }
 
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold) 
+{
+	if (!hold) {
+		return NULL;
+	}
+	
+	GMRFLib_idxval_tp a = {
+		.idx = hold->idx, 
+		.n= hold->n
+	};
+	GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(&a);
+
+	return bitmap;
+}
+	
 GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 {
 	// Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
 
-	// this function also works for _idx_tp, but needs a new interface. add this when needed...
 	assert(sizeof(size_t) == 8);
 
 	if (!hold || hold->n == 0)
@@ -1628,7 +1642,7 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 		return 0;
 	}
 
-	int block_size = 8;
+	int block_size = 4;
 	int i = 0;
 
 	// Process in blocks to pipeline memory fetches
@@ -1638,9 +1652,7 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 			for (int b = 0; b < block_size; b++) {
 				int next_ix = idx[i + block_size + b] - low;
 				if (LEGAL(next_ix, len)) {
-#if defined(__GNUC__) || defined(__clang__)
 					__builtin_prefetch(&bitmap[next_ix >> 6], 0, 3);
-#endif
 				}
 			}
 		}
@@ -1649,7 +1661,7 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 			int ix = idx[i + b] - low;
 			if (LEGAL(ix, len)) {
 				if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
-					return 1;	       // Instant exit on match
+					return 1;
 				}
 			}
 		}
