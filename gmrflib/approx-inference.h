@@ -544,7 +544,7 @@ typedef struct {
 	char *vb_nodes_variance;
 
 	char *gcpo_fixed_nodes;
-	
+
 	/** 
 	 * Try to be smart when optimizing in INLA?   
 	 */

@@ -1354,7 +1354,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1579,21 +1579,21 @@ void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 	}
 }
 
-GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold) 
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold)
 {
 	if (!hold) {
 		return NULL;
 	}
-	
+
 	GMRFLib_idxval_tp a = {
-		.idx = hold->idx, 
-		.n= hold->n
+		.idx = hold->idx,
+		.n = hold->n
 	};
 	GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(&a);
 
 	return bitmap;
 }
-	
+
 GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 {
 	// Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
@@ -1623,69 +1623,20 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 
 int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
-	// return 1, if any v->idx match with the u->idx coded in the bitmap
-
-	if (!bm || bm->n == 0 || !v || v->n == 0) {
-		return 0;
-	}
-
-	int low = bm->low;
-	int high = bm->high;
-	int len = high - low + 1;
-	int *idx = v->idx;
-	int n = v->n;
-	size_t *bitmap = bm->bitmap;
-
-
-	// Quick exit
-	if (idx[0] > high || idx[n - 1] < low) {
-		return 0;
-	}
-
-	int block_size = 4;
-	int i = 0;
-
-	// Process in blocks to pipeline memory fetches
-	for (; i <= n - block_size; i += block_size) {
-		// Prefetch the bitmap memory lines for the NEXT block
-		if (i + block_size < n) {
-			for (int b = 0; b < block_size; b++) {
-				int next_ix = idx[i + block_size + b] - low;
-				if (LEGAL(next_ix, len)) {
-					__builtin_prefetch(&bitmap[next_ix >> 6], 0, 3);
-				}
-			}
-		}
-		// Evaluate the current block
-		for (int b = 0; b < block_size; b++) {
-			int ix = idx[i + b] - low;
-			if (LEGAL(ix, len)) {
-				if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
-					return 1;
-				}
-			}
-		}
-	}
-
-	for (; i < n; i++) {
-		int ix = idx[i] - low;
-		if (LEGAL(ix, len)) {
-			if ((bitmap[ix >> 6] >> (ix & 63)) & 1) {
-				return 1;
-			}
-		}
-	}
-	return 0;
+	// we could rewrite this into smaller chunks and check for an earlier exit
+	int ret = GMRFLib_idxval_nmatch(v, bm);
+	return (ret ? 1 : 0);
 }
 
 int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
 	// return the number of matches of v->idx's with u->idx coded in the bitmap
 
+#if 0
 	if (!bm || bm->n == 0 || !v || v->n == 0) {
 		return 0;
 	}
-
+#endif
 	int low = bm->low;
 	int high = bm->high;
 	int *idx = v->idx;
@@ -1700,19 +1651,31 @@ int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 	int nmatch = 0;
 	size_t *bitmap = bm->bitmap;
 
-	// Pragma hints to the compiler that elements don't overlap and can be SIMD-vectorized
-#pragma omp simd reduction(+:nmatch)
-	for (int i = 0; i < n; i++) {
-		int ix = idx[i] - low;
-		// Branchless bounds checking
-		int is_legal = (ix >= 0 && ix < len);
-		// Branchless bit retrieval: 
-		// If legal, lookup bit weight (0 or 1). If illegal, default safely to 0.
-		int has_match = (is_legal ? (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0);
-		nmatch += has_match;
-	}
+#define CODE_CHUNK_1							\
+	for (int i = 0; i < n; i++) {					\
+		int ix = idx[i] - low;					\
+		int is_legal = (ix >= 0 && ix < len);			\
+		int has_match = (is_legal ? (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0); \
+		nmatch += has_match;					\
+	}								\
+	return nmatch
 
-	return nmatch;
+#define CODE_CHUNK_2							\
+	for (int i = 0; i < n; i++) {					\
+		int ix = idx[i] - low;					\
+		int is_legal = (ix >= 0) & (ix < len);			\
+		int mask = -is_legal;					\
+		int safe_ix = ix & mask;				\
+		int bit = (int) ((bitmap[safe_ix >> 6] >> (safe_ix & 63)) & 1);	\
+		nmatch += (bit & mask);					\
+	}								\
+	return nmatch
+	
+#pragma omp simd reduction(+:nmatch) if(n >= 16)
+	CODE_CHUNK_2;
+	
+#undef CODE_CHUNK_1
+#undef CODE_CHUNK_2
 }
 
 int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
