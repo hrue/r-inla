@@ -3568,9 +3568,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 		}
 		int show_timer = 1;
-		if (show_timer) {
-			printf("\ngcpo_build: Initialize timer %d %d\n", nt_outer, nt_inner);
-		}
 #endif
 
 #pragma omp parallel for num_threads(nt_outer) schedule(dynamic)
@@ -3857,11 +3854,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			}
 
 			double inv_sum = 1.0 / GMRFLib_dsum(NLOC, tot);
-			printf("TIMER: ");
+			printf("\n\tGCPO TIMER: ");
 			for (int i = 0; i < NLOC; i++) {
 				printf("%1d:%.3f ", i, tot[i] * inv_sum);
 			}
-			printf("\n");
+			printf("\n\n");
 		}
 #       undef NLOC
 #endif

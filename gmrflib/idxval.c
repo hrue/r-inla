@@ -1630,26 +1630,34 @@ int GMRFLib_idxval_match(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 
 int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 {
-	// return the number of matches of v->idx's with u->idx coded in the bitmap
+	// return the number of matches of v->idx's with u->idx coded in the bitmap. this code is optimized for small 'n'. if 'n' is
+	// large, then we need to rewrite using the ideas below.
 
-#if 0
-	if (!bm || bm->n == 0 || !v || v->n == 0) {
-		return 0;
-	}
-#endif
 	int low = bm->low;
 	int high = bm->high;
 	int *idx = v->idx;
 	int n = v->n;
 
-	// Quick exit: If the entire input range falls completely outside the bitmap boundaries
 	if (idx[0] > high || idx[n - 1] < low) {
 		return 0;
 	}
 
-	int len = high - low + 1;
 	int nmatch = 0;
+	unsigned int ulen = high - low + 1;
 	size_t *bitmap = bm->bitmap;
+
+	for (int i = 0; i < n; i++) {
+		int ix = idx[i] - low;
+		// if ix is negative, casting to unsigned makes it go around and fail the < len check
+		if ((unsigned int) ix < ulen) { 
+			nmatch += (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1);
+		}
+	}
+	return nmatch;
+
+	// turn off the rest of this code
+#if 0
+	int len = high - low + 1;
 
 #define CODE_CHUNK_1							\
 	for (int i = 0; i < n; i++) {					\
@@ -1671,11 +1679,12 @@ int GMRFLib_idxval_nmatch(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
 	}								\
 	return nmatch
 	
-#pragma omp simd reduction(+:nmatch) if(n >= 16)
+#pragma omp simd reduction(+:nmatch)
 	CODE_CHUNK_2;
 	
 #undef CODE_CHUNK_1
 #undef CODE_CHUNK_2
+#endif
 }
 
 int GMRFLib_idxval_match_plain(int n, int *idx, GMRFLib_idxval_tp *v)
