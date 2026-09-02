@@ -270,7 +270,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	mb->mode_restart = 1;
 	mb->mode_fixed = mb->mode_use_mode = 0;
 	inla_theta_all_init(mb);			       /* temporary */
-
+	if (!(mb->verbose)) {
+		sTiles_set_log_level(-2);
+	}
 	ini = mb->ini = iniparser_load(dict_filename);
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
@@ -7280,7 +7282,6 @@ int main(int argc, char **argv)
 		case 'E':
 		{
 			GMRFLib_force_stiles = 1;
-			printf("force the use sTiles\n");
 		}
 			break;
 

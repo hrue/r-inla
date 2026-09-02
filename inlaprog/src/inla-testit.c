@@ -6511,7 +6511,7 @@ int testit(int argc, char **argv)
 		for(int i = 0-10; i < h->idx[n-1]+10; i++) {
 			GMRFLib_idxval_tp *v;
 			GMRFLib_idxval_add(&v, i, 0.0);
-			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_match(v, bm));
+			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_nmatch(v, bm));
 		}
 	}
 	break;
