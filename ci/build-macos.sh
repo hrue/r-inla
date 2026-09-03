@@ -28,7 +28,9 @@ EPATH=$ROOT/external-packages
 ## Version reported by the built binary. It is the R package's Version from
 ## rinla/DESCRIPTION, so `inla -V` and packageVersion("INLA") agree for anyone
 ## who installs the R package and the binary from the same commit. The short
-## commit is kept in INLA_TAG (a string, shown by `inla -v` as "Build tag"),
+## commit is kept in INLA_TAG as <version>+<sha>. No spaces or parens:
+## this string travels through a $(MAKE) recipe into /bin/sh, where dash
+## treats a bare "(" as a syntax error and the whole build dies.
 ## which is where the build-traceability belongs; GITCOMMIT has to stay a bare
 ## preprocessor token, so it carries the version alone.
 SHA=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -72,7 +74,7 @@ FLAGS="$OPTFLAGS $ARCHFLAGS -pipe -pthread \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL -DINLA_WITH_CLONE_TARGETS \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
- -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG ($SHA)\"' \
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG+$SHA\"' \
  -I$BREW/include -I$DEPS/include"
 
 mkdir -p "$PREFIX"/bin "$PREFIX"/lib "$PREFIX"/include "$PREFIX/include.boot"

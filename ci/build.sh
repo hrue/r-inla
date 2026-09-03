@@ -72,7 +72,9 @@ fi
 ## Version reported by the built binary. It is the R package's Version from
 ## rinla/DESCRIPTION, so `inla -V` and packageVersion("INLA") agree for anyone
 ## who installs the R package and the binary from the same commit. The short
-## commit is kept in INLA_TAG (a string, shown by `inla -v` as "Build tag"),
+## commit is kept in INLA_TAG as <version>+<sha>. No spaces or parens:
+## this string travels through a $(MAKE) recipe into /bin/sh, where dash
+## treats a bare "(" as a syntax error and the whole build dies.
 ## which is where the build-traceability belongs; GITCOMMIT has to stay a bare
 ## preprocessor token, so it carries the version alone.
 SHA=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -187,7 +189,7 @@ FLAGS="$OPTFLAGS $MARCH -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL $CLONE_DEF \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
- -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG ($SHA)\"' $BLAS_INC $STILES_INC"
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG+$SHA\"' $BLAS_INC $STILES_INC"
 
 ## R linkage, three modes:
 ##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;
