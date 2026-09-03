@@ -86,9 +86,22 @@ inla.print.version <- function() {
     if (file.exists(stamp)) return(invisible(NULL))
 
     ## Already usable? Then say nothing: this is only for a fresh install.
+    ##
+    ## Existence is NOT the test. The package ships launcher scripts at
+    ## inst/bin/<platform>/64bit/ (inla.run is ~2 KB, inla.mkl.run is 8 bytes)
+    ## which exist on every install and cannot run a model: the solver is a
+    ## separate ~100 MB download. Checking file.exists() therefore always
+    ## passed and this offer never appeared, which is the bug this replaces.
+    ## Ask the binary instead: -V is the cheapest question it answers, and it
+    ## runs at most once per machine because of the stamp above.
     call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
     if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
-        return(invisible(NULL))
+        out <- suppressWarnings(tryCatch(
+            system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
+            error = function(e) character(0)))
+        if (any(grepl("version", out, ignore.case = TRUE))) {
+            return(invisible(NULL))
+        }
     }
 
     auto <- isTRUE(getOption("inla.stiles.autoinstall")) ||
