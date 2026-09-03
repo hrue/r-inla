@@ -22,34 +22,43 @@ inla.print.version <- function() {
             " - List available models/likelihoods/etc with inla.list.models()\n", 
             " - Use inla.doc(<NAME>) to access documentation"
         )
-        opts <- options()
-        options(timeout = 2)
-        suppressWarnings({
-            vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
-                                  n = 4, encoding = "UTF-8"), silent = TRUE)
-        })
-        if (!inherits(vers, "try-error") && length(vers) == 4) {
-            rem.space <- function(x) gsub("[ ]+","", x)
-            stable <- rem.space(vers[1])
-            testing <- rem.space(vers[2])
-            major <- rem.space(vers[3])
-            minor <- rem.space(vers[4])
-            minor <- rem.space(strsplit(minor, "[.]")[[1]][1])
-            current <- getNamespaceVersion("INLA")
-            if (!(current == stable || current == testing)) {
-                majo <- rem.space(R.Version()$major)
-                mino <- rem.space(strsplit(R.Version()$minor, "[.]")[[1]][1])
-                if (majo != major || mino != minor) {
-                    rstr <- paste0(" (require R-", major, ".", minor, ")")
-                } else {
-                    rstr <- "."
+        ## Upgrade notice, disabled. It fetched
+        ## https://inla.r-inla-download.org/VERSIONS on every attach and compared
+        ## the running version against the published stable/testing ones. That
+        ## server carries the upstream builds, so a version built here is never
+        ## one of them and the notice fired every time, telling the user to
+        ## "upgrade" to something older than what they are running.
+        ## Wrapped rather than deleted so it can be restored in one edit.
+        if (FALSE) {
+            opts <- options()
+            options(timeout = 2)
+            suppressWarnings({
+                vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
+                                      n = 4, encoding = "UTF-8"), silent = TRUE)
+            })
+            if (!inherits(vers, "try-error") && length(vers) == 4) {
+                rem.space <- function(x) gsub("[ ]+","", x)
+                stable <- rem.space(vers[1])
+                testing <- rem.space(vers[2])
+                major <- rem.space(vers[3])
+                minor <- rem.space(vers[4])
+                minor <- rem.space(strsplit(minor, "[.]")[[1]][1])
+                current <- getNamespaceVersion("INLA")
+                if (!(current == stable || current == testing)) {
+                    majo <- rem.space(R.Version()$major)
+                    mino <- rem.space(strsplit(R.Version()$minor, "[.]")[[1]][1])
+                    if (majo != major || mino != minor) {
+                        rstr <- paste0(" (require R-", major, ".", minor, ")")
+                    } else {
+                        rstr <- "."
+                    }
+                    hello <- paste0(hello, "\n",
+                                    paste0(" - Consider upgrading R-INLA to testing[",  testing,
+                                           "] or stable[", stable, "]", rstr))
                 }
-                hello <- paste0(hello, "\n",
-                                paste0(" - Consider upgrading R-INLA to testing[",  testing,
-                                       "] or stable[", stable, "]", rstr))
             }
+            options(opts)
         }
-        options(opts)
         packageStartupMessage(hello)
     }
 }

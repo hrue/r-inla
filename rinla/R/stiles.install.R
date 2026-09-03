@@ -22,6 +22,11 @@
 #' @param dir     Where to unpack. Defaults to a per-user cache directory.
 #' @param force   Re-download even when the binary is already installed.
 #' @param smtp    Also select the sTiles sparse-matrix backend (default `TRUE`).
+#' @param persist Write the settings into `~/.Rprofile` so they survive an R
+#'                restart (default `TRUE`). The block is delimited and is
+#'                REPLACED on each install, so installing another release
+#'                re-points it rather than adding a second entry. A `.bak`
+#'                is kept the first time the file is modified.
 #' @param repo    GitHub repository holding the releases.
 #' @param verbose Report each step.
 #'
@@ -43,6 +48,7 @@
                                   dir = NULL,
                                   force = FALSE,
                                   smtp = TRUE,
+                                  persist = TRUE,
                                   repo = "hrue/r-inla",
                                   verbose = TRUE) {
     say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
@@ -282,11 +288,59 @@
     ## downloaded binary but forgets both settings, which looks like the
     ## install vanished. Print the calls that bring it back, unconditionally:
     ## they are the actionable output of this function, not progress chatter.
-    cat("\nThese settings do not survive an R restart. To restore them next time, run:\n\n")
-    cat(sprintf('    inla.setOption(inla.call = "%s")\n', bin[1]))
-    if (isTRUE(smtp)) cat('    inla.setOption(smtp = "stiles")\n')
-    cat("\nor put those lines in your ~/.Rprofile to make them permanent,\n")
-    cat("or simply call inla.stiles.install() again (the download is cached).\n")
+    if (isTRUE(persist)) {
+        ## Write the settings into ~/.Rprofile so a restart keeps them.
+        ##
+        ## The block is delimited by markers and REPLACED on every install, so
+        ## installing a second release re-points the same lines instead of
+        ## appending a second inla.call that would shadow the first depending
+        ## on order. Everything outside the markers is copied through
+        ## untouched, and a one-time .bak is kept the first time this file is
+        ## modified, because it is the user's file and not ours to lose.
+        ok <- tryCatch({
+            rp <- path.expand("~/.Rprofile")
+            beg <- "## >>> INLA: set by inla.stiles.install() >>>"
+            end <- "## <<< INLA <<<"
+            body <- c(beg,
+                      sprintf('INLA::inla.setOption(inla.call = "%s")', bin[1]),
+                      if (isTRUE(smtp)) 'INLA::inla.setOption(smtp = "stiles")',
+                      end)
+            oldl <- if (file.exists(rp)) readLines(rp, warn = FALSE) else character(0)
+            if (length(oldl) && !file.exists(paste0(rp, ".bak"))) {
+                try(writeLines(oldl, paste0(rp, ".bak")), silent = TRUE)
+            }
+            i <- which(oldl == beg); j <- which(oldl == end)
+            keep <- if (length(i) == 1L && length(j) == 1L && j > i) {
+                c(utils::head(oldl, i - 1L), utils::tail(oldl, length(oldl) - j))
+            } else {
+                oldl
+            }
+            ## Write beside and rename: an interrupted write must not leave a
+            ## truncated .Rprofile, which would break every future R session.
+            tmp <- paste0(rp, ".new")
+            writeLines(c(keep, body), tmp)
+            file.rename(tmp, rp)
+            TRUE
+        }, error = function(e) e)
+
+        if (isTRUE(ok)) {
+            say("~/.Rprofile updated; the settings survive a restart")
+            cat("\nWritten to ~/.Rprofile (replacing any previous INLA block):\n\n")
+            cat(sprintf('    INLA::inla.setOption(inla.call = "%s")\n', bin[1]))
+            if (isTRUE(smtp)) cat('    INLA::inla.setOption(smtp = "stiles")\n')
+            cat("\nRun with persist = FALSE to leave ~/.Rprofile alone.\n")
+        } else {
+            cat("\nCould not update ~/.Rprofile (", conditionMessage(ok), ").\n", sep = "")
+            cat("Add these lines yourself to make the settings permanent:\n\n")
+            cat(sprintf('    INLA::inla.setOption(inla.call = "%s")\n', bin[1]))
+            if (isTRUE(smtp)) cat('    INLA::inla.setOption(smtp = "stiles")\n')
+        }
+    } else {
+        cat("\nThese settings do not survive an R restart. To restore them next time, run:\n\n")
+        cat(sprintf('    inla.setOption(inla.call = "%s")\n', bin[1]))
+        if (isTRUE(smtp)) cat('    inla.setOption(smtp = "stiles")\n')
+        cat("\nor re-run with persist = TRUE to write them to ~/.Rprofile.\n")
+    }
 
     invisible(bin[1])
 }
