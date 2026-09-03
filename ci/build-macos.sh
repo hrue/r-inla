@@ -166,18 +166,22 @@ for d in "$EPATH"/*/; do
     [ -f "$d/Makefile" ] && make -C "$d" clean >/dev/null
 done
 rm -f "$EPATH"/lib*.a
+## -I for libtool: defining INLA_WITH_EXTERNAL_PACKAGES (in INC below) is what
+## makes an external package's header include <ltdl.h>. Linux picks that up
+## from /usr/include with no -I at all, so the omission stayed invisible until
+## a package started honouring the macro. Homebrew's libtool is keg-only, i.e.
+## NOT symlinked into $BREW/include, which is why the link line further down
+## already carries -L$BREW/opt/libtool/lib; the compile side needs the matching
+## include path or ltdl.h is not found.
+##
+## Keep comments OUT of the command below: every line up to the closing paren
+## is one continued command, so a "#" line there is not a comment, it is an
+## argument to ./build and is forwarded into make.
 ( cd "$EPATH" && ./build \
       CC="$CC" CXX="$CXX" FC="$FC" \
       FLAGS="" \
-      ## -I for libtool: defining INLA_WITH_EXTERNAL_PACKAGES (right here) is
-      ## what makes an external package's header include <ltdl.h>. Linux picks
-      ## that up from /usr/include with no -I at all, so the omission stayed
-      ## invisible until a package started honouring the macro. Homebrew's
-      ## libtool is keg-only, i.e. NOT symlinked into $BREW/include, which is
-      ## why the link line below already carries -L$BREW/opt/libtool/lib; the
-      ## compile side needs the matching include path or ltdl.h is not found.
       INC="-DINLA_WITH_EXTERNAL_PACKAGES -I$BREW/include/eigen3 \
-           -I$BREW/opt/libtool/include -I$BREW/include \
+           -I$BREW/opt/libtool/include \
            -I$RHOME/include -I$EPATH -I$ROOT/inlaprog/src" )
 
 FAILED=0
