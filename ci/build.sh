@@ -69,7 +69,15 @@ fi
 
 ## Version string compiled into the binary (shown by inla -V and inla -ping);
 ## falls back to "devel" outside a git checkout.
-TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
+## Version reported by the built binary. It is the R package's Version from
+## rinla/DESCRIPTION, so `inla -V` and packageVersion("INLA") agree for anyone
+## who installs the R package and the binary from the same commit. The short
+## commit is kept in INLA_TAG (a string, shown by `inla -v` as "Build tag"),
+## which is where the build-traceability belongs; GITCOMMIT has to stay a bare
+## preprocessor token, so it carries the version alone.
+SHA=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
+TAG=$(sed -n 's/^Version:[[:space:]]*//p' "$ROOT/rinla/DESCRIPTION" 2>/dev/null | head -1)
+[ -n "$TAG" ] || TAG=$SHA
 
 echo "== building $TAG with CC=$CC CXX=$CXX FC=$FC ($($CC --version | head -1)) =="
 echo "== optimization: OPT=$OPT LTO=$LTO =="
@@ -172,7 +180,7 @@ FLAGS="$OPTFLAGS $MARCH -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL $CLONE_DEF \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER -DINLA_WITH_NUMA \
- -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' $BLAS_INC $STILES_INC"
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG ($SHA)\"' $BLAS_INC $STILES_INC"
 
 ## R linkage, three modes:
 ##   WITH_LIBR=1  link the shared libR at build time (rgeneric works;

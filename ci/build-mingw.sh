@@ -20,7 +20,15 @@ SYSROOT2=$(x86_64-w64-mingw32-gcc --print-sysroot 2>/dev/null || echo "$SYSROOT"
 EPATH=$ROOT/external-packages
 RWIN=$DEPS/R-win
 
-TAG=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo devel)
+## Version reported by the built binary. It is the R package's Version from
+## rinla/DESCRIPTION, so `inla -V` and packageVersion("INLA") agree for anyone
+## who installs the R package and the binary from the same commit. The short
+## commit is kept in INLA_TAG (a string, shown by `inla -v` as "Build tag"),
+## which is where the build-traceability belongs; GITCOMMIT has to stay a bare
+## preprocessor token, so it carries the version alone.
+SHA=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
+TAG=$(sed -n 's/^Version:[[:space:]]*//p' "$ROOT/rinla/DESCRIPTION" 2>/dev/null | head -1)
+[ -n "$TAG" ] || TAG=$SHA
 echo "== building $TAG for Windows with $CC ($($CC --version | head -1)) =="
 
 ## No NUMA/CLONE_TARGETS (Linux-only); otherwise the devel feature set.
@@ -39,7 +47,7 @@ FLAGS="$OPTFLAGS -mtune=generic -pipe -pthread -Wall -Wextra \
  -fopenmp -fopenmp-simd -flax-vector-conversions \
  -DINLA_WITH_SIMDE -DINLA_WITH_DEVEL \
  -DINLA_WITH_EXTERNAL_PACKAGES -DINLA_WITH_MUPARSER \
- -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG\"' \
+ -DGITCOMMIT=$TAG -DINLA_TAG='\"$TAG ($SHA)\"' \
  -I$DEPS/include -I$RWIN/include"
 
 mkdir -p "$PREFIX"/bin "$PREFIX"/lib "$PREFIX"/include

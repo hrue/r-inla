@@ -11,9 +11,9 @@
 ## published packages one for one (tag v26.08.22 <-> INLA_26.08.22), so
 ## derive from them rather than keeping a second copy in step by hand:
 ##
-##     Version: <latest tag without the leading v>.9000
+##     Version: <YY.MM.DD of HEAD, or the tag when HEAD is tagged>
 ##
-## The .9000 suffix is R's convention for "development, after release X".
+## No development suffix: the built binary reports this exact string.
 ## It keeps a checkout build strictly newer than the release it follows,
 ## which is what makes an installed devel package win over the released
 ## one in version comparisons.
@@ -40,7 +40,20 @@ TAG=$(git -C "$ROOT" describe --tags --abbrev=0 2>/dev/null || true)
 ## form (matching the release/Version_* branches), v* the older one.
 BASE=${TAG#Version_}
 BASE=${BASE#v}
-WANT="${BASE}.9000"
+## Exactly at a tag -> that release's version. Otherwise the version is the
+## HEAD commit's DATE, in the same YY.MM.DD form the releases use. There is
+## deliberately NO ".9000" development suffix: the build scripts read this
+## same string out of DESCRIPTION and compile it into the binary, so it is
+## what a user sees from BOTH packageVersion("INLA") and `inla -V`, and a
+## suffix there reads as noise. The date always sorts above the last tag, so
+## R still sees an upgrade, and it never claims to BE a release the way a
+## bare tag on a later commit would.
+if [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
+    WANT="$BASE"
+else
+    WANT=$(git -C "$ROOT" log -1 --format=%cd --date=format:%y.%m.%d 2>/dev/null)
+fi
+[ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
 HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 
 if [ "$HAVE" = "$WANT" ]; then
