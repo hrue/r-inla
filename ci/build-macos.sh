@@ -169,7 +169,15 @@ rm -f "$EPATH"/lib*.a
 ( cd "$EPATH" && ./build \
       CC="$CC" CXX="$CXX" FC="$FC" \
       FLAGS="" \
+      ## -I for libtool: defining INLA_WITH_EXTERNAL_PACKAGES (right here) is
+      ## what makes an external package's header include <ltdl.h>. Linux picks
+      ## that up from /usr/include with no -I at all, so the omission stayed
+      ## invisible until a package started honouring the macro. Homebrew's
+      ## libtool is keg-only, i.e. NOT symlinked into $BREW/include, which is
+      ## why the link line below already carries -L$BREW/opt/libtool/lib; the
+      ## compile side needs the matching include path or ltdl.h is not found.
       INC="-DINLA_WITH_EXTERNAL_PACKAGES -I$BREW/include/eigen3 \
+           -I$BREW/opt/libtool/include -I$BREW/include \
            -I$RHOME/include -I$EPATH -I$ROOT/inlaprog/src" )
 
 FAILED=0
