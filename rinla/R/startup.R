@@ -58,12 +58,74 @@ inla.print.version <- function() {
     ## nothing for the moment
 }
 
+## First run after installing: the package ships launcher scripts, not a
+## solver, so `inla()` cannot run anything until a binary is present. Offer to
+## fetch one instead of letting the first model fail with a message about a
+## missing program.
+##
+## It ASKS rather than downloading on its own. A bundle is 26-130 MB, and a
+## library() call silently pulling that over a metered or offline connection
+## is not something a user can undo. Set
+##   options(inla.stiles.autoinstall = TRUE)   (or INLA_STILES_AUTOINSTALL=1)
+## to skip the question, which is what an unattended or container setup wants.
+##
+## Asked once: the answer, either way, is remembered in the cache directory,
+## so declining does not turn into a prompt on every session.
+`inla.first.run.binary` <- function() {
+    cache <- tools::R_user_dir("INLA", "cache")
+    stamp <- file.path(cache, "binary-offer-made")
+    if (file.exists(stamp)) return(invisible(NULL))
+
+    ## Already usable? Then say nothing: this is only for a fresh install.
+    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
+        return(invisible(NULL))
+    }
+
+    auto <- isTRUE(getOption("inla.stiles.autoinstall")) ||
+            nzchar(Sys.getenv("INLA_STILES_AUTOINSTALL"))
+
+    if (!auto && !interactive()) {
+        packageStartupMessage(
+            "No inla binary is installed yet. Run inla.stiles.install() to fetch one.")
+        return(invisible(NULL))
+    }
+
+    if (!auto) {
+        packageStartupMessage("No inla binary is installed yet.")
+        ans <- tryCatch(
+            readline("Download and install one now? [y/N] "),
+            error = function(e) "")
+        ## Record the offer BEFORE acting: a failed or refused install must not
+        ## leave the question to be asked again at every startup.
+        dir.create(cache, recursive = TRUE, showWarnings = FALSE)
+        try(writeLines(format(Sys.time()), stamp), silent = TRUE)
+        if (!grepl("^[Yy]", ans)) {
+            packageStartupMessage("Skipped. Run inla.stiles.install() when you want it.")
+            return(invisible(NULL))
+        }
+    } else {
+        dir.create(cache, recursive = TRUE, showWarnings = FALSE)
+        try(writeLines(format(Sys.time()), stamp), silent = TRUE)
+    }
+
+    ## Never let this break library(INLA): a download failure is reported and
+    ## the session continues, exactly as it would have without the offer.
+    res <- tryCatch(inla.stiles.install(), error = function(e) e)
+    if (inherits(res, "error")) {
+        packageStartupMessage("Could not install a binary: ", conditionMessage(res))
+        packageStartupMessage("Run inla.stiles.install() to retry.")
+    }
+    invisible(NULL)
+}
+
 .onAttach <- function(...) {
     if (interactive()) {
         inla.print.version()
     } else {
         packageStartupMessage(appendLF=FALSE)
     }
+    try(inla.first.run.binary(), silent = TRUE)
 }
 
 .onUnload <- function(libpath) {

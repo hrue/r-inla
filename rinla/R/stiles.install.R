@@ -348,6 +348,21 @@
         say(if (isTRUE(alive)) "binary answers -ping" else "binary DID NOT answer -ping")
     }
 
+    ## The sTiles release this binary carries. BUILDINFO records it as
+    ## "libstiles:  Version_2026.09.03"; that tag is what the sTiles release
+    ## page and the pairing with an INLA bundle are keyed on, so report it as
+    ## a field rather than leaving the caller to parse buildinfo themselves.
+    stiles.version <- NA_character_
+    if (length(buildinfo)) {
+        ln <- grep("^[[:space:]]*libstiles[[:space:]]*:", buildinfo,
+                   ignore.case = TRUE, value = TRUE)
+        if (length(ln)) {
+            v <- sub("^[[:space:]]*[Ll]ibstiles[[:space:]]*:[[:space:]]*", "", ln[1])
+            v <- trimws(v)
+            if (nzchar(v)) stiles.version <- v
+        }
+    }
+    say("sTiles:    ", if (is.na(stiles.version)) "(unknown; no BUILDINFO)" else stiles.version)
     if (length(buildinfo) && verbose) {
         keep <- grep("^(compiler|libstiles|blas|date):", buildinfo, ignore.case = TRUE, value = TRUE)
         if (length(keep)) { say("BUILDINFO:"); cat(paste0("    ", keep), sep = "\n") }
@@ -355,5 +370,6 @@
     if (length(installed)) say("installed releases: ", paste(installed, collapse = ", "))
 
     invisible(list(inla.call = call, smtp = smtp, release = release,
+                   stiles.version = stiles.version,
                    alive = alive, buildinfo = buildinfo, cache = installed))
 }
