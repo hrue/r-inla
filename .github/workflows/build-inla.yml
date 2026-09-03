@@ -937,7 +937,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          ## Title as the releases are written: "INLA 26.08.27", i.e. the
+          ## version without the tag's leading "v". The three most recent
+          ## releases use that form; the older "inla binaries v..." wording
+          ## was renamed by hand each time, so generate it correctly instead.
+          REL_VER="${GITHUB_REF_NAME#Version_}"
+          REL_VER="${REL_VER#v}"
+          REL_TITLE="INLA $REL_VER"
           gh release create "$GITHUB_REF_NAME" dist/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "inla binaries $GITHUB_REF_NAME" \
+            --title "$REL_TITLE" \
             --notes-file notes.md
