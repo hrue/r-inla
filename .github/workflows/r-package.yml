@@ -48,11 +48,9 @@ jobs:
           r-version: release
           use-public-rspm: true
 
-      ## R CMD build only needs what the package declares it Depends on.
-      ## Vignettes are skipped: they are not part of what is being checked
-      ## here and they pull a much larger dependency set.
-      - name: Package dependencies
-        run: Rscript -e 'install.packages("Matrix")'
+      ## No dependency install: R CMD build does not load the package, and
+      ## vignettes are skipped, so nothing from Depends/Suggests is needed.
+      ## Verified by building the same tarball on a machine without them.
 
       - name: Build the package
         run: |

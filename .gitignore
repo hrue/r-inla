@@ -111,3 +111,6 @@ r-inla.org/doc/likelihood/gengaussian.tex
 
 gmrflib/intrinsics/test_simde_code
 .positai
+
+## R CMD build output; produced in the repo root by the package build
+INLA_*.tar.gz

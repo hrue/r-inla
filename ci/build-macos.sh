@@ -33,6 +33,13 @@ EPATH=$ROOT/external-packages
 ## preprocessor token, so it carries the version alone.
 SHA=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
 TAG=$(sed -n 's/^Version:[[:space:]]*//p' "$ROOT/rinla/DESCRIPTION" 2>/dev/null | head -1)
+## Report the version the way R renders it. R parses DESCRIPTION's Version and
+## drops leading zeros per component, so a padded "26.09.03" is shown by
+## packageVersion("INLA") as "26.9.3". Printing the raw string here would make
+## `inla -V` and packageVersion disagree on the same install for no reason, so
+## strip the zeros the same way. Verified to agree with R on 26.09.03, 26.08.27,
+## 26.10.01 and a four-component form.
+TAG=$(printf '%s' "$TAG" | awk -F. '{s="";for(i=1;i<=NF;i++){c=$i+0;s=s (i>1?".":"") c}print s}')
 [ -n "$TAG" ] || TAG=$SHA
 echo "== building $TAG for macOS arm64 with CC=$CC ($($CC --version | head -1)) =="
 
