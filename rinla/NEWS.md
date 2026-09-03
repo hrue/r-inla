@@ -1,3 +1,40 @@
+# INLA 26.09.03
+* title releases as INLA <version>; add a NEWS draft helper
+* no spaces or parens in the build tag
+* report the version the way R renders it; small CI cleanups
+* status reports the stiles version; offer a binary on first use
+* build the R package in CI
+* binary and R package report one version
+* macos: include path for ltdl
+* add the SVE2 arm target
+* Silence param output from sTiles
+* Revert back '-rdynamic' flag, as its only needed while linking
+* smoke: fill inla external tree, linux libglpk, windows cran mirror
+* smoke keeps runner repos, use job token for github install
+* intel mac lane is openblas not accelerate
+* smoke on linux mac windows, install from a script
+* smoke installs graphpcor from source
+* smoke runs on its own file changes
+* add germany4 smoke workflow
+* fix mismatch exemption test
+* canary runs on manual dispatch only
+* fix edge cases the first CI run surfaced
+* add a stable 'latest' path for inla.call
+* isolate bundled libcrypto from LD_LIBRARY_PATH
+* pin the compiler, no silent fallback
+* pass a prefix through to sTiles_print_params
+* Remove debug statement
+* Update external-package/build
+* Fixed a missprint in the doc for likelihood 'beta'
+* Fixed a compiler warning
+* Update version()
+* Update ltdl/HOWTO
+* Add descritption for ltdl lookup for symbols in the binary
+* Update Makefile for gfortran options
+* Updated some fortran code for old-style coding
+* Update inlaprog/Makefile
+* Adding new test: 55
+
 # INLA 26.08.22
 * Minor code improvements
 
