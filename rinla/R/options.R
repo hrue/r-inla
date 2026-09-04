@@ -23,7 +23,7 @@
 #' default value for 'control.expert$blas.num.threads'. } 
 #' 
 #' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`, `stiles`
-#' `default` or `pardiso`}
+#' or `default`}
 #' 
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}

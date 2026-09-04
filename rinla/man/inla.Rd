@@ -32,7 +32,6 @@ inla(
   control.lincomb = list(),
   control.update = list(),
   control.lp.scale = list(),
-  control.pardiso = list(),
   control.stiles = list(),
   control.taucs = list(),
   control.numa = list(),
@@ -154,8 +153,6 @@ See also \code{?inla.rjmarginal} and the approriate vignette.}
 \item{control.update}{See \code{?control.update}}
 
 \item{control.lp.scale}{See \code{?control.lp.scale}}
-
-\item{control.pardiso}{See \code{?control.pardiso}}
 
 \item{control.stiles}{See \code{?control.stiles}}
 

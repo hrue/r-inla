@@ -86,7 +86,6 @@
 #' @param control.lincomb See `?control.lincomb`
 #' @param control.update See `?control.update`
 #' @param control.lp.scale See `?control.lp.scale`
-#' @param control.pardiso See `?control.pardiso`
 #' @param control.stiles See `?control.stiles`
 #' @param control.taucs See `?control.taucs`
 #' @param control.numa See `?control.numa`
@@ -258,7 +257,6 @@
                    control.lincomb = list(),
                    control.update = list(),
                    control.lp.scale = list(),
-                   control.pardiso = list(),
                    control.stiles = list(),
                    control.taucs = list(),
                    control.numa = list(),
@@ -385,7 +383,6 @@
             control.lincomb = control.lincomb, 
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
-            control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
             control.numa = control.numa, 
@@ -429,7 +426,6 @@
             control.lincomb = control.lincomb, 
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
-            control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
             control.numa = control.numa, 
@@ -537,7 +533,6 @@
     control.lincomb <- ctrl_object(control.lincomb, "lincomb", data)
     control.update <- ctrl_object(control.update, "update", data)
     control.lp.scale <- ctrl_object(control.lp.scale, "lp_scale", data)
-    control.pardiso <- ctrl_object(control.pardiso, "pardiso", data)
     control.stiles <- ctrl_object(control.stiles, "stiles", data)
     control.taucs <- ctrl_object(control.taucs, "taucs", data)
     control.numa <- ctrl_object(control.numa, "numa", data)
@@ -659,7 +654,6 @@
             control.lincomb = control.lincomb,
             control.update = control.update,
             control.lp.scale = control.lp.scale,
-            control.pardiso = control.pardiso,
             control.stiles = control.stiles,
             control.taucs = control.taucs,
             control.numa = control.numa,
@@ -1150,7 +1144,6 @@
     mf$control.family <- NULL
     mf$control.update <- NULL
     mf$control.lp.scale <- NULL
-    mf$control.pardiso <- NULL
     mf$control.stiles <- NULL
     mf$control.taucs <- NULL
     mf$control.numa <- NULL
@@ -2125,9 +2118,7 @@
     inla.lp.scale.section(file = file.ini, data.dir = data.dir, contr = cont.lp.scale,
                           write.hyper = !is.null(lp.scale))
 
-    ## create pardiso/stiles sections
-    cont.pardiso <- ctrl_update(control.pardiso)
-    inla.pardiso.section(file = file.ini, data.dir = data.dir, contr = cont.pardiso)
+    ## create the stiles section
     cont.stiles <- ctrl_update(control.stiles)
     inla.stiles.section(file = file.ini, data.dir = data.dir, contr = cont.stiles)
     cont.taucs <- ctrl_update(control.taucs)
@@ -2557,7 +2548,6 @@
             control.lincomb = control.lincomb, 
             control.update = control.update, 
             control.lp.scale = control.lp.scale, 
-            control.pardiso = control.pardiso, 
             control.stiles = control.stiles, 
             control.taucs = control.taucs, 
             control.numa = control.numa, 

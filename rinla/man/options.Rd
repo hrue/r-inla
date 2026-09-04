@@ -29,7 +29,7 @@ is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' 
 default value for 'control.expert$blas.num.threads'. }
 
 \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}, \code{stiles}
-\code{default} or \code{pardiso}}
+or \code{default}}
 
 \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 (default \code{TRUE})}

@@ -146,7 +146,6 @@ Collate:
     'options.R'
     'os.R'
     'over_sp_mesh.R'
-    'pardiso.R'
     'pc-alphaw.R'
     'pc-ar.R'
     'pc-bym.R'
