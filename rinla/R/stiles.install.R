@@ -383,12 +383,16 @@
             ## including the one running R CMD INSTALL for INLA itself. Calling
             ## INLA::inla.setOption() there while the package is mid-reinstall
             ## (old copy removed, new one not yet in place) segfaults and takes
-            ## the installation down with it. R sets R_INSTALL_PKG during an
-            ## install, so skip then; also skip when INLA is not installed at
-            ## all, so a removed package cannot break every later R session.
+            ## the installation down with it. R_CMD is what marks such a
+            ## session: it is set for any "R CMD ..." and empty otherwise.
+            ## NOT R_INSTALL_PKG, which this used to test: that one is unset at
+            ## the time ~/.Rprofile is read, so the guard never fired and the
+            ## block ran during installs regardless. Also skip when INLA is not
+            ## installed at all, so a removed package cannot break every later
+            ## R session.
             body <- c(beg,
                       "local({",
-                      "    if (nzchar(Sys.getenv(\"R_INSTALL_PKG\"))) return(invisible(NULL))",
+                      "    if (nzchar(Sys.getenv(\"R_CMD\"))) return(invisible(NULL))",
                       "    if (!requireNamespace(\"INLA\", quietly = TRUE)) return(invisible(NULL))",
                       sprintf('    try(INLA::inla.setOption(inla.call = "%s"), silent = TRUE)', bin[1]),
                       if (isTRUE(smtp)) '    try(INLA::inla.setOption(smtp = "stiles"), silent = TRUE)',
