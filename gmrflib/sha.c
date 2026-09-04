@@ -1,9 +1,6 @@
-#include <stddef.h>
-#include <string.h>
-#include <stdint.h>
-
 #include "GMRFLib/sha.h"
 
+// Core standard rotation and Boolean functions
 #define ROTR(x, n)    (((x) >> (n)) | ((x) << (32 - (n))))
 #define Ch(x, y, z)   ((z) ^ ((x) & ((y) ^ (z))))
 #define Maj(x, y, z)  (((x) & (y)) ^ ((z) & ((x) ^ (y))))
@@ -12,9 +9,16 @@
 #define sigma0(x)     (ROTR(x, 7)  ^ ROTR(x, 18) ^ ((x) >> 3))
 #define sigma1(x)     (ROTR(x, 17) ^ ROTR(x, 19) ^ ((x) >> 10))
 
+// Cross-Platform Native Byte-Swapping (Leverages single-instruction BSWAP on x86 or REV on ARM)
 static inline uint32_t read_be32(const uint8_t *p)
 {
-	return ((uint32_t) p[0] << 24) | ((uint32_t) p[1] << 16) | ((uint32_t) p[2] << 8) | p[3];
+	uint32_t val;
+	memcpy(&val, p, 4);				       // Prevents alignment faults on strict alignment devices (like older ARM)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	return __builtin_bswap32(val);
+#else
+	return val;
+#endif
 }
 
 static const uint32_t K[64] = {
@@ -34,25 +38,39 @@ static void sha256_transform_opt(SHA256_CTX *ctx, const uint8_t *block)
 	uint32_t e = ctx->state[4], f = ctx->state[5], g = ctx->state[6], h = ctx->state[7];
 	uint32_t W[64];
 
-	for (int i = 0; i < 16; i++) {
+	// Unrolled initial message schedule construction
+	for (int i = 0; i < 16; i += 4) {
 		W[i] = read_be32(block + (i * 4));
+		W[i + 1] = read_be32(block + ((i + 1) * 4));
+		W[i + 2] = read_be32(block + ((i + 2) * 4));
+		W[i + 3] = read_be32(block + ((i + 3) * 4));
 	}
+
+	// Secondary scheduling loop
 	for (int i = 16; i < 64; i++) {
 		W[i] = sigma1(W[i - 2]) + W[i - 7] + sigma0(W[i - 15]) + W[i - 16];
 	}
 
-	for (int i = 0; i < 64; i++) {
-		uint32_t t1 = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i];
-		uint32_t t2 = Sigma0(a) + Maj(a, b, c);
-		h = g;
-		g = f;
-		f = e;
-		e = d + t1;
-		d = c;
-		c = b;
-		b = a;
-		a = t1 + t2;
+	// Local macro step to bypass register copy delays (h = g, g = f, etc.)
+#define STEP(a, b, c, d, e, f, g, h, i) do {				\
+		uint32_t t1 = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i]; \
+		uint32_t t2 = Sigma0(a) + Maj(a, b, c);			\
+		d += t1;						\
+		h = t1 + t2;						\
+	} while (0)
+
+	// Unrolled computational matrix mapping
+	for (int i = 0; i < 64; i += 8) {
+		STEP(a, b, c, d, e, f, g, h, i + 0);
+		STEP(h, a, b, c, d, e, f, g, i + 1);
+		STEP(g, h, a, b, c, d, e, f, i + 2);
+		STEP(f, g, h, a, b, c, d, e, i + 3);
+		STEP(e, f, g, h, a, b, c, d, i + 4);
+		STEP(d, e, f, g, h, a, b, c, i + 5);
+		STEP(c, d, e, f, g, h, a, b, i + 6);
+		STEP(b, c, d, e, f, g, h, a, i + 7);
 	}
+#undef STEP
 
 	ctx->state[0] += a;
 	ctx->state[1] += b;
@@ -114,8 +132,9 @@ void sha256_final(SHA256_CTX *ctx, uint8_t *hash)
 	ctx->buffer[ctx->buflen++] = 0x80;
 
 	if (ctx->buflen > 56) {
-		while (ctx->buflen < 64)
+		while (ctx->buflen < 64) {
 			ctx->buffer[ctx->buflen++] = 0x00;
+		}
 		sha256_transform_opt(ctx, ctx->buffer);
 		ctx->buflen = 0;
 	}
@@ -124,11 +143,13 @@ void sha256_final(SHA256_CTX *ctx, uint8_t *hash)
 		ctx->buffer[ctx->buflen++] = 0x00;
 	}
 
+	// Encode total bits as Big Endian using bit shifts
 	for (int i = 0; i < 8; i++) {
 		ctx->buffer[56 + i] = (uint8_t) (total_bits >> (56 - i * 8));
 	}
 	sha256_transform_opt(ctx, ctx->buffer);
 
+	// Unpack context state back into output hash buffer
 	for (int i = 0; i < 8; i++) {
 		hash[i * 4] = (uint8_t) (ctx->state[i] >> 24);
 		hash[i * 4 + 1] = (uint8_t) (ctx->state[i] >> 16);
@@ -137,24 +158,20 @@ void sha256_final(SHA256_CTX *ctx, uint8_t *hash)
 	}
 }
 
-
-#if 0
-
 /*
- * test program that gives the same result
+ * test programs that gives the same result
 */
+#if 1
 int main()
 {
 	const char *text = "hello world";
 	uint8_t buf[32];
 	SHA256_CTX ctx;
 
-	// Use the functions exactly like OpenSSL legacy setup
 	sha256_init(&ctx);
 	sha256_update(&ctx, (const uint8_t *) text, strlen(text));
 	sha256_final(&ctx, buf);
 
-	// Output the resulting hex digest
 	printf("SHA256: ");
 	for (int i = 0; i < 32; i++) {
 		printf("%02x", buf[i]);
@@ -163,7 +180,9 @@ int main()
 
 	return 0;
 }
+#endif
 
+#if 0
 #       include <openssl/evp.h>
 int main()
 {
