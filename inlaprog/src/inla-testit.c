@@ -6498,6 +6498,25 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 205: 
+	{
+		int n = 10;
+		GMRFLib_idxval_tp *h= NULL;
+
+		for(int i = 0; i < n; i++) {
+			GMRFLib_idxval_addto(&h, 2*i+1, sqrt(i));
+		}
+		GMRFLib_idxval_prepare(&h, 1, 1);
+		GMRFLib_idx_bitmap_tp *bm = GMRFLib_idxval_bitmap_get(h);
+		for(int i = 0-10; i < h->idx[n-1]+10; i++) {
+			GMRFLib_idxval_tp *v;
+			GMRFLib_idxval_add(&v, i, 0.0);
+			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_nmatch(v, bm));
+		}
+	}
+	break;
+	
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

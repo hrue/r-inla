@@ -24,6 +24,7 @@ __BEGIN_DECLS
 #              endif
 #              include <sleef.h>
 #       endif
+void GMRFLib_abs(int, double *, double *);
 void GMRFLib_exp(int, double *, double *);
 void GMRFLib_exp_inc(int n, double *x, int inc, double *y);
 void GMRFLib_log(int, double *, double *);
