@@ -759,8 +759,20 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 	// iniparser_dump(ini, stdout);
 	if ((count = dictionary_dump_unused(ini, stderr))) {
-		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries. PLEASE CHECK\n", dict_filename, count);
-		exit(EXIT_FAILURE);
+		/*
+		 * An entry this binary does not know is almost always a NEWER R package
+		 * writing an option an OLDER binary predates. Exiting made every such
+		 * pairing fatal, so a user who updated the R package but not the binary
+		 * got a failed run instead of a hint. Warn and continue, the same way
+		 * the R side treats an unknown name in control.xxx: report it, drop it,
+		 * carry on. A genuinely malformed Model.ini still fails later, on the
+		 * entry that actually matters.
+		 */
+		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
+		fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
+		fprintf(stderr, "\tUsually this means the R package is newer than this binary [%s];\n",
+			__GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stderr, "\tupgrade it with inla.stiles.install() if results look wrong.\n\n");
 	}
 
 	if (0) {
