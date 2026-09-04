@@ -74,6 +74,7 @@ BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
 Version: 26.09.03
+Config/INLA/BinaryVersion: 26.09.03
 Encoding: UTF-8
 StagedInstall: no
 Collate: 

@@ -66,78 +66,77 @@ inla.print.version <- function() {
 .onLoad <- function(...) {
     ## nothing for the moment
 }
-
-## First run after installing: the package ships launcher scripts, not a
-## solver, so `inla()` cannot run anything until a binary is present. Offer to
-## fetch one instead of letting the first model fail with a message about a
-## missing program.
+## No binary yet? Say so, once per session, and stop there.
 ##
-## It ASKS rather than downloading on its own. A bundle is 26-130 MB, and a
-## library() call silently pulling that over a metered or offline connection
-## is not something a user can undo. Set
-##   options(inla.stiles.autoinstall = TRUE)   (or INLA_STILES_AUTOINSTALL=1)
-## to skip the question, which is what an unattended or container setup wants.
+## The package ships launcher scripts (inst/bin/<platform>/64bit/inla.run is
+## ~2 KB, inla.mkl.run is 8 bytes), not a solver: that is a separate ~100 MB
+## download. So a fresh install cannot run a model, and the first sign of it
+## used to be an obscure failure inside inla(). This prints the one command
+## that fixes it.
 ##
-## Asked once: the answer, either way, is remembered in the cache directory,
-## so declining does not turn into a prompt on every session.
+## It NEVER prompts and NEVER downloads on its own. library(INLA) must behave
+## identically in a script, a container and a terminal, so nothing here can
+## block on stdin or start a large transfer the caller did not ask for.
+## Set options(inla.stiles.autoinstall = TRUE), or the environment variable
+## INLA_STILES_AUTOINSTALL, to have it install unattended instead: that is
+## opt-in precisely because it is the surprising behaviour.
+##
+## Existence is not the test. Those shipped launchers exist on every install,
+## so file.exists() is always TRUE and would silence this permanently. Ask the
+## binary whether it answers -V instead.
 `inla.first.run.binary` <- function() {
-    cache <- tools::R_user_dir("INLA", "cache")
-    stamp <- file.path(cache, "binary-offer-made")
-    if (file.exists(stamp)) return(invisible(NULL))
-
-    ## Already usable? Then say nothing: this is only for a fresh install.
-    ##
-    ## Existence is NOT the test. The package ships launcher scripts at
-    ## inst/bin/<platform>/64bit/ (inla.run is ~2 KB, inla.mkl.run is 8 bytes)
-    ## which exist on every install and cannot run a model: the solver is a
-    ## separate ~100 MB download. Checking file.exists() therefore always
-    ## passed and this offer never appeared, which is the bug this replaces.
-    ## Ask the binary instead: -V is the cheapest question it answers, and it
-    ## runs at most once per machine because of the stamp above.
     call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
     if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
         out <- suppressWarnings(tryCatch(
             system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
             error = function(e) character(0)))
         if (any(grepl("version", out, ignore.case = TRUE))) {
+            ## A binary is there and runs. Is it the one this package expects?
+            ## The build stamps DESCRIPTION's Version into the binary, and R
+            ## normalises that same string for packageVersion(), so the two
+            ## are directly comparable: "26.9.3" from `inla -V` must equal
+            ## packageVersion("INLA"). They drift when a user upgrades the R
+            ## package and keeps an older cached binary, which then fails in
+            ## ways that look like modelling errors rather than a version
+            ## mismatch. Report it; do not act on it.
+            bv <- sub(".*version:[[:space:]]*", "",
+                      grep("version", out, ignore.case = TRUE, value = TRUE)[1])
+            bv <- trimws(bv)
+            ## Compare against the binary version this package DECLARES it
+            ## needs (Config/INLA/BinaryVersion), not against its own Version.
+            ## The R code moves independently: most edits here need no new
+            ## solver, so requiring equal versions would cry wolf on every R
+            ## update. Only an OLDER binary than the declared minimum is a
+            ## problem; a newer one is fine and stays quiet.
+            need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                             error = function(e) NULL)
+            if (!is.null(need) && nzchar(need) && nzchar(bv)) {
+                older <- tryCatch(package_version(bv) < package_version(need),
+                                  error = function(e) FALSE)
+                if (isTRUE(older)) {
+                    packageStartupMessage(
+                        " - Binary is ", bv, " but this package needs ", need,
+                        " or newer; run inla.stiles.install() to update it.")
+                }
+            }
             return(invisible(NULL))
         }
     }
 
-    auto <- isTRUE(getOption("inla.stiles.autoinstall")) ||
-            nzchar(Sys.getenv("INLA_STILES_AUTOINSTALL"))
-
-    if (!auto && !interactive()) {
-        packageStartupMessage(
-            "No inla binary is installed yet. Run inla.stiles.install() to fetch one.")
+    if (isTRUE(getOption("inla.stiles.autoinstall")) ||
+        nzchar(Sys.getenv("INLA_STILES_AUTOINSTALL"))) {
+        ## Opt-in only. Failure is reported and the session continues: an
+        ## unreachable network must not stop library(INLA) from loading.
+        res <- tryCatch(inla.stiles.install(), error = function(e) e)
+        if (inherits(res, "error")) {
+            packageStartupMessage("Could not install a binary: ", conditionMessage(res))
+            packageStartupMessage("Run inla.stiles.install() to retry.")
+        }
         return(invisible(NULL))
     }
 
-    if (!auto) {
-        packageStartupMessage("No inla binary is installed yet.")
-        ans <- tryCatch(
-            readline("Download and install one now? [y/N] "),
-            error = function(e) "")
-        ## Record the offer BEFORE acting: a failed or refused install must not
-        ## leave the question to be asked again at every startup.
-        dir.create(cache, recursive = TRUE, showWarnings = FALSE)
-        try(writeLines(format(Sys.time()), stamp), silent = TRUE)
-        if (!grepl("^[Yy]", ans)) {
-            packageStartupMessage("Skipped. Run inla.stiles.install() when you want it.")
-            return(invisible(NULL))
-        }
-    } else {
-        dir.create(cache, recursive = TRUE, showWarnings = FALSE)
-        try(writeLines(format(Sys.time()), stamp), silent = TRUE)
-    }
-
-    ## Never let this break library(INLA): a download failure is reported and
-    ## the session continues, exactly as it would have without the offer.
-    res <- tryCatch(inla.stiles.install(), error = function(e) e)
-    if (inherits(res, "error")) {
-        packageStartupMessage("Could not install a binary: ", conditionMessage(res))
-        packageStartupMessage("Run inla.stiles.install() to retry.")
-    }
+    packageStartupMessage(
+        " - No inla binary is installed yet; run inla.stiles.install() to fetch one.")
     invisible(NULL)
 }
 

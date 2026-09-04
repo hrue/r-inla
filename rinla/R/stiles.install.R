@@ -1,3 +1,24 @@
+## Per-user cache directory for downloaded binaries.
+##
+## tools::R_user_dir() arrived in R 4.0 but this package supports R >= 3.5, so
+## calling it directly would error on exactly the older installations most
+## likely to want a prebuilt binary. Use it when present, and otherwise the
+## same conventional location it would return on unix.
+`inla.cache.dir` <- function() {
+    if (exists("R_user_dir", envir = asNamespace("tools"), inherits = FALSE)) {
+        return(get("R_user_dir", envir = asNamespace("tools"))("INLA", "cache"))
+    }
+    base <- Sys.getenv("XDG_CACHE_HOME")
+    if (!nzchar(base)) {
+        base <- if (.Platform$OS.type == "windows") {
+            file.path(Sys.getenv("LOCALAPPDATA"), "R", "cache")
+        } else {
+            path.expand("~/.cache")
+        }
+    }
+    file.path(base, "R", "INLA")
+}
+
 #' @title Install a pre-built INLA binary with sTiles support
 #'
 #' @description
@@ -150,17 +171,56 @@
     ## and the caller keeps the old one until they think to pass force = TRUE.
     ## One request to the releases API, and the tag comes back in the JSON; if
     ## it cannot be reached, fall back to the redirecting URL as before.
+    tag_name_of <- function(u) {
+        js <- tryCatch(paste(readLines(u, warn = FALSE), collapse = ""),
+                       error = function(e) "", warning = function(w) "")
+        m <- regmatches(js, regexpr('"tag_name"[^"]*"[^"]+"', js))
+        if (length(m) == 1L) sub('.*"tag_name"[^"]*"([^"]+)".*', "\\1", m) else NULL
+    }
+
     resolved <- tag
     if (is.null(resolved)) {
-        js <- tryCatch(
-            paste(readLines(paste0("https://api.github.com/repos/", repo,
-                                   "/releases/latest"), warn = FALSE),
-                  collapse = ""),
-            error = function(e) "", warning = function(w) "")
-        m <- regmatches(js, regexpr('"tag_name"[^"]*"[^"]+"', js))
-        if (length(m) == 1L) {
-            resolved <- sub('.*"tag_name"[^"]*"([^"]+)".*', "\\1", m)
-            say("release:  ", resolved)
+        ## Default to the release that MATCHES THIS R PACKAGE, not merely the
+        ## newest one. The binary and the package are two halves of one
+        ## release: pairing 26.09.03 with a binary from a later release is how
+        ## a user ends up debugging a mismatch that nobody intended. The
+        ## release tag is the package's Version with a "v" in front, read from
+        ## DESCRIPTION rather than packageVersion(), because R normalises
+        ## "26.09.03" to "26.9.3" and the tag keeps the zeros.
+        ## Which BINARY release this R package needs, declared in DESCRIPTION
+        ## as Config/INLA/BinaryVersion. Deliberately NOT the package's own
+        ## Version: the R code is edited far more often than the solver, and
+        ## most of those edits need no new binary at all. Tying the two would
+        ## force a binary release for every R fix. Bump the field only when a
+        ## change actually requires a new binary. Falls back to the package
+        ## version for an installation predating the field.
+        pv <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                       error = function(e) NULL)
+        if (is.null(pv) || !nzchar(pv)) {
+            pv <- tryCatch(utils::packageDescription("INLA")$Version,
+                           error = function(e) NULL)
+        }
+        if (!is.null(pv) && nzchar(pv)) {
+            for (cand in c(paste0("v", pv), paste0("Version_", pv))) {
+                if (!is.null(tag_name_of(paste0("https://api.github.com/repos/", repo,
+                                                "/releases/tags/", cand)))) {
+                    resolved <- cand
+                    say("release:  ", resolved, "  (matches this R package)")
+                    break
+                }
+            }
+        }
+        ## No release for this package version (a development build, or one
+        ## whose release was never cut): fall back to the newest, and say so,
+        ## because that pairing is then not guaranteed.
+        if (is.null(resolved)) {
+            resolved <- tag_name_of(paste0("https://api.github.com/repos/", repo,
+                                           "/releases/latest"))
+            if (!is.null(resolved)) {
+                say("release:  ", resolved,
+                    "  (NO release matches package ", if (is.null(pv)) "?" else pv,
+                    "; using the newest)")
+            }
         }
     }
 
@@ -173,7 +233,7 @@
 
     default.dir <- is.null(dir)
     if (is.null(dir)) {
-        dir <- file.path(tools::R_user_dir("INLA", "cache"), "stiles-binary",
+        dir <- file.path(inla.cache.dir(), "stiles-binary",
                          if (!is.null(resolved)) resolved else "latest")
     }
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
@@ -301,9 +361,20 @@
             rp <- path.expand("~/.Rprofile")
             beg <- "## >>> INLA: set by inla.stiles.install() >>>"
             end <- "## <<< INLA <<<"
+            ## Guarded, because ~/.Rprofile is read by EVERY R process --
+            ## including the one running R CMD INSTALL for INLA itself. Calling
+            ## INLA::inla.setOption() there while the package is mid-reinstall
+            ## (old copy removed, new one not yet in place) segfaults and takes
+            ## the installation down with it. R sets R_INSTALL_PKG during an
+            ## install, so skip then; also skip when INLA is not installed at
+            ## all, so a removed package cannot break every later R session.
             body <- c(beg,
-                      sprintf('INLA::inla.setOption(inla.call = "%s")', bin[1]),
-                      if (isTRUE(smtp)) 'INLA::inla.setOption(smtp = "stiles")',
+                      "local({",
+                      "    if (nzchar(Sys.getenv(\"R_INSTALL_PKG\"))) return(invisible(NULL))",
+                      "    if (!requireNamespace(\"INLA\", quietly = TRUE)) return(invisible(NULL))",
+                      sprintf('    try(INLA::inla.setOption(inla.call = "%s"), silent = TRUE)', bin[1]),
+                      if (isTRUE(smtp)) '    try(INLA::inla.setOption(smtp = "stiles"), silent = TRUE)',
+                      "})",
                       end)
             oldl <- if (file.exists(rp)) readLines(rp, warn = FALSE) else character(0)
             if (length(oldl) && !file.exists(paste0(rp, ".bak"))) {
@@ -372,7 +443,7 @@
     call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
     smtp <- tryCatch(inla.getOption("smtp"), error = function(e) NULL)
 
-    cache <- file.path(tools::R_user_dir("INLA", "cache"), "stiles-binary")
+    cache <- file.path(inla.cache.dir(), "stiles-binary")
     installed <- basename(list.dirs(cache, recursive = FALSE))
 
     ## Is the active binary one of ours, and which release? The cache path is
@@ -417,6 +488,36 @@
         }
     }
     say("sTiles:    ", if (is.na(stiles.version)) "(unknown; no BUILDINFO)" else stiles.version)
+
+    ## The four versions that decide whether this installation is coherent,
+    ## in one place. They are allowed to differ: the R package moves on its
+    ## own, and only a binary OLDER than the declared requirement is a
+    ## problem. Printing all four is what makes a mismatch obvious instead of
+    ## something a user has to reconstruct from three separate commands.
+    r.version <- tryCatch(utils::packageDescription("INLA")$Version,
+                          error = function(e) NA_character_)
+    binary.required <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                                error = function(e) NULL)
+    if (is.null(binary.required) || !nzchar(binary.required)) binary.required <- NA_character_
+    binary.version <- NA_character_
+    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
+        vout <- suppressWarnings(tryCatch(
+            system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
+            error = function(e) character(0)))
+        hit <- grep("version", vout, ignore.case = TRUE, value = TRUE)
+        if (length(hit)) binary.version <- trimws(sub(".*version:[[:space:]]*", "", hit[1]))
+    }
+    ok <- NA
+    if (!is.na(binary.version) && !is.na(binary.required)) {
+        ok <- tryCatch(!(package_version(binary.version) < package_version(binary.required)),
+                       error = function(e) NA)
+    }
+    say("R package: ", if (is.na(r.version)) "?" else r.version)
+    say("binary:    ", if (is.na(binary.version)) "(none)" else binary.version,
+        "   (this package needs ",
+        if (is.na(binary.required)) "?" else binary.required,
+        " or newer: ",
+        if (is.na(ok)) "unknown" else if (isTRUE(ok)) "OK" else "TOO OLD", ")")
     if (length(buildinfo) && verbose) {
         keep <- grep("^(compiler|libstiles|blas|date):", buildinfo, ignore.case = TRUE, value = TRUE)
         if (length(keep)) { say("BUILDINFO:"); cat(paste0("    ", keep), sep = "\n") }
@@ -425,5 +526,9 @@
 
     invisible(list(inla.call = call, smtp = smtp, release = release,
                    stiles.version = stiles.version,
+                   r.version = r.version,
+                   binary.version = binary.version,
+                   binary.required = binary.required,
+                   binary.ok = ok,
                    alive = alive, buildinfo = buildinfo, cache = installed))
 }
