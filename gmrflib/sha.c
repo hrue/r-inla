@@ -161,7 +161,7 @@ void sha256_final(SHA256_CTX *ctx, uint8_t *hash)
 /*
  * test programs that gives the same result
 */
-#if 1
+#if 0
 int main()
 {
 	const char *text = "hello world";
