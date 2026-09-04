@@ -8,29 +8,16 @@
         }
     }
     
-    if (inla.os("mac")) {
-        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.run", sep = ""), package = "INLA")
-    } else if (inla.os("mac.arm64")) {
-        fnm <- system.file(paste("bin/mac.arm64/", inla.os.32or64bit(), "bit/inla.run", sep = ""), package = "INLA")
-    } else if (inla.os("linux")) {
-        if (inla.one.of(R.version$arch, "aarch64")) {
-            fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(),
-                                     "bit/inla.run", sep = ""), package = "INLA")
-        } else {
-            fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(),
-                                     "bit/inla.mkl.run", sep = ""), package = "INLA")
-        }
-    } else if (inla.os("windows")) {
-        fnm <- system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/inla.exe", sep = ""), package = "INLA")
-    } else {
-        stop("Unknown OS")
-    }
-
-    if (file.exists(fnm)) {
-        return(fnm)
-    } else {
-        stop(paste("INLA installation error; no such file", fnm))
-    }
+    ## OBSOLETE: the package no longer ships a binary. Those builds moved to
+    ## inst/obsolete/, so the lookups under bin/ that used to live here found
+    ## nothing and failed with an empty filename in the message
+    ## ("no such file " and then a blank), which said nothing about what to do
+    ## next. A binary now arrives through inla.stiles.install(), which fetches
+    ## one from the releases and sets inla.call to it, so that is what to say.
+    ## This still raises, exactly as the old lookup did once the file was
+    ## missing: there is genuinely no binary to return.
+    stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+         call. = FALSE)
 }
 
 `inla.call.no.remote` <- function() {
