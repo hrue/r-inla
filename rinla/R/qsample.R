@@ -28,10 +28,6 @@
 #' mode, over-riding whatever is set in `num.threads` (a warning might be
 #' issued).
 #' 
-#' PLEASE NOTE2: If the PARDISO sparse matrix library is used, continuity of
-#' the samples with respect to small changes in the precision matrix, can be
-#' expected but is not guaranteed. If this feature is required, please use the
-#' TAUCS sparse matrix library.
 #' @param logdens If `TRUE`, compute also the log-density of each sample.
 #' Note that the output format then change.
 #' @param compute.mean If `TRUE`, compute also the (constrained) mean.
@@ -108,7 +104,7 @@
                            .debug = FALSE) 
 {
     t.dir <- inla.tempdir()
-    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso", "stiles"))
+    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "stiles"))
     ## The sTiles backend serves the main inference program; these one-shot
     ## helper runs gain nothing from it and predate its group setup, so fall
     ## back the same way the binary itself does for classic mode. Without

@@ -341,7 +341,7 @@ control.gcpo <-
 `control.compute` <-
     function(
              #' @param openmp.strategy The computational strategy to use: 'small', 'medium',
-             #' 'large', 'huge', 'default' and 'pardiso'.
+             #' 'large', 'huge' and 'default'.
              openmp.strategy = "default",
 
              #' @param hyperpar A boolean variable if the marginal for the hyperparameters
@@ -397,8 +397,7 @@ control.gcpo <-
              config = FALSE,
 
              #' @param smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-             #' 'pardiso' (default `inla.getOption("smtp")`). `smtp='pardiso'` implies
-             #' `openmp.strategy='pardiso'`.
+             #' (default `inla.getOption("smtp")`).
              smtp = NULL,
 
              #' @param graph A boolean variable if the graph itself should be returned.
@@ -436,29 +435,6 @@ control.gcpo <-
              hyper = NULL
              ) {
         ctrl_object(as.list(environment()), "lp_scale", check = FALSE)
-    }
-
-#' @title control.pardiso
-#' @inherit control.update params description seealso
-#' @details Extra options controlling the PARDISO library
-#' @family control
-#' @export
-`control.pardiso` <-
-    function(
-             #' @param verbose Show detailed output (default FALSE)
-             verbose = FALSE,
-
-             #' @param debug Show internal debug output (default FALSE)
-             debug = FALSE,
-
-             #' @param parallel.reordering Do reordering in parallel (default TRUE)
-             parallel.reordering = TRUE,
-
-             #' @param nrhs Number of right-hand sides to solve for in parallel (`-1`
-             #' will determine this adapative)
-             nrhs = -1
-             ) {
-        ctrl_object(as.list(environment()), "pardiso", check = FALSE)
     }
 
 #' @title control.stiles
@@ -1218,10 +1194,6 @@ control.vb <-
 #' @rdname control.lp.scale
 #' @export
 `inla.set.control.lp.scale.default` <- function(...) { control.lp.scale(...) }
-
-#' @rdname control.pardiso
-#' @export
-`inla.set.control.pardiso.default` <- function(...) { control.pardiso(...) }
 
 #' @rdname control.stiles
 #' @export
