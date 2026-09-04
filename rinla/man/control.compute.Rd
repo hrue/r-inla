@@ -73,7 +73,7 @@ reordered precision matrix and the Cholesky triangle should be generated.
 stored. (Default \code{FALSE}.)}
 
 \item{smtp}{The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-'stiles' (default \code{inla.getOption("smtp")}).}
+(default \code{inla.getOption("smtp")}).}
 
 \item{graph}{A boolean variable if the graph itself should be returned.
 (Default FALSE.)}

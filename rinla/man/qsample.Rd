@@ -52,8 +52,7 @@ RNG.
 
 PLEASE NOTE1: If \code{seed!=0} then the computations will run in serial
 mode, over-riding whatever is set in \code{num.threads} (a warning might be
-issued).
-}
+issued).}
 
 \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.
 Note that the output format then change.}
