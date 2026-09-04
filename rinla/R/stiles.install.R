@@ -178,6 +178,24 @@
         if (length(m) == 1L) sub('.*"tag_name"[^"]*"([^"]+)".*', "\\1", m) else NULL
     }
 
+    ## A tag the caller supplied is checked BEFORE downloading. Otherwise a
+    ## typo, or the date column of inla.stiles.releases() pasted in place of
+    ## the tag, surfaces as a raw 404 from download.file() with no hint that
+    ## the tag was the problem.
+    if (!is.null(tag)) {
+        if (is.null(tag_name_of(paste0("https://api.github.com/repos/", repo,
+                                       "/releases/tags/", tag)))) {
+            avail <- tryCatch(inla.stiles.releases(n = 8, repo = repo, verbose = FALSE),
+                              error = function(e) NULL)
+            stop("no release tagged '", tag, "' in ", repo,
+                 if (!is.null(avail) && nrow(avail))
+                     paste0("\n  available: ", paste(utils::head(avail$tag, 8), collapse = ", "))
+                 else "",
+                 "\n  (pass the TAG, e.g. \"v26.09.03\", not the date)",
+                 call. = FALSE)
+        }
+    }
+
     resolved <- tag
     if (is.null(resolved)) {
         ## Default to the release that MATCHES THIS R PACKAGE, not merely the
