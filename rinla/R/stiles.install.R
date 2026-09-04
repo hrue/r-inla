@@ -532,3 +532,78 @@
                    binary.ok = ok,
                    alive = alive, buildinfo = buildinfo, cache = installed))
 }
+
+#' @title Binary releases available to install
+#'
+#' @description
+#' List the `inla` binary releases published for [inla.stiles.install()],
+#' marking which are already on this machine, which one is in use, and which
+#' one this R package asks for. The companion to [inla.stiles.status()], which
+#' reports only what is installed.
+#'
+#' @param n     How many of the most recent releases to list.
+#' @param repo  GitHub repository holding the releases.
+#' @param verbose Print the table.
+#'
+#' @returns Invisibly, a `data.frame` with `tag`, `published`, `installed`,
+#'   `active` and `required`.
+#'
+#' @examples
+#' \dontrun{
+#' inla.stiles.releases()
+#' subset(inla.stiles.releases(verbose = FALSE), installed)
+#' }
+#'
+#' @seealso [inla.stiles.install()], [inla.stiles.status()]
+#' @export inla.stiles.releases
+
+`inla.stiles.releases` <- function(n = 10, repo = "hrue/r-inla", verbose = TRUE) {
+    ## Same dependency-free parse as the installer: three flat fields out of
+    ## the releases JSON, rather than adding jsonlite to Imports for this.
+    js <- tryCatch(paste(readLines(paste0("https://api.github.com/repos/", repo,
+                                          "/releases?per_page=", as.integer(n)),
+                                   warn = FALSE), collapse = " "),
+                   error = function(e) "", warning = function(w) "")
+    if (!nzchar(js)) {
+        if (verbose) cat("  Could not reach the releases index for ", repo, "\n", sep = "")
+        return(invisible(data.frame()))
+    }
+    tags <- regmatches(js, gregexpr('"tag_name"[[:space:]]*:[[:space:]]*"[^"]+"', js))[[1]]
+    tags <- sub('.*"([^"]+)"$', "\\1", tags)
+    pub  <- regmatches(js, gregexpr('"published_at"[[:space:]]*:[[:space:]]*"[^"]+"', js))[[1]]
+    pub  <- substr(sub('.*"([^"]+)"$', "\\1", pub), 1, 10)
+    if (length(pub) != length(tags)) pub <- rep(NA_character_, length(tags))
+    if (!length(tags)) return(invisible(data.frame()))
+
+    have <- basename(list.dirs(file.path(inla.cache.dir(), "stiles-binary"),
+                               recursive = FALSE))
+    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    ## The active release is the cache directory the running inla.call sits in:
+    ## <cache>/<tag>/bin/<exe>, so the tag is two levels up.
+    active <- NA_character_
+    if (!is.null(call) && is.character(call) && nzchar(call)) {
+        active <- basename(dirname(dirname(call)))
+    }
+    need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                     error = function(e) NULL)
+    if (is.null(need)) need <- NA_character_
+
+    out <- data.frame(tag = tags, published = pub,
+                      installed = tags %in% have,
+                      active = !is.na(active) & tags == active,
+                      required = !is.na(need) &
+                          (tags == paste0("v", need) | tags == paste0("Version_", need)),
+                      stringsAsFactors = FALSE)
+    if (verbose) {
+        cat("  Binary releases in ", repo, "\n", sep = "")
+        for (i in seq_len(nrow(out))) {
+            cat(sprintf("  %-22s %-12s %s%s%s\n", out$tag[i],
+                        if (is.na(out$published[i])) "" else out$published[i],
+                        if (out$installed[i]) "[installed]" else "",
+                        if (out$active[i])    " [in use]"   else "",
+                        if (out$required[i])  " [required by this package]" else ""))
+        }
+        cat("\n  inla.stiles.install(tag = \"<tag>\") to install or switch.\n")
+    }
+    invisible(out)
+}
