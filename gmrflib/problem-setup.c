@@ -1329,14 +1329,14 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_SHA_TP c;
-	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+	uint8_t *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, uint8_t);
 
 	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
 	GMRFLib_SHA_DUPDATE(constr->a_matrix, graph->n * constr->nc, c);
 	GMRFLib_SHA_DUPDATE(constr->e_vector, constr->nc, c);
-	GMRFLib_SHA_Final(md, &c);
+	GMRFLib_SHA_Final(&c, md);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 	constr->sha = md;
 

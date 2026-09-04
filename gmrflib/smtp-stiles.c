@@ -169,8 +169,15 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	Free(sidx_i);
 	Free(sidx_j);
 
-	sTiles_init(&(store->obj));
-
+	if (sTiles_init(&(store->obj)) != 0) {
+		/*
+		 * A refused preprocess (for instance the dense-variant memory guard) leaves the object unusable; continuing means hours of
+		 * mode-finding on the groups that fit before dying on one that did not. Older libstiles always returns 0 here, so this is a no-op
+		 * until a library with failure propagation is paired. 
+		 */
+		fprintf(stderr, "\n*** sTiles_init failed (see errors above); cannot continue.\n");
+		exit(1);
+	}
 	store->perm = Calloc(ngt, int *);
 	store->iperm = Calloc(ngt, int *);
 	for (int i = 0; i < ng2; i++) {
@@ -194,7 +201,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 	store->wtime = GMRFLib_timer() - tref;
 
 	if (ctl && ctl->verbose) {
-		GMRFLib_stiles_print(stdout);
+		// GMRFLib_stiles_print(stdout);
 	}
 
 	GMRFLib_LEAVE_FUNCTION;
@@ -314,7 +321,10 @@ int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		if (GMRFLib_OPENMP_IN_SERIAL()) {
-			if (stiles_idx->in_group < store->ng) {
+			// we only `switch in_group' if we're in adaptive node and the number of threads in the two groups
+			// are different.
+			if (stiles_idx->in_group < store->ng &&
+			    (GMRFLib_openmp->adaptive && (GMRFLib_ADAPTIVE_NUM_THREADS() != GMRFLib_openmp->max_threads_inner))) {
 				stiles_idx->in_group += store->ng;
 			}
 			stiles_idx->within_group = 0;
@@ -812,7 +822,7 @@ int GMRFLib_stiles_get_block_size(void)
 	return (ctl && ctl->block_size > 0 ? ctl->block_size : (GMRFLib_stiles_get_tile_size() > 0 ? GMRFLib_stiles_get_tile_size() : 40));
 }
 
-void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *UNUSED(suf))
+void GMRFLib_stiles_print_ctl_param(FILE *UNUSED(fp), char *suf)
 {
-	sTiles_print_params();
+	sTiles_print_params(suf);
 }

@@ -1,15 +1,12 @@
 #include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <signal.h>
-#include <stdarg.h>
 #include <stddef.h>
+#include <float.h>
+#include <time.h>
+#include <math.h>
+#include <strings.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/hashP.h"
@@ -311,7 +308,7 @@ int GMRFLib_ptr_printf(FILE *fp, GMRFLib_ptr_tp *hold, const char *msg)
 int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
-		int show_details = 0;
+		int show_details = 1;
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		if (show_details) {
 			for (int i = 0; i < hold->n; i++) {
@@ -1304,6 +1301,21 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 	return 0;
 }
 
+GMRFLib_idxval_tp *GMRFLib_idxval_duplicate(GMRFLib_idxval_tp *h)
+{
+	if (!h)
+		return NULL;
+	GMRFLib_idxval_tp *nnew = NULL;
+	GMRFLib_idxval_create_x(&nnew, IMAX(1, h->n));
+	if (h->n > 0) {
+		Memcpy(nnew->idx, h->idx, h->n * sizeof(int));
+		Memcpy(nnew->val, h->val, h->n * sizeof(double));
+		nnew->n = h->n;
+	}
+
+	return nnew;
+}
+
 int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2)
 {
 	if (idx1 == NULL || idx2 == NULL) {
@@ -1342,7 +1354,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1507,17 +1519,14 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	return ptr;
 }
 
-double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v) 
+double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
-	// compute the inner-product of two sparse vectors assuming ->idx is sorted
-	if (0) {
-		assert(GMRFLib_is_sorted_iinc(u->n, u->idx));
-		assert(GMRFLib_is_sorted_iinc(v->n, v->idx));
-	}
-	
+	// compute the inner-product of two sparse vectors assuming ->idx is sorted.
+	// this is the old and plain implementation
+
 	int nu = u->n;
 	int nv = v->n;
-	if (!nu || !nv || (u->idx[nu-1] < v->idx[0]) || (v->idx[nv-1] < u->idx[0])) {
+	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
 		return 0.0;
 	}
 
@@ -1527,7 +1536,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	while (iu < nu && iv < nv) {
 		if (u->idx[iu] == v->idx[iv]) {
 			res += u->val[iu++] * v->val[iv++];
-		} else if (u->idx[iu] < v->idx[iv]){
+		} else if (u->idx[iu] < v->idx[iv]) {
 			iu++;
 		} else {
 			iv++;
@@ -1536,9 +1545,277 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	return res;
 }
 
-int GMRFLib_idxval_match(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v) 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
-	return GMRFLib_idx_match(u->n, u->idx, v->n, v->idx);
+	// compute the inner-product of two sparse vectors assuming ->idx is sorted
+
+	int nu = u->n;
+	int nv = v->n;
+	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
+		return 0.0;
+	}
+
+	int iu = 0;
+	int iv = 0;
+	double res = 0.0;
+
+	while (iu < nu && iv < nv) {
+		int u_idx = u->idx[iu];
+		int v_idx = v->idx[iv];
+		int is_equal = (u_idx == v_idx);
+		int u_is_less = (u_idx < v_idx);
+		res += (is_equal ? (u->val[iu] * v->val[iv]) : 0.0);
+		iu += (u_is_less | is_equal);
+		iv += ((!u_is_less) | is_equal);
+	}
+	return res;
+}
+#pragma GCC diagnostic pop
+
+void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
+{
+	if (bm) {
+		Free(bm->bitmap);
+		Free(bm);
+	}
 }
 
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold)
+{
+	GMRFLib_idxval_tp a = {
+		.idx = hold->idx,
+		.n = hold->n
+	};
+	GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(&a);
 
+	return bitmap;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
+{
+	// Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
+
+	assert(sizeof(size_t) == 8);
+
+	if (!hold || hold->n == 0)
+		return NULL;
+
+	GMRFLib_idx_bitmap_tp *bm = Calloc(1, GMRFLib_idx_bitmap_tp);
+	bm->n = hold->n;
+	bm->low = hold->idx[0];
+	bm->high = hold->idx[hold->n - 1];
+	bm->len = bm->high - bm->low + 1;
+	bm->ulen = (size_t) bm->len;
+
+	// len divided by 64, plus 1 for padding
+	int size = (bm->len >> 6) + 1;
+	bm->bitmap = Calloc(size, size_t);
+
+	for (int i = 0; i < bm->n; i++) {
+		int ix = hold->idx[i] - bm->low;
+		// ix >> 6 is division by 64, ix & 63 is modulo 64.
+		bm->bitmap[ix >> 6] |= ((size_t) 1 << (ix & 63));
+	}
+	return (bm);
+}
+#pragma GCC diagnostic pop
+
+int GMRFLib_idx_nmatch(GMRFLib_idx_tp *v, GMRFLib_idx_bitmap_tp *bm)
+{
+	GMRFLib_idxval_tp u = {
+		.idx = v->idx,
+		.n = v->n
+	};
+	return GMRFLib_idxval_nmatch(&u, bm);
+}
+
+int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
+{
+	return GMRFLib_idxval_nmatch_2(v, bm);
+	// return GMRFLib_idxval_nmatch_4(v, bm);
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_idxval_nmatch_2(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
+{
+	// _ILP version
+
+	// Use const to help compiler prove read-only safety
+	int low = bm->low;
+	int high = bm->high;
+	int n = v->n;
+	int *restrict idx = v->idx;
+
+	if (idx[0] > high || idx[n - 1] < low) {
+		return 0;
+	}
+	size_t *restrict bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+
+	int match0 = 0;
+	int match1 = 0;
+	int i = 0;
+
+	// Process 2 items per loop (Unrolling)
+	for (; i < n - 1; i += 2) {
+		size_t ix0 = (size_t) (idx[i] - low);
+		size_t ix1 = (size_t) (idx[i + 1] - low);
+
+		if (ix0 < ulen)
+			match0 += (bitmap[ix0 >> 6] >> (ix0 & 63)) & 1;
+		if (ix1 < ulen)
+			match1 += (bitmap[ix1 >> 6] >> (ix1 & 63)) & 1;
+	}
+
+	if (i < n) {
+		size_t ix = (size_t) (idx[i] - low);
+		if (ix < ulen)
+			match0 += (bitmap[ix >> 6] >> (ix & 63)) & 1;
+	}
+
+	return match0 + match1;
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_idxval_nmatch_4(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
+{
+	// _ILP version
+
+	// Use const to help compiler prove read-only safety
+	int low = bm->low;
+	int high = bm->high;
+	int n = v->n;
+	int *restrict idx = v->idx;
+
+	if (idx[0] > high || idx[n - 1] < low) {
+		return 0;
+	}
+	size_t *restrict bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+
+	int match0 = 0;
+	int match1 = 0;
+	int match2 = 0;
+	int match3 = 0;
+	int i = 0;
+
+	for (; i + 3 < n; i += 4) {
+		size_t ix0 = (size_t) (idx[i] - low);
+		size_t ix1 = (size_t) (idx[i + 1] - low);
+		size_t ix2 = (size_t) (idx[i + 2] - low);
+		size_t ix3 = (size_t) (idx[i + 3] - low);
+
+		if (ix0 < ulen)
+			match0 += (bitmap[ix0 >> 6] >> (ix0 & 63)) & 1;
+		if (ix1 < ulen)
+			match1 += (bitmap[ix1 >> 6] >> (ix1 & 63)) & 1;
+		if (ix2 < ulen)
+			match2 += (bitmap[ix2 >> 6] >> (ix2 & 63)) & 1;
+		if (ix3 < ulen)
+			match3 += (bitmap[ix3 >> 6] >> (ix3 & 63)) & 1;
+	}
+	for (; i < n; i++) {
+		size_t ix = (size_t) (idx[i] - low);
+		if (ix < ulen)
+			match0 += (bitmap[ix >> 6] >> (ix & 63)) & 1;
+	}
+
+	return match0 + match1 + match2 + match3;
+}
+#pragma GCC diagnostic pop
+
+int GMRFLib_idxval_nmatch_XXX(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
+{
+	int low = bm->low;
+	int high = bm->high;
+	int n = v->n;
+	int *idx = v->idx;
+
+	if (idx[0] > high || idx[n - 1] < low) {
+		return 0;
+	}
+
+	int nmatch = 0;
+	size_t *bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+
+	int *idx_ptr = idx;
+	int *idx_end = idx + n;
+	while (idx_ptr < idx_end) {
+		unsigned int ix = (unsigned int) (*idx_ptr++ - low);
+		int valid = (ix < ulen);
+		unsigned int safe_ix = ix & -valid;
+		int bit = (int) ((bitmap[safe_ix >> 6] >> (safe_ix & 63)) & 1);
+		nmatch += bit & -valid;
+	}
+
+	return nmatch;
+}
+
+int GMRFLib_idxval_nmatch_XXXX(GMRFLib_idxval_tp *restrict v, GMRFLib_idx_bitmap_tp *restrict bm)
+{
+	int low = bm->low;
+	int high = bm->high;
+	int n = v->n;
+	int *restrict idx = v->idx;
+
+	if (idx[0] > high || idx[n - 1] < low) {
+		return 0;
+	}
+
+	int nmatch = 0;
+	size_t *restrict bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+
+	// compiler vectorize this...
+	for (int i = 0; i < n; i++) {
+		unsigned int ix = (unsigned int) (idx[i] - low);
+		if (ix < ulen) {
+			nmatch += (bitmap[ix >> 6] >> (ix & 63)) & 1;
+		}
+	}
+	return nmatch;
+
+// old code chunks
+#if 0
+	int len = high - low + 1;
+
+#       define CODE_CHUNK_1							\
+	for (int i = 0; i < n; i++) {					\
+		int ix = idx[i] - low;					\
+		int is_legal = (ix >= 0 && ix < len);			\
+		int has_match = (is_legal ? (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0); \
+		nmatch += has_match;					\
+	}								\
+	return nmatch
+
+// this one is better for SIMD
+#       define CODE_CHUNK_2							\
+	for (int i = 0; i < n; i++) {					\
+		int ix = idx[i] - low;					\
+		int is_legal = (ix >= 0) & (ix < len);			\
+		int mask = -is_legal;					\
+		int safe_ix = ix & mask;				\
+		int bit = (int) ((bitmap[safe_ix >> 6] >> (safe_ix & 63)) & 1);	\
+		nmatch += (bit & mask);					\
+	}								\
+	return nmatch
+
+#       pragma omp simd reduction(+:nmatch)
+	CODE_CHUNK_2;
+
+#       undef CODE_CHUNK_1
+#       undef CODE_CHUNK_2
+#endif
+}

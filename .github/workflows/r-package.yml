@@ -1,0 +1,98 @@
+########################################################################
+# Build the INLA R package and guard the metadata a release depends on.
+#
+# The other workflow builds the inla BINARY bundles; nothing built the R
+# package, so the only way to get one was to run the release steps by hand
+# on a workstation. That makes "install the package from this branch" and
+# "install the released package" two different artifacts that nobody can
+# diff. This job produces the tarball on every run, so the branch and the
+# release are the same file built the same way.
+#
+# It deliberately does NOT publish, tag, or write to the repository. The
+# release itself stays a manual step; this only removes the guesswork about
+# what the package contains and stops two metadata mistakes from reaching
+# a release unnoticed.
+########################################################################
+name: r-package
+
+on:
+  push:
+    branches: [feature/ci]
+    tags: ['Version_*', 'v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: "R package: guards + tarball"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ## Guards below compare against the nearest reachable tag, which a
+          ## shallow clone does not have.
+          fetch-depth: 0
+
+      ## GUARD 1: the version in DESCRIPTION must be the one this commit
+      ## implies. The build scripts compile that same string into the binary
+      ## (GITCOMMIT/INLA_TAG), so a stale DESCRIPTION silently mislabels both
+      ## halves at once. This exact field once sat thirteen months behind
+      ## while releases went out, which is what this step exists to prevent.
+      - name: Version is current
+        run: bash ci/bump-rinla-version.sh --check
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      ## No dependency install: R CMD build does not load the package, and
+      ## vignettes are skipped, so nothing from Depends/Suggests is needed.
+      ## Verified by building the same tarball on a machine without them.
+
+      - name: Build the package
+        run: |
+          set -o pipefail
+          R CMD build --no-build-vignettes rinla | tee build-package.log
+          ls -1 INLA_*.tar.gz
+
+      ## GUARD 2, tags only: a release must have a NEWS entry for its own
+      ## version. NEWS.md is written by hand on purpose (the entries are
+      ## curated summaries, not commit subjects), so this checks only that
+      ## the section exists, never what it says.
+      - name: NEWS has an entry for this version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VER=$(sed -n 's/^Version:[[:space:]]*//p' rinla/DESCRIPTION | head -1)
+          if ! grep -qE "^#[[:space:]]*INLA[[:space:]]+${VER}([[:space:]]|$)" rinla/NEWS.md; then
+            echo "::error::rinla/NEWS.md has no '# INLA $VER' section for this release"
+            echo "  newest entries currently in NEWS.md:"
+            grep -m5 -E "^#[[:space:]]*INLA" rinla/NEWS.md || true
+            exit 1
+          fi
+          echo "NEWS.md carries an entry for $VER"
+
+      - name: Report what was built
+        run: |
+          VER=$(sed -n 's/^Version:[[:space:]]*//p' rinla/DESCRIPTION | head -1)
+          {
+            echo "### INLA R package"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| version | \`$VER\` |"
+            echo "| tarball | \`$(ls -1 INLA_*.tar.gz)\` |"
+            echo "| commit  | \`${GITHUB_SHA:0:9}\` |"
+            echo ""
+            echo "The inla binaries built by the other workflow report this same"
+            echo "version, since the build scripts read it from DESCRIPTION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-r-package
+          path: INLA_*.tar.gz
+          if-no-files-found: error

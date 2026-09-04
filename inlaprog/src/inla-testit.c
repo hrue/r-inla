@@ -1,15 +1,3 @@
-#include <limits.h>
-#include <assert.h>
-#include <stddef.h>
-#include <float.h>
-#include <time.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #if !defined(INLA_WITH_DEVEL)
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
@@ -20,9 +8,6 @@ int testit(int UNUSED(argc), char **UNUSED(argv))
 
 #else
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *x_vec,
 			 double *UNUSED(y_cdf), void *UNUSED(arg))
 {
@@ -44,7 +29,6 @@ int loglikelihood_testit(int UNUSED(thread_id), int *UNUSED(lcache_idx), double 
 	}
 	return GMRFLib_SUCCESS;
 }
-#       pragma GCC diagnostic pop
 
 int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
@@ -66,9 +50,6 @@ int loglikelihood_testit1(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	return GMRFLib_SUCCESS;
 }
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *arg)
 {
@@ -88,7 +69,6 @@ int loglikelihood_testit2(int UNUSED(thread_id), int *UNUSED(lcache_idx), double
 	}
 	return GMRFLib_SUCCESS;
 }
-#       pragma GCC diagnostic pop
 
 int loglikelihood_testit3(int UNUSED(thread_id), int *UNUSED(lcache_idx), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec),
 			  double *UNUSED(y_cdf), void *UNUSED(arg))
@@ -127,9 +107,18 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
-#       pragma GCC diagnostic push
-#       pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+// Force the compiler to keep this symbol even with aggressive LTO enabled
+__attribute__((used)) __attribute__((visibility("default")))
+#       if defined(__cplusplus)
+extern "C"
+#       endif
+double sin_intern(double x)
+{
+	double ans = sin(x);
+	printf("call sin_intern(%f) = %f\n", x, ans);
+	return ans;
+}
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -1400,6 +1389,51 @@ int testit(int argc, char **argv)
 
 	case 55:
 	{
+		// require linking with '-rdynamic'
+		lt_dlhandle handle;
+		typedef double fun_tp(double);
+		fun_tp *fun = NULL;
+		double x = 1.12312;
+
+		lt_dlinit();
+		handle = lt_dlopen(NULL);
+		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
+		if (!fun)
+			FIXME("sin_intern not found using ltdl");
+#       if defined(_WIN32)
+		if (!fun) {
+			HMODULE hModule = GetModuleHandle(NULL);
+			if (hModule) {
+				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin_intern"));
+			}
+		}
+#       endif
+		const char *error = NULL;
+		if (!fun && (error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		printf("Using sin_intern()\n");
+		P(fun(x));
+
+		fun = (fun_tp *) lt_dlsym(handle, "sin");
+		if (!fun)
+			FIXME("sin not found using ltdl");
+#       if defined(_WIN32)
+		if (!fun) {
+			HMODULE hModule = GetModuleHandle(NULL);
+			if (hModule) {
+				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin"));
+			}
+		}
+#       endif
+		if (!fun && (error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		printf("Using sin()\n");
+		P(fun(x));
+		lt_dlclose(handle);
 	}
 		break;
 
@@ -6466,6 +6500,25 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 205:
+	{
+		int n = 10;
+		GMRFLib_idxval_tp *h = NULL;
+
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxval_addto(&h, 2 * i + 1, sqrt(i));
+		}
+		GMRFLib_idxval_prepare(&h, 1, 1);
+		GMRFLib_idx_bitmap_tp *bm = GMRFLib_idxval_bitmap_get(h);
+		for (int i = 0 - 10; i < h->idx[n - 1] + 10; i++) {
+			GMRFLib_idxval_tp *v;
+			GMRFLib_idxval_add(&v, i, 0.0);
+			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_nmatch(v, bm));
+		}
+	}
+		break;
+
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -6480,5 +6533,4 @@ int testit(int argc, char **argv)
 	}
 	exit(EXIT_SUCCESS);
 }
-#       pragma GCC diagnostic pop
 #endif

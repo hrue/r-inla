@@ -177,6 +177,7 @@
 __BEGIN_DECLS
 #       if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
+void vdAbs(int, const double *, double *);
 void vdExp(int, const double *, double *);
 void vdExpI(int, const double *, int, double *, int);
 void vdLog1p(int, const double *, double *);
@@ -200,6 +201,7 @@ double cblas_ddoti(const int nz, const double *x, const int *indx, const double 
 #       if defined(INLA_WITH_FRAMEWORK_ACCELERATE)
 void vvsqrt(double *, const double *, const int *);
 void vvexp(double *, const double *, const int *);
+void vvfabs(double *, const double *, const int *);
 void vvexpm1(double *, const double *, const int *);
 void vvlog(double *, const double *, const int *);
 void vvlog1p(double *, const double *, const int *);

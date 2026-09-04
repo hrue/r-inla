@@ -73,7 +73,8 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 25.07.11.9000
+Version: 26.09.04
+Config/INLA/BinaryVersion: 26.09.04
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
@@ -168,7 +169,6 @@ Collate:
     'print.R'
     'priors.used.R'
     'prune.R'
-    'q.R'
     'qinv.R'
     'qreordering.R'
     'qsample.R'
@@ -197,6 +197,7 @@ Collate:
     'stack.R'
     'startup.R'
     'stiles.R'
+    'stiles.install.R'
     'stiles.utils.R'
     'summary.R'
     'surv.R'

@@ -50,7 +50,7 @@ long long sTiles_get_pack_cache_threshold_bytes(void);
 void sTiles_expert_user(void);
 void sTiles_freeGroup(int group_ID);
 void sTiles_map_group_call_to_group_call(void **obj, int group_index1, int call_index1, int group_index2, int call_index2);
-void sTiles_print_params(void);
+void sTiles_print_params(const char *prefix);
 void sTiles_quit();
 void sTiles_set_control_param(int index, int value);
 void sTiles_set_correction_mode(int correction_mode);

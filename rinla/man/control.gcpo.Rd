@@ -9,6 +9,7 @@ control.gcpo(
   enable = FALSE,
   num.level.sets = -1,
   size.max = 32,
+  min.overlap = 0,
   strategy = c("posterior", "prior"),
   groups = NULL,
   selection = NULL,

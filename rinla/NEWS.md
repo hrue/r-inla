@@ -1,3 +1,9 @@
+# INLA 26.09.04
+* Fix versions compatibility for inla binary and R
+
+# INLA 26.09.03
+* sTiles integration code improvements
+
 # INLA 26.08.22
 * Minor code improvements
 

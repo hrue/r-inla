@@ -64,13 +64,13 @@ extern "C" {
 	void sTiles_map_group_call_to_group_call(void **, int, int, int, int) EMPTY_FUNCTION_ERROR;
 	void sTiles_print_chol_timings(int, void **) EMPTY_FUNCTION_ERROR;
 	void sTiles_print_logdets(int, void **) EMPTY_FUNCTION_ERROR;
-	void sTiles_print_params(void) EMPTY_FUNCTION_NO_ERROR;
+	void sTiles_print_params(const char *) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_print_selinv_timings(int, void **) EMPTY_FUNCTION_ERROR;
 	void sTiles_print_version(void) EMPTY_FUNCTION_ERROR;
 	void sTiles_quit(void) EMPTY_FUNCTION_ERROR;
 	void sTiles_set_control_param(int, int) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_correction_mode(int UNUSED(correction_mode)) EMPTY_FUNCTION_NO_ERROR;
-	void sTiles_set_log_level(int) EMPTY_FUNCTION_ERROR;
+	void sTiles_set_log_level(int) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_ordering_mode(int UNUSED(reordering)) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_pack_cache_threshold_bytes(long long) EMPTY_FUNCTION_NO_ERROR;
 	void sTiles_set_rescale_cores(const int *, int) EMPTY_FUNCTION_ERROR;

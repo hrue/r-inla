@@ -270,7 +270,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	mb->mode_restart = 1;
 	mb->mode_fixed = mb->mode_use_mode = 0;
 	inla_theta_all_init(mb);			       /* temporary */
-
+	if (!(mb->verbose)) {
+		sTiles_set_log_level(-2);
+	}
 	ini = mb->ini = iniparser_load(dict_filename);
 	if (!ini) {
 		GMRFLib_sprintf(&msg, "Fail to parse ini-file[%s]....", dict_filename);
@@ -757,8 +759,20 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	}
 	// iniparser_dump(ini, stdout);
 	if ((count = dictionary_dump_unused(ini, stderr))) {
-		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries. PLEASE CHECK\n", dict_filename, count);
-		exit(EXIT_FAILURE);
+		/*
+		 * An entry this binary does not know is almost always a NEWER R package
+		 * writing an option an OLDER binary predates. Exiting made every such
+		 * pairing fatal, so a user who updated the R package but not the binary
+		 * got a failed run instead of a hint. Warn and continue, the same way
+		 * the R side treats an unknown name in control.xxx: report it, drop it,
+		 * carry on. A genuinely malformed Model.ini still fails later, on the
+		 * entry that actually matters.
+		 */
+		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
+		fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
+		fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n",
+			__GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'\n\n");
 	}
 
 	if (0) {
@@ -5882,7 +5896,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				bfunc[count + j] = Calloc(1, GMRFLib_bfunc_tp);
+				bfunc[count + j] = Malloc(1, GMRFLib_bfunc_tp);
 				bfunc[count + j]->bdef = mb->f_bfunc2[i];
 				bfunc[count + j]->idx = j;
 			}
@@ -5899,7 +5913,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				prior_mean[count + j] = Calloc(1, GMRFLib_prior_mean_tp);
+				prior_mean[count + j] = Malloc(1, GMRFLib_prior_mean_tp);
 				prior_mean[count + j]->bdef = mb->f_bfunc2[i];
 				prior_mean[count + j]->idx = j;
 				prior_mean[count + j]->fixed_mean = 0.0;
@@ -5908,7 +5922,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		count += mb->f_Ntotal[i];
 	}
 	for (i = 0; i < mb->nlinear; i++) {
-		prior_mean[count] = Calloc(1, GMRFLib_prior_mean_tp);
+		prior_mean[count] = Malloc(1, GMRFLib_prior_mean_tp);
 		prior_mean[count]->bdef = NULL;
 		prior_mean[count]->idx = -1;
 		prior_mean[count]->fixed_mean = mb->linear_mean[i];
@@ -6013,6 +6027,27 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				assert(0 == 1);
 			}
 		}
+	}
+
+	// GCPO
+	if (1) {
+		char *gcpo_fixed_nodes = Calloc(N, char);
+		int offset = 0;
+		for (i = 0; i < mb->nf; i++) {
+			int n = mb->f_Ntotal[i];
+			if (n <= 24) {
+				for (j = 0; j < n; j++) {
+					gcpo_fixed_nodes[offset + j] = 1;
+				}
+			}
+			offset += n;
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			gcpo_fixed_nodes[offset + i] = (char) 1;
+		}
+		offset += mb->nlinear;
+		mb->ai_par->gcpo_fixed_nodes = gcpo_fixed_nodes;
+		assert(offset == N);
 	}
 
 	double tref = GMRFLib_timer();
@@ -7259,7 +7294,6 @@ int main(int argc, char **argv)
 		case 'E':
 		{
 			GMRFLib_force_stiles = 1;
-			printf("force the use sTiles\n");
 		}
 			break;
 

@@ -1466,6 +1466,8 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
     inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)
     inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
+    overlap <- max(0, as.integer(gcpo$min.overlap))
+    cat("gcpo.min.overlap =", overlap, "\n", file = file, append = TRUE)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
     cat("gcpo.prior.diagonal =", max(0, gcpo$prior.diagonal), "\n", file = file, append = TRUE)
     gcpo$type <- match.arg(gcpo$type, c("single", "joint"))

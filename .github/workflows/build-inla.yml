@@ -1,0 +1,961 @@
+## Build the inla binary on Linux x86_64 and prove it computes.
+##
+## Pipeline: system deps (ci/deps-ubuntu.sh) -> build (ci/build.sh) ->
+## smoke test (ci/smoke-test.sh) -> upload the binary as a run artifact.
+## The three scripts run unchanged on any Ubuntu machine; this file only
+## provides the machine, the ordering, the caching and the artifact upload.
+name: build-inla
+
+on:
+  push:
+    branches: [feature/ci]
+    ## Release tags are Version_YY.MM.DD, matching the release/Version_*
+    ## branch naming. The older v* form is still accepted so the tags
+    ## already published keep building if one is ever re-run.
+    tags: ['Version_*', 'v*']
+    ## R-only changes compile nothing here: this board builds the BINARY, and
+    ## the R sources are not part of it. Without this, editing a .R file ran
+    ## twelve jobs across Linux, macOS and Windows to rebuild byte-identical
+    ## binaries. Anything touching ci/, gmrflib/, inlaprog/ or
+    ## external-packages/ still runs, and a TAG ignores paths entirely, so a
+    ## release is never skipped by this.
+    paths-ignore:
+      - 'rinla/R/**'
+      - 'rinla/man/**'
+      - 'rinla/NEWS.md'
+      - '.github/workflows/r-package.yml'
+  workflow_dispatch:
+
+## A newer push supersedes any run still in flight on the same branch.
+concurrency:
+  group: build-inla-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-x86_64:
+    name: "Linux x86_64: build + smoke test (newest gcc, current R)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      ## The external-packages makefiles clone their sources via SSH URLs;
+      ## the runner has no SSH keys, so rewrite to anonymous https here.
+      ## Local builds are unaffected (this config lives only on the runner).
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      - name: System dependencies
+        ## Test lane, not a shipped bundle: intentionally UNPINNED so it
+        ## races ahead of GCC_PREFER and catches compiler-compatibility
+        ## breaks before a pin bump ever ships one. ci/deps-ubuntu.sh now
+        ## treats a set GCC_PREFER as a hard pin (install exactly that
+        ## version or fail); blank it here to keep this one lane on its
+        ## documented "take the newest available" behavior.
+        env:
+          GCC_PREFER: ""
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-ubuntu.sh
+
+      ## The smoke test installs a few CRAN packages (fmesher compiles C++,
+      ## several minutes). Cache the private R library so only the first
+      ## run after a cache bump pays that cost. Bump v1 to force a refresh.
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: local/Rlib
+          ## Bump the suffix whenever the R minor version changes (packages
+          ## are built per R minor version and must not cross over).
+          key: rlib-${{ runner.os }}-v2
+
+      ## Full output goes to build.log (make echoes every compile command,
+      ## which would bury real errors past the log limit). On failure,
+      ## surface only the error lines plus the tail.
+      - name: Fetch libstiles
+        ## Test lane, not a shipped bundle: it builds with the newest GCC while
+        ## the baseline libstiles is deliberately gcc-toolset-built for the
+        ## glibc floor, so the versions differ by design here. The shipped
+        ## bundles keep the strict check.
+        env:
+          STILES_ALLOW_COMPILER_MISMATCH: 1
+        run: bash ci/fetch-stiles.sh
+      - name: Build
+        ## No compiler pinned: ci/deps-ubuntu.sh installs the newest GCC it
+        ## can get and ci/build.sh selects the highest version present.
+        run: |
+          if ! WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          grep -m1 "^== sTiles" build.log || true
+          tail -5 build.log
+          ## sTiles has to be a real dependency, and once it is in the
+          ## process there may still be only ONE OpenMP runtime: library
+          ## and binary are both GCC-built, so both use libgomp, and a
+          ## second runtime is the classic "OMP: Error #15" abort.
+          ldd local/bin/inla | grep -i stiles \
+            || { echo "::error::libstiles is not a dependency of the binary"; exit 1; }
+          n=$(ldd local/bin/inla | grep -coE 'lib(gomp|iomp5|omp)\.so[^ ]*' || true)
+          echo "  OpenMP runtimes linked: $n"
+          [ "$n" -le 1 ] \
+            || { echo "::error::more than one OpenMP runtime"; ldd local/bin/inla | grep -i omp; exit 1; }
+
+      - name: Smoke test
+        env:
+          TESTMODEL_DIR: local/testmodel
+          INLA_SMTP: stiles
+        run: bash ci/smoke-test.sh
+
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-x86_64"
+            echo "purpose=Plain Linux build (needs system libraries); the CI gate"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=system OpenBLAS (shared)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-x86_64.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-x86_64
+          path: manifest/inla-linux-x86_64.txt
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-x86_64
+          path: local/bin/inla
+          if-no-files-found: error
+
+      ## The smoke test's exported model files: lets the cross-distro jobs
+      ## run the portable binary on a real model without any R.
+      - name: Upload test model
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-testmodel
+          path: local/testmodel
+          if-no-files-found: error
+
+  ## Portable binary: built in the manylinux_2_28 container (glibc 2.28
+  ## floor, runs on distros from ~2018 on), bundled with every non-glibc
+  ## library it needs. WITH_LIBR=2 (dlopen mode): starts with any R or no
+  ## R at all, and rgeneric works by loading the running machine's own
+  ## libR on first use.
+  portable-linux-x86_64:
+    name: "Portable bundle: Linux x86_64 (glibc 2.28+, no R needed)"
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_28_x86_64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-manylinux.sh
+      ## MKL is what the upstream Linux x86_64 builds link, statically.
+      - name: Install Intel MKL
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-mkl.sh
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build (portable, static MKL, dlopen libR)
+        run: |
+          ## The EXACT toolset ci/deps-manylinux.sh installed and pinned
+          ## (GCC_TOOLSET, ci/toolchain.env), not "whichever is newest in the
+          ## container": that glob picks the highest gcc-toolset-N PRESENT,
+          ## which can differ from the one actually pinned if the image ships
+          ## more than one -- exactly how a bundle and the library inside it
+          ## drift apart without anything saying so. Hard fail rather than
+          ## fall back if the pinned toolset is somehow missing here; it was
+          ## already required to install earlier in this job.
+          . ci/toolchain.env
+          e="/opt/rh/gcc-toolset-$GCC_TOOLSET/enable"
+          if [ ! -f "$e" ]; then
+            echo "ERROR: pinned gcc-toolset-$GCC_TOOLSET/enable not found." >&2
+            exit 1
+          fi
+          source "$e"
+          gcc --version | head -1
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Package
+        run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-x86_64-portable"
+            echo "purpose=Portable Linux x86_64, glibc 2.28+, no R needed"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=Intel MKL (static, embedded)"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-x86_64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-x86_64-portable
+          path: manifest/inla-linux-x86_64-portable.txt
+
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-x86_64-portable
+          path: inla-linux-x86_64-portable.tar.gz
+          if-no-files-found: error
+
+  ## Same portable build for arm64 Linux (Graviton, Ampere, Raspberry Pi):
+  ## GitHub's arm64 runner + the aarch64 manylinux container, identical
+  ## scripts. BLAS is the bundled OpenBLAS -- ARMPL would be faster on SVE
+  ## machines but its license does not allow redistributing the libraries,
+  ## so it stays a build-it-yourself option rather than an artifact.
+  run-portable-x86_64:
+    name: "Portable x86_64 runs a model on ${{ matrix.distro }}"
+    needs: [linux-x86_64, portable-linux-x86_64]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ["rockylinux:8", "fedora:latest", "debian:12", "ubuntu:22.04"]
+    container: ${{ matrix.distro }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-linux-x86_64-portable
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-testmodel
+          path: testmodel
+      - name: Run the binary on this distro
+        run: |
+          head -2 /etc/os-release
+          BASE=$PWD
+          tar xzf inla-linux-x86_64-portable.tar.gz
+          ./bin/inla -ping
+          ## no `find`: the barest images (rockylinux:8) do not ship it
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; ls -R testmodel | head -20; exit 1; }
+          cd "$(dirname "$INI")"
+          "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          tail -3 run.log
+          echo "OK: full model ran on ${{ matrix.distro }}"
+
+  ## Same cross-distro proof on arm64 (the container images resolve to
+  ## their arm64 variants on the arm64 runner automatically).
+  portable-linux-x86_64-modern:
+    name: "Portable bundle: Linux x86_64 modern (gcc-16, glibc 2.39+)"
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-ubuntu.sh
+      ## MKL, statically embedded -- the same BLAS the classic x86_64
+      ## bundle carries and what upstream links on Linux. This bundle is the
+      ## performance one, so it gets the fastest x86 BLAS, not a fallback.
+      - name: Install Intel MKL
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-mkl.sh
+      ## the libstiles built the same way this bundle is (newest gcc,
+      ## x86-64-v3, MKL); falls back to the standard asset until a release
+      ## carries it.
+      - name: Fetch libstiles
+        run: |
+          STILES_ASSET=libstiles-linux-x86_64-v3-mkl.zip bash ci/fetch-stiles.sh \
+            || bash ci/fetch-stiles.sh
+      - name: Build
+        run: |
+          . ci/toolchain.env
+          if ! BLAS=mkl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="$MARCH_X86_MODERN" \
+               bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Package
+        env:
+          GLIBC_MAX: "2.39"
+          SUFFIX: v3
+        run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-x86_64-v3-portable"
+            echo "purpose=Portable Linux x86_64, newest GCC, AVX2 code throughout (x86-64-v3); needs glibc 2.39+ and a ~2015+ CPU"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=Intel MKL, static, embedded"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-x86_64-v3-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-x86_64-v3-portable
+          path: manifest/inla-linux-x86_64-v3-portable.txt
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-x86_64-v3-portable
+          path: inla-linux-x86_64-v3-portable.tar.gz
+          if-no-files-found: error
+  portable-linux-arm64-modern:
+    name: "Portable bundle: Linux arm64 modern (gcc-16, glibc 2.39+)"
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-ubuntu.sh
+      ## ARMPL, statically embedded: the fastest BLAS on arm64, matching
+      ## what the classic ARMPL bundle carries. deb packages here (the
+      ## manylinux lane takes the rpm ones).
+      - name: Install ARMPL
+        env:
+          ARMPL_PKG: deb
+        run: bash ci/deps-armpl-linux.sh
+      ## the libstiles built the same way this bundle is (gcc-16, armv8.2,
+      ## ARMPL); falls back to the standard arm64 asset until that release
+      ## exists.
+      - name: Fetch libstiles
+        run: |
+          STILES_ASSET=libstiles-linux-arm64-armv82-armpl.zip bash ci/fetch-stiles.sh \
+            || bash ci/fetch-stiles.sh
+      - name: Build
+        run: |
+          . ci/toolchain.env
+          if ! BLAS=armpl WITH_LIBR=2 LTO=1 WITH_STILES=1 MARCH="$MARCH_ARM_MODERN" \
+               bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Package
+        env:
+          GLIBC_MAX: "2.39"
+          SUFFIX: armv82
+          ARCH_NAME: arm64
+        run: bash ci/package-portable.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-linux-arm64-armv82-portable"
+            echo "purpose=Portable Linux arm64, newest GCC, armv8.2 code throughout, ARMPL; needs glibc 2.38+ (Graviton2+, Ampere, RPi 5)"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=ARMPL, static, embedded"
+            echo "stiles=$ST"
+          } > manifest/inla-linux-arm64-armv82-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-linux-arm64-armv82-portable
+          path: manifest/inla-linux-arm64-armv82-portable.txt
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-linux-arm64-armv82-portable
+          path: inla-linux-arm64-armv82-portable.tar.gz
+          if-no-files-found: error
+
+
+  ## The modern bundle replayed on a clean current distro.
+  run-portable-modern:
+    name: "Portable modern (${{ matrix.arch }}) runs a model on ${{ matrix.distro }}"
+    needs: [portable-linux-x86_64-modern, portable-linux-arm64-modern, linux-x86_64]
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.distro }}
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ["ubuntu:24.04", "fedora:latest"]
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            bundle: inla-linux-x86_64-v3-portable
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            bundle: inla-linux-arm64-armv82-portable
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.bundle }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-testmodel
+          path: testmodel
+      - name: Run the binary on this distro
+        run: |
+          head -2 /etc/os-release
+          BASE=$PWD
+          tar xzf ${{ matrix.bundle }}.tar.gz
+          ./bin/inla -ping
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; exit 1; }
+          cd "$(dirname "$INI")"
+          "$BASE/bin/inla" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          tail -3 run.log
+          echo "OK: modern bundle ran a model on ${{ matrix.distro }}"
+
+  ## DIAGNOSTIC (never blocks): the arm64+ARMPL bundle segfaults
+  ## intermittently -- 2 failures in 12 replays on 2026-08-17/18, always
+  ## after "IS ALIVE", i.e. while computing, never on the OpenBLAS arm64
+  ## bundle and never on x86. This job measures the rate and separates the
+  ## two candidate causes:
+  ##   phase A  default threads   -> a race shows up here
+  ##   phase B  OMP_NUM_THREADS=1 -> failures here mean a kernel/dispatch
+  ##                                 problem instead, not a race
+  ## and captures a backtrace from the first crash it can reproduce under
+  ## gdb. The host CPU is logged because the arm64 runner pool is
+  ## heterogeneous and ARMPL selects kernels by CPU features.
+  macos-arm64:
+    name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
+    runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-macos.sh
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build
+        ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
+        ## time, so the bundle runs on a Mac with any R or none, and
+        ## rgeneric loads the running machine's own libR when first used.
+        env:
+          WITH_LIBR: 2
+          WITH_STILES: 1
+          ## The shipped artifacts get the full upstream optimization; the
+          ## gate lane stays LTO-free so iteration remains fast.
+          LTO: 1
+        run: |
+          if ! bash ci/build-macos.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|Undefined symbols|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      - name: Smoke test
+        env:
+          INLA_SMTP: stiles
+        run: bash ci/smoke-test.sh
+      - name: Package (self-contained bundle)
+        run: bash ci/package-macos.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-macos-arm64-portable"
+            echo "purpose=macOS Apple Silicon bundle, self-contained"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=ARMPL (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-macos-arm64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-macos-arm64-portable
+          path: manifest/inla-macos-arm64-portable.txt
+
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-macos-arm64-portable
+          path: inla-macos-*-portable.tar.gz
+          if-no-files-found: error
+
+  ## macOS Intel: the same scripts on the last x86_64 macOS runner image.
+  ## BLAS is a serial OpenBLAS built by ci/deps-macos.sh, not Accelerate:
+  ## Accelerate's threading cannot be controlled reliably and that breaks
+  ## INLA's nested parallelism (see the comment there). Same recipe as the
+  ## sTiles Intel lane, so both sides of the pairing sit on the same BLAS.
+  macos-intel:
+    name: "macOS Intel: build + smoke test (OpenBLAS)"
+    runs-on: macos-15-intel
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-macos.sh
+      - name: Fetch libstiles
+        run: bash ci/fetch-stiles.sh
+      - name: Build
+        ## WITH_LIBR=2, as on the Linux portable lanes: no libR at link
+        ## time, so the bundle runs on a Mac with any R or none, and
+        ## rgeneric loads the running machine's own libR when first used.
+        env:
+          WITH_LIBR: 2
+          WITH_STILES: 1
+          ## The shipped artifacts get the full upstream optimization; the
+          ## gate lane stays LTO-free so iteration remains fast.
+          LTO: 1
+        run: |
+          if ! bash ci/build-macos.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|Undefined symbols|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          grep -m1 "^BLAS:" build.log || true
+          tail -3 build.log
+      - name: Smoke test
+        env:
+          INLA_SMTP: stiles
+        run: bash ci/smoke-test.sh
+      - name: Package (self-contained bundle)
+        run: bash ci/package-macos.sh
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-macos-x86_64-portable"
+            echo "purpose=macOS Intel bundle, self-contained"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=OpenBLAS, serial, bundled"
+            echo "stiles=$ST"
+          } > manifest/inla-macos-x86_64-portable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-macos-x86_64-portable
+          path: manifest/inla-macos-x86_64-portable.txt
+
+      - name: Upload portable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-macos-x86_64-portable
+          path: inla-macos-*-portable.tar.gz
+          if-no-files-found: error
+
+  ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
+  ## following the upstream Windows build recipe (Windows R's own
+  ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).
+  ## Experimental while it stabilizes: cannot fail the workflow.
+  windows-x86_64:
+    name: "Windows x86_64: cross-build inla.exe (MinGW UCRT)"
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      ## Before checkout: without git in the container, actions/checkout
+      ## falls back to downloading a tarball through the REST API, which is
+      ## rate-limited and fails the job with 429 under load. With git
+      ## present it does an ordinary clone.
+      - name: Install git for the checkout
+        run: dnf -y install git-core
+      - uses: actions/checkout@v4
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-mingw.sh
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        ## PREFIX must match build-mingw.sh, whose prefix is local-win, not
+        ## the local/ every other lane uses -- without it the fetch stages
+        ## into a directory the Windows build never looks at.
+        env:
+          ## The ucrt-cross asset is built by the same Fedora ucrt64 toolchain
+          ## as this lane (same gcc, same libgomp), so the compiler check can
+          ## enforce the pairing here like everywhere else. The MSYS2-built
+          ## asset stays on the releases page for standalone Windows use.
+          STILES_ASSET: libstiles-windows-x86_64-ucrt-cross.zip
+          PREFIX: ${{ github.workspace }}/local-win
+        run: bash ci/fetch-stiles.sh
+      - name: Cross-build inla.exe
+        ## WITH_LIBR=2: R.dll is not linked; rgeneric loads the running
+        ## machine's own R through libltdl, which finds it under
+        ## $R_HOME/bin/x64 on Windows.
+        env:
+          WITH_LIBR: 2
+          WITH_STILES: 1
+          LTO: 1
+        run: |
+          if ! bash ci/build-mingw.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -3 build.log
+      ## The directory itself, not the zip the build script also makes:
+      ## GitHub packs artifacts anyway, and Git Bash on the Windows runner
+      ## has no unzip to open an inner archive with.
+      - name: Manifest
+        if: always()
+        run: |
+          CO=$(grep -m1 "^== building" build.log 2>/dev/null | grep -oE '\(GCC\) [0-9.]+|GCC [0-9.]+\) [0-9.]+|gcc-[0-9]+' | head -1 | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 || true)
+          CO="GCC ${CO:-unknown}"
+          ST=$(cat local-win/stiles/RELEASE 2>/dev/null || echo latest)
+          mkdir -p manifest
+          { echo "artifact=inla-windows-x86_64"
+            echo "purpose=Windows x86_64: inla.exe + all DLLs, runs with or without R installed"
+            echo "compiler=${CO:-unknown}"
+            echo "blas=R's Rblas/Rlapack (bundled)"
+            echo "stiles=$ST"
+          } > manifest/inla-windows-x86_64.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manifest-inla-windows-x86_64
+          path: manifest/inla-windows-x86_64.txt
+
+      - name: Upload Windows bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: inla-windows-x86_64
+          path: dist-win
+          if-no-files-found: error
+
+  ## Prove the exe on real Windows: install R (for R.dll and the realistic
+  ## user environment), run ping and the same test model as every other lane.
+  run-windows:
+    name: "Windows runs a model with installed R"
+    needs: [linux-x86_64, windows-x86_64]
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-windows-x86_64
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-testmodel
+          path: testmodel
+      - name: Install R
+        run: choco install r.project --no-progress -y
+      - name: Run the exe on Windows
+        run: |
+          RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
+          export PATH="$RBIN:$PATH"
+          ## Locate the exe rather than assume where the artifact unpacked;
+          ## list the tree if it is genuinely absent, so a layout change
+          ## reports itself instead of failing as "command not found".
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          [ -n "$EXE" ] || { echo "inla.exe not found in the artifact:"; ls -la; find . -maxdepth 3 -name 'inla.exe'; exit 1; }
+          BASE=$(dirname "$EXE")
+          echo "using $EXE"
+          "$EXE" -ping
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          [ -n "$INI" ] || { echo "no Model.ini in the artifact"; exit 1; }
+          cd "$(dirname "$INI")"
+          "$EXE" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
+          tail -3 run.log
+          echo "OK: full model ran on Windows"
+
+      ## The same bundle with NO R anywhere on PATH. This is how someone who
+      ## downloads the artifact actually runs it, and it is a genuinely
+      ## different test: an import the bundle is missing is resolved from R's
+      ## bin directory in the step above, hiding the defect. Without R,
+      ## Windows refuses to start the process at all (0xc0000135) before any
+      ## of our code runs, so nothing in the program can report it.
+      - name: Run the exe with no R on PATH (the bare-bundle case)
+        run: |
+          export PATH=$(echo "$PATH" | tr ':' '\n' | grep -viE '/R/R-[0-9]|/R/bin' | paste -sd:)
+          echo "R on PATH? $(command -v R || echo no)"
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          "$EXE" -ping || { echo "::error::the bundle cannot start without an installed R"; exit 1; }
+          INI=""
+          for f in testmodel/Model.ini testmodel/*/Model.ini testmodel/*/*/Model.ini; do
+            [ -f "$f" ] && { INI=$f; break; }
+          done
+          cd "$(dirname "$INI")"
+          "$EXE" Model.ini > bare.log 2>&1 || { tail -30 bare.log; exit 1; }
+          tail -3 bare.log
+          echo "OK: the bundle is self-contained (no R installed)"
+
+  ## Canary: same build on Fedora, which tracks the newest released GCC and
+  ## current R -- the toolchain the upstream binaries are actually built
+  ## with. R packages install from source here (no binary mirror), so the
+  ## job is slower. continue-on-error: a failure warns without blocking the
+  ## gate -- new-compiler breakage is an early warning, not a stop sign.
+  canary-newest-gcc:
+    name: "Canary: newest GCC on Fedora"
+    ## Off by default: run it only on a manual dispatch (Actions tab -> Run
+    ## workflow), not on every push. Toggle back to always-on by deleting
+    ## this line, no need to touch anything else in the job.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      ## Before checkout: without git in the container, actions/checkout
+      ## falls back to downloading a tarball through the REST API, which is
+      ## rate-limited and fails the job with 429 under load. With git
+      ## present it does an ordinary clone.
+      - name: Install git for the checkout
+        run: dnf -y install git-core
+      - uses: actions/checkout@v4
+      ## Deps first: the bare container has no git yet (deps installs it),
+      ## and the git config below needs it.
+      - name: System dependencies
+        ## a wedged package manager should fail fast, not hang for hours
+        timeout-minutes: 25
+        run: bash ci/deps-fedora.sh
+      ## SSH -> https for the external packages' clone URLs (no keys on a
+      ## runner), and https -> authenticated https so every GitHub fetch
+      ## counts against the 5000/hour authenticated limit instead of the
+      ## 60/hour anonymous one. Without this the many clones each run makes
+      ## (five model packages, SIMDE, METIS, muParser, dlfcn) get 429s.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+      - name: Fetch libstiles
+        ## The canary exists to build with the NEWEST GCC, unpinned by design,
+        ## so it will race ahead of the pinned library; that mismatch is the
+        ## canary's purpose, not a defect. Allow it explicitly -- the shipped
+        ## bundles keep the strict check.
+        env:
+          STILES_ALLOW_COMPILER_MISMATCH: 1
+        run: bash ci/fetch-stiles.sh
+      - name: Build
+        run: |
+          gcc --version | head -1
+          if ! WITH_STILES=1 bash ci/build.sh > build.log 2>&1; then
+            echo "::group::errors"
+            grep -nE "error:|Error [0-9]+|undefined reference|ld: " build.log || true
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -m1 "^== building" build.log || true
+          tail -5 build.log
+      - name: Smoke test
+        env:
+          INLA_SMTP: stiles
+        run: bash ci/smoke-test.sh
+
+  ## On a v* tag: attach the binaries this run just built AND proved (every
+  ## lane below ran its model) to a GitHub Release. Mirrors the sTiles
+  ## release job: the full asset set is asserted before publishing, since a
+  ## missing platform would otherwise be discovered by whoever needed it.
+  release:
+    name: release
+    ## Any release tag, whichever prefix it carries (Version_* now, v* before).
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [linux-x86_64, portable-linux-x86_64, portable-linux-x86_64-modern,
+            portable-linux-arm64-modern, macos-arm64, macos-intel,
+            windows-x86_64, run-windows, run-portable-x86_64,
+            run-portable-modern]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: inla-*
+          path: artifacts
+      - name: Assert every platform is present, then pack
+        run: |
+          cd artifacts
+          missing=0
+          ## arm64 ships the modern bundle only: the baseline-ISA arm64
+          ## builds corrupt the heap in ~4% of runs (see the diagnostics in
+          ## this file's history), while the armv8.2 build is clean.
+          for a in inla-linux-x86_64-portable inla-linux-x86_64-v3-portable \
+                   inla-linux-arm64-armv82-portable \
+                   inla-macos-arm64-portable inla-macos-x86_64-portable \
+                   inla-windows-x86_64; do
+            [ -d "$a" ] && echo "  ok      $a" || { echo "::error::missing: $a"; missing=1; }
+          done
+          [ $missing -eq 0 ] || { echo "::error::refusing a partial release"; exit 1; }
+          mkdir -p ../dist
+          ## portables already carry one tar.gz each; pass it through
+          for d in *-portable; do cp "$d"/*.tar.gz ../dist/; done
+          ## the windows folder gets archived here; the plain gate binary is
+          ## deliberately NOT shipped -- it only runs where it was built.
+          ( cd inla-windows-x86_64 && zip -qr ../../dist/inla-windows-x86_64.zip . )
+          ls -lh ../dist
+      - name: Build the release notes table
+        run: |
+          {
+            echo "inla binaries with the sTiles backend built in. Portable bundles need no R installed; rgeneric loads the running machine's own R at first use."
+            echo
+            echo "x86_64 bundles need a CPU with AVX2 (Intel Haswell 2013+, AMD Excavator+): the sTiles kernels inside them are compiled for it."
+            echo
+            echo "| asset | built for | compiler | BLAS | libstiles |"
+            echo "|---|---|---|---|---|"
+            for m in artifacts/manifest-*/*.txt; do
+              [ -f "$m" ] || continue
+              a=$(grep '^artifact=' "$m" | cut -d= -f2-)
+              p=$(grep '^purpose='  "$m" | cut -d= -f2-)
+              c=$(grep '^compiler=' "$m" | cut -d= -f2-)
+              b=$(grep '^blas='     "$m" | cut -d= -f2-)
+              t=$(grep '^stiles='   "$m" | cut -d= -f2-)
+              echo "| $a | $p | $c | $b | $t |"
+            done
+          } > notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ## Title as the releases are written: "INLA 26.08.27", i.e. the
+          ## version without the tag's leading "v". The three most recent
+          ## releases use that form; the older "inla binaries v..." wording
+          ## was renamed by hand each time, so generate it correctly instead.
+          REL_VER="${GITHUB_REF_NAME#Version_}"
+          REL_VER="${REL_VER#v}"
+          REL_TITLE="INLA $REL_VER"
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$REL_TITLE" \
+            --notes-file notes.md

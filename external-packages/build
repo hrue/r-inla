@@ -25,5 +25,3 @@ for D in $DD; do
 	mv -v -f $L ..
     )
 done
-
-

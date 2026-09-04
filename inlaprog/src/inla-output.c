@@ -1897,6 +1897,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
+		mb->gcpo_param->min_overlap = iniparser_getint(ini, inla_string_join(secname, "GCPO.MIN.OVERLAP"), 0);
 		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
@@ -2155,6 +2156,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\t\ttype.cv=[%s]\n", (mb->gcpo_param->type_cv == 0 ? "single" : "joint"));
 			printf("\t\t\t\tnum.level.sets=[%1d]\n", mb->gcpo_param->num_level_sets);
+			printf("\t\t\t\tmin.overlap=[%1d]\n", mb->gcpo_param->min_overlap);
 			printf("\t\t\t\tsize.max=[%1d]\n", mb->gcpo_param->size_max);
 			printf("\t\t\t\tstrategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
 			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);

@@ -22,40 +22,122 @@ inla.print.version <- function() {
             " - List available models/likelihoods/etc with inla.list.models()\n", 
             " - Use inla.doc(<NAME>) to access documentation"
         )
-        opts <- options()
-        options(timeout = 2)
-        suppressWarnings({
-            vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
-                                  n = 4, encoding = "UTF-8"), silent = TRUE)
-        })
-        if (!inherits(vers, "try-error") && length(vers) == 4) {
-            rem.space <- function(x) gsub("[ ]+","", x)
-            stable <- rem.space(vers[1])
-            testing <- rem.space(vers[2])
-            major <- rem.space(vers[3])
-            minor <- rem.space(vers[4])
-            minor <- rem.space(strsplit(minor, "[.]")[[1]][1])
-            current <- getNamespaceVersion("INLA")
-            if (!(current == stable || current == testing)) {
-                majo <- rem.space(R.Version()$major)
-                mino <- rem.space(strsplit(R.Version()$minor, "[.]")[[1]][1])
-                if (majo != major || mino != minor) {
-                    rstr <- paste0(" (require R-", major, ".", minor, ")")
-                } else {
-                    rstr <- "."
+        ## Upgrade notice, disabled. It fetched
+        ## https://inla.r-inla-download.org/VERSIONS on every attach and compared
+        ## the running version against the published stable/testing ones. That
+        ## server carries the upstream builds, so a version built here is never
+        ## one of them and the notice fired every time, telling the user to
+        ## "upgrade" to something older than what they are running.
+        ## Wrapped rather than deleted so it can be restored in one edit.
+        if (FALSE) {
+            opts <- options()
+            options(timeout = 2)
+            suppressWarnings({
+                vers <- try(readLines("https://inla.r-inla-download.org/VERSIONS",
+                                      n = 4, encoding = "UTF-8"), silent = TRUE)
+            })
+            if (!inherits(vers, "try-error") && length(vers) == 4) {
+                rem.space <- function(x) gsub("[ ]+","", x)
+                stable <- rem.space(vers[1])
+                testing <- rem.space(vers[2])
+                major <- rem.space(vers[3])
+                minor <- rem.space(vers[4])
+                minor <- rem.space(strsplit(minor, "[.]")[[1]][1])
+                current <- getNamespaceVersion("INLA")
+                if (!(current == stable || current == testing)) {
+                    majo <- rem.space(R.Version()$major)
+                    mino <- rem.space(strsplit(R.Version()$minor, "[.]")[[1]][1])
+                    if (majo != major || mino != minor) {
+                        rstr <- paste0(" (require R-", major, ".", minor, ")")
+                    } else {
+                        rstr <- "."
+                    }
+                    hello <- paste0(hello, "\n",
+                                    paste0(" - Consider upgrading R-INLA to testing[",  testing,
+                                           "] or stable[", stable, "]", rstr))
                 }
-                hello <- paste0(hello, "\n",
-                                paste0(" - Consider upgrading R-INLA to testing[",  testing,
-                                       "] or stable[", stable, "]", rstr))
             }
+            options(opts)
         }
-        options(opts)
         packageStartupMessage(hello)
     }
 }
 
 .onLoad <- function(...) {
     ## nothing for the moment
+}
+## No binary yet? Say so, once per session, and stop there.
+##
+## The package ships launcher scripts (inst/bin/<platform>/64bit/inla.run is
+## ~2 KB, inla.mkl.run is 8 bytes), not a solver: that is a separate ~100 MB
+## download. So a fresh install cannot run a model, and the first sign of it
+## used to be an obscure failure inside inla(). This prints the one command
+## that fixes it.
+##
+## It NEVER prompts and NEVER downloads on its own. library(INLA) must behave
+## identically in a script, a container and a terminal, so nothing here can
+## block on stdin or start a large transfer the caller did not ask for.
+## Set options(inla.stiles.autoinstall = TRUE), or the environment variable
+## INLA_STILES_AUTOINSTALL, to have it install unattended instead: that is
+## opt-in precisely because it is the surprising behaviour.
+##
+## Existence is not the test. Those shipped launchers exist on every install,
+## so file.exists() is always TRUE and would silence this permanently. Ask the
+## binary whether it answers -V instead.
+`inla.first.run.binary` <- function() {
+    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
+        out <- suppressWarnings(tryCatch(
+            system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
+            error = function(e) character(0)))
+        if (any(grepl("version", out, ignore.case = TRUE))) {
+            ## A binary is there and runs. Is it the one this package expects?
+            ## The build stamps DESCRIPTION's Version into the binary, and R
+            ## normalises that same string for packageVersion(), so the two
+            ## are directly comparable: "26.9.3" from `inla -V` must equal
+            ## packageVersion("INLA"). They drift when a user upgrades the R
+            ## package and keeps an older cached binary, which then fails in
+            ## ways that look like modelling errors rather than a version
+            ## mismatch. Report it; do not act on it.
+            bv <- sub(".*version:[[:space:]]*", "",
+                      grep("version", out, ignore.case = TRUE, value = TRUE)[1])
+            bv <- trimws(bv)
+            ## Compare against the binary version this package DECLARES it
+            ## needs (Config/INLA/BinaryVersion), not against its own Version.
+            ## The R code moves independently: most edits here need no new
+            ## solver, so requiring equal versions would cry wolf on every R
+            ## update. Only an OLDER binary than the declared minimum is a
+            ## problem; a newer one is fine and stays quiet.
+            need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                             error = function(e) NULL)
+            if (!is.null(need) && nzchar(need) && nzchar(bv)) {
+                older <- tryCatch(package_version(bv) < package_version(need),
+                                  error = function(e) FALSE)
+                if (isTRUE(older)) {
+                    packageStartupMessage(
+                        " - Binary is ", bv, " but this package needs ", need,
+                        " or newer; run inla.stiles.install() to update it.")
+                }
+            }
+            return(invisible(NULL))
+        }
+    }
+
+    if (isTRUE(getOption("inla.stiles.autoinstall")) ||
+        nzchar(Sys.getenv("INLA_STILES_AUTOINSTALL"))) {
+        ## Opt-in only. Failure is reported and the session continues: an
+        ## unreachable network must not stop library(INLA) from loading.
+        res <- tryCatch(inla.stiles.install(), error = function(e) e)
+        if (inherits(res, "error")) {
+            packageStartupMessage("Could not install a binary: ", conditionMessage(res))
+            packageStartupMessage("Run inla.stiles.install() to retry.")
+        }
+        return(invisible(NULL))
+    }
+
+    packageStartupMessage(
+        " - No inla binary is installed yet; run inla.stiles.install() to fetch one.")
+    invisible(NULL)
 }
 
 .onAttach <- function(...) {
@@ -64,6 +146,7 @@ inla.print.version <- function() {
     } else {
         packageStartupMessage(appendLF=FALSE)
     }
+    try(inla.first.run.binary(), silent = TRUE)
 }
 
 .onUnload <- function(libpath) {
