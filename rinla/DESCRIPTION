@@ -169,7 +169,6 @@ Collate:
     'print.R'
     'priors.used.R'
     'prune.R'
-    'q.R'
     'qinv.R'
     'qreordering.R'
     'qsample.R'

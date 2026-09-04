@@ -1,4 +1,4 @@
-#' Install alternative binary builds.
+#' Install alternative binary builds. (OBSOLETE: use 'inla.stiles.install()' instead)
 #' 
 #' Install a new binary for `os` unless `missing(os)`, for which the
 #' `os` is chosen interactively among the available builds.
@@ -68,6 +68,8 @@
                                   list.only = FALSE,
                                   version = NULL)
 {
+    stop("This function is obsolete, please use 'inla.stiles.install()' instead")
+
     show <- function(...) {
         if (verbose) {
             msg <- paste(unlist(list(...)), sep = "", collapse = "")
