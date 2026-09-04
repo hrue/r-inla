@@ -4,12 +4,17 @@
 \alias{inla.binary.path}
 \title{Path of the inla binary in use}
 \usage{
-inla.binary.path(check = TRUE)
+inla.binary.path(check = TRUE, must = FALSE)
 }
 \arguments{
 \item{check}{Verify the file exists and answers \code{-V}. On failure the reason
 is returned as the \code{"error"} attribute rather than thrown, so a
 script can test the path without a \code{tryCatch}.}
+
+\item{must}{Raise instead of returning \code{NA_character_} when no binary can be
+resolved. Use it where the path is about to be executed, so that a
+missing binary is reported as such rather than reaching \code{system()} as
+the string \code{"NA"}.}
 }
 \value{
 The path, invisibly when \code{check} fails. \code{NA_character_} when no
