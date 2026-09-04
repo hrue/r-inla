@@ -770,9 +770,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		 */
 		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
 		fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
-		fprintf(stderr, "\tUsually this means the R package is newer than this binary [%s];\n",
+		fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n",
 			__GMRFLib_symbol_to_string(GITCOMMIT));
-		fprintf(stderr, "\tupgrade it with inla.stiles.install() if results look wrong.\n\n");
+		fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'\n\n");
 	}
 
 	if (0) {
