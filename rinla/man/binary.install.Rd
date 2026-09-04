@@ -3,7 +3,7 @@
 \name{inla.binary.install}
 \alias{inla.binary.install}
 \alias{binary.install}
-\title{Install alternative binary builds.}
+\title{Install alternative binary builds. (OBSOLETE: use 'inla.stiles.install()' instead)}
 \usage{
 inla.binary.install(
   os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8", "CentOS Stream-8",
