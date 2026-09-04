@@ -191,7 +191,18 @@ NULL
 `inla.getOption` <- function(option = NULL, list.out = NULL) {
     ## we get 'inla.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
-    default.opt$inla.call <- inla.call.builtin()
+    ## A missing binary must not make every other option unreadable. Since the
+    ## bundled builds went to inst/obsolete/, inla.call.builtin() raises when
+    ## nothing is installed, and that took every option down with it: on a
+    ## fresh install inla.getOption("smtp") and inla.setOption() both aborted,
+    ## so inla.stiles.install() could not finish either, its last step being
+    ## inla.setOption(inla.call = ...). The command the startup message tells
+    ## the user to run was the one command that could not run. Keep the option
+    ## readable and let the refusal happen where the binary is actually used.
+    ## Assigned through [ ] and list(): "default.opt$inla.call <- NULL" would
+    ## DROP the element, and "inla.call" would then be an unknown option.
+    default.opt["inla.call"] <- list(tryCatch(inla.call.builtin(),
+                                              error = function(e) NULL))
     valid.opt <- names(default.opt)
 
     ## with no argument, return a named list of current values
@@ -211,8 +222,12 @@ NULL
         opt <- list()
     }
 
+    ## NOTE: the value computed here is not read again before the function
+    ## returns; the result for "inla.call" comes from opt/default.opt in the
+    ## loop below. Left in place rather than deleted, but made non-raising:
+    ## as written it was one more way a missing binary aborted inla.getOption().
     if (is.null(opt$inla.call)) {
-        inla.call <- inla.call.builtin()
+        inla.call <- tryCatch(inla.call.builtin(), error = function(e) NULL)
     } else if (inla.strcasecmp(opt$inla.call, "remote") ||
         inla.strcasecmp(opt$inla.call, "inla.remote")) {
         inla.call <- gsub("\\\\", "/", system.file("bin/remote/inla.remote", package = "INLA"))
@@ -301,10 +316,20 @@ NULL
     } else {
         arg <- match.arg(arg, c("default", "compiler", "je", "tc", "mi"), several.ok = FALSE)
         if (arg != "default" && arg != "compiler") {
-            avail <- dir(paste0(dirname(inla.call.builtin()),"/malloc"), full.names = TRUE)
-            idx <- grep(paste0("lib", arg, "malloc"), avail)
-            if (length(idx) == 0 || length(idx) > 1) {
+            ## The allocator variants live beside the binary, so with none
+            ## installed there is nothing to check against. Fall back to the
+            ## safe value instead of raising: this runs at the end of EVERY
+            ## inla.setOption() call, so raising here made setting any option
+            ## at all impossible on a fresh install.
+            base <- tryCatch(dirname(inla.call.builtin()), error = function(e) NULL)
+            if (is.null(base)) {
                 inla.setOption.core("malloc.lib", "default")
+            } else {
+                avail <- dir(paste0(base, "/malloc"), full.names = TRUE)
+                idx <- grep(paste0("lib", arg, "malloc"), avail)
+                if (length(idx) == 0 || length(idx) > 1) {
+                    inla.setOption.core("malloc.lib", "default")
+                }
             }
         }
     }

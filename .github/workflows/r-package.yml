@@ -17,7 +17,14 @@ name: r-package
 
 on:
   push:
-    branches: [feature/ci]
+    ## master is here because a release is cut from it, and nothing else on
+    ## this repository tests it: build-inla runs on feature/ci and on tags, so
+    ## master went straight from a merge to a tag with no check in between.
+    ## That is how a merge that broke R CMD build reached master and was only
+    ## noticed when the release failed. This job is one short ubuntu run, so
+    ## the cost of covering master is small and it catches exactly that class
+    ## of failure BEFORE the tag exists rather than after.
+    branches: [feature/ci, master]
     tags: ['Version_*', 'v*']
   workflow_dispatch:
 

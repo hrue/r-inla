@@ -558,6 +558,18 @@
     ownfun <- FALSE
     submit.id <- ""
 
+    ## No binary, no run. inla.getOption() returns NULL for inla.call when none
+    ## is installed, so that the other options stay usable on a fresh install;
+    ## the refusal belongs here, where the binary is about to be used, and it
+    ## names the command that fixes it. Without this the NULL reaches
+    ## inla.strcasecmp() below and fails as "argument is of length zero".
+    if (!is.function(inla.call) &&
+        (is.null(inla.call) || length(inla.call) != 1L ||
+         is.na(inla.call) || !nzchar(inla.call))) {
+        stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+             call. = FALSE)
+    }
+
     if (is.function(inla.call)) {
         ## in this case, the responsibility is with the user
         ownfun <- TRUE
