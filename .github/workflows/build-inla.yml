@@ -13,6 +13,17 @@ on:
     ## branch naming. The older v* form is still accepted so the tags
     ## already published keep building if one is ever re-run.
     tags: ['Version_*', 'v*']
+    ## R-only changes compile nothing here: this board builds the BINARY, and
+    ## the R sources are not part of it. Without this, editing a .R file ran
+    ## twelve jobs across Linux, macOS and Windows to rebuild byte-identical
+    ## binaries. Anything touching ci/, gmrflib/, inlaprog/ or
+    ## external-packages/ still runs, and a TAG ignores paths entirely, so a
+    ## release is never skipped by this.
+    paths-ignore:
+      - 'rinla/R/**'
+      - 'rinla/man/**'
+      - 'rinla/NEWS.md'
+      - '.github/workflows/r-package.yml'
   workflow_dispatch:
 
 ## A newer push supersedes any run still in flight on the same branch.
