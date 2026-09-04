@@ -1,31 +1,11 @@
-`inla.call.builtin` <- function() {
-    ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
-    ## manually instead.
-    if (exists("inla.options", envir = inla.get.inlaEnv())) {
-        opt <- get("inla.options", envir = inla.get.inlaEnv())
-        if (!is.null(opt$inla.call)) {
-            return (opt$inla.call)
-        }
-    }
-    
-    ## OBSOLETE: the package no longer ships a binary. Those builds moved to
-    ## inst/obsolete/, so the lookups under bin/ that used to live here found
-    ## nothing and failed with an empty filename in the message
-    ## ("no such file " and then a blank), which said nothing about what to do
-    ## next. A binary now arrives through inla.stiles.install(), which fetches
-    ## one from the releases and sets inla.call to it, so that is what to say.
-    ## This still raises, exactly as the old lookup did once the file was
-    ## missing: there is genuinely no binary to return.
-    stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
-         call. = FALSE)
-}
-
 `inla.call.no.remote` <- function() {
-    ## return what is defined in options$inla.call except for 'remote', for which we revert back
-    ## to the builtin one
+    ## return what is defined in options$inla.call except for 'remote', for
+    ## which we revert back to the resolved binary. must = TRUE because the
+    ## caller is about to RUN this: an NA here would reach system() as the
+    ## literal string "NA".
     inla.call <- inla.getOption("inla.call")
     if (is.null(inla.call) || any(inla.strcasecmp(inla.call, c("remote", "inla.remote")))) {
-        inla.call <- inla.call.builtin()
+        inla.call <- inla.binary.path(check = FALSE, must = TRUE)
     }
     return(inla.call)
 }
@@ -51,6 +31,10 @@
 #' @param check Verify the file exists and answers `-V`. On failure the reason
 #'        is returned as the `"error"` attribute rather than thrown, so a
 #'        script can test the path without a `tryCatch`.
+#' @param must Raise instead of returning `NA_character_` when no binary can be
+#'        resolved. Use it where the path is about to be executed, so that a
+#'        missing binary is reported as such rather than reaching `system()` as
+#'        the string `"NA"`.
 #'
 #' @returns The path, invisibly when `check` fails. `NA_character_` when no
 #'        binary can be resolved at all.
@@ -64,16 +48,18 @@
 #' @seealso [inla.stiles.install()], [inla.stiles.status()]
 #' @export inla.binary.path
 
-`inla.binary.path` <- function(check = TRUE) {
-    ## The active setting first: inla.stiles.install() and any inla.setOption()
-    ## write here, so this is what an inla() call would actually execute. Fall
-    ## back to the launcher shipped inside the package, which is what a fresh
-    ## install runs before any binary has been fetched.
+`inla.binary.path` <- function(check = TRUE, must = FALSE) {
+    ## The active setting, which inla.stiles.install() and any inla.setOption()
+    ## write to: this is what an inla() call would actually execute. There is no
+    ## second place to look any more. The package used to ship a binary and
+    ## inla.call.builtin() found it; those builds moved to inst/obsolete/ and
+    ## this function replaced it, so an unset inla.call means no binary at all.
     path <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
-        path <- tryCatch(inla.call.builtin(), error = function(e) NA_character_)
-    }
-    if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
+        if (isTRUE(must)) {
+            stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+                 call. = FALSE)
+        }
         return(NA_character_)
     }
     path <- path[1]
