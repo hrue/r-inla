@@ -11,6 +11,25 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_abs(int n, double *x, double *y)
+{
+	assert(0 == 1 && "this function is not verified");
+#if defined(INLA_WITH_MKL)
+	vdAbs(n, x, y);
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+	vvfabs(y, x, &n);
+#else
+#       pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = fabs(x[i]);
+	}
+#endif
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_exp(int n, double *x, double *y)
 {
 #if defined(INLA_WITH_MKL)
