@@ -109,10 +109,10 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 
 // Force the compiler to keep this symbol even with aggressive LTO enabled
 __attribute__((used)) __attribute__((visibility("default")))
-#if defined(__cplusplus)
+#       if defined(__cplusplus)
 extern "C"
-#endif
-double sin_intern(double x) 
+#       endif
+double sin_intern(double x)
 {
 	double ans = sin(x);
 	printf("call sin_intern(%f) = %f\n", x, ans);
@@ -1394,19 +1394,20 @@ int testit(int argc, char **argv)
 		typedef double fun_tp(double);
 		fun_tp *fun = NULL;
 		double x = 1.12312;
-		
+
 		lt_dlinit();
 		handle = lt_dlopen(NULL);
 		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
-		if (!fun) FIXME("sin_intern not found using ltdl");
-#if defined(_WIN32)
+		if (!fun)
+			FIXME("sin_intern not found using ltdl");
+#       if defined(_WIN32)
 		if (!fun) {
 			HMODULE hModule = GetModuleHandle(NULL);
 			if (hModule) {
 				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin_intern"));
 			}
 		}
-#endif
+#       endif
 		const char *error = NULL;
 		if (!fun && (error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
@@ -1416,15 +1417,16 @@ int testit(int argc, char **argv)
 		P(fun(x));
 
 		fun = (fun_tp *) lt_dlsym(handle, "sin");
-		if (!fun) FIXME("sin not found using ltdl");
-#if defined(_WIN32)
+		if (!fun)
+			FIXME("sin not found using ltdl");
+#       if defined(_WIN32)
 		if (!fun) {
 			HMODULE hModule = GetModuleHandle(NULL);
 			if (hModule) {
 				fun = (fun_tp *) ((void *) GetProcAddress(hModule, "sin"));
 			}
 		}
-#endif
+#       endif
 		if (!fun && (error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
@@ -6498,24 +6500,24 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 205: 
+	case 205:
 	{
 		int n = 10;
-		GMRFLib_idxval_tp *h= NULL;
+		GMRFLib_idxval_tp *h = NULL;
 
-		for(int i = 0; i < n; i++) {
-			GMRFLib_idxval_addto(&h, 2*i+1, sqrt(i));
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxval_addto(&h, 2 * i + 1, sqrt(i));
 		}
 		GMRFLib_idxval_prepare(&h, 1, 1);
 		GMRFLib_idx_bitmap_tp *bm = GMRFLib_idxval_bitmap_get(h);
-		for(int i = 0-10; i < h->idx[n-1]+10; i++) {
+		for (int i = 0 - 10; i < h->idx[n - 1] + 10; i++) {
 			GMRFLib_idxval_tp *v;
 			GMRFLib_idxval_add(&v, i, 0.0);
 			printf("i = %1d in idx: %1d\n", i, GMRFLib_idxval_nmatch(v, bm));
 		}
 	}
-	break;
-	
+		break;
+
 
 	case 999:
 	{

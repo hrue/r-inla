@@ -661,7 +661,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	GMRFLib_stiles_idx_tp stiles_idx = { 0, -1, 0 };
 	GMRFLib_stiles_set_idx(&stiles_idx, 1);
 	// GMRFLib_stiles_print_idx(&stiles_idx, stdout);
-	
+
 	/*
 	 * This is copy of the original routine but with optional arguments 
 	 */
@@ -1542,8 +1542,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 */
 		SET_MODE;
 
-		if (stupid_mode_iter ||
-		    ((GMRFLib_smtp == GMRFLib_SMTP_STILES) && (ai_store->problem->stiles_idx->in_group > 0))) {
+		if (stupid_mode_iter || ((GMRFLib_smtp == GMRFLib_SMTP_STILES) && (ai_store->problem->stiles_idx->in_group > 0))) {
 			// if we come from studpid_search_mode, then we need to reset the mode
 
 			// if using sTiles, then we need to make sure 'in_group=0' for ai_store. we turn off, temporary adaptive
@@ -1979,7 +1978,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
-
 	// need to put this time_used in the next slot (not the Hessian one)
 	double overall_time_correct = -GMRFLib_timer();
 	if (gcpo) {
@@ -3588,7 +3586,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (gcpo_param->min_overlap > 0) {
 			A_idx4 = Calloc(dn, GMRFLib_idx_tp *);
 			// we do not need to care about the remainder
-			for (int i = 0; i + BLOCK -1 < dn; i += BLOCK) {
+			for (int i = 0; i + BLOCK - 1 < dn; i += BLOCK) {
 				// easier if we know the lengths of the joined BLOCK idx's...
 				int m = 0;
 				int node = d_idx->idx[i];
@@ -3727,16 +3725,17 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #if 0
 						static double tt = 0.0;
-#pragma omp threadprivate(tt)
+#       pragma omp threadprivate(tt)
 						static int ttn = 0;
-#pragma omp threadprivate(ttn)
+#       pragma omp threadprivate(ttn)
 						tt -= GMRFLib_timer();
 #endif
 						if (0) {
 							// straight code, doing one at the time
 							for (int knode = 0; knode < dn; knode++) {
 								int nnode = d_idx->idx[knode];
-								if (unlikely(node == nnode) || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
+								if (unlikely(node == nnode)
+								    || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}
@@ -3745,7 +3744,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							// BLOCK of idx's are not be a match, as if a block are then we have to check each
 							// one. there are way more non-match than match, so...
 							int knode = 0;
-							for (knode = 0; knode + BLOCK -1 < dn; knode += BLOCK) {
+							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
 								int nmatch = GMRFLib_idx_nmatch(A_idx4[nnode], bitmap);
 								if (nmatch) {
@@ -3765,7 +3764,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
-								if (unlikely(node == nnode) || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
+								if (unlikely(node == nnode)
+								    || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}
@@ -3774,7 +3774,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #if 0
 						tt += GMRFLib_timer();
 						ttn++;
-						if (ttn % 1000 == 0) P(tt/ttn);
+						if (ttn % 1000 == 0)
+							P(tt / ttn);
 #endif
 						GMRFLib_idxval_bitmap_free(bitmap);
 						GMRFLib_idx_free(nb);
@@ -3817,14 +3818,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					int levels_ok = 0;
 					double levels_magnify = 1.0;
 					int count_safe = 0;
-				
+
 					while (!levels_ok) {
 
 						count_safe++;
 						assert(count_safe < 1000 && "GCPO_BUILD: THIS SHOULD NOT HAPPEN. CONTACT DEVELOPERS");
 
 						groups[node]->n = 0;
-						size_t siz_g = sMIN((size_t) d_idx_local->n, (size_t) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
+						size_t siz_g =
+						    sMIN((size_t) d_idx_local->n,
+							 (size_t) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
 						levels_magnify = DMIN(10.0, 1.5 * levels_magnify);
 						GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
 								    (double) d_idx_local->n, (double) gcpo_param->num_level_sets, levels_magnify);
@@ -3854,14 +3857,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 										sumw += W(i_new);
 										i_prev = i_new;
 										cor_abs_prev = cor_abs_new;
-										GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new);
+										GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new,
+												 cor_abs_new);
 										GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
 									}
 								} else {
 									cor_abs[i_new_l] = cor_abs_prev;
 									cor[i_new_l] = DSIGN(cor[i_new_l]) * cor_abs_prev;
 									GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new_l]);
-									GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev);
+									GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new,
+											 cor_abs_prev);
 									/*
 									 * use the maximum weight when they are equal 
 									 */
@@ -3883,7 +3888,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							if (groups[node]->n >= d_idx_local->n)
 								levels_ok = 1;	/* emergency option */
 
-							// printf("count_safe %d i %zu groups[%1d]->n = %1d, d_idx_local->n = %1d, levels_ok = %1d\n",
+							// printf("count_safe %d i %zu groups[%1d]->n = %1d, d_idx_local->n = %1d, levels_ok =
+							// %1d\n",
 							// count_safe, i, node, groups[node]->n, d_idx_local->n, levels_ok);
 						}
 						if (levels_ok) {
@@ -3898,7 +3904,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						GMRFLib_DEBUG_i("levels_ok", levels_ok);
 					}
 				}
-				
+
 #if defined(INLA_WITH_DEVEL)
 				if (show_timer) {
 					tref[tid][tidd][4] += GMRFLib_timer();
@@ -3969,10 +3975,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 			}
 			double inv_sum = 1.0 / GMRFLib_dsum(NLOC, tot);
-#pragma omp critical(Name_7508f00dd4c1b92329d5e04808f67f928903d401)
+#       pragma omp critical(Name_7508f00dd4c1b92329d5e04808f67f928903d401)
 			{
-				printf("\n\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n",
-				       1.0 / inv_sum, nt_outer, nt_inner);
+				printf("\n\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n", 1.0 / inv_sum, nt_outer, nt_inner);
 				for (int i = 0; i < NLOC; i++) {
 					printf("\t\tchunk_%1d: %.3f\n", i, tot[i] * inv_sum);
 				}

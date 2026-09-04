@@ -1354,7 +1354,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1638,7 +1638,7 @@ int GMRFLib_idx_nmatch(GMRFLib_idx_tp *v, GMRFLib_idx_bitmap_tp *bm)
 int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
 {
 	return GMRFLib_idxval_nmatch_2(v, bm);
-	//return GMRFLib_idxval_nmatch_4(v, bm);
+	// return GMRFLib_idxval_nmatch_4(v, bm);
 }
 
 #pragma GCC diagnostic push
@@ -1725,7 +1725,7 @@ int GMRFLib_idxval_nmatch_4(const GMRFLib_idxval_tp *restrict v, const GMRFLib_i
 		if (ix3 < ulen)
 			match3 += (bitmap[ix3 >> 6] >> (ix3 & 63)) & 1;
 	}
-	for(; i < n; i++) {
+	for (; i < n; i++) {
 		size_t ix = (size_t) (idx[i] - low);
 		if (ix < ulen)
 			match0 += (bitmap[ix >> 6] >> (ix & 63)) & 1;

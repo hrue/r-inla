@@ -11,6 +11,7 @@ inla.stiles.install(
   dir = NULL,
   force = FALSE,
   smtp = TRUE,
+  persist = TRUE,
   repo = "hrue/r-inla",
   verbose = TRUE
 )
@@ -18,7 +19,9 @@ inla.stiles.install(
 inla.stiles.status(ping = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{tag}{Release to install from, e.g. \code{"v26.08.18"}. Defaults to the
+\item{tag}{Release to install from, e.g. \code{"Version_26.08.31"} (tags
+published before that use the older \code{"v26.08.18"} form,
+and both still resolve). Defaults to the
 current release. Pin it for reproducibility.}
 
 \item{dir}{Where to unpack. Defaults to a per-user cache directory.}
@@ -26,6 +29,12 @@ current release. Pin it for reproducibility.}
 \item{force}{Re-download even when the binary is already installed.}
 
 \item{smtp}{Also select the sTiles sparse-matrix backend (default \code{TRUE}).}
+
+\item{persist}{Write the settings into \verb{~/.Rprofile} so they survive an R
+restart (default \code{TRUE}). The block is delimited and is
+REPLACED on each install, so installing another release
+re-points it rather than adding a second entry. A \code{.bak}
+is kept the first time the file is modified.}
 
 \item{repo}{GitHub repository holding the releases.}
 
@@ -64,7 +73,7 @@ an earlier install intended.
 \examples{
 \dontrun{
 inla.stiles.install()                  # newest release
-inla.stiles.install(tag = "v26.08.18") # a specific one
+inla.stiles.install(tag = "Version_26.08.31") # a specific one
 }
 
 }

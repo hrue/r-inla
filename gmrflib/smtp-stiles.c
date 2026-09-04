@@ -324,8 +324,7 @@ int GMRFLib_stiles_set_idx(GMRFLib_stiles_idx_tp *stiles_idx, int nrhs)
 			// we only `switch in_group' if we're in adaptive node and the number of threads in the two groups
 			// are different.
 			if (stiles_idx->in_group < store->ng &&
-			    (GMRFLib_openmp->adaptive &&
-			     (GMRFLib_ADAPTIVE_NUM_THREADS() != GMRFLib_openmp->max_threads_inner))) {
+			    (GMRFLib_openmp->adaptive && (GMRFLib_ADAPTIVE_NUM_THREADS() != GMRFLib_openmp->max_threads_inner))) {
 				stiles_idx->in_group += store->ng;
 			}
 			stiles_idx->within_group = 0;
