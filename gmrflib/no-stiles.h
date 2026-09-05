@@ -64,5 +64,6 @@ void sTiles_set_tile_size(int tile_size);
 void sTiles_set_tile_type_mode(int tile_type);
 void sTiles_turn_off_rescale(int, void *);
 void sTiles_turn_on_rescale(int, void *);
+void sTiles_set_log_level(int);
 
 #endif
