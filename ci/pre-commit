@@ -1,0 +1,34 @@
+#!/bin/sh
+## Keep rinla/DESCRIPTION's Version in step with the commit being made.
+##
+## The version is the date of the CODE (the commit), not of the build or the
+## install: that is what makes it answer "which sources is this", so two people
+## installing the same commit report the same number. Nothing derives it
+## automatically, so it used to be bumped by hand and drift; the r-package
+## workflow then fails on "Version is stale", after the push, which is a slow
+## way to find out. This does the bump at commit time instead.
+##
+## bump-rinla-version.sh is a no-op when the version already matches, so this
+## costs nothing on the commits that do not need it.
+##
+## Install once per clone:
+##     ln -sf ../../ci/pre-commit .git/hooks/pre-commit
+set -e
+root=$(git rev-parse --show-toplevel)
+
+## Skip while a merge/rebase is in progress: the version there belongs to the
+## commits being replayed, and rewriting it mid-merge produces conflicts in a
+## file the user never touched.
+if [ -e "$root/.git/MERGE_HEAD" ] || [ -d "$root/.git/rebase-merge" ] || [ -d "$root/.git/rebase-apply" ]; then
+    exit 0
+fi
+
+## bash, not sh: the script uses "set -o pipefail", which dash rejects.
+bash "$root/ci/bump-rinla-version.sh" --now || exit 1
+
+## Only stage it when it actually changed, so an unrelated commit does not
+## silently acquire DESCRIPTION.
+if ! git diff --quiet -- "$root/rinla/DESCRIPTION"; then
+    git add "$root/rinla/DESCRIPTION"
+    echo "pre-commit: rinla/DESCRIPTION Version bumped and staged"
+fi

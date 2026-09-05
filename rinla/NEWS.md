@@ -1,3 +1,6 @@
+# INLA 26.09.06
+* First trial-release with the new build/install system
+
 # INLA 26.09.04
 * Support for PARDISO is removed. 
 

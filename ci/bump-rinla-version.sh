@@ -26,7 +26,19 @@ set -e -o pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DESC=$ROOT/rinla/DESCRIPTION
 CHECK=0
-[ "${1:-}" = "--check" ] && CHECK=1
+NOW=0
+for a in "$@"; do
+    case "$a" in
+        --check) CHECK=1 ;;
+        ## Date the version from TODAY rather than from HEAD. For the
+        ## pre-commit hook: at that moment HEAD is still the PREVIOUS commit,
+        ## so the HEAD-based date is one commit behind and the first commit of
+        ## a new day would ship a stale version, which is exactly the case the
+        ## CI guard keeps catching.
+        --now)   NOW=1 ;;
+        *) echo "usage: $0 [--check] [--now]" >&2; exit 2 ;;
+    esac
+done
 
 [ -f "$DESC" ] || { echo "ERROR: no $DESC"; exit 1; }
 
@@ -48,7 +60,9 @@ BASE=${BASE#v}
 ## suffix there reads as noise. The date always sorts above the last tag, so
 ## R still sees an upgrade, and it never claims to BE a release the way a
 ## bare tag on a later commit would.
-if [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
+if [ "$NOW" = 1 ]; then
+    WANT=$(date +%y.%m.%d)
+elif [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
     WANT="$BASE"
 else
     WANT=$(git -C "$ROOT" log -1 --format=%cd --date=format:%y.%m.%d 2>/dev/null)
