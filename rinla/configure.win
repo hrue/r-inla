@@ -1,0 +1,33 @@
+#!/bin/sh
+## Stamp rinla/DESCRIPTION's Version with the date of THIS install.
+##
+## Runs during R CMD INSTALL, before R records the package metadata, so the
+## installed package reports the day it was installed rather than the day the
+## sources were last committed.
+##
+## The trade-off, deliberately accepted: the version no longer identifies the
+## code. Two people installing the same commit a week apart report different
+## versions, and a version alone cannot be traced back to sources. Use the
+## RemoteSha that remotes::install_github() records in DESCRIPTION for that.
+##
+## Only the date form is rewritten (YY.MM.DD). Anything else is left alone, so
+## a tarball whose version was set deliberately is not silently relabelled.
+set -e
+DESC=DESCRIPTION
+[ -f "$DESC" ] || exit 0
+
+now=$(date +%y.%m.%d)
+have=$(sed -n 's/^Version:[[:space:]]*//p' "$DESC" | head -1)
+
+case "$have" in
+    [0-9][0-9].[0-9][0-9].[0-9][0-9]) ;;
+    *) exit 0 ;;
+esac
+
+[ "$have" = "$now" ] && exit 0
+
+tmp=$(mktemp)
+awk -v want="$now" '/^Version:/ && !done { print "Version: " want; done=1; next } { print }' \
+    "$DESC" > "$tmp"
+mv "$tmp" "$DESC"
+echo "configure: Version $have -> $now (date of this install)"
