@@ -71,7 +71,7 @@
 `inla.qsolve` <- function(Q, B, reordering = inla.reorderings(),
                           method = c("solve", "forward", "backward")) {
     t.dir <- inla.tempdir()
-    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso", "stiles"))
+    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "stiles"))
     ## The sTiles backend serves the main inference program; these one-shot
     ## helper runs gain nothing from it and predate its group setup, so fall
     ## back the same way the binary itself does for classic mode. Without

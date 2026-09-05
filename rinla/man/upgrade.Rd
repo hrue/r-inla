@@ -5,26 +5,18 @@
 \alias{inla.upgrade}
 \title{Upgrade the INLA-package}
 \usage{
-inla.update(lib = NULL, testing = FALSE, ask = TRUE)
+inla.update(...)
 
-inla.upgrade(lib = NULL, testing = FALSE, ask = TRUE)
+inla.upgrade(...)
 }
 \arguments{
-\item{lib}{Location to install the library.}
-
-\item{testing}{If \code{TRUE}, then look for a test-version if the
-INLA-package.}
-
-\item{ask}{same argument as in \code{update.packages}}
+\item{...}{Arguments not used}
 }
 \value{
-\code{inla.upgrade} will update the INLA package to the current
-version, and \code{inla.update} do the same for backward compatibility. This
-function is simple wrapper for \code{update.packages} using the INLA
-repository.
+\code{inla.upgrade} returns nothing
 }
 \description{
-Functions to upgrade the \code{INLA}-package to the current version.
+Function to upgrade the \code{INLA}-package to the most recent version
 }
 \seealso{
 \code{update.packages}

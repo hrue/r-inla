@@ -91,14 +91,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 		(*csr_to)->s->ia = (*csr_to)->s->iwork;
 		(*csr_to)->s->ja = (*csr_to)->s->iwork + n1;
 		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) llen * sizeof(int));
-#if defined(INLA_WITH_PARDISO)
-		(*csr_to)->s->iwork1 = Malloc(llen, int);
-		(*csr_to)->s->ia1 = (*csr_to)->s->iwork1;
-		(*csr_to)->s->ja1 = (*csr_to)->s->iwork1 + n1;
-		Memcpy((void *) ((*csr_to)->s->iwork1), (void *) (csr_from->s->iwork1), (size_t) llen * sizeof(int));
-#else
 		(*csr_to)->s->iwork1 = (*csr_to)->s->ia1 = (*csr_to)->s->ja1 = NULL;
-#endif
 	}
 
 	if (csr_from->a) {
@@ -123,18 +116,8 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 
 int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
-#if defined(INLA_WITH_PARDISO)
-	assert(M);
-	int mtype = -2;
-	int error = 0;
-	pardiso_chkmatrix(&mtype, &(M->s->n), M->a, M->s->ia1, M->s->ja1, &error);
-	if (error != 0) {
-		GMRFLib_ERROR(GMRFLib_ESNH);
-	}
-#else
 	assert(M->s->ia1 == NULL);
 	assert(M->s->ja1 == NULL);
-#endif
 	return GMRFLib_SUCCESS;
 }
 
@@ -178,13 +161,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	Ms->iwork = Malloc(llen, int);
 	Ms->ia = Ms->iwork;
 	Ms->ja = Ms->iwork + n1;
-#if defined(INLA_WITH_PARDISO)
-	Ms->iwork1 = Malloc(llen, int);
-	Ms->ia1 = Ms->iwork1;
-	Ms->ja1 = Ms->iwork1 + n1;
-#else
 	Ms->iwork1 = Ms->ia1 = Ms->ja1 = NULL;
-#endif
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Malloc(n, int);
 	Ms->ia[0] = 0;
@@ -208,17 +185,6 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	RUN_CODE_BLOCK(1, 0, 0);			       /* TO QUICK TO DO IN PARALLEL */
 #undef CODE_BLOCK
 	Free(k_arr);
-
-#if defined(INLA_WITH_PARDISO)
-#       pragma omp simd
-	for (int i = 0; i < n + 1; i++) {
-		Ms->ia1[i] = Ms->ia[i] + 1;
-	}
-#       pragma omp simd
-	for (int i = 0; i < na; i++) {
-		Ms->ja1[i] = Ms->ja[i] + 1;
-	}
-#endif
 
 	if (csr_store_use && graph->sha) {
 		if (csr_store_debug) {
@@ -335,12 +301,7 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 	GMRFLib_io_write(io, (const void *) &(csr->s->na), sizeof(int));
 	GMRFLib_io_write(io, (const void *) (csr->s->ia), sizeof(int) * (csr->s->n + 1));
 	GMRFLib_io_write(io, (const void *) (csr->s->ja), sizeof(int) * csr->s->na);
-#if defined(INLA_WITH_PARDISO)
-	GMRFLib_io_write(io, (const void *) (csr->s->ia1), sizeof(int) * (csr->s->n + 1));
-	GMRFLib_io_write(io, (const void *) (csr->s->ja1), sizeof(int) * csr->s->na);
-#else
 	csr->s->ia1 = csr->s->ja1 = NULL;
-#endif
 	GMRFLib_io_write(io, (const void *) (csr->a), sizeof(double) * csr->s->na);
 	GMRFLib_io_close(io);
 
@@ -365,16 +326,7 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 	GMRFLib_io_read(io, (void *) (M->s->ia), sizeof(int) * (M->s->n + 1));
 	M->s->ja = M->s->iwork + M->s->n + 1;
 	GMRFLib_io_read(io, (void *) (M->s->ja), sizeof(int) * M->s->na);
-#if defined(INLA_WITH_PARDISO)
-	M->s->iwork1 = Malloc(len, int);
-	M->s->ia1 = M->s->iwork1;
-	GMRFLib_io_read(io, (void *) (M->s->ia1), sizeof(int) * (M->s->n + 1));
-	M->s->ja1 = M->s->iwork1 + M->s->n + 1;
-	GMRFLib_io_read(io, (void *) (M->s->ja1), sizeof(int) * M->s->na);
-#else
 	M->s->iwork1 = M->s->ia1 = M->s->ja1 = NULL;
-#endif
-
 	M->a = Malloc(M->s->na, double);
 	GMRFLib_io_read(io, (void *) (M->a), sizeof(double) * M->s->na);
 
@@ -451,10 +403,9 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 	}
 
 	GMRFLib_reorder_tp r = GMRFLib_reorder;
-	if (sm_fact->smtp == GMRFLib_SMTP_PARDISO || sm_fact->smtp == GMRFLib_SMTP_STILES) {
+	if (sm_fact->smtp == GMRFLib_SMTP_STILES) {
 		r = GMRFLib_REORDER_DEFAULT;
-	} else if ((sm_fact->smtp == GMRFLib_SMTP_TAUCS || sm_fact->smtp == GMRFLib_SMTP_BAND) &&
-		   (r == GMRFLib_REORDER_STILES || r == GMRFLib_REORDER_PARDISO)) {
+	} else if ((sm_fact->smtp == GMRFLib_SMTP_TAUCS || sm_fact->smtp == GMRFLib_SMTP_BAND) && r == GMRFLib_REORDER_STILES) {
 		r = GMRFLib_REORDER_DEFAULT;
 	}
 
@@ -477,18 +428,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 		}
 			break;
 
-		case GMRFLib_SMTP_PARDISO:
-		{
-			if (sm_fact->PARDISO_fact == NULL) {
-				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
-			}
-			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
-			sm_fact->remap = Malloc(graph->n, int);
-			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm,
-			       graph->n * sizeof(int));
-		}
-			break;
-
 		case GMRFLib_SMTP_STILES:
 		{
 			int k = -1;
@@ -505,28 +444,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
 			Memcpy((void *) sm_fact->remap, (void *) GMRFLib_stiles_get_perm(&stiles_idx), graph->n * sizeof(int));
-		}
-			break;
-
-		default:
-			GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
-			break;
-		}
-	}
-		break;
-
-	case GMRFLib_REORDER_PARDISO:
-	{
-		switch (sm_fact->smtp) {
-		case GMRFLib_SMTP_PARDISO:		       /* same code as above */
-		{
-			if (sm_fact->PARDISO_fact == NULL) {
-				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
-			}
-			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
-			sm_fact->remap = Malloc(graph->n, int);
-			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm,
-			       graph->n * sizeof(int));
 		}
 			break;
 
@@ -619,20 +536,6 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		if (sm_fact->PARDISO_fact == NULL) {
-			GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
-			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
-		}
-		ret = GMRFLib_pardiso_build(thread_id, sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
-		if (ret != GMRFLib_SUCCESS) {
-			GMRFLib_LEAVE_FUNCTION;
-			return ret;
-		}
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		if (problem->stiles_idx->within_group < 0) {
@@ -685,16 +588,6 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_t
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
-		if (ret != GMRFLib_SUCCESS) {
-			GMRFLib_LEAVE_FUNCTION;
-			return ret;
-		}
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		if (problem->stiles_idx->within_group < 0) {
@@ -739,15 +632,6 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 		}
 			break;
 
-		case GMRFLib_SMTP_PARDISO:
-		{
-			if (sm_fact->PARDISO_fact) {
-				GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact));
-				sm_fact->PARDISO_fact = NULL;
-			}
-		}
-			break;
-
 		case GMRFLib_SMTP_STILES:
 			break;
 
@@ -785,12 +669,6 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_l_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
-	}
-		break;
-
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
 	}
 		break;
 
@@ -847,12 +725,6 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_lt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
-	}
-		break;
-
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
 	}
 		break;
 
@@ -1016,8 +888,6 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			Free(iwork);
 
 		}
-	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 	} else if (sm_fact->smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_idx_tp s_idx = { 0, -1, nrhs };
 		if (stiles_idx) {
@@ -1067,12 +937,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1);
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		assert(0 == 1 && "this case should not be relevant for stiles");
@@ -1111,12 +975,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_f
 	case GMRFLib_SMTP_TAUCS:
 	{
 		GMRFLib_EWRAP0(GMRFLib_solve_lt_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, findx, toindx, remapped));
-	}
-		break;
-
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1);
 	}
 		break;
 
@@ -1162,15 +1020,6 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		if (remapped) {
-			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
-		}
-		GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1);
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		if (remapped) {
@@ -1210,12 +1059,6 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp *sm_fact, GMRFLib
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		*logdet = GMRFLib_pardiso_logdet(sm_fact->PARDISO_fact);
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		*logdet = GMRFLib_stiles_logdet(problem->stiles_idx);
@@ -1247,7 +1090,6 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
 	case GMRFLib_SMTP_STILES:
 	{
 		assert(0 == 1);
@@ -1275,12 +1117,6 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 	case GMRFLib_SMTP_TAUCS:
 	{
 		GMRFLib_EWRAP1(GMRFLib_bitmap_factorisation_TAUCS(filename_body, sm_fact->TAUCS_L));
-	}
-		break;
-
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_EWRAP1(GMRFLib_pardiso_bitmap());
 	}
 		break;
 
@@ -1312,12 +1148,6 @@ int GMRFLib_compute_Qinv(void *problem)
 	}
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
-	{
-		GMRFLib_pardiso_Qinv_INLA(p);
-	}
-		break;
-
 	case GMRFLib_SMTP_STILES:
 	{
 		GMRFLib_stiles_Qinv_INLA(p);
@@ -1334,8 +1164,7 @@ int GMRFLib_compute_Qinv(void *problem)
 
 int GMRFLib_valid_smtp(int smtp)
 {
-	return ((smtp == GMRFLib_SMTP_BAND || smtp == GMRFLib_SMTP_TAUCS || smtp == GMRFLib_SMTP_PARDISO
-		 || smtp == GMRFLib_SMTP_STILES) ? GMRFLib_TRUE : GMRFLib_FALSE);
+	return ((smtp == GMRFLib_SMTP_BAND || smtp == GMRFLib_SMTP_TAUCS || smtp == GMRFLib_SMTP_STILES) ? GMRFLib_TRUE : GMRFLib_FALSE);
 }
 
 const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
@@ -1365,8 +1194,6 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 		return "amdc";
 	case GMRFLib_REORDER_AMDBARC:
 		return "amdbarc";
-	case GMRFLib_REORDER_PARDISO:
-		return "pardiso";
 	case GMRFLib_REORDER_STILES:
 		return "stiles";
 	default:
@@ -1403,8 +1230,6 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_AMDC;
 	else if (!strcasecmp(name, "amdbarc"))
 		return GMRFLib_REORDER_AMDBARC;
-	else if (!strcasecmp(name, "pardiso"))
-		return GMRFLib_REORDER_PARDISO;
 	else if (!strcasecmp(name, "stiles"))
 		return GMRFLib_REORDER_STILES;
 	else {

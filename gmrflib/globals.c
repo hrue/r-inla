@@ -109,11 +109,6 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
  */
 GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
 
-/* 
-   tell if we have a working pardiso library, -1, is for 'not checked yet'
- */
-int GMRFLib_pardiso_ok = -1;
-
 int GMRFLib_faster_constr = 1;
 
 int GMRFLib_inla_mode = 0;

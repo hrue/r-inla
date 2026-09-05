@@ -1,4 +1,7 @@
 # INLA 26.09.04
+* Support for PARDISO is removed. 
+
+# INLA 26.09.04
 * Fix versions compatibility for inla binary and R
 
 # INLA 26.09.03

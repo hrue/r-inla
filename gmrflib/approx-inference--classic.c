@@ -2124,8 +2124,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[thread_id]) {
-								ais[thread_id] =
-								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+								ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 							}
 							s = ais[thread_id];
 						} else {
@@ -2164,8 +2163,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[thread_id]) {
-								ais[thread_id] =
-								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+								ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 							}
 							s = ais[thread_id];
 						} else {
@@ -2274,7 +2272,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 				int id = omp_get_thread_num();
 				GMRFLib_density_tp *cpodens = NULL;
 				if (!ai_store_id[id]) {
-					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_TRUE);
+					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 				}
 				GMRFLib_ai_marginal_hidden(thread_id, &dens[ii][dens_count], (cpo && (d[ii]
 												      || ai_par->cpo_manual) ? &cpodens : NULL),
@@ -2362,7 +2360,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 
 				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (!ais[thread_id]) {
-						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
+						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 					}
 					ai_store_id = ais[thread_id];
 				} else {
@@ -2574,8 +2572,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 					tref = GMRFLib_timer();
 					if (GMRFLib_OPENMP_IN_PARALLEL()) {
 						if (!ais[thread_id]) {
-							ais[thread_id] =
-							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
+							ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 						}
 						ai_store_id = ais[thread_id];
 					} else {
@@ -2812,7 +2809,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 			GMRFLib_density_tp *cpodens = NULL;
 
 			if (!ai_store_id[id]) {
-				ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_TRUE);
+				ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 			}
 			GMRFLib_ai_marginal_hidden(thread_id, &dens[ii][dens_count], (cpo && (d[ii]
 											      || ai_par->cpo_manual) ? &cpodens : NULL),

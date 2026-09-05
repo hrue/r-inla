@@ -100,9 +100,9 @@
     cat("* that the numbering for lines and nodes, are 0-based (and NOT 1-based)!\n")
 
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
-        s <- system(paste(shQuote(inla.call.builtin()), "-s -m graph", shQuote(graph.file)), intern = TRUE)
+        s <- system(paste(shQuote(inla.binary.path(check = FALSE, must = TRUE)), "-s -m graph", shQuote(graph.file)), intern = TRUE)
     } else if (inla.os("windows")) {
-        s <- system(paste(shQuote(inla.call.builtin()), "-s -m graph", shQuote(graph.file)), intern = TRUE)
+        s <- system(paste(shQuote(inla.binary.path(check = FALSE, must = TRUE)), "-s -m graph", shQuote(graph.file)), intern = TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

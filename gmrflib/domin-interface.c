@@ -242,7 +242,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	/*
 	 * This is the copy that is to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < nx; i++) {
 		int thread_id = omp_get_thread_num();
@@ -253,7 +253,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 			ais = G.ai_store;
 		} else {
 			if (!ai_store[thread_id]) {
-				ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+				ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 			}
 			ais = ai_store[thread_id];
 		}
@@ -476,7 +476,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 */
 
 	if (GMRFLib_openmp->max_threads_outer > 1) {
-		ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+		ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 	}
 
 	if (G.ai_par->gradient_forward_finite_difference) {
@@ -501,8 +501,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[thread_id]) {
-						ai_store[thread_id] =
-						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -574,8 +573,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[thread_id]) {
-						ai_store[thread_id] =
-						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -765,7 +763,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	int *i2thread = Calloc(len_xx_hold, int);
 	int early_stop = 0;
 	GMRFLib_ai_store_tp *ai_store_reference = (GMRFLib_openmp->max_threads_outer > 1 ?
-						   GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE) : NULL);
+						   GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE) : NULL);
 	int *order = Calloc(2 * n + 1, int);
 	order[0] = 2 * n;
 	for (int i = 0; i < n; i++) {
@@ -815,8 +813,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			} else {
 				assert(ai_store_reference);
 				if (!ai_store[thread_id]) {
-					ai_store[thread_id] =
-					    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+					ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 				}
 				ais = ai_store[thread_id];
 				i2thread[i] = thread_id;
@@ -943,8 +940,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					} else {
 						if (!ai_store[thread_id]) {
 							ai_store[thread_id] =
-							    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE,
-										       GMRFLib_FALSE);
+							    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 						}
 						ais = ai_store[thread_id];
 					}

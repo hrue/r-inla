@@ -8,7 +8,11 @@ name: build-inla
 
 on:
   push:
-    branches: [feature/ci]
+    ## feature/ci and master both get the board; devel deliberately does not,
+    ## it is not a branch this project builds from. Neither branch publishes:
+    ## the release job below stays gated on a TAG, so a release happens only
+    ## when the maintainer pushes one, never as a side effect of a merge.
+    branches: [feature/ci, master]
     ## Release tags are Version_YY.MM.DD, matching the release/Version_*
     ## branch naming. The older v* form is still accepted so the tags
     ## already published keep building if one is ever re-run.

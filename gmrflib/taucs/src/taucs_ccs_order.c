@@ -449,10 +449,8 @@ static void taucs_ccs_treeorder(taucs_ccs_matrix *m, int **perm, int **invperm)
 	taucs_free(degree);
 }
 void METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
-void METIS51PARDISO_NodeND(int *, int *, int *, int *, int *, int *, int *);
-#       if !defined(USE_METIS4)
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
-#       endif
+
 static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 4
@@ -534,11 +532,7 @@ static void taucs_ccs_metis(taucs_ccs_matrix *m, int **perm, int **invperm, char
 	options_flag[5] = 1;				       /* default */
 	options_flag[6] = 0;				       /* this is slow if non-zero. global nodes */
 	options_flag[7] = 3;				       /* number of separators */
-#              if defined(NO_PARDISO_LIB)
 	METIS_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
-#              else
-	METIS51PARDISO_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
-#              endif
 	taucs_free(xadj);
 	taucs_free(adj);
 #       endif

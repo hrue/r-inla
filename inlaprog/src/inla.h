@@ -100,7 +100,6 @@ typedef enum {
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
 	INLA_MODE_FGN,
-	INLA_MODE_PARDISO,
 	INLA_MODE_OPENMP,
 	INLA_MODE_DRYRUN,
 	INLA_MODE_TESTIT = 999
@@ -2140,7 +2139,6 @@ int inla_add_copyof(inla_tp * mb);
 int inla_add_scopyof(inla_tp * mb);
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
-int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
 int inla_divisible(int n, int by);
 int inla_endian(void);
@@ -2482,6 +2480,7 @@ int UTIL_countPhysicalCores(void);
 int UTIL_countCores(int);
 int UTIL_countLogicalCores(void);
 
+int GMRFLib_csr_init_store(void);
 int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 

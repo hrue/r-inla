@@ -52,12 +52,7 @@ RNG.
 
 PLEASE NOTE1: If \code{seed!=0} then the computations will run in serial
 mode, over-riding whatever is set in \code{num.threads} (a warning might be
-issued).
-
-PLEASE NOTE2: If the PARDISO sparse matrix library is used, continuity of
-the samples with respect to small changes in the precision matrix, can be
-expected but is not guaranteed. If this feature is required, please use the
-TAUCS sparse matrix library.}
+issued).}
 
 \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.
 Note that the output format then change.}

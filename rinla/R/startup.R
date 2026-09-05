@@ -141,6 +141,21 @@ inla.print.version <- function() {
 }
 
 .onAttach <- function(...) {
+    ## R CMD INSTALL starts helper R sessions (byte-compile, package indices,
+    ## the load test) and each of them runs the user's ~/.Rprofile. A profile
+    ## containing library(INLA) therefore attaches INLA three times while the
+    ## package's own files are being replaced underneath it. Reading options
+    ## out of a half-written lazy-load DB is not something this code can make
+    ## safe, and it has segfaulted in exactly that window. So stay out of it
+    ## entirely: there is nothing useful to say or do during an install anyway.
+    ##
+    ## R_CMD is the discriminator, verified by dumping the environment from a
+    ## .Rprofile in both cases: it is set for any "R CMD ..." and absent in a
+    ## normal session. R_INSTALL_PKG is NOT set at profile-read time, so it
+    ## cannot be used here (nor in a .Rprofile, where it is often suggested).
+    if (nzchar(Sys.getenv("R_CMD"))) {
+        return(invisible(NULL))
+    }
     if (interactive()) {
         inla.print.version()
     } else {

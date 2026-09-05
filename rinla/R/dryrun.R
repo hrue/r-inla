@@ -27,7 +27,7 @@
     args$verbose <- FALSE
     args$debug <- FALSE
     args$safe <- FALSE
-    args$inla.call <- inla.call.builtin()
+    args$inla.call <- inla.binary.path(check = FALSE, must = TRUE)
     args$inla.arg <- "-t1 -s -m dryrun"
     r <- unclass(do.call("inla", args = args))
 

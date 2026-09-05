@@ -6519,9 +6519,38 @@ int testit(int argc, char **argv)
 		break;
 
 
-	case 999:
+	case 206:
 	{
-		GMRFLib_pardiso_check_install(0, 0);
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+
+		double tref[2] = { 0 };
+		double z[2] = { 0 };
+		for (int j = 0; j < m; j++) {
+			tref[0] += -GMRFLib_timer();
+			z[0] = 0;
+			for (int i = 0; i < n; i++) {
+				double x = (i + 1) / (double) n * 10;
+				z[0] += MATHLIB_FUN(gammafn) (x);
+			}
+			tref[0] += GMRFLib_timer();
+		}
+		for (int j = 0; j < m; j++) {
+			tref[1] += -GMRFLib_timer();
+			z[1] = 0;
+			for (int i = 0; i < n; i++) {
+				double x = (i + 1) / (double) n * 10;
+				z[1] += tgamma(x);
+			}
+			tref[1] += GMRFLib_timer();
+		}
+		P(z[0]);
+		P(z[1]);
+		P(tref[0]);
+		P(tref[1]);
+		P(tref[0] / (tref[0] + tref[1]));
 	}
 		break;
 

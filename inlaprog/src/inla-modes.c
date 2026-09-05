@@ -26,11 +26,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		}
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -111,11 +107,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL);
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS(), B->ncol));
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -235,11 +227,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		}
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -291,7 +279,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_STILES)) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -320,7 +308,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		for (i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
-				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
+				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1);
 			}
 			if (!S) {
 				GMRFLib_sample(problems[thread]);

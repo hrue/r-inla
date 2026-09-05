@@ -23,7 +23,7 @@
 #' default value for 'control.expert$blas.num.threads'. } 
 #' 
 #' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`, `stiles`
-#' `default` or `pardiso`}
+#' or `default`}
 #' 
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}
@@ -191,18 +191,19 @@ NULL
 `inla.getOption` <- function(option = NULL, list.out = NULL) {
     ## we get 'inla.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
-    ## A missing binary must not make every other option unreadable. Since the
-    ## bundled builds went to inst/obsolete/, inla.call.builtin() raises when
-    ## nothing is installed, and that took every option down with it: on a
-    ## fresh install inla.getOption("smtp") and inla.setOption() both aborted,
-    ## so inla.stiles.install() could not finish either, its last step being
-    ## inla.setOption(inla.call = ...). The command the startup message tells
-    ## the user to run was the one command that could not run. Keep the option
-    ## readable and let the refusal happen where the binary is actually used.
+    ## There is no default binary any more. The package used to ship one and
+    ## this line called inla.call.builtin() to find it; those builds moved to
+    ## inst/obsolete/, so the only binary is the one inla.stiles.install() (or
+    ## the user) writes into inla.call, which the loop below reads from `opt`.
+    ##
+    ## Deliberately NOT inla.binary.path() here: that function calls
+    ## inla.getOption("inla.call"), so calling it from inside inla.getOption()
+    ## is the infinite recursion the note above warns about. A literal NULL is
+    ## also cheaper, this runs on every option read.
+    ##
     ## Assigned through [ ] and list(): "default.opt$inla.call <- NULL" would
     ## DROP the element, and "inla.call" would then be an unknown option.
-    default.opt["inla.call"] <- list(tryCatch(inla.call.builtin(),
-                                              error = function(e) NULL))
+    default.opt["inla.call"] <- list(NULL)
     valid.opt <- names(default.opt)
 
     ## with no argument, return a named list of current values
@@ -222,18 +223,11 @@ NULL
         opt <- list()
     }
 
-    ## NOTE: the value computed here is not read again before the function
-    ## returns; the result for "inla.call" comes from opt/default.opt in the
-    ## loop below. Left in place rather than deleted, but made non-raising:
-    ## as written it was one more way a missing binary aborted inla.getOption().
-    if (is.null(opt$inla.call)) {
-        inla.call <- tryCatch(inla.call.builtin(), error = function(e) NULL)
-    } else if (inla.strcasecmp(opt$inla.call, "remote") ||
-        inla.strcasecmp(opt$inla.call, "inla.remote")) {
-        inla.call <- gsub("\\\\", "/", system.file("bin/remote/inla.remote", package = "INLA"))
-    } else {
-        inla.call <- opt$inla.call
-    }
+    ## (A block here used to resolve `inla.call` into a local variable that was
+    ## never read again: the value returned for "inla.call" comes from
+    ## opt/default.opt in the loop below. Removed with inla.call.builtin(),
+    ## since its only remaining effect was to raise when no binary was
+    ## installed and so take every other option down with it.)
 
     res <- list()
     for (i in seq_along(option)) {
@@ -320,8 +314,10 @@ NULL
             ## installed there is nothing to check against. Fall back to the
             ## safe value instead of raising: this runs at the end of EVERY
             ## inla.setOption() call, so raising here made setting any option
-            ## at all impossible on a fresh install.
-            base <- tryCatch(dirname(inla.call.builtin()), error = function(e) NULL)
+            ## at all impossible on a fresh install. check = FALSE because the
+            ## binary must not be executed just to set an option.
+            base <- inla.binary.path(check = FALSE)
+            base <- if (is.na(base)) NULL else dirname(base)
             if (is.null(base)) {
                 inla.setOption.core("malloc.lib", "default")
             } else {

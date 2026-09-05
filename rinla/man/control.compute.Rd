@@ -29,7 +29,7 @@ inla.set.control.compute.default(...)
 }
 \arguments{
 \item{openmp.strategy}{The computational strategy to use: 'small', 'medium',
-'large', 'huge', 'default' and 'pardiso'.}
+'large', 'huge' and 'default'.}
 
 \item{hyperpar}{A boolean variable if the marginal for the hyperparameters
 should be computed. Default TRUE.}
@@ -73,8 +73,7 @@ reordered precision matrix and the Cholesky triangle should be generated.
 stored. (Default \code{FALSE}.)}
 
 \item{smtp}{The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies
-\code{openmp.strategy='pardiso'}.}
+(default \code{inla.getOption("smtp")}).}
 
 \item{graph}{A boolean variable if the graph itself should be returned.
 (Default FALSE.)}
@@ -113,7 +112,6 @@ Other control:
 \code{\link[=control.mix]{control.mix()}},
 \code{\link[=control.mode]{control.mode()}},
 \code{\link[=control.numa]{control.numa()}},
-\code{\link[=control.pardiso]{control.pardiso()}},
 \code{\link[=control.pom]{control.pom()}},
 \code{\link[=control.predictor]{control.predictor()}},
 \code{\link[=control.scopy]{control.scopy()}},

@@ -67,7 +67,6 @@ Other control:
 \code{\link[=control.lp.scale]{control.lp.scale()}},
 \code{\link[=control.mix]{control.mix()}},
 \code{\link[=control.numa]{control.numa()}},
-\code{\link[=control.pardiso]{control.pardiso()}},
 \code{\link[=control.pom]{control.pom()}},
 \code{\link[=control.predictor]{control.predictor()}},
 \code{\link[=control.scopy]{control.scopy()}},

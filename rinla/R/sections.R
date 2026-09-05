@@ -1638,24 +1638,14 @@ inla.parse.Bmatrix.test <- function() {
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")
     }
-    smtp <- match.arg(tolower(smtp), c("band", "taucs", "pardiso", "stiles", "default"))
+    smtp <- match.arg(tolower(smtp), c("band", "taucs", "stiles", "default"))
     cat("smtp = ", smtp, "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(openmp.strategy) || !(is.character(openmp.strategy) && (nchar(openmp.strategy) > 0))) {
         openmp.strategy <- "default"
     }
     openmp.strategy <- match.arg(tolower(openmp.strategy),
-                                 c("default", "small", "medium", "large", "huge",
-                                   "pardiso.serial", "pardiso.parallel", "pardiso.nested", "pardiso"))
-    if (inla.one.of(openmp.strategy, c("pardiso.serial", "pardiso.parallel", "pardiso.nested"))) {
-        ## they are all the same now. this is for backward compatibility
-        warning(paste0(
-            "openmp.strategy='pardiso.serial', 'pardiso.parallel', or 'pardiso.nested', is the same as openmp.strategy='pardiso', ",
-            "\nplease update your code. You define how the parallelisation is done using argument 'inla(...,  num.threads='A:B')'",
-            "\nwhere A are the number of threads in the outer layer, and B in the inner layer."
-        ))
-        openmp.strategy <- "pardiso"
-    }
+                                 c("default", "small", "medium", "large", "huge"))
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file, append = TRUE)
 
     if (!is.null(quantiles)) {
@@ -1901,16 +1891,6 @@ inla.parse.Bmatrix.test <- function() {
         cat("filename = ", file.update, "\n", sep = " ", file = file, append = TRUE)
         cat("\n", sep = " ", file = file, append = TRUE)
     }
-}
-
-`inla.pardiso.section` <- function(file, data.dir, contr) {
-    cat("\n", inla.secsep("INLA.pardiso"), "\n", sep = "", file = file, append = TRUE)
-    cat("type = pardiso\n", sep = " ", file = file, append = TRUE)
-    cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("debug = ", if (contr$debug) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("parallel.reordering = ", if (contr$parallel.reordering) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
-    cat("nrhs = ", contr$nrhs, "\n", sep = " ", file = file, append = TRUE)
-    cat("\n", sep = " ", file = file, append = TRUE)
 }
 
 `inla.stiles.section` <- function(file, data.dir, contr) {

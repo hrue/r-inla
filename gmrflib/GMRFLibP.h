@@ -146,7 +146,6 @@ typedef enum {
 #       define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? "Compact" : "(UNKNOWN MODE)"))
 
-// utility functions for this are mostly in smtp-pardiso.c
 typedef struct {
 	int n;
 	int na;

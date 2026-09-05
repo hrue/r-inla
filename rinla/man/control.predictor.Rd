@@ -88,7 +88,6 @@ Other control:
 \code{\link[=control.mix]{control.mix()}},
 \code{\link[=control.mode]{control.mode()}},
 \code{\link[=control.numa]{control.numa()}},
-\code{\link[=control.pardiso]{control.pardiso()}},
 \code{\link[=control.pom]{control.pom()}},
 \code{\link[=control.scopy]{control.scopy()}},
 \code{\link[=control.sem]{control.sem()}},

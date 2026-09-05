@@ -1775,7 +1775,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (!ais[thread_id]) {
-						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					s = ais[thread_id];
 				} else {
@@ -1993,9 +1993,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	}
 	overall_time_correct += GMRFLib_timer();
 
-	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of
-	// threads for
-	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve.
+	// if we have to many threads in outer we can move them to the inner level. 
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
@@ -2045,7 +2043,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		if (GMRFLib_OPENMP_IN_PARALLEL()) {
 			if (!ais[thread_id]) {
-				ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
+				ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 			}
 			ai_store_id = ais[thread_id];
 		} else {
@@ -3825,9 +3823,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						assert(count_safe < 1000 && "GCPO_BUILD: THIS SHOULD NOT HAPPEN. CONTACT DEVELOPERS");
 
 						groups[node]->n = 0;
-						size_t siz_g =
-						    sMIN((size_t) d_idx_local->n,
-							 (size_t) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
+						size_t siz_g = sMIN((size_t) d_idx_local->n,
+								    (size_t) (levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)));
 						levels_magnify = DMIN(10.0, 1.5 * levels_magnify);
 						GMRFLib_DEBUG_idddd("node siz_g nd num_level_sets levels_magnify", node, (double) siz_g,
 								    (double) d_idx_local->n, (double) gcpo_param->num_level_sets, levels_magnify);
@@ -6431,8 +6428,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 	int n, nc = 0, one = 1;
 	GMRFLib_density_tp **d = NULL;
 
-	// yes, disable this with PARDISO or STILES, as there is no such feaure
-	int disable_opt = (problem->sub_sm_fact.smtp == GMRFLib_SMTP_PARDISO || problem->sub_sm_fact.smtp == GMRFLib_SMTP_STILES ? 1 : 0);
+	int disable_opt = (problem->sub_sm_fact.smtp == GMRFLib_SMTP_STILES ? 1 : 0);
 
 	typedef struct {
 		double *v;
@@ -6441,12 +6437,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 	} cross_tp;
 	cross_tp *cross_store = NULL;
 
-	if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS ||
-	    problem->sub_sm_fact.smtp == GMRFLib_SMTP_BAND || problem->sub_sm_fact.smtp == GMRFLib_SMTP_STILES) {
-		remap = problem->sub_sm_fact.remap;
-	} else {
-		remap = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm;
-	}
+	remap = problem->sub_sm_fact.remap;
 	assert(remap);
 
 	int id = 0;
@@ -7648,7 +7639,7 @@ double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *U
 }
 #pragma GCC diagnostic pop
 
-GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
+GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, int skeleton, int copy_ptr)
 {
 	/*
 	 * duplicate AI_STORE. 'skeleton' only duplicate 'required' features. 'copy_ptr' only copies pointers to some objects known to be 'read only'
@@ -7676,8 +7667,8 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 	int Npred = ai_store->Npred;
 
-	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
-	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
+	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr);
+	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr);
 	COPY(nidx);
 	COPY(Npred);
 

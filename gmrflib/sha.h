@@ -11,7 +11,12 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-#       include "GMRFLib/sha.h"
+#       include <stddef.h>
+#       include <stddef.h>
+#       include <stdint.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <string.h>
 
 __BEGIN_DECLS
 //
@@ -22,10 +27,9 @@ __BEGIN_DECLS
 	uint32_t buflen;
 } SHA256_CTX;
 
-void sha256_transform(SHA256_CTX * ctx, const uint8_t data[]);
 void sha256_init(SHA256_CTX * ctx);
-void sha256_update(SHA256_CTX * ctx, const uint8_t data[], size_t len);
-void sha256_final(SHA256_CTX * ctx, uint8_t hash[]);
+void sha256_update(SHA256_CTX * ctx, const uint8_t * data, size_t len);
+void sha256_final(SHA256_CTX * ctx, uint8_t * hash);
 
 
 #       define GMRFLib_SHA_TP         SHA256_CTX

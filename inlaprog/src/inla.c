@@ -534,16 +534,10 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		Free(sectype);
 	}
 
-	/*
-	 * type = PARDISO
-	 */
 	for (sec = 0; sec < nsec; sec++) {
 		secname = Strdup(iniparser_getsecname(ini, sec));
 		sectype = Strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "PARDISO")) {
-			if (mb->verbose) {
-				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
-			}
 			sec_read[sec] = 1;
 			inla_parse_pardiso(mb, ini, sec);
 		}
@@ -770,8 +764,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		 */
 		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
 		fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
-		fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n",
-			__GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 		fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'\n\n");
 	}
 
@@ -6199,12 +6192,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(preopt->latent_graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 		}
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO && GMRFLib_smtp != GMRFLib_SMTP_STILES) {
+		if (GMRFLib_smtp != GMRFLib_SMTP_STILES) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -7177,7 +7168,6 @@ int inla_reset(void)
 	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
 
 	GMRFLib_opt_exit();
-	GMRFLib_pardiso_exit();
 	R_rgeneric_cputime = 0.0;
 
 	return GMRFLib_SUCCESS;
@@ -7273,7 +7263,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:R:cpLP:WC")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:WC")) != -1) {
 		switch (opt) {
 		case 'C':
 		{
@@ -7376,8 +7366,6 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_R;
 			} else if (!strncasecmp(optarg, "FGN", 3)) {
 				G.mode = INLA_MODE_FGN;
-			} else if (!strncasecmp(optarg, "PARDISO", 7)) {
-				G.mode = INLA_MODE_PARDISO;
 			} else if (!strncasecmp(optarg, "OPENMP", 6)) {
 				G.mode = INLA_MODE_OPENMP;
 			} else if (!strncasecmp(optarg, "DRYRUN", 6)) {
@@ -7396,21 +7384,14 @@ int main(int argc, char **argv)
 			// this option is only used for other MODES than INLA, like qsample
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "default")) {
-				if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS ? 1 : 0) {
-					GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-				} else {
-					GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
-				}
+				GMRFLib_smtp = GMRFLib_SMTP_STILES;
 			} else if (!strcasecmp(optarg, "taucs")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 			} else if (!strcasecmp(optarg, "band")) {
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
-			} else if (!strcasecmp(optarg, "stiles")) {
+			} else if (!strcasecmp(optarg, "stiles") || 1) {
 				GMRFLib_smtp = GMRFLib_SMTP_STILES;
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
-			} else if (!strcasecmp(optarg, "pardiso")) {
-				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
 		}
@@ -7540,18 +7521,6 @@ int main(int argc, char **argv)
 		}
 			break;
 
-		case 'R':
-		{
-			int nrhs = 0;
-			err = inla_sread_ints(&nrhs, 1, optarg);
-			if (err || nrhs < 0) {
-				GMRFLib_ASSERT(err, GMRFLib_EPARAMETER);
-				exit(1);
-			}
-			GMRFLib_pardiso_set_nrhs(nrhs);
-		}
-			break;
-
 		case 'c':
 		{
 #if !defined(_WIN32)
@@ -7668,13 +7637,6 @@ int main(int argc, char **argv)
 	case INLA_MODE_FGN:
 	{
 		inla_fgn(argv[optind], argv[optind + 1]);
-		exit(EXIT_SUCCESS);
-	}
-		break;
-
-	case INLA_MODE_PARDISO:
-	{
-		inla_check_pardiso();
 		exit(EXIT_SUCCESS);
 	}
 		break;
