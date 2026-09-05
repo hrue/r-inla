@@ -72,7 +72,6 @@ extern int GMRFLib_bitmap_swap;
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
 extern GMRFLib_global_node_tp GMRFLib_global_node;
 extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy;
-extern int GMRFLib_pardiso_ok;
 
 extern int GMRFLib_faster_constr;
 extern double GMRFLib_aqat_m_diag_add;

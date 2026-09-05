@@ -46,17 +46,15 @@ typedef enum {
 	GMRFLib_SMTP_INVALID = -1,
 	GMRFLib_SMTP_BAND = 1,
 	GMRFLib_SMTP_TAUCS = 2,
-	GMRFLib_SMTP_PARDISO = 3,
 	GMRFLib_SMTP_STILES = 4,
-	GMRFLib_SMTP_DEFAULT = 5
+	GMRFLib_SMTP_DEFAULT = 4			       // this is the default
 } GMRFLib_smtp_tp;
 
 #       define GMRFLib_SMTP_NAME(smtp)			     \
 	((smtp) == GMRFLib_SMTP_BAND ? "band" :    \
 	 ((smtp) == GMRFLib_SMTP_TAUCS ? "taucs" :	  \
-	  ((smtp) == GMRFLib_SMTP_PARDISO ? "pardiso" :		\
 	   ((smtp) == GMRFLib_SMTP_STILES ? "sTiles" :		\
-		    ((smtp) == GMRFLib_SMTP_DEFAULT ? "default" : "THIS SHOULD NOT HAPPEN")))))
+	    ((smtp) == GMRFLib_SMTP_DEFAULT ? "default" : "THIS SHOULD NOT HAPPEN"))))
 
 typedef enum {
 
@@ -78,7 +76,6 @@ typedef enum {
 	GMRFLib_REORDER_AMDC,
 	GMRFLib_REORDER_AMDBARC,
 	GMRFLib_REORDER_REVERSE_IDENTITY,
-	GMRFLib_REORDER_PARDISO,
 	GMRFLib_REORDER_STILES
 } GMRFLib_reorder_tp;
 
@@ -153,17 +150,13 @@ typedef struct {
 	 *  \brief Info about the factorization 
 	 */
 	GMRFLib_fact_info_tp finfo;
-
-	 /**
-	 *  \brief The factorisation of PARDISO
-	 */
-	GMRFLib_pardiso_store_tp *PARDISO_fact;
-
 } GMRFLib_sm_fact_tp;
 
 /* 
    
  */
+
+typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
 
 const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r);
 int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);

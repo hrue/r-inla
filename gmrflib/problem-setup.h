@@ -341,12 +341,10 @@ struct GMRFLib_store_struct {
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
 	int *remap;
 	int copy_ptr;
-	int copy_pardiso_ptr;
 	GMRFLib_graph_tp *sub_graph;
 
 	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
 	GMRFLib_taucs_cache_tp *TAUCS_cache;
-	GMRFLib_pardiso_store_tp *PARDISO_fact;
 
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */
@@ -360,8 +358,8 @@ struct GMRFLib_store_struct {
 	GMRFLib_problem_tp *problem_new2old;		       /* stored problem */
 };
 
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr);
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int thread_id, int i, int j, double *values, void *arg);

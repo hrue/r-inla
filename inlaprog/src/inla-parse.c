@@ -406,12 +406,6 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_STILES)
 		printf("\t\tCompiled with -DINLA_WITH_STILES\n");
 #endif
-#if defined(INLA_WITH_PARDISO)
-		printf("\t\tCompiled with -DINLA_WITH_PARDISO\n");
-#endif
-#if defined(INLA_WITH_PARDISO_WORKAROUND)
-		printf("\t\tCompiled with -DINLA_WITH_PARDISO_WORKAROUND\n");
-#endif
 #if defined(INLA_WITH_LIBR)
 		printf("\t\tCompiled with -DINLA_WITH_LIBR\n");
 #endif
@@ -472,22 +466,13 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
 	} else if (!strcasecmp(openmp_strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
-	} else if (!strcasecmp(openmp_strategy, "PARDISO.SERIAL")) {
-		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-	} else if (!strcasecmp(openmp_strategy, "PARDISO.PARALLEL")) {
-		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-	} else if (!strcasecmp(openmp_strategy, "PARDISO.NESTED")) {
-		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-	} else if (!strcasecmp(openmp_strategy, "PARDISO")) {
-		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]\n", openmp_strategy);
 		inla_error_general(tmp);
 		exit(EXIT_FAILURE);
 	}
 
-	smtp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
-					  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ? Strdup("PARDISO") : Strdup("DEFAULT"))));
+	smtp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"), Strdup("STILES")));
 	if (GMRFLib_force_stiles) {
 		smtp = Strdup("STILES");
 	}
@@ -497,55 +482,20 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
 		} else if (!strcasecmp(smtp, "TAUCS")) {
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
-		} else if (!strcasecmp(smtp, "PARDISO")) {
-			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-			mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-			if (!GMRFLib_openmp->adaptive) {
-				GMRFLib_openmp->adaptive = IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2);
-			}
-		} else if (!strcasecmp(smtp, "STILES")) {
+		} else if (!strcasecmp(smtp, "STILES") || !strcasecmp(smtp, "DEFAULT")) {
 			GMRFLib_smtp = GMRFLib_SMTP_STILES;
 			mb->strategy = GMRFLib_OPENMP_STRATEGY_STILES;
+			GMRFLib_reorder = GMRFLib_REORDER_STILES;
 			if (!GMRFLib_openmp->adaptive) {
 				GMRFLib_openmp->adaptive = IMIN(GMRFLib_MAX_THREADS(), GMRFLib_openmp->max_threads_nested[1] * 2);
-			}
-		} else if (!strcasecmp(smtp, "DEFAULT")) {
-			if (GMRFLib_pardiso_ok < 0) {
-				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
-			}
-			if (GMRFLib_pardiso_ok) {
-				if (mb->verbose) {
-					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
-				}
-				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-				openmp_strategy = Strdup("pardiso");
-				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-				smtp = Strdup("pardiso");
-			} else {
-				if (mb->verbose) {
-					printf("\t\tpardiso-library installed and working? = [%s]\n", "no");
-				}
-				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO) {
-					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-					openmp_strategy = Strdup("default");
-				}
-
-				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
-				smtp = Strdup("taucs");
 			}
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
 	}
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_pardiso_set_parallel_reordering(1);
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		GMRFLib_reorder = GMRFLib_REORDER_STILES;
-	}
 	mb->smtp = Strdup(GMRFLib_SMTP_NAME(GMRFLib_smtp));
 	if (mb->verbose) {
-		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", smtp, openmp_strategy);
+		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", mb->smtp, openmp_strategy);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, &GMRFLib_smtp);
 
@@ -19918,45 +19868,15 @@ int inla_parse_update(inla_tp *mb, dictionary *ini, int sec)
 	return INLA_OK;
 }
 
-int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec)
+int inla_parse_pardiso(inla_tp *UNUSED(mb), dictionary *ini, int sec)
 {
-	/*
-	 * parse section = PARDISO
-	 */
-	char *secname = NULL;
-	int val;
-
-	if (mb->verbose) {
-		printf("\tinla_parse_pardiso...\n");
-	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
-	if (mb->verbose) {
-		printf("\t\tsection[%s]\n", secname);
-	}
-
-	val = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
-	if (mb->verbose) {
-		printf("\t\tverbose[%1d]\n", val);
-	}
-	GMRFLib_pardiso_set_verbose(val);
-
-	val = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
-	if (mb->verbose) {
-		printf("\t\tdebug[%1d]\n", val);
-	}
-	GMRFLib_pardiso_set_debug(val);
-
-	val = iniparser_getint(ini, inla_string_join(secname, "PARALLEL.REORDERING"), 0);
-	if (mb->verbose) {
-		printf("\t\tparallel.reordering[%1d]\n", val);
-	}
-	GMRFLib_pardiso_set_parallel_reordering(val);
-
-	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
-	if (mb->verbose) {
-		printf("\t\tnrhs[%1d]\n", val);
-	}
-	GMRFLib_pardiso_set_nrhs(val);
+	// keep this for backward compatbility for the moment (Sep 2026)
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
+	iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	iniparser_getint(ini, inla_string_join(secname, "PARALLEL.REORDERING"), 0);
+	iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
+	Free(secname);
 
 	return INLA_OK;
 }

@@ -47,11 +47,9 @@ __END_DECLS
 #if defined(INLA_WITH_LIBR) && defined(INLA_WITH_LIBR_DLOPEN)
 
 /*
- * Load libR at runtime instead of linking it, in the same spirit as the
- * PARDISO workaround (libpardiso.c): the binary then starts on machines
- * with any R or with none, and rgeneric resolves the R that actually runs
- * it (through R_HOME) on first use. Only the small embedding API below is
- * needed, so building this mode requires no R at all.
+ * Load libR at runtime instead of linking it. the binary then starts on machines with any R or with none, and rgeneric resolves the
+ * R that actually runs it (through R_HOME) on first use. Only the small embedding API below is needed, so building this mode
+ * requires no R at all.
  */
 #       include <ltdl.h>
 typedef void *SEXP;

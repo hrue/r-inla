@@ -367,8 +367,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 		}
 	}
 	int options[METIS_NOPTIONS];
-	// Have to adapt to the PARDISO metis libs
-	// METIS_SetDefaultOptions(options);
 	for (int i = 0; i < METIS_NOPTIONS; i++) {
 		options[i] = -1;
 	}
@@ -395,13 +393,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 	Free(xadj);
 	Free(adj);
 }
-
-#if defined(INLA_WITH_PARDISO_WORKAROUND)
-int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o)
-{
-	return METIS_NodeND(i, j, k, l, m, n, o);
-}
-#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"

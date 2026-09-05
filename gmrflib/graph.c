@@ -639,11 +639,8 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 
-	// TAUCS
 	int *colptr = Calloc(graph->n + 1, int);
 	int *rowidx = Calloc(N, int);
-
-	// PARDISO
 	int *rowptr = Calloc(graph->n + 1, int);
 	int *colidx = Calloc(N, int);
 

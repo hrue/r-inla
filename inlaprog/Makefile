@@ -51,7 +51,7 @@ INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/spde.o \
 	src/spde2.o src/spde3.o src/eval.o src/ar.o src/bessel.o src/pc-priors.o \
 	src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o \
-	src/tweedie.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/libpardiso.o src/prw2.o \
+	src/tweedie.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/prw2.o \
 	src/cgeneric-mapper.o
 
 HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.h  \
@@ -92,8 +92,6 @@ src/eval.o: $(HEADERS) src/eval.c
 src/fgn.o: $(HEADERS) src/fgn.c
 
 src/iniparser.o: $(HEADERS) src/iniparser.c
-
-src/libpardiso.o: $(HEADERS) src/libpardiso.c
 
 src/link-gevit.o: $(HEADERS) src/link-gevit.c
 

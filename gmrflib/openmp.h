@@ -45,7 +45,6 @@ typedef enum {
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
 	GMRFLib_OPENMP_STRATEGY_HUGE,
-	GMRFLib_OPENMP_STRATEGY_PARDISO,
 	GMRFLib_OPENMP_STRATEGY_STILES,
 	GMRFLib_OPENMP_STRATEGY_DEFAULT,
 	GMRFLib_OPENMP_STRATEGY_NONE
@@ -56,10 +55,9 @@ typedef enum {
 	 ((num) == GMRFLib_OPENMP_STRATEGY_MEDIUM ? "medium" :		\
 	  ((num) == GMRFLib_OPENMP_STRATEGY_LARGE ? "large" :		\
 	   ((num) == GMRFLib_OPENMP_STRATEGY_HUGE ? "huge" :		\
-	    ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO ? "pardiso" :	\
-	     ((num) == GMRFLib_OPENMP_STRATEGY_STILES ? "sTiles" :	\
-	      ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
-	       ((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))
+	    ((num) == GMRFLib_OPENMP_STRATEGY_STILES ? "sTiles" :	\
+	     ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
+	      ((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN")))))))
 
 typedef enum {
 	GMRFLib_OPENMP_PLACES_SERIAL = 1,
@@ -104,11 +102,8 @@ typedef struct {
 	int max_threads2;
 	int *max_threads_nested;
 	int blas_num_threads_force;
-	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
-	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;
 	int max_threads_inner;
-	// when this is TRUE, then do PARDISO is parallel if the function call is serial
 	int adaptive;
 	// default schedule
 	omp_sched_t schedule;

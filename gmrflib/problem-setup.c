@@ -450,9 +450,6 @@ int GMRFLib_init_problem_store(int thread_id,
 		if (smtp == GMRFLib_SMTP_TAUCS) {
 			store_store_symb_fact = (store && store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
-		} else if (smtp == GMRFLib_SMTP_PARDISO) {
-			store_store_symb_fact = 0;
-			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;
 			store_use_symb_fact = 0;
@@ -630,14 +627,6 @@ int GMRFLib_init_problem_store(int thread_id,
 	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 		(*problem)->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
-	}
-
-	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
-		GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
-		s->graph = (*problem)->sub_graph;
-		// use the internal cached storage
-		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE, graph);
-		Free(s);
 	}
 
 	int ret;
@@ -1124,17 +1113,6 @@ int GMRFLib_free_store(GMRFLib_store_tp *store)
 		}
 		if (store->TAUCS_cache) {
 			GMRFLib_taucs_cache_free(store->TAUCS_cache);
-		}
-	}
-
-	if (store->copy_pardiso_ptr) {
-		/*
-		 * do nothing 
-		 */
-	} else {
-		if (store->PARDISO_fact) {
-			GMRFLib_pardiso_free(&(store->PARDISO_fact));
-			store->PARDISO_fact = NULL;
 		}
 	}
 
@@ -1661,7 +1639,7 @@ int GMRFLib_print_problem(FILE *fp, GMRFLib_problem_tp *problem)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int skeleton, int copy_ptr, int copy_pardiso_ptr)
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int skeleton, int UNUSED(copy_ptr))
 {
 	/*
 	 * duplicate a problem 
@@ -1725,11 +1703,6 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	np->sub_sm_fact.TAUCS_cache = GMRFLib_taucs_cache_duplicate(problem->sub_sm_fact.TAUCS_cache);
 	COPY(sub_sm_fact.finfo);
-
-	if (problem->sub_sm_fact.PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr,
-						NULL);
-	}
 
 	/*
 	 * then the constraint 
@@ -1815,7 +1788,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 }
 #pragma GCC diagnostic pop
 
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton, int copy_ptr)
 {
 	/*
 	 * duplicate STORE 
@@ -1854,11 +1827,6 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 		new_store->TAUCS_cache = GMRFLib_taucs_cache_duplicate(store->TAUCS_cache);
 	}
 	new_store->copy_ptr = copy_ptr;
-	new_store->copy_pardiso_ptr = copy_pardiso_ptr;
-	if (store->PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr, NULL);
-	}
-
 	char *tmp = Calloc(1, char);
 	Free(tmp);
 
@@ -1869,18 +1837,18 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 	DUPLICATE(new_logdens, 1, double, skeleton);
 
 	if (!skeleton) {
-		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton, copy_ptr, copy_pardiso_ptr);
-		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton, copy_ptr, copy_pardiso_ptr);
+		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton, copy_ptr);
+		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton, copy_ptr);
 	} else {
 		new_store->problem_new2old = NULL;
 		new_store->problem_old2new = NULL;
 	}
 
 	if (store->diag_store) {
-		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton, copy_ptr, copy_pardiso_ptr);
+		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton, copy_ptr);
 	}
 	if (store->sub_store) {
-		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton, copy_ptr, copy_pardiso_ptr);
+		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton, copy_ptr);
 	}
 #undef DUPLICATE
 #undef COPY
@@ -1912,10 +1880,6 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
-		if (nnz_opt)
-			*nnz_opt = 0;
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		if (nnz_opt)
 			*nnz_opt = 0;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
