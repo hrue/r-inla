@@ -15,12 +15,25 @@ inla.print.version <- function() {
         um <- strsplit(date, " ")[[1]]
         date <- um[nchar(um) > 0]
 
+        ## Label-and-value in a dotted column, the same layout inla.version()
+        ## already uses, so the two agree. The previous form was four sentences
+        ## in three different moods ("See ...", "List ... with ...",
+        ## "Use ... to ..."), which has to be read rather than scanned, and it
+        ## buried the two things a user actually types mid-sentence. Commands
+        ## now sit at the end of the line, where the eye stops.
+        ## Seconds are dropped from the build stamp: the date is what anyone
+        ## checks, the clock time is noise in a greeting.
+        built <- strsplit(built, " ")[[1]][1]
+        pad <- function(x) {
+            n <- 25L - nchar(x) - 1L
+            paste0(x, " ", paste(rep(".", max(n, 1L)), collapse = ""))
+        }
         hello <- paste0(
-            "This is INLA_", version,
-            " built ", built, ".", "\n",
-            " - See www.r-inla.org/contact-us for how to get help.\n", 
-            " - List available models/likelihoods/etc with inla.list.models()\n", 
-            " - Use inla.doc(<NAME>) to access documentation"
+            "This is INLA_", version, ", built ", built, ".\n",
+            "        ", pad("Help"),          ": www.r-inla.org/contact-us\n",
+            "        ", pad("Models"),        ": inla.list.models()\n",
+            "        ", pad("Documentation"), ": inla.doc(<NAME>)\n",
+            "        ", pad("Powered by"),    ": sTiles, www.r-inla.org/sTiles"
         )
         ## Upgrade notice, disabled. It fetched
         ## https://inla.r-inla-download.org/VERSIONS on every attach and compared

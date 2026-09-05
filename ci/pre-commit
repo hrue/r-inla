@@ -23,8 +23,20 @@ if [ -e "$root/.git/MERGE_HEAD" ] || [ -d "$root/.git/rebase-merge" ] || [ -d "$
     exit 0
 fi
 
+## Does this commit change the SOLVER? Config/INLA/BinaryVersion says which
+## binary release the R package needs, and it must move exactly when the C
+## sources do: leaving it behind hands users a binary older than the code, and
+## moving it on every R edit would force a pointless binary release. So decide
+## from what is staged. gmrflib/ and inlaprog/ are what the binary is built
+## from; ci/ and rinla/ are not.
+if git diff --cached --name-only | grep -qE '^(gmrflib|inlaprog)/'; then
+    binflag=--binary
+else
+    binflag=
+fi
+
 ## bash, not sh: the script uses "set -o pipefail", which dash rejects.
-bash "$root/ci/bump-rinla-version.sh" --now || exit 1
+bash "$root/ci/bump-rinla-version.sh" --now $binflag || exit 1
 
 ## Only stage it when it actually changed, so an unrelated commit does not
 ## silently acquire DESCRIPTION.
