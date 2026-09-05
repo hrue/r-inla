@@ -1,0 +1,19 @@
+cd ~/XXXX/r-inla
+git checkout master && git pull
+bash ci/bump-rinla-version.sh --now
+git commit -am "Version 26.09.06"
+git push origin master
+
+# wait for r-package on master to go green, then:
+git tag Version_26.09.06
+git push origin Version_26.09.06
+
+rinla/DESCRIPTION field:   Version: 26.09.05
+git tag:                   Version_26.09.05
+commit message:            "Version 26.09.05"(edited)
+
+the -1 should work instead of .01 but make sure the news/description
+you use the same:
+	26.09.05-1
+	
+
