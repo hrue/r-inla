@@ -1645,17 +1645,7 @@ inla.parse.Bmatrix.test <- function() {
         openmp.strategy <- "default"
     }
     openmp.strategy <- match.arg(tolower(openmp.strategy),
-                                 c("default", "small", "medium", "large", "huge",
-                                   "pardiso.serial", "pardiso.parallel", "pardiso.nested", "pardiso"))
-    if (inla.one.of(openmp.strategy, c("pardiso.serial", "pardiso.parallel", "pardiso.nested"))) {
-        ## they are all the same now. this is for backward compatibility
-        warning(paste0(
-            "openmp.strategy='pardiso.serial', 'pardiso.parallel', or 'pardiso.nested', is the same as openmp.strategy='pardiso', ",
-            "\nplease update your code. You define how the parallelisation is done using argument 'inla(...,  num.threads='A:B')'",
-            "\nwhere A are the number of threads in the outer layer, and B in the inner layer."
-        ))
-        openmp.strategy <- "pardiso"
-    }
+                                 c("default", "small", "medium", "large", "huge"))
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file, append = TRUE)
 
     if (!is.null(quantiles)) {
