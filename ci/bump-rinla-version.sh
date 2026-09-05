@@ -27,6 +27,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DESC=$ROOT/rinla/DESCRIPTION
 CHECK=0
 NOW=0
+BINARY=0
 for a in "$@"; do
     case "$a" in
         --check) CHECK=1 ;;
@@ -36,6 +37,13 @@ for a in "$@"; do
         ## a new day would ship a stale version, which is exactly the case the
         ## CI guard keeps catching.
         --now)   NOW=1 ;;
+        ## Also stamp Config/INLA/BinaryVersion, the field that says which
+        ## BINARY release this R package needs. It is deliberately NOT tied to
+        ## Version: R-only edits are frequent and need no new solver. Pass this
+        ## exactly when the C sources changed, which is when a new binary is
+        ## genuinely required; the pre-commit hook decides that by looking at
+        ## what is staged.
+        --binary) BINARY=1 ;;
         *) echo "usage: $0 [--check] [--now]" >&2; exit 2 ;;
     esac
 done
@@ -70,8 +78,24 @@ fi
 [ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
 HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 
+
+## Config/INLA/BinaryVersion: which BINARY release this R package needs. Only
+## touched with --binary, i.e. when the C sources changed in this commit.
+stamp_binary() {
+    [ "$BINARY" = 1 ] || return 0
+    bhave=$(awk -F': *' '/^Config\/INLA\/BinaryVersion:/ {print $2; exit}' "$DESC")
+    [ -n "$bhave" ] || return 0
+    [ "$bhave" = "$WANT" ] && return 0
+    btmp=$(mktemp)
+    awk -v want="$WANT" '/^Config\/INLA\/BinaryVersion:/ && !d { print "Config/INLA/BinaryVersion: " want; d=1; next } { print }' \
+        "$DESC" > "$btmp"
+    mv "$btmp" "$DESC"
+    echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $WANT (C sources changed)"
+}
+
 if [ "$HAVE" = "$WANT" ]; then
     echo "rinla/DESCRIPTION: Version $HAVE is current (tag $TAG)"
+    stamp_binary
     exit 0
 fi
 
@@ -87,6 +111,7 @@ awk -v want="$WANT" '/^Version:/ && !done { print "Version: " want; done=1; next
     "$DESC" > "$tmp"
 mv "$tmp" "$DESC"
 
-NOW=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
-[ "$NOW" = "$WANT" ] || { echo "ERROR: rewrite failed, Version is still $NOW"; exit 1; }
-echo "rinla/DESCRIPTION: Version $HAVE -> $NOW (tag $TAG)"
+NOW_HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
+[ "$NOW_HAVE" = "$WANT" ] || { echo "ERROR: rewrite failed, Version is still $NOW_HAVE"; exit 1; }
+echo "rinla/DESCRIPTION: Version $HAVE -> $WANT (tag $TAG)"
+stamp_binary
