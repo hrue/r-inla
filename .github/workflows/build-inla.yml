@@ -8,11 +8,14 @@ name: build-inla
 
 on:
   push:
-    ## feature/ci and master both get the board; devel deliberately does not,
-    ## it is not a branch this project builds from. Neither branch publishes:
-    ## the release job below stays gated on a TAG, so a release happens only
-    ## when the maintainer pushes one, never as a side effect of a merge.
-    branches: [feature/ci, master]
+    ## feature/ci only. master is deliberately NOT here: a release is cut by
+    ## tagging master, and the tag starts this board anyway, so building on the
+    ## push as well ran the whole matrix twice per release and threw the first
+    ## set of artifacts away. The cheap pre-tag check lives in r-package, which
+    ## DOES run on master and catches the two things that actually break a
+    ## release (a stale Version, a missing NEWS section) in about two minutes.
+    ## devel builds nothing: it is not a branch this project releases from.
+    branches: [feature/ci]
     ## Release tags are Version_YY.MM.DD, matching the release/Version_*
     ## branch naming. The older v* form is still accepted so the tags
     ## already published keep building if one is ever re-run.
