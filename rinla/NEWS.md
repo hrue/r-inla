@@ -1,4 +1,7 @@
-# INLA 26.09.06
+# INLA 26.09.06-2
+* Build test
+
+# INLA 26.09.06-1
 * First trial-release with the new build/install system
 
 # INLA 26.09.04
