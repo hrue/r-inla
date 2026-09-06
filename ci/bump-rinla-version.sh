@@ -93,6 +93,19 @@ stamp_binary() {
     echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $WANT (C sources changed)"
 }
 
+## A SECOND release on the same day is written <date>-N (26.09.06-2), to match
+## a Version_26.09.06-2 tag: the date alone is taken. Such a version is
+## deliberate and current, so leave it alone. Without this the hook rewrote it
+## back to the plain date on the next commit, and the guard called it stale on
+## every branch push, so a same-day re-release could not be held.
+case "$HAVE" in
+    "$WANT"-[0-9]*)
+        echo "rinla/DESCRIPTION: Version $HAVE is current (same-day re-release of $WANT)"
+        stamp_binary
+        exit 0
+        ;;
+esac
+
 if [ "$HAVE" = "$WANT" ]; then
     echo "rinla/DESCRIPTION: Version $HAVE is current (tag $TAG)"
     stamp_binary
