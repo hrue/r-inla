@@ -1,4 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #if defined(__linux__)
+#if !defined(_GNU_SOURCE)
+# define _GNU_SOURCE  // Required for CPU affinity macros
+#endif
+#include <sched.h>
 #       include <ftw.h>
 #       include <unistd.h>
 #endif
@@ -142,3 +151,169 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+#define NUM_P_CORES_DEFAULT() IMAX(omp_get_max_threads(), omp_get_num_procs())
+
+#if defined(__linux__)
+// Automatically parses standard Linux core range strings (e.g., "0-11" or "0-7,16-23")
+static void parse_and_add_cpus(const char *str, cpu_set_t *cpuset)
+{
+	char *dup = strdup(str);
+	char *token = strtok(dup, ",\n");
+	while (token != NULL) {
+		int start, end;
+		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
+		if (sscanf(token, "%d-%d", &start, &end) == 2) {
+			for (int i = start; i <= end; i++) {
+				CPU_SET(i, cpuset);
+			}
+		} else if (sscanf(token, "%d", &start) == 1) {
+			CPU_SET(start, cpuset);
+		}
+		token = strtok(NULL, ",\n");
+	}
+	free(dup);
+}
+
+int inla_lock_to_p_cores(void)
+{
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+
+	// 1. Open the Linux kernel file that stores the P-core mappings
+	FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+	if (!f) {
+		// Fallback: If the file isn't there, it might be an older CPU with no E-cores
+		perror("Could not read P-core layout (non-hybrid CPU?)");
+		return 1;
+	}
+
+	char buf[256];
+	if (fgets(buf, sizeof(buf), f) != NULL) {
+		printf("Detected P-core range string: %s", buf);
+		parse_and_add_cpus(buf, &cpuset);
+	}
+	fclose(f);
+
+	// 2. Apply the parsed P-core mask to our running thread
+	if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) != 0) {
+		perror("sched_setaffinity failed");
+		return 1;
+	}
+	return 0;
+}
+
+static int parse_max(const char *str)
+{
+	char *dup = strdup(str);
+	char *token = strtok(dup, ",\n");
+	while (token != NULL) {
+		int start, end;
+		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
+		if (sscanf(token, "%d-%d", &start, &end) == 2) {
+			free(dup);
+			return end;
+		} else if (sscanf(token, "%d", &start) == 1) {
+			free(dup);
+			return start;
+		}
+		token = strtok(NULL, ",\n");
+	}
+	free(dup);
+	return 0;
+}
+int inla_num_p_cores(void) 
+{
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+
+	// 1. Open the Linux kernel file that stores the P-core mappings
+	FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+	if (!f) {
+		// Fallback: If the file isn't there, it might be an older CPU with no E-cores
+		perror("Could not read P-core layout (non-hybrid CPU?)");
+		return NUM_P_CORES_DEFAULT();
+	}
+
+	int num_p = 0;
+	char buf[256];
+	if (fgets(buf, sizeof(buf), f) != NULL) {
+		// printf("Detected P-core range string: %s", buf);
+		num_p = parse_max(buf);
+	}
+	fclose(f);
+	return (num_p > 0 ? num_p : NUM_P_CORES_DEFAULT());
+}
+
+#if 0
+int main(void) {
+    printf("Starting program...\n");
+
+    if (lock_to_p_cores() == 0) {
+        printf("Success! Program successfully locked to P-cores.\n");
+    } else {
+        printf("Running on default OS cores due to fallback.\n");
+    }
+    return 0;
+}
+#endif
+#endif
+
+#if defined(__APPLE__)
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <pthread.h>
+
+int inla_num_p_cores(void) 
+{
+	int p_cores = 0;
+	size_t size = sizeof(p_cores);
+	sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
+	if (p_cores > 0) {
+		return p_cores;
+	} else {
+		return NUM_P_CORES_DEFAULT();
+	}
+}
+	
+int inla_lock_to_p_cores(void)
+{
+	// lock == 'bind' here
+	// Elevate the current thread to the absolute highest performance tier.
+	// This strictly forces macOS to run your code on the P-Cores.
+	int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+	if (result != 0) {
+		perror("Failed to set Mac QoS class");
+		return 1;
+	}
+	return 0;
+}
+
+#if 0
+int main(void) {
+    // 1. Get the P-Core count using sysctl
+    int p_cores = 0;
+    size_t size = sizeof(p_cores);
+    sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
+    printf("Detected P-Cores available: %d\n", p_cores);
+
+    // 2. Force this thread onto the P-cores
+    inla_lock_to_p_cores();
+    // --- Run your max double vector benchmarks here ---
+    // macOS will execute this loop on the ultra-fast P-cores natively.
+    return 0;
+}
+#endif
+#endif
+
+#if defined(_WIN32)
+int inla_lock_to_p_cores(void)
+{
+	return 0;
+}
+int inla_num_p_cores(void)
+{
+	return NUM_P_CORES_DEFAULT();
+}
+#endif
