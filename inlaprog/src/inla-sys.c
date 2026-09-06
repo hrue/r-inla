@@ -4,10 +4,10 @@
 #include <unistd.h>
 
 #if defined(__linux__)
-#if !defined(_GNU_SOURCE)
-# define _GNU_SOURCE  // Required for CPU affinity macros
-#endif
-#include <sched.h>
+#       if !defined(_GNU_SOURCE)
+#              define _GNU_SOURCE			       // Required for CPU affinity macros
+#       endif
+#       include <sched.h>
 #       include <ftw.h>
 #       include <unistd.h>
 #endif
@@ -222,7 +222,7 @@ static int parse_max(const char *str)
 	free(dup);
 	return 0;
 }
-int inla_num_p_cores(void) 
+int inla_num_p_cores(void)
 {
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
@@ -245,27 +245,28 @@ int inla_num_p_cores(void)
 	return (num_p > 0 ? num_p : NUM_P_CORES_DEFAULT());
 }
 
-#if 0
-int main(void) {
-    printf("Starting program...\n");
+#       if 0
+int main(void)
+{
+	printf("Starting program...\n");
 
-    if (lock_to_p_cores() == 0) {
-        printf("Success! Program successfully locked to P-cores.\n");
-    } else {
-        printf("Running on default OS cores due to fallback.\n");
-    }
-    return 0;
+	if (lock_to_p_cores() == 0) {
+		printf("Success! Program successfully locked to P-cores.\n");
+	} else {
+		printf("Running on default OS cores due to fallback.\n");
+	}
+	return 0;
 }
-#endif
+#       endif
 #endif
 
 #if defined(__APPLE__)
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <pthread.h>
+#       include <stdio.h>
+#       include <sys/types.h>
+#       include <sys/sysctl.h>
+#       include <pthread.h>
 
-int inla_num_p_cores(void) 
+int inla_num_p_cores(void)
 {
 	int p_cores = 0;
 	size_t size = sizeof(p_cores);
@@ -276,7 +277,7 @@ int inla_num_p_cores(void)
 		return NUM_P_CORES_DEFAULT();
 	}
 }
-	
+
 int inla_lock_to_p_cores(void)
 {
 	// lock == 'bind' here
@@ -290,30 +291,111 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-#if 0
-int main(void) {
-    // 1. Get the P-Core count using sysctl
-    int p_cores = 0;
-    size_t size = sizeof(p_cores);
-    sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
-    printf("Detected P-Cores available: %d\n", p_cores);
+#       if 0
+int main(void)
+{
+	// 1. Get the P-Core count using sysctl
+	int p_cores = 0;
+	size_t size = sizeof(p_cores);
+	sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
+	printf("Detected P-Cores available: %d\n", p_cores);
 
-    // 2. Force this thread onto the P-cores
-    inla_lock_to_p_cores();
-    // --- Run your max double vector benchmarks here ---
-    // macOS will execute this loop on the ultra-fast P-cores natively.
-    return 0;
+	// 2. Force this thread onto the P-cores
+	inla_lock_to_p_cores();
+	// --- Run your max double vector benchmarks here ---
+	// macOS will execute this loop on the ultra-fast P-cores natively.
+	return 0;
 }
-#endif
+#       endif
 #endif
 
 #if defined(_WIN32)
+#       include <windows.h>
 int inla_lock_to_p_cores(void)
 {
+	// not yet implemented. very different on Windows, not sure its worth while
 	return 0;
 }
 int inla_num_p_cores(void)
 {
-	return NUM_P_CORES_DEFAULT();
+	int p_cores_default = NUM_P_CORES_DEFAULT();
+	DWORD bufferSize = 0;
+
+	// First call to determine the required buffer size
+	if (!GetLogicalProcessorInformationEx(RelationProcessorCore, NULL, &bufferSize)) {
+		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+			fprintf(stderr, "Error determining buffer size. Code: %lu\n", GetLastError());
+			return p_cores_default;
+		}
+	}
+
+	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) malloc(bufferSize);
+	if (!buffer) {
+		fprintf(stderr, "Memory allocation failed.\n");
+		return p_cores_default;
+	}
+
+	// Second call to actually populate the buffer
+	if (!GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize)) {
+		fprintf(stderr, "Error retrieving processor information. Code: %lu\n", GetLastError());
+		free(buffer);
+		return p_cores_default;
+	}
+
+	int totalPhysicalCores = 0;
+	BYTE maxEfficiency = 0;
+
+	// Step 1: Find the maximum EfficiencyClass value across all cores
+	unsigned char *ptr = (unsigned char *) buffer;
+	unsigned char *end = ptr + bufferSize;
+
+	while (ptr < end) {
+		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) ptr;
+		if (info->Relationship == RelationProcessorCore) {
+			totalPhysicalCores++;
+			if (info->Processor.EfficiencyClass > maxEfficiency) {
+				maxEfficiency = info->Processor.EfficiencyClass;
+			}
+		}
+		ptr += info->Size;
+	}
+
+	// Step 2: Count how many cores belong to that maximum efficiency class
+	int pCoreCount = 0;
+	int eCoreCount = 0;
+
+	ptr = (unsigned char *) buffer;
+	while (ptr < end) {
+		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) ptr;
+		if (info->Relationship == RelationProcessorCore) {
+			// If the max efficiency is 0, the system is symmetric (all cores are the same)
+			if (maxEfficiency == 0) {
+				pCoreCount = totalPhysicalCores;
+				break;
+			} else {
+				if (info->Processor.EfficiencyClass == maxEfficiency) {
+					pCoreCount++;
+				} else {
+					eCoreCount++;
+				}
+			}
+		}
+		ptr += info->Size;
+	}
+	free(buffer);
+
+	assert(eCoreCount >= pCoreCount);
+	return pCoreCount;
+
+#       if 0
+	if (maxEfficiency > 0) {
+		printf("Performance Cores (P-Cores): %d\n", pCoreCount);
+		printf("Efficiency Cores (E-Cores):  %d\n", eCoreCount);
+	} else {
+		printf("Performance Cores (P-Cores): %d (Symmetric CPU Architecture)\n", pCoreCount);
+		printf("Efficiency Cores (E-Cores):  0\n");
+	}
+	return 0;
+#       endif
 }
 #endif
