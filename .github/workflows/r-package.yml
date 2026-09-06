@@ -108,3 +108,59 @@ jobs:
           name: inla-r-package
           path: INLA_*.tar.gz
           if-no-files-found: error
+
+  ## Install the package the way a WINDOWS user has to, and drive the one
+  ## function that only they exercise.
+  ##
+  ## Windows cannot use remotes::install_github() at all: that unpacks the raw
+  ## repository, and tar.exe refuses its ~211 symlinks. So Windows users install
+  ## the built tarball, and nothing in CI ever did that, which is how
+  ## inla.stiles.install() shipped looking for the binary only under bin/ while
+  ## the Windows zip is flat and puts inla.exe at the top level. It failed with
+  ## "no 'inla.exe' found" against a directory that plainly contained it.
+  ##
+  ## This job is the missing coverage: real Windows, real tarball, real
+  ## download and unpack, then assert that inla.call points at a file that
+  ## exists. It needs the network and the newest release, so it is allowed to
+  ## fail without blocking: a release outage must not turn the board red.
+  windows-install:
+    name: "Windows: install the tarball and fetch a binary"
+    needs: build
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: inla-r-package
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - name: Install the tarball, then fetch the binary
+        shell: Rscript {0}
+        run: |
+          tb <- list.files(".", pattern = "^INLA_.*\\.tar\\.gz$", full.names = TRUE)[1]
+          stopifnot(!is.na(tb))
+          cat("tarball:", tb, "\n")
+
+          ## repos = NULL does no dependency resolution, so install them first.
+          install.packages(c("Matrix", "fmesher", "lifecycle", "rlang",
+                             "withr", "MatrixModels"))
+          install.packages(tb, repos = NULL, type = "source")
+
+          library(INLA)
+          cat("attached INLA", as.character(packageVersion("INLA")), "\n")
+
+          INLA::inla.stiles.install(persist = FALSE)
+
+          call <- INLA::inla.getOption("inla.call")
+          cat("inla.call =", format(call), "\n")
+          if (is.null(call) || !nzchar(call) || !file.exists(call)) {
+              stop("inla.stiles.install() did not leave a usable inla.call")
+          }
+          out <- suppressWarnings(system2(call, "-ping", stdout = TRUE, stderr = TRUE))
+          cat(paste(out, collapse = "\n"), "\n")
+          if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
+          cat("OK: Windows install path works end to end\n")

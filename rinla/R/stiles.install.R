@@ -256,7 +256,21 @@
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
     exe <- if (sysname == "Windows") "inla.exe" else "inla"
-    bin <- c(Sys.glob(file.path(dir, "*", "bin", exe)), Sys.glob(file.path(dir, "bin", exe)))
+
+    ## Where the binary lands depends on how the bundle was packed, and the
+    ## layouts differ per platform. The unix bundles use <root>/bin/inla, and
+    ## unpack either into dir/ or into a single top directory inside it. The
+    ## WINDOWS zip is flat: inla.exe and its DLLs sit directly in dir, with no
+    ## bin/ at all, so the two bin/ patterns alone found nothing and the
+    ## install failed with "no 'inla.exe' found" while the file was plainly
+    ## there. Search all four shapes, nearest first.
+    find_bin <- function(d) {
+        c(Sys.glob(file.path(d, "*", "bin", exe)),
+          Sys.glob(file.path(d, "bin", exe)),
+          Sys.glob(file.path(d, "*", exe)),
+          Sys.glob(file.path(d, exe)))
+    }
+    bin <- find_bin(dir)
 
     if (length(bin) == 0L || force) {
         arc <- file.path(dir, asset)
@@ -269,7 +283,7 @@
             utils::untar(arc, exdir = dir)
         }
         unlink(arc)
-        bin <- c(Sys.glob(file.path(dir, "*", "bin", exe)), Sys.glob(file.path(dir, "bin", exe)))
+        bin <- find_bin(dir)
         if (length(bin) == 0L) stop("no '", exe, "' found under ", dir)
         Sys.chmod(bin[1], "0755")
     } else {
@@ -355,7 +369,12 @@
     if (isTRUE(smtp)) inla.setOption(smtp = "stiles")
     say("inla.call = ", bin[1], if (isTRUE(smtp)) ", smtp = stiles" else "")
 
-    info <- file.path(dirname(dirname(bin[1])), "BUILDINFO")
+    ## BUILDINFO sits at the bundle root, which is the binary's grandparent for
+    ## a <root>/bin/inla layout but the binary's OWN directory for the flat
+    ## Windows zip. Take whichever exists rather than assuming the depth.
+    info <- c(file.path(dirname(dirname(bin[1])), "BUILDINFO"),
+              file.path(dirname(bin[1]), "BUILDINFO"))
+    info <- c(info[file.exists(info)], info[1])[1]
     if (file.exists(info) && verbose) {
         say("BUILDINFO:")
         cat(paste0("    ", readLines(info, warn = FALSE)), sep = "\n")
