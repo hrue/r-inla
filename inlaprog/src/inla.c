@@ -7208,7 +7208,6 @@ int main(int argc, char **argv)
 	int model_n_is_set = 0;
 	int disable_output = 0;
 	int num_p_cores = inla_num_p_cores();
-	int do_inla_lock_to_p_cores = 0;
 	
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
@@ -7291,7 +7290,11 @@ int main(int argc, char **argv)
 
 		case 'P':
 		{
-			do_inla_lock_to_p_cores = 1;
+			int status = inla_lock_to_p_cores();
+			if (verbose > 0) {
+				printf("\tLock threads to the %1d P-cores [%s]\n", num_p_cores,
+				       (status == 0 ? "SUCCESS" : "FAIL"));
+			}
 		}
 			break;
 
@@ -7395,8 +7398,9 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			if (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
-			    inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (!strstr(optarg, "PC") && 
+			    (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
+			     inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK)) {
 
 				if (ntt[0] <= 0) {
 					ntt[0] = GMRFLib_MAX_THREADS();
@@ -7444,20 +7448,19 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads2 * (GMRFLib_openmp->max_threads + 1);
 				GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
 			} else {
-				// we can use '-tP' or '-rC' as well, as short-hand for number of power-cores, and number of cores
-				// minus 2.  (Linux and Mac only, for the moment.)
-				if (strcasecmp(optarg, "P") != 0) {
-					ntt[0] = num_p_cores;
-					ntt[1] = 1;
-					ntt[2] = 2;
-				} else if (strcasecmp(optarg, "C")) {
-					ntt[0] = IMAX(1, host_max_threads - 2);
-					ntt[1] = 1;
-					ntt[2] = 2;
-				} else {
-					ntt[0] = 4;
-					ntt[1] = 1;
-					ntt[2] = 2;
+				// we can use expressions involving 'P' and 'C' , as short-hand for number of power-cores and 
+				// number of cores
+
+				char *s = Strdup(optarg);
+				for(int ii = 0; ii < 3; ii++) {
+					char *token = strsep(&s, ":,");
+					ntt[ii] = ((token && strlen(token)) ?
+						   inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
+					ntt[ii] = IMAX(1, ntt[ii]);
+				}
+				if (verbose > 0) {
+					printf("\tParse expression[%s] into %1d:%1d:%1d using P=%1d C=%1d\n",
+					       optarg, ntt[0], ntt[1], ntt[2], num_p_cores, host_max_threads);
 				}
 				for (i = 0; i < 3; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
@@ -7473,17 +7476,8 @@ int main(int argc, char **argv)
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-
-			// maybe move this elsewhere, so it will be in effect without the '-t' argument
-			if (GMRFLib_openmp->max_threads <= num_p_cores && do_inla_lock_to_p_cores) {
-				int status = inla_lock_to_p_cores();
-				if (verbose > 0) {
-					printf("\tLock threads to the %1d P-cores [%s]\n", num_p_cores,
-					       (status == 0 ? "SUCCESS" : "FAIL"));
-				}
-			}
 		}
-			break;
+		break;
 
 		case 'z':
 		{

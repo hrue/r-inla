@@ -15,6 +15,7 @@ __BEGIN_DECLS
 double inla_eval(char *expression, double *x, double *theta, int ntheta);
 double inla_eval_expression(char *expression, double *x, double *theta, int ntheta);
 double inla_eval_table(char *expression, double *x, double *theta, int ntheta);
+int inla_eval_int_expression(char *expression, int P, int C);
 
 __END_DECLS
 #endif

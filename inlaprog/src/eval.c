@@ -265,4 +265,28 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	return value;
 }
 
+int inla_eval_int_expression(char *expression, int P, int C)
+{
+	if (!expression || strlen(expression) == 0) {
+		return 0;
+	}
+
+	int value;
+#       pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
+	{
+		if (debug) {
+			printf("Eval: expression: %s\n", expression);
+		}
+
+		muParserHandle_t hParser = mupCreate(muBASETYPE_FLOAT);
+		mupSetErrorHandler(hParser, inla_eval_OnError);
+		mupDefineConst(hParser, "P", P);
+		mupDefineConst(hParser, "C", C);
+		mupSetExpr(hParser, (muChar_t *) expression);
+		value = (int) mupEval(hParser);
+		mupRelease(hParser);
+	}
+	return value;
+}
+
 #endif							       // define(INLA_WITH_MUPARSER)
