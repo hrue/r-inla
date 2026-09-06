@@ -183,9 +183,27 @@ jobs:
           ## could pass while the real thing fails. demo() evaluates in the
           ## global environment, so r1 and r2 are available afterwards for the
           ## check below.
+          ## safe mode retries a failed fit and reports "the inla program
+          ## crashed", which hides the binary's own stderr. Turn it off so the
+          ## first failure is the one we see.
+          INLA::inla.setOption(safe = FALSE)
+
           res <- try(demo("rgeneric", package = "INLA", character.only = TRUE,
                           echo = TRUE, ask = FALSE), silent = TRUE)
           if (inherits(res, "try-error")) {
+              cat("\n==== demo(rgeneric) failed; re-running verbosely for the binary's own output ====\n")
+              set.seed(1)
+              nn <- 50
+              yy <- rnorm(nn)
+              dd2 <- data.frame(y = yy, idx = 1:nn)
+              rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = nn)
+              out <- try(capture.output(
+                  INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
+                             control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+                             verbose = TRUE, keep = TRUE),
+                  type = "output"), silent = TRUE)
+              cat(paste(utils::tail(as.character(out), 60), collapse = "\n"), "\n")
+              cat("==== end verbose output ====\n")
               stop("demo(rgeneric) failed: ", conditionMessage(attr(res, "condition")))
           }
 
