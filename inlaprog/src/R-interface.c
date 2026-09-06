@@ -131,6 +131,27 @@ static void inla_R_dlopen_(void)
 	// let libltdl append the platform's own extension: .so, .dylib, .dll
 	lt_dladvise_ext(&advise);
 
+	// WINDOWS: an R.dll is very likely ALREADY loaded in this process. inla.exe
+	// imports Rblas.dll for BLAS, and Rblas imports R.dll, which the loader
+	// resolves from the executable's own directory, so the bundled R.dll comes
+	// in before main() runs. Opening a SECOND R by absolute path below then puts
+	// two R runtimes in one process, and the first rgeneric callback crashed:
+	// ordinary models never call into R, so only rgeneric ever saw it, and only
+	// on Windows (macOS and Linux bundle no R library, so there is only one).
+	//
+	// LoadLibrary by BARE NAME returns the handle of the module already loaded
+	// rather than mapping another copy, so ask for that first. If no R is
+	// loaded yet this simply fails and the R_HOME search below runs as before.
+	//
+	// OFF BY DEFAULT. The default path is exactly what it was; this only runs
+	// when INLA_REUSE_LOADED_R is set in the environment, so it can be proved
+	// in CI without changing what anyone's binary does today.
+#if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
+	if (getenv((const char *) "INLA_REUSE_LOADED_R")) {
+		R_dlhandle = lt_dlopenadvise("R", advise);
+	}
+#endif
+
 	// where R keeps its library, per platform layout
 	static const char *rel[] = { "lib/libR", "bin/x64/R", "bin/R", NULL };
 	char *rhome = getenv((const char *) "R_HOME");
