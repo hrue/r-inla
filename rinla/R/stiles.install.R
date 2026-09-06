@@ -22,11 +22,10 @@
 #' @title Install a pre-built INLA binary with sTiles support
 #'
 #' @description
-#' `inla.stiles.install()` performs what [inla.stiles()] describes: it works
-#' out which pre-built binary matches this machine, downloads it from the
-#' releases page, unpacks it into a cache directory, checks that it runs, and
-#' points `inla.call` at it. One call instead of the manual download,
-#' un-pack and `inla.setOption()` steps.
+#' `inla.stiles.install()` works out which pre-built binary matches this
+#' machine, downloads it from the releases page, unpacks it into a cache
+#' directory, checks that it runs, and points `inla.call` at it. One call
+#' instead of the manual download, un-pack and `inla.setOption()` steps.
 #'
 #' The binaries are portable: six of them cover Linux (x86-64 baseline and
 #' x86-64-v3), Linux arm64, macOS (Intel and Apple silicon) and Windows, so the
@@ -59,7 +58,7 @@
 #' inla.stiles.install(tag = "Version_26.08.31") # a specific one
 #' }
 #'
-#' @seealso [inla.stiles()], [inla.binary.install()]
+#' @seealso [inla.binary.install()]
 #' @name stiles.install
 #' @aliases inla.stiles.install
 #' @rdname stiles.install

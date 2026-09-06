@@ -50,8 +50,8 @@ Invisibly, a list with \code{inla.call}, \code{smtp}, \code{release}, \code{aliv
 \code{buildinfo} (character vector) and \code{cache} (installed releases).
 }
 \description{
-\code{inla.stiles.install()} performs what \code{\link[=inla.stiles]{inla.stiles()}} describes: it works
-out which pre-built binary matches this machine, downloads it from the
+\code{inla.stiles.install()} works out which pre-built binary matches this
+machine, downloads it from the
 releases page, unpacks it into a cache directory, checks that it runs, and
 points \code{inla.call} at it. One call instead of the manual download,
 un-pack and \code{inla.setOption()} steps.
@@ -78,7 +78,7 @@ inla.stiles.install(tag = "Version_26.08.31") # a specific one
 
 }
 \seealso{
-\code{\link[=inla.stiles]{inla.stiles()}}, \code{\link[=inla.binary.install]{inla.binary.install()}}
+\code{\link[=inla.binary.install]{inla.binary.install()}}
 
 \code{\link[=inla.stiles.install]{inla.stiles.install()}}
 }
