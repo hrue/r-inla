@@ -7688,8 +7688,8 @@ int main(int argc, char **argv)
 #if !defined(INLA_WITH_DEVEL)
 		fprintf(stdout, "Build-time.... [%s %s]\n", __DATE__, __TIME__);
 #endif
-		fprintf(stdout, "MAX_THREADS... [%1d]\n", GMRFLib_MAX_THREADS());
-		fprintf(stdout, "P-cores....... [%1d]\n", num_p_cores);
+		fprintf(stdout, "#cores........ [%1d]\n", host_max_threads);
+		fprintf(stdout, "#P-cores...... [%1d]\n", num_p_cores);
 
 		_BUGS_intern(stdout);
 	}
