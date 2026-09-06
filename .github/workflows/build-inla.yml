@@ -762,6 +762,10 @@ jobs:
       run:
         shell: bash
     steps:
+      ## Checked out FIRST, before the artifacts: actions/checkout cleans the
+      ## workspace. The sources are here only so the rgeneric step can install
+      ## the R package; install_github cannot be used on Windows (symlinks).
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: inla-windows-x86_64
@@ -821,8 +825,14 @@ jobs:
           [ -n "$EXE" ] || { echo "inla.exe not found; skipping"; exit 0; }
           export INLA_EXE="$EXE"
           Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels'), repos='https://cloud.r-project.org')" >/dev/null 2>&1
-          Rscript -e "remotes::install_github('hrue/r-inla', subdir='rinla', ref='$GITHUB_SHA', upgrade='never')" >/dev/null 2>&1 || \
-            Rscript -e "if (!requireNamespace('INLA', quietly=TRUE)) quit(status=1)" || { echo "no INLA package available; skipping"; exit 0; }
+          ## From the checked-out sources, not from GitHub: install_github
+          ## fails on Windows on the repository's symlinks, which is the very
+          ## thing being worked around elsewhere.
+          if [ -d rinla ]; then
+            Rscript -e "install.packages('rinla', repos=NULL, type='source')" >/dev/null 2>&1
+          fi
+          Rscript -e "if (!requireNamespace('INLA', quietly=TRUE)) quit(status=1)" \
+            || { echo "INLA package did not install; skipping"; exit 0; }
           cat > rg.R <<'RSCRIPT'
           suppressMessages(library(INLA))
           INLA::inla.setOption(inla.call = Sys.getenv("INLA_EXE"))
