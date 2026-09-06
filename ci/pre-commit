@@ -16,6 +16,14 @@
 set -e
 root=$(git rev-parse --show-toplevel)
 
+## master only. The version is a RELEASE fact: it says which day's code a
+## release contains, and releases are cut from master. Bumping it on every
+## branch made it move on every commit, which meant nothing and made the number
+## impossible to reason about. Work on feature/ci leaves DESCRIPTION alone; the
+## version is set when the work reaches master.
+branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
+[ "$branch" = "master" ] || exit 0
+
 ## Skip while a merge/rebase is in progress: the version there belongs to the
 ## commits being replayed, and rewriting it mid-merge produces conflicts in a
 ## file the user never touched.

@@ -47,7 +47,12 @@ jobs:
       ## (GITCOMMIT/INLA_TAG), so a stale DESCRIPTION silently mislabels both
       ## halves at once. This exact field once sat thirteen months behind
       ## while releases went out, which is what this step exists to prevent.
+      ## master and tags only. The version says which day's code a RELEASE
+      ## contains, and releases come from master, so that is where it has to be
+      ## right. Checking it on feature/ci turned every ordinary day's first
+      ## push red for a field that means nothing on a development branch.
       - name: Version is current
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         run: bash ci/bump-rinla-version.sh --check
 
       - uses: r-lib/actions/setup-r@v2
