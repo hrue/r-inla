@@ -905,6 +905,14 @@ jobs:
       run:
         shell: bash
     steps:
+      ## Before download-artifact, never after: actions/checkout cleans the
+      ## workspace, which would delete the artifacts this job exists to pack.
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
       - uses: actions/download-artifact@v4
         with:
           pattern: inla-*
@@ -930,6 +938,21 @@ jobs:
           ## deliberately NOT shipped -- it only runs where it was built.
           ( cd inla-windows-x86_64 && zip -qr ../../dist/inla-windows-x86_64.zip . )
           ls -lh ../dist
+      ## The R package as a plain source tarball, attached to the release.
+      ## Windows users cannot install this project with
+      ## remotes::install_github(): that unpacks the RAW REPOSITORY, which holds
+      ## 211 symlinks, and Windows tar.exe cannot create a symlink without
+      ## Developer Mode or admin rights, so extraction aborts with "Invalid
+      ## argument" on every one of them before any build starts. R CMD build
+      ## FOLLOWS symlinks and stores real files, so this tarball contains none
+      ## and installs anywhere with no special privileges:
+      ##     install.packages("INLA_<version>.tar.gz", repos = NULL, type = "source")
+      - name: Build the R package tarball
+        run: |
+          R CMD build --no-build-vignettes rinla
+          cp INLA_*.tar.gz dist/
+          ls -lh dist/INLA_*.tar.gz
+
       - name: Build the release notes table
         run: |
           {
