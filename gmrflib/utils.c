@@ -617,6 +617,7 @@ int GMRFLib_printf_gsl_vector(FILE *fp, gsl_vector *vector, const char *format)
 
 double GMRFLib_signed_pow(double x, double power)
 {
+	// return sign(x)*|x|^power
 	if (ISZERO(x)) {
 		return 0.0;
 	} else {

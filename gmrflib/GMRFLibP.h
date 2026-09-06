@@ -471,8 +471,25 @@ typedef enum {
 #       define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
 #       define Malloc_free()   if (1) { Malloc_check(); Free(malloc_work_); }
 
-#       define likely(x)   __builtin_expect(!!(x), 1)
-#       define unlikely(x) __builtin_expect(!!(x), 0)
+#       if !defined(unlikely)
+#              if defined(__GNUC__) || defined(__clang__)
+        // For GCC and Clang (Linux, macOS, MinGW)
+#                     define likely(x)       __builtin_expect(!!(x), 1)
+#                     define unlikely(x)     __builtin_expect(!!(x), 0)
+#              elif defined(_MSC_VER) && (_MSC_VER >= 1926) && defined(__cplusplus)
+	// For Modern Microsoft Visual Studio (MSVC) using C++20 attributes
+#                     define likely(x)       (x) [[likely]]
+#                     define unlikely(x)     (x) [[unlikely]]
+#              elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L)
+	// For C23 standard compliant compilers using standard attributes
+#                     define likely(x)       (x) [[likely]]
+#                     define unlikely(x)     (x) [[unlikely]]
+#              else
+	// Fallback for older or alternative compilers (does nothing, but code still runs)
+#                     define likely(x)       (x)
+#                     define unlikely(x)     (x)
+#              endif
+#       endif
 
 #       define ABS(x) fabs(x)
 #       define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
