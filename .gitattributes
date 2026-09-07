@@ -30,6 +30,15 @@
 ## ARCHIVE needs a clone instead. Releases publish built artifacts, and
 ## developers clone, so nothing in the normal paths depends on it.
 
+## Non-ASCII FILENAMES break the install on Windows even though the symlinks
+## no longer do. remotes builds a file list from the extracted archive and
+## fails in a non-UTF-8 locale:
+##     unable to translate 'sandbox/utf8/-<a6>-<e0>-+-<a6>' to a wide string
+##     Error: Failed to install 'INLA' from GitHub: input string 2768 is invalid
+## Two files cause it, a self-contained UTF-8 fixture nothing else references.
+## They stay in the repository; they just do not travel in the archive.
+/sandbox/utf8                   export-ignore
+
 /rinla                          export-ignore
 /build-configs/windows/bin      export-ignore
 /gmrflib/GMRFLib                export-ignore

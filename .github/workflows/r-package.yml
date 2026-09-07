@@ -181,7 +181,22 @@ jobs:
           ROOT=$(ls -d srcx/*/ | head -1)
           test -f "${ROOT}package/DESCRIPTION" \
             || { echo "::error::no package/DESCRIPTION in the archive"; ls "$ROOT"; exit 1; }
-          echo "OK: archive extracted, package/ is present"
+
+          ## Extraction succeeding is not enough. remotes then builds a file
+          ## list from the tree, and a filename with non-ASCII bytes kills the
+          ## install in a non-UTF-8 Windows locale, with an error that names
+          ## neither the file nor the cause:
+          ##     unable to translate '.../-<a6>-<e0>-+-<a6>' to a wide string
+          ##     Error: Failed to install 'INLA': input string 2768 is invalid
+          ## Two Cyrillic-named fixture files did exactly that once the
+          ## symlinks were out of the way, so check the class, not the case.
+          BAD=$(find srcx -print | grep -P '[^\x20-\x7e]' || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::the archive contains filenames Windows cannot translate:"
+            printf '%s\n' "$BAD" | head -10
+            exit 1
+          fi
+          echo "OK: archive extracted, package/ present, all filenames ASCII"
 
       - name: Install the tarball, then fetch the binary
         shell: Rscript {0}
