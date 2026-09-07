@@ -3762,8 +3762,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
-								if (node == nnode
-								    || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
+								if (node == nnode || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}

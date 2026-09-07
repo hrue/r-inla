@@ -404,4 +404,3 @@ int inla_num_p_cores(void)
 	return 0;
 }
 #endif
-
