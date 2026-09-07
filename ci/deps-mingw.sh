@@ -129,11 +129,22 @@ fi
 ## and the reference Rblas this replaces was single threaded too, so the
 ## threading behaviour does not change while the kernels get much faster.
 ##
-## A fixed TARGET rather than DYNAMIC_ARCH's runtime dispatch: dispatch
-## builds every kernel on every run, and nothing caches $DEPS between runs.
-## NEHALEM is the floor, so the exe still starts on any x86-64 machine made
-## since roughly 2009. Raise it, or switch to DYNAMIC_ARCH, only alongside a
-## decision about the minimum CPU the Windows binary supports.
+## Runtime dispatch, not a fixed TARGET. This is what makes the Windows
+## binary both fast and portable, and the two are not in tension here:
+## OpenBLAS picks its kernels from cpuid at startup, so one build runs the
+## SKYLAKEX or ZEN path on a modern machine and still starts on an old one.
+##
+## TARGET sets the BASELINE that a machine matching nothing else falls back
+## to. PRESCOTT is plain x86-64, which is exactly the floor the rest of
+## inla.exe has (it compiles with -mtune=generic and no -march), so this adds
+## no CPU requirement at all. An earlier version pinned TARGET=NEHALEM with no
+## dispatch, which was both slower on modern hardware AND raised the floor to
+## roughly 2009 machines: the worst of both.
+##
+## DYNAMIC_LIST keeps the cost bounded. Plain DYNAMIC_ARCH builds every kernel
+## OpenBLAS knows, on every run, since nothing caches $DEPS between runs; this
+## list covers the hardware anyone actually runs INLA on. Add a name here
+## rather than dropping back to a fixed TARGET if a gap shows up.
 if [ ! -f "$DEPS/lib/libopenblas.a" ]; then
     OB=${OPENBLAS_VERSION:-0.3.29}
     rm -rf /tmp/openblas
@@ -144,14 +155,19 @@ if [ ! -f "$DEPS/lib/libopenblas.a" ]; then
     if ! make -C /tmp/openblas -j"$(nproc)" \
             HOSTCC=gcc CC=$MINGW_CC FC=$TRIPLET-gfortran \
             AR=$TRIPLET-ar RANLIB=$TRIPLET-ranlib \
-            CROSS=1 TARGET=NEHALEM BINARY=64 \
+            CROSS=1 BINARY=64 \
+            DYNAMIC_ARCH=1 TARGET=PRESCOTT \
+            DYNAMIC_LIST="NEHALEM SANDYBRIDGE HASWELL SKYLAKEX ZEN" \
             NO_SHARED=1 USE_THREAD=0 NO_LAPACKE=1 \
             > /tmp/openblas.log 2>&1; then
         echo "ERROR: OpenBLAS $OB failed to cross-build"
         tail -40 /tmp/openblas.log
         exit 1
     fi
-    make -C /tmp/openblas PREFIX="$DEPS" NO_SHARED=1 install >/dev/null
+    ## the same vars as the build: install derives the library name from
+    ## them, and a mismatch makes it look for an archive that is not there
+    make -C /tmp/openblas PREFIX="$DEPS" NO_SHARED=1 \
+         DYNAMIC_ARCH=1 TARGET=PRESCOTT install >/dev/null
     ## some versions install the archive under its target-specific name only
     if [ ! -f "$DEPS/lib/libopenblas.a" ]; then
         A=$(ls "$DEPS"/lib/libopenblas*.a 2>/dev/null | head -1 || true)
