@@ -7216,10 +7216,10 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads2 = host_max_threads * (host_max_threads + 1);	// for cache-indexing
 	GMRFLib_openmp->blas_num_threads_force = 0;
 	GMRFLib_openmp->max_threads_nested = Calloc(3, int);
-	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
+	GMRFLib_openmp->max_threads_nested[0] = num_p_cores; // GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
-	GMRFLib_openmp->max_threads_nested[2] = 1;
-	GMRFLib_openmp->adaptive = 0;
+	GMRFLib_openmp->max_threads_nested[2] = (num_p_cores > 1 ? 2 : 1);
+	GMRFLib_openmp->adaptive = (GMRFLib_openmp->max_threads_nested[2] > 1 ? 1 : 0);
 	GMRFLib_openmp->schedule = omp_sched_guided;
 	GMRFLib_openmp->chunk_size = 0;			       /* guided schedule only */
 	GMRFLib_openmp->likelihood_nt = 0;
@@ -7265,7 +7265,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:WC")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLPWC")) != -1) {
 		switch (opt) {
 		case 'C':
 		{
@@ -7399,81 +7399,63 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			if (!strstr(optarg, "PC") && 
-			    (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
-			     inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK)) {
+			if (verbose) printf("\tparse num.threads option [%s]\n", optarg);
+			char *s = Strdup(optarg);
+			for(int ii = 0; ii < 3; ii++) {
+				char *token = my_strsep(&s, ":,");
+				ntt[ii] = ((token && strlen(token)) ?
+					   inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
+				ntt[ii] = IMAX(0, ntt[ii]);
+			}
 
-				if (ntt[0] <= 0) {
-					ntt[0] = GMRFLib_MAX_THREADS();
+			if (ntt[0] <= 0) {
+				ntt[0] = GMRFLib_MAX_THREADS();
+			}
+			if (ntt[1] <= 0) {
+				ntt[1] = 1;
+			}
+			if (ntt[2] <= 0) {
+				if (ntt[0] == 1 && ntt[1] == 1) {
+					ntt[2] = 1;
+				} else {
+					ntt[2] = IMIN(ntt[0], 2 * ntt[1]);
 				}
-				if (ntt[1] <= 0) {
-					ntt[1] = 1;
-				}
-				if (ntt[2] <= 0) {
-					if (ntt[0] == 1 && ntt[1] == 1) {
-						ntt[2] = 1;
-					} else {
-						ntt[2] = IMIN(ntt[0], 2 * ntt[1]);
-					}
-				}
-				if (verbose > 0) {
-					printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], ntt[2], GMRFLib_openmp->max_threads);
-				}
-				GMRFLib_openmp->adaptive = GMRFLib_openmp->max_threads_nested[2] = ntt[2];
-
-				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
-					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
-					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS());
-
-					if (ntt[0] > GMRFLib_MAX_THREADS()) {
-						ntt[0] = GMRFLib_MAX_THREADS();
-						ntt[1] = 1;
-					} else if (ntt[1] > GMRFLib_MAX_THREADS()) {
-						ntt[1] = GMRFLib_MAX_THREADS();
-						ntt[0] = 1;
-					} else {
-						// something gotta give
-						while (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
-							ntt[1]--;
-						}
-					}
-					GMRFLib_openmp->adaptive = ntt[2] = IMIN(ntt[2], GMRFLib_MAX_THREADS());
-					fprintf(stderr, "\tNumber of threads is reduced to %1d:%1d:%1d\n\n", ntt[0], ntt[1], ntt[2]);
-				}
-
-				for (i = 0; i < 3; i++) {
-					ntt[i] = IMAX(1, ntt[i]);
-					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
-				}
-				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS(), IMAX(ntt[0] * ntt[1], ntt[2]));
-				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads2 * (GMRFLib_openmp->max_threads + 1);
-				GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
-			} else {
-				// we can use expressions involving 'P' and 'C' , as short-hand for number of power-cores and 
-				// number of cores
-
-				char *s = Strdup(optarg);
-				for(int ii = 0; ii < 3; ii++) {
-					char *token = my_strsep(&s, ":,");
-					ntt[ii] = ((token && strlen(token)) ?
-						   inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
-					ntt[ii] = IMAX(1, ntt[ii]);
-				}
-				if (verbose > 0) {
-					printf("\tParse expression[%s] into %1d:%1d:%1d using P=%1d C=%1d\n",
-					       optarg, ntt[0], ntt[1], ntt[2], num_p_cores, host_max_threads);
-				}
-				for (i = 0; i < 3; i++) {
-					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
-					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
-				}
-				GMRFLib_openmp->max_threads = IMIN(host_max_threads, ntt[0] * ntt[1]);
-				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads2 * (GMRFLib_openmp->max_threads + 1);
-				GMRFLib_openmp->adaptive = GMRFLib_openmp->max_threads_nested[2];
 			}
 			if (verbose > 0) {
-				printf("\tContinue with num.threads = %1d:%1d:%1d max_threads = %1d\n", GMRFLib_openmp->max_threads_nested[0],
-				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads_nested[2], GMRFLib_openmp->max_threads);
+				printf("\tRead ntt %d %d %d with max.threads %d\n", ntt[0], ntt[1], ntt[2], GMRFLib_MAX_THREADS());
+			}
+			GMRFLib_openmp->adaptive = GMRFLib_openmp->max_threads_nested[2] = ntt[2];
+
+			if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
+				fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
+				fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS());
+				
+				if (ntt[0] > GMRFLib_MAX_THREADS()) {
+					ntt[0] = GMRFLib_MAX_THREADS();
+					ntt[1] = 1;
+				} else if (ntt[1] > GMRFLib_MAX_THREADS()) {
+					ntt[1] = GMRFLib_MAX_THREADS();
+					ntt[0] = 1;
+				} else {
+					while (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
+						ntt[1]--;
+					}
+				}
+				GMRFLib_openmp->adaptive = ntt[2] = IMIN(ntt[2], GMRFLib_MAX_THREADS());
+				fprintf(stderr, "\tNumber of threads is reduced to %1d:%1d:%1d\n\n", ntt[0], ntt[1], ntt[2]);
+			}
+			
+			for (i = 0; i < 3; i++) {
+				ntt[i] = IMAX(1, ntt[i]);
+				GMRFLib_openmp->max_threads_nested[i] = ntt[i];
+			}
+			GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS(), IMAX(ntt[0] * ntt[1], ntt[2]));
+			GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads2 * (GMRFLib_openmp->max_threads + 1);
+			GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
+			if (verbose > 0) {
+				printf("\tContinue with num.threads=%1d:%1d:%1d max_threads=%1d P=%1d C=%1d\n", GMRFLib_openmp->max_threads_nested[0],
+				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads_nested[2], GMRFLib_openmp->max_threads,
+				       num_p_cores, host_max_threads);
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -7685,7 +7667,10 @@ int main(int argc, char **argv)
 #endif
 		fprintf(stdout, "#cores........ [%1d]\n", host_max_threads);
 		fprintf(stdout, "#P-cores...... [%1d]\n", num_p_cores);
-
+		fprintf(stdout, "num.threads... [%1d:%1d:%1d]\n",
+			GMRFLib_openmp->max_threads_nested[0], 
+			GMRFLib_openmp->max_threads_nested[1], 
+			GMRFLib_openmp->max_threads_nested[2]);
 		_BUGS_intern(stdout);
 	}
 
