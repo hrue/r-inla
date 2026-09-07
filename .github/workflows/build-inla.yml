@@ -502,6 +502,107 @@ jobs:
   ## and captures a backtrace from the first crash it can reproduce under
   ## gdb. The host CPU is logged because the arm64 runner pool is
   ## heterogeneous and ARMPL selects kernels by CPU features.
+  ## The shared model checks against the PORTABLE BUNDLE, which is what a
+  ## Linux user actually downloads.
+  ##
+  ## The build lanes above run these checks too, but on a WITH_LIBR=1 binary
+  ## compiled on the runner against the runner's own R. The bundle is a
+  ## different artifact built a different way: WITH_LIBR=2, carrying its own
+  ## libraries, so rgeneric resolves libR at RUNTIME through R_HOME. That is
+  ## the same mode as the Windows lane, and it is exactly where the Windows
+  ## rgeneric crash lived, invisible for months because every lane that ran
+  ## these checks ran them on the other kind of binary. A build lane passing
+  ## is not evidence about the bundle.
+  ##
+  ## The run-portable jobs cannot host this: they run inside bare distro
+  ## containers with no R, and installing R plus the model packages in eight
+  ## of them to learn one fact is the wrong trade. One check per architecture
+  ## on a runner where R is cheap covers it.
+  run-portable-models:
+    name: "Portable bundle: rgeneric + cgeneric (${{ matrix.arch }})"
+    needs: [portable-linux-x86_64, portable-linux-x86_64-modern, portable-linux-arm64-modern]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            artifact: inla-linux-x86_64-portable
+            tarball: inla-linux-x86_64-portable.tar.gz
+          ## The v3 bundle is a separate download with its own CPU target, so
+          ## it needs its own run: a v3 build can differ from the baseline one
+          ## in exactly the kernels these models exercise.
+          - arch: x86_64-v3
+            runner: ubuntu-24.04
+            artifact: inla-linux-x86_64-v3-portable
+            tarball: inla-linux-x86_64-v3-portable.tar.gz
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            artifact: inla-linux-arm64-armv82-portable
+            tarball: inla-linux-arm64-armv82-portable.tar.gz
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      ## Runtime system libraries for the R packages these checks pull in:
+      ## units needs udunits2, sf needs gdal/geos/proj. inla itself uses none
+      ## of them, which is why ci/deps-ubuntu.sh calls them out separately.
+      ## Without them the INLA install dies at lazy-load with
+      ## "libudunits2.so.0: cannot open shared object file", which is what
+      ## this job did on its first run.
+      - name: System libraries for the R dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+              libudunits2-dev libgdal-dev libgeos-dev libproj-dev
+
+      ## fbesag lives in its own repository and the makefile clones it over
+      ## SSH, which has no key here. Same rewrite the build lanes use.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      ## external-packages/fbesag/fbesag is NOT tracked in this repository; the
+      ## build lanes get it because they run the external-packages build first.
+      ## This job only checks out and unpacks, so it has to fetch it itself, or
+      ## R CMD INSTALL fails with "invalid package".
+      - name: Fetch fbesag
+        run: make -C external-packages/fbesag download
+
+      - name: Unpack the bundle
+        run: |
+          set -e
+          tar xzf "${{ matrix.tarball }}"
+          ./bin/inla -ping
+          echo "INLA_BIN=$PWD/bin/inla" >> "$GITHUB_ENV"
+
+      - name: rgeneric and cgeneric (shared checks)
+        run: |
+          set -e
+          ## fbesag is compiled INTO the binary; its R package only assembles
+          ## the data, so install it from THIS checkout to match the binary.
+          ## INLAspacetime supplies cgeneric model 102 and comes from CRAN;
+          ## the public RSPM mirror serves it prebuilt, so nothing compiles.
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'))"
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
+          ## Both backends, as every other lane does.
+          Rscript --vanilla ci/smoke-models.R "$INLA_BIN" "" stiles
+
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
@@ -661,8 +762,10 @@ jobs:
           if-no-files-found: error
 
   ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
-  ## following the upstream Windows build recipe (Windows R's own
-  ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).
+  ## following the upstream Windows build recipe, except for the BLAS: a
+  ## cross-built static OpenBLAS, plus cross-built static
+  ## Rmath/gsl/metis/muparser. Using R's Rblas/Rlapack instead made the exe
+  ## import R.dll, and a second R.dll then segfaulted every rgeneric model.
   ## Experimental while it stabilizes: cannot fail the workflow.
   windows-x86_64:
     name: "Windows x86_64: cross-build inla.exe (MinGW UCRT)"
@@ -736,7 +839,7 @@ jobs:
           { echo "artifact=inla-windows-x86_64"
             echo "purpose=Windows x86_64: inla.exe + all DLLs, runs with or without R installed"
             echo "compiler=${CO:-unknown}"
-            echo "blas=R's Rblas/Rlapack (bundled)"
+            echo "blas=OpenBLAS (static, no R library in the bundle)"
             echo "stiles=$ST"
           } > manifest/inla-windows-x86_64.txt
       - uses: actions/upload-artifact@v4
@@ -807,13 +910,15 @@ jobs:
       ## change is invisible to it until a release exists.
       ##
       ## rgeneric is the one feature where the binary calls back into R, and it
-      ## crashes on Windows: inla.exe imports Rblas.dll, whose dependency chain
-      ## pulls the BUNDLED R.dll in from the exe's own directory, and the
-      ## R_HOME dlopen then maps a SECOND R into the same process.
-      ## INLA_REUSE_LOADED_R makes that dlopen reuse the R already loaded. It
-      ## is OFF by default, so the first run shows today's behaviour and the
-      ## second shows whether the fix works. Reports only; does not gate.
-      - name: rgeneric, before and after the fix
+      ## used to crash on Windows: inla.exe imported Rblas.dll, whose
+      ## dependency chain pulled the BUNDLED R.dll in from the exe's own
+      ## directory, and the R_HOME dlopen then mapped a SECOND R into the same
+      ## process. Proved by moving the bundled R DLLs aside: crash with them,
+      ## a correct fit without. The build now uses a static OpenBLAS so no R
+      ## library is imported or shipped, and build-mingw.sh fails the lane if
+      ## one reappears. These steps stay as the behavioural check on a real
+      ## Windows machine. Reports only; does not gate.
+      - name: rgeneric diagnostics
         continue-on-error: true
         run: |
           RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
@@ -843,14 +948,166 @@ jobs:
           r <- try(INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
                    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE)))),
                    silent = TRUE)
-          if (inherits(r, "try-error")) cat("RGENERIC: FAILED\n") else
-          if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
+          if (inherits(r, "try-error")) {
+              cat("RGENERIC: FAILED\n")
+              cat("message:", conditionMessage(attr(r, "condition")), "\n")
+              ## The binary's own stderr, which is where INLA_DEBUG_R writes
+              ## "R-interface: init" and sessionInfo(). inla() only surfaces it
+              ## with verbose = TRUE, so the quiet run above told us nothing.
+              cat("---- verbose re-run ----\n")
+              o <- try(capture.output(
+                       INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
+                                  control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+                                  verbose = TRUE), type = "output"), silent = TRUE)
+              cat(paste(utils::tail(as.character(o), 40), collapse = "\n"), "\n")
+          } else if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
           cat("RGENERIC: OK  mlik =", r$mlik[1], "\n")
           RSCRIPT
-          echo "---- as shipped (fix OFF) ----"
-          Rscript rg.R 2>&1 | tail -6 || true
-          echo "---- INLA_REUSE_LOADED_R=1 (fix ON) ----"
-          INLA_REUSE_LOADED_R=1 Rscript rg.R 2>&1 | tail -6 || true
+          echo "---- plain ----"
+          Rscript rg.R 2>&1 | tail -8 || true
+
+          ## INLA_DEBUG_R is the binary's own switch: it prints "R-interface:
+          ## init" the moment the embedded R starts, then searchpaths() and
+          ## sessionInfo(). Whether that line appears splits the failure in two:
+          ##   not printed -> it dies AT or BEFORE embedding R. The suspect is
+          ##      inla_R_init_(), which builds a temp file from GMRFLib_tmpdir.
+          ##      That global is NULL until inla-parse.c sets it, and the file
+          ##      handle from fopen() is used with no NULL check, so a failure
+          ##      there is a silent death. glibc tolerates "%s" with NULL and
+          ##      prints "(null)"; the Microsoft CRT does not, which would make
+          ##      this Windows-only and rgeneric-only, as observed.
+          ##   printed -> R starts fine and the crash is in a later callback.
+          echo "---- INLA_DEBUG_R=1 ----"
+          INLA_DEBUG_R=1 Rscript rg.R 2>&1 | tail -60 || true
+
+          ## Threads: the R callbacks are serialised by an omp critical, so this
+          ## should not matter. If single-threaded passes, that assumption is
+          ## wrong and the answer is somewhere else entirely.
+          echo "---- single threaded ----"
+          INLA_NUM_THREADS=1:1 Rscript -e "Sys.setenv(INLA_DEBUG_R=''); source('rg.R')" 2>&1 | tail -8 || true
+
+          ## Run the binary DIRECTLY on the model it just wrote.
+          ##
+          ## Everything above goes through inla(), which captures stdout, and
+          ## three runs cut the trace at three different points (fixed1,
+          ## PRIOR1->, PRIOR0->PARAMETE). That is the buffer being lost when the
+          ## process dies, not the crash moving, so the last line printed says
+          ## nothing about where it died. Run unbuffered instead and read the
+          ## EXIT CODE, which on Windows names the fault:
+          ##   0xC0000005 (3221225477) access violation
+          ##   0xC0000374 (3221226356) heap corruption
+          ##   3                        abort()
+          echo "---- direct run of the binary ----"
+          cat > keep.R <<'RSCRIPT'
+          suppressMessages(library(INLA))
+          INLA::inla.setOption(inla.call = Sys.getenv("INLA_EXE"))
+          INLA::inla.setOption(safe = FALSE)
+          set.seed(1); n <- 50; y <- rnorm(n)
+          d <- data.frame(y = y, idx = 1:n)
+          rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = n)
+          try(INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
+              control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+              keep = TRUE, working.directory = "wd"), silent = TRUE)
+          RSCRIPT
+          Rscript keep.R >/dev/null 2>&1 || true
+          INI=$(ls wd/Model.ini 2>/dev/null || ls wd/*/Model.ini 2>/dev/null | head -1)
+          if [ -n "$INI" ]; then
+            echo "running: $EXE -v $INI"
+            set +e
+            INLA_DEBUG_R=1 "$EXE" -v "$INI" 2>&1 | tail -30
+            echo "exit=${PIPESTATUS[0]}"
+            set -e
+          else
+            echo "no Model.ini was written"; ls -R wd 2>/dev/null | head -20
+          fi
+
+          ## THE ONE-R TEST. This is the decisive A/B, and it needs no rebuild.
+          ##
+          ## inla.exe statically imports Rblas.dll and Rlapack.dll (R's BLAS is
+          ## the only one available for the cross-build), and BOTH of those
+          ## import R.dll. Windows resolves a dependency from the EXECUTABLE's
+          ## directory before PATH, so the bundled R.dll, the cross-build's own
+          ## R 4.6.1, is loaded into the process at startup, long before any
+          ## rgeneric code runs. Then rgeneric calls lt_dlopen on the USER's
+          ## R.dll under R_HOME. That is two R runtimes in one process.
+          ##
+          ## Only Windows can reach this state: on Linux and macOS the BLAS is
+          ## MKL or Accelerate, so no libR is ever preloaded, and rgeneric works
+          ## there. It also explains why the earlier INLA_REUSE_LOADED_R
+          ## experiment failed in BOTH arms: reusing the loaded R handed back the
+          ## same wrong bundled R that dlopen was already returning, so the two
+          ## arms were never actually different.
+          ##
+          ## Moving the bundled copies aside makes Windows resolve Rblas, Rlapack
+          ## and R.dll from the user's R on PATH, which is the same R that
+          ## rgeneric dlopens: exactly ONE R.dll in the process. If rgeneric
+          ## passes here and fails above, the diagnosis is confirmed and the fix
+          ## is to stop shipping a second R (or to link R.dll like the upstream
+          ## Windows makefile does, WITH_LIBR=1, which has this property already).
+          echo "---- versions of the two R.dll copies ----"
+          BUNDLE=$(dirname "$EXE")
+          for f in "$BUNDLE/R.dll" "$RBIN/R.dll"; do
+            if [ -f "$f" ]; then
+              printf '  %-60s %s\n' "$f" \
+                "$(strings -el "$f" 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+  \([0-9-]+\)' | head -1)"
+            else
+              printf '  %-60s (absent)\n' "$f"
+            fi
+          done
+          Rscript -e 'cat("  R driving the session:", as.character(getRversion()), "\n")' || true
+
+          echo "---- one-R test: bundled R DLLs moved aside ----"
+          mkdir -p "$BUNDLE/_r_aside"
+          moved=""
+          for d in R.dll Rblas.dll Rlapack.dll Rgraphapp.dll Riconv.dll; do
+            if [ -f "$BUNDLE/$d" ]; then mv "$BUNDLE/$d" "$BUNDLE/_r_aside/"; moved="$moved $d"; fi
+          done
+          echo "  moved aside:$moved"
+          Rscript rg.R 2>&1 | tail -20 || true
+          ## Put them back so the later bare-bundle step still tests what it means to.
+          for d in $moved; do mv "$BUNDLE/_r_aside/$d" "$BUNDLE/"; done
+          rmdir "$BUNDLE/_r_aside" 2>/dev/null || true
+          echo "  restored:$moved"
+
+      ## The SAME model checks Linux and macOS run, against the exe just
+      ## built. Windows used to be the odd one out: it never called
+      ## ci/smoke-test.sh, so it had no cgeneric coverage at all and only an
+      ## ad-hoc rgeneric check, which is how a Windows-only rgeneric crash
+      ## survived in a release. ci/smoke-models.R is now one file shared by
+      ## every platform, so this lane cannot drift into testing less than the
+      ## others.
+      ##
+      ## Gating, unlike the diagnostics above: this is a real check now.
+      - name: rgeneric and cgeneric (shared checks)
+        shell: bash
+        run: |
+          set -e
+          RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
+          export PATH="$RBIN:$PATH"
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          [ -n "$EXE" ] || { echo "inla.exe not found"; exit 1; }
+
+          ## fbesag is compiled INTO the binary; its R package only assembles
+          ## the data, so install it from THIS checkout to match the binary.
+          ## INLAspacetime supplies model 102 the same way and comes from CRAN.
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'), repos='https://cloud.r-project.org')"
+
+          ## external-packages/fbesag/fbesag is NOT tracked here; the build
+          ## lanes get it by running the external-packages build first. Clone
+          ## it directly rather than through its makefile, which needs make on
+          ## PATH and an SSH key, neither of which this runner has.
+          git clone --depth 1 https://github.com/esmail-abdulfattah/fbesag \
+              external-packages/fbesag/fbesag
+
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
+
+          ## Both backends, as every other lane does: each model runs on the
+          ## default and on sTiles, and the marginal likelihoods must agree.
+          Rscript --vanilla ci/smoke-models.R "$EXE" "" stiles
 
       ## The same bundle with NO R anywhere on PATH. This is how someone who
       ## downloads the artifact actually runs it, and it is a genuinely

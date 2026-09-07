@@ -55,6 +55,13 @@ jobs:
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         run: bash ci/bump-rinla-version.sh --check
 
+      ## GUARD 1b: package/ must match rinla/. It is rinla/ with the symlinks
+      ## resolved, and it is the ONLY way a Windows user can install from the
+      ## repository, so a copy that silently falls behind would ship them an
+      ## old package while everyone else got the current one.
+      - name: package/ is in sync with rinla/
+        run: bash ci/sync-package.sh --check
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: release
@@ -138,6 +145,59 @@ jobs:
           r-version: release
           use-public-rspm: true
 
+      ## The bug this guards, reproduced exactly. remotes::install_github()
+      ## downloads the repository as a .tar.gz and extracts it with Windows
+      ## tar.exe, which cannot create symlinks: every one fails with
+      ## "Can't create ...: Invalid argument" and extraction then aborts, so
+      ## the install dies before it ever reaches subdir=. All 211 links in
+      ## this repository hit that, which is why Windows users could not
+      ## install from source at all.
+      ##
+      ## .gitattributes now keeps the symlink-bearing paths out of the
+      ## generated archives. This step fetches the archive for THIS commit and
+      ## extracts it the way Windows does, so the guarantee is tested against
+      ## the artifact GitHub actually serves rather than against a local
+      ## git archive run.
+      - name: Windows can extract this commit's source archive
+        shell: bash
+        run: |
+          set -e
+          URL="https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}"
+          echo "fetching $URL"
+          curl -sSL -o src.tar.gz "$URL"
+          mkdir -p srcx
+          ## tar.exe is the one that fails; no --warning flags, we want its
+          ## real behaviour and its real exit code.
+          if ! tar -xzf src.tar.gz -C srcx 2>tar.err; then
+            echo "::error::Windows tar.exe cannot extract the source archive"
+            head -20 tar.err
+            exit 1
+          fi
+          if [ -s tar.err ]; then
+            echo "::error::tar reported problems even though it exited 0"
+            head -20 tar.err
+            exit 1
+          fi
+          ROOT=$(ls -d srcx/*/ | head -1)
+          test -f "${ROOT}package/DESCRIPTION" \
+            || { echo "::error::no package/DESCRIPTION in the archive"; ls "$ROOT"; exit 1; }
+
+          ## Extraction succeeding is not enough. remotes then builds a file
+          ## list from the tree, and a filename with non-ASCII bytes kills the
+          ## install in a non-UTF-8 Windows locale, with an error that names
+          ## neither the file nor the cause:
+          ##     unable to translate '.../-<a6>-<e0>-+-<a6>' to a wide string
+          ##     Error: Failed to install 'INLA': input string 2768 is invalid
+          ## Two Cyrillic-named fixture files did exactly that once the
+          ## symlinks were out of the way, so check the class, not the case.
+          BAD=$(find srcx -print | grep -P '[^\x20-\x7e]' || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::the archive contains filenames Windows cannot translate:"
+            printf '%s\n' "$BAD" | head -10
+            exit 1
+          fi
+          echo "OK: archive extracted, package/ present, all filenames ASCII"
+
       - name: Install the tarball, then fetch the binary
         shell: Rscript {0}
         run: |
@@ -165,6 +225,42 @@ jobs:
           if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
           cat("OK: install + binary\n")
 
+          ## Which binary did we just download? This job installs the RELEASED
+          ## artifact, on purpose: it tests what a user actually gets. So it
+          ## lags the branch, and until a release carries the fix below it
+          ## would fail on every single run for a reason that has nothing to do
+          ## with the commit being tested. That is noise, and noise gets
+          ## ignored, so decide from the artifact's own BUILDINFO instead.
+          ##
+          ## The rgeneric crash on Windows was caused by two R.dll copies in
+          ## one process: the exe imported R's Rblas/Rlapack, which import
+          ## R.dll, so the bundled copy loaded at startup while rgeneric
+          ## dlopened the user's R through R_HOME. The build now uses a static
+          ## OpenBLAS and ships no R library at all, and the BLAS line in
+          ## BUILDINFO is what says which of the two this binary is. The check
+          ## goes live by itself on the first release built the new way.
+          bi <- c(file.path(dirname(call), "BUILDINFO"),
+                  file.path(dirname(dirname(call)), "BUILDINFO"))
+          bi <- bi[file.exists(bi)]
+          blas <- NA_character_
+          if (length(bi)) {
+              L <- readLines(bi[1], warn = FALSE)
+              hit <- grep("^[[:space:]]*blas:", L, value = TRUE)
+              if (length(hit)) blas <- trimws(hit[1])
+          }
+          cat("released binary BLAS:", if (is.na(blas)) "(no BUILDINFO)" else blas, "\n")
+
+          if (is.na(blas) || !grepl("OpenBLAS", blas, ignore.case = TRUE)) {
+              cat("\nSKIP: this release predates the Windows rgeneric fix.\n")
+              cat("      It ships R's Rblas/Rlapack, so inla.exe imports R.dll and\n")
+              cat("      a second R.dll is mapped when rgeneric loads the user's R.\n")
+              cat("      demo(rgeneric) segfaults on it, which is expected and is\n")
+              cat("      not a fault of this commit. The branch build is tested by\n")
+              cat("      build-inla's Windows job, against the binary it just built.\n")
+              cat("      This check runs for real once a release ships OpenBLAS.\n")
+              quit(save = "no", status = 0)
+          }
+
           ## rgeneric is the one feature where the BINARY calls back into R: it
           ## dlopens libR through R_HOME (bin/x64/R.dll on Windows) and
           ## evaluates the model's R function per iteration. Ordinary models
@@ -191,19 +287,70 @@ jobs:
           res <- try(demo("rgeneric", package = "INLA", character.only = TRUE,
                           echo = TRUE, ask = FALSE), silent = TRUE)
           if (inherits(res, "try-error")) {
-              cat("\n==== demo(rgeneric) failed; re-running verbosely for the binary's own output ====\n")
+              cat("\n==== demo(rgeneric) failed ====\n")
+              cat("message:", conditionMessage(attr(res, "condition")), "\n")
+
+              ## Every earlier attempt at this read the binary's STDOUT, and it
+              ## told us nothing: three runs of the same failure cut the trace at
+              ## three different points (fixed1, PRIOR1->, PRIOR0->PARAMETE),
+              ## which is the stdio buffer being lost when the process dies, not
+              ## the crash moving. Meanwhile the binary reports its own errors on
+              ## STDERR, and that is the channel this test was discarding:
+              ## capture.output(type = "output") takes stdout only, and the
+              ## non-verbose path sends stderr to a file nothing printed.
+              ##
+              ## There WAS a symbol probe here using getNativeSymbolInfo().
+              ## It was worse than useless: that function searches only the
+              ## DLLs registered in R's own table, and R.dll is not one, so it
+              ## reported MISSING for every symbol including ones objdump shows
+              ## exported. Three separate runs were read as evidence of missing
+              ## symbols before that was caught. Removed rather than fixed:
+              ## objdump on the artifact answers the question properly.
+
+              ## Run the binary ourselves, keeping stderr.
+              ## keep = TRUE leaves the model files behind; inla() is invoked from
+              ## the parent directory with a relative ini path, so the same form
+              ## works here.
               set.seed(1)
               nn <- 50
-              yy <- rnorm(nn)
-              dd2 <- data.frame(y = yy, idx = 1:nn)
+              dd2 <- data.frame(y = rnorm(nn), idx = 1:nn)
               rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = nn)
-              out <- try(capture.output(
-                  INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
+              try(INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
                              control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
-                             verbose = TRUE, keep = TRUE),
-                  type = "output"), silent = TRUE)
-              cat(paste(utils::tail(as.character(out), 60), collapse = "\n"), "\n")
-              cat("==== end verbose output ====\n")
+                             keep = TRUE), silent = TRUE)
+
+              ini <- list.files(".", pattern = "^Model\\.ini$", recursive = TRUE,
+                                full.names = TRUE)[1]
+              cat("\n---- direct run of the binary ----\n")
+              if (is.na(ini)) {
+                  cat("keep = TRUE left no Model.ini behind\n")
+              } else {
+                  cat("ini:", ini, "\n")
+                  ## INLA_DEBUG_R makes R-interface.c print "R-interface: init"
+                  ## on stderr AFTER the embedded R starts. Its presence or
+                  ## absence splits the problem in half: absent means the binary
+                  ## dies at or before loading R, present means R embeds fine and
+                  ## the fault is in a later callback.
+                  Sys.setenv(INLA_DEBUG_R = "1")
+                  st <- suppressWarnings(
+                      system2(call, c("-v", "-P", "compact", "-t1:1", ini),
+                              stdout = "out.txt", stderr = "err.txt"))
+                  cat("\n-- stderr (the channel that carries the error) --\n")
+                  if (file.exists("err.txt")) {
+                      writeLines(readLines("err.txt", warn = FALSE))
+                  }
+                  cat("-- last 15 lines of stdout --\n")
+                  if (file.exists("out.txt")) {
+                      writeLines(utils::tail(readLines("out.txt", warn = FALSE), 15))
+                  }
+                  ## The exit code is the one fact no buffer can swallow.
+                  ## On Windows: 3221225477 (0xC0000005) access violation,
+                  ## 3221226356 (0xC0000374) heap corruption, 3 abort(),
+                  ## 1 a clean exit(1) from the loader checks above.
+                  cat("\nexit status =", st, "\n")
+              }
+              cat("==== end diagnostics ====\n")
+
               stop("demo(rgeneric) failed: ", conditionMessage(attr(res, "condition")))
           }
 

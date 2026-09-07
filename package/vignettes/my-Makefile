@@ -1,0 +1,20 @@
+R=/usr/bin/R
+RMDs := $(wildcard *.Rmd)
+OrigRMDs := $(wildcard *.Rmd.Orig)
+PDFs := $(RMDs:.Rmd=.pdf) $(OrigRMDs:.Rmd.Orig=.pdf)
+HTMLs := $(RMDs:.Rmd=.html) 
+
+all : $(PDFs) $(HTMLs) 
+
+%.Rmd : %.Rmd.Orig
+	$(R) --vanilla -e 'knitr::knit("'$<'", output = "'$@'")'
+
+%.pdf : %.Rmd
+	$(R) --vanilla -e 'library(rmarkdown); render("'$<'", "pdf_document")'
+
+%.html : %.Rmd
+	$(R) --vanilla -e 'library(rmarkdown); render("'$<'", "html_document")'
+
+.PHONY : install
+
+install :; cp -v $(PDFs) $(HTMLs) ../../r-inla.org/doc/vignettes

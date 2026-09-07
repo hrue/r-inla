@@ -16,6 +16,42 @@
 set -e
 root=$(git rev-parse --show-toplevel)
 
+## Nothing below should run while a merge or rebase is replaying commits: the
+## version there belongs to those commits, and regenerating a directory
+## mid-replay produces conflicts in files the user never touched. Checked
+## first so it covers the package sync as well as the version bump.
+if [ -e "$root/.git/MERGE_HEAD" ] || [ -d "$root/.git/rebase-merge" ] \
+   || [ -d "$root/.git/rebase-apply" ]; then
+    exit 0
+fi
+
+## Keep package/ in step with rinla/, on EVERY branch.
+##
+## package/ is rinla/ with the symlinks resolved into real files. It is the
+## only way a Windows user can install from this repository: tar.exe cannot
+## create a symlink, fails on all 211 of them and then aborts, so
+## install_github() dies before it reaches any subdirectory.
+##
+## Being generated, it goes stale the moment rinla/ changes, or anything
+## rinla/ links to, which includes every PDF under r-inla.org/doc. A stale
+## copy is worse than none: it would quietly ship old code to exactly the
+## users who have no other route to install.
+##
+## The r-package workflow verifies this too, but only on feature/ci and
+## master, and only after a push. Doing it here means work on any branch
+## cannot drift, and nobody editing a PDF has to know package/ exists.
+## Same bargain the version bump below makes: regenerate, stage, say so.
+if [ -x "$root/ci/sync-package.sh" ]; then
+    bash "$root/ci/sync-package.sh" >/dev/null || exit 1
+    if [ -n "$(git status --porcelain -- "$root/package")" ]; then
+        ## -A, not plain add: rinla/ can lose files as well as gain them, and
+        ## a deletion that never reaches package/ leaves it shipping a file
+        ## that no longer exists.
+        git add -A "$root/package"
+        echo "pre-commit: package/ regenerated from rinla/ and staged"
+    fi
+fi
+
 ## master only. The version is a RELEASE fact: it says which day's code a
 ## release contains, and releases are cut from master. Bumping it on every
 ## branch made it move on every commit, which meant nothing and made the number
@@ -23,13 +59,6 @@ root=$(git rev-parse --show-toplevel)
 ## version is set when the work reaches master.
 branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 [ "$branch" = "master" ] || exit 0
-
-## Skip while a merge/rebase is in progress: the version there belongs to the
-## commits being replayed, and rewriting it mid-merge produces conflicts in a
-## file the user never touched.
-if [ -e "$root/.git/MERGE_HEAD" ] || [ -d "$root/.git/rebase-merge" ] || [ -d "$root/.git/rebase-apply" ]; then
-    exit 0
-fi
 
 ## Does this commit change the SOLVER? Config/INLA/BinaryVersion says which
 ## binary release the R package needs, and it must move exactly when the C

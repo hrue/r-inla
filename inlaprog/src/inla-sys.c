@@ -190,7 +190,7 @@ int inla_lock_to_p_cores(void)
 
 	char buf[256];
 	if (fgets(buf, sizeof(buf), f) != NULL) {
-		printf("Detected P-core range string: %s", buf);
+		// printf("Detected P-core range string: %s", buf);
 		parse_and_add_cpus(buf, &cpuset);
 	}
 	fclose(f);
@@ -268,14 +268,10 @@ int main(void)
 
 int inla_num_p_cores(void)
 {
-	int p_cores = 0;
-	size_t size = sizeof(p_cores);
-	sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
-	if (p_cores > 0) {
-		return p_cores;
-	} else {
-		return NUM_P_CORES_DEFAULT();
-	}
+	int num_p = 0;
+	size_t size = sizeof(num_p);
+	sysctlbyname("hw.perflevel0.physicalcpu", &num_p, &size, NULL, 0);
+	return (num_p > 0 ? num_p : NUM_P_CORES_DEFAULT());
 }
 
 int inla_lock_to_p_cores(void)
@@ -383,7 +379,7 @@ int inla_num_p_cores(void)
 	}
 	free(buffer);
 
-	return pCoreCount;
+	return (pCoreCount > 0 ? pCoreCount : NUM_P_CORES_DEFAULT());
 
 #       if 0
 	if (maxEfficiency > 0) {
@@ -408,4 +404,3 @@ int inla_num_p_cores(void)
 	return 0;
 }
 #endif
-

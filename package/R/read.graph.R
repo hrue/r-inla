@@ -1,0 +1,485 @@
+#' Read and write a graph-object
+#' 
+#' Construct a graph-object from a file or a matrix; write graph-object to file
+#' 
+#' 
+#' @aliases read.graph write.graph inla.read.graph inla.write.graph inla.graph
+#' @aliases summary.inla.graph plot.inla.graph print.inla.graph.summary
+#' @param filename The filename of the graph.
+#' @param graph An `inla.graph`-object, a (sparse) symmetric matrix, a
+#' filename containing the graph, a list or collection of characters and/or
+#' numbers defining the graph, or a neighbours list with class `nb` (see
+#' `spdep::card` and `spdep::poly2nb` for for details of `nb`
+#' and an example a function returning an `nb` object
+#' @param mode The mode of the file; 'ascii' for ascii-file or 'binary' for a binary-file (default).
+#' @param object An `inla.graph` -object
+#' @param x An `inla.graph` -object
+#' @param y Not used
+#' @param size.only Only read the size of the graph
+#' @param ... Additional arguments. In `inla.read.graph`, then it is the
+#' graph definition (object, matrix, character, filename), plus extra
+#' arguments.  In `inla.write.graph` it is extra arguments to
+#' `inla.read.graph`.
+#' @return The output of `inla.read.graph`, is an `inla.graph`
+#' object, with elements \item{n}{is the size of the graph} \item{nnbs}{is a
+#' vector with the number of neigbours} \item{nbs}{is a list-list with the
+#' neigbours} \item{cc}{list with connected component information \itemize{
+#' \item`id`is a vector with the connected component id for each node
+#' (starting from 1) \item`n`is the number of connected components
+#' \item`nodes`is a list-list of nodes belonging to each connected
+#' component \item`mean`is a factor with one level for each connected
+#' component of size larger than one, otherwise `NA` } } Methods
+#' implemented for `inla.graph` are `summary` and `plot`.  The
+#' method `plot` require the libraries `Rgraphviz` and `graph`
+#' from the Bioconductor-project, see <https://www.bioconductor.org>.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso [inla.spy()]
+#' @examples
+#' 
+#' ## a graph from a file
+#' g.file1 <- tempfile() # E.g. "g.dat"
+#' cat("3 1 1 2 2 1 1 3 0\n", file = g.file1)
+#' g = inla.read.graph(g.file1)
+#' ## writing an inla.graph-object to file
+#' g.file2 = inla.write.graph(g, mode="binary", filename = tempfile())
+#' ## re-reading it from that file
+#' gg = inla.read.graph(g.file2)
+#' summary(g)
+#' summary(gg)
+#' 
+#' \dontrun{
+#' plot(g)
+#' inla.spy(g)
+#' ## when defining the graph directly in the call,
+#' ## we can use a mix of character and numbers
+#' g = inla.read.graph(c(3, 1, "1 2 2 1 1 3", 0))
+#' inla.spy(c(3, 1, "1 2 2 1 1 3 0"))
+#' inla.spy(c(3, 1, "1 2 2 1 1 3 0"),  reordering=3:1)
+#' inla.write.graph(c(3, 1, "1 2 2 1 1 3 0"))
+#' 
+#' ## building a graph from adjacency matrix
+#' adjacent = matrix(0, nrow = 4, ncol = 4)
+#' adjacent[1,4] = adjacent[4,1] = 1
+#' adjacent[2,4] = adjacent[4,2] = 1
+#' adjacent[2,3] = adjacent[3,2] = 1
+#' adjacent[3,4] = adjacent[4,3] = 1
+#' g = inla.read.graph(adjacent)
+#' plot(g)
+#' summary(g)
+#' }
+#' 
+#' @name read.graph
+#' @rdname read.graph
+NULL
+
+
+
+`inla.graph.binary.file.magic` <- function() {
+    ## the value of the first integer (read binary) in a binary
+    ## filename. this value must be the same as
+    ## 'GMRFLib_BINARY_GRAPH_FILE_MAGIC' in GMRFLib/graph.h
+
+    return(-1L)
+}
+
+`inla.add.graph.cc` <- function(...) {
+    ## add the cc information to a graph
+
+    args <- list(...)
+    if (length(args) == 0L) {
+        return(NULL)
+    }
+
+    if (inherits(args[[1L]], "inla.graph")) {
+        graph <- args[[1L]]
+    } else {
+        graph <- inla.read.graph(...)
+    }
+
+    cc <- list(id = NA, n = NA, nodes = NA)
+    n <- graph$n
+
+    do.visit <- function(idxs, k) {
+        repeat {
+            idxs.visit <- c()
+            if (length(idxs) > 0) {
+                for (idx in idxs) {
+                    if (s[idx] == 0L) {
+                        s[idx] <<- k
+                        visit.next <- graph$nbs[[idx]]
+                        idxs.visit <- c(idxs.visit, visit.next[which(s[visit.next] == 0L)])
+                    }
+                }
+                idxs <- unique(sort(idxs.visit))
+            } else {
+                break
+            }
+        }
+        return(invisible())
+    }
+
+    s <- integer(n)
+    s[] <- 0L
+    k <- 1L
+    for (i in 1L:n) {
+        if (s[i] == 0L) {
+            do.visit(i, k)
+            k <- k + 1L
+        }
+    }
+
+    cc$id <- s
+    cc$n <- max(s)
+    cc$nodes <- lapply(1L:cc$n, function(cc.id, cs) sort(which(cc.id == cs)), cs = s)
+
+    ## build a factor for the means, with one level for each connected component with size
+    ## larger than one
+    for (ii in which(lengths(cc$nodes) == 1)) {
+        s[cc$nodes[[ii]]] <- NA
+    }
+    cc$mean <- factor(s, exclude = NA)
+
+    graph$cc <- cc
+    return(graph)
+}
+
+`inla.graph.size` <- function(...) {
+    return(inla.read.graph(..., size.only = TRUE))
+}
+
+
+#' @rdname read.graph
+#' @export
+`inla.read.graph` <- function(..., size.only = FALSE)
+{
+    ## graph is either a filename, a graph-object, a (sparse) matrix,
+    ## or a list of integers or strings defining the graph.
+
+    `inla.read.graph.ascii.internal` <- function(filename, offset = 0L, size.only = FALSE) {
+        ## offset it needed if the graph is zero-based, then offset is
+        ## set to 1.
+        stopifnot(file.exists(filename))
+
+        s <- readLines(filename)
+        if (length(s) == 0L) {
+            return(NULL)
+        }
+
+        ## remove comment lines
+        s <- sapply(s, function(x) {
+            return(gsub("#.*$", "", x))
+        }) #
+        ## convert "1 2 3" into 1 2 3
+        s <- as.integer(unlist(sapply(s, function(x) strsplit(x, "[ \t]+"))))
+        ## remove possibe NA's that might appear due to spaces at the end of the file
+        s <- s[!is.na(s)]
+
+        n <- s[1L]
+        if (size.only) {
+            return(n)
+        }
+
+        g <- list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
+
+        k <- 2L
+        for (i in 1L:n) {
+            if (s[k] + offset == 0L) {
+                ## this is a zero-based graph
+                return(inla.read.graph.ascii.internal(filename, offset = 1L))
+            }
+
+            stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
+            idx <- s[k] + offset
+            k <- k + 1L
+
+            g$nnbs[idx] <- s[k]
+            k <- k + 1L
+
+            if (g$nnbs[idx] > 0L) {
+                g$nbs[[idx]] <- s[k:(k + g$nnbs[idx] - 1L)] + offset
+                k <- k + g$nnbs[idx]
+            }
+        }
+
+        stopifnot(k - 1L == length(s))
+        class(g) <- "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs <- c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
+        g <- inla.add.graph.cc(g)
+
+        return(g)
+    }
+
+    `inla.read.graph.binary.internal` <- function(filename, offset = 0L, size.only = FALSE) {
+        ## offset it needed if the graph is zero-based, then offset is
+        ## set to 1.
+
+        ## read the binary filename, which is the output from inla().
+        stopifnot(file.exists(filename))
+
+        ## read the first int,  and check that its the key.
+        fp <- gzfile(filename, "rb")
+        s <- as.integer(readBin(fp, integer(), n = 1L))
+        close(fp)
+        if (length(s) == 0L || s[1L] != inla.graph.binary.file.magic()) {
+            ## then its not a binary filename
+            return(NULL)
+        }
+
+        ## since we're using gzfiles (as GMRFLib do that), we don't know
+        ## how many elements this file contains from looking at the
+        ## size. so we got to try to read to many simply...
+        n.try <- 2^12
+        repeat {
+            fp <- gzfile(filename, "rb")
+            s <- as.integer(readBin(fp, integer(), n = n.try))
+            close(fp)
+            if (length(s) < n.try) {
+                break
+            } else {
+                n.try <- n.try * 4L
+            }
+        }
+
+        ## remove the key
+        s <- s[-1L]
+
+        ## then the rest is the graph
+        n <- s[1L]
+        if (size.only) {
+            return(n)
+        }
+        g <- list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
+
+        ## graphs are always 1-based by definition
+        k <- 2L
+        for (i in 1L:n) {
+            if (s[k] + offset == 0L) {
+                ## this is a zero-based graph
+                return(inla.read.graph.binary.internal(filename, offset = 1L))
+            }
+
+            stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
+            idx <- s[k] + offset
+            k <- k + 1L
+
+            g$nnbs[idx] <- s[k]
+            k <- k + 1L
+
+            if (g$nnbs[idx] > 0L) {
+                g$nbs[[idx]] <- s[k:(k + g$nnbs[idx] - 1L)] + offset
+                k <- k + g$nnbs[idx]
+            }
+        }
+        stopifnot(k - 1L == length(s))
+        class(g) <- "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs <- c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
+        g <- inla.add.graph.cc(g)
+
+        return(g)
+    }
+
+    `inla.matrix2graph.internal` <- function(Q, size.only = FALSE) {
+        if (missing(Q)) {
+            return(NULL)
+        }
+
+        n <- dim(Q)
+        if (size.only) {
+            return(n[1L])
+        }
+        Q <- inla.as.dgTMatrix(Q)
+
+        if (n[1] != n[2]) {
+            stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
+        }
+
+        n <- dim(Q)[1]
+        g <- list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = NA)
+
+        diag(Q) <- 1
+        Q <- inla.as.sparse(Q) ## to avoid possible duplicates
+        ord <- order(Q@i)
+        Q@i <- Q@i[ord]
+        Q@j <- Q@j[ord]
+        Q@x <- Q@x[ord]
+        hash.len <- table(Q@i)
+        hash.idx <- c(1L, 1L + cumsum(hash.len))
+        stopifnot(length(hash.len) == ncol(Q))
+
+        for (i in 1L:n) {
+            if (hash.len[i] > 1L) {
+                idx <- hash.idx[i]:(hash.idx[i] + hash.len[i] - 1L)
+                j <- Q@j[idx] + 1L
+                x <- Q@x[idx]
+                j <- j[(x != 0.0) & (j != i)]
+            } else {
+                j <- NULL
+            }
+            g$nbs[[i]] <- j
+            g$nnbs[i] <- length(j)
+        }
+        class(g) <- "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs <- c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
+        g <- inla.add.graph.cc(g)
+        return(g)
+    }
+
+    args <- list(...)
+    graph <- args[[1L]]
+
+    if (is.character(graph) || length(args) > 1L ||
+        (is.numeric(graph) && !(is.matrix(graph) || is(graph, "Matrix")))) {
+        graph <- paste(as.character(graph))
+
+        ## if the file exists, its a file
+        if (length(graph) == 1L && file.exists(graph)) {
+            ## try binary first, if it fail, try ascii
+            g <- inla.read.graph.binary.internal(..., size.only = size.only)
+            if (is.null(g)) {
+                g <- inla.read.graph.ascii.internal(..., size.only = size.only)
+            }
+            return(g)
+        } else {
+            ## otherwise, its the definition itself
+            tfile <- tempfile()
+            cat(unlist(args), sep = "\n", file = tfile, append = FALSE)
+            ## recursive call
+            g <- inla.read.graph(tfile, size.only = size.only)
+            unlink(tfile)
+            return(g)
+        }
+    } else if (inherits(graph, "inla.graph")) {
+        ## no need to do anything.
+        if (size.only) {
+            return(graph$n)
+        } else {
+            return(graph)
+        }
+    } else if (inherits(graph, "nb")) {
+        ## a neigbour-graph from spdep with class="nb".
+        ## this can replace spdep::nb2INLA.
+        ## call spdep::nb2listw and use spdep coercion.
+        inla.require("spdep", stop.on.error = TRUE)
+        Q <- spdep::nb2listw(graph, style = "B", zero.policy = TRUE)
+        Q <- inla.as.sparse(as(Q, "symmetricMatrix"))
+        return(inla.matrix2graph.internal(Q, size.only = size.only))
+    } else {
+        return(inla.matrix2graph.internal(..., size.only = size.only))
+    }
+}
+
+#' @rdname read.graph
+#' @export
+`inla.write.graph` <- function(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
+{
+    `inla.write.graph.ascii.internal` <- function(graph, filename = "graph.dat") {
+        ## write graph to file in ascii format
+        fd <- file(filename, "w")
+        cat(graph$n, "\n", file = fd)
+        for (i in seq_len(graph$n)) {
+            cat(i, graph$nnbs[i], graph$nbs[[i]], "\n", file = fd)
+        }
+        close(fd)
+        return(filename)
+    }
+
+    `inla.write.graph.binary.internal` <- function(graph, filename = "graph.dat") {
+        ## write a graph to file in binary format
+        fd <- file(filename, "wb")
+        writeBin(as.integer(c(inla.graph.binary.file.magic(), graph$n)), fd)
+        for (i in seq_len(graph$n)) {
+            writeBin(as.integer(c(i, graph$nnbs[[i]], graph$nbs[[i]])), fd)
+        }
+        close(fd)
+        return(filename)
+    }
+
+    mode <- match.arg(mode)
+    g <- inla.read.graph(graph, ...)
+
+    if (mode == "binary") {
+        return(invisible(inla.write.graph.binary.internal(g, filename)))
+    } else if (mode == "ascii") {
+        return(invisible(inla.write.graph.ascii.internal(g, filename)))
+    } else {
+        stopifnot(FALSE)
+    }
+}
+
+#' @rdname read.graph
+#' @method plot inla.graph
+#' @export
+`plot.inla.graph` <- function(x, y, ...) {
+    ## these are default options to plot for class inla.graph
+    filter <- filter.args <- c("neato", "dot", "fdp", "twopi")
+    attrs <- NULL
+    scale <- 0.5
+    node.names <- NULL
+    ## we evaluate them here,  as they are set in '...'
+    inla.eval.dots(...)
+
+    if (!inla.require("Rgraphviz")) {
+        stop("Package 'Rgraphiviz' is required but not installed. Please install from 'https://www.bioconductor.org'.")
+    }
+    if (!inla.require("graph")) {
+        stop("Package 'graph' is required but not installed. Please install from 'https://www.bioconductor.org'.")
+    }
+
+    filter <- match.arg(filter, filter.args)
+    if (is.null(attrs)) {
+        attrs <- Rgraphviz::getDefaultAttrs(layoutType = filter)
+    }
+    if (!is.null(node.names)) {
+        stopifnot(length(node.names) == x$n)
+    } else {
+        node.names <- as.character(1:x$n)
+    }
+    g <- graph::graphNEL(nodes = node.names, edgemode = "undirected")
+    for (i in 1L:x$n) {
+        if (x$nnbs[i] > 0L) {
+            j <- x$nbs[[i]]
+            j <- j[j > i]
+            if (length(j) > 0L) {
+                g <- graph::addEdge(node.names[i], node.names[j], g)
+            }
+        }
+    }
+    attrs$node$height <- as.numeric(attrs$node$height) * scale
+    attrs$node$width <- as.numeric(attrs$node$width) * scale
+    plot(g, filter, attrs = attrs, ...)
+}
+
+#' @rdname read.graph
+#' @method summary inla.graph
+#' @export
+`summary.inla.graph` <- function(object, ...) {
+    ret <- list()
+    ret <- c(ret, list(n = object$n))
+    if (!is.null(object$cc)) {
+        ret <- c(ret, list(ncc = object$cc$n))
+    } else {
+        ret <- c(ret, list(ncc = NA))
+    }
+    ret <- c(ret, list(nnbs = table(object$nnbs)))
+
+    class(ret) <- "inla.graph.summary"
+    return(ret)
+}
+
+#' @rdname read.graph
+#' @method print inla.graph.summary
+#' @export
+`print.inla.graph.summary` <- function(x, ...) {
+    cat(paste("\tn = ", x$n, "\n"))
+    cat(paste("\tncc = ", x$ncc, "\n"))
+    w <- max(nchar(names(x$nnbs)))
+    cat(inla.paste(c("\tnnbs = (names) ", format(names(x$nnbs), width = w, justify = "right"), "\n")))
+    cat(inla.paste(c("\t       (count) ", format(x$nnbs, width = w, justify = "right"), "\n")))
+    return(invisible())
+}

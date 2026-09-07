@@ -61,10 +61,10 @@ char *my_strsep(char **stringp, const char *delim)
 	}
 	char *p = strpbrk(start, delim);
 	if (p) {
-		*p = '\0';        // Split the string
-		*stringp = p + 1; // Move pointer past the delimiter
+		*p = '\0';				       // Split the string
+		*stringp = p + 1;			       // Move pointer past the delimiter
 	} else {
-		*stringp = NULL;  // No more delimiters left
+		*stringp = NULL;			       // No more delimiters left
 	}
 	return start;
 }
