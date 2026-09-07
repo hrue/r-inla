@@ -1,0 +1,85 @@
+#!/bin/bash
+
+cmd=$(readlink -f "$0")
+DIR=$(dirname "$cmd")
+tmp=$(basename "$cmd")
+prog=${tmp%%.run}
+
+if [ -z "$INLA_RHOME" ]; then
+    if $(which R 2>/dev/null >/dev/null); then
+	RHOME_LIB="$(R RHOME)/lib"
+    else
+	RHOME_LIB="/Library/Frameworks/R.framework/Resources/lib"
+    fi
+else
+    RHOME_LIB="$INLA_RHOME/lib"
+fi
+
+if [ -n "${INLA_MALLOC_LIB}" ]; then
+    if [ -f "${INLA_MALLOC_LIB}" ]; then
+	export DYLD_INSERT_LIBRARIES="${INLA_MALLOC_LIB}:$DYLD_INSERT_LIBRARIES"
+    else   
+	for nm in ${INLA_MALLOC_LIB}; do
+	    for f in $DIR/malloc/lib*.dylib*; do
+		case "$f" in
+		    $DIR/malloc/lib${INLA_MALLOC_LIB}malloc*.dylib)
+			if [ -n "$DYLD_INSERT_LIBRARIES" ]; then
+			    export DYLD_INSERT_LIBRARIES="$f:$DYLD_INSERT_LIBRARIES"
+			else
+			    export DYLD_INSERT_LIBRARIES="$f"
+			fi
+			;;
+		esac
+	    done
+	done
+    fi
+    case "$DYLD_INSERT_LIBRARIES" in
+	*libjemalloc*.dylib) 
+	    ;;
+	*libmimalloc*.dylib) 
+	    ;;
+    esac
+fi
+
+export PARDISOLICMESSAGE=1
+export DYLD_LIBRARY_PATH="$DIR/first:$DIR:/usr/lib:/opt/local/lib:/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
+
+if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    export OMP_DISPLAY_ENV=true
+    echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
+    echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+
+    ##export DYLD_PRINT_OPTS="1"
+    ##export DYLD_PRINT_ENV="1"
+    export DYLD_PRINT_LIBRARIES="1"
+    ##export DYLD_PRINT_LIBRARIES_POST_LAUNCH="1"
+    ##export DYLD_PRINT_APIS="1"
+    ##export DYLD_PRINT_BINDINGS="1"
+    ##export DYLD_PRINT_INITIALIZERS="1"
+    ##export DYLD_PRINT_REBASINGS="1"
+    ##export DYLD_PRINT_SEGMENTS="1"
+    ##export DYLD_PRINT_STATISTICS="1"
+    ##export DYLD_PRINT_DOFS="1"
+    ##export DYLD_PRINT_RPATHS="1"
+
+    p="/usr/bin/sw_vers"
+    test -x $p && $p
+
+    for arg in "$@"; do
+	if [ -r "$arg" ]; then
+	    echo -e "\n*** FILE $arg:"
+	    grep ^### "$arg" 
+	    echo -e "*** END OF FILE $arg:\n"
+	fi
+    done
+
+fi
+
+export PARDISOLICMESSAGE=1
+if [ ! -z ${INLA_DEBUG+x} ]; then
+    set | grep -E '^(OMP|VECLIB)_' | while read v; do echo "*** $0 *** $v"; done
+    echo " *** $0 *** exec $DIR/$prog $@"
+fi
+
+exec "$DIR/$prog" "$@"
+

@@ -1,0 +1,9 @@
+Bym            Disease mapping
+Epil           Repeated measures on Poisson counts 
+Graph          Illustrating the use of graphs
+Tokyo          Binomial time-series
+Leuk           Spatial survival with Cox proportial hazard model 
+LeukPCprior    Spatial survival with Cox proportial hazard model using PCpriors
+rgeneric       Example of the rgeneric model
+SPDEhowto      A short introduction on how to fit a SPDE model using INLA
+mesh2d         Two dimensional mesh demostration shiny app
