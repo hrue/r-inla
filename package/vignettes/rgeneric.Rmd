@@ -1,0 +1,13 @@
+---
+title: "Defining a latent model in R or C"
+author: "Haavard Rue `(hrue@r-inla.org)`"
+date: \today
+output: rmarkdown::pdf_document
+header-includes:
+  - \usepackage{pdfpages}
+vignette: >
+  %\VignetteIndexEntry{Defining a latent model in R or C}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+---
+\includepdf[pages={-}]{rgeneric-core.pdf}

@@ -55,6 +55,13 @@ jobs:
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         run: bash ci/bump-rinla-version.sh --check
 
+      ## GUARD 1b: package/ must match rinla/. It is rinla/ with the symlinks
+      ## resolved, and it is the ONLY way a Windows user can install from the
+      ## repository, so a copy that silently falls behind would ship them an
+      ## old package while everyone else got the current one.
+      - name: package/ is in sync with rinla/
+        run: bash ci/sync-package.sh --check
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: release
@@ -137,6 +144,44 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
+
+      ## The bug this guards, reproduced exactly. remotes::install_github()
+      ## downloads the repository as a .tar.gz and extracts it with Windows
+      ## tar.exe, which cannot create symlinks: every one fails with
+      ## "Can't create ...: Invalid argument" and extraction then aborts, so
+      ## the install dies before it ever reaches subdir=. All 211 links in
+      ## this repository hit that, which is why Windows users could not
+      ## install from source at all.
+      ##
+      ## .gitattributes now keeps the symlink-bearing paths out of the
+      ## generated archives. This step fetches the archive for THIS commit and
+      ## extracts it the way Windows does, so the guarantee is tested against
+      ## the artifact GitHub actually serves rather than against a local
+      ## git archive run.
+      - name: Windows can extract this commit's source archive
+        shell: bash
+        run: |
+          set -e
+          URL="https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}"
+          echo "fetching $URL"
+          curl -sSL -o src.tar.gz "$URL"
+          mkdir -p srcx
+          ## tar.exe is the one that fails; no --warning flags, we want its
+          ## real behaviour and its real exit code.
+          if ! tar -xzf src.tar.gz -C srcx 2>tar.err; then
+            echo "::error::Windows tar.exe cannot extract the source archive"
+            head -20 tar.err
+            exit 1
+          fi
+          if [ -s tar.err ]; then
+            echo "::error::tar reported problems even though it exited 0"
+            head -20 tar.err
+            exit 1
+          fi
+          ROOT=$(ls -d srcx/*/ | head -1)
+          test -f "${ROOT}package/DESCRIPTION" \
+            || { echo "::error::no package/DESCRIPTION in the archive"; ls "$ROOT"; exit 1; }
+          echo "OK: archive extracted, package/ is present"
 
       - name: Install the tarball, then fetch the binary
         shell: Rscript {0}

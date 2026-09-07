@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+maketemp () {
+    mktemp -t inla.remote.XXXXXXXX
+}
+
+## this one is fixed, do not change
+SSHDefaultPort=22
+
+if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    set -vx
+    echo "INLA_PATH $INLA_PATH"
+    echo "INLA_HOME $INLA_HOME"
+    echo "INLA_OS $INLA_OS"
+    echo "INLA_HGVERSION $INLA_HGVERSION"
+fi
+
+INIFILE=~/.inlarc
+
+## these are the variables to be set by the user
+RemoteINLA="/usr/local/bin/inla.mkl.run"
+RemoteHost=inla.kaust.edu.sa
+RemoteUser=$USER
+Port=$SSHDefaultPort
+sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
+
+if type -P zstd >/dev/null; then
+    COMPRESS="zstd -T0 -z"
+    UNCOMPRESS="zstd -T0 -d"
+else
+    COMPRESS="gzip"
+    UNCOMPRESS="gunzip"
+fi
+
+if [ -r "$INIFILE" ]; then
+    source "$INIFILE"
+else
+    echo -e "\n\n\n$0: No such file $INIFILE"
+    echo    " *** Run command in R: inla.remote()"
+    echo -e "\n\n"
+    exit 1
+fi
+
+model=$(echo "$@" | awk '{print $NF}')
+dir=${model%/*}
+rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)-$RANDOM$RANDOM
+args=$(echo "$@" | awk '{$NF="";print}')
+
+verbose=0
+if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
+    {
+	verbose=1
+	echo " *** Run $RemoteINLA at $RemoteUser@$RemoteHost" 
+    } 1>&2
+fi
+
+TMP=$(maketemp)
+{
+    echo "inladatadir=data.files"
+    echo "inlaresdir=results.files"
+    grep -v -E '^(inladatadir|inlaresdir)' $model 
+} > $TMP
+mv -f $TMP $model
+
+## if this script is interupted, then cleanup on the remote host
+function kill_inla_remote
+{
+    prog=${RemoteINLA##*/}
+	ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
+	    rm -rf $rdir; \
+	    pkill -u $USER $prog; \
+	    sleep 3; \
+	    pkill -9 -u $USER $prog" < /dev/null  > /dev/null 2>&1 &
+}
+trap kill_inla_remote SIGINT SIGTERM
+
+## finally, do the job...  Do this in two steps, as it seems that for
+## long jobs the pipe gets terminated.
+cd $dir > /dev/null
+
+envfile="environment"
+tar cfm - . 2>/dev/null | $COMPRESS | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
+    mkdir -p $rdir; \
+    cd $rdir; \
+    $UNCOMPRESS | tar xfm - 2>/dev/null ; \
+    source $envfile; \
+    $RemoteINLA $args Model.ini < /dev/null"
+
+if [ $verbose == 1 ]; then
+   {
+       echo -e " *** Computations finished at $(date)"
+       echo -e " *** Transfer the results..." 
+   } 1>&2
+fi
+
+ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cfm - results.files-* 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
+

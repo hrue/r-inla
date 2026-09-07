@@ -1,0 +1,13 @@
+#!/bin/bash
+DIR=$(dirname "$(readlink -f "$0")")
+
+if [ -d "/usr/lib32" ]; then
+    D="/usr/lib32"
+else
+    D="/usr/lib"
+fi
+
+export LD_LIBRARY_PATH="$D:$DIR:$LD_LIBRARY_PATH"
+exec "$DIR/inla" "$@"
+
+

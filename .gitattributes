@@ -1,0 +1,38 @@
+## Paths kept OUT of the source archives GitHub generates (the "Source code"
+## downloads, and what remotes::install_github fetches). export-ignore does
+## not affect clones: everything below is still there after git clone, and CI
+## uses a clone, so nothing in the build changes.
+##
+## Why: Windows cannot extract this repository. Its tar.exe fails on every
+## symlink with "Can't create ...: Invalid argument" and then aborts, so
+## install_github() dies before it reaches any subdirectory:
+##
+##     148  rinla/inst/documentation      46  build-configs/windows/bin
+##       6  rinla/inst/obsolete            1  gmrflib/GMRFLib
+##       5  rinla/inst/cgeneric            1  gmrflib/cores.h
+##       1  rinla/inst/LICENSE             1  gmrflib/cores.c
+##       1  rinla/inst/include             1  external-packages/cgeneric.h
+##
+## All 211 fail, and one failure is enough: extraction stops. Excluding them
+## leaves an archive with no symlinks at all, which Windows can unpack.
+##
+## The R package still ships, from package/ instead: it is rinla/ with the
+## symlinks resolved into real files (rsync --copy-links), so Windows users
+## install with
+##
+##     remotes::install_github("hrue/r-inla", subdir = "package")
+##
+## package/ is generated, never edited: ci/sync-package.sh rebuilds it and the
+## r-package workflow fails if it has drifted from rinla/.
+##
+## Consequence to know about: the generated source archives no longer carry
+## rinla/ or the four C-build symlinks, so building the C sources FROM AN
+## ARCHIVE needs a clone instead. Releases publish built artifacts, and
+## developers clone, so nothing in the normal paths depends on it.
+
+/rinla                          export-ignore
+/build-configs/windows/bin      export-ignore
+/gmrflib/GMRFLib                export-ignore
+/gmrflib/cores.h                export-ignore
+/gmrflib/cores.c                export-ignore
+/external-packages/cgeneric.h   export-ignore

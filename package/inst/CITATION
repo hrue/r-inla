@@ -1,0 +1,180 @@
+citHeader("To cite INLA in publications please use (a subset of):")
+
+citEntry(
+    entry = "Article",
+    author = personList(as.person("H{\\aa}vard Rue"),
+                        as.person("Sara Martino"),
+                        as.person("Nicholas Chopin")),
+    title = paste("Approximate {Bayesian} Inference for Latent {Gaussian}",
+                  "Models Using Integrated Nested {Laplace} Approximations (with discussion)."),
+    journal = "Journal of the Royal Statistical Society B",
+    year = "2009",
+    volume = "71",
+    pages = "319--392",
+    textVersion =
+        paste("Havard Rue, Sara Martino, and Nicholas Chopin (2009), ",
+              "Approximate Bayesian Inference for Latent Gaussian",
+              "Models Using Integrated Nested Laplace Approximations (with discussion), ",
+              "Journal of the Royal Statistical Society B, 71, 319-392.")
+)
+
+citEntry(
+    entry = "Article",
+    title = "Bayesian computing with {INLA}: {N}ew features.",
+    author = personList(as.person("Thiago G. Martins"),
+                        as.person("Daniel Simpson"),
+                        as.person("Finn Lindgren"),
+                        as.person("H{\\aa}vard Rue")),
+    year = "2013",
+    volume = "67",
+    pages = "68--83",
+    journal = "Computational Statistics and Data Analysis",
+    textVersion = paste("Thiago G. Martins, Daniel Simpson, Finn Lindgren and Havard Rue (2013), ",
+                        "Bayesian computing with INLA: New features, ",
+                        "Computational Statistics and Data Analysis, 67(2013) 68-83")
+)
+
+citEntry(
+    entry = "Article",
+    title = paste("An Explicit Link between {Gaussian} Fields",
+                  "and {Gaussian} {Markov} Random Fields:",
+                  "The Stochastic Partial Differential Equation Approach (with discussion)."),
+    author = personList(as.person("Finn Lindgren"),
+                        as.person("H{\\aa}vard Rue"),
+                        as.person('Johan Lindstr{\\"o}m')),
+    year = "2011",
+    volume = "73",
+    number = "4",
+    pages = "423--498",
+    journal = "Journal of the Royal Statistical Society B",
+    textVersion = paste("Finn Lindgren, Havard Rue, and Johan Lindstrom (2011).",
+                        "An Explicit Link Between Gaussian Fields and Gaussian",
+                        "Markov Random Fields: The Stochastic Partial Differential",
+                        "Equation Approach (with discussion), ",
+                        "Journal of the Royal Statistical Society B, 73(4), 423-498.")
+)
+
+citEntry(
+    entry = "Article",
+    title = "Bayesian Spatial Modelling with {R}-{INLA}",
+    author = personList(as.person("Finn Lindgren"),
+                        as.person("H{\\aa}vard Rue")),
+    journal = "Journal of Statistical Software",
+    year = "2015",
+    volume = "63",
+    number = "19",
+    pages = "1--25",
+    url = "http://www.jstatsoft.org/v63/i19/",
+    textVersion = paste("Finn Lindgren, Havard Rue (2015). ",
+                        "Bayesian Spatial Modelling with R-INLA. ",
+                        "Journal of Statistical Software, 63(19), 1-25. ",
+                        "URL http://www.jstatsoft.org/v63/i19/.")
+)
+
+citEntry(
+    entry = "Article",
+    title = "Bayesian computing with {INLA}: {A} review",
+    author = personList(as.person("H{\\aa}vard Rue"),
+                        as.person("Andrea I. Riebler"), 
+                        as.person("Sigrunn H. S{\\o}rbye"), 
+                        as.person("Janine B. Illian"),
+                        as.person("Daniel P. Simpson"),
+                        as.person("Finn K. Lindgren")), 
+    journal = "Annual Reviews of Statistics and Its Applications",
+    year = "2017",
+    volume = "4",
+    number = "March",
+    pages = "395--421",
+    url = "http://arxiv.org/abs/1604.00860",
+    textVersion = paste(
+        "H. Rue, A. Riebler, S. H. Sorbye, J. B. Illian, D. P. Simpson, and F. K. Lindgren.",
+        "Bayesian computing with INLA: A review.",
+        "Annual Reviews of Statistics and Its Applications, 4(March):395-421, 2017.",
+        "URL http://arxiv.org/abs/1604.00860")
+)
+
+citEntry(
+    entry = "Article",
+    title = "Spatial modelling with {INLA}: {A} review",
+    author = personList(as.person("Haakon Bakka"),
+                        as.person("H{\\aa}vard Rue"),
+                        as.person("Geir-Arne Fuglstad"),
+                        as.person("Andrea I. Riebler"), 
+                        as.person("David Bolin"), 
+                        as.person("Janine Illian"), 
+                        as.person("Elias Krainski"), 
+                        as.person("Daniel P. Simpson"),
+                        as.person("Finn K. Lindgren")), 
+    journal = "WIRES (Invited extended review)",
+    year = "2018",
+    volume = "xx",
+    number = "Feb",
+    pages = "xx--xx",
+    url = "http://arxiv.org/abs/1802.06350",
+    textVersion = paste(
+        "H. Bakka, H. Rue, G. A. Fuglstad, A. Riebler, D. Bolin, ",
+        "E. Krainski, D. Simpson, and F. Lindgren.",
+        "Spatial modelling with R-INLA: A review.",
+        "Invited extended review,  arxiv:1802.06350,  2018.")
+)
+
+citEntry(
+    entry = "Article", 
+    title = "Needles: Toward Large-Scale Genomic Prediction with Marker-by-Environment Interaction", 
+    author = personList(as.person("Arne De Coninck"),
+                        as.person("Bernard De Baets"),
+                        as.person("Drosos Kourounis"),
+                        as.person("Fabio Verbosio"),
+                        as.person("Olaf Schenk"),
+                        as.person("Steven Maenhout"),
+                        as.person("Jan Fostier")),
+    volume = "203", 
+    number = "1", 
+    pages = "543--555", 
+    year = "2016",
+    doi = "10.1534/genetics.115.179887",
+    journal = "Genetics",
+    url="http://dx.doi.org/10.1534/genetics.115.179887",
+    eprint = "http://www.genetics.org/content/203/1/543.full.pdf",
+    textVersion = paste(
+        "A. De Coninck, B. De Baets, D. Kourounis, F. Verbosio, O. Schenk, S. Maenhout, and J. Fostier, ",
+        "Needles: Toward large-scale genomic prediction with marker-by-environment interaction, ",
+        "Genetics, vol. 203, no. 1, pp. 543-555, 2016."))
+
+citEntry(
+    entry = "Article",
+    title = "Enhancing the scalability of selected inversion factorization algorithms in genomic prediction",
+    author = personList(as.person("Fabio Verbosio"),
+                        as.person("Arne De Coninck"),
+                        as.person("Drosos Kourounis"),
+                        as.person("Olaf Schenk")), 
+    journal = "Journal of Computational Science",
+    volume = "22",
+    number = "Supplement C",
+    pages = "99-108",
+    year = "2017",
+    issn = "1877-7503",
+    url = "https://doi.org/10.1016/j.jocs.2017.08.013",
+    textVersion = paste(
+        "F. Verbosio, A. D. Coninck, D. Kourounis, and O. Schenk,",
+        "Enhancing the scalability of selected inversion factorization algorithms in genomic predictions,",
+        "Journal of Computational Science, vol. 22, no. Supplement C, pp. 99-108, 2017."))
+
+
+citEntry(
+    entry = "Article", 
+    title = "Towards the Next Generation of Multiperiod Optimal Power Flow Solvers", 
+    author = personList(as.person("D. Kourounis"),
+                       as.person("A. Fuchs"),
+                       as.person("O. Schenk")), 
+    journal = "IEEE Transactions on Power Systems", 
+    year = "2018", 
+    volume = "PP", 
+    number = "99", 
+    pages = "1-10", 
+    url = "https://doi.org/10.1109/TPWRS.2017.2789187", 
+    textVersion = paste(
+        "D. Kourounis, A. Fuchs, and O. Schenk,",
+        "Towards the next generation of multiperiod optimal power flow solvers,",
+        "IEEE Transactions on Power Systems, vol. PP, no. 99, pp. 1-10, 2018."))
+
