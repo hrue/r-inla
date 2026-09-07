@@ -362,8 +362,7 @@ int inla_num_p_cores(void)
 
 	// Step 2: Count how many cores belong to that maximum efficiency class
 	int pCoreCount = 0;
-	int eCoreCount = 0;
-
+	int POSSIBLY_UNUSED(eCoreCount) = 0;
 	ptr = (unsigned char *) buffer;
 	while (ptr < end) {
 		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) ptr;
@@ -384,7 +383,6 @@ int inla_num_p_cores(void)
 	}
 	free(buffer);
 
-	assert(eCoreCount >= pCoreCount);
 	return pCoreCount;
 
 #       if 0
@@ -399,3 +397,15 @@ int inla_num_p_cores(void)
 #       endif
 }
 #endif
+
+#if !defined(__linux__) && !defined(__APPLE__) && !defined(_WIN32)
+int inla_lock_to_p_cores(void)
+{
+	return 0;
+}
+int inla_num_p_cores(void)
+{
+	return 0;
+}
+#endif
+

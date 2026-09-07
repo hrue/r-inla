@@ -27,6 +27,7 @@ int my_is_int(char *str)
 
 	return (sscanf(str, "%d", &x) == 1 ? 1 : 0);
 }
+
 char *my_strlwc(const char *s)
 {
 	/*
@@ -48,6 +49,24 @@ char *my_strlwc(const char *s)
 		printf("str out %s\n", str);
 
 	return str;
+}
+
+// this is not universially available, so we just use a drop-in replacement instead
+char *my_strsep(char **stringp, const char *delim)
+{
+	// Find the first occurrence of any character in delim
+	char *start = *stringp;
+	if (start == NULL) {
+		return NULL;
+	}
+	char *p = strpbrk(start, delim);
+	if (p) {
+		*p = '\0';        // Split the string
+		*stringp = p + 1; // Move pointer past the delimiter
+	} else {
+		*stringp = NULL;  // No more delimiters left
+	}
+	return start;
 }
 
 // provide just this functiononality. this is required for windows compilation, I think (without posix libs)
