@@ -502,6 +502,80 @@ jobs:
   ## and captures a backtrace from the first crash it can reproduce under
   ## gdb. The host CPU is logged because the arm64 runner pool is
   ## heterogeneous and ARMPL selects kernels by CPU features.
+  ## The shared model checks against the PORTABLE BUNDLE, which is what a
+  ## Linux user actually downloads.
+  ##
+  ## The build lanes above run these checks too, but on a WITH_LIBR=1 binary
+  ## compiled on the runner against the runner's own R. The bundle is a
+  ## different artifact built a different way: WITH_LIBR=2, carrying its own
+  ## libraries, so rgeneric resolves libR at RUNTIME through R_HOME. That is
+  ## the same mode as the Windows lane, and it is exactly where the Windows
+  ## rgeneric crash lived, invisible for months because every lane that ran
+  ## these checks ran them on the other kind of binary. A build lane passing
+  ## is not evidence about the bundle.
+  ##
+  ## The run-portable jobs cannot host this: they run inside bare distro
+  ## containers with no R, and installing R plus the model packages in eight
+  ## of them to learn one fact is the wrong trade. One check per architecture
+  ## on a runner where R is cheap covers it.
+  run-portable-models:
+    name: "Portable bundle: rgeneric + cgeneric (${{ matrix.arch }})"
+    needs: [portable-linux-x86_64, portable-linux-x86_64-modern, portable-linux-arm64-modern]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            artifact: inla-linux-x86_64-portable
+            tarball: inla-linux-x86_64-portable.tar.gz
+          ## The v3 bundle is a separate download with its own CPU target, so
+          ## it needs its own run: a v3 build can differ from the baseline one
+          ## in exactly the kernels these models exercise.
+          - arch: x86_64-v3
+            runner: ubuntu-24.04
+            artifact: inla-linux-x86_64-v3-portable
+            tarball: inla-linux-x86_64-v3-portable.tar.gz
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            artifact: inla-linux-arm64-armv82-portable
+            tarball: inla-linux-arm64-armv82-portable.tar.gz
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - name: Unpack the bundle
+        run: |
+          set -e
+          tar xzf "${{ matrix.tarball }}"
+          ./bin/inla -ping
+          echo "INLA_BIN=$PWD/bin/inla" >> "$GITHUB_ENV"
+
+      - name: rgeneric and cgeneric (shared checks)
+        run: |
+          set -e
+          ## fbesag is compiled INTO the binary; its R package only assembles
+          ## the data, so install it from THIS checkout to match the binary.
+          ## INLAspacetime supplies cgeneric model 102 and comes from CRAN;
+          ## the public RSPM mirror serves it prebuilt, so nothing compiles.
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'))"
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
+          ## Both backends, as every other lane does.
+          Rscript --vanilla ci/smoke-models.R "$INLA_BIN" "" stiles
+
   macos-arm64:
     name: "macOS arm64: build + smoke test (Homebrew gcc, CRAN R, ARMPL)"
     runs-on: macos-latest
@@ -967,6 +1041,38 @@ jobs:
           for d in $moved; do mv "$BUNDLE/_r_aside/$d" "$BUNDLE/"; done
           rmdir "$BUNDLE/_r_aside" 2>/dev/null || true
           echo "  restored:$moved"
+
+      ## The SAME model checks Linux and macOS run, against the exe just
+      ## built. Windows used to be the odd one out: it never called
+      ## ci/smoke-test.sh, so it had no cgeneric coverage at all and only an
+      ## ad-hoc rgeneric check, which is how a Windows-only rgeneric crash
+      ## survived in a release. ci/smoke-models.R is now one file shared by
+      ## every platform, so this lane cannot drift into testing less than the
+      ## others.
+      ##
+      ## Gating, unlike the diagnostics above: this is a real check now.
+      - name: rgeneric and cgeneric (shared checks)
+        shell: bash
+        run: |
+          set -e
+          RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
+          export PATH="$RBIN:$PATH"
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          [ -n "$EXE" ] || { echo "inla.exe not found"; exit 1; }
+
+          ## fbesag is compiled INTO the binary; its R package only assembles
+          ## the data, so install it from THIS checkout to match the binary.
+          ## INLAspacetime supplies model 102 the same way and comes from CRAN.
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'), repos='https://cloud.r-project.org')"
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
+
+          ## Both backends, as every other lane does: each model runs on the
+          ## default and on sTiles, and the marginal likelihoods must agree.
+          Rscript --vanilla ci/smoke-models.R "$EXE" "" stiles
 
       ## The same bundle with NO R anywhere on PATH. This is how someone who
       ## downloads the artifact actually runs it, and it is a genuinely
