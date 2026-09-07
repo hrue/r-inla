@@ -69,6 +69,7 @@
 
 #include "inla.h"
 #include "my.h"
+#include "my-fix.h"
 #include "spde.h"
 #include "spde2.h"
 #include "spde3.h"
@@ -7453,7 +7454,7 @@ int main(int argc, char **argv)
 
 				char *s = Strdup(optarg);
 				for(int ii = 0; ii < 3; ii++) {
-					char *token = strsep(&s, ":,");
+					char *token = my_strsep(&s, ":,");
 					ntt[ii] = ((token && strlen(token)) ?
 						   inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
 					ntt[ii] = IMAX(1, ntt[ii]);
