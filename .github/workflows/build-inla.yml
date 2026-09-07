@@ -843,8 +843,19 @@ jobs:
           r <- try(INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
                    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE)))),
                    silent = TRUE)
-          if (inherits(r, "try-error")) cat("RGENERIC: FAILED\n") else
-          if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
+          if (inherits(r, "try-error")) {
+              cat("RGENERIC: FAILED\n")
+              cat("message:", conditionMessage(attr(r, "condition")), "\n")
+              ## The binary's own stderr, which is where INLA_DEBUG_R writes
+              ## "R-interface: init" and sessionInfo(). inla() only surfaces it
+              ## with verbose = TRUE, so the quiet run above told us nothing.
+              cat("---- verbose re-run ----\n")
+              o <- try(capture.output(
+                       INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
+                                  control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+                                  verbose = TRUE), type = "output"), silent = TRUE)
+              cat(paste(utils::tail(as.character(o), 40), collapse = "\n"), "\n")
+          } else if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
           cat("RGENERIC: OK  mlik =", r$mlik[1], "\n")
           RSCRIPT
           echo "---- plain ----"
@@ -862,7 +873,7 @@ jobs:
           ##      this Windows-only and rgeneric-only, as observed.
           ##   printed -> R starts fine and the crash is in a later callback.
           echo "---- INLA_DEBUG_R=1 ----"
-          INLA_DEBUG_R=1 Rscript rg.R 2>&1 | tail -25 || true
+          INLA_DEBUG_R=1 Rscript rg.R 2>&1 | tail -60 || true
 
           ## Threads: the R callbacks are serialised by an omp critical, so this
           ## should not matter. If single-threaded passes, that assumption is
