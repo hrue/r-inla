@@ -69,6 +69,7 @@
 
 #include "inla.h"
 #include "my.h"
+#include "my-fix.h"
 #include "spde.h"
 #include "spde2.h"
 #include "spde3.h"
@@ -7207,7 +7208,8 @@ int main(int argc, char **argv)
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 	int model_n_is_set = 0;
 	int disable_output = 0;
-
+	int num_p_cores = inla_num_p_cores();
+	
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
@@ -7289,12 +7291,10 @@ int main(int argc, char **argv)
 
 		case 'P':
 		{
-			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
-				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
-			} else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
-				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
-			} else {
-				assert(0 == 1);
+			int status = inla_lock_to_p_cores();
+			if (verbose > 0) {
+				printf("\tLock threads to the %1d P-cores [%s]\n", num_p_cores,
+				       (status == 0 ? "SUCCESS" : "FAIL"));
 			}
 		}
 			break;
@@ -7399,8 +7399,9 @@ int main(int argc, char **argv)
 
 		case 't':
 		{
-			if (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
-			    inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (!strstr(optarg, "PC") && 
+			    (inla_sread_colon_ints3(&ntt[0], &ntt[1], &ntt[2], optarg) == INLA_OK ||
+			     inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK)) {
 
 				if (ntt[0] <= 0) {
 					ntt[0] = GMRFLib_MAX_THREADS();
@@ -7448,11 +7449,20 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads2 = GMRFLib_openmp->max_threads2 * (GMRFLib_openmp->max_threads + 1);
 				GMRFLib_openmp->adaptive = IMIN(ntt[2], GMRFLib_MAX_THREADS());
 			} else {
-				fprintf(stderr, "Fail to read A:B[:C] from [%s]\n", optarg);
-				fprintf(stderr, "Will continue with '4:1:2'\n");
-				ntt[0] = 4;
-				ntt[1] = 1;
-				ntt[2] = 2;
+				// we can use expressions involving 'P' and 'C' , as short-hand for number of power-cores and 
+				// number of cores
+
+				char *s = Strdup(optarg);
+				for(int ii = 0; ii < 3; ii++) {
+					char *token = my_strsep(&s, ":,");
+					ntt[ii] = ((token && strlen(token)) ?
+						   inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
+					ntt[ii] = IMAX(1, ntt[ii]);
+				}
+				if (verbose > 0) {
+					printf("\tParse expression[%s] into %1d:%1d:%1d using P=%1d C=%1d\n",
+					       optarg, ntt[0], ntt[1], ntt[2], num_p_cores, host_max_threads);
+				}
 				for (i = 0; i < 3; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
@@ -7468,7 +7478,7 @@ int main(int argc, char **argv)
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 		}
-			break;
+		break;
 
 		case 'z':
 		{
@@ -7661,19 +7671,20 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\nVersion.......[%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+		fprintf(stdout, "\nVersion....... [%s]\n", __GMRFLib_symbol_to_string(GITCOMMIT));
 #if defined(__linux__)
 		char *val = getenv("LD_PRELOAD");
-		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
+		fprintf(stdout, "PRELOAD....... [%s]\n", (val ? val : "(none)"));
 #endif
 #if defined(__APPLE__)
 		char *val = getenv("DYLD_INSERT_LIBRARIES");
-		fprintf(stdout, "PRELOAD.......[%s]\n", (val ? val : "(none)"));
+		fprintf(stdout, "PRELOAD....... [%s]\n", (val ? val : "(none)"));
 #endif
 #if !defined(INLA_WITH_DEVEL)
-		fprintf(stdout, "Build-time....[%s %s]\n", __DATE__, __TIME__);
+		fprintf(stdout, "Build-time.... [%s %s]\n", __DATE__, __TIME__);
 #endif
-		fprintf(stdout, "MAX_THREADS...[%1d]\n", GMRFLib_MAX_THREADS());
+		fprintf(stdout, "#cores........ [%1d]\n", host_max_threads);
+		fprintf(stdout, "#P-cores...... [%1d]\n", num_p_cores);
 
 		_BUGS_intern(stdout);
 	}

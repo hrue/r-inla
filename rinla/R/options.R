@@ -269,15 +269,24 @@ NULL
         if (!exists("inla.options", envir = envir)) {
             assign("inla.options", list(), envir = envir)
         }
-        if (is.character(value)) {
-            eval(parse(text = paste("inla.options$", option, "=", shQuote(value), sep = "")),
-                 envir = envir
-                 )
+        ## Assign into the list directly. This used to build R SOURCE CODE by
+        ## pasting the value into a string and parse()ing it, which breaks on
+        ## any value that is not valid R source once quoted. A Windows path is
+        ## exactly that: shQuote() on Windows yields "C:\Users\...", and the
+        ## \U is an invalid escape, so parse() failed with
+        ##     '\U' used without hex digits in character string
+        ## before anything was assigned. That made inla.setOption(inla.call =
+        ## <path>) impossible on Windows, and so inla.stiles.install() could
+        ## not finish even after downloading and verifying the binary.
+        ## Direct assignment needs no quoting and no parser.
+        opt <- get("inla.options", envir = envir)
+        if (is.null(value)) {
+            ## "inla.options$x = NULL" removed the element; keep that meaning.
+            opt[[option]] <- NULL
         } else {
-            eval(parse(text = paste("inla.options$", option, "=", inla.ifelse(is.null(value), "NULL", value), sep = "")),
-                 envir = envir
-                 )
+            opt[[option]] <- value
         }
+        assign("inla.options", opt, envir = envir)
         return(invisible())
     }
 

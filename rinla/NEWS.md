@@ -1,10 +1,12 @@
+# INLA 26.09.07
+* internal testing only
+
 # INLA 26.09.06-4
 * inla.stiles.install() now finds the binary in the flat Windows bundle layout.
 
 # INLA 26.09.06-3
 * The R package is now attached to each release as a source tarball, so
   installing on Windows no longer requires Developer Mode.
-
 # INLA 26.09.06-2
 * Build test
 

@@ -163,4 +163,57 @@ jobs:
           out <- suppressWarnings(system2(call, "-ping", stdout = TRUE, stderr = TRUE))
           cat(paste(out, collapse = "\n"), "\n")
           if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
-          cat("OK: Windows install path works end to end\n")
+          cat("OK: install + binary\n")
+
+          ## rgeneric is the one feature where the BINARY calls back into R: it
+          ## dlopens libR through R_HOME (bin/x64/R.dll on Windows) and
+          ## evaluates the model's R function per iteration. Ordinary models
+          ## never touch that path, so they can all pass while rgeneric is
+          ## broken, which is what happens on Windows while macOS is fine.
+          ## Nothing in CI exercised it, so nothing caught it.
+          ##
+          ## The check is the demo's own oracle: fit the same iid model twice,
+          ## once through rgeneric and once with the built-in, and require the
+          ## marginal likelihoods to agree. A wrong answer fails as loudly as a
+          ## crash, which a "did it run" test would not.
+          cat("R_HOME =", Sys.getenv("R_HOME"), "\n")
+
+          ## Run the SHIPPED demo, not a copy of it: demo(rgeneric) is what a
+          ## user runs and what is reported broken, so a re-implementation here
+          ## could pass while the real thing fails. demo() evaluates in the
+          ## global environment, so r1 and r2 are available afterwards for the
+          ## check below.
+          ## safe mode retries a failed fit and reports "the inla program
+          ## crashed", which hides the binary's own stderr. Turn it off so the
+          ## first failure is the one we see.
+          INLA::inla.setOption(safe = FALSE)
+
+          res <- try(demo("rgeneric", package = "INLA", character.only = TRUE,
+                          echo = TRUE, ask = FALSE), silent = TRUE)
+          if (inherits(res, "try-error")) {
+              cat("\n==== demo(rgeneric) failed; re-running verbosely for the binary's own output ====\n")
+              set.seed(1)
+              nn <- 50
+              yy <- rnorm(nn)
+              dd2 <- data.frame(y = yy, idx = 1:nn)
+              rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = nn)
+              out <- try(capture.output(
+                  INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
+                             control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+                             verbose = TRUE, keep = TRUE),
+                  type = "output"), silent = TRUE)
+              cat(paste(utils::tail(as.character(out), 60), collapse = "\n"), "\n")
+              cat("==== end verbose output ====\n")
+              stop("demo(rgeneric) failed: ", conditionMessage(attr(res, "condition")))
+          }
+
+          ## The demo's own oracle: the same iid model fitted through rgeneric
+          ## and with the built-in must give the same marginal likelihood. A
+          ## wrong answer has to fail as loudly as a crash, because INLA's safe
+          ## mode can turn a broken model into a message rather than an error.
+          if (!exists("r1") || !exists("r2")) stop("demo(rgeneric) produced no fits")
+          if (is.null(r1$mlik) || is.null(r2$mlik)) stop("demo(rgeneric) produced no mlik")
+          dd <- abs(r1$mlik[1] - r2$mlik[1])
+          cat("mlik built-in =", r1$mlik[1], "  rgeneric =", r2$mlik[1], "  diff =", dd, "\n")
+          if (!is.finite(dd) || dd > 0.5) stop("rgeneric disagrees with the built-in iid: diff = ", dd)
+          cat("OK: demo(rgeneric) works on Windows\n")

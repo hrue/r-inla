@@ -3701,7 +3701,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					GMRFLib_idx_create_x(&nb, IMIN(dn, 65536));
 					for (int k = 0; k < A_idx(node)->n; k++) {
 						int lnode = A_idx(node)->idx[k];
-						if (!fixed_nodes[lnode]) {
+						if (likely(!fixed_nodes[lnode])) {
 							GMRFLib_idx_add(&nb, lnode);
 							for (int j = 0; j < g->nnbs[lnode]; j++) {
 								int llnode = g->nbs[lnode][j];
@@ -3733,7 +3733,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							for (int knode = 0; knode < dn; knode++) {
 								int nnode = d_idx->idx[knode];
 								if (unlikely(node == nnode)
-								    || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
+								    || unlikely(GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap)) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}
@@ -3745,7 +3745,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
 								int nmatch = GMRFLib_idx_nmatch(A_idx4[nnode], bitmap);
-								if (nmatch) {
+								if (unlikely(nmatch)) {
 									// we have a match, so we need to check details
 									int match_cum = 0;
 									for (int kknode = knode; kknode < knode + BLOCK; kknode++) {
@@ -3762,7 +3762,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
-								if (unlikely(node == nnode)
+								if (node == nnode
 								    || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}

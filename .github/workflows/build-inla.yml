@@ -762,6 +762,10 @@ jobs:
       run:
         shell: bash
     steps:
+      ## Checked out FIRST, before the artifacts: actions/checkout cleans the
+      ## workspace. The sources are here only so the rgeneric step can install
+      ## the R package; install_github cannot be used on Windows (symlinks).
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: inla-windows-x86_64
@@ -795,6 +799,58 @@ jobs:
           "$EXE" Model.ini > run.log 2>&1 || { tail -30 run.log; exit 1; }
           tail -3 run.log
           echo "OK: full model ran on Windows"
+
+      ## rgeneric, twice: as it ships, and with the fix switched on.
+      ##
+      ## This is the only place a FRESHLY BUILT inla.exe gets exercised this
+      ## way; the smoke test in r-package installs the RELEASED binary, so a C
+      ## change is invisible to it until a release exists.
+      ##
+      ## rgeneric is the one feature where the binary calls back into R, and it
+      ## crashes on Windows: inla.exe imports Rblas.dll, whose dependency chain
+      ## pulls the BUNDLED R.dll in from the exe's own directory, and the
+      ## R_HOME dlopen then maps a SECOND R into the same process.
+      ## INLA_REUSE_LOADED_R makes that dlopen reuse the R already loaded. It
+      ## is OFF by default, so the first run shows today's behaviour and the
+      ## second shows whether the fix works. Reports only; does not gate.
+      - name: rgeneric, before and after the fix
+        continue-on-error: true
+        run: |
+          RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
+          export PATH="$RBIN:$PATH"
+          EXE=""
+          for f in inla.exe dist-win/inla.exe */inla.exe; do
+            [ -f "$f" ] && { EXE="$PWD/$f"; break; }
+          done
+          [ -n "$EXE" ] || { echo "inla.exe not found; skipping"; exit 0; }
+          export INLA_EXE="$EXE"
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels'), repos='https://cloud.r-project.org')" >/dev/null 2>&1
+          ## From the checked-out sources, not from GitHub: install_github
+          ## fails on Windows on the repository's symlinks, which is the very
+          ## thing being worked around elsewhere.
+          if [ -d rinla ]; then
+            Rscript -e "install.packages('rinla', repos=NULL, type='source')" >/dev/null 2>&1
+          fi
+          Rscript -e "if (!requireNamespace('INLA', quietly=TRUE)) quit(status=1)" \
+            || { echo "INLA package did not install; skipping"; exit 0; }
+          cat > rg.R <<'RSCRIPT'
+          suppressMessages(library(INLA))
+          INLA::inla.setOption(inla.call = Sys.getenv("INLA_EXE"))
+          INLA::inla.setOption(safe = FALSE)
+          set.seed(1); n <- 50; y <- rnorm(n)
+          d <- data.frame(y = y, idx = 1:n)
+          rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = n)
+          r <- try(INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
+                   control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE)))),
+                   silent = TRUE)
+          if (inherits(r, "try-error")) cat("RGENERIC: FAILED\n") else
+          if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
+          cat("RGENERIC: OK  mlik =", r$mlik[1], "\n")
+          RSCRIPT
+          echo "---- as shipped (fix OFF) ----"
+          Rscript rg.R 2>&1 | tail -6 || true
+          echo "---- INLA_REUSE_LOADED_R=1 (fix ON) ----"
+          INLA_REUSE_LOADED_R=1 Rscript rg.R 2>&1 | tail -6 || true
 
       ## The same bundle with NO R anywhere on PATH. This is how someone who
       ## downloads the artifact actually runs it, and it is a genuinely

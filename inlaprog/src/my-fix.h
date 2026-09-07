@@ -17,6 +17,7 @@ __BEGIN_DECLS
 int my_is_double(char *str);
 int my_is_int(char *str);
 char *my_strlwc(const char *str);
+char *my_strsep(char **stringp, const char *delim);
 
 __END_DECLS
 #endif
