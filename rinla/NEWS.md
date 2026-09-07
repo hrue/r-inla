@@ -1,3 +1,7 @@
+# INLA 26.09.07-1
+* Windows: the source tarball no longer ships configure.win, which required
+  sh and made the package impossible to install without Rtools.
+
 # INLA 26.09.07
 * internal testing only
 
