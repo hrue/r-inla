@@ -191,19 +191,81 @@ jobs:
           res <- try(demo("rgeneric", package = "INLA", character.only = TRUE,
                           echo = TRUE, ask = FALSE), silent = TRUE)
           if (inherits(res, "try-error")) {
-              cat("\n==== demo(rgeneric) failed; re-running verbosely for the binary's own output ====\n")
+              cat("\n==== demo(rgeneric) failed ====\n")
+              cat("message:", conditionMessage(attr(res, "condition")), "\n")
+
+              ## Every earlier attempt at this read the binary's STDOUT, and it
+              ## told us nothing: three runs of the same failure cut the trace at
+              ## three different points (fixed1, PRIOR1->, PRIOR0->PARAMETE),
+              ## which is the stdio buffer being lost when the process dies, not
+              ## the crash moving. Meanwhile the binary reports its own errors on
+              ## STDERR, and that is the channel this test was discarding:
+              ## capture.output(type = "output") takes stdout only, and the
+              ## non-verbose path sends stderr to a file nothing printed.
+              ##
+              ## So: probe the symbols first, then re-run with stderr kept.
+
+              ## PROBE 1: does R's shared library export what the binary resolves?
+              ## R-interface.c calls lt_dlsym for Rf_initEmbeddedR and exits(1)
+              ## with "libR has no symbol [...]" if it is absent. That entry point
+              ## comes from src/unix/Rembedded.c, which is not built on Windows;
+              ## Windows embedding uses R_DefParams/R_SetParams/setup_Rmainloop
+              ## instead. If the MISSING line below is Rf_initEmbeddedR, that is
+              ## the bug, and it is a source fix, not a packaging one.
+              cat("\n---- symbols in R's own shared library ----\n")
+              for (s in c("Rf_initEmbeddedR", "Rf_endEmbeddedR", "R_CStackLimit",
+                          "setup_Rmainloop", "R_DefParams", "R_SetParams",
+                          "R_tryEval", "Rf_protect")) {
+                  ok <- !inherits(try(getNativeSymbolInfo(s), silent = TRUE), "try-error")
+                  cat(sprintf("  %-18s %s\n", s, if (ok) "present" else "MISSING"))
+              }
+              rdll <- file.path(Sys.getenv("R_HOME"), "bin", "x64", "R.dll")
+              cat("  R.dll at", rdll, ":", file.exists(rdll), "\n")
+
+              ## PROBE 2: run the binary ourselves, keeping stderr.
+              ## keep = TRUE leaves the model files behind; inla() is invoked from
+              ## the parent directory with a relative ini path, so the same form
+              ## works here.
               set.seed(1)
               nn <- 50
-              yy <- rnorm(nn)
-              dd2 <- data.frame(y = yy, idx = 1:nn)
+              dd2 <- data.frame(y = rnorm(nn), idx = 1:nn)
               rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = nn)
-              out <- try(capture.output(
-                  INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
+              try(INLA::inla(y ~ -1 + f(idx, model = rg), data = dd2,
                              control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
-                             verbose = TRUE, keep = TRUE),
-                  type = "output"), silent = TRUE)
-              cat(paste(utils::tail(as.character(out), 60), collapse = "\n"), "\n")
-              cat("==== end verbose output ====\n")
+                             keep = TRUE), silent = TRUE)
+
+              ini <- list.files(".", pattern = "^Model\\.ini$", recursive = TRUE,
+                                full.names = TRUE)[1]
+              cat("\n---- direct run of the binary ----\n")
+              if (is.na(ini)) {
+                  cat("keep = TRUE left no Model.ini behind\n")
+              } else {
+                  cat("ini:", ini, "\n")
+                  ## INLA_DEBUG_R makes R-interface.c print "R-interface: init"
+                  ## on stderr AFTER the embedded R starts. Its presence or
+                  ## absence splits the problem in half: absent means the binary
+                  ## dies at or before loading R, present means R embeds fine and
+                  ## the fault is in a later callback.
+                  Sys.setenv(INLA_DEBUG_R = "1")
+                  st <- suppressWarnings(
+                      system2(call, c("-v", "-P", "compact", "-t1:1", ini),
+                              stdout = "out.txt", stderr = "err.txt"))
+                  cat("\n-- stderr (the channel that carries the error) --\n")
+                  if (file.exists("err.txt")) {
+                      writeLines(readLines("err.txt", warn = FALSE))
+                  }
+                  cat("-- last 15 lines of stdout --\n")
+                  if (file.exists("out.txt")) {
+                      writeLines(utils::tail(readLines("out.txt", warn = FALSE), 15))
+                  }
+                  ## The exit code is the one fact no buffer can swallow.
+                  ## On Windows: 3221225477 (0xC0000005) access violation,
+                  ## 3221226356 (0xC0000374) heap corruption, 3 abort(),
+                  ## 1 a clean exit(1) from the loader checks above.
+                  cat("\nexit status =", st, "\n")
+              }
+              cat("==== end diagnostics ====\n")
+
               stop("demo(rgeneric) failed: ", conditionMessage(attr(res, "condition")))
           }
 
