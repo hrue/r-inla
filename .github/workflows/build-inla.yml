@@ -568,6 +568,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
               libudunits2-dev libgdal-dev libgeos-dev libproj-dev
 
+      ## fbesag lives in its own repository and the makefile clones it over
+      ## SSH, which has no key here. Same rewrite the build lanes use.
+      - name: Use authenticated https for git clones
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global \
+            url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      ## external-packages/fbesag/fbesag is NOT tracked in this repository; the
+      ## build lanes get it because they run the external-packages build first.
+      ## This job only checks out and unpacks, so it has to fetch it itself, or
+      ## R CMD INSTALL fails with "invalid package".
+      - name: Fetch fbesag
+        run: make -C external-packages/fbesag download
+
       - name: Unpack the bundle
         run: |
           set -e
@@ -1079,6 +1094,14 @@ jobs:
           ## the data, so install it from THIS checkout to match the binary.
           ## INLAspacetime supplies model 102 the same way and comes from CRAN.
           Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'), repos='https://cloud.r-project.org')"
+
+          ## external-packages/fbesag/fbesag is NOT tracked here; the build
+          ## lanes get it by running the external-packages build first. Clone
+          ## it directly rather than through its makefile, which needs make on
+          ## PATH and an SSH key, neither of which this runner has.
+          git clone --depth 1 https://github.com/esmail-abdulfattah/fbesag \
+              external-packages/fbesag/fbesag
+
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
           R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
 
