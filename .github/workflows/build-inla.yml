@@ -881,6 +881,89 @@ jobs:
           echo "---- single threaded ----"
           INLA_NUM_THREADS=1:1 Rscript -e "Sys.setenv(INLA_DEBUG_R=''); source('rg.R')" 2>&1 | tail -8 || true
 
+          ## Run the binary DIRECTLY on the model it just wrote.
+          ##
+          ## Everything above goes through inla(), which captures stdout, and
+          ## three runs cut the trace at three different points (fixed1,
+          ## PRIOR1->, PRIOR0->PARAMETE). That is the buffer being lost when the
+          ## process dies, not the crash moving, so the last line printed says
+          ## nothing about where it died. Run unbuffered instead and read the
+          ## EXIT CODE, which on Windows names the fault:
+          ##   0xC0000005 (3221225477) access violation
+          ##   0xC0000374 (3221226356) heap corruption
+          ##   3                        abort()
+          echo "---- direct run of the binary ----"
+          cat > keep.R <<'RSCRIPT'
+          suppressMessages(library(INLA))
+          INLA::inla.setOption(inla.call = Sys.getenv("INLA_EXE"))
+          INLA::inla.setOption(safe = FALSE)
+          set.seed(1); n <- 50; y <- rnorm(n)
+          d <- data.frame(y = y, idx = 1:n)
+          rg <- INLA::inla.rgeneric.define(INLA::inla.rgeneric.iid.model, n = n)
+          try(INLA::inla(y ~ -1 + f(idx, model = rg), data = d,
+              control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))),
+              keep = TRUE, working.directory = "wd"), silent = TRUE)
+          RSCRIPT
+          Rscript keep.R >/dev/null 2>&1 || true
+          INI=$(ls wd/Model.ini 2>/dev/null || ls wd/*/Model.ini 2>/dev/null | head -1)
+          if [ -n "$INI" ]; then
+            echo "running: $EXE -v $INI"
+            set +e
+            INLA_DEBUG_R=1 "$EXE" -v "$INI" 2>&1 | tail -30
+            echo "exit=${PIPESTATUS[0]}"
+            set -e
+          else
+            echo "no Model.ini was written"; ls -R wd 2>/dev/null | head -20
+          fi
+
+          ## THE ONE-R TEST. This is the decisive A/B, and it needs no rebuild.
+          ##
+          ## inla.exe statically imports Rblas.dll and Rlapack.dll (R's BLAS is
+          ## the only one available for the cross-build), and BOTH of those
+          ## import R.dll. Windows resolves a dependency from the EXECUTABLE's
+          ## directory before PATH, so the bundled R.dll, the cross-build's own
+          ## R 4.6.1, is loaded into the process at startup, long before any
+          ## rgeneric code runs. Then rgeneric calls lt_dlopen on the USER's
+          ## R.dll under R_HOME. That is two R runtimes in one process.
+          ##
+          ## Only Windows can reach this state: on Linux and macOS the BLAS is
+          ## MKL or Accelerate, so no libR is ever preloaded, and rgeneric works
+          ## there. It also explains why the earlier INLA_REUSE_LOADED_R
+          ## experiment failed in BOTH arms: reusing the loaded R handed back the
+          ## same wrong bundled R that dlopen was already returning, so the two
+          ## arms were never actually different.
+          ##
+          ## Moving the bundled copies aside makes Windows resolve Rblas, Rlapack
+          ## and R.dll from the user's R on PATH, which is the same R that
+          ## rgeneric dlopens: exactly ONE R.dll in the process. If rgeneric
+          ## passes here and fails above, the diagnosis is confirmed and the fix
+          ## is to stop shipping a second R (or to link R.dll like the upstream
+          ## Windows makefile does, WITH_LIBR=1, which has this property already).
+          echo "---- versions of the two R.dll copies ----"
+          BUNDLE=$(dirname "$EXE")
+          for f in "$BUNDLE/R.dll" "$RBIN/R.dll"; do
+            if [ -f "$f" ]; then
+              printf '  %-60s %s\n' "$f" \
+                "$(strings -el "$f" 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+  \([0-9-]+\)' | head -1)"
+            else
+              printf '  %-60s (absent)\n' "$f"
+            fi
+          done
+          Rscript -e 'cat("  R driving the session:", as.character(getRversion()), "\n")' || true
+
+          echo "---- one-R test: bundled R DLLs moved aside ----"
+          mkdir -p "$BUNDLE/_r_aside"
+          moved=""
+          for d in R.dll Rblas.dll Rlapack.dll Rgraphapp.dll Riconv.dll; do
+            if [ -f "$BUNDLE/$d" ]; then mv "$BUNDLE/$d" "$BUNDLE/_r_aside/"; moved="$moved $d"; fi
+          done
+          echo "  moved aside:$moved"
+          Rscript rg.R 2>&1 | tail -20 || true
+          ## Put them back so the later bare-bundle step still tests what it means to.
+          for d in $moved; do mv "$BUNDLE/_r_aside/$d" "$BUNDLE/"; done
+          rmdir "$BUNDLE/_r_aside" 2>/dev/null || true
+          echo "  restored:$moved"
+
       ## The same bundle with NO R anywhere on PATH. This is how someone who
       ## downloads the artifact actually runs it, and it is a genuinely
       ## different test: an import the bundle is missing is resolved from R's
