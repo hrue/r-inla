@@ -813,7 +813,7 @@ jobs:
       ## INLA_REUSE_LOADED_R makes that dlopen reuse the R already loaded. It
       ## is OFF by default, so the first run shows today's behaviour and the
       ## second shows whether the fix works. Reports only; does not gate.
-      - name: rgeneric, before and after the fix
+      - name: rgeneric diagnostics
         continue-on-error: true
         run: |
           RBIN=$(ls -d "/c/Program Files/R"/R-*/bin/x64 2>/dev/null | head -1)
@@ -847,10 +847,28 @@ jobs:
           if (is.null(r$mlik)) cat("RGENERIC: NO MLIK\n") else
           cat("RGENERIC: OK  mlik =", r$mlik[1], "\n")
           RSCRIPT
-          echo "---- as shipped (fix OFF) ----"
-          Rscript rg.R 2>&1 | tail -6 || true
-          echo "---- INLA_REUSE_LOADED_R=1 (fix ON) ----"
-          INLA_REUSE_LOADED_R=1 Rscript rg.R 2>&1 | tail -6 || true
+          echo "---- plain ----"
+          Rscript rg.R 2>&1 | tail -8 || true
+
+          ## INLA_DEBUG_R is the binary's own switch: it prints "R-interface:
+          ## init" the moment the embedded R starts, then searchpaths() and
+          ## sessionInfo(). Whether that line appears splits the failure in two:
+          ##   not printed -> it dies AT or BEFORE embedding R. The suspect is
+          ##      inla_R_init_(), which builds a temp file from GMRFLib_tmpdir.
+          ##      That global is NULL until inla-parse.c sets it, and the file
+          ##      handle from fopen() is used with no NULL check, so a failure
+          ##      there is a silent death. glibc tolerates "%s" with NULL and
+          ##      prints "(null)"; the Microsoft CRT does not, which would make
+          ##      this Windows-only and rgeneric-only, as observed.
+          ##   printed -> R starts fine and the crash is in a later callback.
+          echo "---- INLA_DEBUG_R=1 ----"
+          INLA_DEBUG_R=1 Rscript rg.R 2>&1 | tail -25 || true
+
+          ## Threads: the R callbacks are serialised by an omp critical, so this
+          ## should not matter. If single-threaded passes, that assumption is
+          ## wrong and the answer is somewhere else entirely.
+          echo "---- single threaded ----"
+          INLA_NUM_THREADS=1:1 Rscript -e "Sys.setenv(INLA_DEBUG_R=''); source('rg.R')" 2>&1 | tail -8 || true
 
       ## The same bundle with NO R anywhere on PATH. This is how someone who
       ## downloads the artifact actually runs it, and it is a genuinely
