@@ -556,6 +556,18 @@ jobs:
           r-version: release
           use-public-rspm: true
 
+      ## Runtime system libraries for the R packages these checks pull in:
+      ## units needs udunits2, sf needs gdal/geos/proj. inla itself uses none
+      ## of them, which is why ci/deps-ubuntu.sh calls them out separately.
+      ## Without them the INLA install dies at lazy-load with
+      ## "libudunits2.so.0: cannot open shared object file", which is what
+      ## this job did on its first run.
+      - name: System libraries for the R dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+              libudunits2-dev libgdal-dev libgeos-dev libproj-dev
+
       - name: Unpack the bundle
         run: |
           set -e
