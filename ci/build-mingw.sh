@@ -326,7 +326,7 @@ if [ "$WITH_LIBR" = 2 ]; then
 fi
 
 bash "$ROOT/ci/write-buildinfo.sh" "$OUT/BUILDINFO" "$CC" "$FLAGS" \
-     "OpenBLAS ${OPENBLAS_VERSION:-0.3.29}, static"
+     "OpenBLAS ${OPENBLAS_VERSION:-0.3.29}, static, runtime CPU dispatch"
 echo "== imports of the shipped exe =="
 $TRIPLET-objdump -p "$OUT/inla.exe" | awk '/DLL Name/ {print "  " $3}' | sort -u
 echo "== bundled files =="
