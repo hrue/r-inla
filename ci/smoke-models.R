@@ -105,6 +105,35 @@ check_both <- function(fit, label, tol = 5e-2) {
     invisible(r1)
 }
 
+
+## Where R put a package's compiled shared object.
+##
+## Not a one-liner, because the layout is platform dependent: Windows installs
+## under libs/<r_arch>/ (libs/x64/fbesag.dll), Linux and macOS under libs/, and
+## a package may also ship a prebuilt copy through inst/, which lands at the
+## package root. Hard-coding system.file("libs", ...) works everywhere except
+## Windows, where it silently returns "" and the check dies with the useless
+## message "nzchar(fbso) is not TRUE".
+##
+## Only the PATH is needed: the binary resolves these cgeneric models from its
+## own registered table, and inla.cgeneric.define merely checks that the file
+## exists.
+shlib_path <- function(pkg) {
+    f <- paste0(pkg, .Platform$dynlib.ext)
+    cand <- character(0)
+    if (nzchar(.Platform$r_arch))
+        cand <- c(cand, system.file("libs", .Platform$r_arch, f, package = pkg))
+    cand <- c(cand,
+              system.file("libs", f, package = pkg),
+              system.file(f, package = pkg))
+    cand <- cand[nzchar(cand) & file.exists(cand)]
+    if (!length(cand)) {
+        stop("no ", f, " found for package ", pkg,
+             " (looked under libs/", .Platform$r_arch, ", libs/ and the package root)")
+    }
+    cand[1]
+}
+
 ## fbesag on a chain graph. The input is the intrinsic PRECISION (D - A):
 ## get_fbesag scales it via inla.scale.model, which aborts on an adjacency
 ## (indefinite matrix) -- the demo's all-ones matrix is equally degenerate.
@@ -119,8 +148,7 @@ Qf  <- diag(rowSums(Af)) - Af
 ## the same src/fbesag.c that is baked into the binary). The binary resolves
 ## the registered model name from its cgeneric table either way; the file
 ## only has to EXIST for inla.cgeneric.define's R-side check.
-fbso <- system.file("libs", paste0("fbesag", .Platform$dynlib.ext), package = "fbesag")
-stopifnot(nzchar(fbso))
+fbso <- shlib_path("fbesag")
 mfb <- fbesag::get_fbesag(graph = Qf, id = rep(1:2, each = nf / 2),
                           sd_gamma = 0.15, param = list(p1 = 1, p2 = 1e-5),
                           useINLAprecomp = FALSE, libpath = fbso)
@@ -144,9 +172,7 @@ tmesh <- fm_mesh_1d(1:4)
 ## useINLAprecomp = FALSE route trips an upstream bug (its branch never
 ## assigns 'hasverbose'). The binary resolves model 102 from its cgeneric
 ## table regardless; the file only satisfies the R-side existence check.
-stlib <- system.file("libs", paste0("INLAspacetime", .Platform$dynlib.ext),
-                     package = "INLAspacetime")
-stopifnot(nzchar(stlib))
+stlib <- shlib_path("INLAspacetime")
 stm <- stModel.define(smesh, tmesh, model = "102",
                       control.priors = list(prs    = c(0.5, 0.5),
                                             prt    = c(2, 0.5),
