@@ -165,6 +165,42 @@ jobs:
           if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
           cat("OK: install + binary\n")
 
+          ## Which binary did we just download? This job installs the RELEASED
+          ## artifact, on purpose: it tests what a user actually gets. So it
+          ## lags the branch, and until a release carries the fix below it
+          ## would fail on every single run for a reason that has nothing to do
+          ## with the commit being tested. That is noise, and noise gets
+          ## ignored, so decide from the artifact's own BUILDINFO instead.
+          ##
+          ## The rgeneric crash on Windows was caused by two R.dll copies in
+          ## one process: the exe imported R's Rblas/Rlapack, which import
+          ## R.dll, so the bundled copy loaded at startup while rgeneric
+          ## dlopened the user's R through R_HOME. The build now uses a static
+          ## OpenBLAS and ships no R library at all, and the BLAS line in
+          ## BUILDINFO is what says which of the two this binary is. The check
+          ## goes live by itself on the first release built the new way.
+          bi <- c(file.path(dirname(call), "BUILDINFO"),
+                  file.path(dirname(dirname(call)), "BUILDINFO"))
+          bi <- bi[file.exists(bi)]
+          blas <- NA_character_
+          if (length(bi)) {
+              L <- readLines(bi[1], warn = FALSE)
+              hit <- grep("^[[:space:]]*blas:", L, value = TRUE)
+              if (length(hit)) blas <- trimws(hit[1])
+          }
+          cat("released binary BLAS:", if (is.na(blas)) "(no BUILDINFO)" else blas, "\n")
+
+          if (is.na(blas) || !grepl("OpenBLAS", blas, ignore.case = TRUE)) {
+              cat("\nSKIP: this release predates the Windows rgeneric fix.\n")
+              cat("      It ships R's Rblas/Rlapack, so inla.exe imports R.dll and\n")
+              cat("      a second R.dll is mapped when rgeneric loads the user's R.\n")
+              cat("      demo(rgeneric) segfaults on it, which is expected and is\n")
+              cat("      not a fault of this commit. The branch build is tested by\n")
+              cat("      build-inla's Windows job, against the binary it just built.\n")
+              cat("      This check runs for real once a release ships OpenBLAS.\n")
+              quit(save = "no", status = 0)
+          }
+
           ## rgeneric is the one feature where the BINARY calls back into R: it
           ## dlopens libR through R_HOME (bin/x64/R.dll on Windows) and
           ## evaluates the model's R function per iteration. Ordinary models
@@ -203,26 +239,15 @@ jobs:
               ## capture.output(type = "output") takes stdout only, and the
               ## non-verbose path sends stderr to a file nothing printed.
               ##
-              ## So: probe the symbols first, then re-run with stderr kept.
+              ## There WAS a symbol probe here using getNativeSymbolInfo().
+              ## It was worse than useless: that function searches only the
+              ## DLLs registered in R's own table, and R.dll is not one, so it
+              ## reported MISSING for every symbol including ones objdump shows
+              ## exported. Three separate runs were read as evidence of missing
+              ## symbols before that was caught. Removed rather than fixed:
+              ## objdump on the artifact answers the question properly.
 
-              ## PROBE 1: does R's shared library export what the binary resolves?
-              ## R-interface.c calls lt_dlsym for Rf_initEmbeddedR and exits(1)
-              ## with "libR has no symbol [...]" if it is absent. That entry point
-              ## comes from src/unix/Rembedded.c, which is not built on Windows;
-              ## Windows embedding uses R_DefParams/R_SetParams/setup_Rmainloop
-              ## instead. If the MISSING line below is Rf_initEmbeddedR, that is
-              ## the bug, and it is a source fix, not a packaging one.
-              cat("\n---- symbols in R's own shared library ----\n")
-              for (s in c("Rf_initEmbeddedR", "Rf_endEmbeddedR", "R_CStackLimit",
-                          "setup_Rmainloop", "R_DefParams", "R_SetParams",
-                          "R_tryEval", "Rf_protect")) {
-                  ok <- !inherits(try(getNativeSymbolInfo(s), silent = TRUE), "try-error")
-                  cat(sprintf("  %-18s %s\n", s, if (ok) "present" else "MISSING"))
-              }
-              rdll <- file.path(Sys.getenv("R_HOME"), "bin", "x64", "R.dll")
-              cat("  R.dll at", rdll, ":", file.exists(rdll), "\n")
-
-              ## PROBE 2: run the binary ourselves, keeping stderr.
+              ## Run the binary ourselves, keeping stderr.
               ## keep = TRUE leaves the model files behind; inla() is invoked from
               ## the parent directory with a relative ini path, so the same form
               ## works here.
