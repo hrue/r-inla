@@ -15,7 +15,7 @@
 ## because a copy that silently falls behind is worse than no copy: it would
 ## ship an old package to exactly the users who cannot install any other way.
 set -e
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 
 ## --checksum, not rsync's default size+mtime comparison. In a fresh CI
 ## checkout every file gets the same checkout timestamp, so mtime carries no
@@ -23,7 +23,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ## invisible: package/ would keep the old content and --check would pass.
 ## Hashing the tree costs about a second and removes that whole class of
 ## silent staleness.
-rsync -a --checksum --copy-links --delete "$ROOT/rinla/" "$ROOT/package/"
+rsync -a --checksum --copy-links --delete --exclude Old/ --exclude Old-Rnw --exclude obsolete/ --exclude Old/ "$ROOT/rinla/" "$ROOT/package/"
 
 ## No symlink may survive: --copy-links resolves them, but a link whose target
 ## is missing is skipped rather than resolved, which would put the problem
