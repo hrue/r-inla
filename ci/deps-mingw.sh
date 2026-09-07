@@ -2,10 +2,14 @@
 ## Cross-compilation environment for the Windows inla.exe, inside a Fedora
 ## container: the ucrt64-* MinGW toolchain plus every library the link
 ## needs, built static where no UCRT package exists. Also unpacks the
-## official Windows R distribution (for R.dll, Rblas/Rlapack, headers) and
-## cross-builds the standalone Rmath library from the R sources (the code
-## uses MATHLIB_STANDALONE, whose unprefixed symbols R.dll does not export).
+## official Windows R distribution (for its headers) and cross-builds the
+## standalone Rmath library from the R sources (the code uses
+## MATHLIB_STANDALONE, whose unprefixed symbols R.dll does not export).
 set -e
+
+## Versions are pinned in one file the maintainer owns.
+_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+[ -f "$_ROOT/ci/toolchain.env" ] && . "$_ROOT/ci/toolchain.env"
 
 TRIPLET=x86_64-w64-mingw32ucrt
 MINGW_CC=$TRIPLET-gcc
@@ -50,7 +54,9 @@ DEPS=/opt/mingw-deps
 $SUDO mkdir -p "$DEPS"/lib "$DEPS"/include
 $SUDO chmod 777 "$DEPS"
 
-## ---- Windows R (R.dll, Rblas.dll, Rlapack.dll, include/) ------------------
+## ---- Windows R: HEADERS ONLY ----------------------------------------------
+## Nothing links or ships a DLL out of this tree. It is unpacked for
+## include/ (Rmath.h0 and friends) and nothing else.
 if [ ! -f "$DEPS/R-win/bin/x64/R.dll" ]; then
     R_EXE=$(wget -qO- https://cran.r-project.org/bin/windows/base/ \
             | grep -oE 'R-[0-9.]+-win\.exe' | head -1)
@@ -105,6 +111,55 @@ EOF
     grep -q 'double.*lbeta' "$DEPS/include/Rmath.h" \
         || { echo "ERROR: generated Rmath.h lacks lbeta"; exit 1; }
 fi
+
+## ---- OpenBLAS: this build's BLAS and LAPACK --------------------------------
+## Built from source with THIS toolchain and linked statically, so no BLAS
+## library reaches the shipped bundle.
+##
+## It replaces R's own Rblas.dll/Rlapack.dll, which cannot be used here. The
+## exe imports those by name, they import R.dll, so the bundle then has to
+## ship R.dll beside the exe; Windows loads that copy at process start, while
+## rgeneric later dlopens the user's R.dll through R_HOME. A process holding
+## two R.dll copies segfaults the moment the embedded R starts, even when
+## both copies are the same version. Linux and macOS never reach that state
+## because their BLAS is MKL or Accelerate, so no R library is ever
+## preloaded, which is why rgeneric worked everywhere except here.
+##
+## Single threaded on purpose: INLA parallelises above the BLAS with OpenMP,
+## and the reference Rblas this replaces was single threaded too, so the
+## threading behaviour does not change while the kernels get much faster.
+##
+## A fixed TARGET rather than DYNAMIC_ARCH's runtime dispatch: dispatch
+## builds every kernel on every run, and nothing caches $DEPS between runs.
+## NEHALEM is the floor, so the exe still starts on any x86-64 machine made
+## since roughly 2009. Raise it, or switch to DYNAMIC_ARCH, only alongside a
+## decision about the minimum CPU the Windows binary supports.
+if [ ! -f "$DEPS/lib/libopenblas.a" ]; then
+    OB=${OPENBLAS_VERSION:-0.3.29}
+    rm -rf /tmp/openblas
+    git clone -q --depth 1 --branch "v$OB" \
+        https://github.com/OpenMathLib/OpenBLAS /tmp/openblas
+    ## CROSS=1 stops the build from running the test binaries it produces,
+    ## which are Windows executables here.
+    if ! make -C /tmp/openblas -j"$(nproc)" \
+            HOSTCC=gcc CC=$MINGW_CC FC=$TRIPLET-gfortran \
+            AR=$TRIPLET-ar RANLIB=$TRIPLET-ranlib \
+            CROSS=1 TARGET=NEHALEM BINARY=64 \
+            NO_SHARED=1 USE_THREAD=0 NO_LAPACKE=1 \
+            > /tmp/openblas.log 2>&1; then
+        echo "ERROR: OpenBLAS $OB failed to cross-build"
+        tail -40 /tmp/openblas.log
+        exit 1
+    fi
+    make -C /tmp/openblas PREFIX="$DEPS" NO_SHARED=1 install >/dev/null
+    ## some versions install the archive under its target-specific name only
+    if [ ! -f "$DEPS/lib/libopenblas.a" ]; then
+        A=$(ls "$DEPS"/lib/libopenblas*.a 2>/dev/null | head -1 || true)
+        [ -n "$A" ] && cp -f "$A" "$DEPS/lib/libopenblas.a"
+    fi
+fi
+[ -f "$DEPS/lib/libopenblas.a" ] \
+    || { echo "ERROR: no libopenblas.a under $DEPS/lib"; ls "$DEPS/lib"; exit 1; }
 
 ## ---- dlfcn-win32: the Windows port of dlfcn.h, which the external model
 ## packages include. Fedora packages it as mingw64-dlfcn/ucrt64-dlfcn; build

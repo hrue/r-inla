@@ -661,8 +661,10 @@ jobs:
           if-no-files-found: error
 
   ## Windows: cross-compiled from Fedora with the MinGW UCRT toolchain,
-  ## following the upstream Windows build recipe (Windows R's own
-  ## R.dll/Rblas/Rlapack, cross-built static Rmath/gsl/metis/muparser).
+  ## following the upstream Windows build recipe, except for the BLAS: a
+  ## cross-built static OpenBLAS, plus cross-built static
+  ## Rmath/gsl/metis/muparser. Using R's Rblas/Rlapack instead made the exe
+  ## import R.dll, and a second R.dll then segfaulted every rgeneric model.
   ## Experimental while it stabilizes: cannot fail the workflow.
   windows-x86_64:
     name: "Windows x86_64: cross-build inla.exe (MinGW UCRT)"
@@ -736,7 +738,7 @@ jobs:
           { echo "artifact=inla-windows-x86_64"
             echo "purpose=Windows x86_64: inla.exe + all DLLs, runs with or without R installed"
             echo "compiler=${CO:-unknown}"
-            echo "blas=R's Rblas/Rlapack (bundled)"
+            echo "blas=OpenBLAS (static, no R library in the bundle)"
             echo "stiles=$ST"
           } > manifest/inla-windows-x86_64.txt
       - uses: actions/upload-artifact@v4
@@ -807,12 +809,14 @@ jobs:
       ## change is invisible to it until a release exists.
       ##
       ## rgeneric is the one feature where the binary calls back into R, and it
-      ## crashes on Windows: inla.exe imports Rblas.dll, whose dependency chain
-      ## pulls the BUNDLED R.dll in from the exe's own directory, and the
-      ## R_HOME dlopen then maps a SECOND R into the same process.
-      ## INLA_REUSE_LOADED_R makes that dlopen reuse the R already loaded. It
-      ## is OFF by default, so the first run shows today's behaviour and the
-      ## second shows whether the fix works. Reports only; does not gate.
+      ## used to crash on Windows: inla.exe imported Rblas.dll, whose
+      ## dependency chain pulled the BUNDLED R.dll in from the exe's own
+      ## directory, and the R_HOME dlopen then mapped a SECOND R into the same
+      ## process. Proved by moving the bundled R DLLs aside: crash with them,
+      ## a correct fit without. The build now uses a static OpenBLAS so no R
+      ## library is imported or shipped, and build-mingw.sh fails the lane if
+      ## one reappears. These steps stay as the behavioural check on a real
+      ## Windows machine. Reports only; does not gate.
       - name: rgeneric diagnostics
         continue-on-error: true
         run: |
