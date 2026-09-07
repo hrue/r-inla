@@ -1,3 +1,6 @@
+# INLA 26.09.07
+* internal testing only
+
 # INLA 26.09.06-2
 * Build test
 
