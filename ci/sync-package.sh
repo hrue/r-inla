@@ -17,7 +17,13 @@
 set -e
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 
-rsync -a --copy-links --delete "$ROOT/rinla/" "$ROOT/package/"
+## --checksum, not rsync's default size+mtime comparison. In a fresh CI
+## checkout every file gets the same checkout timestamp, so mtime carries no
+## information, and an edit that leaves a file the same size would then be
+## invisible: package/ would keep the old content and --check would pass.
+## Hashing the tree costs about a second and removes that whole class of
+## silent staleness.
+rsync -a --checksum --copy-links --delete "$ROOT/rinla/" "$ROOT/package/"
 
 ## No symlink may survive: --copy-links resolves them, but a link whose target
 ## is missing is skipped rather than resolved, which would put the problem
