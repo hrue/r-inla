@@ -42,6 +42,20 @@ fi
 ## cannot drift, and nobody editing a PDF has to know package/ exists.
 ## Same bargain the version bump below makes: regenerate, stage, say so.
 if [ -x "$root/ci/sync-package.sh" ]; then
+    ## rinla/ must be fully staged first. The sync copies the WORKING TREE, so
+    ## an unstaged edit under rinla/ would be baked into package/ and staged,
+    ## while the source of it stayed out of the commit. That produces a commit
+    ## whose generated half does not match its own sources, and the CI guard
+    ## then reports package/ as out of date on a tree where it looks correct
+    ## locally. Refusing here is the only point where the two halves can still
+    ## be kept together.
+    if ! git diff --quiet -- "$root/rinla"; then
+        echo "pre-commit: rinla/ has unstaged changes, so package/ cannot be" >&2
+        echo "            generated consistently with this commit:" >&2
+        git diff --name-only -- "$root/rinla" | sed 's/^/              /' >&2
+        echo "            stage them (git add rinla/...) or stash them, then commit." >&2
+        exit 1
+    fi
     bash "$root/ci/sync-package.sh" >/dev/null || exit 1
     if [ -n "$(git status --porcelain -- "$root/package")" ]; then
         ## -A, not plain add: rinla/ can lose files as well as gain them, and
@@ -60,20 +74,14 @@ fi
 branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 [ "$branch" = "master" ] || exit 0
 
-## Does this commit change the SOLVER? Config/INLA/BinaryVersion says which
-## binary release the R package needs, and it must move exactly when the C
-## sources do: leaving it behind hands users a binary older than the code, and
-## moving it on every R edit would force a pointless binary release. So decide
-## from what is staged. gmrflib/ and inlaprog/ are what the binary is built
-## from; ci/ and rinla/ are not.
-if git diff --cached --name-only | grep -qE '^(gmrflib|inlaprog)/'; then
-    binflag=--binary
-else
-    binflag=
-fi
-
 ## bash, not sh: the script uses "set -o pipefail", which dash rejects.
-bash "$root/ci/bump-rinla-version.sh" --now $binflag || exit 1
+##
+## Config/INLA/BinaryVersion is no longer decided here. It used to move only
+## when gmrflib/ or inlaprog/ were staged, so that an R-only fix did not force
+## a binary release; the cost was two similar-looking dates that disagreed and
+## nobody could say which identified what. The script now keeps it equal to
+## Version, so one number identifies the R package and the binary together.
+bash "$root/ci/bump-rinla-version.sh" --now || exit 1
 
 ## Only stage it when it actually changed, so an unrelated commit does not
 ## silently acquire DESCRIPTION.

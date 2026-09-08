@@ -43,7 +43,10 @@ for a in "$@"; do
         ## exactly when the C sources changed, which is when a new binary is
         ## genuinely required; the pre-commit hook decides that by looking at
         ## what is staged.
-        --binary) BINARY=1 ;;
+        ## Accepted and ignored: BinaryVersion now always tracks Version,
+        ## so there is nothing to opt into. Kept so an existing caller
+        ## does not fail on an unknown option.
+        --binary) : ;;
         *) echo "usage: $0 [--check] [--now]" >&2; exit 2 ;;
     esac
 done
@@ -79,18 +82,35 @@ fi
 HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 
 
-## Config/INLA/BinaryVersion: which BINARY release this R package needs. Only
-## touched with --binary, i.e. when the C sources changed in this commit.
+## Config/INLA/BinaryVersion is now ALWAYS the same string as Version.
+##
+## It used to move only when the C sources changed, so that an R-only fix did
+## not force a binary release. The cost was two similar-looking dates that
+## disagreed (Version 26.09.07-1 against BinaryVersion 26.09.07) and nobody
+## could say which number identified what they had. One number now identifies
+## the pair: the R package and the binary it belongs with.
+##
+## THE RULE THIS CREATES: every release must publish binaries. The R package
+## asks for a binary release named by this field, so a release that bumps it
+## without publishing the assets sends users to a tag that does not exist.
+##
+## Takes the version as an argument rather than reading $WANT, because a
+## same-day re-release keeps its suffix (26.09.07-1) and the binary field has
+## to carry the suffix too, not the bare date.
 stamp_binary() {
-    [ "$BINARY" = 1 ] || return 0
+    _want=$1
     bhave=$(awk -F': *' '/^Config\/INLA\/BinaryVersion:/ {print $2; exit}' "$DESC")
     [ -n "$bhave" ] || return 0
-    [ "$bhave" = "$WANT" ] && return 0
+    [ "$bhave" = "$_want" ] && return 0
+    if [ "$CHECK" = 1 ]; then
+        echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion is $bhave, expected $_want" >&2
+        exit 1
+    fi
     btmp=$(mktemp)
-    awk -v want="$WANT" '/^Config\/INLA\/BinaryVersion:/ && !d { print "Config/INLA/BinaryVersion: " want; d=1; next } { print }' \
+    awk -v want="$_want" '/^Config\/INLA\/BinaryVersion:/ && !d { print "Config/INLA/BinaryVersion: " want; d=1; next } { print }' \
         "$DESC" > "$btmp"
     mv "$btmp" "$DESC"
-    echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $WANT (C sources changed)"
+    echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $_want"
 }
 
 ## A SECOND release on the same day is written <date>-N (26.09.06-2), to match
@@ -101,14 +121,15 @@ stamp_binary() {
 case "$HAVE" in
     "$WANT"-[0-9]*)
         echo "rinla/DESCRIPTION: Version $HAVE is current (same-day re-release of $WANT)"
-        stamp_binary
+        ## the suffixed version is the effective one, so the binary field takes it
+        stamp_binary "$HAVE"
         exit 0
         ;;
 esac
 
 if [ "$HAVE" = "$WANT" ]; then
     echo "rinla/DESCRIPTION: Version $HAVE is current (tag $TAG)"
-    stamp_binary
+    stamp_binary "$HAVE"
     exit 0
 fi
 
@@ -127,4 +148,4 @@ mv "$tmp" "$DESC"
 NOW_HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 [ "$NOW_HAVE" = "$WANT" ] || { echo "ERROR: rewrite failed, Version is still $NOW_HAVE"; exit 1; }
 echo "rinla/DESCRIPTION: Version $HAVE -> $WANT (tag $TAG)"
-stamp_binary
+stamp_binary "$WANT"

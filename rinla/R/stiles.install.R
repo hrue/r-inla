@@ -205,12 +205,21 @@
         ## DESCRIPTION rather than packageVersion(), because R normalises
         ## "26.09.03" to "26.9.3" and the tag keeps the zeros.
         ## Which BINARY release this R package needs, declared in DESCRIPTION
-        ## as Config/INLA/BinaryVersion. Deliberately NOT the package's own
-        ## Version: the R code is edited far more often than the solver, and
-        ## most of those edits need no new binary at all. Tying the two would
-        ## force a binary release for every R fix. Bump the field only when a
-        ## change actually requires a new binary. Falls back to the package
-        ## version for an installation predating the field.
+        ## as Config/INLA/BinaryVersion. It is now always the SAME string as
+        ## the package's own Version: one number identifies the R package and
+        ## the binary that belongs with it.
+        ##
+        ## It used to move only when the C sources changed, so an R-only fix
+        ## did not force a binary release. That left two similar-looking dates
+        ## that disagreed (Version 26.09.07-1 against BinaryVersion 26.09.07),
+        ## and no way to say which one identified what a user had.
+        ##
+        ## The rule this creates: every release must publish binaries, since
+        ## this field names a release tag that has to exist.
+        ##
+        ## Read through this field rather than Version anyway, so an
+        ## installation predating the change still works, and so the pairing
+        ## has one authority.
         pv <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
                        error = function(e) NULL)
         if (is.null(pv) || !nzchar(pv)) {
