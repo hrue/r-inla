@@ -37,6 +37,11 @@ for a in "$@"; do
         ## a new day would ship a stale version, which is exactly the case the
         ## CI guard keeps catching.
         --now)   NOW=1 ;;
+        ## Pick the next FREE version for a release today: the plain date if it
+        ## has never been used, else <date>-N with the lowest N that is free.
+        ## Without this the suffix was hand-edited, which is how a number that a
+        ## release branch had already claimed could be reused.
+        --release) RELEASE=1 ;;
         ## Also stamp Config/INLA/BinaryVersion, the field that says which
         ## BINARY release this R package needs. It is deliberately NOT tied to
         ## Version: R-only edits are frequent and need no new solver. Pass this
@@ -71,16 +76,52 @@ BASE=${BASE#v}
 ## suffix there reads as noise. The date always sorts above the last tag, so
 ## R still sees an upgrade, and it never claims to BE a release the way a
 ## bare tag on a later commit would.
-if [ "$NOW" = 1 ]; then
-    WANT=$(date +%y.%m.%d)
-elif [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
-    WANT="$BASE"
-else
-    WANT=$(git -C "$ROOT" log -1 --format=%cd --date=format:%y.%m.%d 2>/dev/null)
+## --release and --check contradict each other: --release picks the next
+## UNUSED number, so it always reports the current one as stale. The guard is
+## plain --check, which verifies the version that is already set.
+if [ "$RELEASE" = 1 ] && [ "$CHECK" = 1 ]; then
+    echo "usage: --release and --check are mutually exclusive" >&2
+    exit 2
 fi
-[ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
+
+## Read the version that is already set BEFORE deciding what it should be:
+## when nothing decides otherwise, the answer is that it does not change.
 HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 
+if [ "$RELEASE" = 1 ]; then
+    ## Both TAGS and NEWS.md are consulted. Tags alone are not enough: a
+    ## release branch can claim a number and be merged without ever tagging,
+    ## which is exactly how 26.09.08-1 and -2 came to exist with no tag.
+    _base=$(date +%y.%m.%d)
+    _used=$( { git -C "$ROOT" tag --list "Version_${_base}*" | sed 's/^Version_//'
+               grep -oE "^# INLA ${_base}(-[0-9]+)?" "$ROOT/rinla/NEWS.md" 2>/dev/null \
+                   | sed 's/^# INLA //'; } | sort -u )
+    if ! printf '%s\n' "$_used" | grep -qx "$_base"; then
+        WANT="$_base"
+    else
+        _n=1
+        while printf '%s\n' "$_used" | grep -qx "$_base-$_n"; do
+            _n=$((_n + 1))
+        done
+        WANT="$_base-$_n"
+    fi
+elif [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
+    ## At a tag the version IS that release.
+    WANT="$BASE"
+else
+    ## Not at a tag: the version does NOT change. It belongs to the last
+    ## release and stays there until the next one is cut.
+    ##
+    ## It used to come from the clock here (today's date via --now from the
+    ## commit hook, or the HEAD commit's date otherwise), so it moved on every
+    ## commit with no release happening. Two different versions could then
+    ## describe the same released code, and the number could go BACKWARDS when
+    ## a machine's date disagreed, so Depends: INLA (>= 26.09.08) could be
+    ## rejected for a package that really was 26.09.08. A version now comes
+    ## from a tag or from --release, never from a clock.
+    WANT="$HAVE"
+fi
+[ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
 
 ## Config/INLA/BinaryVersion is now ALWAYS the same string as Version.
 ##

@@ -81,7 +81,11 @@ branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 ## a binary release; the cost was two similar-looking dates that disagreed and
 ## nobody could say which identified what. The script now keeps it equal to
 ## Version, so one number identifies the R package and the binary together.
-bash "$root/ci/bump-rinla-version.sh" --now || exit 1
+## No --now: the version is NOT the date of this commit. It belongs to the
+## last release and changes only when a release is cut, by tagging or by
+## ci/bump-rinla-version.sh --release. Called with no flags this only keeps
+## Config/INLA/BinaryVersion equal to Version.
+bash "$root/ci/bump-rinla-version.sh" || exit 1
 
 ## Only stage it when it actually changed, so an unrelated commit does not
 ## silently acquire DESCRIPTION.
