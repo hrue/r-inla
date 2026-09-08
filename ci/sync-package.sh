@@ -15,7 +15,7 @@
 ## because a copy that silently falls behind is worse than no copy: it would
 ## ship an old package to exactly the users who cannot install any other way.
 set -e
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 
 ## The file list comes from GIT, not from the working tree.
 ##
@@ -26,13 +26,18 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ## as out of date by exactly those files. The shipped package must not depend
 ## on whose laptop ran the sync.
 ##
+## Old/, Old-Rnw and obsolete/ are dropped as well: 35 tracked files that are
+## kept in the repository but do not belong in the installable package.
+## .Rbuildignore does not cover them, so the exclusion has to happen here.
+##
 ## Rebuilt from empty each time rather than synced in place: it makes the
 ## result a pure function of the tracked tree, and removes any question about
-## rsync's comparison rules (the previous version needed --checksum because a
+## rsync's comparison rules (an earlier version needed --checksum because a
 ## fresh checkout gives every file the same mtime).
 rm -rf "$ROOT/package"
 mkdir -p "$ROOT/package"
 git -C "$ROOT/rinla" ls-files -z \
+    | grep -zEv '(^|/)(Old|Old-Rnw|obsolete)(/|$)' \
     | rsync -a --copy-links --files-from=- --from0 "$ROOT/rinla/" "$ROOT/package/"
 
 ## No symlink may survive: --copy-links resolves them, but a link whose target

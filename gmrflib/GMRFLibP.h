@@ -473,7 +473,7 @@ typedef enum {
 
 #       if !defined(unlikely)
 #              if defined(__GNUC__) || defined(__clang__)
-        // For GCC and Clang (Linux, macOS, MinGW)
+	// For GCC and Clang (Linux, macOS, MinGW)
 #                     define likely(x)       __builtin_expect(!!(x), 1)
 #                     define unlikely(x)     __builtin_expect(!!(x), 0)
 #              elif defined(_MSC_VER) && (_MSC_VER >= 1926) && defined(__cplusplus)
