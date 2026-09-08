@@ -1220,8 +1220,8 @@ int loglikelihood_exppower(int thread_id, int *lcache_idx, double *__restrict lo
 
 	lcache_t *lc = llcache[cache_idx_numa];
 	if (lc->beta != beta) {
-		lc->lgamma1 = my_gsl_sf_lngamma(1.0 / beta);
-		lc->lgamma3 = my_gsl_sf_lngamma(3.0 / beta);
+		lc->lgamma1 = LGAMMAfn(1.0 / beta);
+		lc->lgamma3 = LGAMMAfn(3.0 / beta);
 		lc->beta = beta;
 	}
 	double alpha = sigma * exp(0.5 * (lc->lgamma1 - lc->lgamma3));
@@ -1322,7 +1322,7 @@ int loglikelihood_gaussianjw(int thread_id, int *UNUSED(lcache_idx), double *__r
 	double beta_2 = ds->data_observations.gjw_beta[2][thread_id][0];
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = LOG_NORMC_GAUSSIAN - df2 * M_LN2 - gsl_sf_lngamma(df2);
+		G_norm_const[idx] = LOG_NORMC_GAUSSIAN - df2 * M_LN2 - LGAMMAfn(df2);
 		G_norm_const_compute[idx] = 0;
 	}
 	double normc = G_norm_const[idx];
@@ -1887,8 +1887,8 @@ int loglikelihood_stochvol_t(int thread_id, int *UNUSED(lcache_idx), double *__r
 	LINK_INIT;
 	if (m > 0) {
 		double lg1, lg2, f;
-		lg1 = gsl_sf_lngamma(dof / 2.0);
-		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+		lg1 = LGAMMAfn(dof / 2.0);
+		lg2 = LGAMMAfn((dof + 1.0) / 2.0);
 		for (i = 0; i < m; i++) {
 			var_u = PREDICTOR_INVERSE_LINK(x[i], off);
 			f = sqrt(var_u) / sd;
@@ -1968,7 +1968,7 @@ int loglikelihood_iid_gamma(int thread_id, int *UNUSED(lcache_idx), double *__re
 	w = ds->data_observations.iid_gamma_scale[idx];
 	shape = map_exp_forward(ds->data_observations.iid_gamma_log_shape[thread_id][0], MAP_FORWARD, NULL);
 	rate = map_exp_forward(ds->data_observations.iid_gamma_log_rate[thread_id][0], MAP_FORWARD, NULL) * w;
-	cons = -shape * log(rate) - gsl_sf_lngamma(shape);
+	cons = -shape * log(rate) - LGAMMAfn(shape);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -2005,7 +2005,7 @@ int loglikelihood_iid_logitbeta(int thread_id, int *UNUSED(lcache_idx), double *
 	LINK_INIT;
 	a = map_exp_forward(ds->data_observations.iid_logitbeta_log_a[thread_id][0], MAP_FORWARD, NULL);
 	b = map_exp_forward(ds->data_observations.iid_logitbeta_log_b[thread_id][0], MAP_FORWARD, NULL);
-	cons = gsl_sf_lngamma(a + b) - (gsl_sf_lngamma(a) + gsl_sf_lngamma(b));
+	cons = LGAMMAfn(a + b) - (LGAMMAfn(a) + LGAMMAfn(b));
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -2035,7 +2035,7 @@ int loglikelihood_loggamma_frailty(int thread_id, int *UNUSED(lcache_idx), doubl
 	// LINK_INIT;
 	lprec = ds->data_observations.log_prec_loggamma_frailty[thread_id][0];
 	prec = map_precision_forward(lprec, MAP_FORWARD, NULL);
-	log_gamma = gsl_sf_lngamma(prec);
+	log_gamma = LGAMMAfn(prec);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -2517,8 +2517,8 @@ int loglikelihood_t(int thread_id, int *UNUSED(lcache_idx), double *__restrict l
 	prec = exp(ds->data_observations.log_prec_t[thread_id][0]) * w;
 	fac = sqrt((dof / (dof - 2.0)) * prec);
 
-	double lg1 = gsl_sf_lngamma(dof / 2.0);
-	double lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+	double lg1 = LGAMMAfn(dof / 2.0);
+	double lg2 = LGAMMAfn((dof + 1.0) / 2.0);
 	if (m > 0) {
 		double c1 = lg2 - lg1 - 0.5 * log(M_PI * dof) + log(fac);
 		double c2 = (dof + 1.0) / 2.0;
@@ -2561,8 +2561,8 @@ int loglikelihood_tstrata(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	prec = exp(ds->data_observations.log_prec_tstrata[strata][thread_id][0]) * w;
 	fac = sqrt((dof / (dof - 2.0)) * prec);
 
-	double lg1 = gsl_sf_lngamma(dof / 2.0);
-	double lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+	double lg1 = LGAMMAfn(dof / 2.0);
+	double lg2 = LGAMMAfn((dof + 1.0) / 2.0);
 	if (m > 0) {
 		double c1 = lg2 - lg1 - 0.5 * log(M_PI * dof) + log(fac);
 		double c2 = (dof + 1.0) / 2.0;
@@ -3306,7 +3306,7 @@ int loglikelihood_0nbinomial(int thread_id, int *UNUSED(lcache_idx), double *__r
 
 	if (m > 0) {
 		if (y > 0.0) {
-			double lnorm = -normc + gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
+			double lnorm = -normc + LGAMMAfn(y + size) - LGAMMAfn(size);
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
 				double mu = E * lambda;
@@ -3368,7 +3368,7 @@ int loglikelihood_0nbinomialS(int thread_id, int *UNUSED(lcache_idx), double *__
 		double p = size / (size + mu);
 		double logl = size * LOG_p(p) + y * LOG_1mp(p);
 		if (y > 0.0) {
-			logl += -normc + gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
+			logl += -normc + LGAMMAfn(y + size) - LGAMMAfn(size);
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
 				logll[i] = logl + LOG_1mp(prob);
@@ -3948,7 +3948,7 @@ int loglikelihood_contpoisson(int thread_id, int *UNUSED(lcache_idx), double *__
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
 		// slight inconsistency, as we use the 'exact' expression here, and an (good) approximation above.
-		double normc = exp(gsl_sf_lngamma(y + 1.0));
+		double normc = exp(LGAMMAfn(y + 1.0));
 		for (i = 0; i < -m; i++) {
 			lambda = E * PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = gsl_sf_gamma_inc(y + 1.0, lambda) / normc;
@@ -3988,7 +3988,7 @@ int loglikelihood_qcontpoisson(int thread_id, int *UNUSED(lcache_idx), double *_
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
 		// slight inconsistency, as we use the 'exact' expression here, and an (good) approximation above.
-		double normc = exp(gsl_sf_lngamma(y + 1.0));
+		double normc = exp(LGAMMAfn(y + 1.0));
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i], off);
 			lambda = E * exp(GMRFLib_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
@@ -4818,7 +4818,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 
 				t[0] = -GMRFLib_timer();
 				for (int time = 0; time < ntimes; time++) {
-					tmp0 += gsl_sf_lngamma(yy + s[time]) - gsl_sf_lngamma(s[time]);
+					tmp0 += LGAMMAfn(yy + s[time]) - LGAMMAfn(s[time]);
 				}
 				t[0] += GMRFLib_timer();
 
@@ -4852,7 +4852,7 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
 		double lnorm = -normc;
 		if (y >= ylim) {
-			lnorm += gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
+			lnorm += LGAMMAfn(y + size) - LGAMMAfn(size);
 		} else {
 #pragma omp simd reduction(+: lnorm)
 			for (int yy = 0; yy < (int) y; yy++) {
@@ -4974,7 +4974,7 @@ int loglikelihood_negative_binomial_cen2(int thread_id, int *UNUSED(lcache_idx),
 
 	LINK_INIT;
 	if (m > 0) {
-		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+		double lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - LGAMMAfn(y + 1.0);
 		if ((y >= int_low && int_low >= 0) && (int_high < 0 || y <= int_high)) {
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
@@ -5034,7 +5034,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, int *UNUSED(lca
 			/*
 			 * this is constant for the NegativeBinomial 
 			 */
-			lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((int) y);
+			lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - gsl_sf_lnfact((int) y);
 
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i], off);
@@ -5112,7 +5112,7 @@ int loglikelihood_zeroinflated_negative_binomial1(int thread_id, int *UNUSED(lca
 		/*
 		 * this is constant for the NegativeBinomial 
 		 */
-		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+		lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - LGAMMAfn(y + 1.0);
 
 		if ((int) y == 0) {
 			for (i = 0; i < m; i++) {
@@ -5202,7 +5202,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, int *UN
 		/*
 		 * this is constant for the NegativeBinomial 
 		 */
-		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+		lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - LGAMMAfn(y + 1.0);
 
 		if ((int) y == 0) {
 			for (i = 0; i < m; i++) {
@@ -5293,7 +5293,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, int *UN
 		/*
 		 * this is constant for the NegativeBinomial 
 		 */
-		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+		lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - LGAMMAfn(y + 1.0);
 
 		if ((int) y == 0) {
 			for (i = 0; i < m; i++) {
@@ -5383,7 +5383,7 @@ int loglikelihood_zeroinflated_negative_binomial2(int thread_id, int *UNUSED(lca
 		/*
 		 * this is constant for the NegativeBinomial 
 		 */
-		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+		lnorm = LGAMMAfn(y + size) - LGAMMAfn(size) - LGAMMAfn(y + 1.0);
 
 		if ((int) y == 0) {
 			for (i = 0; i < m; i++) {
@@ -5982,7 +5982,7 @@ int loglikelihood_nmixnb(int thread_id, int *UNUSED(lcache_idx), double *__restr
 			ny++;
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
-		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - my_gsl_sf_lnfact(n);
+		normc_nb = LGAMMAfn(n + size) - LGAMMAfn(size) - my_gsl_sf_lnfact(n);
 
 		if (ny > ncy[id]) {
 			ncy[id] = ny;
@@ -6831,7 +6831,7 @@ int loglikelihood_gamma(int thread_id, int *UNUSED(lcache_idx), double *__restri
 	double s = (ds->data_observations.gamma_scale ? ds->data_observations.gamma_scale[idx] : 1.0);
 	double phi_param = map_exp_forward(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi = phi_param * s;
-	double c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
+	double c = -LGAMMAfn(phi) + (phi - 1.0) * log(y) + phi * log(phi);
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6870,7 +6870,7 @@ int loglikelihood_mgamma(int thread_id, int *UNUSED(lcache_idx), double *__restr
 	double phi_param = map_exp_forward(ds->data_observations.gamma_log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi = phi_param * s;
 	double delta = 0.5 * (sqrt(phi * (phi + 4.0)) + phi);
-	double c = delta * log(y) - gsl_sf_lngamma(delta + 1.0);
+	double c = delta * log(y) - LGAMMAfn(delta + 1.0);
 
 	LINK_INIT;
 
@@ -6932,7 +6932,7 @@ int loglikelihood_gammasv(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		for (int i = 0; i < m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 			double a = phi * mu;
-			logll[i] = -gsl_sf_lngamma(a) + a * lb + (a - 1.0) * ly - b * y;
+			logll[i] = -LGAMMAfn(a) + a * lb + (a - 1.0) * ly - b * y;
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
@@ -6970,7 +6970,7 @@ int loglikelihood_gammajw(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			logll[i] = -gsl_sf_lngamma(mu) + (mu - 1.0) * ly - y;
+			logll[i] = -LGAMMAfn(mu) + (mu - 1.0) * ly - y;
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
@@ -7793,7 +7793,7 @@ int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *UNUSED(lcache_i
 	 */
 #define _PROB(xx)         (exp(xx)/(1.0+exp(xx)))
 #define _PROBZERO(xx)     (1.0-pow(_PROB(xx), alpha))
-#define _LOGGAMMA(xx)     gsl_sf_lngamma(xx)
+#define _LOGGAMMA(xx)     LGAMMAfn(xx)
 #define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
 
 	if (m == 0) {

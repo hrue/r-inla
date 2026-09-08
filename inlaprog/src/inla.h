@@ -16,6 +16,7 @@ __BEGIN_DECLS
 #              define _GNU_SOURCE
 #       endif
 //
+#       include "inla-special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
 #       include "strlib.h"
@@ -1947,7 +1948,6 @@ double inla_dmatern_cf(double dist, double range, double nu);
 double inla_dnchisq(double x, double df, double ncp);
 double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
 double inla_interpolate_mode(double *x, double *y);
-double inla_lgamma_fast(double x);
 double inla_logcdf_normal(double x);
 double inla_logcdf_normal_fast(double x);
 double inla_logitcdf_normal(double x);

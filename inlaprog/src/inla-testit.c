@@ -1350,11 +1350,14 @@ int testit(int argc, char **argv)
 
 	case 52:
 	{
-		for (double x = 0.1; x < 20; x += 0.1) {
-			printf("x %f lgamma %f lgamma.fast %f diff %f\n",
-			       x, gsl_sf_lngamma(x), inla_lgamma_fast(x), gsl_sf_lngamma(x) - inla_lgamma_fast(x));
+		for (double x = -0.5; x < 20; x += 0.1) {
+			printf("x %f lgamma %f lgamma.fast.1 %f diff %f lgamma.fast.2 %f diff %f\n",
+			       x, gsl_sf_lngamma(x),
+			       inla_lgamma_fast1(x),
+			       gsl_sf_lngamma(x) - inla_lgamma_fast1(x),
+			       inla_lgamma_fast2(x),
+			       gsl_sf_lngamma(x) - inla_lgamma_fast2(x));
 		}
-
 	}
 		break;
 
@@ -3070,7 +3073,7 @@ int testit(int argc, char **argv)
 		double rel_err = 0.0;
 		for (int i = 0; i < n; i++) {
 			y[i] = exp(2 * GMRFLib_stdnormal());
-			double ref = gsl_sf_lngamma(y[i]);
+			double ref = LGAMMAfn(y[i]);
 			rel_err += ABS((ref - lgamma(y[i])));
 		}
 		P(rel_err / n);
@@ -3078,7 +3081,7 @@ int testit(int argc, char **argv)
 		tref[0] = -GMRFLib_timer();
 		double sum = 0.0;
 		for (int i = 0; i < n; i++) {
-			sum += gsl_sf_lngamma(y[i]);
+			sum += LGAMMAfn(y[i]);
 		}
 		tref[0] += GMRFLib_timer();
 		P(sum);
@@ -3091,7 +3094,7 @@ int testit(int argc, char **argv)
 		tref[1] += GMRFLib_timer();
 		P(sum);
 
-		printf("GSL:  %.4f  libm: %.4f NULL:  %.4f\n", tref[0] / (tref[0] + tref[1] + tref[2]),
+		printf("LGAMMAfn:  %.4f  libm: %.4f NULL:  %.4f\n", tref[0] / (tref[0] + tref[1] + tref[2]),
 		       tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
 
 		P(sum);

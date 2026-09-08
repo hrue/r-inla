@@ -10,6 +10,7 @@
 #undef ISNAN
 
 #include "GMRFLib/GMRFLib.h"
+#include "inla-special-functions.h"
 #include "tweedie.h"
 
 // the 'dtweedie'-code is inspired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but got largly
@@ -20,9 +21,6 @@
 #define TWEEDIE_INCRE 1.2
 #define TWEEDIE_MAX_IDX 16384
 
-// this is the G.Nemes (2007) approximation from https://en.wikipedia.org/wiki/Stirling's_approximation
-//#define LGAMMA_FAST(_x) ((_x) < 1.0 ? gsl_sf_lngamma(_x) : 0.5 * (LOG2PI - log(_x)) + (_x) * (log((_x) + 1.0/( 12.0*(_x) - 0.1/(_x))) - 1.0))
-#define LGAMMA_FAST(_x) ((_x) < 1.0 ? lgamma(_x) : 0.5 * (LOG2PI - log(_x)) + (_x) * (log((_x) + 1.0/( 12.0*(_x) - 0.1/(_x))) - 1.0))
 
 /**
  * n scalar length of mu
@@ -162,7 +160,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			for (k = k_low; k < nterms; k++) {
 				double xx = -a * j;
 				j = k + one;
-				cache_ptr->wwork[k] = j * logz_stripped - lgammas[j] - LGAMMA_FAST(xx);
+				cache_ptr->wwork[k] = j * logz_stripped - lgammas[j] - LGAMMAfn(xx);
 			}
 		} else {
 			// correction term has expansion c[0]/j + c[1]/j^2 + c[2]/j^3 + c[3]/j^4
@@ -175,7 +173,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 			for (k = k_low; k < nterms + 1; k += 2) {
 				j = k + one;
-				cache_ptr->wwork[k] = j * logz_stripped - lgammas[j] - LGAMMA_FAST(-a * j);
+				cache_ptr->wwork[k] = j * logz_stripped - lgammas[j] - LGAMMAfn(-a * j);
 
 				if (k > k_low) {
 					// no need to check before around here
@@ -192,7 +190,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 							cache_ptr->wwork[k - 1] = estimate + correction;
 						} else {
 							int jj = j - 1.0;
-							cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMA_FAST(-a * jj);
+							cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMAfn(-a * jj);
 							if (ABS(cache_ptr->wwork[k - 1] - (estimate + correction)) < limit) {
 								// from here on, we can safely use interpolation
 								cache_ptr->interpolation_ok = 1;
@@ -203,7 +201,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 						}
 					} else {
 						int jj = j - 1.0;
-						cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMA_FAST(-a * jj);
+						cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMAfn(-a * jj);
 					}
 				}
 			}

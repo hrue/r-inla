@@ -103,24 +103,61 @@ double inla_logcdf_normal_fast(double x)
 	}
 }
 
-double inla_lgamma_fast(double x)
+double inla_lgamma_fast1(double x)
 {
-	// this is the Gergo Nemes (2007) approximation from
-	// https://en.wikipedia.org/wiki/Stirling's_approximation
+	// this is the G.Nemes (2007) approximation from https://en.wikipedia.org/wiki/Stirling's_approximation
 
 	if (round(x) == x) {
-		return (gsl_sf_lngamma(x));
+		return gsl_sf_lnfact((int)x - 1);
 	}
 
 	double val;
 	if (x < 1.0) {
-		val = gsl_sf_lngamma(x);
+		val = LGAMMAfn(x);
 	} else {
 		double lx = log(x);
 		val = 0.5 * (LOG2PI - lx) + x * (log(x + 1.0 / (12.0 * x - 0.1 / x)) - 1.0);
 	}
 	return (val);
 }
+
+double inla_gamma_fast1(double x) 
+{
+	return (exp(inla_lgamma_fast1(x)));
+}
+
+double inla_lgamma_fast2(double x)
+{
+	if (unlikely(x <= 0.0)) {
+		return lgamma(x);
+	}
+
+	const double p[] = {
+		1.000000000190015,
+		76.18009172947146,
+		-86.50532032941677,
+		24.01409824083091,
+		-1.231739572450155,
+		0.1208650973866179e-2,
+		-0.5395239384953e-5
+	};
+
+	double tmp = x + 5.5;
+	tmp -= (x + 0.5) * log(tmp);
+    
+	double ser = p[0];
+	for (int i = 1; i <= 6; ++i) {
+		ser += p[i] / (x+i);
+	}
+    
+	return -tmp + log(2.5066282746310005 * ser / x);
+}
+
+double inla_gamma_fast2(double x) 
+{
+	return (exp(inla_lgamma_fast2(x)));
+}
+
 
 double inla_ipow(double x, int k)
 {
