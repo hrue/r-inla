@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
-## Stamp rinla/DESCRIPTION's Version from the latest release tag.
+## Keep rinla/DESCRIPTION's Version, and the binary release it names, correct.
 ##
-## The R package version is maintained by hand, so it goes stale: devel
-## carried 25.07.11.9000 for thirteen months while releases 26.08.07 and
-## 26.08.22 shipped, which means anything installed from a checkout
-## (R CMD INSTALL rinla, devtools::load_all) reported a version from the
-## previous year.
+## A version comes from exactly two places: a release tag, or --release when a
+## release is being cut. Never from a clock. It used to be stamped with the
+## HEAD commit's date, or today's date from the commit hook, which meant it
+## moved on every commit with no release happening, two different builds could
+## claim the same released number, and it could go BACKWARDS when a machine's
+## date disagreed, so a correct dependency like INLA (>= 26.09.08) was
+## rejected for a package that really was 26.09.08.
 ##
-## The release tags already are the source of truth and match the
-## published packages one for one (tag v26.08.22 <-> INLA_26.08.22), so
-## derive from them rather than keeping a second copy in step by hand:
+##     at a tag        the tag's version
+##     --release       the next unused number for today
+##     anything else   unchanged: it belongs to the last release
 ##
-##     Version: <YY.MM.DD of HEAD, or the tag when HEAD is tagged>
+## Version and Config/INLA/BinaryVersion are always the same string, so one
+## number identifies the R package and the binary that belongs with it. The
+## rule that creates: every release must publish binaries, because that field
+## names a release tag which has to exist.
 ##
-## No development suffix: the built binary reports this exact string.
-## It keeps a checkout build strictly newer than the release it follows,
-## which is what makes an installed devel package win over the released
-## one in version comparisons.
+## No development suffix: the built binary reports this exact string, so
+## anything like .9000 would show up in `inla -V`. The consequence, worth
+## knowing: a package installed from a checkout carries the LAST RELEASE's
+## version, so R cannot tell it apart from the released one by version alone.
+## Use the commit, not the version, to identify a checkout build.
 ##
-## Idempotent: writes only when the value actually changes, so running it
-## on an already-current tree produces no diff. Use --check to report
-## without writing (exit 1 if stale), which is what CI should call.
+## Idempotent: writes only when the value actually changes, so running it on an
+## already-current tree produces no diff. --check reports without writing and
+## exits 1 if wrong, which is what CI calls. --check and --release are mutually
+## exclusive: one verifies the number in use, the other picks an unused one.
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
