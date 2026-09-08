@@ -46,7 +46,7 @@
     cat('\nNo release tarball found; falling back to GitHub.\n')
     cat('Run remotes::install_github("hrue/r-inla", subdir = "rinla", ref = "master")\n')
     cat("If you have 'library(INLA)' in your '~/.Rprofile',  this will fail...\n")
-    cat("On Windows this also needs Developer Mode (the repository has symlinks).\n\n")
+    cat("On Windows you also needs Developer Mode (the repository has symlinks).\n\n")
     remotes::install_github("hrue/r-inla", subdir = "rinla", ref = "master")
     return (invisible())
 }
