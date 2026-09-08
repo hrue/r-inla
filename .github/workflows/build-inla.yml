@@ -1235,7 +1235,8 @@ jobs:
     needs: [linux-x86_64, portable-linux-x86_64, portable-linux-x86_64-modern,
             portable-linux-arm64-modern, macos-arm64, macos-intel,
             windows-x86_64, run-windows, run-portable-x86_64,
-            run-portable-modern]
+            run-portable-modern,
+            run-portable-models]
     runs-on: ubuntu-latest
     permissions:
       contents: write
