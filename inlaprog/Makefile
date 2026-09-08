@@ -59,7 +59,7 @@ HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.
 	src/inla.h src/param-constr.h src/quantile-regression.h src/spde3.h  src/tweedie.h \
 	src/cgeneric.h src/fgn-code.h src/fgn-tables-4.h src/link-gevit.h src/pc-powerlink.h \
 	src/R-interface.h src/spde.h src/dictionary.h src/fgn.h src/fgn-tables.h src/my-fix.h \
-	src/pc-priors.h src/rmath.h src/stochvol.h
+	src/pc-priors.h src/rmath.h src/stochvol.h src/inla-special-functions.h 
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
