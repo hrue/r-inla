@@ -336,7 +336,24 @@
             unlink(latest, recursive = TRUE, force = TRUE)
         ## Relative target: the link (and the cache root, if the user ever
         ## relocates it) keeps working without repointing.
-        made <- tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE)
+        ## suppressWarnings, not just tryCatch: on Windows file.symlink()
+        ## does not raise an error, it WARNS and returns FALSE. The warning is
+        ## deferred to the end of the session, so a user saw
+        ##     cannot symlink 'Version_...' to '.../latest', reason
+        ##     'A required privilege is not held by the client'
+        ## printed after a successful install, which reads like a failure. The
+        ## copy below handles it; there is nothing for anyone to act on.
+        ## INLA_STILES_NO_SYMLINK forces the copy branch below. It exists for
+        ## CI: the GitHub Windows runner is an ADMINISTRATOR (runneradmin) and
+        ## therefore holds SeCreateSymbolicLinkPrivilege, so the symlink always
+        ## succeeds there and the fallback that every ordinary Windows user
+        ## takes was never once executed in a test.
+        made <- if (nzchar(Sys.getenv("INLA_STILES_NO_SYMLINK"))) {
+            FALSE
+        } else {
+            suppressWarnings(
+                tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE))
+        }
         if (!isTRUE(made)) {
             ## Symlinks need a privilege Windows does not always grant; a
             ## real copy costs disk (one release, ~100 MB) but always works.
