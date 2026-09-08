@@ -195,6 +195,43 @@
         }
     }
 
+    ## CHANNELS. tag can name a release ("Version_26.09.08-3") or one of two
+    ## channels, so a user does not have to know release names at all:
+    ##
+    ##   "stable"   the release marked "latest" on GitHub. That flag is a
+    ##              one-click setting per release and excludes prereleases, so
+    ##              blessing any of the existing builds as stable is done in the
+    ##              release page, with nothing to edit or commit here.
+    ##   "testing"  the newest release by date, prereleases included.
+    ##
+    ## The two coincide until a release is marked prerelease, or until "latest"
+    ## is deliberately pointed at an older build, which is exactly the case
+    ## these names exist for: shipping a tested binary while newer ones are
+    ## published for people who want them.
+    if (!is.null(tag) && tolower(tag) %in% c("stable", "testing")) {
+        chan <- tolower(tag)
+        tag <- if (chan == "stable") {
+            tag_name_of(paste0("https://api.github.com/repos/", repo, "/releases/latest"))
+        } else {
+            ## per_page=1: the newest release of any kind. /releases is ordered
+            ## newest first and, unlike /releases/latest, does not skip
+            ## prereleases.
+            js <- tryCatch(paste(readLines(paste0("https://api.github.com/repos/", repo,
+                                                  "/releases?per_page=1"),
+                                           warn = FALSE), collapse = ""),
+                           error = function(e) NULL)
+            if (is.null(js)) NULL else {
+                m <- regmatches(js, regexpr('"tag_name"[[:space:]]*:[[:space:]]*"[^"]+"', js))
+                if (!length(m)) NULL else sub('.*"([^"]+)"$', "\\1", m)
+            }
+        }
+        if (is.null(tag) || !nzchar(tag)) {
+            stop("could not resolve the '", chan, "' channel from ", repo,
+                 " (no network, or no release is marked as such)")
+        }
+        say("channel:  ", chan, " -> ", tag)
+    }
+
     resolved <- tag
     if (is.null(resolved)) {
         ## Default to the release that MATCHES THIS R PACKAGE, not merely the
@@ -332,8 +369,38 @@
     alive <- any(grepl("ALIVE", ping))
     if (default.dir && is.null(tag) && alive && !identical(basename(dir), "latest")) {
         latest <- file.path(dirname(dir), "latest")
-        if (file.exists(latest) || nzchar(Sys.readlink(latest)))
-            unlink(latest, recursive = TRUE, force = TRUE)
+        ## Remove whatever is there, symlink or directory, and VERIFY it went.
+        ##
+        ## On Windows a directory symlink is a reparse point, and R's own
+        ## unlink() can fail on it:
+        ##     cannot delete reparse point ... mismatch between the tag
+        ##     specified in the request and the tag present
+        ## It warns and returns as if nothing happened, so the stale link
+        ## survived and the copy below wrote into a symlink, dying with the
+        ## unhelpful "more 'from' files than 'to' files".
+        ##
+        ## Which call succeeds depends on how the link was made (symlink or
+        ## junction) and on the Windows version, so try the plausible ones in
+        ## order and CHECK after each rather than trusting any single one.
+        ## Nothing here can be tested on Linux: the failure needs a reparse
+        ## point, so the Windows lane is the only real test.
+        ## Sys.readlink() returns "" for a real file, the target for a link,
+        ## and NA when the path does not exist. nzchar(NA) is TRUE, so the
+        ## obvious !nzchar(Sys.readlink(x)) test reports "still there" for a
+        ## path that is already gone. Handle the NA explicitly.
+        gone <- function() {
+            rl <- suppressWarnings(Sys.readlink(latest))
+            is_link <- !is.na(rl) && nzchar(rl)
+            !file.exists(latest) && !is_link
+        }
+        if (!gone()) suppressWarnings(unlink(latest, recursive = TRUE, force = TRUE))
+        if (!gone()) suppressWarnings(unlink(latest, force = TRUE))
+        if (!gone()) suppressWarnings(try(file.remove(latest), silent = TRUE))
+        if (!gone()) {
+            stop("could not replace the stable path '", latest, "'.\n",
+                 "  Delete it by hand and re-run: unlink(\"", latest, "\")\n",
+                 "  or, on Windows: rmdir \"", gsub("/", "\\\\", latest), "\"")
+        }
         ## Relative target: the link (and the cache root, if the user ever
         ## relocates it) keeps working without repointing.
         ## suppressWarnings, not just tryCatch: on Windows file.symlink()
@@ -363,6 +430,12 @@
             ## CONTENTS into a freshly made "latest" instead.
             say("symlink unavailable, copying to 'latest' instead")
             dir.create(latest, recursive = TRUE, showWarnings = FALSE)
+            ## file.copy() needs `to` to be one EXISTING directory, otherwise it
+            ## pairs from/to elementwise and fails with "more 'from' files than
+            ## 'to' files", which says nothing about the real cause. Check it.
+            if (!dir.exists(latest)) {
+                stop("could not create the stable path '", latest, "'")
+            }
             ok <- file.copy(list.files(dir, full.names = TRUE), latest,
                             recursive = TRUE, copy.mode = TRUE)
             if (!all(ok)) warning("copying to 'latest' was incomplete")
