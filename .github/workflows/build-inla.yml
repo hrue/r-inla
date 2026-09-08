@@ -782,9 +782,34 @@ jobs:
       - name: Install git for the checkout
         run: dnf -y install git-core
       - uses: actions/checkout@v4
+      ## Cache the whole dependency tree. Every block in ci/deps-mingw.sh is
+      ## guarded by "is it already there", so a restored cache short-circuits
+      ## all of them and the step becomes a no-op.
+      ##
+      ## This exists because the step started TIMING OUT. Building OpenBLAS
+      ## with runtime dispatch takes most of the budget: 17m27s on a fast
+      ## runner, and the 25 minute cap on a slower one, which is a red board
+      ## caused by nothing but luck. The sTiles workflow caches its OpenBLAS
+      ## for the same reason.
+      ##
+      ## The key hashes the two files that decide what gets built, so any
+      ## change to the recipe or to a pinned version builds fresh. Getting
+      ## that wrong is the classic trap: a stale cache is restored, the change
+      ## appears to do nothing, and it is indistinguishable from the change
+      ## being wrong.
+      - name: Cache the mingw dependency tree
+        id: mingw-deps-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/mingw-deps
+          key: mingw-deps-${{ hashFiles('ci/deps-mingw.sh', 'ci/toolchain.env') }}
+
       - name: System dependencies
-        ## a wedged package manager should fail fast, not hang for hours
-        timeout-minutes: 25
+        ## a wedged package manager should fail fast, not hang for hours.
+        ## 45, not 25: a cold cache has to cross-build OpenBLAS, gsl, metis,
+        ## muparser, mimalloc and Rmath, and 25 was not enough for that even
+        ## when nothing was wrong.
+        timeout-minutes: 45
         run: bash ci/deps-mingw.sh
       ## SSH -> https for the external packages' clone URLs (no keys on a
       ## runner), and https -> authenticated https so every GitHub fetch
