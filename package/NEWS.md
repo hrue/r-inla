@@ -1,3 +1,16 @@
+# INLA 26.09.08-3
+* rgeneric now works on Windows. The binary used to link R's BLAS, which
+  pulled a second copy of R.dll in beside the executable; rgeneric then loaded
+  the R that was actually running, and two R runtimes in one process aborted
+  every fit. It now links its own BLAS and ships no R library at all.
+* The R package can be installed from GitHub on Windows:
+      remotes::install_github("hrue/r-inla", subdir = "package")
+  The repository's symlinks made tar.exe abort before this.
+* inla.mode is honoured again: "classic" now selects classic mode instead of
+  silently running compact.
+* Config/INLA/BinaryVersion always matches the package Version, so one number
+  identifies the R package and the binary that belongs with it.
+
 # INLA 26.09.08-2
 * More work on the installation
 
@@ -14,6 +27,12 @@
 # INLA 26.09.07
 * internal testing only
 
+# INLA 26.09.06-4
+* inla.stiles.install() now finds the binary in the flat Windows bundle layout.
+
+# INLA 26.09.06-3
+* The R package is now attached to each release as a source tarball, so
+  installing on Windows no longer requires Developer Mode.
 # INLA 26.09.06-2
 * Build test
 
