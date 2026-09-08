@@ -2155,25 +2155,15 @@
         arg.s <- ""
     }
 
-    ## The mode is NOT passed to the binary, and has not been for some time.
-    ## It used to travel as the ARGUMENT of -P, where the C side discarded it:
-    ## nothing in inlaprog parses "compact", "classic" or "twostage", and main()
-    ## sets GMRFLib_inla_mode = GMRFLib_MODE_COMPACT unconditionally.
-    ##
-    ## -P then became a flag (it locks threads to the P-cores), so the mode
-    ## string stopped being swallowed as its argument and arrived as a stray
-    ## positional one, which aborts the binary before it reads anything:
-    ##     assert(my_dir_exists(argv[arg]) == INLA_OK ||
-    ##            my_file_exists(argv[arg]) == INLA_OK)
-    ## Every inla() call died there, on every platform.
-    ##
-    ## Not passing it changes no behaviour, because the value was already
-    ## ignored. The check below stays: it still rejects a typo in inla.mode
-    ## rather than accepting it silently.
-    if (!(inla.mode %in% c("classic", "twostage", "compact"))) {
+    if (inla.mode %in% "classic") {
+        arg.P <- "-P classic"
+    } else if (inla.mode %in% "twostage") {
+        arg.P <- "-P twostage"
+    } else if (inla.mode %in% "compact") {
+        arg.P <- "-P compact"
+    } else {
         stop("Unknown 'inla.mode'")
     }
-    arg.P <- ""
 
     ## collect all. we might add '-p' later if inla.call="submit"
     all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.P, sep = " ")
