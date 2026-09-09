@@ -1,27 +1,39 @@
 #!/usr/bin/env bash
-set -vx
 
 DD=""
 for p in *; do
     if [ -d "$p" -a -f "$p/Makefile" ]; then
 	echo -e "\n\tProcess package [$p]\n"
-	DD="$p $DD"
 	(
 	    cd $p
 	    make download "$@"
 	    find . -name cgeneric.h | while read f; do  mv -vf "$f" "$f"-disabled; done
 	    make build "$@"
-	)
+	) && {
+	    echo -e "\n\tPackage [$p] OK and will be included\n"
+	    DD="$p $DD"
+	} || {
+	    echo -e "\n\tPackage [$p] FAIL and will NOT be included\n"
+	}
     fi
 done
 
-./update-cgeneric
+echo -e "\n\tList of included package:"
+for D in $DD; do
+    echo -e "\t\t[$D]"
+done
+echo 
+
+./update-cgeneric $DD
 
 for D in $DD; do 
     (
 	cd $D
 	L=lib$D.a
-	find . -name \*.o | while read f; do ar crvs $L "$f"; done
+	echo -e "\n\tCreate library [$D]\n"
+	find . -name \*.o | while read f; do 
+	    ar crvs $L "$f"
+	done
 	mv -v -f $L ..
     )
 done
