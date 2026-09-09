@@ -3090,6 +3090,7 @@ int testit(int argc, char **argv)
 		tref[1] = -GMRFLib_timer();
 		for (int i = 0; i < n; i++) {
 			sum += lgamma(y[i]);
+			//sum += gsl_sf_lngamma(y[i]);
 		}
 		tref[1] += GMRFLib_timer();
 		P(sum);
