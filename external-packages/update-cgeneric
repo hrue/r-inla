@@ -10,50 +10,58 @@ done
 
 ## CGENERIC
 {
-    for f in $(find . -name FUNCTIONS); do
-	if [ -f "$f" ]; then 
-	    echo Process $f >&2 
-	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
-		sort | uniq | tr -d ';' | \
-		awk '/^[ \t]*#/ {next}
-    	    { print "{ \"" $1 "\", (inla_cgeneric_func_tp *)" $1 " }," }'
-	fi
+    for d in "$@"; do
+	for f in $(find "$d" -name FUNCTIONS); do
+	    if [ -f "$f" ]; then 
+		echo Process $f >&2 
+		cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		    sort | uniq | tr -d ';' | \
+		    awk '/^[ \t]*#/ {next}
+		    	{ print "{ \"" $1 "\", (inla_cgeneric_func_tp *)" $1 " }," }'
+	    fi
+	done
     done
 } | sort | uniq > $h
 
 {
-    for f in $(find . -name FUNCTIONS); do
-	if [ -f "$f" ]; then 
-	    echo Process $f >&2 
-	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
-		sort | uniq | tr -d ';' | \
-		awk '/^[ \t]*#/ {next}
-    	    { print "inla_cgeneric_func_tp " $1 ";" }'
-	fi
+    for d in "$@"; do
+	for f in $(find "$d" -name FUNCTIONS); do
+	    if [ -f "$f" ]; then 
+		echo Process $f >&2 
+		cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		    sort | uniq | tr -d ';' | \
+		    awk '/^[ \t]*#/ {next}
+   		     	{ print "inla_cgeneric_func_tp " $1 ";" }'
+	    fi
+	done
     done
 } | sort | uniq > $hh
 
 ## CLOGLIKE
 {
-    for f in $(find . -name CLOGLIKE); do
-	if [ -f "$f" ]; then 
-	    echo Process $f >&2 
-	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
-		sort | uniq | tr -d ';' | \
-		awk '/^[ \t]*#/ {next}
-    	    { print "{ \"" $1 "\", (inla_cloglike_func_tp *)" $1 " }," }'
-	fi
+    for d in "$@"; do
+	for f in $(find "$d" -name CLOGLIKE); do
+	    if [ -f "$f" ]; then 
+		echo Process $f >&2 
+		cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		    sort | uniq | tr -d ';' | \
+		    awk '/^[ \t]*#/ {next}
+    	    	    	{ print "{ \"" $1 "\", (inla_cloglike_func_tp *)" $1 " }," }'
+	    fi
+	done
     done
 } | sort | uniq > $H
 
 {
-    for f in $(find . -name CLOGLIKE); do
-	if [ -f "$f" ]; then 
-	    echo Process $f >&2 
-	    cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
-		sort | uniq | tr -d ';' | \
-		awk '/^[ \t]*#/ {next}
-    	    { print "inla_cloglike_func_tp " $1 ";" }'
-	fi
+    for d in "$@"; do
+	for f in $(find . -name CLOGLIKE); do
+	    if [ -f "$f" ]; then 
+		echo Process $f >&2 
+		cat "$f" | awk '{for (i = 1;i <=NF; i++) print $i}' | \
+		    sort | uniq | tr -d ';' | \
+		    awk '/^[ \t]*#/ {next}
+    	    	    	{ print "inla_cloglike_func_tp " $1 ";" }'
+	    fi
+	done
     done
 } | sort | uniq > $HH
