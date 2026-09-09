@@ -1,3 +1,12 @@
+# INLA 26.09.09
+* More work on the installation
+
+# INLA 26.09.08-3
+* Windows: rgeneric works again; the binary no longer loads a second R.dll.
+* Windows: install with remotes::install_github("hrue/r-inla", subdir = "package").
+* inla.mode is honoured again; "classic" no longer runs compact.
+* The package version and the binary release it needs are now the same number.
+
 # INLA 26.09.08-2
 * More work on the installation
 

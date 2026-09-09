@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "inla.h"
+#include "inla-special-functions.h"
 #include "my.h"
 #include "my-fix.h"
 #include "GMRFLib/GMRFLib.h"
@@ -99,7 +100,7 @@ double my_gsl_sf_lnfact(int x)
 double my_gsl_sf_lngamma(double x)
 {
 	if (round(x) != x) {
-		return gsl_sf_lngamma(x);
+		return LGAMMAfn(x);
 	} else {
 		// x is an int, then use the cached values
 
@@ -120,7 +121,7 @@ double my_gsl_sf_lngamma(double x)
 			}
 		}
 		if (x >= nmax) {
-			return gsl_sf_lngamma(x);
+			return LGAMMAfn(x);
 		} else {
 			return lng[(int) round(x)];
 		}

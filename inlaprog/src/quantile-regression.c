@@ -8,6 +8,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/density.h"
 #include "quantile-regression.h"
+#include "inla-special-functions.h"
 
 double inla_pcontpois(double y, double lambda)
 {
@@ -18,7 +19,7 @@ double inla_pcontpois(double y, double lambda)
 double inla_pcontpois_deriv(double y, double lambda)
 {
 	// the derivative of the cdf for the continous poisson, wrt lambda
-	return (-exp((y - 1.0) * log(lambda) - lambda - gsl_sf_lngamma(y)));
+	return (-exp((y - 1.0) * log(lambda) - lambda - LGAMMAfn(y)));
 }
 
 double inla_qcontpois(double quantile, double alpha, double *initial_guess)

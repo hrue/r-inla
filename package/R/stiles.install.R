@@ -195,6 +195,56 @@
         }
     }
 
+    ## CHANNELS. tag can name a release ("Version_26.09.08-3") or one of two
+    ## channels, so a user does not have to know release names at all:
+    ##
+    ##   "stable"   the release marked "latest" on GitHub. That flag is a
+    ##              one-click setting per release and excludes prereleases, so
+    ##              blessing any of the existing builds as stable is done in the
+    ##              release page, with nothing to edit or commit here.
+    ##   "testing"  the newest release by date, prereleases included.
+    ##
+    ## The two coincide until a release is marked prerelease, or until "latest"
+    ## is deliberately pointed at an older build, which is exactly the case
+    ## these names exist for: shipping a tested binary while newer ones are
+    ## published for people who want them.
+    ## A channel name in `dir` is always a mistake. It happens when both a
+    ## positional value and a named tag are given:
+    ##     inla.stiles.install("stable", tag = "Version_26.09.07-1")
+    ## R matches the NAMED argument first, so "stable" falls through to the
+    ## next free parameter, which is dir. That would install into a folder
+    ## called "stable" in the working directory, with no error, which is not
+    ## what anyone means. There is only one slot: a channel IS a tag.
+    if (!is.null(dir) && tolower(dir) %in% c("stable", "testing")) {
+        stop("'", dir, "' is a channel, not a directory. It belongs in `tag`:\n",
+             "  inla.stiles.install(\"", tolower(dir), "\")\n",
+             "A channel and a tag are the same argument, so pass only one.")
+    }
+
+    if (!is.null(tag) && tolower(tag) %in% c("stable", "testing")) {
+        chan <- tolower(tag)
+        tag <- if (chan == "stable") {
+            tag_name_of(paste0("https://api.github.com/repos/", repo, "/releases/latest"))
+        } else {
+            ## per_page=1: the newest release of any kind. /releases is ordered
+            ## newest first and, unlike /releases/latest, does not skip
+            ## prereleases.
+            js <- tryCatch(paste(readLines(paste0("https://api.github.com/repos/", repo,
+                                                  "/releases?per_page=1"),
+                                           warn = FALSE), collapse = ""),
+                           error = function(e) NULL)
+            if (is.null(js)) NULL else {
+                m <- regmatches(js, regexpr('"tag_name"[[:space:]]*:[[:space:]]*"[^"]+"', js))
+                if (!length(m)) NULL else sub('.*"([^"]+)"$', "\\1", m)
+            }
+        }
+        if (is.null(tag) || !nzchar(tag)) {
+            stop("could not resolve the '", chan, "' channel from ", repo,
+                 " (no network, or no release is marked as such)")
+        }
+        say("channel:  ", chan, " -> ", tag)
+    }
+
     resolved <- tag
     if (is.null(resolved)) {
         ## Default to the release that MATCHES THIS R PACKAGE, not merely the
@@ -205,12 +255,21 @@
         ## DESCRIPTION rather than packageVersion(), because R normalises
         ## "26.09.03" to "26.9.3" and the tag keeps the zeros.
         ## Which BINARY release this R package needs, declared in DESCRIPTION
-        ## as Config/INLA/BinaryVersion. Deliberately NOT the package's own
-        ## Version: the R code is edited far more often than the solver, and
-        ## most of those edits need no new binary at all. Tying the two would
-        ## force a binary release for every R fix. Bump the field only when a
-        ## change actually requires a new binary. Falls back to the package
-        ## version for an installation predating the field.
+        ## as Config/INLA/BinaryVersion. It is now always the SAME string as
+        ## the package's own Version: one number identifies the R package and
+        ## the binary that belongs with it.
+        ##
+        ## It used to move only when the C sources changed, so an R-only fix
+        ## did not force a binary release. That left two similar-looking dates
+        ## that disagreed (Version 26.09.07-1 against BinaryVersion 26.09.07),
+        ## and no way to say which one identified what a user had.
+        ##
+        ## The rule this creates: every release must publish binaries, since
+        ## this field names a release tag that has to exist.
+        ##
+        ## Read through this field rather than Version anyway, so an
+        ## installation predating the change still works, and so the pairing
+        ## has one authority.
         pv <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
                        error = function(e) NULL)
         if (is.null(pv) || !nzchar(pv)) {
@@ -323,11 +382,58 @@
     alive <- any(grepl("ALIVE", ping))
     if (default.dir && is.null(tag) && alive && !identical(basename(dir), "latest")) {
         latest <- file.path(dirname(dir), "latest")
-        if (file.exists(latest) || nzchar(Sys.readlink(latest)))
-            unlink(latest, recursive = TRUE, force = TRUE)
+        ## Remove whatever is there, symlink or directory, and VERIFY it went.
+        ##
+        ## On Windows a directory symlink is a reparse point, and R's own
+        ## unlink() can fail on it:
+        ##     cannot delete reparse point ... mismatch between the tag
+        ##     specified in the request and the tag present
+        ## It warns and returns as if nothing happened, so the stale link
+        ## survived and the copy below wrote into a symlink, dying with the
+        ## unhelpful "more 'from' files than 'to' files".
+        ##
+        ## Which call succeeds depends on how the link was made (symlink or
+        ## junction) and on the Windows version, so try the plausible ones in
+        ## order and CHECK after each rather than trusting any single one.
+        ## Nothing here can be tested on Linux: the failure needs a reparse
+        ## point, so the Windows lane is the only real test.
+        ## Sys.readlink() returns "" for a real file, the target for a link,
+        ## and NA when the path does not exist. nzchar(NA) is TRUE, so the
+        ## obvious !nzchar(Sys.readlink(x)) test reports "still there" for a
+        ## path that is already gone. Handle the NA explicitly.
+        gone <- function() {
+            rl <- suppressWarnings(Sys.readlink(latest))
+            is_link <- !is.na(rl) && nzchar(rl)
+            !file.exists(latest) && !is_link
+        }
+        if (!gone()) suppressWarnings(unlink(latest, recursive = TRUE, force = TRUE))
+        if (!gone()) suppressWarnings(unlink(latest, force = TRUE))
+        if (!gone()) suppressWarnings(try(file.remove(latest), silent = TRUE))
+        if (!gone()) {
+            stop("could not replace the stable path '", latest, "'.\n",
+                 "  Delete it by hand and re-run: unlink(\"", latest, "\")\n",
+                 "  or, on Windows: rmdir \"", gsub("/", "\\\\", latest), "\"")
+        }
         ## Relative target: the link (and the cache root, if the user ever
         ## relocates it) keeps working without repointing.
-        made <- tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE)
+        ## suppressWarnings, not just tryCatch: on Windows file.symlink()
+        ## does not raise an error, it WARNS and returns FALSE. The warning is
+        ## deferred to the end of the session, so a user saw
+        ##     cannot symlink 'Version_...' to '.../latest', reason
+        ##     'A required privilege is not held by the client'
+        ## printed after a successful install, which reads like a failure. The
+        ## copy below handles it; there is nothing for anyone to act on.
+        ## INLA_STILES_NO_SYMLINK forces the copy branch below. It exists for
+        ## CI: the GitHub Windows runner is an ADMINISTRATOR (runneradmin) and
+        ## therefore holds SeCreateSymbolicLinkPrivilege, so the symlink always
+        ## succeeds there and the fallback that every ordinary Windows user
+        ## takes was never once executed in a test.
+        made <- if (nzchar(Sys.getenv("INLA_STILES_NO_SYMLINK"))) {
+            FALSE
+        } else {
+            suppressWarnings(
+                tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE))
+        }
         if (!isTRUE(made)) {
             ## Symlinks need a privilege Windows does not always grant; a
             ## real copy costs disk (one release, ~100 MB) but always works.
@@ -337,6 +443,12 @@
             ## CONTENTS into a freshly made "latest" instead.
             say("symlink unavailable, copying to 'latest' instead")
             dir.create(latest, recursive = TRUE, showWarnings = FALSE)
+            ## file.copy() needs `to` to be one EXISTING directory, otherwise it
+            ## pairs from/to elementwise and fails with "more 'from' files than
+            ## 'to' files", which says nothing about the real cause. Check it.
+            if (!dir.exists(latest)) {
+                stop("could not create the stable path '", latest, "'")
+            }
             ok <- file.copy(list.files(dir, full.names = TRUE), latest,
                             recursive = TRUE, copy.mode = TRUE)
             if (!all(ok)) warning("copying to 'latest' was incomplete")

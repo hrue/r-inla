@@ -7265,7 +7265,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLPWC")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:QWC")) != -1) {
 		switch (opt) {
 		case 'C':
 		{
@@ -7290,6 +7290,18 @@ int main(int argc, char **argv)
 			break;
 
 		case 'P':
+		{
+                        if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
+                                GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
+                        } else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
+                                GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
+                        } else {
+                                assert(0 == 1);
+                        }
+                }
+                        break;
+
+		case 'Q': 
 		{
 			int status = inla_lock_to_p_cores();
 			if (verbose > 0) {
