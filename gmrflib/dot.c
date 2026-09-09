@@ -21,14 +21,10 @@
 
 #define SUM_CORE_UNROLL(TYPE_, n_)				\
 	TYPE_ r = 0;						\
-	int m = (n_) % 8;					\
-	int i = 0;						\
-	for (; i < m; i++) {					\
-		r += x[i];					\
-	}							\
 	TYPE_ s0 = 0, s1 = 0, s2 = 0, s3 = 0;			\
 	TYPE_ s4 = 0, s5 = 0, s6 = 0, s7 = 0;			\
-	for (; i < n_; i += 8) {				\
+	int i = 0;						\
+	for (; i < (n_) - 8; i += 8) {				\
 		s0 += x[i];					\
 		s1 += x[i + 1];					\
 		s2 += x[i + 2];					\
@@ -37,6 +33,9 @@
 		s5 += x[i + 5];					\
 		s6 += x[i + 6];					\
 		s7 += x[i + 7];					\
+	}							\
+	for (; i < n_; i++) {					\
+		r += x[i];					\
 	}							\
 	r += (s0 + s1 + s2 + s3) + (s4 + s5 + s6 + s7);		\
 	return r
@@ -48,8 +47,7 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	if (n <= 0) return 0.0;
-	if (likely(n <= 16) || unlikely(n > 4444)) {
+	if (likely(n <= 64) || unlikely(n > 4444)) {
 		SUM_CORE_UNROLL(double, n);
 	}
 
@@ -95,7 +93,6 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum_v2(int n, const double *x)
 {
-	if (n <= 0) return 0.0;
 	SUM_CORE_UNROLL(double, n);
 }
 #pragma GCC diagnostic pop

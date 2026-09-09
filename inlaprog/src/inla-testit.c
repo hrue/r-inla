@@ -5625,11 +5625,15 @@ int testit(int argc, char **argv)
 		int *ix = Calloc(n + 1, int);
 
 		double tref[3] = {0};
-		
+		double err = 0, ierr = 0;
 		for (int i = 0; i < m; i++) {
+			double ref = 0.0;
+			double iref = 0.0;
 			for (int j = 0; j < n; j++) {
 				x[j] = GMRFLib_uniform();
 				ix[j] = (int) (1000 * GMRFLib_uniform());
+				ref += x[j];
+				iref += ix[j];
 			}
 
 			tref[0] -= GMRFLib_timer();
@@ -5643,7 +5647,12 @@ int testit(int argc, char **argv)
 			tref[2] -= GMRFLib_timer();
 			GMRFLib_isum(n, ix);
 			tref[2] += GMRFLib_timer();
+
+			err += ABS(GMRFLib_dsum(n, x) - ref);
+			ierr += ABS(GMRFLib_isum(n, ix) - iref);
 		}
+		P(err/n);
+		P(ierr/n);
 		printf("dsum %f dsum_v2 %f isum %f\n", tref[0], tref[1], tref[2]);
 	}
 		break;
