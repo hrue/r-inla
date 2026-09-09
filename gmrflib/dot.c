@@ -47,10 +47,20 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	if (likely(n <= 64) || unlikely(n > 4444)) {
+	if (likely(n <= 64)) {
 		SUM_CORE_UNROLL(double, n);
+	} else {
+		return GMRFLib_dsum_ext(n, x);
 	}
+}
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_dsum_ext(int n, double *x)
+{
 #if defined(INLA_WITH_OPENBLAS) || defined(INLA_WITH_DSUM)
 	double cblas_dsum(int, double *, int);
 	return cblas_dsum(n, x, 1);
@@ -82,18 +92,8 @@ double GMRFLib_dsum(int n, double *x)
 	n -= k;
 #       include "intrinsics/simde/dsum-sse2.h"
 #else
-	SUM_CORE(double, n);
-#endif
-}
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_dsum_v2(int n, const double *x)
-{
 	SUM_CORE_UNROLL(double, n);
+#endif
 }
 #pragma GCC diagnostic pop
 

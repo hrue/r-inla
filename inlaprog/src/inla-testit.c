@@ -5641,7 +5641,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-			GMRFLib_dsum_v2(n, x);
+			GMRFLib_dsum_ext(n, x);
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();
@@ -5653,7 +5653,7 @@ int testit(int argc, char **argv)
 		}
 		P(err/n);
 		P(ierr/n);
-		printf("dsum %f dsum_v2 %f isum %f\n", tref[0], tref[1], tref[2]);
+		printf("dsum %f dsum_ext %f isum %f\n", tref[0], tref[1], tref[2]);
 	}
 		break;
 
