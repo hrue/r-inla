@@ -1,3 +1,6 @@
+# INLA 26.09.09
+* More work on the installation
+
 # INLA 26.09.08-3
 * Windows: rgeneric works again; the binary no longer loads a second R.dll.
 * Windows: install with remotes::install_github("hrue/r-inla", subdir = "package").
