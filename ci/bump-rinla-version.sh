@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
-## Stamp rinla/DESCRIPTION's Version from the latest release tag.
+## Keep rinla/DESCRIPTION's Version, and the binary release it names, correct.
 ##
-## The R package version is maintained by hand, so it goes stale: devel
-## carried 25.07.11.9000 for thirteen months while releases 26.08.07 and
-## 26.08.22 shipped, which means anything installed from a checkout
-## (R CMD INSTALL rinla, devtools::load_all) reported a version from the
-## previous year.
+## A version comes from exactly two places: a release tag, or --release when a
+## release is being cut. Never from a clock. It used to be stamped with the
+## HEAD commit's date, or today's date from the commit hook, which meant it
+## moved on every commit with no release happening, two different builds could
+## claim the same released number, and it could go BACKWARDS when a machine's
+## date disagreed, so a correct dependency like INLA (>= 26.09.08) was
+## rejected for a package that really was 26.09.08.
 ##
-## The release tags already are the source of truth and match the
-## published packages one for one (tag v26.08.22 <-> INLA_26.08.22), so
-## derive from them rather than keeping a second copy in step by hand:
+##     at a tag        the tag's version
+##     --release       the next unused number for today
+##     anything else   unchanged: it belongs to the last release
 ##
-##     Version: <YY.MM.DD of HEAD, or the tag when HEAD is tagged>
+## Version and Config/INLA/BinaryVersion are always the same string, so one
+## number identifies the R package and the binary that belongs with it. The
+## rule that creates: every release must publish binaries, because that field
+## names a release tag which has to exist.
 ##
-## No development suffix: the built binary reports this exact string.
-## It keeps a checkout build strictly newer than the release it follows,
-## which is what makes an installed devel package win over the released
-## one in version comparisons.
+## No development suffix: the built binary reports this exact string, so
+## anything like .9000 would show up in `inla -V`. The consequence, worth
+## knowing: a package installed from a checkout carries the LAST RELEASE's
+## version, so R cannot tell it apart from the released one by version alone.
+## Use the commit, not the version, to identify a checkout build.
 ##
-## Idempotent: writes only when the value actually changes, so running it
-## on an already-current tree produces no diff. Use --check to report
-## without writing (exit 1 if stale), which is what CI should call.
+## Idempotent: writes only when the value actually changes, so running it on an
+## already-current tree produces no diff. --check reports without writing and
+## exits 1 if wrong, which is what CI calls. --check and --release are mutually
+## exclusive: one verifies the number in use, the other picks an unused one.
 set -e -o pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -37,13 +44,21 @@ for a in "$@"; do
         ## a new day would ship a stale version, which is exactly the case the
         ## CI guard keeps catching.
         --now)   NOW=1 ;;
+        ## Pick the next FREE version for a release today: the plain date if it
+        ## has never been used, else <date>-N with the lowest N that is free.
+        ## Without this the suffix was hand-edited, which is how a number that a
+        ## release branch had already claimed could be reused.
+        --release) RELEASE=1 ;;
         ## Also stamp Config/INLA/BinaryVersion, the field that says which
         ## BINARY release this R package needs. It is deliberately NOT tied to
         ## Version: R-only edits are frequent and need no new solver. Pass this
         ## exactly when the C sources changed, which is when a new binary is
         ## genuinely required; the pre-commit hook decides that by looking at
         ## what is staged.
-        --binary) BINARY=1 ;;
+        ## Accepted and ignored: BinaryVersion now always tracks Version,
+        ## so there is nothing to opt into. Kept so an existing caller
+        ## does not fail on an unknown option.
+        --binary) : ;;
         *) echo "usage: $0 [--check] [--now]" >&2; exit 2 ;;
     esac
 done
@@ -68,29 +83,82 @@ BASE=${BASE#v}
 ## suffix there reads as noise. The date always sorts above the last tag, so
 ## R still sees an upgrade, and it never claims to BE a release the way a
 ## bare tag on a later commit would.
-if [ "$NOW" = 1 ]; then
-    WANT=$(date +%y.%m.%d)
-elif [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
-    WANT="$BASE"
-else
-    WANT=$(git -C "$ROOT" log -1 --format=%cd --date=format:%y.%m.%d 2>/dev/null)
+## --release and --check contradict each other: --release picks the next
+## UNUSED number, so it always reports the current one as stale. The guard is
+## plain --check, which verifies the version that is already set.
+if [ "$RELEASE" = 1 ] && [ "$CHECK" = 1 ]; then
+    echo "usage: --release and --check are mutually exclusive" >&2
+    exit 2
 fi
-[ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
+
+## Read the version that is already set BEFORE deciding what it should be:
+## when nothing decides otherwise, the answer is that it does not change.
 HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 
+if [ "$RELEASE" = 1 ]; then
+    ## Both TAGS and NEWS.md are consulted. Tags alone are not enough: a
+    ## release branch can claim a number and be merged without ever tagging,
+    ## which is exactly how 26.09.08-1 and -2 came to exist with no tag.
+    _base=$(date +%y.%m.%d)
+    _used=$( { git -C "$ROOT" tag --list "Version_${_base}*" | sed 's/^Version_//'
+               grep -oE "^# INLA ${_base}(-[0-9]+)?" "$ROOT/rinla/NEWS.md" 2>/dev/null \
+                   | sed 's/^# INLA //'; } | sort -u )
+    if ! printf '%s\n' "$_used" | grep -qx "$_base"; then
+        WANT="$_base"
+    else
+        _n=1
+        while printf '%s\n' "$_used" | grep -qx "$_base-$_n"; do
+            _n=$((_n + 1))
+        done
+        WANT="$_base-$_n"
+    fi
+elif [ -n "$(git -C "$ROOT" tag --points-at HEAD 2>/dev/null)" ]; then
+    ## At a tag the version IS that release.
+    WANT="$BASE"
+else
+    ## Not at a tag: the version does NOT change. It belongs to the last
+    ## release and stays there until the next one is cut.
+    ##
+    ## It used to come from the clock here (today's date via --now from the
+    ## commit hook, or the HEAD commit's date otherwise), so it moved on every
+    ## commit with no release happening. Two different versions could then
+    ## describe the same released code, and the number could go BACKWARDS when
+    ## a machine's date disagreed, so Depends: INLA (>= 26.09.08) could be
+    ## rejected for a package that really was 26.09.08. A version now comes
+    ## from a tag or from --release, never from a clock.
+    WANT="$HAVE"
+fi
+[ -n "$WANT" ] || { echo "ERROR: could not derive a version"; exit 1; }
 
-## Config/INLA/BinaryVersion: which BINARY release this R package needs. Only
-## touched with --binary, i.e. when the C sources changed in this commit.
+## Config/INLA/BinaryVersion is now ALWAYS the same string as Version.
+##
+## It used to move only when the C sources changed, so that an R-only fix did
+## not force a binary release. The cost was two similar-looking dates that
+## disagreed (Version 26.09.07-1 against BinaryVersion 26.09.07) and nobody
+## could say which number identified what they had. One number now identifies
+## the pair: the R package and the binary it belongs with.
+##
+## THE RULE THIS CREATES: every release must publish binaries. The R package
+## asks for a binary release named by this field, so a release that bumps it
+## without publishing the assets sends users to a tag that does not exist.
+##
+## Takes the version as an argument rather than reading $WANT, because a
+## same-day re-release keeps its suffix (26.09.07-1) and the binary field has
+## to carry the suffix too, not the bare date.
 stamp_binary() {
-    [ "$BINARY" = 1 ] || return 0
+    _want=$1
     bhave=$(awk -F': *' '/^Config\/INLA\/BinaryVersion:/ {print $2; exit}' "$DESC")
     [ -n "$bhave" ] || return 0
-    [ "$bhave" = "$WANT" ] && return 0
+    [ "$bhave" = "$_want" ] && return 0
+    if [ "$CHECK" = 1 ]; then
+        echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion is $bhave, expected $_want" >&2
+        exit 1
+    fi
     btmp=$(mktemp)
-    awk -v want="$WANT" '/^Config\/INLA\/BinaryVersion:/ && !d { print "Config/INLA/BinaryVersion: " want; d=1; next } { print }' \
+    awk -v want="$_want" '/^Config\/INLA\/BinaryVersion:/ && !d { print "Config/INLA/BinaryVersion: " want; d=1; next } { print }' \
         "$DESC" > "$btmp"
     mv "$btmp" "$DESC"
-    echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $WANT (C sources changed)"
+    echo "rinla/DESCRIPTION: Config/INLA/BinaryVersion $bhave -> $_want"
 }
 
 ## A SECOND release on the same day is written <date>-N (26.09.06-2), to match
@@ -101,14 +169,15 @@ stamp_binary() {
 case "$HAVE" in
     "$WANT"-[0-9]*)
         echo "rinla/DESCRIPTION: Version $HAVE is current (same-day re-release of $WANT)"
-        stamp_binary
+        ## the suffixed version is the effective one, so the binary field takes it
+        stamp_binary "$HAVE"
         exit 0
         ;;
 esac
 
 if [ "$HAVE" = "$WANT" ]; then
     echo "rinla/DESCRIPTION: Version $HAVE is current (tag $TAG)"
-    stamp_binary
+    stamp_binary "$HAVE"
     exit 0
 fi
 
@@ -127,4 +196,4 @@ mv "$tmp" "$DESC"
 NOW_HAVE=$(awk -F': *' '/^Version:/ {print $2; exit}' "$DESC")
 [ "$NOW_HAVE" = "$WANT" ] || { echo "ERROR: rewrite failed, Version is still $NOW_HAVE"; exit 1; }
 echo "rinla/DESCRIPTION: Version $HAVE -> $WANT (tag $TAG)"
-stamp_binary
+stamp_binary "$WANT"

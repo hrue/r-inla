@@ -1,997 +1,0 @@
-
-./agaussian.R,55
-`inla.agaussian33,1347
-`inla.agaussian.test73,2553
-
-./ar.R,108
-iinla.ar.pacf2phi37,1397
-iinla.ar.phi2pacf57,1932
-iinla.ar.phi2acf78,2473
-iinla.ar.pacf2acf116,3419
-
-./barrier.R,120
-`inla.barrier.pcmatern46,2088
-`inla.barrier.polygon234,9616
-`inla.barrier.q294,12017
-`inla.barrier.fem348,13970
-
-./binary.install.R,30
-`inla.binary.install37,1637
-
-./binary.R,97
-`inla.interpret.vector5,68
-`inla.interpret.vector.list40,896
-`inla.read.binary.file80,1937
-
-./cgeneric.R,99
-`inla.cgeneric.define20,652
-`inla.cgeneric.convert.arguments65,2037
-`inla.cgeneric.q102,3501
-
-./changelog.R,24
-`inla.changelog11,262
-
-./cloglike.R,72
-`inla.cloglike.define15,468
-`inla.cloglike.convert.arguments45,1288
-
-./collect.results.R,718
-`inla.collect.results14,515
-`inla.collect.misc256,9936
-`inla.collect.logfile763,29183
-`inla.collect.size781,29696
-`inla.collect.hyperid798,30337
-`inla.collect.fixed805,30476
-`inla.collect.lincomb928,35152
-`inla.collect.gcpo1114,42603
-`inla.collect.cpo1163,44084
-`inla.collect.po1215,45749
-`inla.collect.waic1241,46488
-`inla.collect.dic1277,47643
-`inla.collect.q1398,51884
-`inla.collect.graph1443,53192
-`inla.collect.hyperpar1459,53586
-`inla.collect.mlik1628,60735
-`inla.collect.predictor1652,61461
-`inla.collect.random1865,69437
-`inla.collect.spde2.blc2027,76184
-`inla.collect.spde3.blc2186,82520
-`inla.image.reduce2344,88854
-`inla.collect.offset.linear.predictor2356,89191
-
-./compare.results.R,30
-`inla.compare.results19,537
-
-./control.R,705
-cctrl_class9,206
-cctrl_type21,485
-cctrl_type.default27,577
-cctrl_type.character33,705
-cctrl_check43,1154
-cctrl_object114,3651
-cctrl_default135,4238
-cctrl_default_call139,4301
-cctrl_default.character153,4764
-cctrl_default.inla_ctrl_object159,4884
-cctrl_update165,5023
-cctrl_update.inla_ctrl_object175,5447
-cctrl_handle_hyper202,6313
-cctrl_update.ctrl_family218,6633
-cctrl_update.ctrl_mix226,6821
-cctrl_update.ctrl_link234,6981
-cctrl_update.ctrl_lp_scale242,7143
-cctrl_update.ctrl_predictor254,7626
-cctrl_update.ctrl_compute272,8317
-cctrl_update.ctrl_group282,8494
-cctrl_update.ctrl_scopy290,8658
-cctrl_update.ctrl_hazard299,8874
-cctrl_update.ctrl_mode307,9040
-
-./coxph.R,56
-`inla.coxph91,3537
-`inla.rbind.data.frames264,10076
-
-./cpo.R,18
-`inla.cpo32,768
-
-./create.data.file.R,29
-`inla.create.data.file3,22
-
-./cut.R,19
-iinla.cut56,2758
-
-./debug.graph.R,26
-`inla.debug.graph24,634
-
-./dev.new.R,22
-`inla.dev.new12,312
-
-./display.matrix.R,53
-`inla.display.matrix3,23
-`inla.squishplot36,1058
-
-./doc.R,18
-`inla.doc21,670
-
-./dryrun.R,21
-`inla.dryrun17,476
-
-./expand.dataframe.R,135
-`inla.expand.dataframe.13,32
-`inla.get.poisson.data.162,2241
-`inla.expand.dataframe.2117,4720
-`inla.get.poisson.data.2174,7441
-
-./external-package.R,27
-`inla.external.lib13,450
-
-./f.R,88
-`f11,412
-`inla.model.object.classes1124,45051
-`inla.spde.object.classes1133,45334
-
-./fgn.R,42
-`inla.fgn32,1190
-`inla.acvfFGN82,2905
-
-./finn.R,18
-`inla.finn6,129
-
-./fmesher-io.R,181
-`inla.is.fmesher.file6,123
-`inla.read.fmesher.file24,580
-`inla.write.fmesher.file221,6828
-iinla.fmesher.make.dir360,10631
-ffmesher.write374,10883
-ffmesher.read379,11038
-
-./fmesher-transition.R,217
-llocal_inla_options40,1773
-ttestthat_is_testing83,3035
-ttestthat_is_snapshot86,3119
-ttestthat_is_checking90,3266
-ttestthat_is_parallel95,3414
-ttestthat_testing_package100,3562
-ffmesher_deprecate105,3638
-
-./fmesher.R,58
-`inla.fmesher.call3,22
-`inla.fmesher.make.prefix7,147
-
-./graph.convert.R,59
-`inla.geobugs2inla29,1031
-`inla.graph.convert.233,1159
-
-./graph.matrix.R,75
-`inla.matrix2graph52,1766
-`inla.graph2matrix60,1984
-`inla.spy74,2360
-
-./group.cv.R,23
-`inla.group.cv12,342
-
-./group.R,47
-`inla.group32,1087
-`inla.group.dist96,3033
-
-./hyper.R,24
-iinla.set.hyper12,675
-
-./hyperpar.R,23
-`inla.hyperpar19,803
-
-./idx.R,18
-`inla.idx26,878
-
-./iidkd.R,27
-`inla.iidkd.sample20,790
-
-./INLA-package.R,14
-IINLA17,605
-
-./inla.call.R,88
-`inla.call.no.remote1,0
-`inla.fmesher.call.builtin13,528
-`inla.binary.path51,1843
-
-./inla.R,310
-`inla233,12033
-`inla.core447,21854
-`inla.core.safe2511,111570
-`inla.fix.data2693,117890
-`inla.expand.factors2734,119153
-`inla.parse.num.threads2751,119781
-`inla.set.environment2808,121560
-`inla.run.environment.set2822,122004
-`inla.run.environment.unset2853,123175
-`inla.run.many2868,123683
-
-./inlaEnv.R,26
-`inla.get.inlaEnv21,578
-
-./interpret.formula.R,65
-`inla.interpret.formula3,22
-`inla.formula.has.offset185,5953
-
-./jmarginal.R,220
-`inla.rjmarginal89,3223
-`inla.rjmarginal.eval165,5735
-`print.inla.jmarginal212,7453
-`summary.inla.jmarginal222,7674
-`print.summary.inla.jmarginal260,9068
-`inla.tjmarginal268,9228
-`inla.1djmarginal340,11780
-
-./jp.R,24
-`inla.jp.define21,644
-
-./knmodels.R,24
-`inla.knmodels94,4324
-
-./knmodels.sample.R,31
-`inla.knmodels.sample48,1941
-
-./lattice2node.R,191
-`inla.lattice2node.mapping89,3364
-`inla.node2lattice.mapping104,3717
-`inla.lattice2node112,3905
-`inla.node2lattice137,4751
-`inla.matrix2vector153,5231
-`inla.vector2matrix165,5571
-
-./lincomb.R,104
-`inla.make.lincomb22,593
-`inla.make.lincombs60,1593
-`inla.uncbind149,4739
-`inla.unrbind183,5612
-
-./link-functions.R,1046
-`inla.link.cauchit32,1080
-`inla.link.invcauchit41,1289
-`inla.link.log48,1440
-`inla.link.invlog57,1614
-`inla.link.neglog63,1756
-`inla.link.invneglog72,1935
-`inla.link.logit78,2083
-`inla.link.invlogit87,2286
-`inla.link.probit93,2432
-`inla.link.invprobit102,2613
-`inla.link.robit108,2761
-`inla.link.invrobit118,3000
-`inla.link.loglog124,3163
-`inla.link.invloglog133,3354
-`inla.link.cloglog139,3502
-`inla.link.invcloglog148,3702
-`inla.link.ccloglog154,3852
-`inla.link.invccloglog163,4045
-`inla.link.tan169,4197
-`inla.link.invtan178,4384
-`inla.link.tan.pi184,4526
-`inla.link.invtan.pi194,4722
-`inla.link.identity200,4870
-`inla.link.invidentity205,4978
-`inla.link.inverse211,5130
-`inla.link.invinverse216,5241
-`inla.link.invqpoisson222,5391
-`inla.link.sn229,5593
-`inla.link.invsn287,7417
-`inla.link.gevit293,7637
-`inla.link.invgevit332,8846
-`inla.link.cgevit338,9017
-`inla.link.invcgevit348,9300
-`inla.link.invalid355,9503
-`inla.link.invinvalid360,9643
-`inla.link.sn.test365,9769
-
-./list-models.R,26
-`inla.list.models30,907
-
-./load.R,19
-`inla.load15,460
-
-./marginal.R,542
-`inla.marginal.fix114,4639
-`inla.spline147,5927
-`inla.smarginal161,6215
-`inla.sfmarginal197,7514
-`inla.emarginal208,7856
-`inla.dmarginal247,8931
-`inla.pmarginal278,9714
-`inla.qmarginal296,10262
-`inla.hpdmarginal326,11209
-`inla.rmarginal382,13253
-`inla.marginal.transform386,13347
-`inla.deriv.func392,13647
-`inla.tmarginal417,14478
-`inla.mmarginal456,15524
-`inla.zmarginal474,16016
-`inla.is.marginal500,17107
-pplot.inla.marginal516,17517
-ssummary.inla.marginal538,18136
-`inla.plot.inla.marginals564,19195
-
-./mdata.R,95
-`inla.mdata24,819
-`print.inla.mdata56,1764
-`as.inla.mdata63,1945
-`is.inla.mdata84,2586
-
-./merge.R,42
-`merge.inla70,2864
-`inla.merge76,3079
-
-./mesh.components.R,31
-iinla.mesh.components43,1648
-
-./mesh.R,1052
-iinla.mesh.segment41,1335
-llines.inla.mesh.segment78,2425
-iinla.generate.colors138,4051
-pplot.inla.trimesh191,5943
-pplot.inla.mesh286,9090
-iinla.mesh.map.lim369,11238
-iinla.mesh.map405,12534
-iinla.mesh.lattice475,14504
-eextract.groups521,15988
-iinla.mesh535,16359
-iinla.mesh.create647,21515
-iinla.mesh.boundary708,23544
-iinla.mesh.interior724,23876
-iinla.mesh.2d819,27637
-iinla.mesh.create.helper879,29767
-iinla.delaunay906,30418
-iinla.mesh.query960,31706
-ssummary.inla.mesh1107,35823
-pprint.summary.inla.mesh1163,37230
-iinla.mesh.project1281,40792
-iinla.mesh.projector1294,41025
-iinla.mesh.basis1356,43167
-iinla.parse.queries1387,43928
-`inla.fmesher.smorg1463,47146
-iinla.mesh.1d1591,51027
-iinla.mesh.1d.bary1623,51738
-iinla.mesh.1d.A1678,53330
-iinla.mesh.1d.fem1711,54127
-iinla.diameter1747,55189
-iinla.mesh.fem1782,56182
-iinla.mesh.deriv1813,57020
-iinla.simplify.curve1854,58296
-iinla.contour.segment1870,58700
-iinla.nonconvex.hull1954,61802
-iinla.nonconvex.hull.basic1985,62656
-
-./meshassessment.R,31
-iinla.mesh.assessment45,2026
-
-./meshbuilder.R,51
-mmeshbuilder.app26,1195
-mmeshbuilder2086,82422
-
-./model-wrapper.R,26
-`inla.model.wrapper5,76
-
-./models-generate.R,108
-`inla.models.generate.Rd7,190
-`inla.models.generate.tex147,5248
-`inla.models.generate.roxygen204,6873
-
-./models.R,720
-`inla.special.number4,82
-`inla.models.section.latent8,146
-`inla.models.section.group8539,386131
-`inla.models.section.scopy8795,397298
-`inla.models.section.mix8814,397803
-`inla.models.section.link8880,400497
-`inla.models.section.predictor9338,418987
-`inla.models.section.hazard9363,419826
-`inla.models.section.likelihood9419,421990
-`inla.models.section.prior16536,770773
-`inla.models.section.wrapper16811,779892
-`inla.models.section.lp.scale16846,781131
-`inla.models18161,844971
-`inla.is.model18235,848382
-`inla.model.properties18278,849673
-`inla.model.properties.generic18306,850497
-`inla.model.validate.link.function18388,854271
-`inla.model.validate.link.simple.function18413,855047
-
-./nmix.lambda.fitted.R,35
-iinla.nmix.lambda.fitted113,5467
-
-./obsolete.R,21
-`inla.obsolete5,56
-
-./options.R,188
-`inla.getOption.default122,5433
-`inla.validOptions155,6529
-`inla.matchOption164,6920
-`inla.getOption191,7875
-`inla.setOption253,10156
-`inla.enabled.INLAjoint.features353,14315
-
-./os.R,120
-`inla.os4,23
-`inla.os.type47,1684
-`inla.os.32or64bit57,1951
-`inla.os.is.32bit60,2050
-`inla.os.is.64bit63,2127
-
-./over_sp_mesh.R,28
-iinla.over_sp_mesh53,1957
-
-./pc-alphaw.R,168
-iinla.pc.alphaw.cache35,1324
-iinla.pc.ralphaw75,2641
-iinla.pc.dalphaw94,3132
-iinla.pc.qalphaw118,3913
-iinla.pc.palphaw140,4483
-iinla.pc.alphaw.test159,4997
-
-./pc-ar.R,53
-iinla.pc.ar.rpacf23,882
-iinla.pc.ar.dpacf41,1402
-
-./pc-bym.R,215
-iinla.bym.constr.internal3,20
-iinla.sparse.det.bym36,861
-iinla.scale.model.bym70,2075
-iinla.scale.model.bym.internal76,2320
-iinla.pc.bym.Q100,3191
-iinla.pc.bym.phi108,3404
-iinla.pc.rw2diid.phi263,9497
-
-./pc-cor0.R,126
-iinla.pc.cor0.lambda37,1480
-iinla.pc.rcor047,1719
-iinla.pc.dcor057,1994
-iinla.pc.qcor070,2369
-iinla.pc.pcor083,2705
-
-./pc-cor1.R,126
-iinla.pc.cor1.lambda37,1439
-iinla.pc.rcor163,2370
-iinla.pc.dcor173,2626
-iinla.pc.qcor182,2949
-iinla.pc.pcor191,3187
-
-./pc-cormat.R,357
-iinla.pc.cormat.dim2p67,2630
-iinla.pc.cormat.p2dim75,2853
-iinla.pc.cormat.theta2R81,2956
-iinla.pc.cormat.R2theta109,3742
-iinla.pc.cormat.r2R134,4289
-iinla.pc.cormat.R2r147,4524
-iinla.pc.cormat.r2theta153,4623
-iinla.pc.cormat.theta2r162,4787
-iinla.pc.cormat.permute171,4951
-iinla.pc.cormat.rtheta181,5139
-iinla.pc.cormat.dtheta206,5908
-
-./pc-gamma.R,131
-iinla.pc.gamma.intern37,1280
-iinla.pc.rgamma47,1631
-iinla.pc.dgamma54,1802
-iinla.pc.qgamma64,2103
-iinla.pc.pgamma71,2274
-
-./pc-gammacount.R,156
-iinla.pc.gammacount.intern40,1479
-iinla.pc.rgammacount55,1942
-iinla.pc.dgammacount62,2128
-iinla.pc.qgammacount82,2655
-iinla.pc.pgammacount89,2841
-
-./pc-gev.R,204
-iinla.pc.gevtail.map36,1326
-iinla.pc.gevtail.cache55,1781
-iinla.pc.rgevtail83,2567
-iinla.pc.dgevtail93,2793
-iinla.pc.qgevtail105,3208
-iinla.pc.pgevtail116,3455
-iinla.pc.gevtail.test125,3688
-
-./pc-multvar.R,425
-iinla.pc.multvar.h.default49,2129
-iinla.pc.multvar.simplex.r.core66,2568
-iinla.pc.multvar.simplex.d.core87,3107
-iinla.pc.multvar.simplex.r122,4086
-iinla.pc.multvar.simplex.d131,4369
-iinla.pc.multvar.simplex.core138,4643
-iinla.pc.multvar.sphere.r.core180,6034
-iinla.pc.multvar.sphere.d.core204,6675
-iinla.pc.multvar.sphere.r239,7704
-iinla.pc.multvar.sphere.d250,8078
-iinla.pc.multvar.sphere.core260,8426
-
-./pc-prec.R,126
-iinla.pc.prec.lambda36,1387
-iinla.pc.rprec46,1608
-iinla.pc.dprec55,1811
-iinla.pc.qprec69,2166
-iinla.pc.pprec78,2375
-
-./pc-prw2-range.R,275
-pprw2.d33,1247
-pprw2.range2rho38,1356
-pprw2.F42,1446
-pprw2.check.param47,1609
-pprw2.calibrate.lambda53,1804
-pprw2.get.values68,2376
-pprw2.rF101,3145
-iinla.prw2.prange124,3589
-iinla.prw2.drange130,3728
-iinla.prw2.qrange139,3967
-iinla.prw2.rrange146,4138
-
-./pc-sn.R,174
-iinla.pc.sn.cache36,1310
-iinla.pc.rsn153,5244
-iinla.pc.dsn172,5762
-iinla.pc.qsn195,6533
-iinla.pc.psn217,7123
-iinla.pc.sn.test237,7683
-iinla.pc.sn.test2254,8379
-
-./pc-t.R,23
-`inla.pc.ddof27,1029
-
-./pc-vm0.R,123
-iinla.pc.vm0.lambda43,1815
-iinla.pc.rvm061,2357
-iinla.pc.dvm067,2487
-iinla.pc.qvm0136,5198
-iinla.pc.pvm0160,5924
-
-./pc-vminf.R,132
-iinla.pc.vminf.lambda43,1907
-iinla.pc.rvminf53,2144
-iinla.pc.dvminf59,2280
-iinla.pc.qvminf90,3602
-iinla.pc.pvminf114,4337
-
-./pin.R,38
-`inla.pin15,359
-`inla.unpin25,635
-
-./plot.R,122
-`plot.inla51,2196
-iinla.extract.prior789,34164
-iinla.get.prior.xy1003,42819
-`inla.all.hyper.postprocess1403,57383
-
-./posterior.sample.R,236
-iinla.create.sn.cache239,10101
-iinla.posterior.sample375,15840
-`inla.posterior.sample.orig760,33254
-`inla.posterior.sample.eval936,40716
-`inla.posterior.sample.interpret.selection997,42887
-`inla.selection2lincombs1056,44884
-
-./print.R,20
-`print.inla15,297
-
-./priors.used.R,27
-`inla.priors.used26,1014
-
-./prune.R,67
-`inla.dir.size1,0
-`inla.prune25,660
-`inla.prune.check80,2285
-
-./qinv.R,20
-`inla.qinv51,1866
-
-./qreordering.R,26
-`inla.qreordering28,972
-
-./qsample.R,23
-`inla.qsample90,3902
-
-./qsolve.R,22
-`inla.qsolve71,2754
-
-./quantile-regression.R,186
-iinla.incGamma5,104
-iinla.qcontpoisson11,331
-iinla.pcontpoisson31,1082
-iinla.pcontpoisson.eta71,2529
-iinla.contpoisson.solve.lambda92,3398
-iinla.contpoisson.solve.eta99,3810
-
-./read.graph.R,246
-`inla.graph.binary.file.magic77,3096
-`inla.add.graph.cc85,3335
-`inla.graph.size146,4823
-`inla.read.graph153,4948
-`inla.write.graph379,12071
-`plot.inla.graph418,13336
-`summary.inla.graph461,14784
-`print.inla.graph.summary478,15202
-
-./remote.R,48
-`inla.ssh.copy.id19,634
-`inla.remote35,1038
-
-./reorderings.R,129
-`inla.reorderings.list5,152
-`inla.reorderings40,849
-`inla.reorderings.name2code44,930
-`inla.reorderings.code2name59,1301
-
-./rerun.R,20
-`inla.rerun20,622
-
-./residuals.R,23
-iinla.ks.plot44,1552
-
-./rgeneric.R,203
-`inla.rgeneric.ar1.model37,1494
-`inla.rgeneric.ar1.model.opt168,5794
-`inla.rgeneric.iid.model261,8613
-`inla.rgeneric.define328,10357
-`inla.rgeneric.wrapper367,11609
-`inla.rgeneric.q448,14268
-
-./rprior.R,80
-`inla.rprior.define19,567
-`inla.rprior.code37,1122
-`inla.is.rprior41,1216
-
-./sampler.R,63
-`inla.hyperpar.sample34,1244
-iinla.transform.names111,3418
-
-./sandbox.R,22
-iinla.extract.Q3,22
-
-./scale.model.R,63
-iinla.scale.model.internal48,1711
-iinla.scale.model88,3074
-
-./scopy.define.R,27
-`inla.scopy.define14,527
-
-./scopy.summary.R,29
-`inla.scopy.summary30,1098
-
-./sections.R,819
-iinla.parse.Bmatrix5,86
-iinla.parse.Bmatrix.test70,1815
-`inla.text2vector79,2129
-`inla.secsep89,2381
-`inla.write.hyper98,2559
-`inla.write.boolean.field218,9021
-`inla.family.section229,9376
-`inla.data.section234,9511
-`inla.ffield.section493,21735
-`inla.inla.section1065,49000
-`inla.predictor.section1314,61175
-`inla.lp.scale.section1400,65057
-`inla.problem.section1407,65423
-`inla.parse.fixed.prior1658,77013
-`inla.linear.section1671,77400
-`inla.mode.section1715,79383
-`inla.expert.section1802,83555
-`inla.update.section1875,86727
-`inla.stiles.section1896,87781
-`inla.taucs.section1939,89524
-`inla.numa.section1947,89988
-`inla.lincomb.section1955,90413
-`inla.copy.file.for.section2049,94220
-`inla.copy.dir.for.section2063,94610
-`inla.copy.dir.for.section.spde2071,94951
-
-./set.default.arguments.R,1586
-`control.update18,534
-`control.sem31,926
-`control.lincomb48,1462
-`control.group63,1967
-`control.scopy115,3925
-`control.mix130,4597
-`control.pom171,6086
-`control.link187,6577
-`inla.set.f.default228,8151
-`control.expert237,8343
-ccontrol.gcpo295,11008
-`control.compute341,12532
-`control.lp.scale432,16732
-`control.stiles445,17120
-`control.taucs477,18556
-`control.numa495,19234
-`control.bgev507,19594
-`control.family529,20442
-`control.fixed606,23356
-ccontrol.vb669,26726
-`control.inla703,28567
-`control.predictor960,41363
-`control.mode1022,44215
-`control.hazard1060,46170
-`inla.set.control.update.default1156,49275
-`inla.set.control.lincomb.default1160,49389
-`inla.set.control.group.default1164,49503
-`inla.set.control.scopy.default1168,49613
-`inla.set.control.mix.default1172,49721
-`inla.set.control.pom.default1176,49825
-`inla.set.control.link.default1180,49930
-`inla.set.control.expert.default1184,50039
-`inla.set.control.gcpo.default1188,50150
-`inla.set.control.compute.default1192,50260
-`inla.set.control.lp.scale.default1196,50377
-`inla.set.control.stiles.default1200,50494
-`inla.set.control.taucs.default1204,50606
-`inla.set.control.bgev.default1208,50715
-`inla.set.control.family.default1212,50824
-`inla.set.control.fixed.default1216,50936
-`inla.set.control.vb.default1220,51043
-`inla.set.control.inla.default1224,51146
-`inla.set.control.predictor.default1228,51258
-`inla.set.control.mode.default1232,51375
-`inla.set.control.hazard.default1236,51484
-`inla.set.control.sem.default1240,51594
-
-./sm.R,183
-`inla.as.sparse27,931
-`inla.as.dgTMatrix81,2598
-`inla.sparse.dim87,2739
-`inla.sparse.check105,3188
-`inla.sparse.get128,3832
-iinla.sm.write165,5133
-iinla.sm.read178,5446
-
-./spde.common.R,589
-iinla.dBind18,482
-iinla.extract.el39,1137
-iinla.regex.match46,1267
-iinla.extract.el.matrix52,1394
-iinla.extract.el.data.frame62,1715
-iinla.extract.el.list72,2040
-iinla.spde.homogenise_B_matrix78,2160
-iinla.matern.cov169,5454
-iinla.matern.cov.s2275,9820
-iinla.spde.models391,13781
-iinla.spde.sample430,14871
-iinla.spde.sample.default437,15108
-iinla.spde.sample.inla.spde450,15400
-iinla.spde.precision480,16557
-iinla.spde.result554,20105
-iinla.spde.make.index611,21977
-iinla.row.kron658,23776
-iinla.spde.make.block.A700,25492
-iinla.spde.make.A832,30785
-
-./spde1.R,327
-iinla.spde1.create79,2679
-iinla.spde1.query246,8388
-iinla.spde1.result377,12844
-iinla.spde1.precision545,18558
-iinla.spde1.models554,18772
-iinla.spde1.matern560,18898
-iinla.spde1.imatern565,19042
-iinla.spde1.matern.osc570,19188
-iinla.spde.precision.inla.spde1578,19413
-iinla.spde.result.inla.spde1582,19546
-
-./spde2.R,623
-ffmesher_fem_cc_compat7,215
-iinla.spde2.generic54,2129
-iinla.internal.spde2.matern.B.tau184,6503
-iinla.spde2.matern.sd.basis232,8134
-iinla.internal.test.spde2.sd.basis307,10334
-pparam2.matern.orig446,15179
-iinla.spde2.matern723,26706
-iinla.spde2.pcmatern1233,46718
-pparam2.iheat1343,50622
-iinla.spde2.iheat1357,51049
-iinla.spde2.theta2phi01532,56766
-iinla.spde2.theta2phi11546,57247
-iinla.spde2.theta2phi21560,57713
-iinla.spde2.precision1587,58552
-iinla.spde2.result1611,59399
-iinla.spde2.models1737,63390
-iinla.spde.precision.inla.spde21746,63587
-iinla.spde.result.inla.spde21750,63720
-
-./spde3.R,583
-iinla.spde3.generic4,32
-iinla.internal.spde3.matern.B.tau134,5214
-iinla.spde3.matern.sd.basis156,5839
-iinla.internal.test.spde3.sd.basis227,8100
-pparam3.matern.orig318,11470
-iinla.spde3.matern456,16686
-pparam3.iheat633,23080
-iinla.spde3.iheat647,23507
-iinla.spde3.theta2phi0803,29229
-iinla.spde3.theta2phi1814,29579
-iinla.spde3.theta2phi2825,29918
-iinla.spde3.theta2phi3854,30906
-iinla.spde3.precision866,31250
-iinla.spde3.result893,32227
-iinla.spde3.models1016,36178
-iinla.spde.precision.inla.spde31024,36338
-iinla.spde.result.inla.spde31027,36449
-
-./spmesh.R,1238
-iinla.has_PROJ616,575
-iinla.not_for_PROJ638,1278
-iinla.not_for_PROJ459,1951
-iinla.fallback_PROJ680,2650
-iinla.requires_PROJ6101,3312
-iinla.sp_get_crs146,4597
-iinla.wkt_is_geocent226,7166
-iinla.crs_is_geocent240,7521
-iinla.wkt_get_ellipsoid_radius256,7891
-iinla.crs_get_ellipsoid_radius271,8284
-iinla.wkt_set_ellipsoid_radius288,8711
-iinla.crs_set_ellipsoid_radius304,9136
-iinla.CRS358,10748
-iinla.wkt_predef395,11670
-iinla.as.wkt_tree.wkt430,12640
-iinla.as.wkt.wkt_tree445,12957
-iinla.wkt_tree_get_item463,13508
-iinla.wkt_tree_set_item478,13923
-iinla.CRSargs529,15679
-iinla.as.CRSargs.list546,16033
-iinla.as.list.CRSargs566,16512
-iinla.as.list.CRS592,17042
-iinla.as.CRS.list598,17167
-iinla.wkt_unit_params631,18149
-iinla.wkt_get_lengthunit667,19121
-iinla.wkt_set_lengthunit686,19601
-iinla.crs_get_wkt706,20082
-iinla.crs_get_lengthunit725,20557
-iinla.crs_set_lengthunit743,21000
-iinla.wkt_tree_projection_type763,21406
-iinla.wkt_projection_type775,21701
-iinla.crs_projection_type787,21978
-iinla.crs.bounds802,22426
-iinla.identical.CRS831,23121
-iinla.spTransform877,24483
-iinla.crs_detect_manifold892,24749
-aas.inla.mesh.segment921,25615
-iinla.sp2segment937,26014
-
-./stack.R,572
-rrbind_inla.data.stack.info2,8
-eensure.canonical.response.objects62,1644
-rrbind_inla_stack_responses95,2692
-eexpand.inla.stack.responses122,3520
-iinla.stack.remove.unused192,5854
-iinla.stack.compress238,7155
-iinla.stack527,17306
-iinla.stack.sum556,18339
-iinla.stack.mexpand852,27857
-iinla.stack.join911,29995
-iinla.stack.index983,32466
-iinla.stack.do.extract1002,33105
-iinla.stack.LHS1032,33937
-iinla.stack.RHS1042,34229
-iinla.stack.data1054,34666
-iinla.stack.A1078,35385
-iinla.stack.response1092,35908
-pprint.inla.data.stack1110,36443
-
-./startup.R,120
-iinla.print.version7,214
-..onLoad79,3810
-`inla.first.run.binary100,4898
-..onAttach156,7912
-..onUnload180,9051
-
-./stiles.install.R,117
-`inla.cache.dir7,341
-`inla.stiles.install67,2992
-`inla.stiles.status480,23944
-`inla.stiles.releases600,29772
-
-./stiles.utils.R,278
-`inla.stiles.read.mtx.header60,3007
-`inla.stiles.detect.graph.base74,3599
-`inla.stiles.add.to.bins88,4075
-`inla.stiles.render.spy100,4512
-`inla.stiles.spy.mtx160,6929
-`inla.stiles.spy.graph195,8369
-`inla.stiles.graph2mtx245,10457
-`inla.stiles.mtx2graph293,12331
-
-./summary.R,53
-`summary.inla31,1177
-`print.summary.inla163,6198
-
-./surv.R,475
-`inla.surv61,3074
-`plot.inla.surv83,3761
-`print.inla.surv96,4015
-`as.inla.surv107,4212
-`inla.surv.1117,4414
-`inla.plot.inla.surv.1231,7919
-`inla.print.inla.surv.1290,9856
-`inla.as.character.inla.surv.1295,10007
-`is.inla.surv317,10702
-`inla.as.inla.surv.1321,10785
-`inla.surv.2338,11272
-`inla.plot.inla.surv.2433,13983
-`inla.print.inla.surv.2475,15222
-`inla.as.character.inla.surv.2479,15372
-`inla.as.inla.surv.2492,15693
-`inla.strata511,16153
-
-./upgrade.R,44
-`inla.update14,349
-`inla.upgrade57,2454
-
-./utils.R,1963
-`inla.tempdir6,265
-`inla.tempfile13,427
-`inla.numlen18,595
-`inla.num23,733
-`inla.trim29,970
-`inla.namefix39,1332
-`inla.nameunfix53,1686
-`inla.strcmp58,1812
-`inla.strncmp63,1897
-`inla.strcasecmp78,2311
-`inla.strncasecmp83,2431
-`inla.pause98,2884
-`inla.paste106,3101
-`inla.my.update110,3204
-`inla.remove242,9216
-`inla.ifelse276,10196
-`inla.sparse.matrix.pattern289,10401
-`inla.scale330,11720
-`inla.trim.family335,11811
-`inla.is.list.of.lists344,12123
-`inla.as.list.of.lists353,12383
-`inla.replicate.list361,12585
-`inla.tictac372,12846
-`inla.2list378,12984
-`inla.even395,13390
-`inla.odd399,13461
-`inla.divisible403,13532
-`inla.one.of417,13906
-`inla.get.HOME426,14166
-`inla.get.USER430,14325
-`inla.eval445,14591
-`inla.formula2character455,14954
-`inla.unique.rows461,15181
-`inla.is.dir523,16683
-`inla.dirname527,16784
-`inla.affirm.integer535,17003
-`inla.affirm.double549,17393
-`inla.matrix2list556,17523
-`inla.dir.create575,17979
-`inla.is.element591,18471
-`inla.get.element607,18975
-`inla.require.inherits614,19156
-`inla.function2source641,19916
-`inla.source2function648,20174
-`inla.writeLines659,20604
-`inla.readLines677,21120
-`inla.is.matrix700,21688
-`inla.factor2matrix718,22104
-`inla.require737,22663
-`inla.inlaprogram.has.crashed747,23016
-`inla.inlaprogram.timeout751,23293
-`inla.eval.dots758,23573
-`match.arg.vector786,24550
-`inla.get.var808,25197
-`inla.ginv816,25371
-`inla.gdet847,26322
-`inla.rw1868,26888
-`inla.rw2872,26956
-`inla.rw876,27024
-`inla.mclapply911,28133
-`inla.cmpfun933,28953
-`inla.sn.reparam941,29178
-`inla.runjags2dataframe982,30633
-`inla.check.location988,30881
-`inla.dynload.workaround1022,32138
-`inla.matern.cf1026,32247
-`inla.sn.par1040,32740
-`inla.ensure.spd1061,33676
-`inla.read.state1069,33976
-`inla.toeplitz1086,34613
-`inla.anyMultibyteUTF8Characters1104,35060
-`inla.sparse.write.mtx1119,35421
-
-./version.R,22
-`inla.version21,525

@@ -225,6 +225,34 @@ jobs:
           if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
           cat("OK: install + binary\n")
 
+          ## Again, forcing the COPY branch, which is the one real users take.
+          ## This runner is runneradmin, an administrator, so it holds
+          ## SeCreateSymbolicLinkPrivilege and the symlink above always works.
+          ## An ordinary Windows account does not, gets FALSE from
+          ## file.symlink(), and falls back to copying the release into
+          ## "latest". That branch had never been executed in CI, which is how
+          ## a user could hit it before anyone had tested it.
+          cat("\n== forcing the no-symlink path ==\n")
+          Sys.setenv(INLA_STILES_NO_SYMLINK = "1")
+          INLA::inla.stiles.install(persist = FALSE, force = TRUE)
+          Sys.unsetenv("INLA_STILES_NO_SYMLINK")
+
+          call2 <- INLA::inla.getOption("inla.call")
+          if (is.null(call2) || !nzchar(call2) || !file.exists(call2)) {
+              stop("the no-symlink path did not leave a usable inla.call")
+          }
+          ## It must be a real directory, not a link, and the binary must run
+          ## from it: a copy that lands in the wrong place still yields a path
+          ## that exists, so check that it actually works.
+          if (nzchar(Sys.readlink(dirname(call2)))) {
+              stop("expected a copied directory, got a symlink")
+          }
+          out2 <- suppressWarnings(system2(call2, "-ping", stdout = TRUE, stderr = TRUE))
+          if (!any(grepl("ALIVE", out2))) {
+              stop("the copied binary did not answer -ping")
+          }
+          cat("OK: the no-symlink fallback produces a working binary\n")
+
           ## Which binary did we just download? This job installs the RELEASED
           ## artifact, on purpose: it tests what a user actually gets. So it
           ## lags the branch, and until a release carries the fix below it

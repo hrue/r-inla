@@ -1,3 +1,15 @@
+# INLA 26.09.09-1
+* More work on the installation
+
+# INLA 26.09.09
+* More work on the installation
+
+# INLA 26.09.08-3
+* Windows: rgeneric works again; the binary no longer loads a second R.dll.
+* Windows: install with remotes::install_github("hrue/r-inla", subdir = "package").
+* inla.mode is honoured again; "classic" no longer runs compact.
+* The package version and the binary release it needs are now the same number.
+
 # INLA 26.09.08-2
 * More work on the installation
 
@@ -14,6 +26,12 @@
 # INLA 26.09.07
 * internal testing only
 
+# INLA 26.09.06-4
+* inla.stiles.install() now finds the binary in the flat Windows bundle layout.
+
+# INLA 26.09.06-3
+* The R package is now attached to each release as a source tarball, so
+  installing on Windows no longer requires Developer Mode.
 # INLA 26.09.06-2
 * Build test
 

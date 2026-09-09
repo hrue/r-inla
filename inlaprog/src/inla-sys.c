@@ -156,6 +156,63 @@ int inla_tolower(char *string)
 
 #if defined(__linux__)
 // Automatically parses standard Linux core range strings (e.g., "0-11" or "0-7,16-23")
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+static int p_cores_are_available =  1;
+
+static int parse_max(const char *str)
+{
+	char *dup = strdup(str);
+	char *token = strtok(dup, ",\n");
+	while (token != NULL) {
+		int start, end;
+		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
+		if (sscanf(token, "%d-%d", &start, &end) == 2) {
+			free(dup);
+			return end;
+		} else if (sscanf(token, "%d", &start) == 1) {
+			free(dup);
+			return start;
+		}
+		token = strtok(NULL, ",\n");
+	}
+	free(dup);
+	return 0;
+}
+
+int inla_num_p_cores(void)
+{
+        // check if the system explicitly exposes a P-core layout (Intel Hybrid)
+        struct stat st;
+        if (stat("/sys/devices/cpu_core/cpus", &st) == 0) {
+                FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+                if (f) {
+                        int num_p = 0;
+                        char buf[256];
+                        if (fgets(buf, sizeof(buf), f) != NULL) {
+                                num_p = parse_max(buf);
+                        }
+                        fclose(f);
+                        if (num_p > 0) {
+                                return num_p;
+                        }
+		}
+	}
+	p_cores_are_available = 0;
+
+        // if it's a non-hybrid machine, use standard POSIX to get the total number of online processing units
+        long total_cores = sysconf(_SC_NPROCESSORS_ONLN);
+        if (total_cores > 0) {
+                return (int)total_cores;
+        }
+
+        return NUM_P_CORES_DEFAULT();
+}
+
 static void parse_and_add_cpus(const char *str, cpu_set_t *cpuset)
 {
 	char *dup = strdup(str);
@@ -177,10 +234,13 @@ static void parse_and_add_cpus(const char *str, cpu_set_t *cpuset)
 
 int inla_lock_to_p_cores(void)
 {
+	if (!p_cores_are_available)
+		return 1;
+	
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 
-	// 1. Open the Linux kernel file that stores the P-core mappings
+	// open the Linux kernel file that stores the P-core mappings
 	FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
 	if (!f) {
 		// Fallback: If the file isn't there, it might be an older CPU with no E-cores
@@ -195,54 +255,12 @@ int inla_lock_to_p_cores(void)
 	}
 	fclose(f);
 
-	// 2. Apply the parsed P-core mask to our running thread
+	// apply the parsed P-core mask to our running thread
 	if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) != 0) {
 		perror("sched_setaffinity failed");
 		return 1;
 	}
 	return 0;
-}
-
-static int parse_max(const char *str)
-{
-	char *dup = strdup(str);
-	char *token = strtok(dup, ",\n");
-	while (token != NULL) {
-		int start, end;
-		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
-		if (sscanf(token, "%d-%d", &start, &end) == 2) {
-			free(dup);
-			return end;
-		} else if (sscanf(token, "%d", &start) == 1) {
-			free(dup);
-			return start;
-		}
-		token = strtok(NULL, ",\n");
-	}
-	free(dup);
-	return 0;
-}
-int inla_num_p_cores(void)
-{
-	cpu_set_t cpuset;
-	CPU_ZERO(&cpuset);
-
-	// 1. Open the Linux kernel file that stores the P-core mappings
-	FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
-	if (!f) {
-		// Fallback: If the file isn't there, it might be an older CPU with no E-cores
-		perror("Could not read P-core layout (non-hybrid CPU?)");
-		return NUM_P_CORES_DEFAULT();
-	}
-
-	int num_p = 0;
-	char buf[256];
-	if (fgets(buf, sizeof(buf), f) != NULL) {
-		// printf("Detected P-core range string: %s", buf);
-		num_p = parse_max(buf);
-	}
-	fclose(f);
-	return (num_p > 0 ? num_p : NUM_P_CORES_DEFAULT());
 }
 
 #       if 0

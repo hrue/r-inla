@@ -17,13 +17,28 @@
 set -e
 ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 
-## --checksum, not rsync's default size+mtime comparison. In a fresh CI
-## checkout every file gets the same checkout timestamp, so mtime carries no
-## information, and an edit that leaves a file the same size would then be
-## invisible: package/ would keep the old content and --check would pass.
-## Hashing the tree costs about a second and removes that whole class of
-## silent staleness.
-rsync -a --checksum --copy-links --delete --exclude Old/ --exclude Old-Rnw --exclude obsolete/ --exclude Old/ "$ROOT/rinla/" "$ROOT/package/"
+## The file list comes from GIT, not from the working tree.
+##
+## Copying rinla/ wholesale mirrors whatever happens to be on that machine,
+## which includes build artifacts nobody tracks: NAMESPACE.backup, R/TAGS,
+## regenerated vignette figures. Those got copied into package/ and committed
+## from one developer's tree, and every clean checkout then reported package/
+## as out of date by exactly those files. The shipped package must not depend
+## on whose laptop ran the sync.
+##
+## Old/, Old-Rnw and obsolete/ are dropped as well: 35 tracked files that are
+## kept in the repository but do not belong in the installable package.
+## .Rbuildignore does not cover them, so the exclusion has to happen here.
+##
+## Rebuilt from empty each time rather than synced in place: it makes the
+## result a pure function of the tracked tree, and removes any question about
+## rsync's comparison rules (an earlier version needed --checksum because a
+## fresh checkout gives every file the same mtime).
+rm -rf "$ROOT/package"
+mkdir -p "$ROOT/package"
+git -C "$ROOT/rinla" ls-files -z \
+    | grep -zEv '(^|/)(Old|Old-Rnw|obsolete)(/|$)' \
+    | rsync -a --copy-links --files-from=- --from0 "$ROOT/rinla/" "$ROOT/package/"
 
 ## No symlink may survive: --copy-links resolves them, but a link whose target
 ## is missing is skipped rather than resolved, which would put the problem
