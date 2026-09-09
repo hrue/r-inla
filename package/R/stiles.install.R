@@ -208,6 +208,19 @@
     ## is deliberately pointed at an older build, which is exactly the case
     ## these names exist for: shipping a tested binary while newer ones are
     ## published for people who want them.
+    ## A channel name in `dir` is always a mistake. It happens when both a
+    ## positional value and a named tag are given:
+    ##     inla.stiles.install("stable", tag = "Version_26.09.07-1")
+    ## R matches the NAMED argument first, so "stable" falls through to the
+    ## next free parameter, which is dir. That would install into a folder
+    ## called "stable" in the working directory, with no error, which is not
+    ## what anyone means. There is only one slot: a channel IS a tag.
+    if (!is.null(dir) && tolower(dir) %in% c("stable", "testing")) {
+        stop("'", dir, "' is a channel, not a directory. It belongs in `tag`:\n",
+             "  inla.stiles.install(\"", tolower(dir), "\")\n",
+             "A channel and a tag are the same argument, so pass only one.")
+    }
+
     if (!is.null(tag) && tolower(tag) %in% c("stable", "testing")) {
         chan <- tolower(tag)
         tag <- if (chan == "stable") {
