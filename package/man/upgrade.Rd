@@ -5,7 +5,7 @@
 \alias{inla.upgrade}
 \title{Upgrade the INLA-package}
 \usage{
-inla.update(...)
+inla.update(channel = c("stable", "testing"), ...)
 
 inla.upgrade(...)
 }
