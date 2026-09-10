@@ -7414,7 +7414,20 @@ int main(int argc, char **argv)
 				printf("\tparse num.threads option [%s]\n", optarg);
 			char *s = Strdup(optarg);
 			for (int ii = 0; ii < 3; ii++) {
-				char *token = my_strsep(&s, ":,");
+				char *token = my_strsep(&s, ":");
+#if !defined(INLA_WITH_MUPARSER)
+				if (token) {
+					char *pP = strchr(token, 'P');
+					char *pC = strchr(token, 'C');
+					if (pP || pC) {
+						fprintf(stderr, "\n");
+						fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii+1, token);
+						fprintf(stderr, "              No 'muparser'-library in this build, so\n");
+						fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n"); 
+						exit(1);
+					}
+				}
+#endif				
 				ntt[ii] = ((token && strlen(token)) ? inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
 				ntt[ii] = IMAX(0, ntt[ii]);
 			}

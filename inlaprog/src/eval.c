@@ -289,4 +289,20 @@ int inla_eval_int_expression(char *expression, int P, int C)
 	return value;
 }
 
-#endif							       // define(INLA_WITH_MUPARSER)
+#else							       // define(INLA_WITH_MUPARSER)
+
+int inla_eval_int_expression(char *expression, int UNUSED(P), int UNUSED(C))
+{
+	// return 0 by default
+	
+	if (!expression || strlen(expression) == 0) {
+		return 0;
+	}
+	int value = 0;
+	if (sscanf(expression, "%d", &value) == 1) {
+		return value;
+	} else {
+		return 0;
+	}
+}
+#endif
