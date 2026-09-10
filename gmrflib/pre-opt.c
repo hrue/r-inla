@@ -820,17 +820,13 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 	/*
 	 * this is Qfunction for the preopt-function 
 	 */
-	GMRFLib_preopt_tp *a = NULL;
-	GMRFLib_preopt_type_tp it, jt;
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	GMRFLib_preopt_type_tp it = a->what_type[node];
+	GMRFLib_preopt_type_tp jt = a->what_type[nnode];
+	int same_tp = (it.tp_idx == jt.tp_idx);
+	int same_idx = (it.idx == jt.idx);
 	double value = 0.0;
-	int same_tp, same_idx;
-
-	a = (GMRFLib_preopt_tp *) arg;
-	it = a->what_type[node];
-	jt = a->what_type[nnode];
-	same_tp = (it.tp_idx == jt.tp_idx);
-	same_idx = (it.idx == jt.idx);
-
+	
 	switch (it.tp) {
 	case GMRFLib_PREOPT_TP_F:
 	{

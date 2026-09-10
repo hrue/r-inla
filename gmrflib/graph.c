@@ -627,7 +627,8 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
-	return (GMRFLib_bsearch(node, graph->nnbs[nnode], graph->nbs[nnode]) != NULL);
+	// often NODE is fixed while we loop over NNODE
+	return (GMRFLib_bsearch(nnode, graph->nnbs[node], graph->nbs[node]) != NULL);
 }
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)

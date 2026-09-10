@@ -12,61 +12,23 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc)
+forceinline void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc)
 {
-	if (nc == 3) {
-		double t0 = theta[0], t1 = theta[1], t2 = theta[2];
-		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2;
-		double d1 = vals[3] * t0 + vals[4] * t1 + vals[5] * t2;
-		double d2 = vals[6] * t0 + vals[7] * t1 + vals[8] * t2;
-		d[0] = exp(d0);
-		d[1] = exp(d1);
-		d[2] = d2;
-		return;
-	} else if (nc == 4) {
-		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3];
-		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3;
-		double d1 = vals[4] * t0 + vals[5] * t1 + vals[6] * t2 + vals[7] * t3;
-		double d2 = vals[8] * t0 + vals[9] * t1 + vals[10] * t2 + vals[11] * t3;
-		d[0] = exp(d0);
-		d[1] = exp(d1);
-		d[2] = d2;
-		return;
-	} else if (nc == 5) {
-		double t0 = theta[0], t1 = theta[1], t2 = theta[2], t3 = theta[3], t4 = theta[4];
-		double d0 = vals[0] * t0 + vals[1] * t1 + vals[2] * t2 + vals[3] * t3 + vals[4] * t4;
-		double d1 = vals[5] * t0 + vals[6] * t1 + vals[7] * t2 + vals[8] * t3 + vals[9] * t4;
-		double d2 = vals[10] * t0 + vals[11] * t1 + vals[12] * t2 + vals[13] * t3 + vals[14] * t4;
-		d[0] = exp(d0);
-		d[1] = exp(d1);
-		d[2] = d2;
-		return;
-	} else {
-		double d0 = 0.0, d1 = 0.0, d2 = 0.0;
-		int nc2 = 2 * nc;
-		for (int k = 0; k < nc; k++) {
-			double t = theta[k];
-			d0 += vals[k] * t;
-			d1 += vals[k + nc] * t;
-			d2 += vals[k + nc2] * t;
-		}
-		d[0] = exp(d0);
-		d[1] = exp(d1);
-		d[2] = d2;
-		return;
+	double d0 = 0.0, d1 = 0.0, d2 = 0.0;
+	int nc2 = 2 * nc;
+	for (int k = 0; k < nc; k++) {
+		double t = theta[k];
+		d0 += vals[k] * t;
+		d1 += vals[k + nc] * t;
+		d2 += vals[k + nc2] * t;
 	}
+	d[0] = exp(d0);
+	d[1] = exp(d1);
+	d[2] = d2;
+	return;
 }
-#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void apply_single_transform(int transform, double *d2)
+forceinline void apply_single_transform(int transform, double *d2)
 {
 	switch (transform) {
 	case SPDE2_TRANSFORM_LOG:
@@ -81,23 +43,16 @@ void apply_single_transform(int transform, double *d2)
 		break;
 	}
 }
-#pragma GCC diagnostic pop
 
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id)
+forceinline void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id)
 {
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
 		theta[k] = model_theta[k - 1][thread_id][0];
 	}
 }
-#pragma GCC diagnostic pop
 
-void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n)
+forceinline void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n)
 {
 	int m = nc;
 	int lda = nc;
@@ -107,11 +62,7 @@ void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, 
 	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void apply_exponentials(double *__restrict dij, int nb)
+forceinline void apply_exponentials(double *__restrict dij, int nb)
 {
 	for (int i = 0; i <= nb; i++) {
 		int idx = i * 3;
@@ -119,13 +70,8 @@ void apply_exponentials(double *__restrict dij, int nb)
 		dij[idx + 1] = exp(dij[idx + 1]);
 	}
 }
-#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
+forceinline void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 {
 	switch (transform) {
 	case SPDE2_TRANSFORM_LOG:
@@ -148,12 +94,8 @@ void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
 		break;
 	}
 }
-#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
+forceinline void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
 {
 	double d_i0 = dij[0];
 	double d_i1 = dij[1];
@@ -177,13 +119,8 @@ void compute_diagonal_values(double *__restrict dij, double *__restrict v, doubl
 		values[kk] = d_i0 * d_j0 * inner;
 	}
 }
-#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+forceinline double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
@@ -225,7 +162,6 @@ double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED
 
 	return value;
 }
-#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -244,8 +180,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	double *__restrict V = model->row_V[ii];
 	double *__restrict v = model->row_v[ii];
 
-	const int lim1 = 128;
-	const int lim2 = 64;
+	const int lim1 = 256; //128;
+	const int lim2 = 128; //64;
 	int dij_size = (1 + nb) * 3;
 	int max_stack_size = lim1;			       // Conservative limit
 	double stack_arrays[lim2 + lim1];		       // theta + dij on stack
@@ -277,7 +213,11 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 }
 #pragma GCC diagnostic pop
 
-double inla_spde2_Qfunction__ORIG(int thread_id, int ii, int jj, double *values, void *arg)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	if (jj < 0) {
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
@@ -349,12 +289,9 @@ double inla_spde2_Qfunction__ORIG(int thread_id, int ii, int jj, double *values,
 		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
 	}
 }
+#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((optimize("O3")))
-    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	// do not use directly. need ``if (jj < 0)'' code
 
@@ -471,7 +408,6 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 
 	return value;
 }
-#pragma GCC diagnostic pop
 
 int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const char *prefix, const char *transform)
 {

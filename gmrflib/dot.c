@@ -47,7 +47,7 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
-	if (likely(n <= 64)) {
+	if (n <= 64) {
 		SUM_CORE_UNROLL(double, n);
 	} else {
 		return GMRFLib_dsum_ext(n, x);
