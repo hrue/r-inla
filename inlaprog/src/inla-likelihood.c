@@ -170,6 +170,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_GAMMACOUNT:
 	case L_GPOISSON:
 	case L_POISSON:
+	case L_POISSONLOGNORMAL:
 	case L_NPOISSON:
 	case L_NZPOISSON:
 	case L_QCONTPOISSON:
@@ -820,7 +821,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		Free(ds->data_observations.weight_gaussian);
 	}
 
-	if (ds->data_id == L_POISSON || ds->data_id == L_XPOISSON || ds->data_id == L_NPOISSON) {
+	if (ds->data_id == L_POISSON || ds->data_id == L_XPOISSON || ds->data_id == L_NPOISSON || ds->data_id == L_POISSONLOGNORMAL) {
 		n = mb->predictor_ndata;
 		int nnuma = GMRFLib_numa_nodes();
 		inla_llik_data_poisson_tp **p = Calloc(nnuma, inla_llik_data_poisson_tp *);
@@ -2752,6 +2753,137 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *__rest
 	return GMRFLib_SUCCESS;
 }
 #pragma GCC diagnostic pop
+
+int loglikelihood_poissonlognormal(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
+				   double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+{
+#define _pln_logE(E_) ((E_) > 0.0 ? log(E_) : 0.0)
+
+	/*
+	 * y ~ Poisson(E * exp(eta + u)),  u ~ N(0, 1/prec),  v = u*sqrt(prec) ~ N(0,1),  sd = 1/sqrt(prec)
+	 *
+	 * log I = log sigma_a + logsumexp_k [ log(w_k) + normc + y*(eta+vk*sd) - E*exp(eta+vk*sd) - vk^2/2 + xq[k]^2/2 ]
+	 *
+	 * Fixed-reference adaptive GHQ:
+	 *   Compute v*(eta_ref) via Newton once (eta_ref from x[m/2]).
+	 *   sigma_a = 1/sqrt(mu_star*sd^2+1).
+	 *   Fix nodes vk[k] = v* + xq[k]*sigma_a for all m evaluations.
+	 *   Since vk does NOT depend on eta_i, d/d(eta_i)[eta_i+vk*sd] = 1 (correct gradient).
+	 *   Nodes are placed near the posterior mode -- accurate for all rate regimes.
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int numa = GMRFLib_numa_get_node();
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	inla_llik_data_poisson_tp *p = &(ds->data_observations.data_poisson[numa][idx]);
+	double y = p->y;
+	double E = p->E;
+	double normc = p->normc;
+
+	if (ISNAN(normc)) {
+		normc = p->normc = y * _pln_logE(E) - my_gsl_sf_lnfact((int) y);
+	}
+
+	double log_prec = ds->data_observations.pln_log_prec[thread_id][0];
+	double sd = exp(-0.5 * log_prec);		       /* sd = 1/sqrt(prec) */
+	double sd2 = sd * sd;
+
+	int nq = ds->data_observations.pln_nquad;
+	double *xq = NULL, *wq = NULL;
+	GMRFLib_ghq(&xq, &wq, nq);
+
+	/*
+	 * Three heap arrays suffice. log_base[k] and E_expvks[k] are constant
+	 * across all m evaluations so they are precomputed once below.
+	 *
+	 * Key identity: E*exp(eta_i + vk[k]*sd) = E*exp(vk[k]*sd) * exp(eta_i)
+	 * This lets the inner k-loop avoid exp() entirely -- one exp(eta_i) per i
+	 * instead of nq exp() calls, halving the total exp() work.
+	 */
+	double *log_base = Malloc(nq, double); /* log(w_k)+normc - vk^2/2 + xq_k^2/2 + y*vk*sd */
+	double *E_expvks = Malloc(nq, double); /* E * exp(vk[k]*sd) */
+	double *vals     = Malloc(nq, double); /* per-i working buffer */
+
+	LINK_INIT;
+
+	{
+		/* Reference eta from the middle evaluation point */
+		double eta_ref = PREDICTOR_INVERSE_IDENTITY_LINK(x[m / 2], off);
+
+		/* Newton: find v* = argmax [ y*(eta_ref+v*sd) - E*exp(eta_ref+v*sd) - v^2/2 ]
+		 * Initialise at the Poisson mode (mu=y) to keep the first step small even when
+		 * eta_ref is far from the truth (starting at v=0 can give a step of ~y/mu_0). */
+		double v_star, mu_last;
+		int iter;
+		if (y > 0.0) {
+			v_star = (log(y / fmax(E, 1e-300)) - eta_ref) / sd;
+			v_star = fmax(-30.0, fmin(30.0, v_star));
+		} else {
+			v_star = 0.0;
+		}
+		mu_last = 0.0;
+		for (iter = 0; iter < 30; iter++) {
+			double eta_v = eta_ref + v_star * sd;
+			mu_last = (eta_v < 500.0) ? E * exp(eta_v) : E * exp(500.0);
+			double gp = (y - mu_last) * sd - v_star;
+			double gpp = -(mu_last * sd2 + 1.0);
+			double dv = fmax(-5.0, fmin(5.0, -gp / gpp));
+			v_star += dv;
+			if (fabs(dv) < 1e-8) {
+				break;
+			}
+		}
+
+		/* mu_last is E*exp(eta_ref+v_star*sd) from the final Newton step.
+		 * Recompute only if the last iteration did not converge at the stored mu_last. */
+		double mu_star = E * exp(eta_ref + v_star * sd);
+		double denom = mu_star * sd2 + 1.0;
+		double sigma_a = 1.0 / sqrt(denom);
+		double log_sigma_a = -0.5 * log(denom);
+
+		/* Precompute per-node constants (independent of eta_i). */
+		int k;
+		for (k = 0; k < nq; k++) {
+			double vk_k  = v_star + xq[k] * sigma_a;
+			double vks_k = vk_k * sd;			       /* vk * sd */
+			log_base[k]  = log(wq[k]) + normc - 0.5 * vk_k * vk_k + 0.5 * xq[k] * xq[k] + y * vks_k;
+			E_expvks[k]  = E * exp(vks_k);
+		}
+
+		/* Inner loop: one exp(eta_i) per i; no exp inside the k-loop. */
+		int i;
+		for (i = 0; i < m; i++) {
+			double eta_i     = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
+			double exp_eta_i = exp(eta_i);
+			double y_eta_i   = y * eta_i;
+			double vmax      = -INFINITY;
+
+			for (k = 0; k < nq; k++) {
+				vals[k] = log_base[k] + y_eta_i - E_expvks[k] * exp_eta_i;
+				if (vals[k] > vmax) {
+					vmax = vals[k];
+				}
+			}
+
+			double sum = 0.0;
+			for (k = 0; k < nq; k++) {
+				sum += exp(vals[k] - vmax);
+			}
+			logll[i] = log_sigma_a + vmax + log(sum);
+		}
+	}
+
+	LINK_END;
+
+	Free(log_base);
+	Free(E_expvks);
+	Free(vals);
+
+#undef _pln_logE
+	return GMRFLib_SUCCESS;
+}
 
 int loglikelihood_npoisson(int thread_id, int *UNUSED(lcache_idx), double *__restrict logll, double *__restrict x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
