@@ -1695,21 +1695,19 @@ int GMRFLib_idx_ge_match_core(const int n, const int *restrict idx, const GMRFLi
 	int i = 0;
 
 	for (; i < n - 1; i += 2) {
-		if (total_matches >= nmatches) {
-			return 1;
-		}
 		size_t ix0 = (size_t) (idx[i] - low);
 		size_t ix1 = (size_t) (idx[i + 1] - low);
 		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
 		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
 		total_matches += bit0 + bit1;
+		if (total_matches >= nmatches) {
+			return 1;
+		}
 	}
 
 	if (i < n && total_matches < nmatches) {
-		size_t ix = (size_t) (idx[i] - low);
-		if (ix < ulen) {
-			total_matches += (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1);
-		}
+		size_t ix0 = (size_t) (idx[i] - low);
+		total_matches += (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
 	}
 
 	return (total_matches >= nmatches);
