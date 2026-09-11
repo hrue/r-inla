@@ -3733,7 +3733,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							for (int knode = 0; knode < dn; knode++) {
 								int nnode = d_idx->idx[knode];
 								if (unlikely(node == nnode)
-								    || unlikely(GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap)) {
+								    || unlikely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}
@@ -3744,25 +3744,18 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							int knode = 0;
 							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
-								int nmatch = GMRFLib_idx_nmatch(A_idx4[nnode], bitmap);
-								if (unlikely(nmatch)) {
-									// we have a match, so we need to check details
-									int match_cum = 0;
+								if (unlikely(GMRFLib_idx_ge_match(A_idx4[nnode], bitmap, min_overlap))) {
 									for (int kknode = knode; kknode < knode + BLOCK; kknode++) {
 										nnode = d_idx->idx[kknode];
-										int match = GMRFLib_idxval_nmatch(A_idx(nnode), bitmap);
-										if (match >= min_overlap || unlikely(node == nnode)) {
+										if (likely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap)) || unlikely(node == nnode)) {
 											GMRFLib_idx_add(&d_idx_local, nnode);
 										}
-										match_cum += match;
-										if (match_cum == nmatch)
-											break;
 									}
 								}
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
-								if (node == nnode || GMRFLib_idxval_nmatch(A_idx(nnode), bitmap) >= min_overlap) {
+								if (unlikely(node == nnode) || unlikely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}
@@ -3774,7 +3767,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						if (ttn % 1000 == 0)
 							P(tt / ttn);
 #endif
-						GMRFLib_idxval_bitmap_free(bitmap);
+						GMRFLib_idx_bitmap_free(bitmap);
 						GMRFLib_idx_free(nb);
 					}
 				}

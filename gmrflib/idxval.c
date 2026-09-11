@@ -549,7 +549,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, int accumulate)
 {
 	// x is a test vector
@@ -1547,7 +1548,8 @@ double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 {
 	// compute the inner-product of two sparse vectors assuming ->idx is sorted
@@ -1575,7 +1577,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 }
 #pragma GCC diagnostic pop
 
-void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
+void GMRFLib_idx_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 {
 	if (bm) {
 		Free(bm->bitmap);
@@ -1583,33 +1585,32 @@ void GMRFLib_idxval_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 	}
 }
 
-GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(GMRFLib_idx_tp *hold)
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(const GMRFLib_idx_tp *restrict hold)
 {
-	GMRFLib_idxval_tp a = {
-		.idx = hold->idx,
-		.n = hold->n
-	};
-	GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idxval_bitmap_get(&a);
+	return GMRFLib_idx_bitmap_get_core(hold->n, hold->idx);
+}
 
-	return bitmap;
+GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(const GMRFLib_idxval_tp *restrict hold)
+{
+	return GMRFLib_idx_bitmap_get_core(hold->n, hold->idx);
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *restrict idx)
 {
-	// Initializes the 64-bit bitmap for the fixed hold structure. Assumes hold->idx is sorted.
-
+	// Return a alloced bitmap for IDX. ASSUME IDX is sorted.
 	assert(sizeof(size_t) == 8);
 
-	if (!hold || hold->n == 0)
+	if (!idx || n == 0)
 		return NULL;
 
 	GMRFLib_idx_bitmap_tp *bm = Calloc(1, GMRFLib_idx_bitmap_tp);
-	bm->n = hold->n;
-	bm->low = hold->idx[0];
-	bm->high = hold->idx[hold->n - 1];
+	bm->n = n;
+	bm->low = idx[0];
+	bm->high = idx[n - 1];
 	bm->len = bm->high - bm->low + 1;
 	bm->ulen = (size_t) bm->len;
 
@@ -1618,7 +1619,7 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 	bm->bitmap = Calloc(size, size_t);
 
 	for (int i = 0; i < bm->n; i++) {
-		int ix = hold->idx[i] - bm->low;
+		int ix = idx[i] - bm->low;
 		// ix >> 6 is division by 64, ix & 63 is modulo 64.
 		bm->bitmap[ix >> 6] |= ((size_t) 1 << (ix & 63));
 	}
@@ -1626,196 +1627,101 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(GMRFLib_idxval_tp *hold)
 }
 #pragma GCC diagnostic pop
 
-int GMRFLib_idx_nmatch(GMRFLib_idx_tp *v, GMRFLib_idx_bitmap_tp *bm)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+int GMRFLib_idx_nmatch_core(const int n, const int *restrict idx, const GMRFLib_idx_bitmap_tp *restrict bm)
 {
-	GMRFLib_idxval_tp u = {
-		.idx = v->idx,
-		.n = v->n
-	};
-	return GMRFLib_idxval_nmatch(&u, bm);
+	int low = bm->low;
+	if (idx[0] > bm->high || idx[n - 1] < low) {
+		return 0;
+	}
+
+	const size_t *restrict bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+
+	int match0 = 0;
+	int match1 = 0;
+	int i = 0;
+	for (; i < n - 1; i += 2) {
+		size_t ix0 = (size_t) (idx[i] - low);
+		size_t ix1 = (size_t) (idx[i + 1] - low);
+		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
+		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
+		match0 += bit0;
+		match1 += bit1;
+	}
+
+	// Handle leftover element if 'n' is odd
+	if (i < n) {
+		size_t ix = (size_t) (idx[i] - low);
+		if (ix < ulen) {
+			match0 += (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1);
+		}
+	}
+
+	return (match0 + match1);
+}
+#pragma GCC diagnostic pop
+
+
+int GMRFLib_idx_nmatch(const GMRFLib_idx_tp *v, const GMRFLib_idx_bitmap_tp *restrict bm)
+{
+	return GMRFLib_idx_nmatch_core(v->n, v->idx, bm);
 }
 
 int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
 {
-	return GMRFLib_idxval_nmatch_2(v, bm);
-	// return GMRFLib_idxval_nmatch_4(v, bm);
+	return GMRFLib_idx_nmatch_core(v->n, v->idx, bm);
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_idxval_nmatch_2(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
+int GMRFLib_idx_ge_match_core(const int n, const int *restrict idx, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
 {
-	// _ILP version
+	// return 1 if there is >= NMATCHES of IDX in BM
 
-	// Use const to help compiler prove read-only safety
 	int low = bm->low;
-	int high = bm->high;
-	int n = v->n;
-	int *restrict idx = v->idx;
-
-	if (idx[0] > high || idx[n - 1] < low) {
-		return 0;
-	}
-	size_t *restrict bitmap = bm->bitmap;
-	size_t ulen = bm->ulen;
-
-	int match0 = 0;
-	int match1 = 0;
-	int i = 0;
-
-	// Process 2 items per loop (Unrolling)
-	for (; i < n - 1; i += 2) {
-		size_t ix0 = (size_t) (idx[i] - low);
-		size_t ix1 = (size_t) (idx[i + 1] - low);
-
-		if (ix0 < ulen)
-			match0 += (bitmap[ix0 >> 6] >> (ix0 & 63)) & 1;
-		if (ix1 < ulen)
-			match1 += (bitmap[ix1 >> 6] >> (ix1 & 63)) & 1;
-	}
-
-	if (i < n) {
-		size_t ix = (size_t) (idx[i] - low);
-		if (ix < ulen)
-			match0 += (bitmap[ix >> 6] >> (ix & 63)) & 1;
-	}
-
-	return match0 + match1;
-}
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_idxval_nmatch_4(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
-{
-	// _ILP version
-
-	// Use const to help compiler prove read-only safety
-	int low = bm->low;
-	int high = bm->high;
-	int n = v->n;
-	int *restrict idx = v->idx;
-
-	if (idx[0] > high || idx[n - 1] < low) {
-		return 0;
-	}
-	size_t *restrict bitmap = bm->bitmap;
-	size_t ulen = bm->ulen;
-
-	int match0 = 0;
-	int match1 = 0;
-	int match2 = 0;
-	int match3 = 0;
-	int i = 0;
-
-	for (; i + 3 < n; i += 4) {
-		size_t ix0 = (size_t) (idx[i] - low);
-		size_t ix1 = (size_t) (idx[i + 1] - low);
-		size_t ix2 = (size_t) (idx[i + 2] - low);
-		size_t ix3 = (size_t) (idx[i + 3] - low);
-
-		if (ix0 < ulen)
-			match0 += (bitmap[ix0 >> 6] >> (ix0 & 63)) & 1;
-		if (ix1 < ulen)
-			match1 += (bitmap[ix1 >> 6] >> (ix1 & 63)) & 1;
-		if (ix2 < ulen)
-			match2 += (bitmap[ix2 >> 6] >> (ix2 & 63)) & 1;
-		if (ix3 < ulen)
-			match3 += (bitmap[ix3 >> 6] >> (ix3 & 63)) & 1;
-	}
-	for (; i < n; i++) {
-		size_t ix = (size_t) (idx[i] - low);
-		if (ix < ulen)
-			match0 += (bitmap[ix >> 6] >> (ix & 63)) & 1;
-	}
-
-	return match0 + match1 + match2 + match3;
-}
-#pragma GCC diagnostic pop
-
-int GMRFLib_idxval_nmatch_XXX(GMRFLib_idxval_tp *v, GMRFLib_idx_bitmap_tp *bm)
-{
-	int low = bm->low;
-	int high = bm->high;
-	int n = v->n;
-	int *idx = v->idx;
-
-	if (idx[0] > high || idx[n - 1] < low) {
+	if (idx[0] > bm->high || idx[n - 1] < low) {
 		return 0;
 	}
 
-	int nmatch = 0;
 	size_t *bitmap = bm->bitmap;
 	size_t ulen = bm->ulen;
+	int total_matches = 0;
+	int i = 0;
 
-	int *idx_ptr = idx;
-	int *idx_end = idx + n;
-	while (idx_ptr < idx_end) {
-		unsigned int ix = (unsigned int) (*idx_ptr++ - low);
-		int valid = (ix < ulen);
-		unsigned int safe_ix = ix & -valid;
-		int bit = (int) ((bitmap[safe_ix >> 6] >> (safe_ix & 63)) & 1);
-		nmatch += bit & -valid;
+	for (; i < n - 1; i += 2) {
+		if (total_matches >= nmatches) {
+			return 1;
+		}
+		size_t ix0 = (size_t) (idx[i] - low);
+		size_t ix1 = (size_t) (idx[i + 1] - low);
+		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
+		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
+		total_matches += bit0 + bit1;
 	}
 
-	return nmatch;
-}
-
-int GMRFLib_idxval_nmatch_XXXX(GMRFLib_idxval_tp *restrict v, GMRFLib_idx_bitmap_tp *restrict bm)
-{
-	int low = bm->low;
-	int high = bm->high;
-	int n = v->n;
-	int *restrict idx = v->idx;
-
-	if (idx[0] > high || idx[n - 1] < low) {
-		return 0;
-	}
-
-	int nmatch = 0;
-	size_t *restrict bitmap = bm->bitmap;
-	size_t ulen = bm->ulen;
-
-	// compiler vectorize this...
-	for (int i = 0; i < n; i++) {
-		unsigned int ix = (unsigned int) (idx[i] - low);
+	if (i < n && total_matches < nmatches) {
+		size_t ix = (size_t) (idx[i] - low);
 		if (ix < ulen) {
-			nmatch += (bitmap[ix >> 6] >> (ix & 63)) & 1;
+			total_matches += (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1);
 		}
 	}
-	return nmatch;
 
-// old code chunks
-#if 0
-	int len = high - low + 1;
+	return (total_matches >= nmatches);
+}
+#pragma GCC diagnostic pop
 
-#       define CODE_CHUNK_1							\
-	for (int i = 0; i < n; i++) {					\
-		int ix = idx[i] - low;					\
-		int is_legal = (ix >= 0 && ix < len);			\
-		int has_match = (is_legal ? (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1) : 0); \
-		nmatch += has_match;					\
-	}								\
-	return nmatch
+int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
+{
+	return GMRFLib_idx_ge_match_core(v->n, v->idx, bm, nmatches);
+}
 
-// this one is better for SIMD
-#       define CODE_CHUNK_2							\
-	for (int i = 0; i < n; i++) {					\
-		int ix = idx[i] - low;					\
-		int is_legal = (ix >= 0) & (ix < len);			\
-		int mask = -is_legal;					\
-		int safe_ix = ix & mask;				\
-		int bit = (int) ((bitmap[safe_ix >> 6] >> (safe_ix & 63)) & 1);	\
-		nmatch += (bit & mask);					\
-	}								\
-	return nmatch
-
-#       pragma omp simd reduction(+:nmatch)
-	CODE_CHUNK_2;
-
-#       undef CODE_CHUNK_1
-#       undef CODE_CHUNK_2
-#endif
+int GMRFLib_idxval_ge_match(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
+{
+	return GMRFLib_idx_ge_match_core(v->n, v->idx, bm, nmatches);
 }
