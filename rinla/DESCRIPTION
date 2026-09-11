@@ -180,6 +180,8 @@ Collate:
     'residuals.R'
     'rgeneric.R'
     'rprior.R'
+    'rw1o1diid.R'
+    'rw2o1diid.R'
     'sampler.R'
     'sandbox.R'
     'scale.model.R'
