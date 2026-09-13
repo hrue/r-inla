@@ -157,12 +157,12 @@ int inla_tolower(char *string)
 #if defined(__linux__)
 // Automatically parses standard Linux core range strings (e.g., "0-11" or "0-7,16-23")
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/stat.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <unistd.h>
+#       include <sys/stat.h>
 
-static int p_cores_are_available =  1;
+static int p_cores_are_available = 1;
 
 static int parse_max(const char *str)
 {
@@ -186,31 +186,31 @@ static int parse_max(const char *str)
 
 int inla_num_p_cores(void)
 {
-        // check if the system explicitly exposes a P-core layout (Intel Hybrid)
-        struct stat st;
-        if (stat("/sys/devices/cpu_core/cpus", &st) == 0) {
-                FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
-                if (f) {
-                        int num_p = 0;
-                        char buf[256];
-                        if (fgets(buf, sizeof(buf), f) != NULL) {
-                                num_p = parse_max(buf);
-                        }
-                        fclose(f);
-                        if (num_p > 0) {
-                                return num_p;
-                        }
+	// check if the system explicitly exposes a P-core layout (Intel Hybrid)
+	struct stat st;
+	if (stat("/sys/devices/cpu_core/cpus", &st) == 0) {
+		FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+		if (f) {
+			int num_p = 0;
+			char buf[256];
+			if (fgets(buf, sizeof(buf), f) != NULL) {
+				num_p = parse_max(buf);
+			}
+			fclose(f);
+			if (num_p > 0) {
+				return num_p;
+			}
 		}
 	}
 	p_cores_are_available = 0;
 
-        // if it's a non-hybrid machine, use standard POSIX to get the total number of online processing units
-        long total_cores = sysconf(_SC_NPROCESSORS_ONLN);
-        if (total_cores > 0) {
-                return (int)total_cores;
-        }
+	// if it's a non-hybrid machine, use standard POSIX to get the total number of online processing units
+	long total_cores = sysconf(_SC_NPROCESSORS_ONLN);
+	if (total_cores > 0) {
+		return (int) total_cores;
+	}
 
-        return NUM_P_CORES_DEFAULT();
+	return NUM_P_CORES_DEFAULT();
 }
 
 static void parse_and_add_cpus(const char *str, cpu_set_t *cpuset)
@@ -236,7 +236,7 @@ int inla_lock_to_p_cores(void)
 {
 	if (!p_cores_are_available)
 		return 1;
-	
+
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 

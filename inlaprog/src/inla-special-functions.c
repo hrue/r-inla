@@ -109,7 +109,7 @@ forceinline double inla_ipow(double x, int k)
 	return gsl_sf_pow_int(x, k);
 }
 
-forceinline double inla_lgamma(double x) 
+forceinline double inla_lgamma(double x)
 {
 	return lgamma(x);
 }
@@ -143,9 +143,9 @@ double inla_lgamma_fast(double x)
 	return -tmp + log(2.5066282746310005 * ser / x);
 }
 
-void inla_lgamma_m(size_t m, double *restrict x, double *restrict res) 
+void inla_lgamma_m(size_t m, double *restrict x, double *restrict res)
 {
-	for(size_t i = 0; i < m; i++) {
+	for (size_t i = 0; i < m; i++) {
 		res[i] = lgamma(x[i]);
 	}
 }
@@ -195,7 +195,7 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 		s += p[6] / (xi + 6.0);
 		ser[i] = s;
 	}
-#endif	
+#endif
 	for (size_t i = 0; i < m; i++) {
 		res[i] = -tmp[i] + log(2.5066282746310005 * ser[i] / x[i]);
 	}
@@ -203,7 +203,7 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 #undef N
 }
 
-forceinline double inla_gamma(double x) 
+forceinline double inla_gamma(double x)
 {
 	return (exp(lgamma(x)));
 }

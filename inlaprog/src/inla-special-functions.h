@@ -26,15 +26,15 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res);
 void inla_lgamma_m(size_t m, double *restrict x, double *restrict res);
 
 // we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
-#if 1
-#       define LGAMMAfn(x_) inla_lgamma_fast(x_)
-#       define LGAMMAfn_m(m_, x_, r_) inla_lgamma_fast_m((size_t) (m_), x_, r_)
-#       define GAMMAfn(x_) inla_gamma_fast(x_)
-#else
-#       define LGAMMAfn(x_) inla_lgamma(x_)
-#       define LGAMMAfn_m(m_, x_, r_) inla_lgamma_m((size_t) (m_), x_, r_)
-#       define GAMMAfn(x_) inla_gamma(x_)
-#endif
+#       if 1
+#              define LGAMMAfn(x_) inla_lgamma_fast(x_)
+#              define LGAMMAfn_m(m_, x_, r_) inla_lgamma_fast_m((size_t) (m_), x_, r_)
+#              define GAMMAfn(x_) inla_gamma_fast(x_)
+#       else
+#              define LGAMMAfn(x_) inla_lgamma(x_)
+#              define LGAMMAfn_m(m_, x_, r_) inla_lgamma_m((size_t) (m_), x_, r_)
+#              define GAMMAfn(x_) inla_gamma(x_)
+#       endif
 
 #       define LBETAfn(a_, b_) inla_lbeta(a_, b_)
 

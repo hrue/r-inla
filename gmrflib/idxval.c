@@ -1355,7 +1355,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1679,7 +1679,7 @@ int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idx_ge_match_core(const int n, const int *restrict idx, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
 {
 	// return 1 if there is >= NMATCHES of IDX in BM

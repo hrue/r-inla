@@ -7291,17 +7291,17 @@ int main(int argc, char **argv)
 
 		case 'P':
 		{
-                        if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
-                                GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
-                        } else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
-                                GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
-                        } else {
-                                assert(0 == 1);
-                        }
-                }
-                        break;
+			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
+			} else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
+			} else {
+				assert(0 == 1);
+			}
+		}
+			break;
 
-		case 'Q': 
+		case 'Q':
 		{
 			int status = inla_lock_to_p_cores();
 			if (verbose > 0) {
@@ -7421,13 +7421,13 @@ int main(int argc, char **argv)
 					char *pC = strchr(token, 'C');
 					if (pP || pC) {
 						fprintf(stderr, "\n");
-						fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii+1, token);
+						fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii + 1, token);
 						fprintf(stderr, "              No 'muparser'-library in this build, so\n");
-						fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n"); 
+						fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n");
 						exit(1);
 					}
 				}
-#endif				
+#endif
 				ntt[ii] = ((token && strlen(token)) ? inla_eval_int_expression(token, num_p_cores, host_max_threads) : 1);
 				ntt[ii] = IMAX(0, ntt[ii]);
 			}

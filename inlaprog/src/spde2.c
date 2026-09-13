@@ -180,8 +180,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	double *__restrict V = model->row_V[ii];
 	double *__restrict v = model->row_v[ii];
 
-	const int lim1 = 256; //128;
-	const int lim2 = 128; //64;
+	const int lim1 = 256;				       // 128;
+	const int lim2 = 128;				       // 64;
 	int dij_size = (1 + nb) * 3;
 	int max_stack_size = lim1;			       // Conservative limit
 	double stack_arrays[lim2 + lim1];		       // theta + dij on stack

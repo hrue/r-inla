@@ -826,7 +826,7 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 	int same_tp = (it.tp_idx == jt.tp_idx);
 	int same_idx = (it.idx == jt.idx);
 	double value = 0.0;
-	
+
 	switch (it.tp) {
 	case GMRFLib_PREOPT_TP_F:
 	{

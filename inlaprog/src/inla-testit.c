@@ -1353,11 +1353,7 @@ int testit(int argc, char **argv)
 		for (double x = -0.5; x < 20; x += 0.1) {
 			printf("x %f gsl.lgamma %f lgamma %f diff %f lgamma.fast %f diff %f\n",
 			       x,
-			       gsl_sf_lngamma(x),
-			       lgamma(x),
-			       gsl_sf_lngamma(x) - lgamma(x),
-			       inla_lgamma_fast(x),
-			       inla_lgamma_fast(x) - lgamma(x));
+			       gsl_sf_lngamma(x), lgamma(x), gsl_sf_lngamma(x) - lgamma(x), inla_lgamma_fast(x), inla_lgamma_fast(x) - lgamma(x));
 		}
 	}
 		break;
@@ -3091,7 +3087,7 @@ int testit(int argc, char **argv)
 		tref[1] = -GMRFLib_timer();
 		for (int i = 0; i < n; i++) {
 			sum += lgamma(y[i]);
-			//sum += gsl_sf_lngamma(y[i]);
+			// sum += gsl_sf_lngamma(y[i]);
 		}
 		tref[1] += GMRFLib_timer();
 		P(sum);
@@ -5625,7 +5621,7 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n + 1, double);
 		int *ix = Calloc(n + 1, int);
 
-		double tref[3] = {0};
+		double tref[3] = { 0 };
 		double err = 0, ierr = 0;
 		for (int i = 0; i < m; i++) {
 			double ref = 0.0;
@@ -5652,8 +5648,8 @@ int testit(int argc, char **argv)
 			err += ABS(GMRFLib_dsum(n, x) - ref);
 			ierr += ABS(GMRFLib_isum(n, ix) - iref);
 		}
-		P(err/n);
-		P(ierr/n);
+		P(err / n);
+		P(ierr / n);
 		printf("dsum %f dsum_ext %f isum %f\n", tref[0], tref[1], tref[2]);
 	}
 		break;
@@ -6574,15 +6570,14 @@ int testit(int argc, char **argv)
 
 	case 207:
 	{
-		for(int i = -20; i <= 20; i++) {
-			double x = 5.0 + (double)i / 10;
+		for (int i = -20; i <= 20; i++) {
+			double x = 5.0 + (double) i / 10;
 			printf("x %g gsl.lgamma %g lgamma %g diff %g (is.integer %s)\n",
-			       x, my_gsl_sf_lngamma(x), lgamma(x), my_gsl_sf_lngamma(x) - lgamma(x),
-			       ((int) x == x ? "TRUE" : "FALSE"));
+			       x, my_gsl_sf_lngamma(x), lgamma(x), my_gsl_sf_lngamma(x) - lgamma(x), ((int) x == x ? "TRUE" : "FALSE"));
 		}
 	}
-	break;
-		
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

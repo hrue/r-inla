@@ -294,7 +294,7 @@ int inla_eval_int_expression(char *expression, int P, int C)
 int inla_eval_int_expression(char *expression, int UNUSED(P), int UNUSED(C))
 {
 	// return 0 by default
-	
+
 	if (!expression || strlen(expression) == 0) {
 		return 0;
 	}

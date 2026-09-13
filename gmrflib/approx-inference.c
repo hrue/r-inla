@@ -3747,7 +3747,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 								if (unlikely(GMRFLib_idx_ge_match(A_idx4[nnode], bitmap, min_overlap))) {
 									for (int kknode = knode; kknode < knode + BLOCK; kknode++) {
 										nnode = d_idx->idx[kknode];
-										if (likely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap)) || unlikely(node == nnode)) {
+										if (likely
+										    (GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))
+										    || unlikely(node == nnode)) {
 											GMRFLib_idx_add(&d_idx_local, nnode);
 										}
 									}
@@ -3755,7 +3757,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
-								if (unlikely(node == nnode) || unlikely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))) {
+								if (unlikely(node == nnode)
+								    || unlikely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))) {
 									GMRFLib_idx_add(&d_idx_local, nnode);
 								}
 							}

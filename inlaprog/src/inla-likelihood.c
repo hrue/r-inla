@@ -6304,9 +6304,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *__restric
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7774,10 +7774,11 @@ int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *UNUSED(lcache_i
 					a = p * (1.0 - rho) / rho;
 					b = (p * rho - p - rho + 1.0) / rho;
 					prob_zero = exp(normc_zero + gsl_sf_lnbeta(yzero + a, n - yzero + b) - gsl_sf_lnbeta(a, b));
-					logll[i] = LOG_1mp(pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b) - LOG_1mp(prob_zero);
+					logll[i] =
+					    LOG_1mp(pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b) - LOG_1mp(prob_zero);
 				}
 			} else {
-				double va[3*m], vb[3*m], llbeta[3*m];
+				double va[3 * m], vb[3 * m], llbeta[3 * m];
 				for (i = 0; i < m; i++) {
 					p = PREDICTOR_INVERSE_LINK(x[i], off);
 					a = p * (1.0 - rho) / rho;
@@ -7785,17 +7786,17 @@ int loglikelihood_zeroinflated_betabinomial0(int thread_id, int *UNUSED(lcache_i
 					// gsl_sf_lnbeta(yzero + a, n - yzero + b)
 					va[i] = yzero + a;
 					vb[i] = n - yzero + b;
-					//gsl_sf_lnbeta(a, b));
-					va[m+i] = a;
-					vb[m+i] = b;
+					// gsl_sf_lnbeta(a, b));
+					va[m + i] = a;
+					vb[m + i] = b;
 					// gsl_sf_lnbeta(y + a, n - y + b)
-					va[2*m+i] = y + a;
-					vb[2*m+i] = n - y + b;
+					va[2 * m + i] = y + a;
+					vb[2 * m + i] = n - y + b;
 				}
-				inla_lbeta_m((size_t) 3*m, va, vb, llbeta);
+				inla_lbeta_m((size_t) 3 * m, va, vb, llbeta);
 				for (i = 0; i < m; i++) {
-					prob_zero = exp(normc_zero + llbeta[i] - llbeta[m+i]);
-					logll[i] = LOG_1mp(pzero) + normc + llbeta[2*m+i] - llbeta[m+i] - LOG_1mp(prob_zero);
+					prob_zero = exp(normc_zero + llbeta[i] - llbeta[m + i]);
+					logll[i] = LOG_1mp(pzero) + normc + llbeta[2 * m + i] - llbeta[m + i] - LOG_1mp(prob_zero);
 				}
 			}
 		}
@@ -7866,7 +7867,7 @@ int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *UNUSED(lcache_i
 				}
 			}
 		} else {
-			double va[2*m], vb[2*m], llbeta[2*m];
+			double va[2 * m], vb[2 * m], llbeta[2 * m];
 			for (i = 0; i < m; i++) {
 				p = PREDICTOR_INVERSE_LINK(x[i], off);
 				a = p * (1.0 - rho) / rho;
@@ -7875,18 +7876,18 @@ int loglikelihood_zeroinflated_betabinomial1(int thread_id, int *UNUSED(lcache_i
 				va[i] = y + a;
 				vb[i] = n - y + b;
 				// gsl_sf_lnbeta(a, b);
-				va[m+i] = a;
-				vb[m+i] = b;
+				va[m + i] = a;
+				vb[m + i] = b;
 			}
-			inla_lbeta_m((size_t) 2*m, va, vb, llbeta);
+			inla_lbeta_m((size_t) 2 * m, va, vb, llbeta);
 			if (y == 0) {
 				for (i = 0; i < m; i++) {
-					tmp = LOG_1mp(pzero) + normc + llbeta[i] - llbeta[m+i];
+					tmp = LOG_1mp(pzero) + normc + llbeta[i] - llbeta[m + i];
 					logll[i] = GMRFLib_log_apbex(pzero, tmp);
 				}
 			} else {
 				for (i = 0; i < m; i++) {
-					logll[i] = LOG_1mp(pzero) + normc + llbeta[i] - llbeta[m+i];
+					logll[i] = LOG_1mp(pzero) + normc + llbeta[i] - llbeta[m + i];
 				}
 			}
 		}
@@ -7919,7 +7920,7 @@ int loglikelihood_zeroinflated_betabinomial2(int thread_id, int *UNUSED(lcache_i
 {
 	// this function is not adapted to inla_lbeta_m(); do that if required. the code was so messy and needs to be cleaned up
 	// first.
-	
+
 	/*
 	 * zeroinflated BetaBinomial : y ~ prob*1[y=0] + (1-prob)*BetaBinomial(n, p, delta), where logit(p) = x, and prob = 1-p^alpha.
 	 */
