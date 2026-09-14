@@ -162,7 +162,7 @@ void inla_lgamma_m(size_t m, double *restrict x, double *restrict res)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
+void XXXinla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 {
 	// evaluate M calls to lgamma_fast together, assume all x[] > 0. this is what is used for the lbeta(a,b) function, for
 	// which all arguments are positive: lbeta(a,b) := lgamma(a)+lgamma(b)-lgamma(a+b)
@@ -205,6 +205,53 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 #undef N
 }
 #pragma GCC diagnostic pop
+
+#include <stddef.h>
+#include <math.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
+{
+#define G 5
+#define N 7
+	static const double p[N] = {
+		1.0000000001900148240,
+		76.180091729471463483,
+		-86.505320329416767652,
+		24.014098240830910490,
+		-1.2317395724501553875,
+		0.0012086509738661785061,
+		-5.3952393849531283785e-6
+	};
+
+	// Fusing into a single SIMD loop completely eliminates 'tmp' and 'ser' arrays in the old version of the function
+#pragma omp simd
+	for (size_t i = 0; i < m; i++) {
+		double xi = x[i];
+		double tt = xi + (G + 0.5);
+        
+		// Compute the Lanczos series approximation
+		double s = p[0];
+		s += p[1] / (xi + 1.0);
+		s += p[2] / (xi + 2.0);
+		s += p[3] / (xi + 3.0);
+		s += p[4] / (xi + 4.0);
+		s += p[5] / (xi + 5.0);
+		s += p[6] / (xi + 6.0);
+
+		// Inline computation of combined math terms
+		double log_term = log((2.5066282746310005 * s) / xi);
+		double tmp_term = tt - (xi + 0.5) * log(tt);
+
+		res[i] = -tmp_term + log_term;
+	}
+#undef G
+#undef N
+}
+#pragma GCC diagnostic pop
+
 
 forceinline double inla_gamma(double x)
 {

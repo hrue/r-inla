@@ -40,14 +40,17 @@ typedef struct {
 } dtweedie_cache_tp;
 
 static dtweedie_cache_tp **cache = NULL;
+static int verbose = 0;
 
 // must be called before use to initialize cache
+// env INLA_DEBUG=dtweedie2_init_cache inla.mkl.work -v -t1 Model.ini
 void dtweedie2_init_cache(void)
 {
 #define LEN 2
 	if (!cache) {
 #pragma omp critical (Name_92509c30f7c8ce2ff56520888da767c88a1ae7d4)
 		if (!cache) {
+			GMRFLib_DEBUG_INIT();
 			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
 			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 				ccache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
@@ -62,6 +65,7 @@ void dtweedie2_init_cache(void)
 					ccache[i]->lnfact[j] = ccache[i]->lnfact[j - 1] + log(j);
 				}
 			}
+			verbose = GMRFLib_DEBUG_IF_TRUE();
 			cache = ccache;
 		}
 	}
@@ -94,14 +98,14 @@ static void dtweedie2_adjust_cache(int idx, int nlen)
 			cache[idx]->lnfact[j] = cache[idx]->lnfact[j - 1] + log((double) j);
 		}
 
-#if 0
-		// we ignore small numbers here...
-		static double total_cache_size = 0.0;
-		double change = (nlen - olen) * 5 * sizeof(double);
+		if (verbose) {
+			// we ignore small numbers here...
+			static double total_cache_size = 0.0;
+			double change = (nlen - olen) * 5 * sizeof(double);
 #       pragma omp atomic
-		total_cache_size += change;
-		printf("\ttweedie2: extend cache[%1d] from len=%1d to %1d [total.size=%.2fMb]\n", idx, olen, nlen, total_cache_size / SQR(1024.));
-#endif
+			total_cache_size += change;
+			printf("\ttweedie2: extend cache[%1d] from len=%1d to %1d [total.size=%.2fMb]\n", idx, olen, nlen, total_cache_size / SQR(1024.));
+		}
 	}
 #undef MINLEN
 }
@@ -137,20 +141,23 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	cc = logz + a1 + alpha * log(-alpha);
 	double w = a1 * jmax;
 	int jj = jmax;
-	int inc = IMAX(TWEEDIE_INC, sqrt(jmax));
+	int inc = TWEEDIE_INC;
 	while (1) {
 		jj += inc;
 		if (jj * (cc - a1 * log(jj)) < (w - TWEEDIE_DROP))
 			break;
+		inc += 2;				       /* speed it up a little */
 	}
 	int upper = jj;
 	dtweedie2_adjust_cache(id, upper + 1);
 
 	jj = jmax;
+	inc = TWEEDIE_INC;
 	while (1) {
 		jj -= inc;
 		if (jj < 1 || jj * (cc - a1 * log(jj)) < w - TWEEDIE_DROP)
 			break;
+		inc += 2;				       /* speed it up a little */
 	}
 	int lower = IMAX(1, floor(jj));
 
@@ -158,7 +165,6 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	tref[0] += GMRFLib_timer();
 	tref[1] -= GMRFLib_timer();
 #endif
-	// printf("find range %d %d\n", lower, upper);
 
 	if (c->save_p != p) {
 		for (int j = lower; j <= upper; j++) {
@@ -172,7 +178,6 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 		c->save_p = p;
 		c->lower = lower;
 		c->upper = upper;
-		// printf("change save_p to %.12f lower %d upper %d\n", p, lower, upper);
 	} else {
 		// save_p == p
 		if (lower < c->lower) {
@@ -187,7 +192,6 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 				c->lgam_terms[j] = c->lnfact[j] + c->res[j];
 			}
 			c->lower = lower;
-			// printf("change lower to %d\n", lower);
 		}
 		if (upper > c->upper) {
 			// include ->upper as its cleaner code
@@ -201,7 +205,6 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 				c->lgam_terms[j] = c->lnfact[j] + c->res[j];
 			}
 			c->upper = upper;
-			// printf("change upper to %d\n", upper);
 		}
 	}
 
@@ -245,20 +248,18 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 
 #if 0
 	// verify against the old version?
-	if (0) {
-		static int first = 1;
-		void dtweedie_init_cache(void);
-		if (first)
-			dtweedie_init_cache();
-		first = 0;
-		void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens);
-		for (int i = 0; i < n; i++) {
-			double ld = 0;
-			dtweedie(1, y, &(mu[i]), phi, p, &ld);
-			if (ABS(ldens[i] - ld) > 0.001) {
-				printf("i %d %.8f %.8f %.12f\n", i, ldens[i], ld, ldens[i] - ld);
-				abort();
-			}
+	static int first = 1;
+	void dtweedie_init_cache(void);
+	if (first)
+		dtweedie_init_cache();
+	first = 0;
+	void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens);
+	for (int i = 0; i < n; i++) {
+		double ld = 0;
+		dtweedie(1, y, &(mu[i]), phi, p, &ld);
+		if (ABS(ldens[i] - ld) > 0.001) {
+			printf("i %d %.8f %.8f %.12f\n", i, ldens[i], ld, ldens[i] - ld);
+			abort();
 		}
 	}
 #endif
