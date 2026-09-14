@@ -304,6 +304,14 @@ inla.parse.Bmatrix.test <- function() {
         }
     }
 
+    if (inla.one.of(family, "poissonlognormal")) {
+        nquad <- inla.ifelse(is.null(control$nquad), 15L, as.integer(control$nquad))
+        if (nquad < 1L) {
+            stop("control.family: nquad must be a positive integer")
+        }
+        cat("nquad = ", nquad, "\n", sep = "", file = file, append = TRUE)
+    }
+
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
 
     ## this is for 0poisson etc... that use argument link.simpple

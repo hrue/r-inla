@@ -172,6 +172,7 @@
                                        "gammacount",
                                        "gpoisson",
                                        "xpoisson",
+                                       "poissonlognormal",
                                        "zeroinflatedcenpoisson0",
                                        "zeroinflatedcenpoisson1",
                                        "zeroinflatednbinomial0",
