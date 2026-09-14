@@ -7725,12 +7725,14 @@ int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *__rest
 		for (int i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 		}
-		dtweedie(m, y, mu, phi, p, logll);
+		//dtweedie(m, y, mu, phi, p, logll);
+		dtweedie2(m, y, mu, phi, p, logll);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (int i = 0; i < -m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			logll[i] = ptweedie(yy, mu, phi, p);
+			//logll[i] = ptweedie(yy, mu, phi, p);
+			logll[i] = ptweedie2(yy, mu, phi, p);
 		}
 	}
 

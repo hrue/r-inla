@@ -79,6 +79,7 @@
 #include "R-interface.h"
 #include "fgn.h"
 #include "tweedie.h"
+#include "tweedie2.h"
 #include "pc-powerlink.h"
 #include "link-gevit.h"
 #include "cgeneric.h"

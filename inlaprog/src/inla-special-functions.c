@@ -30,6 +30,9 @@ double inla_logitcdf_normal(double x)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_logcdf_normal(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
@@ -67,6 +70,7 @@ double inla_logcdf_normal(double x)
 	abort();
 	return 0;
 }
+#pragma GCC diagnostic pop
 
 double inla_cdf_normal_fast(double x)
 {
@@ -114,6 +118,9 @@ forceinline double inla_lgamma(double x)
 	return lgamma(x);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_lgamma_fast(double x)
 {
 	if (unlikely(x <= 0.0)) {
@@ -142,6 +149,8 @@ double inla_lgamma_fast(double x)
 #undef N
 	return -tmp + log(2.5066282746310005 * ser / x);
 }
+#pragma GCC diagnostic pop
+
 
 void inla_lgamma_m(size_t m, double *restrict x, double *restrict res)
 {
@@ -150,6 +159,9 @@ void inla_lgamma_m(size_t m, double *restrict x, double *restrict res)
 	}
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 {
 	// evaluate M calls to lgamma_fast together, assume all x[] > 0. this is what is used for the lbeta(a,b) function, for
@@ -172,18 +184,8 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 	}
 
 	double ser[m];
-#if 0
-	GMRFLib_dfill((int) m, p[0], ser);
-	for (size_t i = 0; i < m; i++) {
-		double xi = x[i];
-		double s = ser[i];
-		for (size_t j = 1; j < N; j++) {
-			s += p[j] / (xi + j);
-		}
-		ser[i] = s;
-	}
-#else
 	// this is for N==7
+#pragma omp simd
 	for (size_t i = 0; i < m; i++) {
 		double xi = x[i];
 		double s = p[0];
@@ -195,13 +197,14 @@ void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res)
 		s += p[6] / (xi + 6.0);
 		ser[i] = s;
 	}
-#endif
+#pragma omp simd
 	for (size_t i = 0; i < m; i++) {
 		res[i] = -tmp[i] + log(2.5066282746310005 * ser[i] / x[i]);
 	}
 #undef G
 #undef N
 }
+#pragma GCC diagnostic pop
 
 forceinline double inla_gamma(double x)
 {

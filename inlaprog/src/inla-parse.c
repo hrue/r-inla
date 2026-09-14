@@ -3554,7 +3554,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * get options related to the tweedie
 		 */
-		dtweedie_init_cache();			       // will only initialize once
+		dtweedie2_init_cache();			       // will only initialize once
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->mode_use_mode) {

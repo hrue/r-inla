@@ -46,18 +46,22 @@ static double *lgammas = NULL;
 void dtweedie_init_cache(void)
 {
 	if (!cache) {
-		cache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
-		for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-			cache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
-			cache[i]->nterms = -1;
-			cache[i]->interpolation_ok = 0;
-			cache[i]->save_p = -9999.9999;
-			cache[i]->work = NULL;
-			cache[i]->wwork = NULL;
-		}
-		lgammas = Calloc(TWEEDIE_MAX_IDX, double);
-		for (int i = 0; i < TWEEDIE_MAX_IDX; i++) {
-			lgammas[i] = my_gsl_sf_lnfact(i);
+#pragma omp critical (Name_7a0e3ad8ab1b55eeac2d184db7725114058480fd)
+		if (!cache) {
+			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
+			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+				ccache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
+				ccache[i]->nterms = -1;
+				ccache[i]->interpolation_ok = 0;
+				ccache[i]->save_p = -9999.9999;
+				ccache[i]->work = NULL;
+				ccache[i]->wwork = NULL;
+			}
+			lgammas = Calloc(TWEEDIE_MAX_IDX, double);
+			for (int i = 0; i < TWEEDIE_MAX_IDX; i++) {
+				lgammas[i] = my_gsl_sf_lnfact(i);
+			}
+			cache = ccache;
 		}
 	}
 }

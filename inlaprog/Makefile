@@ -51,7 +51,7 @@ INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/spde.o \
 	src/spde2.o src/spde3.o src/eval.o src/ar.o src/bessel.o src/pc-priors.o \
 	src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o \
-	src/tweedie.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/prw2.o \
+	src/tweedie.o src/tweedie2.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/prw2.o \
 	src/cgeneric-mapper.o
 
 HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.h  \
@@ -59,7 +59,7 @@ HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.
 	src/inla.h src/param-constr.h src/quantile-regression.h src/spde3.h  src/tweedie.h \
 	src/cgeneric.h src/fgn-code.h src/fgn-tables-4.h src/link-gevit.h src/pc-powerlink.h \
 	src/R-interface.h src/spde.h src/dictionary.h src/fgn.h src/fgn-tables.h src/my-fix.h \
-	src/pc-priors.h src/rmath.h src/stochvol.h src/inla-special-functions.h 
+	src/pc-priors.h src/rmath.h src/stochvol.h src/inla-special-functions.h src/tweedie2.h
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
@@ -124,6 +124,8 @@ src/stochvol.o: $(HEADERS) src/stochvol.c
 src/strlib.o: $(HEADERS) src/strlib.c
 
 src/tweedie.o: $(HEADERS) src/tweedie.c
+
+src/tweedie2.o: $(HEADERS) src/tweedie2.c
 
 src/view-binary.o: $(HEADERS) src/view-binary.c
 
