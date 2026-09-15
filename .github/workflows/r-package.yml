@@ -67,15 +67,90 @@ jobs:
           r-version: release
           use-public-rspm: true
 
-      ## No dependency install: R CMD build does not load the package, and
-      ## vignettes are skipped, so nothing from Depends/Suggests is needed.
-      ## Verified by building the same tarball on a machine without them.
+      ## Vignettes are built for a RELEASE and skipped on a branch push.
+      ##
+      ## The 20 live vignettes are not documentation-only: they contain 112
+      ## inla() calls between them (old-faq.Rmd alone has 31), so building them
+      ## installs the package, fetches a binary and fits every one of those
+      ## models. That is minutes of work and a real failure surface, which is
+      ## why an ordinary push skips it.
+      ##
+      ## But a release must carry them. They were compiled by hand on every
+      ## release until the tarball moved into CI, and --no-build-vignettes made
+      ## them disappear silently: browseVignettes(package="INLA") returns
+      ## nothing in the current release. The sources were never lost, in either
+      ## rinla/ or package/; only the build step stopped running them.
+      ## Everything the vignettes need, on TAGS only.
+      ##
+      ## This is a large step, and the size is the point of the trade. The 19
+      ## vignettes load 35 distinct packages between them, including the
+      ## geospatial stack (sf, s2, terra, tidyterra, spatstat) which needs GDAL,
+      ## GEOS, PROJ and udunits at the system level, and they fit 112 inla()
+      ## models. 36 of them declare rmarkdown::pdf_document, so pandoc AND a TeX
+      ## installation are required, not pandoc alone.
+      ##
+      ## Two of them (rnaturalearth, ggOceanMaps) download map data while
+      ## knitting, so a release build reaches the network beyond CRAN. That is
+      ## the main fragility here: it can fail for reasons that have nothing to
+      ## do with INLA.
+      - name: System libraries for the vignettes (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+              libgdal-dev libgeos-dev libproj-dev libudunits2-dev libssl-dev
+
+      - uses: r-lib/actions/setup-pandoc@v2
+        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: R packages and the inla binary (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -e
+          Rscript -e 'install.packages(c(
+            "knitr","rmarkdown","formatR","tinytex",
+            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sp","sn","numDeriv",
+            "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
+            "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
+            "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
+            "mlogit","Ecdat","pixmap","inlabru","INLAspacetime"))'
+          ## pdf_document needs a TeX installation; tinytex is the light one.
+          Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          ## The vignettes FIT MODELS, so the R side alone is not enough.
+          Rscript -e 'INLA::inla.stiles.install(persist = TRUE)'
+          Rscript -e 'cat("binary:", INLA::inla.getOption("inla.call"), "\n")'
 
       - name: Build the package
         run: |
           set -o pipefail
-          R CMD build --no-build-vignettes rinla | tee build-package.log
+          ## Tag builds render the vignettes; branch builds skip them, because
+          ## on a branch none of the above is installed.
+          if [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ]; then
+            echo "tag build: rendering vignettes"
+            time R CMD build rinla | tee build-package.log
+          else
+            R CMD build --no-build-vignettes rinla | tee build-package.log
+          fi
           ls -1 INLA_*.tar.gz
+
+      ## Assert they actually landed. A vignette that fails to knit is not
+      ## always fatal to R CMD build, it can simply be omitted, which is exactly
+      ## how they disappeared from the release without anyone noticing.
+      ## Most render to PDF, a couple to HTML, so count both.
+      - name: Vignettes are in the tarball (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -e
+          TB=$(ls -1 INLA_*.tar.gz)
+          N=$(tar tzf "$TB" | grep -cE '/inst/doc/.*\.(html|pdf)$' || true)
+          echo "built vignettes in $TB: $N"
+          tar tzf "$TB" | grep '/inst/doc/' | head -20
+          if [ "${N:-0}" -lt 15 ]; then
+            echo "::error::only $N vignettes were built; 19 sources exist."
+            echo "  Check build-package.log for the one that failed to knit."
+            exit 1
+          fi
 
       ## GUARD 2, tags only: a release must have a NEWS entry for its own
       ## version. NEWS.md is written by hand on purpose (the entries are
