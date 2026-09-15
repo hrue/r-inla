@@ -104,8 +104,22 @@ endif
 	$(AR) cr $(LIBNAME) $(LIBOBJ) $(LIBOBJFM)
 ##	ranlib $@
 
+FMFLAGS := -DINLA_WITH_CLONE_TARGETS -I. -fopenmp-simd -O3 -ffast-math
+ifneq ($(filter -DINLA_WITH_MKL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_MKL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_FRAMEWORK_ACCELERATE,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_FRAMEWORK_ACCELERATE $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_ARMPL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_ARMPL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_OPENBLAS,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_OPENBLAS $(FMFLAGS)
+endif
 fast-math/%.o: fast-math/%.c
-	$(CC) -c $(FFLAGS) -O3 -ffast-math -o $@ $<
+	$(CC) -c $(FMFLAGS) -o $@ $<
+
 
 # !!! Do not change! /FL
 DEPDIR = .deps/.dummy

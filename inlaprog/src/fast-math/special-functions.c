@@ -1,8 +1,9 @@
-#include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <strings.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
@@ -10,7 +11,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_logcdf_normal(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
@@ -131,7 +132,7 @@ forceinline double inla_lgamma(double x)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_lgamma_fast(double x)
 {
 	if (unlikely(x <= 0.0)) {
@@ -162,7 +163,6 @@ double inla_lgamma_fast(double x)
 }
 #pragma GCC diagnostic pop
 
-
 void inla_lgamma_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 {
 	for (size_t i = 0; i < m; i++) {
@@ -172,57 +172,7 @@ void inla_lgamma_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void XXXinla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
-{
-	// evaluate M calls to lgamma_fast together, assume all x[] > 0. this is what is used for the lbeta(a,b) function, for
-	// which all arguments are positive: lbeta(a,b) := lgamma(a)+lgamma(b)-lgamma(a+b)
-#define G 5
-#define N 7
-	static const double p[N] = {
-		1.0000000001900148240,
-		76.180091729471463483,
-		-86.505320329416767652,
-		24.014098240830910490,
-		-1.2317395724501553875,
-		0.0012086509738661785061,
-		-5.3952393849531283785e-6
-	};
-	double tmp[m];
-	for (size_t i = 0; i < m; i++) {
-		double tt = x[i] + G + 0.5;
-		tmp[i] = tt - (x[i] + 0.5) * log(tt);
-	}
-
-	double ser[m];
-	// this is for N==7
-#pragma omp simd
-	for (size_t i = 0; i < m; i++) {
-		double xi = x[i];
-		double s = p[0];
-		s += p[1] / (xi + 1.0);
-		s += p[2] / (xi + 2.0);
-		s += p[3] / (xi + 3.0);
-		s += p[4] / (xi + 4.0);
-		s += p[5] / (xi + 5.0);
-		s += p[6] / (xi + 6.0);
-		ser[i] = s;
-	}
-#pragma omp simd
-	for (size_t i = 0; i < m; i++) {
-		res[i] = -tmp[i] + log(2.5066282746310005 * ser[i] / x[i]);
-	}
-#undef G
-#undef N
-}
-#pragma GCC diagnostic pop
-
-#include <stddef.h>
-#include <math.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 {
 #define G 5
@@ -263,7 +213,6 @@ void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 }
 #pragma GCC diagnostic pop
 
-
 forceinline double inla_gamma(double x)
 {
 	return (exp(lgamma(x)));
@@ -289,15 +238,18 @@ double inla_lbeta(double a, double b)
 
 void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta)
 {
-	double x[3 * m];
-	for (size_t i = 0, j = 0; i < 3 * m; i += 3, j++) {
+	size_t m3 = 3 * m;
+	double x[m3];
+	for (size_t i = 0, j = 0; i < m3; i += 3, j++) {
 		x[i] = a[j];
 		x[i + 1] = b[j];
 		x[i + 2] = a[j] + b[j];
 	}
-	double r[3 * m];
-	LGAMMAfn_m(3 * m, x, r);
-	for (size_t i = 0, j = 0; i < 3 * m; i += 3, j++) {
+
+	double r[m3];
+	LGAMMAfn_m(m3, x, r);
+
+	for (size_t i = 0, j = 0; i < m3; i += 3, j++) {
 		llbeta[j] = r[i] + r[i + 1] - r[i + 2];
 	}
 }
