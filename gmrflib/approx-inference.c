@@ -6923,7 +6923,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		integral3 = GMRFLib_ddot(np, ll, wp);
 		GMRFLib_exp(np, ll, ell);
-		GMRFLib_mul(np, ell, mask, w);	       /* so that w[i]=exp(ll[i])=0 if ll[i]=0 */
+		GMRFLib_mul(np, ell, mask, w);		       /* so that w[i]=exp(ll[i])=0 if ll[i]=0 */
 		integral2 = GMRFLib_ddot(np, w, wp);
 		GMRFLib_sqr(np, ll, w);
 		integral4 = GMRFLib_ddot(np, w, wp);

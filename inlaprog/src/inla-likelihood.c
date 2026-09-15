@@ -6304,9 +6304,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *RESTRICT 
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, lcache_idx, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7726,13 +7726,13 @@ int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 		for (int i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 		}
-		//dtweedie(m, y, mu, phi, p, logll);
+		// dtweedie(m, y, mu, phi, p, logll);
 		dtweedie2(m, y, mu, phi, p, logll);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (int i = 0; i < -m; i++) {
 			double mu = PREDICTOR_INVERSE_LINK(x[i], off);
-			//logll[i] = ptweedie(yy, mu, phi, p);
+			// logll[i] = ptweedie(yy, mu, phi, p);
 			logll[i] = ptweedie2(yy, mu, phi, p);
 		}
 	}

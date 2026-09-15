@@ -16,7 +16,6 @@ __BEGIN_DECLS
 /*
  *
  */
-
 double inla_logcdf_normal(double x);
 double inla_cdf_normal(double x);
 double inla_cdf_normal_fast(double x);

@@ -242,7 +242,7 @@ void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 	for (size_t i = 0; i < m; i++) {
 		double xi = x[i];
 		double tt = xi + (G + 0.5);
-        
+
 		// Compute the Lanczos series approximation
 		double s = p[0];
 		s += p[1] / (xi + 1.0);

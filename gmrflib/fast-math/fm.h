@@ -17,7 +17,6 @@
 
 __BEGIN_DECLS
 #       include "GMRFLib/GMRFLib.h"
-
 void GMRFLib_abs(int, double *restrict, double *restrict);
 void GMRFLib_exp(int, double *restrict, double *restrict);
 void GMRFLib_exp_inc(int n, double *restrict x, int inc, double *restrict y);

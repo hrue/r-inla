@@ -102,9 +102,10 @@ static void dtweedie2_adjust_cache(int idx, int nlen)
 			// we ignore small numbers here...
 			static double total_cache_size = 0.0;
 			double change = (nlen - olen) * 5 * sizeof(double);
-#       pragma omp atomic
+#pragma omp atomic
 			total_cache_size += change;
-			printf("\ttweedie2: extend cache[%1d] from len=%1d to %1d [total.size=%.2fMb]\n", idx, olen, nlen, total_cache_size / SQR(1024.));
+			printf("\ttweedie2: extend cache[%1d] from len=%1d to %1d [total.size=%.2fMb]\n", idx, olen, nlen,
+			       total_cache_size / SQR(1024.));
 		}
 	}
 #undef MINLEN

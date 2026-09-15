@@ -20,7 +20,6 @@ __BEGIN_DECLS
 #       include "my.h"
 
 /* */
-
 double ptweedie2(double y, double mu, double phi, double p);
 void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens);
 void dtweedie2_init_cache(void);
