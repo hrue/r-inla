@@ -23,6 +23,7 @@ __BEGIN_DECLS
 double ptweedie2(double y, double mu, double phi, double p);
 void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens);
 void dtweedie2_init_cache(void);
+void dtweedie2_init_cache_idx(int idx);
 
 __END_DECLS
 #endif
