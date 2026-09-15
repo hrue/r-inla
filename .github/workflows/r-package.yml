@@ -27,6 +27,11 @@ on:
     branches: [feature/ci, master]
     tags: ['Version_*', 'v*']
   workflow_dispatch:
+    inputs:
+      vignettes:
+        description: "Build the vignettes (normally tags only). Use this to test that path without cutting a release."
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -94,17 +99,17 @@ jobs:
       ## the main fragility here: it can fail for reasons that have nothing to
       ## do with INLA.
       - name: System libraries for the vignettes (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.vignettes
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
               libgdal-dev libgeos-dev libproj-dev libudunits2-dev libssl-dev
 
       - uses: r-lib/actions/setup-pandoc@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.vignettes
 
       - name: R packages and the inla binary (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.vignettes
         run: |
           set -e
           Rscript -e 'install.packages(c(
@@ -122,11 +127,14 @@ jobs:
           Rscript -e 'cat("binary:", INLA::inla.getOption("inla.call"), "\n")'
 
       - name: Build the package
+        env:
+          FORCE_VIGNETTES: ${{ inputs.vignettes }}
         run: |
           set -o pipefail
           ## Tag builds render the vignettes; branch builds skip them, because
-          ## on a branch none of the above is installed.
-          if [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ]; then
+          ## on a branch none of the above is installed. The manual switch
+          ## exists so the tag path can be tested without cutting a release.
+          if [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ] || [ "$FORCE_VIGNETTES" = "true" ]; then
             echo "tag build: rendering vignettes"
             time R CMD build rinla | tee build-package.log
           else
@@ -139,7 +147,7 @@ jobs:
       ## how they disappeared from the release without anyone noticing.
       ## Most render to PDF, a couple to HTML, so count both.
       - name: Vignettes are in the tarball (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.vignettes
         run: |
           set -e
           TB=$(ls -1 INLA_*.tar.gz)
