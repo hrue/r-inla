@@ -228,7 +228,6 @@ int R_load_INLA = 0;
 #include "inla-Qfunc.c"
 #include "inla-likelihood.c"
 #include "inla-priors.c"
-#include "inla-special-functions.c"
 #include "inla-output.c"
 #include "inla-modes.c"
 #include "inla-classic.c"
@@ -6355,6 +6354,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		double *Ad = Calloc(preopt->Npred, double);
 		double *e = Calloc(preopt->Npred, double);
 		double *bb = Calloc(preopt->n, double);
+		double *d = Calloc(preopt->n, double);
 		double *scale = Calloc(preopt->n, double);
 		double s0 = 1.0;
 
@@ -6374,7 +6374,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 		int iter_max = 5;
 		double norm_initial = 0.0;
-		double *d = bb;				       /* use the same space for both */
 		for (int iter = 0; iter <= iter_max; iter++) {
 			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
@@ -6382,7 +6381,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0, eta, e);
 			norm = sqrt(GMRFLib_dssqr(preopt->Npred, e) / preopt->Npred);
 			GMRFLib_preopt_bnew_like(bb, e, preopt, GMRFLib_openmp->max_threads_outer);
-			GMRFLib_mul(preopt->n, d, scale, d);
+			GMRFLib_mul(preopt->n, bb, scale, d);
 			GMRFLib_preopt_predictor(Ad, d, preopt, GMRFLib_openmp->max_threads_outer);
 			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
 			sum2 = GMRFLib_dssqr(preopt->Npred, Ad);
@@ -6423,6 +6422,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		Free(Ad);
 		Free(e);
 		Free(bb);
+		Free(d);
 		Free(scale);
 	}
 
@@ -6769,7 +6769,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		COMPUTE_MODE();
 		Malloc_free();
 	} else {
-		Malloc_init(3 * npm + 4 * np, 7);
+		Malloc_init(4 * npm + 4 * np, 8);
 		low = density->x_min;
 		high = density->x_max;
 		dx = (high - low) / (np - 1.0);
@@ -6818,6 +6818,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		// interpolate
 		xpm = Malloc_get(npm);
 		ldm = Malloc_get(npm);
+		double *ldm2 = Malloc_get(npm);
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 			const double div3 = 1.0 / 3.0;
@@ -6855,7 +6856,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 		}
 
-		GMRFLib_exp(npm, ldm, ldm);
+		GMRFLib_exp(npm, ldm, ldm2);
 		xx = Malloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (plain) {
@@ -6874,11 +6875,13 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			assert(0 == 1);
 		}
 
-		GMRFLib_mul(npm, ldm, w, ldm);
+		GMRFLib_mul(npm, ldm2, w, ldm);
 		m0 = GMRFLib_dsum(npm, ldm);
 		m1 = GMRFLib_ddot(npm, ldm, xx);
-		GMRFLib_sqr(npm, xx, xx);
-		m2 = GMRFLib_ddot(npm, ldm, xx);
+
+		double *xx2 = ldm2;			       /* use same ptr */
+		GMRFLib_sqr(npm, xx, xx2);
+		m2 = GMRFLib_ddot(npm, ldm, xx2);
 
 		m1 /= m0;
 		m2 /= m0;

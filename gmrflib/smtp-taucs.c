@@ -1352,13 +1352,13 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 	double *v = L->values;
 
 	for (int i = 0; i < limit; i += N) {
-		double xx[N];
+		double xx[N], xx2[N];
 		int *idx = L->colptr + i;
 		for (int j = 0; j < N; j++) {
 			xx[j] = v[idx[j]];
 		}
-		GMRFLib_log(N, xx, xx);
-		ret += GMRFLib_dsum(N, xx);
+		GMRFLib_log(N, xx, xx2);
+		ret += GMRFLib_dsum(N, xx2);
 	}
 
 	for (int i = limit; i < n; i++) {
@@ -1594,7 +1594,7 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, double *__restrict w)
+int GMRFLib_my_taucs_dccs_solve_llt(void *RESTRICT vL, double *RESTRICT x, double *RESTRICT w)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
@@ -1643,7 +1643,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *__restrict vL, double *__restrict x, d
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_my_taucs_dccs_solve_llt2(void *__restrict vL, double *__restrict x, int nrhs, double *__restrict w, int skip_reordering)
+int GMRFLib_my_taucs_dccs_solve_llt2(void *RESTRICT vL, double *RESTRICT x, int nrhs, double *RESTRICT w, int skip_reordering)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;

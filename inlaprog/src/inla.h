@@ -16,7 +16,7 @@ __BEGIN_DECLS
 #              define _GNU_SOURCE
 #       endif
 //
-#       include "inla-special-functions.h"
+#       include "fast-math/special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
 #       include "strlib.h"
@@ -2299,9 +2299,9 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 
 int loglikelihood_0binomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0binomialS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_0nbinomial(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+int loglikelihood_0nbinomial(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			     double *y_cdf, void *arg);
-int loglikelihood_0nbinomialS(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+int loglikelihood_0nbinomialS(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			      double *y_cdf, void *arg);
 int loglikelihood_0poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_0poissonS(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2378,9 +2378,9 @@ int loglikelihood_nmix(int thread_id, int *lcache_idx, double *logll, double *x,
 int loglikelihood_nmixnb(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_npoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nzpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_occupancy(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *x_vec,
+int loglikelihood_occupancy(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			    double *y_cdf, void *arg);
-int loglikelihood_obeta(int thread_id, int *lcache_idx, double *__restrict logll, double *__restrict x, int m, int idx, double *UNUSED(x_vec),
+int loglikelihood_obeta(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *UNUSED(x_vec),
 			double *y_cdf, void *arg);
 int loglikelihood_poisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_poisson_special1(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,

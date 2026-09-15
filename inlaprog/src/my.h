@@ -16,11 +16,11 @@ __BEGIN_DECLS
  *
  */
 double *my_compute_lbell(int nmax);
-double my_betabinomial(int y, int n, double a, double b, double *work, bool large);
-double my_betabinomial2(int y, int n, double a, double b, double *work);
-double my_betabinomial_helper16(int n, double a, double *work);
-double my_betabinomial_helper8(int n, double a, double *work);
-double my_betabinomial_helper_core(int n, double a, double *work, int roll);
+double my_betabinomial(int y, int n, double a, double b, double *work, double *wwork, bool large);
+double my_betabinomial2(int y, int n, double a, double b, double *work, double *wwork);
+double my_betabinomial_helper16(int n, double a, double *work, double *wwork);
+double my_betabinomial_helper8(int n, double a, double *work, double *wwork);
+double my_betabinomial_helper_core(int n, double a, double *work, double *wwork, int roll);
 double my_gsl_sf_lnbeta(double a, double b);
 double my_gsl_sf_lnchoose(unsigned int n, unsigned int m);
 double my_gsl_sf_lnfact(int x);
@@ -34,8 +34,8 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
 int my_setenv(char *str, int prefix);
 void my_lambert_W0s(int m, double *y, double *res);
-void my_betabinomial_helper16_s(int m, int *ns, double *ab, double *work, double *out);
-void my_betabinomial_helper8_s(int m, int *ns, double *ab, double *work, double *out);
+void my_betabinomial_helper16_s(int m, int *ns, double *ab, double *work, double *wwork, double *out);
+void my_betabinomial_helper8_s(int m, int *ns, double *ab, double *work, double *wwork, double *out);
 
 __END_DECLS
 #endif

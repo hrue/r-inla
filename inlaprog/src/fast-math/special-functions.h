@@ -1,5 +1,6 @@
-#ifndef __INLA_SPECIAL_FUNCTIONS_H__
-#       define __INLA_SPECIAL_FUNCTIONS_H__
+#include "GMRFLib/GMRFLib.h"
+#ifndef __SPECIAL_FUNCTIONS_H__
+#       define __SPECIAL_FUNCTIONS_H__
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
 #       ifdef __cplusplus
@@ -15,15 +16,17 @@ __BEGIN_DECLS
 /*
  *
  */
-double inla_beta(double a, double b);
-double inla_gamma(double x);
-double inla_gamma_fast(double x);
-double inla_lbeta(double a, double b);
-double inla_lgamma(double x);
+
+double inla_logcdf_normal(double x);
+double inla_cdf_normal(double x);
+double inla_cdf_normal_fast(double x);
+double inla_logitcdf_normal(double x);
+double inla_logcdf_normal_fast(double x);
 double inla_lgamma_fast(double x);
-void inla_lbeta_m(size_t m, double *restrict a, double *restrict b, double *restrict llbeta);
-void inla_lgamma_fast_m(size_t m, double *restrict x, double *restrict res);
-void inla_lgamma_m(size_t m, double *restrict x, double *restrict res);
+double inla_lbeta(double a, double b);
+void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta);
+void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res);
+void inla_lgamma_m(size_t m, double *RESTRICT x, double *RESTRICT res);
 
 // we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
 #       if 1

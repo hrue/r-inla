@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "inla.h"
-#include "inla-special-functions.h"
+#include "fast-math/special-functions.h"
 #include "my.h"
 #include "my-fix.h"
 #include "GMRFLib/GMRFLib.h"
@@ -182,7 +182,7 @@ double my_gsl_sf_lnbeta(double a, double b)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper8(int n, double a, double *work)
+double my_betabinomial_helper8(int n, double a, double *work, double *wwork)
 {
 	const int roll = 8L;
 	const int roll2 = roll / 2L;
@@ -200,8 +200,8 @@ double my_betabinomial_helper8(int n, double a, double *work)
 		work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
@@ -219,7 +219,7 @@ double my_betabinomial_helper8(int n, double a, double *work)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper16(int n, double a, double *work)
+double my_betabinomial_helper16(int n, double a, double *work, double *wwork)
 {
 	const int roll = 16L;
 	const int roll2 = roll / 2;
@@ -237,8 +237,8 @@ double my_betabinomial_helper16(int n, double a, double *work)
 		    (((bb * (bb + 1)) * ((bb + 2) * (bb + 3))) * (((bb + 4) * (bb + 5)) * ((bb + 6) * (bb + 7))));
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
@@ -256,7 +256,7 @@ double my_betabinomial_helper16(int n, double a, double *work)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, double *out)
+void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, double *wwork, double *out)
 {
 	const int roll = 16L;
 	const int roll2 = roll / 2;
@@ -278,8 +278,8 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 				   bb * (bb + 1) * (bb + 2) * (bb + 3) * (bb + 4) * (bb + 5) * (bb + 6) * (bb + 7));
 		}
 
-		GMRFLib_log(nn, work, work);
-		double s0 = GMRFLib_dsum(nn, work);
+		GMRFLib_log(nn, work, wwork);
+		double s0 = GMRFLib_dsum(nn, wwork);
 
 		if (d.rem) {
 			double aa = m + a;
@@ -297,7 +297,7 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double *out)
+void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double *wwork, double *out)
 {
 	const int roll = 8L;
 	const int roll2 = roll / 2;
@@ -318,8 +318,8 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 			work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 		}
 
-		GMRFLib_log(nn, work, work);
-		double s0 = GMRFLib_dsum(nn, work);
+		GMRFLib_log(nn, work, wwork);
+		double s0 = GMRFLib_dsum(nn, wwork);
 
 		if (d.rem) {
 			double aa = m + a;
@@ -337,7 +337,7 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper_core(int n, double a, double *work, int roll)
+double my_betabinomial_helper_core(int n, double a, double *work, double *wwork, int roll)
 {
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
@@ -353,8 +353,8 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 		work[i] = s;
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
@@ -376,21 +376,21 @@ int my_betabinomial_work_len(int n)
 	return 1 + n / 8L;
 }
 
-double my_betabinomial(int y, int n, double a, double b, double *work, bool large)
+double my_betabinomial(int y, int n, double a, double b, double *work, double *wwork, bool large)
 {
 	// recall to change _work_len() if this is changed
 	int nn[3] = { y, n - y, n };
 	double ab[3] = { a, b, a + b };
 	double out[3] = { 0 };
 	if (large) {
-		my_betabinomial_helper16_s(3, nn, ab, work, out);
+		my_betabinomial_helper16_s(3, nn, ab, work, wwork, out);
 	} else {
-		my_betabinomial_helper8_s(3, nn, ab, work, out);
+		my_betabinomial_helper8_s(3, nn, ab, work, wwork, out);
 	}
 	return (out[0] + out[1] - out[2]);
 }
 
-double my_betabinomial2(int y, int n, double a, double b, double *work)
+double my_betabinomial2(int y, int n, double a, double b, double *work, double *wwork)
 {
 	// using Gamma(1+z)=z*Gamma(z), we can get this
 	double mul = 1.0;
@@ -405,9 +405,9 @@ double my_betabinomial2(int y, int n, double a, double b, double *work)
 
 	// here we have 0<a<1, 0<b<1, but NOT a+b<1.
 	// this could be helpful creating approximations
-	double s1 = my_betabinomial_helper8(y, a, work);
-	double s2 = my_betabinomial_helper8(n - y, b, work);
-	double s3 = my_betabinomial_helper8(n, a + b, work);
+	double s1 = my_betabinomial_helper8(y, a, work, wwork);
+	double s2 = my_betabinomial_helper8(n - y, b, work, wwork);
+	double s3 = my_betabinomial_helper8(n, a + b, work, wwork);
 	return (s1 + s2) - (s3 + log(mul));
 }
 

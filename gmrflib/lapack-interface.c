@@ -1625,7 +1625,7 @@ int GMRFLib_dscale_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
+void GMRFLib_dscale2(int n, double a, double *RESTRICT x, double *RESTRICT y)
 {
 	// y[i] = a * x[i]
 #if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
@@ -1805,13 +1805,13 @@ int GMRFLib_daxpy_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
+double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }
 #pragma GCC diagnostic pop
 
-forceinline double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y)
+forceinline double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }
@@ -1902,7 +1902,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRICT x, double *RESTRICT y, double *RESTRICT z)
 {
 	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
@@ -1971,7 +1971,7 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__restrict y)
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y)
 {
 	// y[] = a[ia[]]
 #if 0 && defined(INLA_WITH_MKL)
@@ -1993,7 +1993,7 @@ void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__res
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__restrict iy)
+void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy)
 {
 	// y[iy[]] = a[]
 #if 0 && defined(INLA_WITH_MKL)

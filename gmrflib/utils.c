@@ -241,7 +241,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int key, int *__restrict ix, unsigned int len)
+int GMRFLib_iwhich_sorted(int key, int *RESTRICT ix, unsigned int len)
 {
 	int *p = GMRFLib_bsearch(key, (int) len, ix);
 	return (p ? (p - ix) : -1);
@@ -1606,7 +1606,7 @@ int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp *vmatrix, int free_content)
  * Copyright (C) 1999  Thomas Walter
  */
 
-void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int N, int k)
+void my_downheap2_id(int *RESTRICT data1, double *RESTRICT data2, const int N, int k)
 {
 	int v1 = data1[k];
 	double v2 = data2[k];
@@ -1629,7 +1629,7 @@ void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int 
 	data2[k] = v2;
 }
 
-void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
+void gsl_sort2_id(int *RESTRICT data1, double *RESTRICT data2, const int n)
 {
 	int N = 0, k = 0;
 
@@ -1666,7 +1666,7 @@ void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
 	}
 }
 
-void my_downheap2_ii(int *__restrict data1, int *__restrict data2, const int N, int k)
+void my_downheap2_ii(int *RESTRICT data1, int *RESTRICT data2, const int N, int k)
 {
 	int v1 = data1[k];
 	int v2 = data2[k];
@@ -1689,7 +1689,7 @@ void my_downheap2_ii(int *__restrict data1, int *__restrict data2, const int N, 
 	data2[k] = v2;
 }
 
-void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n)
+void gsl_sort2_ii(int *RESTRICT data1, int *RESTRICT data2, const int n)
 {
 	int N = 0, k = 0;
 
@@ -1726,7 +1726,7 @@ void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n)
 	}
 }
 
-void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
+void my_insertionSort_id(int *RESTRICT iarr, double *RESTRICT darr, int n)
 {
 	if (darr) {
 		for (int i = 1; i < n; i++) {
@@ -1754,7 +1754,7 @@ void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
 	}
 }
 
-void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n)
+void my_insertionSort_ii(int *RESTRICT iarr, int *RESTRICT darr, int n)
 {
 	if (darr) {
 		for (int i = 1; i < n; i++) {
@@ -1782,7 +1782,7 @@ void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n)
 	}
 }
 
-void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n)
+void my_insertionSort_dd(double *RESTRICT iarr, double *RESTRICT darr, int n)
 {
 	if (darr) {
 		for (int i = 1; i < n; i++) {
@@ -1810,7 +1810,7 @@ void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n
 	}
 }
 
-void my_insertionSort_i(int *__restrict iarr, int n)
+void my_insertionSort_i(int *RESTRICT iarr, int n)
 {
 	for (int i = 1; i < n; i++) {
 		int key = iarr[i];
@@ -1823,7 +1823,7 @@ void my_insertionSort_i(int *__restrict iarr, int n)
 	}
 }
 
-void my_insertionSort_d(double *__restrict iarr, int n)
+void my_insertionSort_d(double *RESTRICT iarr, int n)
 {
 	for (int i = 1; i < n; i++) {
 		double key = iarr[i];
@@ -1836,7 +1836,7 @@ void my_insertionSort_d(double *__restrict iarr, int n)
 	}
 }
 
-void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n)
+void gsl_sort2_dd(double *RESTRICT data1, double *RESTRICT data2, const int n)
 {
 	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
 }
@@ -1844,7 +1844,7 @@ void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
+void my_sort2_ii(int *RESTRICT ix, int *RESTRICT x, int n)
 {
 	if (n <= 1 || GMRFLib_is_sorted_iinc(n, ix))
 		return;
@@ -1880,7 +1880,7 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *work)
+void my_sort2_id_work(int *RESTRICT ix, double *RESTRICT x, int n, double *work)
 {
 	// this does not go that well: see test 160
 
@@ -1904,12 +1904,12 @@ void my_sort2_id_work(int *__restrict ix, double *__restrict x, int n, double *w
 }
 #pragma GCC diagnostic pop
 
-void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
+void my_sort2_id(int *RESTRICT ix, double *RESTRICT x, int n)
 {
 	return my_sort2_id_x(ix, x, n, NULL);
 }
 
-void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED(work))
+void my_sort2_id_x(int *RESTRICT ix, double *RESTRICT x, int n, void *UNUSED(work))
 {
 	if (n <= 1)
 		return;
@@ -1926,7 +1926,7 @@ void my_sort2_id_x(int *__restrict ix, double *__restrict x, int n, void *UNUSED
 	return;
 }
 
-void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
+void my_sort2_dd(double *RESTRICT ix, double *RESTRICT x, int n)
 {
 	if (n <= 1)
 		return;

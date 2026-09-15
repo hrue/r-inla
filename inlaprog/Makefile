@@ -53,20 +53,25 @@ OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o sr
 	src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o \
 	src/tweedie.o src/tweedie2.o src/pc-powerlink.o src/link-gevit.o src/cgeneric.o src/prw2.o \
 	src/cgeneric-mapper.o
+OBJFM = src/fast-math/special-functions.o
 
 HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.h  \
 	src/prw2.h src/spde2.h    src/strlib.h src/bessel.h src/eval.h src/fgn-tables-3.h \
 	src/inla.h src/param-constr.h src/quantile-regression.h src/spde3.h  src/tweedie.h \
 	src/cgeneric.h src/fgn-code.h src/fgn-tables-4.h src/link-gevit.h src/pc-powerlink.h \
 	src/R-interface.h src/spde.h src/dictionary.h src/fgn.h src/fgn-tables.h src/my-fix.h \
-	src/pc-priors.h src/rmath.h src/stochvol.h src/inla-special-functions.h src/tweedie2.h
+	src/pc-priors.h src/rmath.h src/stochvol.h src/fast-math/special-functions.h \
+	src/tweedie2.h
 
-$(INLA) : $(OBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
+src/fast-math/%.o: src/fast-math/%.c
+	$(CC) -c $(FFLAGS) -O3 -ffast-math -o $@ $<
+
+$(INLA) : $(OBJ) $(OBJFM)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(OBJFM) -L$(PREFIX)/lib  $(EXTLIBS)
 
 src/inla.o: $(HEADERS) \
 	src/inla-sys.c src/inla-map-and-link.c src/inla-testit.c src/inla-graph.c src/inla-Qfunc.c \
-	src/inla-likelihood.c src/inla-priors.c src/inla-special-functions.c src/inla-output.c \
+	src/inla-likelihood.c src/inla-priors.c src/fast-math/special-functions.c src/inla-output.c \
 	src/inla-modes.c src/inla-classic.c src/inla-read.c src/inla-parse.c src/param-constr.c
 
 src/ar.o: $(HEADERS) src/ar.c

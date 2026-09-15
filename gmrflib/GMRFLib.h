@@ -69,6 +69,17 @@
 #              endif
 #       endif
 
+#       if defined(__cplusplus) || defined(__GNUC__) || defined(_MSC_VER)
+    // Use the compiler-extended version for C++ or flexible C compilers
+#              define RESTRICT __restrict
+#       elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    // Use the standard keyword for C99+ compliant C compilers
+#              define RESTRICT restrict
+#       else
+    // Fall back to nothing for ancient compilers
+#              define RESTRICT
+#       endif
+
 /* ... */
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
 #              undef INLA_CLONE_TARGETS
@@ -130,7 +141,7 @@
 #       include "GMRFLib/fsort.h"
 #       include "GMRFLib/error-handler.h"
 #       include "GMRFLib/utils.h"
-#       include "GMRFLib/simd.h"
+#       include "GMRFLib/fast-math/fm.h"
 #       include "GMRFLib/idxval.h"
 #       include "GMRFLib/lapack-interface.h"
 #       include "GMRFLib/dot.h"

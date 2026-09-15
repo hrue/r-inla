@@ -8,7 +8,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/density.h"
 #include "quantile-regression.h"
-#include "inla-special-functions.h"
+#include "fast-math/special-functions.h"
 
 double inla_pcontpois(double y, double lambda)
 {

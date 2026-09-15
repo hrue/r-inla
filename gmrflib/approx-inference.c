@@ -6753,7 +6753,8 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
 	int retval, compute_cpo = 1, np = GMRFLib_INT_NUM_POINTS;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, integral = 0.0, integral2 = 0.0, integral_one, *loglik = NULL;
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, integral = 0.0, integral2 = 0.0, integral_one;
+	double *loglik = NULL, *loglik2 = NULL;
 	double fail = 0.0;
 
 	int cache_idx = 0;
@@ -6801,12 +6802,13 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
-	Calloc_init(5 * np, 5);
+	Calloc_init(6 * np, 6);
 	xp = Calloc_get(np);
 	xpi = Calloc_get(np);
 	dens = Calloc_get(np);
 	prob = Calloc_get(np);
 	loglik = Calloc_get(np);
+	loglik2 = Calloc_get(np);
 
 	dxi = (cpo_density->x_max - cpo_density->x_min) / (np - 1.0);
 	low = GMRFLib_density_std2user(cpo_density->x_min, cpo_density);
@@ -6833,8 +6835,8 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	GMRFLib_dscale(np, d, loglik);
 
 	GMRFLib_mul(np, prob, dens, xp);
-	GMRFLib_exp(np, loglik, loglik);
-	GMRFLib_mul(np, loglik, dens, xpi);
+	GMRFLib_exp(np, loglik, loglik2);
+	GMRFLib_mul(np, loglik2, dens, xpi);
 
 	integral = GMRFLib_ddot(np, w, xp);
 	integral2 = GMRFLib_ddot(np, w, xpi);
@@ -6897,11 +6899,12 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		GMRFLib_ghq(&xp, &wp, np);
 
-		Calloc_init(4 * np, 4);
+		Calloc_init(5 * np, 5);
 		double *x = Calloc_get(np);
 		double *ll = Calloc_get(np);
 		double *mask = Calloc_get(np);
 		double *ell = Calloc_get(np);
+		double *w = Calloc_get(np);
 
 		GMRFLib_dfill(np, 1.0, mask);
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
@@ -6920,10 +6923,10 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		integral3 = GMRFLib_ddot(np, ll, wp);
 		GMRFLib_exp(np, ll, ell);
-		GMRFLib_mul(np, ell, mask, ell);	       /* so that ell[i]=exp(ll[i])=0 if ll[i]=0 */
-		integral2 = GMRFLib_ddot(np, ell, wp);
-		GMRFLib_sqr(np, ll, ll);
-		integral4 = GMRFLib_ddot(np, ll, wp);
+		GMRFLib_mul(np, ell, mask, w);	       /* so that w[i]=exp(ll[i])=0 if ll[i]=0 */
+		integral2 = GMRFLib_ddot(np, w, wp);
+		GMRFLib_sqr(np, ll, w);
+		integral4 = GMRFLib_ddot(np, w, wp);
 		Calloc_free();
 	} else {
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;

@@ -1585,12 +1585,12 @@ void GMRFLib_idx_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
 	}
 }
 
-GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(const GMRFLib_idx_tp *restrict hold)
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get(const GMRFLib_idx_tp *RESTRICT hold)
 {
 	return GMRFLib_idx_bitmap_get_core(hold->n, hold->idx);
 }
 
-GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(const GMRFLib_idxval_tp *restrict hold)
+GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(const GMRFLib_idxval_tp *RESTRICT hold)
 {
 	return GMRFLib_idx_bitmap_get_core(hold->n, hold->idx);
 }
@@ -1599,7 +1599,7 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idxval_bitmap_get(const GMRFLib_idxval_tp *restri
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *restrict idx)
+GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *RESTRICT idx)
 {
 	// Return a alloced bitmap for IDX. ASSUME IDX is sorted.
 	assert(sizeof(size_t) == 8);
@@ -1631,14 +1631,14 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *restrict idx)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_idx_nmatch_core(const int n, const int *restrict idx, const GMRFLib_idx_bitmap_tp *restrict bm)
+int GMRFLib_idx_nmatch_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm)
 {
 	int low = bm->low;
 	if (idx[0] > bm->high || idx[n - 1] < low) {
 		return 0;
 	}
 
-	const size_t *restrict bitmap = bm->bitmap;
+	const size_t *RESTRICT bitmap = bm->bitmap;
 	size_t ulen = bm->ulen;
 
 	int match0 = 0;
@@ -1666,12 +1666,12 @@ int GMRFLib_idx_nmatch_core(const int n, const int *restrict idx, const GMRFLib_
 #pragma GCC diagnostic pop
 
 
-int GMRFLib_idx_nmatch(const GMRFLib_idx_tp *v, const GMRFLib_idx_bitmap_tp *restrict bm)
+int GMRFLib_idx_nmatch(const GMRFLib_idx_tp *v, const GMRFLib_idx_bitmap_tp *RESTRICT bm)
 {
 	return GMRFLib_idx_nmatch_core(v->n, v->idx, bm);
 }
 
-int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm)
+int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm)
 {
 	return GMRFLib_idx_nmatch_core(v->n, v->idx, bm);
 }
@@ -1680,7 +1680,7 @@ int GMRFLib_idxval_nmatch(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-int GMRFLib_idx_ge_match_core(const int n, const int *restrict idx, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
+int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
 	// return 1 if there is >= NMATCHES of IDX in BM
 
@@ -1714,12 +1714,12 @@ int GMRFLib_idx_ge_match_core(const int n, const int *restrict idx, const GMRFLi
 }
 #pragma GCC diagnostic pop
 
-int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
+int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
 	return GMRFLib_idx_ge_match_core(v->n, v->idx, bm, nmatches);
 }
 
-int GMRFLib_idxval_ge_match(const GMRFLib_idxval_tp *restrict v, const GMRFLib_idx_bitmap_tp *restrict bm, const int nmatches)
+int GMRFLib_idxval_ge_match(const GMRFLib_idxval_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
 	return GMRFLib_idx_ge_match_core(v->n, v->idx, bm, nmatches);
 }

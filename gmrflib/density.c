@@ -488,7 +488,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL, dx = 0.0, dxm = 0.0;
+	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *ldm2 = NULL, *pm = NULL, *xp = NULL, dx = 0.0, dxm = 0.0;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
@@ -509,7 +509,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	}
 
 	// GMRFLib_ENTER_FUNCTION;
-	Calloc_init(6 * npm + 2 * np, 8);
+	Calloc_init(8 * npm + 2 * np, 10);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// density->mean = density->mean_gaussian;
@@ -580,6 +580,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	// interpolate
 	xpm = Calloc_get(npm);
 	ldm = Calloc_get(npm);
+	ldm2 = Calloc_get(npm);
 	pm = Calloc_get(npm);
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
@@ -617,7 +618,8 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	} else {
 		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 	}
-	GMRFLib_exp(npm, ldm, ldm);
+	GMRFLib_exp(npm, ldm, ldm2);
+	Memcpy(ldm, ldm2, npm * sizeof(double));	       /* to avoid changing code below */
 
 	int idx_max = 0;
 	GMRFLib_max_value(ldm, npm, &idx_max);
@@ -638,6 +640,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	double mm0, mm1, mm2, mm3;
 	double *dens = Calloc_get(npm);
 	double *xx = Calloc_get(npm);
+	double *xx2 = Calloc_get(npm);
 
 	GMRFLib_mul(npm, ldm, w, dens);
 	GMRFLib_sqr(npm, xpm, xx);			       /* xx = x^2 */
@@ -646,8 +649,8 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	mm1 = GMRFLib_ddot(npm, dens, xpm);
 	mm2 = GMRFLib_ddot(npm, dens, xx);
 
-	GMRFLib_mul(npm, xx, xpm, xx);			       /* xx = x^3 */
-	mm3 = GMRFLib_ddot(npm, dens, xx);
+	GMRFLib_mul(npm, xx, xpm, xx2);			       /* xx2 = x^3 */
+	mm3 = GMRFLib_ddot(npm, dens, xx2);
 
 	mm1 /= mm0;
 	mm2 /= mm0;
@@ -815,9 +818,12 @@ int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp *density
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp *density)
 {
 	assert(dens);
-
-	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
-	GMRFLib_exp(n, dens, dens);
+	if (n > 0) {
+		double dtmp[n];
+		GMRFLib_evaluate_nlogdensity(dens, x, n, density);
+		GMRFLib_exp(n, dens, dtmp);
+		Memcpy(dens, dtmp, n * sizeof(double));
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -1640,7 +1646,7 @@ double GMRFLib_density_std2user(double x, GMRFLib_density_tp *density)
 	return density->std_mean + x * density->std_stdev;
 }
 
-double GMRFLib_density_std2user_n(double *__restrict x_user, double *__restrict x, int n, GMRFLib_density_tp *__restrict density)
+double GMRFLib_density_std2user_n(double *RESTRICT x_user, double *RESTRICT x, int n, GMRFLib_density_tp *RESTRICT density)
 {
 	double m = density->std_mean;
 	double s = density->std_stdev;
@@ -1654,7 +1660,7 @@ double GMRFLib_density_user2std(double x, GMRFLib_density_tp *density)
 	return (x - density->std_mean) / density->std_stdev;
 }
 
-int GMRFLib_density_user2std_n(double *__restrict x_std, double *__restrict x, GMRFLib_density_tp *__restrict density, int n)
+int GMRFLib_density_user2std_n(double *RESTRICT x_std, double *RESTRICT x, GMRFLib_density_tp *RESTRICT density, int n)
 {
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;

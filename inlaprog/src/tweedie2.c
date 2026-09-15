@@ -9,7 +9,7 @@
 #endif
 
 #include "GMRFLib/GMRFLib.h"
-#include "inla-special-functions.h"
+#include "fast-math/special-functions.h"
 #include "tweedie2.h"
 
 // this code is very insprired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but rewritten

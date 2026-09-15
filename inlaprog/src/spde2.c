@@ -12,7 +12,7 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-forceinline void compute_d_values_opt(double *__restrict d, double *__restrict vals, double *__restrict theta, int nc)
+forceinline void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals, double *RESTRICT theta, int nc)
 {
 	double d0 = 0.0, d1 = 0.0, d2 = 0.0;
 	int nc2 = 2 * nc;
@@ -44,7 +44,7 @@ forceinline void apply_single_transform(int transform, double *d2)
 	}
 }
 
-forceinline void build_theta_vector(double *__restrict theta, int nc, double ***model_theta, int thread_id)
+forceinline void build_theta_vector(double *RESTRICT theta, int nc, double ***model_theta, int thread_id)
 {
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
@@ -52,7 +52,7 @@ forceinline void build_theta_vector(double *__restrict theta, int nc, double ***
 	}
 }
 
-forceinline void perform_matrix_vector_mult(double *__restrict V, double *__restrict theta, double *__restrict dij, int nc, int n)
+forceinline void perform_matrix_vector_mult(double *RESTRICT V, double *RESTRICT theta, double *RESTRICT dij, int nc, int n)
 {
 	int m = nc;
 	int lda = nc;
@@ -62,7 +62,7 @@ forceinline void perform_matrix_vector_mult(double *__restrict V, double *__rest
 	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
 }
 
-forceinline void apply_exponentials(double *__restrict dij, int nb)
+forceinline void apply_exponentials(double *RESTRICT dij, int nb)
 {
 	for (int i = 0; i <= nb; i++) {
 		int idx = i * 3;
@@ -71,7 +71,7 @@ forceinline void apply_exponentials(double *__restrict dij, int nb)
 	}
 }
 
-forceinline void apply_transform_vectorized(int transform, double *__restrict dij, int nb)
+forceinline void apply_transform_vectorized(int transform, double *RESTRICT dij, int nb)
 {
 	switch (transform) {
 	case SPDE2_TRANSFORM_LOG:
@@ -95,7 +95,7 @@ forceinline void apply_transform_vectorized(int transform, double *__restrict di
 	}
 }
 
-forceinline void compute_diagonal_values(double *__restrict dij, double *__restrict v, double *__restrict values, int nb)
+forceinline void compute_diagonal_values(double *RESTRICT dij, double *RESTRICT v, double *RESTRICT values, int nb)
 {
 	double d_i0 = dij[0];
 	double d_i1 = dij[1];
@@ -126,21 +126,21 @@ forceinline double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, do
 	int nc = model->B[0]->ncol;
 	int lim2 = 64;
 	double d_storage[6] = { 0 };
-	double *__restrict d_i = d_storage;
-	double *__restrict d_j = d_storage + 3;
+	double *RESTRICT d_i = d_storage;
+	double *RESTRICT d_j = d_storage + 3;
 
 	double theta[nc <= lim2 ? nc : 1];
 	double *theta_ptr = (nc <= lim2 ? theta : Malloc(nc, double));
 
 	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
 
-	double *__restrict vals_i = model->row_V[ii];
+	double *RESTRICT vals_i = model->row_V[ii];
 	compute_d_values_opt(d_i, vals_i, theta_ptr, nc);
 	apply_single_transform(model->transform, &d_i[2]);
 
 	if (ii == jj) {
 		// Diagonal case - optimized
-		double *__restrict v = model->row_v[ii];
+		double *RESTRICT v = model->row_v[ii];
 		double d_i0_sq = d_i[0] * d_i[0];
 		double d_i1_sq = d_i[1] * d_i[1];
 		double d_i2_d_i1 = d_i[2] * d_i[1];
@@ -154,7 +154,7 @@ forceinline double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, do
 	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc);
 	apply_single_transform(model->transform, &d_j[2]);
 
-	double *__restrict v = vals_j_p->v;
+	double *RESTRICT v = vals_j_p->v;
 	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
 	if (nc > lim2)
@@ -177,8 +177,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	int nc = model->B[0]->ncol;
 	int nb = model->graph->lnnbs[ii];
 
-	double *__restrict V = model->row_V[ii];
-	double *__restrict v = model->row_v[ii];
+	double *RESTRICT V = model->row_V[ii];
+	double *RESTRICT v = model->row_v[ii];
 
 	const int lim1 = 256;				       // 128;
 	const int lim2 = 128;				       // 64;
@@ -241,10 +241,11 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 		double alpha = 1.0;
 		double beta = 0.0;
 		double dij[(1 + nb) * 3];
-		dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
+		double dij2[(1 + nb) * 3];
+		dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij2, &inc, F_ONE);
 
-		GMRFLib_exp_inc(1 + nb, dij, 3, dij);
-		GMRFLib_exp_inc(1 + nb, dij + 1, 3, dij + 1);
+		GMRFLib_exp_inc(1 + nb, dij2, 3, dij);
+		GMRFLib_exp_inc(1 + nb, dij2 + 1, 3, dij + 1);
 
 		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
 			switch (model->transform) {
