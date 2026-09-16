@@ -4803,67 +4803,9 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 	double normc = d->cache[0];
 	double y_log_E = d->cache[1];
 
-	// there is a tradeoff in the computations, either we can use lgamma() functions or a sum of log()'s.
-	static int calibrate = 1;
-	static int ylim = 8L;
-	if (calibrate) {
-#pragma omp critical (Name_e618c7278d96ebc883f4ddb21a27897f1dbbed07)
-		if (calibrate) {
-			const int ntimes = 16L;
-			const int verbose = 0;
-			const int yymax = 100;
-			double s[ntimes];
-			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
-				double t[] = { 0, 0 }, tmp0 = 0.0, tmp1 = 0.0;
-
-				for (int time = 0; time < ntimes; time++) {
-					s[time] = exp(2.0 * (GMRFLib_uniform() - 0.5));
-				}
-
-				t[0] = -GMRFLib_timer();
-				for (int time = 0; time < ntimes; time++) {
-					tmp0 += LGAMMAfn(yy + s[time]) - LGAMMAfn(s[time]);
-				}
-				t[0] += GMRFLib_timer();
-
-				t[1] -= GMRFLib_timer();
-				for (int time = 0; time < ntimes; time++) {
-					double ss = s[time];
-#pragma omp simd reduction(+: tmp1)
-					for (int y1 = 0; y1 < yy; y1++) {
-						tmp1 += log(y1 + ss);
-					}
-				}
-				t[1] += GMRFLib_timer();
-
-				assert(ABS(((tmp0 - tmp1)) / (tmp0 + tmp1)) < FLT_EPSILON);
-				if (verbose) {
-					printf("Optimize nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0] / (t[0] + t[1]), t[1] / (t[0] + t[1]));
-				}
-				if (t[1] > t[0]) {
-					ylim = yy - dy / 2L;
-					if (verbose) {
-						printf("Optimize nbinomial: chose ylim = %1d\n", ylim);
-					}
-					break;
-				}
-			}
-			calibrate = 0;
-		}
-	}
-
 	if (likely(m > 0)) {
-		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
 		double lnorm = -normc;
-		if (y >= ylim) {
-			lnorm += LGAMMAfn(y + size) - LGAMMAfn(size);
-		} else {
-#pragma omp simd reduction(+: lnorm)
-			for (int yy = 0; yy < (int) y; yy++) {
-				lnorm += log(yy + size);
-			}
-		}
-
+		lnorm += LGAMMAfn(y + size) - LGAMMAfn(size);
 		if (likely(PREDICTOR_LINK_EQ(link_log))) {
 			double lsize = log(size);
 			double t2 = lnorm + size * log(size) + y_log_E;
@@ -4874,13 +4816,11 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 				if (0) {
 					double b = E / size;
 					if (y > 0) {
-#pragma omp simd
 						for (int i = 0; i < m; i++) {
 							double xx = x[i] + off;
 							logll[i] = tt2 + t3 * log1p(b * exp(xx)) + y * xx;
 						}
 					} else {
-#pragma omp simd
 						for (int i = 0; i < m; i++) {
 							logll[i] = tt2 + t3 * log1p(b * exp(x[i] + off));
 						}
