@@ -137,3 +137,43 @@ void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *REST
 		llbeta[j] = r[i] + r[i + 1] - r[i + 2];
 	}
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_nbinomial_1(const int m, const double d1, const double d2, const double d3, const double d4, const double d5,
+			      double *RESTRICT x, double *RESTRICT logll) 
+{
+	// logll[i] = d1 + d2 * log1p(d3 * exp(x+d4)) + d5 * (x+d4);
+#pragma omp simd
+	for(int i = 0; i < m; i++) {
+		double xx = x[i] + d4;
+		logll[i] = d1 + d2 * log1p(d3 * exp(xx)) + d5 * xx;
+	}
+}
+#pragma GCC diagnostic push
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4, 
+			      double *RESTRICT x, double *RESTRICT logll) 
+{
+	// logll[i] = tt2 + t3 * log1p(b * exp(x[i] + off));
+#pragma omp simd
+	for (int i = 0; i < m; i++) {
+		logll[i] = d1 + d2 * log1p(d3 * exp(x[i] + d4));
+	}
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y) 
+{
+	// y[i] = log1p(exp(x[i]))
+#pragma omp simd
+	for (int i = 0; i < m; i++) {
+		y[i] = log1p(exp(x[i]));
+	}
+}

@@ -23,6 +23,12 @@ void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *REST
 void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res);
 void inla_lgamma_m(size_t m, double *RESTRICT x, double *RESTRICT res);
 
+void inla_llike_nbinomial_1(const int m, const double d1, const double d2, const double d3,
+			    const double d4, const double d5, double *RESTRICT x, double *RESTRICT logll);
+void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4, 
+			    double *RESTRICT x, double *RESTRICT logll);
+void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y);
+
 // we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
 #       if 1
 #              define LGAMMAfn(x_) inla_lgamma_fast(x_)
