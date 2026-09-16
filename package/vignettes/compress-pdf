@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if type -path qpdf >/dev/null 2>&1; then
+    echo Tool installed: qpdf
+else
+    echo -e "Need tool: qpdf\nPlease install... exit"
+    exit 1
+fi
+
+for f in *.pdf; do
+    echo "Process file $f..."
+    new=.new.pdf
+    ##qpdf --linearize --object-streams=generate $f $new && mv -f $new $f
+    qpdf --compress-streams=y --recompress-flate --compression-level=9 --object-streams=generate $f $new && mv -f $new $f
+done
+
