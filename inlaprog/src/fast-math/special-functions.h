@@ -28,6 +28,7 @@ void inla_llike_nbinomial_1(const int m, const double d1, const double d2, const
 void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4, 
 			    double *RESTRICT x, double *RESTRICT logll);
 void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y);
+void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y);
 
 // we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
 #       if 1

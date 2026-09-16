@@ -3458,12 +3458,11 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 				aligned_double w[ny], ww[ny];
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
-					double Xbeta = GMRFLib_ddot(nb, beta, xx);
+					double Xbeta = GMRFLib_ddot_INLINE(nb, beta, xx);
 					w[i] = (Y[i] ? -Xbeta : Xbeta);
 				}
-				GMRFLib_exp(ny, w, ww);
-				GMRFLib_log1p(ny, ww, w);
-				logll0 -= GMRFLib_dsum(ny, w);
+				inla_llike_log1p_exp(ny, w, ww);
+				logll0 -= GMRFLib_dsum(ny, ww);
 			} else {
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
@@ -3540,17 +3539,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 			} else {
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					if (m >= mkl_lim) {
-						aligned_double w[m], ww[m];
-#pragma omp simd
-						for (int i = 0; i < m; i++) {
-							w[i] = -(x[i] + off);
-						}
-						GMRFLib_exp(m, w, ww);
-						GMRFLib_log1p(m, ww, w);
-#pragma omp simd
-						for (int i = 0; i < m; i++) {
-							logll[i] = logll0 - w[i];
-						}
+						inla_llike_log1p_exp_1(m, logll0, off, x, logll);
 					} else {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {

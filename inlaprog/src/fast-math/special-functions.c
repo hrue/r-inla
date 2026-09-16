@@ -177,3 +177,15 @@ void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y)
 		y[i] = log1p(exp(x[i]));
 	}
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y) 
+{
+	// y[i] = c1  - log1p(exp(-x[i] - c2))
+#pragma omp simd
+	for (int i = 0; i < m; i++) {
+		y[i] = c1 - log1p(exp(-x[i] - c2));
+	}
+}
