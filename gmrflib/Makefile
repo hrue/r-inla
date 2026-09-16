@@ -117,6 +117,14 @@ endif
 ifneq ($(filter -DINLA_WITH_OPENBLAS,$(FFLAGS)),)
 FMFLAGS := -DINLA_WITH_OPENBLAS $(FMFLAGS)
 endif
+## Each -DINLA_WITH_<backend> above has a matching -I that arrives in the same
+## variable (ci/build.sh sets BLAS_INC="-DINLA_WITH_ARMPL -I$ARMPL_DIR/include"),
+## so copying the define without the include path gives these files a backend
+## they cannot find the headers for. MKL and OpenBLAS hide the bug by living on
+## the default search path; ARMPL does not, and idxval.h then fails on
+## armpl_sparse.h. Carry every -I across, and nothing else: the point of this
+## rule is that -ffast-math applies HERE and nowhere else.
+FMFLAGS := $(filter -I%,$(FFLAGS)) $(FMFLAGS)
 fast-math/%.o: fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 

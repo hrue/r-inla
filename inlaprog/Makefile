@@ -76,6 +76,11 @@ endif
 ifneq ($(filter -DINLA_WITH_OPENBLAS,$(FFLAGS)),)
 FMFLAGS := -DINLA_WITH_OPENBLAS $(FMFLAGS)
 endif
+## Same reason as the identical line in gmrflib/Makefile: the define for a
+## backend and the -I for its headers arrive together, and copying only the
+## define leaves these files unable to find them. special-functions.c includes
+## GMRFLib.h, which includes idxval.h, which includes armpl_sparse.h.
+FMFLAGS := $(filter -I%,$(FFLAGS)) $(FMFLAGS)
 src/fast-math/%.o: src/fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 
