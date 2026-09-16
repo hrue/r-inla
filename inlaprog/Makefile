@@ -63,8 +63,21 @@ HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.
 	src/pc-priors.h src/rmath.h src/stochvol.h src/fast-math/special-functions.h \
 	src/tweedie2.h
 
+FMFLAGS := -DINLA_WITH_CLONE_TARGETS -Isrc -I../gmrflib -fopenmp-simd -O3 -ffast-math
+ifneq ($(filter -DINLA_WITH_MKL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_MKL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_FRAMEWORK_ACCELERATE,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_FRAMEWORK_ACCELERATE $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_ARMPL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_ARMPL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_OPENBLAS,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_OPENBLAS $(FMFLAGS)
+endif
 src/fast-math/%.o: src/fast-math/%.c
-	$(CC) -c $(FFLAGS) -O3 -ffast-math -o $@ $<
+	$(CC) -c $(FMFLAGS) -o $@ $<
 
 $(INLA) : $(OBJ) $(OBJFM)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(OBJFM) -L$(PREFIX)/lib  $(EXTLIBS)

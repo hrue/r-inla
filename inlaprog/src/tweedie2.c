@@ -44,32 +44,36 @@ static int verbose = 0;
 
 // must be called before use to initialize cache
 // env INLA_DEBUG=dtweedie2_init_cache inla.mkl.work -v -t1 Model.ini
+void dtweedie2_init_cache_idx(int idx)
+{
+#define LEN 64
+	if (cache && cache[idx]) {
+		return;
+	}
+
+	cache[idx] = Calloc(1, dtweedie_cache_tp);
+	cache[idx]->save_p = -9999.9999;
+	cache[idx]->len = LEN;
+	cache[idx]->w = Calloc(LEN, double);
+	cache[idx]->arg = Calloc(LEN, double);
+	cache[idx]->res = Calloc(LEN, double);
+	cache[idx]->lgam_terms = Calloc(LEN, double);
+	cache[idx]->lnfact = Calloc(LEN, double);
+	for (int j = 1; j < LEN; j++) {
+		cache[idx]->lnfact[j] = cache[idx]->lnfact[j - 1] + log(j);
+	}
+#undef LEN
+}
 void dtweedie2_init_cache(void)
 {
-#define LEN 2
 	if (!cache) {
 #pragma omp critical (Name_92509c30f7c8ce2ff56520888da767c88a1ae7d4)
 		if (!cache) {
-			GMRFLib_DEBUG_INIT();
 			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
-			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
-				ccache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
-				ccache[i]->save_p = -9999.9999;
-				ccache[i]->len = LEN;
-				ccache[i]->w = Calloc(LEN, double);
-				ccache[i]->arg = Calloc(LEN, double);
-				ccache[i]->res = Calloc(LEN, double);
-				ccache[i]->lgam_terms = Calloc(LEN, double);
-				ccache[i]->lnfact = Calloc(LEN, double);
-				for (int j = 1; j < LEN; j++) {
-					ccache[i]->lnfact[j] = ccache[i]->lnfact[j - 1] + log(j);
-				}
-			}
-			verbose = GMRFLib_DEBUG_IF_TRUE();
+			verbose = 0; //GMRFLib_DEBUG_IF_TRUE();
 			cache = ccache;
 		}
 	}
-#undef LEN
 }
 
 static void dtweedie2_adjust_cache(int idx, int nlen)
@@ -132,6 +136,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	int id;
 	GMRFLib_CACHE_SET_IDX(id);
+	dtweedie2_init_cache_idx(id);
 	dtweedie_cache_tp *c = cache[id];
 
 	double cc = alpha * log(p1) - log(p2);

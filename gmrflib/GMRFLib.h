@@ -80,6 +80,17 @@
 #              define RESTRICT
 #       endif
 
+#       if defined(__GNUC__) || defined(__clang__)
+    // Works on all versions of GCC/Clang and all standard levels (C89, C99, etc.)
+#              define NOINLINE __attribute__((noinline))
+#       elif defined(_MSC_VER)
+    // Works on all versions of MSVC
+#              define NOINLINE __declspec(noinline)
+#       else
+#              define NOINLINE
+#       endif
+
+
 /* ... */
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)
 #              undef INLA_CLONE_TARGETS

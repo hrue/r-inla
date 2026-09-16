@@ -25,6 +25,14 @@
              #' used, then this is threshold for the sum of the weights defining a group. 
              num.level.sets = -1, 
 
+             #' @param min.overlap The minimum number of overlapping latent nodes bewteen two
+             #' linear predictors (lp) in the same group: If lp.j is to be in group of lp.i,
+             #' then lp.j need to share at least 'min.overlap' latent nodes (except fixed
+             #' effects and short random effects), with the latent nodes (and its neigbours)
+             #' of lp.i. If set to `0`,  then this option is not in effect.
+             #' A reasonable value is `1`. Using this option will reduce running time.
+             min.overlap = 0, 
+
              #' @param strategy One of `"posterior"` or `"prior"`. See the
              #' vignette for details.
              strategy = c("posterior", "prior"), 
@@ -106,6 +114,7 @@
         return (inla.group.cv(result,
                               groups = get.groups(group.cv),
                               num.level.sets = num.level.sets,
+                              min.overlap = min.overlap, 
                               strategy = strategy,
                               size.max = size.max,
                               selection = selection,
@@ -123,6 +132,7 @@
 
     cont.gcpo <- list(enable = TRUE,
                       num.level.sets = num.level.sets, 
+                      min.overlap = min.overlap, 
                       size.max = size.max, 
                       strategy = match.arg(strategy), 
                       groups = groups, 

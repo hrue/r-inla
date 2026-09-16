@@ -40,6 +40,13 @@ this still corresponds to the number of nodes in the group, and not the sum of t
 weights. This is ment as an emergency option to avoid the size of the
 group to go nuts.}
 
+\item{min.overlap}{The minimum number of overlapping latent nodes bewteen two
+linear predictors (lp) in the same group: If lp.j is to be in group of lp.i,
+then lp.j need to share at least 'min.overlap' latent nodes (except fixed
+effects and short random effects), with the latent nodes (and its neigbours)
+of lp.i. If set to \code{0},  then this option is not in effect.
+A reasonable value is \code{1}. Using this option will reduce running time.}
+
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
 vignette for details.}
 
