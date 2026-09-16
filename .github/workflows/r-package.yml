@@ -118,7 +118,7 @@ jobs:
             "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
             "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
             "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
-            "mlogit","Ecdat","pixmap","inlabru","INLAspacetime"))'
+            "mlogit","Ecdat","pixmap","compositions","inlabru","INLAspacetime"))'
           ## pdf_document needs a TeX installation; tinytex is the light one.
           Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
