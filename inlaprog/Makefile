@@ -63,7 +63,9 @@ HEADERS = src/ar.h src/egp-c012.h src/fgn-prior-tables.h src/iniparser.h src/my.
 	src/pc-priors.h src/rmath.h src/stochvol.h src/fast-math/special-functions.h \
 	src/tweedie2.h
 
-FMFLAGS := -DINLA_WITH_CLONE_TARGETS -Isrc -I../gmrflib -fopenmp-simd -O3 -ffast-math
+## -iquote for the same reason as gmrflib/Makefile: ../gmrflib holds an io.h
+## that would shadow the system <io.h> on mingw.
+FMFLAGS := -DINLA_WITH_CLONE_TARGETS -iquote src -iquote ../gmrflib -fopenmp-simd -O3 -ffast-math
 ifneq ($(filter -DINLA_WITH_MKL,$(FFLAGS)),)
 FMFLAGS := -DINLA_WITH_MKL $(FMFLAGS)
 endif
@@ -80,7 +82,7 @@ endif
 ## backend and the -I for its headers arrive together, and copying only the
 ## define leaves these files unable to find them. special-functions.c includes
 ## GMRFLib.h, which includes idxval.h, which includes armpl_sparse.h.
-FMFLAGS := $(filter -I%,$(FFLAGS)) $(FMFLAGS)
+FMFLAGS := $(FMFLAGS) $(filter -I%,$(FFLAGS))
 src/fast-math/%.o: src/fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 

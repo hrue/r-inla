@@ -104,7 +104,12 @@ endif
 	$(AR) cr $(LIBNAME) $(LIBOBJ) $(LIBOBJFM)
 ##	ranlib $@
 
-FMFLAGS := -DINLA_WITH_CLONE_TARGETS -I. -fopenmp-simd -O3 -ffast-math
+## -iquote, not -I: these sources live one directory down, so they need a
+## path to reach "GMRFLib/GMRFLib.h", but this directory also holds io.h,
+## and mingw's unistd.h does #include <io.h> expecting the SYSTEM one. As -I
+## that shadows it and ftruncate loses _chsize. -iquote is searched only for
+## "quoted" includes, which is exactly what these files use.
+FMFLAGS := -DINLA_WITH_CLONE_TARGETS -iquote . -fopenmp-simd -O3 -ffast-math
 ifneq ($(filter -DINLA_WITH_MKL,$(FFLAGS)),)
 FMFLAGS := -DINLA_WITH_MKL $(FMFLAGS)
 endif
@@ -124,7 +129,7 @@ endif
 ## the default search path; ARMPL does not, and idxval.h then fails on
 ## armpl_sparse.h. Carry every -I across, and nothing else: the point of this
 ## rule is that -ffast-math applies HERE and nowhere else.
-FMFLAGS := $(filter -I%,$(FFLAGS)) $(FMFLAGS)
+FMFLAGS := $(FMFLAGS) $(filter -I%,$(FFLAGS))
 fast-math/%.o: fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 
