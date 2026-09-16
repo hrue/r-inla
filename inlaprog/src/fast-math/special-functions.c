@@ -9,123 +9,7 @@
 #include "inla.h"
 #include "fast-math/special-functions.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double inla_logcdf_normal(double x)
-{
-	// return the log of the cummulative distribution function for a standard normal.
-	// This version is ok for all x 
-	if (ABS(x) <= 7.0) {
-		return (log(GMRFLib_cdfnorm(x)));
-	} else {
-		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
-
-		if (x > 7.0) {
-			t1 = 1.77245385090551602729816748334;
-			t3 = M_SQRT2;
-			t4 = t3 / t1;
-			t8 = x * x;
-			t9 = t8 * x;
-			t13 = t8 * t8;
-			t27 = exp(t8);
-			t28 = sqrt(t27);
-			t31 = 0.1e1 / M_PI;
-			t47 =
-			    0.1e1 / t28 * (-0.1e1 / x * t4 / 0.2e1 + 0.1e1 / t9 * t4 / 0.2e1 - 0.3e1 / 0.2e1 / t13 / x * t4 +
-					   0.15e2 / 0.2e1 / t13 / t9 * t4)
-			    + 0.1e1 / t27 * (-0.1e1 / t8 * t31 / 0.4e1 + 0.1e1 / t13 * t31 / 0.2e1 - 0.7e1 / 0.4e1 / t13 / t8 * t31);
-			return t47;
-		} else {
-			// x < -7.0
-			double xx = -x, cg1;
-			cg1 =
-			    -(pow(xx, 0.6e1) + log(0.2e1) * pow(xx, 0.4e1) + log(0.3141592653589793e1) * pow(xx, 0.4e1) +
-			      0.2e1 * log(xx) * pow(xx, 0.4e1)
-			      - 0.5e1 + 0.2e1 * xx * xx) * pow(xx, -0.4e1) / 0.2e1;
-			return (cg1);
-		}
-	}
-	abort();
-	return 0;
-}
-#pragma GCC diagnostic pop
-
-double inla_cdf_normal(double x)
-{
-	/*
-	 * the un-log version of inla_logcdf_normal 
-	 */
-	if (ABS(x) < 7.0) {
-		return GMRFLib_cdfnorm(x);
-	} else {
-		return exp(inla_logcdf_normal(x));
-	}
-}
-
-double inla_cdf_normal_fast(double x)
-{
-	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
-	if (ABS(x) <= 7.0) {
-		// see misc/doc/doc/approximate-cdf-normal.pdf
-		// sqrt(M_PI / 8.0) = 0.6266570686577502....
-		if (x > 0.0) {
-			return (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x))));
-		} else {
-			return (1.0 - (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x)))));
-		}
-		abort();
-		return (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x))));
-	} else {
-		return inla_cdf_normal(x);
-	}
-}
-
-double inla_logitcdf_normal(double x)
-{
-	// return log(Phi(x)/(1-Phi(x)))
-#define M_LN_SQRT_2PI       0.918938533204672741780329736406
-
-	if (ABS(x) < 7.0) {
-		double y = inla_cdf_normal(x);
-		return (log(y / (1.0 - y)));
-	} else {
-		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
-		// 2
-		// x 1/2 1/2 1
-		// ---- + ln(x) + ln(2 Pi ) + O(----)
-		// 2 2
-		// 
-		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
-		return (x > 0.0 ? val : -val);
-	}
-#undef M_LN_SQRT_2PI
-}
-
-double inla_logcdf_normal_fast(double x)
-{
-	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
-	// sqrt(M_PI / 8.0) = 0.6266570686577502....
-	// log(1.0/4.0) = -1.386294361119891...
-	if (ABS(x) < 7.0) {
-		return (log(inla_cdf_normal_fast(x)));
-	} else {
-		if (x > 7.0) {
-			return (-0.25 * exp(-0.6266570686577502 * SQR(x)));
-		} else {
-			// return (log(1.0 / 4.0) - 0.6266570686577502 * SQR(x));
-			return (-1.386294361119891 - 0.6266570686577502 * SQR(x));
-		}
-	}
-}
-
-forceinline double inla_ipow(double x, int k)
-{
-	// x^k
-	return gsl_sf_pow_int(x, k);
-}
-
-forceinline double inla_lgamma(double x)
+FORCEINLINE double inla_lgamma(double x)
 {
 	return lgamma(x);
 }
@@ -213,17 +97,17 @@ void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 }
 #pragma GCC diagnostic pop
 
-forceinline double inla_gamma(double x)
+FORCEINLINE double inla_gamma(double x)
 {
 	return (exp(lgamma(x)));
 }
 
-forceinline double inla_gamma_fast(double x)
+FORCEINLINE double inla_gamma_fast(double x)
 {
 	return (exp(inla_lgamma_fast(x)));
 }
 
-forceinline double inla_beta(double a, double b)
+FORCEINLINE double inla_beta(double a, double b)
 {
 	return exp(inla_lbeta(a, b));
 }

@@ -1,4 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
+
 #ifndef __SPECIAL_FUNCTIONS_H__
 #       define __SPECIAL_FUNCTIONS_H__
 #       undef __BEGIN_DECLS
@@ -16,11 +17,6 @@ __BEGIN_DECLS
 /*
  *
  */
-double inla_logcdf_normal(double x);
-double inla_cdf_normal(double x);
-double inla_cdf_normal_fast(double x);
-double inla_logitcdf_normal(double x);
-double inla_logcdf_normal_fast(double x);
 double inla_lgamma_fast(double x);
 double inla_lbeta(double a, double b);
 void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta);

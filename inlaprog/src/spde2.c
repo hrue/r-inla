@@ -12,7 +12,7 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-forceinline void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals, double *RESTRICT theta, int nc)
+FORCEINLINE void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals, double *RESTRICT theta, int nc)
 {
 	double d0 = 0.0, d1 = 0.0, d2 = 0.0;
 	int nc2 = 2 * nc;
@@ -28,7 +28,7 @@ forceinline void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals,
 	return;
 }
 
-forceinline void apply_single_transform(int transform, double *d2)
+FORCEINLINE void apply_single_transform(int transform, double *d2)
 {
 	switch (transform) {
 	case SPDE2_TRANSFORM_LOG:
@@ -44,7 +44,7 @@ forceinline void apply_single_transform(int transform, double *d2)
 	}
 }
 
-forceinline void build_theta_vector(double *RESTRICT theta, int nc, double ***model_theta, int thread_id)
+FORCEINLINE void build_theta_vector(double *RESTRICT theta, int nc, double ***model_theta, int thread_id)
 {
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
@@ -52,7 +52,7 @@ forceinline void build_theta_vector(double *RESTRICT theta, int nc, double ***mo
 	}
 }
 
-forceinline void perform_matrix_vector_mult(double *RESTRICT V, double *RESTRICT theta, double *RESTRICT dij, int nc, int n)
+FORCEINLINE void perform_matrix_vector_mult(double *RESTRICT V, double *RESTRICT theta, double *RESTRICT dij, int nc, int n)
 {
 	int m = nc;
 	int lda = nc;
@@ -62,7 +62,7 @@ forceinline void perform_matrix_vector_mult(double *RESTRICT V, double *RESTRICT
 	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
 }
 
-forceinline void apply_exponentials(double *RESTRICT dij, int nb)
+FORCEINLINE void apply_exponentials(double *RESTRICT dij, int nb)
 {
 	for (int i = 0; i <= nb; i++) {
 		int idx = i * 3;
@@ -71,7 +71,7 @@ forceinline void apply_exponentials(double *RESTRICT dij, int nb)
 	}
 }
 
-forceinline void apply_transform_vectorized(int transform, double *RESTRICT dij, int nb)
+FORCEINLINE void apply_transform_vectorized(int transform, double *RESTRICT dij, int nb)
 {
 	switch (transform) {
 	case SPDE2_TRANSFORM_LOG:
@@ -95,7 +95,7 @@ forceinline void apply_transform_vectorized(int transform, double *RESTRICT dij,
 	}
 }
 
-forceinline void compute_diagonal_values(double *RESTRICT dij, double *RESTRICT v, double *RESTRICT values, int nb)
+FORCEINLINE void compute_diagonal_values(double *RESTRICT dij, double *RESTRICT v, double *RESTRICT values, int nb)
 {
 	double d_i0 = dij[0];
 	double d_i1 = dij[1];
@@ -120,7 +120,7 @@ forceinline void compute_diagonal_values(double *RESTRICT dij, double *RESTRICT 
 	}
 }
 
-forceinline double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+FORCEINLINE double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
@@ -292,7 +292,7 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 }
 #pragma GCC diagnostic pop
 
-forceinline double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	// do not use directly. need ``if (jj < 0)'' code
 

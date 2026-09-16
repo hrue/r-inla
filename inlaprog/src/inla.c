@@ -233,6 +233,7 @@ int R_load_INLA = 0;
 #include "inla-classic.c"
 #include "inla-read.c"
 #include "inla-parse.c"
+#include "inla-fun.c"
 #include "param-constr.c"
 
 double inla_interpolate_mode(double *x, double *y)
