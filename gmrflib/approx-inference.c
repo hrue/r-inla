@@ -2286,24 +2286,28 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					GMRFLib_free_density(cpodens);
 				}
 
-				// the log-likelihood calculations in these two functions are the same, and what is costly, is the
-				// call to the loglFunc, which computes the exact same values, twice. So these two calls should be
-				// merged, as if we do dic we could do waic (ie po) at the same time. and the other way around.
+				// the log-likelihood calculations in these two functions are the same. what is costly, is the call
+				// to the loglFunc, which computes the exact same values, twice. So these two calls should be
+				// merged, as if we chose dic=TRUE we could do waic=TRUE (ie po=TRUE) at the same time. and the
+				// other way around.
 
-				// as a first try, we'll save these logl-values and pass them on, and make sure the integration will
-				// vectorize.
+				// as a first fix, we'll save these logl-values and pass them on, and make sure the numerical
+				// integration (ie, sum,) will vectorize.
 				
 				double *ll_save = NULL;
+				double *dmin_max = NULL;
+				
 				if (dic) {
 					deviance_theta[i][dens_count] =
-						GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean, &ll_save);
+						GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean, &ll_save, &dmin_max);
 				}
 				if (po) {
 					GMRFLib_ai_po_integrate(thread_id, &po_theta[i][dens_count], &po2_theta[i][dens_count],
 								&po3_theta[i][dens_count], i, lpred[i][dens_count], d[i], loglFunc,
-								loglFunc_arg, lpred_mean, ll_save);
+								loglFunc_arg, lpred_mean, ll_save, dmin_max);
 				}
 				Free(ll_save);
+				Free(dmin_max);
 			}
 		}
 
@@ -6879,7 +6883,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *po3, int idx, GMRFLib_density_tp *po_density,
-			       double d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double *ll_save)
+			       double d, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double *ll_save, double *dmin_max)
 {
 	double fail = 0.0;
 	double integral2 = 0.0, integral3 = 0.0, integral4 = 0.0;
@@ -6936,8 +6940,15 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		// why isn't there a normalization of ll, like ll := ll - max(ll) ?
 		
-		double dmax = GMRFLib_max_value(ll, np, NULL);
-		double dmin = GMRFLib_min_value(ll, np, NULL);
+		double dmin = 0.0, dmax = 0.0;
+		if (dmin_max) {
+			dmin = dmin_max[0];
+			dmax = dmin_max[1];
+		} else {
+			dmin = GMRFLib_min_value(ll, np, NULL);
+			dmax = GMRFLib_max_value(ll, np, NULL);
+		}
+		
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
 			for (int i = 0; i < np; i++) {
@@ -7056,7 +7067,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *density, double d, GMRFLib_logl_tp *loglFunc,
-				 void *loglFunc_arg, double *x_vec, double **ll_save)
+				 void *loglFunc_arg, double *x_vec, double **ll_save, double **dmin_max)
 {
 	/*
 	 * compute the integral of -2*loglikelihood * density(x), wrt x. also return the saturated one
@@ -7099,8 +7110,14 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 			Memcpy(*ll_save, ll, np * sizeof(double));
 		}
 
-		double dmax = GMRFLib_max_value(ll, np, NULL);
 		double dmin = GMRFLib_min_value(ll, np, NULL);
+		double dmax = GMRFLib_max_value(ll, np, NULL);
+		if (dmin_max) {
+			*dmin_max = Malloc(2, double);
+			(*dmin_max)[0] = dmin;
+			(*dmin_max)[1] = dmax;
+		}
+
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
 			for (int i = 0; i < np; i++) {
