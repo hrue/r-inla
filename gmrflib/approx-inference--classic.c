@@ -1352,7 +1352,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		}							\
 		if (dic) {						\
 			deviance_theta[ii][dens_count] = GMRFLib_ai_dic_integrate(thread_id, ii, dens[ii][dens_count], \
-										  (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
+										  (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode, NULL); \
 		}							\
 	}
 
@@ -1360,7 +1360,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	if (d[ii]) {							\
 		if (po) {						\
 			GMRFLib_ai_po_integrate(thread_id, &po_theta[ii][dens_count], &po2_theta[ii][dens_count], &po3_theta[ii][dens_count], \
-						ii, dens[ii][dens_count], d[ii], loglFunc, loglFunc_arg, xx_mode); \
+						ii, dens[ii][dens_count], d[ii], loglFunc, loglFunc_arg, xx_mode, NULL); \
 		}							\
 	}
 
@@ -1376,7 +1376,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 		}							\
 		if (dic) {						\
 			deviance_theta_local[ii] =			\
-				GMRFLib_ai_dic_integrate(thread_id, ii, dens_local[ii], (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
+				GMRFLib_ai_dic_integrate(thread_id, ii, dens_local[ii], (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode, NULL); \
 		}							\
 	}
 
@@ -1384,7 +1384,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 	if (d[ii]) {							\
 		if (po) {						\
 			GMRFLib_ai_po_integrate(thread_id, &po_theta_local[ii], &po2_theta_local[ii], &po3_theta_local[ii], \
-						ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode); \
+						ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode, NULL); \
 		}							\
 	}
 

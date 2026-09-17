@@ -128,7 +128,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 #undef MEASURE_TIME
 #if defined(MEASURE_TIME)
-	static double tref[10] = { 0 };
+	static double tref[10] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	static double trefc = 0.0;
 	tref[0] -= GMRFLib_timer();
 #endif

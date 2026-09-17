@@ -583,7 +583,7 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 	int *p = NULL;
 #pragma omp critical (Name_6474fc0a96f50de20c97c30a6b3cd2bf6471ec43)
 	{
-		static double tref[5] = { 0 };
+		static double tref[5] = { 0, 0, 0, 0, 0 };
 		static int trefc = 0;
 		int *p1, *p2, *p3, *p4, *p5;
 

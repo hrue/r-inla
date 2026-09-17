@@ -241,7 +241,8 @@ int testit(int argc, char **argv)
 	{
 		// this force a race-condition
 #       define NN 10
-		int x[NN] = { 0 };
+		int x[NN];
+		GMRFLib_ifill(NN, 0, x);
 #       pragma omp parallel for
 		for (int i = 0; i < NN; i++) {
 			*(x + i) = i;
@@ -5621,7 +5622,8 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n + 1, double);
 		int *ix = Calloc(n + 1, int);
 
-		double tref[3] = { 0 };
+		double tref[3];
+		GMRFLib_dfill(3, 0.0, tref);
 		double err = 0, ierr = 0;
 		for (int i = 0; i < m; i++) {
 			double ref = 0.0;
@@ -6363,7 +6365,8 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
-		double tref[4] = { 0 };
+		double tref[4];
+		GMRFLib_dfill(4, 0.0, tref);
 
 		const int off = 16;
 		double *x = Malloc(n + off, double);
@@ -6419,7 +6422,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0};
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6454,7 +6457,7 @@ int testit(int argc, char **argv)
 		for (nn = n; nn % 4 != 0; nn++);
 		P(nn);
 
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0};
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6488,7 +6491,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0};
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6540,8 +6543,8 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0 };
-		double z[2] = { 0 };
+		double tref[2] = { 0, 0};
+		double z[2] = { 0, 0};
 		for (int j = 0; j < m; j++) {
 			tref[0] += -GMRFLib_timer();
 			z[0] = 0;

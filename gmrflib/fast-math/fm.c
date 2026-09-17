@@ -220,3 +220,27 @@ void GMRFLib_cdaddto(int n, double *RESTRICT x, double cx, double *RESTRICT y)
 	}
 }
 #pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void GMRFLib_fm_po_1(int n, double *RESTRICT mask, double *RESTRICT ll, double *RESTRICT wp,
+		     double *RESTRICT integral2, double *RESTRICT integral3, double *RESTRICT integral4)
+{
+	// integral2 = sum mask * exp(ll) * wp
+	// integral3 = sum ll * wp
+	// integral4 = sum ll^2 * wp
+
+	double r2 = 0.0, r3 = 0.0, r4 = 0.0;
+#pragma omp simd reduction(+: r2, r3, r4)
+	for (int i = 0; i < n; i++) {
+		r2 += exp(ll[i]) * mask[i] * wp[i];
+		r3 += ll[i] * wp[i];
+		r4 += ll[i] * ll[i] * wp[i];
+	}
+
+	*integral2 = r2;
+	*integral3 = r3;
+	*integral4 = r4;
+}
+#pragma GCC diagnostic pop
