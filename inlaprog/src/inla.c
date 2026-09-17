@@ -6057,8 +6057,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	assert(preopt->latent_graph->n == N);
 
 	// time the two versions of Qfunc_like
-	double time_used_Qx[2] = { 0.0, 0.0 };
-	double time_used_pred[2] = { 0.0, 0.0 };
+	double time_used_Qx[2] = { 0.0 };
+	double time_used_pred[2] = { 0.0 };
 
 	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
@@ -6066,7 +6066,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		int thread_id = 0;
 		int nn = preopt->preopt_graph->n;
 		assert(omp_get_thread_num() == 0);
-		double res[4] = { 0, 0, 0, 0 };
+		double res[4] = { 0 };
 		double *test_vector = Calloc(nn, double);
 		for (i = 0; i < nn; i++) {
 			test_vector[i] = GMRFLib_uniform();
@@ -6118,7 +6118,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	// report timings
-	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop[5] = { 0.0 };
 	double time_loop_max = 0.0;
 	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
@@ -6573,7 +6573,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			if (lds == NULL) {				\
 				*d_mode = zm_orig;			\
 			} else {					\
-				double step_size[] = {0.0, 0.0};	\
+				double step_size[2] = {0.0};		\
 				for(int iter = 0; iter < 2; iter++) {	\
 					step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
 					zm -= step_size[iter];		\
@@ -7154,7 +7154,7 @@ double inla_dmatern_cf(double dist, double range, double nu)
 double inla_sn_intercept(double intern_quantile, double skew)
 {
 	// testing only
-	double a3[2] = { 0.0, 0.0 }, val;
+	double a3[2] = { 0.0 }, val;
 	a3[0] = POW3(inla_pc_sn_skew2alpha(skew));
 	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) a3);
 	P(intern_quantile);
@@ -7198,7 +7198,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report issues/bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0, 0, 0 }, err;
+	int i, verbose = 0, silent = 0, opt, arg, ntt[3] = { 0 }, err;
 #if !defined(_WIN32)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
@@ -7207,7 +7207,7 @@ int main(int argc, char **argv)
 #if !defined(_WIN32)
 	double eff_nt = 0.0;
 #endif
-	clock_t atime_used[4] = { 0, 0, 0, 0 };
+	clock_t atime_used[4] = { 0 };
 	inla_tp *mb = NULL;
 
 	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
@@ -7820,8 +7820,8 @@ int main(int argc, char **argv)
 			time_used[1] = GMRFLib_timer();
 			atime_used[1] = clock();
 
-			int nfunc[2] = { 0, 0 };
-			double rgeneric_cpu[2] = { 0.0, 0.0 };
+			int nfunc[2] = { 0 };
+			double rgeneric_cpu[2] = { 0.0 };
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				time_used[3] = GMRFLib_timer();

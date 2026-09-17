@@ -18386,7 +18386,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		double *aalpha = &mb->f_prior[mb->nf][1].parameters[1];
 		double *h_size = &mb->f_prior[mb->nf][1].parameters[2];
 		double *lambda = &mb->f_prior[mb->nf][1].parameters[3];
-		char set_default[4] = { 0, 0, 0, 0 };
+		char set_default[4] = { 0 };
 
 		// set default values
 		if (*r0 <= 0.0) {

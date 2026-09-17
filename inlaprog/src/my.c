@@ -381,7 +381,7 @@ double my_betabinomial(int y, int n, double a, double b, double *work, double *w
 	// recall to change _work_len() if this is changed
 	int nn[3] = { y, n - y, n };
 	double ab[3] = { a, b, a + b };
-	double out[3] = { 0, 0, 0};
+	double out[3] = { 0.0 };
 	if (large) {
 		my_betabinomial_helper16_s(3, nn, ab, work, wwork, out);
 	} else {

@@ -125,7 +125,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, do
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
 	int lim2 = 64;
-	double d_storage[6] = { 0, 0, 0, 0, 0, 0};
+	double d_storage[6] = { 0.0 };
 	double *RESTRICT d_i = d_storage;
 	double *RESTRICT d_j = d_storage + 3;
 
@@ -299,7 +299,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	int use_ddot_lim = 16;
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol, nc2 = 2 * nc;
-	double d_i[6] = { 0, 0, 0, 0, 0, 0 };
+	double d_i[6] = { 0.0 };
 	double *d_j = d_i + 3;
 	double *vals_i = model->row_V[ii];
 

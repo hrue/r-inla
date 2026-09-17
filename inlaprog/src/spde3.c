@@ -188,10 +188,10 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
 	double value;
-	double phi_i[3] = { 0.0, 0.0, 0.0 };
-	double phi_j[3] = { 0.0, 0.0, 0.0 };
-	double d_i[3] = { 0.0, 0.0, 0.0 };
-	double d_j[3] = { 0.0, 0.0, 0.0 };
+	double phi_i[3] = { 0.0 };
+	double phi_j[3] = { 0.0 };
+	double d_i[3] = { 0.0 };
+	double d_j[3] = { 0.0 };
 	int k, kk, use_store = 1;
 	const int debug = 0;
 

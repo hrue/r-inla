@@ -70,7 +70,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
 	// this function cache wrt 'p' only
 
-	static size_t cache_count[] = { 0, 0, 0 };
+	static size_t cache_count[3] = { 0 };
 	static double sum_nterms = 0.0;
 
 	double p1 = p - 1.0, p2 = 2.0 - p;
