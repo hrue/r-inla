@@ -1,3 +1,7 @@
+# INLA 26.09.17
+* More testing
+* The vignettes are back
+
 # INLA 26.09.09-1
 * More work on the installation
 
