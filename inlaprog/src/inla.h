@@ -2487,6 +2487,12 @@ int GMRFLib_csr_init_store(void);
 int gsl_bfgs4_test1(size_t);
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 
+double inla_logcdf_normal(double x);
+double inla_cdf_normal(double x);
+double inla_cdf_normal_fast(double x);
+double inla_logitcdf_normal(double x);
+double inla_logcdf_normal_fast(double x);
+
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
 
 #       if defined(INLA_WITH_EXTERNAL_PACKAGES)

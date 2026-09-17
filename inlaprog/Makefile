@@ -167,6 +167,6 @@ install: $(INLA)
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/inla; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/inla/examples; 
 
-clean:; -$(RM) $(OBJ) $(INLA) $(DEPS)
+clean:; -$(RM) $(OBJ) $(OBJFM) $(INLA) $(DEPS)
 
 .PHONY: depend clean uninstall install 

@@ -1,4 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
+
 #ifndef __SPECIAL_FUNCTIONS_H__
 #       define __SPECIAL_FUNCTIONS_H__
 #       undef __BEGIN_DECLS
@@ -16,16 +17,18 @@ __BEGIN_DECLS
 /*
  *
  */
-double inla_logcdf_normal(double x);
-double inla_cdf_normal(double x);
-double inla_cdf_normal_fast(double x);
-double inla_logitcdf_normal(double x);
-double inla_logcdf_normal_fast(double x);
 double inla_lgamma_fast(double x);
 double inla_lbeta(double a, double b);
 void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta);
 void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res);
 void inla_lgamma_m(size_t m, double *RESTRICT x, double *RESTRICT res);
+
+void inla_llike_nbinomial_1(const int m, const double d1, const double d2, const double d3,
+			    const double d4, const double d5, double *RESTRICT x, double *RESTRICT logll);
+void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4, 
+			    double *RESTRICT x, double *RESTRICT logll);
+void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y);
+void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y);
 
 // we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
 #       if 1
