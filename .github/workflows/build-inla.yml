@@ -1363,6 +1363,10 @@ jobs:
           rm -rf rinla/inst/doc
           mkdir -p rinla/inst/doc
           cp -a "$tmp"/INLA/inst/doc/. rinla/inst/doc/
+          ## STAGE FIRST: sync-package.sh mirrors the files git TRACKS, so
+          ## running it before the add leaves package/inst/doc empty and the
+          ## install_github route still ships no vignettes.
+          git add -A rinla/inst/doc
           bash ci/sync-package.sh
           git add -A rinla/inst/doc package
           if git diff --cached --quiet; then
