@@ -17,9 +17,9 @@ void GMRFLib_exp(int n, double *RESTRICT x, double *RESTRICT y)
 	tref -= GMRFLib_timer();
 #endif
 
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL) && !defined(INLA_WITH_MVEC)
 	vdExp(n, x, y);
-#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE) && !defined(INLA_WITH_MVEC)
 	vvexp(y, x, &n);
 #else
 #       pragma omp simd
@@ -44,7 +44,7 @@ NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_exp_inc(int n, double *RESTRICT x, int inc, double *RESTRICT y)
 {
 	// y = exp(x) with inc
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL) && !defined(INLA_WITH_MVEC)
 	vdExpI(n, x, inc, y, inc);
 #else
 #       pragma omp simd
@@ -61,9 +61,9 @@ NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_log(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	// y = log(x)
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL) && !defined(INLA_WITH_MVEC)
 	vdLn(n, x, y);
-#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)  && !defined(INLA_WITH_MVEC)
 	vvlog(y, x, &n);
 #else
 #       pragma omp simd
@@ -80,9 +80,9 @@ NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_log1p(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	// y = log1p(x)
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL) && !defined(INLA_WITH_MVEC)
 	vdLog1p(n, x, y);
-#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE) && !defined(INLA_WITH_MVEC)
 	vvlog1p(y, x, &n);
 #else
 #       pragma omp simd
@@ -98,9 +98,9 @@ void GMRFLib_log1p(int n, double *RESTRICT x, double *RESTRICT y)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_abs(int n, double *RESTRICT x, double *RESTRICT y)
 {
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL)  && !defined(INLA_WITH_MVEC)
 	vdAbs(n, x, y);
-#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)  && !defined(INLA_WITH_MVEC)
 	vvfabs(y, x, &n);
 #else
 #       pragma omp simd
@@ -117,7 +117,7 @@ NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_sqr(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	// y = x * x
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL)  && !defined(INLA_WITH_MVEC)
 	vdSqr(n, x, y);
 #else
 #       pragma omp simd
@@ -134,9 +134,9 @@ NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_sqrt(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	// y = sqrt(x)
-#if defined(INLA_WITH_MKL)
+#if defined(INLA_WITH_MKL)  && !defined(INLA_WITH_MVEC)
 	vdSqrt(n, x, y);
-#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)
+#elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)  && !defined(INLA_WITH_MVEC)
 	vvsqrt(y, x, &n);
 #else
 #       pragma omp simd
