@@ -142,22 +142,22 @@ void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *REST
 #pragma GCC diagnostic ignored "-Wattributes"
 NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void inla_llike_nbinomial_1(const int m, const double d1, const double d2, const double d3, const double d4, const double d5,
-			      double *RESTRICT x, double *RESTRICT logll) 
+			    double *RESTRICT x, double *RESTRICT logll)
 {
 	// logll[i] = d1 + d2 * log1p(d3 * exp(x+d4)) + d5 * (x+d4);
 #pragma omp simd
-	for(int i = 0; i < m; i++) {
+	for (int i = 0; i < m; i++) {
 		double xx = x[i] + d4;
 		logll[i] = d1 + d2 * log1p(d3 * exp(xx)) + d5 * xx;
 	}
 }
-#pragma GCC diagnostic push
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4, 
-			      double *RESTRICT x, double *RESTRICT logll) 
+void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const double d3, const double d4,
+			    double *RESTRICT x, double *RESTRICT logll)
 {
 	// logll[i] = tt2 + t3 * log1p(b * exp(x[i] + off));
 #pragma omp simd
@@ -165,11 +165,12 @@ void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const
 		logll[i] = d1 + d2 * log1p(d3 * exp(x[i] + d4));
 	}
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y) 
+void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y)
 {
 	// y[i] = log1p(exp(x[i]))
 #pragma omp simd
@@ -177,15 +178,48 @@ void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y)
 		y[i] = log1p(exp(x[i]));
 	}
 }
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y) 
+void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y)
 {
-	// y[i] = c1  - log1p(exp(-x[i] - c2))
+	// y[i] = c1 - log1p(exp(-x[i] - c2))
 #pragma omp simd
 	for (int i = 0; i < m; i++) {
 		y[i] = c1 - log1p(exp(-x[i] - c2));
 	}
 }
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_tweedie2_1(const int n, const double p1, const double p2, const double phi, const double y, const double ly, const double sum_w,
+			   const double w_max, double *RESTRICT mu, double *RESTRICT ldens)
+{
+#if 0
+	double ld[n];
+	for (int i = 0; i < n; i++) {
+		ld[i] = -pow(mu[i], p2) / (phi * p2);       // y == 0
+		ld[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
+	}
+#endif
+
+	// ldens[i] = -pow(mu[i], p2) / (phi * p2); // y == 0
+	// ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
+
+	// since p1+p2=1, we can simplify and avoid one pow(,) call, as 'mu^p1 = mu / mu^p2'
+
+	double c = -ly + log(sum_w) + w_max;
+	double af = -1.0 / (phi * p2);
+	double bf = -y / (phi * p1);
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		double a = pow(mu[i], p2);
+		double A = af + bf / mu[i];
+		ldens[i] = a * A + c;
+	}
+}
+#pragma GCC diagnostic pop
