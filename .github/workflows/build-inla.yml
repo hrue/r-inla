@@ -1311,8 +1311,20 @@ jobs:
             "mlogit","Ecdat","pixmap","compositions","inlabru","INLAspacetime"))'
           Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
-          ## The vignettes FIT MODELS, so the R side alone is not enough.
-          Rscript -e 'INLA::inla.stiles.install(persist = TRUE)'
+          ## The vignettes FIT MODELS, so the R side alone is not enough, and the
+          ## binary has to be THE ONE THIS RUN BUILT. inla.stiles.install() cannot
+          ## supply it: on a new tag that release does not exist yet, so it falls
+          ## back to the PREVIOUS one and the vignettes are rendered by a binary
+          ## older than the package driving it. That mismatch is what made
+          ## multinomial.Rmd fail while the other 18 passed.
+          ## dist/ already holds this run's bundles, so unpack one where a
+          ## --vanilla render looks: inla.binary.path() falls back to this cache
+          ## path when no option and no profile can reach it.
+          CACHE=$(Rscript -e 'cat(tools::R_user_dir("INLA", "cache"))')
+          rm -rf "$CACHE/stiles-binary/latest"
+          mkdir -p "$CACHE/stiles-binary/latest"
+          tar xzf dist/inla-linux-x86_64-portable.tar.gz -C "$CACHE/stiles-binary/latest"
+          "$CACHE/stiles-binary/latest/bin/inla" -V
 
       - name: Build the R package tarball
         run: |
