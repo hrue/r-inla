@@ -1,3 +1,7 @@
 doc
+## except the rendered vignettes: CI renders them at release time and
+## commits them here, so install_github() delivers them too.
+!inst/doc/
+!inst/doc/**
 Meta
 misc

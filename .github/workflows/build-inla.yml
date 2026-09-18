@@ -1332,6 +1332,40 @@ jobs:
             exit 1
           fi
 
+      ## remotes::install_github() installs the REPOSITORY, which has no
+      ## inst/doc, so that route delivered no vignettes however well the release
+      ## tarball was built. Rendering them on the user's machine is not an
+      ## option either: it fits every model, so it needs the binary that is not
+      ## installed yet. So put the rendered copies in the repository.
+      ## The commit lands AFTER the tag, so the tagged tree does not contain the
+      ## vignettes it shipped; the release asset is still the authority.
+      - name: Commit the rendered vignettes to the branch
+        run: |
+          set -e
+          TB=$(ls -1 dist/INLA_*.tar.gz)
+          tmp=$(mktemp -d)
+          tar xzf "$TB" -C "$tmp" 'INLA/inst/doc'
+          ## a tag build is a detached checkout: move to the branch first
+          git fetch --quiet origin feature/ci
+          git checkout --quiet -B feature/ci origin/feature/ci
+          rm -rf rinla/inst/doc
+          mkdir -p rinla/inst/doc
+          cp -a "$tmp"/INLA/inst/doc/. rinla/inst/doc/
+          bash ci/sync-package.sh
+          git add -A rinla/inst/doc package
+          if git diff --cached --quiet; then
+            echo "rendered vignettes unchanged"
+            exit 0
+          fi
+          ## [skip ci]: this touches no source, and without it every release
+          ## would start a second full board for a directory of PDFs.
+          git -c user.name="r-inla release" -c user.email="noreply@github.com" \
+              commit -q -m "rendered vignettes for ${GITHUB_REF_NAME} [skip ci]"
+          ## Never fail a published release over this: a concurrent push to the
+          ## branch is a retry, not a broken release.
+          git push --quiet origin feature/ci \
+            || echo "::warning::could not push the rendered vignettes; re-run this step or copy them by hand"
+
       - name: Build the release notes table
         run: |
           {
