@@ -1286,11 +1286,51 @@ jobs:
       ## FOLLOWS symlinks and stores real files, so this tarball contains none
       ## and installs anywhere with no special privileges:
       ##     install.packages("INLA_<version>.tar.gz", repos = NULL, type = "source")
+      ## The vignettes are rendered HERE, because THIS is the tarball users
+      ## download. r-package.yml also builds one, with vignettes, and asserts
+      ## them, but that copy is only ever a CI artifact: the release shipped
+      ## --no-build-vignettes for months while a green board reported "built
+      ## vignettes ... 19" about a file nobody receives.
+      - name: System libraries for the vignettes
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+              libgdal-dev libgeos-dev libproj-dev libudunits2-dev libssl-dev
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - name: R packages and the inla binary
+        run: |
+          set -e
+          Rscript -e 'install.packages(c(
+            "knitr","rmarkdown","formatR","tinytex",
+            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sp","sn","numDeriv",
+            "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
+            "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
+            "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
+            "mlogit","Ecdat","pixmap","compositions","inlabru","INLAspacetime"))'
+          Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          ## The vignettes FIT MODELS, so the R side alone is not enough.
+          Rscript -e 'INLA::inla.stiles.install(persist = TRUE)'
+
       - name: Build the R package tarball
         run: |
-          R CMD build --no-build-vignettes rinla
+          R CMD build rinla
           cp INLA_*.tar.gz dist/
           ls -lh dist/INLA_*.tar.gz
+
+      ## Assert on the file that is about to be uploaded, not on a sibling.
+      - name: Vignettes are in the release tarball
+        run: |
+          set -e
+          TB=$(ls -1 dist/INLA_*.tar.gz)
+          N=$(tar tzf "$TB" | grep -cE '/inst/doc/.*\.(html|pdf)$' || true)
+          echo "vignettes in the RELEASE tarball $TB: $N"
+          if [ "${N:-0}" -lt 15 ]; then
+            echo "::error::only $N vignettes in the tarball being released."
+            exit 1
+          fi
 
       - name: Build the release notes table
         run: |
