@@ -7,8 +7,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#pragma omp declare simd
-static double GMRFLib_prod_diff(double a, double b, double c, double d)
+FORCEINLINE double GMRFLib_prod_diff(double a, double b, double c, double d)
 {
 	// return a*b-c*d , see https://pharr.org/matt/blog/2019/11/03/difference-of-floats 
 	double cd = c * d;
@@ -177,35 +176,9 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double x0, int idx,
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
-	// default step-size is determined using test=151. stencil=9 does not bring much...
-
+	// default step-size is determined using test=151
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 	int stenc = (stencil ? *stencil : 5);
-	int numa = GMRFLib_numa_get_node();
-
-	typedef struct {
-		double **wf;
-	} wf_tp;
-
-	static wf_tp **lwork = NULL;
-	if (!lwork) {
-#pragma omp critical (Name_009f5f31299b4b554b667873ad6c4c874bfc9a77)
-		if (!lwork) {
-			wf_tp **tmp = Calloc(GMRFLib_numa_nodes(), wf_tp *);
-			lwork = tmp;
-		}
-	}
-
-	if (!lwork[numa]) {
-#pragma omp critical (Name_b53c77704653d4b6a42cc3c6c8221441fac46a73)
-		if (!lwork[numa]) {
-			wf_tp *w = Calloc(1, wf_tp);
-			w->wf = Calloc(10, double *);	       /* Must initialize to 0 */
-			lwork[numa] = w;
-		}
-	}
-
-	wf_tp *w = lwork[numa];
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -236,7 +209,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		{
 			// special implementation: ONLY used for initial values
 			step = 1.0e-4;
-			int n = 3;
+			const int n = 3;
 			xx[0] = x0 - step;
 			xx[1] = x0;
 			xx[2] = x0 + step;
@@ -252,60 +225,43 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		case 5:
 		{
 			if (unlikely(!step_len || ISZERO(*step_len))) {
-				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
-				step = ref * 5.0e-4;
+				double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+				step = ref * 5.0E-4;
 			} else {
 				step = *step_len;
 			}
 
-			int n = 5, nn = 2, wlength = 8;
+			const int n = 5, nn = 2, wlength = 8;
+			static const double wf[24] = {
+				1.0 / 12.0, 
+				- 2.0 / 3.0, 
+				0,
+				2.0 / 3.0, 
+				-1.0 / 12.0, 
+				0,
+				0,
+				0,
 
-			if (unlikely(!(w->wf[stenc]))) {
-#pragma omp critical (Name_4eb4719ffe22f0af964510f0aec612baccccbb0d)
-				if (!(w->wf[stenc])) {
-					int len_offset = GMRFLib_memory_alignment / sizeof(double);
-					int len = 3 * wlength + len_offset;
-					double *ww = Malloc(len, double);
-					GMRFLib_dfill(len, 0.0, ww);
-					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+				- 1.0 / 12.0, 
+				4.0 / 3.0, 
+				-2.5,
+				4.0 / 3.0, 
+				- 1.0 / 12.0, 
+				0,
+				0,
+				0,
 
-					if (1 || GMRFLib_memory_alignment_enabled) {
-						// ensure ww is aligned. we might change the ptr so we cannot free
-						int ok = 0;
-						for (int k = 0; k < len; k++) {
-							if (GMRFLib_is_aligned(ww + k)) {
-								ww += k;
-								ok = 1;
-								break;
-							}
-						}
-						if (!ok)
-							FIXME("Memory alignment failed");
-					}
-
-					ww[0] = 1.0 / 12.0;
-					ww[1] = -2.0 / 3.0;
-					ww[3] = 2.0 / 3.0;
-					ww[4] = -1.0 / 12.0;
-					ww[8] = -1.0 / 12.0;
-					ww[9] = 4.0 / 3.0;
-					ww[10] = -2.5;
-					ww[11] = 4.0 / 3.0;
-					ww[12] = -1.0 / 12;
-					ww[16] = -0.5;
-					ww[17] = 1.0;
-					ww[19] = -1.0;
-					ww[20] = 0.5;
-					w->wf[stenc] = ww;
-				}
-			}
-
-			double *wf = w->wf[stenc];
-			double *wff = wf + wlength;
-			double *wfff = wf + 2 * wlength;
+				-0.5,
+				1,
+				0,
+				-1,
+				0.5,
+				0,
+				0,
+				0
+			};
 
 			x00 = x0 - nn * step;
-#pragma omp simd
 			for (int i = 0; i < n; i++) {
 				xx[i] = x00 + i * step;
 			}
@@ -313,85 +269,81 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg);
 			f0 = f[nn];
 
-			int iref = n / 2L;
-			double *f_ref = f + iref;
-			double *wf_ref = wf + iref;
-			double *wff_ref = wff + iref;
+			double *wff = (double *) wf + wlength;
+			double *wfff = (double *) wf + 2 * wlength;
+			double *f_ref = f + nn;
+			double *wf_ref = (double *) wf + nn;
+			double *wff_ref = wff + nn;
+#if 1
+			if (!dd) {
+				ddf = f_ref[0] * wff_ref [0];
+				for(int i = 1; i <= nn ; i++) {
+					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
+					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
+				}
+			} else {
+				double *wfff_ref = wfff + nn;
+				ddf = f_ref[0] * wff_ref [0];
+				for(int i = 1; i <= nn ; i++) {
+					double dif = f_ref[i] - f_ref[-i];
+					df += wf_ref[i] * dif;
+					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
+					dddf += wfff_ref[i] * dif;
+				}
+			}
 
+#else
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]);
 			ddf = GMRFLib_prod_diff(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
 			ddf = fma(wff_ref[0], f_ref[0], ddf);
-
 			if (dd) {
-				double *wfff_ref = wfff + iref;
+				double *wfff_ref = wfff + nn;
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 			}
+#endif
 		}
 			break;
 
 		case 7:
 		{
 			if (!step_len || ISZERO(*step_len)) {
-				static double ref = GSL_DBL_EPSILON / 2.220446049e-16;
-				step = ref * 100.0e-4;
+				double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+				step = ref * 100.0E-4;
 			} else {
 				step = *step_len;
 			}
 
-			int n = 7, nn = 3, wlength = 8;
+			const int n = 7, nn = 3, wlength = 8;
+			static const double wf[24] = {
+				-0.01666666666666667,
+				0.15,
+				-0.75,
+				0,
+				0.75,
+				-0.15,
+				0.01666666666666667,
+				0,
 
-			if (!(w->wf[stenc])) {
-#pragma omp critical (Name_0eed179363c2b9a7edfda8a212fc6f63e8ec9741)
-				if (!(w->wf[stenc])) {
-					int len_offset = GMRFLib_memory_alignment / sizeof(double);
-					int len = 3 * wlength + len_offset;
-					double *ww = Malloc(len, double);
-					GMRFLib_dfill(len, 0.0, ww);
-					GMRFLib_ENSURE_NUMA_PTR(ww, len, double);
+				0.01111111111111111,
+				-0.15,
+				1.5,
+				-2.722222222222222,
+				1.5,
+				-0.15,
+				0.01111111111111111,
+				0,
 
-					if (1 || GMRFLib_memory_alignment_enabled) {
-						// ensure ww is aligned. we might change the ptr so we cannot free
-						int ok = 0;
-						for (int k = 0; k < len_offset; k++) {
-							if (GMRFLib_is_aligned(ww + k)) {
-								ww += k;
-								ok = 1;
-								break;
-							}
-						}
-						if (!ok)
-							FIXME("Memory alignment failed");
-					}
-
-					ww[0] = -1.0 / 60.0;
-					ww[1] = 0.15;
-					ww[2] = -0.75;
-					ww[4] = 0.75;
-					ww[5] = -0.15;
-					ww[6] = 1.0 / 60.0;
-					ww[8] = 1.0 / 90.0;
-					ww[9] = -0.15;
-					ww[10] = 1.5;
-					ww[11] = -49.0 / 18.0;
-					ww[12] = 1.5;
-					ww[13] = -0.15;
-					ww[14] = 1.0 / 90.0;
-					ww[16] = 0.125;
-					ww[17] = -1.0;
-					ww[18] = 1.625;
-					ww[20] = -1.625;
-					ww[21] = 1.0;
-					ww[22] = -0.125;
-					w->wf[stenc] = ww;
-				}
-			}
-
-			double *wf = w->wf[stenc];
-			double *wff = wf + wlength;
-			double *wfff = wf + 2 * wlength;
+				0.125,
+				-1,
+				1.625,
+				0,
+				-1.625,
+				1,
+				-0.125,
+				0
+			};
 
 			x00 = x0 - nn * step;
-#pragma omp simd
 			for (int i = 0; i < n; i++) {
 				xx[i] = x00 + i * step;
 			}
@@ -399,22 +351,40 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg);
 			f0 = f[nn];
 
-			int iref = n / 2L;
-			double *f_ref = f + iref;
-			double *wf_ref = wf + iref;
-			double *wff_ref = wff + iref;
+			double *wff = (double *) wf + wlength;
+			double *wfff = (double *) wf + 2 * wlength;
+			double *f_ref = f + nn;
+			double *wf_ref = (double *) wf + nn;
+			double *wff_ref = wff + nn;
 
+			// we do not need to initialized df and dddf, as wf_ref[0]=0 and wfff_ref[0]=0
+#if 1
+			ddf = f_ref[0] * wff_ref [0];
+			if (!dd) {
+				for(int i = 1; i <= nn ; i++) {
+					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
+					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
+				}
+			} else {
+				double *wfff_ref = wfff + nn;
+				for(int i = 1; i <= nn ; i++) {
+					double dif = f_ref[i] - f_ref[-i];
+					df += wf_ref[i] * dif;
+					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
+					dddf += wfff_ref[i] * dif;
+				}
+			}
+#else
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]);
 			df = fma(wf_ref[3], f_ref[3] - f_ref[-3], df);
-
 			ddf = GMRFLib_prod_diff(wff_ref[0], f_ref[0], -wff_ref[1], f_ref[1] + f_ref[-1]) +
-			    GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
-
+				GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
 			if (dd) {
-				double *wfff_ref = wfff + iref;
+				double *wfff_ref = wfff + nn;
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 				dddf = fma(wfff_ref[3], f_ref[3] - f_ref[-3], dddf);
 			}
+#endif
 		}
 			break;
 
@@ -426,15 +396,12 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	double istep = 1.0 / step;
 	df *= istep;
 	ddf *= SQR(istep);
-	if (dd) {
-		dddf *= POW3(istep);
-	}
-
 	*a = f0;
 	*b = df;
 	*c = ddf;
+
 	if (dd) {
-		*dd = dddf;
+		*dd = dddf * POW3(istep);
 	}
 
 	return GMRFLib_SUCCESS;
