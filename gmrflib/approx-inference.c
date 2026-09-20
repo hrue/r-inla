@@ -3593,10 +3593,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 
 		// build stuff for unrolling 'nmatch' later on
-#define BLOCK 16
-		GMRFLib_idx_tp **A_idx4 = NULL;
+#define BLOCK 8
+		GMRFLib_idx_tp **A_idx_block = NULL;
 		if (gcpo_param->min_overlap > 0) {
-			A_idx4 = Calloc(dn, GMRFLib_idx_tp *);
+			A_idx_block = Calloc(dn, GMRFLib_idx_tp *);
 			// we do not need to care about the remainder
 			for (int i = 0; i + BLOCK - 1 < dn; i += BLOCK) {
 				// easier if we know the lengths of the joined BLOCK idx's...
@@ -3607,15 +3607,14 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					m += A_idx(nnode)->n;
 				}
 				// create it and then copy the idx's
-				GMRFLib_idx_create_x(&(A_idx4[node]), m);
-				for (int j = 0, off = 0; j < BLOCK; j++) {
+				GMRFLib_idx_create_x(&(A_idx_block[node]), m);
+				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
-					int nn = A_idx(nnode)->n;
-					Memcpy(A_idx4[node]->idx + off, A_idx(nnode)->idx, nn * sizeof(int));
-					off += nn;
+					GMRFLib_idx_nadd(&(A_idx_block[node]), A_idx(nnode)->n, A_idx(nnode)->idx);
 				}
-				A_idx4[node]->n = m;
-				GMRFLib_sort_i(A_idx4[node]->idx, m);
+				assert(A_idx_block[node]->n == m);
+				GMRFLib_sort_i(A_idx_block[node]->idx, m);
+				GMRFLib_idx_remove_duplicates(A_idx_block[node]);
 			}
 		}
 
@@ -3734,14 +3733,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						GMRFLib_idx_sort(nb);
 						GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idx_bitmap_get(nb);
 						GMRFLib_idx_create_x(&d_idx_local, 1024);
-
-#if 0
-						static double tt = 0.0;
-#       pragma omp threadprivate(tt)
-						static int ttn = 0;
-#       pragma omp threadprivate(ttn)
-						tt -= GMRFLib_timer();
-#endif
 						if (0) {
 							// straight code, doing one at the time
 							for (int knode = 0; knode < dn; knode++) {
@@ -3758,7 +3749,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							int knode = 0;
 							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
-								if (unlikely(GMRFLib_idx_ge_match(A_idx4[nnode], bitmap, min_overlap))) {
+								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap))) {
 									for (int kknode = knode; kknode < knode + BLOCK; kknode++) {
 										nnode = d_idx->idx[kknode];
 										if (likely
@@ -3777,13 +3768,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 								}
 							}
 						}
-
-#if 0
-						tt += GMRFLib_timer();
-						ttn++;
-						if (ttn % 1000 == 0)
-							P(tt / ttn);
-#endif
 						GMRFLib_idx_bitmap_free(bitmap);
 						GMRFLib_idx_free(nb);
 					}
@@ -4018,11 +4002,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_free_ai_store(local_ai_store);
 
 
-		if (A_idx4) {
+		if (A_idx_block) {
 			for (int i = 0; i < dn - BLOCK; i += BLOCK) {
-				GMRFLib_idx_free(A_idx4[i]);
+				GMRFLib_idx_free(A_idx_block[i]);
 			}
-			Free(A_idx4);
+			Free(A_idx_block);
 		}
 
 	} else {

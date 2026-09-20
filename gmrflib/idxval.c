@@ -1237,6 +1237,22 @@ int GMRFLib_idxval_find(int *id, double *val, GMRFLib_idxval_tp *h)
 	return -1;
 }
 
+void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h) 
+{
+	if (!h)
+		return;
+
+	int j = 0;
+	for(int i = 1; i < h->n; i++) {
+		if (h->idx[i] > h->idx[j]) {
+			h->idx[++j] = h->idx[i];
+		}
+	}
+	h->n = j;
+}
+
+	
+
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
 	if (!h)
@@ -1614,10 +1630,10 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *RESTRICT idx)
 	bm->len = bm->high - bm->low + 1;
 	bm->ulen = (size_t) bm->len;
 
-	// len divided by 64, plus 1 for padding
-	int size = (bm->len >> 6) + 1;
+	// len divided by 64, plus 1 if there is a reminder
+	int size = (bm->len >> 6) + (bm->len & 63 ? 1 : 0);
 	bm->bitmap = Calloc(size, size_t);
-
+	// printf("bitmap: using %f Mb\n", size * sizeof(size_t) / SQR(1024.0));
 	for (int i = 0; i < bm->n; i++) {
 		int ix = idx[i] - bm->low;
 		// ix >> 6 is division by 64, ix & 63 is modulo 64.
