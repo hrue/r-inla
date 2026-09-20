@@ -128,7 +128,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 #undef MEASURE_TIME
 #if defined(MEASURE_TIME)
-	static double tref[10] = { 0 };
+	static double tref[10] = { 0.0 };
 	static double trefc = 0.0;
 	tref[0] -= GMRFLib_timer();
 #endif
@@ -235,11 +235,12 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	GMRFLib_exp(upper - lower + 1, c->w + lower, c->res + lower);
 	double sum_w = GMRFLib_dsum(upper - lower + 1, c->res + lower);
 
-	for (int i = 0; i < n; i++) {
-		ldens[i] = -pow(mu[i], p2) / (phi * p2);       // y == 0
-		ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
-	}
-
+	// this function vectorize, and is a replacement for
+	// for (int i = 0; i < n; i++) {
+	//     ldens[i] = -pow(mu[i], p2) / (phi * p2);
+	//     ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
+	inla_llike_tweedie2_1(n, p1, p2, phi, y, ly, sum_w, w_max, mu, ldens);
+	
 #if defined(MEASURE_TIME)
 	tref[2] += GMRFLib_timer();
 	trefc++;

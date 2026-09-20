@@ -30,15 +30,19 @@ void inla_llike_nbinomial_2(const int m, const double d1, const double d2, const
 void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y);
 void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, double *RESTRICT x, double *RESTRICT y);
 
-// we chose here if to use the faster approximation to 'lgamma()', that is slightly less accurate
-#       if 1
-#              define LGAMMAfn(x_) inla_lgamma_fast(x_)
-#              define LGAMMAfn_m(m_, x_, r_) inla_lgamma_fast_m((size_t) (m_), x_, r_)
-#              define GAMMAfn(x_) inla_gamma_fast(x_)
-#       else
+void inla_llike_tweedie2_1(const int n, const double p1, const double p2, const double phi, const double y, const double ly, const double sum_w,
+			   const double w_max, double *RESTRICT mu, double *RESTRICT ldens);
+
+// define 'INLA_WITHOUT_FAST_LGAMMA' to use the libm-versions: lgamma() instead of the faster approximation that is slightly less
+// accurate
+#       if defined(INLA_WITHOUT_FAST_LGAMMA)
 #              define LGAMMAfn(x_) inla_lgamma(x_)
 #              define LGAMMAfn_m(m_, x_, r_) inla_lgamma_m((size_t) (m_), x_, r_)
 #              define GAMMAfn(x_) inla_gamma(x_)
+#       else
+#              define LGAMMAfn(x_) inla_lgamma_fast(x_)
+#              define LGAMMAfn_m(m_, x_, r_) inla_lgamma_fast_m((size_t) (m_), x_, r_)
+#              define GAMMAfn(x_) inla_gamma_fast(x_)
 #       endif
 
 #       define LBETAfn(a_, b_) inla_lbeta(a_, b_)

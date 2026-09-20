@@ -13,7 +13,8 @@ double inla_compute_saturated_loglik_core(int thread_id, int *lcache_idx, int id
 {
 	double prec_high = 1.0E4, prec_low = 1.0 / prec_high, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
-	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3] = { 0.0, 0.0, 0.0 }, arr_old[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3] = { 0.0 };
+	double arr_old[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
 	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
@@ -2333,7 +2334,7 @@ int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	double mix_b, qmix_b = ds->data_observations.bgev_qmix[1];
 
 	double ab = ds->data_observations.bgev_beta_ab;
-	static double count[3] = { 0.0, 0.0, 0.0 };
+	static double count[3] = { 0.0 };
 
 	if (ab != 5.0) {
 		static char first = 1;

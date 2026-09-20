@@ -1563,7 +1563,7 @@ int GMRFLib_dscale_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0};
 
 		a = GMRFLib_uniform();
 		aa = 1.0 / a;
@@ -1734,7 +1734,7 @@ int GMRFLib_daxpy_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0 };
 
 		a = GMRFLib_uniform();
 		aa = 1.0 / a;
@@ -1832,7 +1832,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0 };
 
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();

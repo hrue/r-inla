@@ -393,7 +393,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 
 		if (debug) {
 			// check that we have done it right...
-			double mom[4] = { 0, 0, 0, 0 }, negative = 0;
+			double mom[4] = { 0.0 }, negative = 0;
 			for (i = 0; i < len; i++) {
 				mom[0] += y[i];
 				mom[1] += y[i] * x[i];
